@@ -1,0 +1,66 @@
+import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+
+class FilterChipWidget extends StatelessWidget {
+  const FilterChipWidget({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    this.selectedColor = AppColors.charcoal,
+    this.selectedTextColor = AppColors.warmWhite,
+    this.unselectedTextColor,
+    this.unselectedBgColor,
+    this.borderColor,
+    this.textStyle,
+    this.padding,
+    super.key,
+  });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final Color selectedColor;
+  final Color selectedTextColor;
+  final Color? unselectedTextColor;
+  final Color? unselectedBgColor;
+  final Color? borderColor;
+  final TextStyle? textStyle;
+  final EdgeInsets? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultUnselectedBg = unselectedBgColor ??
+        (isDark ? AppColors.obsidianBg : AppColors.warmWhite);
+    final defaultBorder = borderColor ??
+        (isDark ? AppColors.slateBorder : AppColors.warmBorder);
+    final defaultUnselectedText = unselectedTextColor ??
+        (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: padding ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? selectedColor : defaultUnselectedBg,
+          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          border: Border.all(
+            color: isSelected ? selectedColor : defaultBorder,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Text(
+          label,
+          style: textStyle ??
+              AppTypography.caption.copyWith(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? selectedTextColor : defaultUnselectedText,
+              ),
+        ),
+      ),
+    );
+  }
+}

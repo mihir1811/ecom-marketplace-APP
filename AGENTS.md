@@ -2,6 +2,23 @@
 
 This repository contains reusable AI agents and Agent Skills for specialized workflows, Flutter development, and project context.
 
+## CRITICAL: MINIMAL OUTPUT POLICY
+
+Your primary job is to execute tasks, not narrate them.
+
+Unless explicitly requested by the user:
+- DO NOT explain code.
+- DO NOT explain your reasoning.
+- DO NOT announce planned actions.
+- DO NOT provide progress commentary.
+- DO NOT provide implementation walkthroughs.
+- DO NOT generate verbose summaries.
+- DO NOT repeat information already visible in the code or task.
+
+Work silently and return only a concise final result.
+
+This communication policy applies to every task and takes priority over default conversational verbosity.
+
 ## AI Environment Directories
 
 Use only the agents and skills native to the currently active environment:

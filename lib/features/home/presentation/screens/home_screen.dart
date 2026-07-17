@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -11,7 +13,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -137,7 +138,7 @@ class HomeScreen extends StatelessWidget {
                   Row(
                     children: [
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => context.push(AppRouteNames.diamonds),
                         child: const Text('Explore Diamonds'),
                       ),
                       const SizedBox(width: AppSpacing.s12),
@@ -195,6 +196,7 @@ class HomeScreen extends StatelessWidget {
                         title: 'Diamonds',
                         desc: 'Certified natural and lab grown stones.',
                         icon: Icons.diamond_outlined,
+                        onTap: () => context.push(AppRouteNames.diamonds),
                       ),
                       _CategoryCard(
                         title: 'Gemstones',
@@ -289,54 +291,59 @@ class _CategoryCard extends StatelessWidget {
   final String title;
   final String desc;
   final IconData icon;
+  final VoidCallback? onTap;
 
   const _CategoryCard({
     required this.title,
     required this.desc,
     required this.icon,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
-        boxShadow: AppShadows.cardLight,
-      ),
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.s8),
-            decoration: const BoxDecoration(
-              color: AppColors.creamBg,
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppSpacing.r12),
+          border: Border.all(color: AppColors.warmBorder),
+          boxShadow: AppShadows.cardLight,
+        ),
+        padding: const EdgeInsets.all(AppSpacing.s16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.s8),
+              decoration: const BoxDecoration(
+                color: AppColors.creamBg,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: AppColors.bronze, size: 24),
             ),
-            child: Icon(icon, color: AppColors.bronze, size: 24),
-          ),
-          const Spacer(),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+            const Spacer(),
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.s4),
-          Text(
-            desc,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondaryLight,
-              height: 1.3,
+            const SizedBox(height: AppSpacing.s4),
+            Text(
+              desc,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondaryLight,
+                height: 1.3,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
