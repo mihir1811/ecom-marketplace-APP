@@ -6,11 +6,16 @@ import '../../../../core/theme/app_typography.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_filter_state.dart';
 
-class ClarityCardsSection extends ConsumerWidget {
+class ClarityCardsSection extends ConsumerStatefulWidget {
   const ClarityCardsSection({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ClarityCardsSection> createState() => _ClarityCardsSectionState();
+}
+
+class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -19,52 +24,11 @@ class ClarityCardsSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Clarity',
-                  style: AppTypography.label.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Tooltip(
-                  message:
-                      "Filter by clarity grades representing the presence of internal inclusions.",
-                  triggerMode: TooltipTriggerMode.tap,
-                  preferBelow: false,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  textStyle: const TextStyle(color: Colors.white, fontSize: 11),
-                  child: const Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: AppColors.bronze,
-                  ),
-                ),
-              ],
-            ),
-            TextButton(
-              onPressed: () => notifier.selectAllClarityGrades(),
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(60, 24),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Text(
-                '',
-                // style: AppTypography.caption.copyWith(
-                //   color: AppColors.bronze,
-                //   fontWeight: FontWeight.bold,
-                // ),
-              ),
-            ),
-          ],
+        Text(
+          'Clarity',
+          style: AppTypography.label.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: AppSpacing.s8),
         GridView.builder(
@@ -81,7 +45,7 @@ class ClarityCardsSection extends ConsumerWidget {
             final grade = DiamondFilterState.clarities[index];
             final isSelected = state.selectedClarityGrades.contains(grade);
             return GestureDetector(
-              onTap: () => notifier.toggleClarityGradeGroup([grade]),
+              onTap: () => notifier.toggleClarityGradeGroup(grade),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 alignment: Alignment.center,

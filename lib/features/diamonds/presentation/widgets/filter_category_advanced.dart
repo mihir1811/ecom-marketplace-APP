@@ -4,140 +4,201 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/diamond_search_provider.dart';
-import 'filter_section_header.dart';
-import 'filter_boolean_checkbox.dart';
+import '../../domain/models/diamond_filter_state.dart';
+import 'filter_advanced_range_input.dart';
+import 'filter_scrollable_chips.dart';
 
-class FilterCategoryAdvanced extends ConsumerWidget {
+class FilterCategoryAdvanced extends ConsumerStatefulWidget {
   const FilterCategoryAdvanced({
-    required this.companyController,
+    this.expandAdvanced = false,
     super.key,
   });
 
-  final TextEditingController companyController;
+  final bool expandAdvanced;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FilterCategoryAdvanced> createState() =>
+      _FilterCategoryAdvancedState();
+}
+
+class _FilterCategoryAdvancedState extends ConsumerState<FilterCategoryAdvanced> {
+  bool _isExpanded = false;
+
+  @override
+  void didUpdateWidget(covariant FilterCategoryAdvanced oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.expandAdvanced && !oldWidget.expandAdvanced) {
+      setState(() => _isExpanded = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
 
     return RepaintBoundary(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const FilterSectionHeader(
-            title: 'Minimum Seller Rating',
-            infoText: 'Filter diamonds based on vendor rating stars.',
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          Row(
-            children: [
-              Expanded(
-                child: SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: AppColors.bronze,
-                    inactiveTrackColor: borderColor,
-                    thumbColor: AppColors.bronze,
-                    overlayColor: AppColors.bronze.withOpacity(0.12),
-                    valueIndicatorColor: AppColors.charcoal,
-                    valueIndicatorTextStyle: const TextStyle(
-                      color: AppColors.warmWhite,
-                      fontSize: 10,
-                    ),
-                  ),
-                  child: Slider(
-                    value: state.minSellerRating,
-                    min: 0.0,
-                    max: 5.0,
-                    divisions: 10,
-                    label: state.minSellerRating == 0.0
-                        ? 'Any'
-                        : '${state.minSellerRating.toStringAsFixed(1)}★ & up',
-                    onChanged: (val) => ref.read(diamondSearchProvider.notifier).updateSellerRating(val),
+          if (!_isExpanded)
+            GestureDetector(
+              onTap: () => setState(() => _isExpanded = true),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.charcoalDark : AppColors.creamBg,
+                  borderRadius: BorderRadius.circular(AppSpacing.r8),
+                  border: Border.all(
+                    color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
                   ),
                 ),
-              ),
-              SizedBox(
-                width: 48,
-                child: Text(
-                  state.minSellerRating == 0.0
-                      ? 'Any'
-                      : '${state.minSellerRating.toStringAsFixed(1)}★',
-                  style: AppTypography.label.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.bronze,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.s20),
-
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const FilterSectionHeader(
-                      title: 'Company Name',
-                      infoText: 'Search for diamonds supplied by a specific company name.',
+                    Text(
+                      'View Advanced Filters',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.bronze,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.s4),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 38,
-                            child: TextField(
-                              controller: companyController,
-                              style: AppTypography.caption,
-                              decoration: InputDecoration(
-                                hintText: 'Search by company name',
-                                filled: true,
-                                fillColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.s4),
-                        SizedBox(
-                          height: 38,
-                          width: 50,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              backgroundColor: AppColors.charcoal,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                            ),
-                            onPressed: () {
-                              ref.read(diamondSearchProvider.notifier).updateCompanyNameSearch(companyController.text);
-                            },
-                            child: const Text('Add', style: TextStyle(fontSize: 10)),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.keyboard_arrow_down,
+                      color: AppColors.bronze,
+                      size: 18,
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.s20),
+            ),
 
-          FilterBooleanCheckbox(
-            label: 'Sellers with HD Video only',
-            value: state.sellersWithVideo,
-            onChanged: (_) => ref.read(diamondSearchProvider.notifier).toggleSellersWithVideo(),
-          ),
-          const SizedBox(height: AppSpacing.s4),
-          FilterBooleanCheckbox(
-            label: 'Sellers with Images only',
-            value: state.sellersWithImages,
-            onChanged: (_) => ref.read(diamondSearchProvider.notifier).toggleSellersWithImages(),
-          ),
+          if (_isExpanded) ...[
+            FilterAdvancedRangeInput(
+              title: 'Table Percentage',
+              currentMin: state.minTable,
+              currentMax: state.maxTable,
+              minLimit: 0.0,
+              maxLimit: 100.0,
+              unit: '%',
+              infoText: 'Filter by table width percentage relative to total diameter.',
+              onMinChanged: (v) => ref.read(diamondSearchProvider.notifier).updateTableRange(v, state.maxTable),
+              onMaxChanged: (v) => ref.read(diamondSearchProvider.notifier).updateTableRange(state.minTable, v),
+            ),
+            const SizedBox(height: AppSpacing.s16),
+            FilterAdvancedRangeInput(
+              title: 'Depth Percentage',
+              currentMin: state.minDepth,
+              currentMax: state.maxDepth,
+              minLimit: 0.0,
+              maxLimit: 100.0,
+              unit: '%',
+              infoText: 'Filter by total depth percentage relative to total diameter.',
+              onMinChanged: (v) => ref.read(diamondSearchProvider.notifier).updateDepthRange(v, state.maxDepth),
+              onMaxChanged: (v) => ref.read(diamondSearchProvider.notifier).updateDepthRange(state.minDepth, v),
+            ),
+            const SizedBox(height: AppSpacing.s16),
+            FilterAdvancedRangeInput(
+              title: 'Crown Angle Range',
+              currentMin: state.minCrownAngle,
+              currentMax: state.maxCrownAngle,
+              minLimit: 0.0,
+              maxLimit: 100.0,
+              unit: '°',
+              infoText: 'Filter by average crown facet angle.',
+              onMinChanged: (v) => ref.read(diamondSearchProvider.notifier).updateCrownAngleRange(v, state.maxCrownAngle),
+              onMaxChanged: (v) => ref.read(diamondSearchProvider.notifier).updateCrownAngleRange(state.minCrownAngle, v),
+            ),
+            const SizedBox(height: AppSpacing.s16),
+            FilterAdvancedRangeInput(
+              title: 'Crown Height Range',
+              currentMin: state.minCrownHeight,
+              currentMax: state.maxCrownHeight,
+              minLimit: 0.0,
+              maxLimit: 100.0,
+              unit: '%',
+              infoText: 'Filter by crown height relative to total depth.',
+              onMinChanged: (v) => ref.read(diamondSearchProvider.notifier).updateCrownHeightRange(v, state.maxCrownHeight),
+              onMaxChanged: (v) => ref.read(diamondSearchProvider.notifier).updateCrownHeightRange(state.minCrownHeight, v),
+            ),
+            const SizedBox(height: AppSpacing.s16),
+            FilterAdvancedRangeInput(
+              title: 'Pavilion Angle Range',
+              currentMin: state.minPavilionAngle,
+              currentMax: state.maxPavilionAngle,
+              minLimit: 0.0,
+              maxLimit: 100.0,
+              unit: '°',
+              infoText: 'Filter by average pavilion facet angle.',
+              onMinChanged: (v) => ref.read(diamondSearchProvider.notifier).updatePavilionAngleRange(v, state.maxPavilionAngle),
+              onMaxChanged: (v) => ref.read(diamondSearchProvider.notifier).updatePavilionAngleRange(state.minPavilionAngle, v),
+            ),
+            const SizedBox(height: AppSpacing.s16),
+            FilterAdvancedRangeInput(
+              title: 'Pavilion Depth Range',
+              currentMin: state.minPavilionDepth,
+              currentMax: state.maxPavilionDepth,
+              minLimit: 0.0,
+              maxLimit: 100.0,
+              unit: '%',
+              infoText: 'Filter by pavilion depth relative to total depth.',
+              onMinChanged: (v) => ref.read(diamondSearchProvider.notifier).updatePavilionDepthRange(v, state.maxPavilionDepth),
+              onMaxChanged: (v) => ref.read(diamondSearchProvider.notifier).updatePavilionDepthRange(state.minPavilionDepth, v),
+            ),
+            const SizedBox(height: AppSpacing.s20),
+            FilterScrollableChips(
+              title: 'Girdle',
+              options: DiamondFilterState.girdles,
+              selectedItems: state.selectedGirdles,
+              onToggle: (val) => ref.read(diamondSearchProvider.notifier).toggleGirdle(val),
+              infoText: "Filter by thickness of the girdle rim.",
+            ),
+            const SizedBox(height: AppSpacing.s20),
+            FilterScrollableChips(
+              title: 'Culet Size',
+              options: DiamondFilterState.culets,
+              selectedItems: state.selectedCulets,
+              onToggle: (val) => ref.read(diamondSearchProvider.notifier).toggleCulet(val),
+              infoText: "Filter by size of the culet facet.",
+            ),
+            const SizedBox(height: AppSpacing.s16),
+            GestureDetector(
+              onTap: () => setState(() => _isExpanded = false),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.charcoalDark : AppColors.creamBg,
+                  borderRadius: BorderRadius.circular(AppSpacing.r8),
+                  border: Border.all(
+                    color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Hide Advanced Filters',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.bronze,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.keyboard_arrow_up,
+                      color: AppColors.bronze,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

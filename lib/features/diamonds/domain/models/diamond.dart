@@ -16,6 +16,7 @@ class Diamond {
   final bool hasVideo;
   final bool hasImage;
   final double? discount;
+  final bool isLabGrown;
 
   const Diamond({
     required this.id,
@@ -35,6 +36,7 @@ class Diamond {
     this.hasVideo = false,
     this.hasImage = false,
     this.discount,
+    this.isLabGrown = false,
   });
 
   Diamond copyWith({
@@ -55,6 +57,7 @@ class Diamond {
     bool? hasVideo,
     bool? hasImage,
     double? discount,
+    bool? isLabGrown,
   }) {
     return Diamond(
       id: id ?? this.id,
@@ -74,6 +77,7 @@ class Diamond {
       hasVideo: hasVideo ?? this.hasVideo,
       hasImage: hasImage ?? this.hasImage,
       discount: discount ?? this.discount,
+      isLabGrown: isLabGrown ?? this.isLabGrown,
     );
   }
 }

@@ -38,18 +38,24 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
   @override
   void initState() {
     super.initState();
-    _minController = TextEditingController(text: widget.currentMin.toStringAsFixed(1));
-    _maxController = TextEditingController(text: widget.currentMax.toStringAsFixed(1));
+    _minController = TextEditingController();
+    _maxController = TextEditingController();
   }
 
   @override
   void didUpdateWidget(covariant FilterAdvancedRangeInput oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (double.tryParse(_minController.text) != widget.currentMin) {
-      _minController.text = widget.currentMin.toStringAsFixed(1);
+    if (oldWidget.currentMin != widget.currentMin && _minController.text.isNotEmpty) {
+      final oldParsed = double.tryParse(_minController.text);
+      if (oldParsed == oldWidget.currentMin) {
+        _minController.text = widget.currentMin.toStringAsFixed(1);
+      }
     }
-    if (double.tryParse(_maxController.text) != widget.currentMax) {
-      _maxController.text = widget.currentMax.toStringAsFixed(1);
+    if (oldWidget.currentMax != widget.currentMax && _maxController.text.isNotEmpty) {
+      final oldParsed = double.tryParse(_maxController.text);
+      if (oldParsed == oldWidget.currentMax) {
+        _maxController.text = widget.currentMax.toStringAsFixed(1);
+      }
     }
   }
 
@@ -61,6 +67,10 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
   }
 
   void _handleMinSubmitted(String text) {
+    if (text.trim().isEmpty) {
+      widget.onMinChanged(widget.minLimit);
+      return;
+    }
     final parsed = double.tryParse(text) ?? widget.minLimit;
     final clamped = parsed.clamp(widget.minLimit, widget.currentMax);
     widget.onMinChanged(clamped);
@@ -68,6 +78,10 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
   }
 
   void _handleMaxSubmitted(String text) {
+    if (text.trim().isEmpty) {
+      widget.onMaxChanged(widget.maxLimit);
+      return;
+    }
     final parsed = double.tryParse(text) ?? widget.maxLimit;
     final clamped = parsed.clamp(widget.currentMin, widget.maxLimit);
     widget.onMaxChanged(clamped);
@@ -96,7 +110,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                 color: Colors.black.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(6),
               ),
-              textStyle: const TextStyle(color: Colors.white, fontSize: 11),
+              textStyle: const TextStyle(color: Colors.white, fontSize: 13),
               child: const Icon(
                 Icons.info_outline,
                 size: 16,
@@ -112,7 +126,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Minimum', style: TextStyle(fontSize: 9, color: isDark ? Colors.white60 : Colors.black54)),
+                  Text('Minimum', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.black54)),
                   const SizedBox(height: 2),
                   SizedBox(
                     height: 38,
@@ -127,6 +141,10 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         style: AppTypography.caption,
                         decoration: InputDecoration(
+                          hintText: widget.minLimit.toStringAsFixed(1),
+                          hintStyle: AppTypography.caption.copyWith(
+                            color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                          ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
                           filled: true,
@@ -144,7 +162,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Maximum', style: TextStyle(fontSize: 9, color: isDark ? Colors.white60 : Colors.black54)),
+                  Text('Maximum', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.black54)),
                   const SizedBox(height: 2),
                   SizedBox(
                     height: 38,
@@ -159,6 +177,10 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         style: AppTypography.caption,
                         decoration: InputDecoration(
+                          hintText: widget.maxLimit.toStringAsFixed(1),
+                          hintStyle: AppTypography.caption.copyWith(
+                            color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                          ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
                           filled: true,

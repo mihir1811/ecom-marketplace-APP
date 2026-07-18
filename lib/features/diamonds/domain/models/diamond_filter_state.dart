@@ -1,10 +1,13 @@
 /// Enum representing the type of diamond origin.
 enum LabNaturalType {
   natural('Natural Diamond'),
+  /// Melee / sieve lot filters on the natural diamond finder (not the lab-grown catalog).
   labGrown('Natural Melee');
 
   final String label;
   const LabNaturalType(this.label);
+
+  bool get usesMeleeFilters => this == LabNaturalType.labGrown;
 }
 
 /// Immutable state holding all search and filter values for the diamond search screen.
@@ -44,6 +47,7 @@ class DiamondFilterState {
     'VS2',
     'SI1',
     'SI2',
+    'SI3',
     'I1',
     'I2',
     'I3',
@@ -98,8 +102,31 @@ class DiamondFilterState {
     'Violet',
     'Grey',
     'Black',
-    'other',
+    'Multi',
   ];
+
+  /// Fancy colors on the lab-grown catalog.
+  static const List<String> labFancyColors = [
+    'Yellow',
+    'Orange',
+    'Blue',
+    'Red',
+    'Pink',
+    'Green',
+    'olive',
+    'Brown',
+    'Purple',
+    'Violet',
+    'Grey',
+    'Black',
+    'Multi',
+  ];
+
+  /// Lab-grown catalog categories (single-select switch).
+  static const List<String> labCategories = ['Lab Diamond', 'Lab Melee'];
+
+  /// Lab-grown growth methods (multi-select).
+  static const List<String> growthMethods = ['CVD', 'HPHT'];
   static const List<String> overtones = [
     'Yellow',
     'Yellowish',
@@ -610,6 +637,8 @@ class DiamondFilterState {
 
   const DiamondFilterState({
     this.labNatural = LabNaturalType.natural,
+    this.labCategory = 'Lab Diamond',
+    this.selectedGrowthMethods = const [],
     this.shapes = const [],
     this.minPrice = 0.0,
     this.maxPrice = 1000000.0,
@@ -636,6 +665,7 @@ class DiamondFilterState {
     this.threeEx = false,
     this.sellersWithVideo = false,
     this.sellersWithImages = false,
+    this.searchByMedia = false,
     this.selectedPolish = const [],
     this.selectedSymmetry = const [],
     this.selectedFluorescence = const [],
@@ -674,6 +704,15 @@ class DiamondFilterState {
     this.selectedGirdles = const [],
     this.selectedCulets = const [],
     this.selectedOrigin,
+    this.selectedSieveIndices = const [],
+    this.activeSievePresets = const [],
+    // Natural Melee Pcs range filters
+    this.minCaratPerPcs = 0.16,
+    this.maxCaratPerPcs = 100.0,
+    this.minPricePerPcs = 0.0,
+    this.maxPricePerPcs = 200000.0,
+    this.minTotalPcs = 1.0,
+    this.maxTotalPcs = 1000000.0,
     // Deprecated but kept for safety/backward compatibility
     this.minGirdle = 0.0,
     this.maxGirdle = 10.0,
@@ -682,6 +721,13 @@ class DiamondFilterState {
   });
 
   final LabNaturalType labNatural;
+
+  /// Lab-grown catalog only: active category (Lab Diamond / Lab Melee switch).
+  final String labCategory;
+
+  /// Lab-grown catalog only: selected growth methods (CVD / HPHT).
+  final List<String> selectedGrowthMethods;
+
   final List<String> shapes;
   final double minPrice;
   final double maxPrice;
@@ -708,6 +754,7 @@ class DiamondFilterState {
   final bool threeEx;
   final bool sellersWithVideo;
   final bool sellersWithImages;
+  final bool searchByMedia;
   final List<String> selectedPolish;
   final List<String> selectedSymmetry;
   final List<String> selectedFluorescence;
@@ -748,6 +795,18 @@ class DiamondFilterState {
   final List<String> selectedCulets;
   final String? selectedOrigin;
 
+  // Sieve Size selection
+  final List<int> selectedSieveIndices;
+  final List<String> activeSievePresets;
+
+  // Natural Melee Pcs range filters
+  final double minCaratPerPcs;
+  final double maxCaratPerPcs;
+  final double minPricePerPcs;
+  final double maxPricePerPcs;
+  final double minTotalPcs;
+  final double maxTotalPcs;
+
   // Deprecated/Compatibility fields
   final double minGirdle;
   final double maxGirdle;
@@ -756,6 +815,8 @@ class DiamondFilterState {
 
   DiamondFilterState copyWith({
     LabNaturalType? labNatural,
+    String? labCategory,
+    List<String>? selectedGrowthMethods,
     List<String>? shapes,
     double? minPrice,
     double? maxPrice,
@@ -782,6 +843,7 @@ class DiamondFilterState {
     bool? threeEx,
     bool? sellersWithVideo,
     bool? sellersWithImages,
+    bool? searchByMedia,
     List<String>? selectedPolish,
     List<String>? selectedSymmetry,
     List<String>? selectedFluorescence,
@@ -819,6 +881,14 @@ class DiamondFilterState {
     List<String>? selectedGirdles,
     List<String>? selectedCulets,
     String? selectedOrigin,
+    List<int>? selectedSieveIndices,
+    List<String>? activeSievePresets,
+    double? minCaratPerPcs,
+    double? maxCaratPerPcs,
+    double? minPricePerPcs,
+    double? maxPricePerPcs,
+    double? minTotalPcs,
+    double? maxTotalPcs,
     double? minGirdle,
     double? maxGirdle,
     double? minCulet,
@@ -826,6 +896,9 @@ class DiamondFilterState {
   }) {
     return DiamondFilterState(
       labNatural: labNatural ?? this.labNatural,
+      labCategory: labCategory ?? this.labCategory,
+      selectedGrowthMethods:
+          selectedGrowthMethods ?? this.selectedGrowthMethods,
       shapes: shapes ?? this.shapes,
       minPrice: minPrice ?? this.minPrice,
       maxPrice: maxPrice ?? this.maxPrice,
@@ -855,6 +928,7 @@ class DiamondFilterState {
       threeEx: threeEx ?? this.threeEx,
       sellersWithVideo: sellersWithVideo ?? this.sellersWithVideo,
       sellersWithImages: sellersWithImages ?? this.sellersWithImages,
+      searchByMedia: searchByMedia ?? this.searchByMedia,
       selectedPolish: selectedPolish ?? this.selectedPolish,
       selectedSymmetry: selectedSymmetry ?? this.selectedSymmetry,
       selectedFluorescence: selectedFluorescence ?? this.selectedFluorescence,
@@ -894,6 +968,14 @@ class DiamondFilterState {
       selectedGirdles: selectedGirdles ?? this.selectedGirdles,
       selectedCulets: selectedCulets ?? this.selectedCulets,
       selectedOrigin: selectedOrigin ?? this.selectedOrigin,
+      selectedSieveIndices: selectedSieveIndices ?? this.selectedSieveIndices,
+      activeSievePresets: activeSievePresets ?? this.activeSievePresets,
+      minCaratPerPcs: minCaratPerPcs ?? this.minCaratPerPcs,
+      maxCaratPerPcs: maxCaratPerPcs ?? this.maxCaratPerPcs,
+      minPricePerPcs: minPricePerPcs ?? this.minPricePerPcs,
+      maxPricePerPcs: maxPricePerPcs ?? this.maxPricePerPcs,
+      minTotalPcs: minTotalPcs ?? this.minTotalPcs,
+      maxTotalPcs: maxTotalPcs ?? this.maxTotalPcs,
       minGirdle: minGirdle ?? this.minGirdle,
       maxGirdle: maxGirdle ?? this.maxGirdle,
       minCulet: minCulet ?? this.minCulet,

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_shadows.dart';
 import 'diamond_svg_data.dart';
 
 /// Enum representing all supported diamond shape types.
@@ -470,50 +469,39 @@ class DiamondShapeCard extends StatelessWidget {
 
     final activeColor = AppColors.bronze;
     final inactiveBorderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
-    final inactiveBgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
 
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark ? AppColors.charcoalLight : AppColors.creamBg)
-              : inactiveBgColor,
+          color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
           borderRadius: const BorderRadius.all(Radius.circular(60.0)),
           border: Border.all(
             color: isSelected ? activeColor : inactiveBorderColor,
             width: isSelected ? 2.0 : 1.0,
           ),
-          boxShadow: isSelected ? AppShadows.cardLight : AppShadows.none,
         ),
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.s24, horizontal: AppSpacing.s12),
         child: Column(
           children: [
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(AppSpacing.s8),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.black12 : AppColors.sandSurface.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: imagePath != null
-                      ? Image.asset(
-                          imagePath!,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => renderShapeSvg(
-                            name,
-                            size: 48,
-                            color: isSelected ? activeColor : AppColors.bronzeLight,
-                          ),
-                        )
-                      : renderShapeSvg(
+              child: Center(
+                child: imagePath != null
+                    ? Image.asset(
+                        imagePath!,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => renderShapeSvg(
                           name,
                           size: 48,
                           color: isSelected ? activeColor : AppColors.bronzeLight,
                         ),
-                ),
+                      )
+                    : renderShapeSvg(
+                        name,
+                        size: 48,
+                        color: isSelected ? activeColor : AppColors.bronzeLight,
+                      ),
               ),
             ),
             const SizedBox(height: AppSpacing.s16),

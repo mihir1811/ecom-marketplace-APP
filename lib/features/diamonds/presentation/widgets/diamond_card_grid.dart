@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -21,8 +22,10 @@ class DiamondCardGrid extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
     final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
-    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final textColor =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final mutedColor =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
 
     return GestureDetector(
       onTap: onTap,
@@ -36,109 +39,132 @@ class DiamondCardGrid extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Stack(
-              children: [
-                AspectRatio(
-                  aspectRatio: 1.0,
-                  child: Container(
-                    color: isDark ? AppColors.charcoalLight : AppColors.sandSurface,
-                    child: Center(
-                      child: renderShapeSvg(
-                        diamond.shape,
-                        size: 56,
-                        color: AppColors.bronze,
-                      ),
-                    ),
-                  ),
-                ),
-                if (diamond.discount != null && diamond.discount! > 0)
-                  Positioned(
-                    top: AppSpacing.s8,
-                    left: AppSpacing.s8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.s8,
-                        vertical: AppSpacing.s4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.terracotta,
-                        borderRadius: BorderRadius.circular(AppSpacing.r4),
-                      ),
-                      child: Text(
-                        '-${diamond.discount!.round()}%',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.warmWhite,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 9,
-                        ),
-                      ),
-                    ),
-                  ),
-                if (diamond.hasVideo)
-                  const Positioned(
-                    top: AppSpacing.s8,
-                    right: AppSpacing.s8,
-                    child: Icon(
-                      Icons.play_circle_fill,
-                      color: AppColors.bronze,
-                      size: 18,
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.s12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            AspectRatio(
+              aspectRatio: 1.15,
+              child: Stack(
                 children: [
-                  Text(
-                    '\$${_formatPrice(diamond.price)}',
-                    style: AppTypography.title.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s4),
-                  Text(
-                    '${diamond.carat}ct ${diamond.shape}',
-                    style: AppTypography.body.copyWith(
-                      color: mutedColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: AppSpacing.s4),
-                  Row(
-                    children: [
-                      _specChip(diamond.cut, context),
-                      const SizedBox(width: AppSpacing.s4),
-                      _specChip(diamond.color, context),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.s4),
-                  Row(
-                    children: [
-                      Text(
-                        diamond.clarity,
-                        style: AppTypography.caption.copyWith(
-                          color: mutedColor,
-                          fontWeight: FontWeight.w600,
+                  Positioned.fill(
+                    child: Container(
+                      color: isDark
+                          ? AppColors.charcoalLight
+                          : AppColors.sandSurface,
+                      child: Center(
+                        child: renderShapeSvg(
+                          diamond.shape,
+                          size: 48,
+                          color: AppColors.bronze,
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.s8),
-                      Text(
-                        diamond.certificate,
-                        style: AppTypography.caption.copyWith(
-                          color: mutedColor,
+                    ),
+                  ),
+                  if (diamond.discount != null && diamond.discount! > 0)
+                    Positioned(
+                      top: AppSpacing.s8,
+                      right: AppSpacing.s8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s8,
+                          vertical: AppSpacing.s4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.terracotta,
+                          borderRadius: BorderRadius.circular(AppSpacing.r4),
+                        ),
+                        child: Text(
+                          '-${diamond.discount!.round()}%',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.warmWhite,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  if (diamond.hasVideo)
+                    const Positioned(
+                      top: AppSpacing.s8,
+                      left: AppSpacing.s8,
+                      child: Icon(
+                        Icons.play_circle_fill,
+                        color: AppColors.bronze,
+                        size: 18,
+                      ),
+                    ),
                 ],
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s12,
+                  AppSpacing.s8,
+                  AppSpacing.s12,
+                  AppSpacing.s8,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '\$${_formatPrice(diamond.price)}',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ).copyWith(color: textColor),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${diamond.carat}ct ${diamond.shape}',
+                      style: AppTypography.caption.copyWith(
+                        color: mutedColor,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Flexible(child: _specChip(diamond.cut, context)),
+                        const SizedBox(width: AppSpacing.s4),
+                        Flexible(child: _specChip(diamond.color, context)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            diamond.clarity,
+                            style: AppTypography.caption.copyWith(
+                              color: mutedColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.s8),
+                        Flexible(
+                          child: Text(
+                            diamond.certificate,
+                            style: AppTypography.caption.copyWith(
+                              color: mutedColor,
+                              fontSize: 11,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -151,7 +177,7 @@ class DiamondCardGrid extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s8,
-        vertical: AppSpacing.s4,
+        vertical: 2,
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -163,9 +189,11 @@ class DiamondCardGrid extends StatelessWidget {
       child: Text(
         label,
         style: AppTypography.caption.copyWith(
-          fontSize: 8,
+          fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

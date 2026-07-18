@@ -30,7 +30,7 @@ class FilterSectionHeader extends StatelessWidget {
               color: Colors.black.withOpacity(0.9),
               borderRadius: BorderRadius.circular(6),
             ),
-            textStyle: const TextStyle(color: Colors.white, fontSize: 11),
+            textStyle: const TextStyle(color: Colors.white, fontSize: 13),
             child: const Icon(
               Icons.info_outline,
               size: 16,

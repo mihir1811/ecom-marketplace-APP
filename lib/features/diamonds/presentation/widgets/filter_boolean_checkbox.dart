@@ -30,7 +30,7 @@ class FilterBooleanCheckbox extends StatelessWidget {
           child: Text(
             label,
             style: AppTypography.body.copyWith(
-              fontSize: 12,
+              fontSize: 14,
               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
             ),
           ),

@@ -60,6 +60,9 @@ flutter:
 
   assets:
     - public/images/
+    - public/images/gemstones/
+    - public/images/jewelryCategoryImages/
+    - public/images/watch_logo/
     - assets/shapes/
 
   # To add assets to your application, add an assets section, like this:

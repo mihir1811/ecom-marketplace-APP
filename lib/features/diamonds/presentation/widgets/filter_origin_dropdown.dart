@@ -10,12 +10,30 @@ class FilterOriginDropdown extends StatelessWidget {
     required this.selectedOrigin,
     required this.onSelected,
     required this.isDark,
+    this.title = 'Origin Country',
+    this.hint = 'Select origin country',
+    this.infoText = "Filter by the diamond's mined origin country.",
+    this.pickerTitle = 'Select Origin Country',
+    this.options,
+    this.flags,
+    this.showFlags = true,
     super.key,
   });
 
   final String? selectedOrigin;
   final ValueChanged<String?> onSelected;
   final bool isDark;
+  final String title;
+  final String hint;
+  final String infoText;
+  final String pickerTitle;
+
+  /// Custom option list; defaults to the full diamond country list.
+  final List<String>? options;
+
+  /// Custom flag emoji map; defaults to the diamond country flags.
+  final Map<String, String>? flags;
+  final bool showFlags;
 
   void _showCountryPicker(BuildContext context) {
     showModalBottomSheet(
@@ -32,6 +50,10 @@ class FilterOriginDropdown extends StatelessWidget {
             Navigator.pop(context);
           },
           isDark: isDark,
+          title: pickerTitle,
+          options: options ?? DiamondFilterState.countries,
+          flags: flags ?? DiamondFilterState.countryFlags,
+          showFlags: showFlags,
         );
       },
     );
@@ -47,19 +69,19 @@ class FilterOriginDropdown extends StatelessWidget {
         Row(
           children: [
             Text(
-              'Origin Country',
+              title,
               style: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 6),
             Tooltip(
-              message: "Filter by the diamond's mined origin country.",
+              message: infoText,
               triggerMode: TooltipTriggerMode.tap,
               preferBelow: false,
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(6),
               ),
-              textStyle: const TextStyle(color: Colors.white, fontSize: 11),
+              textStyle: const TextStyle(color: Colors.white, fontSize: 13),
               child: const Icon(
                 Icons.info_outline,
                 size: 16,
@@ -84,15 +106,17 @@ class FilterOriginDropdown extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    if (selectedOrigin != null) ...[
+                    if (selectedOrigin != null && showFlags) ...[
                       Text(
-                        DiamondFilterState.countryFlags[selectedOrigin!] ?? '',
+                        (flags ?? DiamondFilterState.countryFlags)[
+                                selectedOrigin!] ??
+                            '',
                         style: const TextStyle(fontSize: 20),
                       ),
                       const SizedBox(width: 8),
                     ],
                     Text(
-                      selectedOrigin ?? 'Select origin country',
+                      selectedOrigin ?? hint,
                       style: AppTypography.body.copyWith(
                         color: selectedOrigin == null
                             ? (isDark ? Colors.white38 : Colors.black38)
@@ -115,10 +139,21 @@ class FilterOriginDropdown extends StatelessWidget {
 }
 
 class _CountryPickerModal extends StatefulWidget {
-  const _CountryPickerModal({required this.onSelected, required this.isDark});
+  const _CountryPickerModal({
+    required this.onSelected,
+    required this.isDark,
+    required this.title,
+    required this.options,
+    required this.flags,
+    required this.showFlags,
+  });
 
   final ValueChanged<String?> onSelected;
   final bool isDark;
+  final String title;
+  final List<String> options;
+  final Map<String, String> flags;
+  final bool showFlags;
 
   @override
   State<_CountryPickerModal> createState() => _CountryPickerModalState();
@@ -131,7 +166,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
   @override
   void initState() {
     super.initState();
-    _filteredCountries = DiamondFilterState.countries;
+    _filteredCountries = widget.options;
   }
 
   @override
@@ -143,9 +178,9 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
   void _filter(String q) {
     setState(() {
       if (q.trim().isEmpty) {
-        _filteredCountries = DiamondFilterState.countries;
+        _filteredCountries = widget.options;
       } else {
-        _filteredCountries = DiamondFilterState.countries
+        _filteredCountries = widget.options
             .where((c) => c.toLowerCase().contains(q.toLowerCase()))
             .toList();
       }
@@ -173,7 +208,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Select Origin Country',
+                widget.title,
                 style: AppTypography.headline.copyWith(fontWeight: FontWeight.bold),
               ),
               IconButton(
@@ -202,12 +237,15 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
               itemCount: _filteredCountries.length,
               itemBuilder: (context, index) {
                 final country = _filteredCountries[index];
-                final flag = DiamondFilterState.countryFlags[country] ?? '';
+                final flag =
+                    widget.showFlags ? (widget.flags[country] ?? '') : '';
                 return ListTile(
-                  leading: Text(
-                    flag,
-                    style: const TextStyle(fontSize: 24),
-                  ),
+                  leading: flag.isEmpty
+                      ? null
+                      : Text(
+                          flag,
+                          style: const TextStyle(fontSize: 24),
+                        ),
                   title: Text(country),
                   trailing: const Icon(Icons.chevron_right, size: 16),
                   onTap: () => widget.onSelected(country),

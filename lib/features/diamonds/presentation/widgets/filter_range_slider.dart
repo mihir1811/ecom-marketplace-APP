@@ -17,6 +17,7 @@ class FilterRangeSlider extends StatefulWidget {
     this.unitPrefix = '',
     this.unitSuffix = '',
     this.isInteger = false,
+    this.showClear = false,
     super.key,
   });
 
@@ -30,6 +31,7 @@ class FilterRangeSlider extends StatefulWidget {
   final String unitPrefix;
   final String unitSuffix;
   final bool isInteger;
+  final bool showClear;
 
   @override
   State<FilterRangeSlider> createState() => _FilterRangeSliderState();
@@ -42,21 +44,24 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
   @override
   void initState() {
     super.initState();
-    _minController = TextEditingController(text: _formatValue(widget.currentMin));
-    _maxController = TextEditingController(text: _formatValue(widget.currentMax));
+    _minController = TextEditingController();
+    _maxController = TextEditingController();
   }
 
   @override
   void didUpdateWidget(covariant FilterRangeSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Sync controllers if values updated from outside (e.g., via Clear or parent state change)
-    if (double.parse(_minController.text.replaceAll(RegExp(r'[^0-9.]'), '')) !=
-        double.parse(_formatValue(widget.currentMin).replaceAll(RegExp(r'[^0-9.]'), ''))) {
-      _minController.text = _formatValue(widget.currentMin);
+    if (oldWidget.currentMin != widget.currentMin && _minController.text.isNotEmpty) {
+      final oldParsed = double.tryParse(_minController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+      if (oldParsed == oldWidget.currentMin) {
+        _minController.text = _formatValue(widget.currentMin);
+      }
     }
-    if (double.parse(_maxController.text.replaceAll(RegExp(r'[^0-9.]'), '')) !=
-        double.parse(_formatValue(widget.currentMax).replaceAll(RegExp(r'[^0-9.]'), ''))) {
-      _maxController.text = _formatValue(widget.currentMax);
+    if (oldWidget.currentMax != widget.currentMax && _maxController.text.isNotEmpty) {
+      final oldParsed = double.tryParse(_maxController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+      if (oldParsed == oldWidget.currentMax) {
+        _maxController.text = _formatValue(widget.currentMax);
+      }
     }
   }
 
@@ -83,6 +88,10 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
   }
 
   void _handleMinSubmitted(String text) {
+    if (text.trim().isEmpty) {
+      widget.onChanged(widget.minLimit, widget.currentMax);
+      return;
+    }
     final parsed = double.tryParse(text) ?? widget.minLimit;
     final clamped = parsed.clamp(widget.minLimit, widget.currentMax);
     widget.onChanged(clamped, widget.currentMax);
@@ -90,6 +99,10 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
   }
 
   void _handleMaxSubmitted(String text) {
+    if (text.trim().isEmpty) {
+      widget.onChanged(widget.currentMin, widget.maxLimit);
+      return;
+    }
     final parsed = double.tryParse(text) ?? widget.maxLimit;
     final clamped = parsed.clamp(widget.currentMin, widget.maxLimit);
     widget.onChanged(widget.currentMin, clamped);
@@ -127,6 +140,21 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                 ),
               ],
             ),
+            if (widget.showClear)
+              GestureDetector(
+                onTap: () {
+                  _minController.clear();
+                  _maxController.clear();
+                  widget.onClear();
+                },
+                child: Text(
+                  'Clear',
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.bronze,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: AppSpacing.s12),
@@ -156,8 +184,13 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                       child: TextField(
                         controller: _minController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        style: AppTypography.body.copyWith(fontSize: 12),
+                        style: AppTypography.body.copyWith(fontSize: 14),
                         decoration: InputDecoration(
+                          hintText: _formatValue(widget.minLimit),
+                          hintStyle: AppTypography.body.copyWith(
+                            fontSize: 14,
+                            color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                          ),
                           filled: true,
                           fillColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
                           contentPadding: const EdgeInsets.symmetric(
@@ -211,8 +244,13 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                       child: TextField(
                         controller: _maxController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        style: AppTypography.body.copyWith(fontSize: 12),
+                        style: AppTypography.body.copyWith(fontSize: 14),
                         decoration: InputDecoration(
+                          hintText: _formatValue(widget.maxLimit),
+                          hintStyle: AppTypography.body.copyWith(
+                            fontSize: 14,
+                            color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                          ),
                           filled: true,
                           fillColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
                           contentPadding: const EdgeInsets.symmetric(

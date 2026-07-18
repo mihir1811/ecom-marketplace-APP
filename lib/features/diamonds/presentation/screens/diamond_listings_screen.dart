@@ -7,15 +7,21 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/router/route_names.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
-import '../widgets/diamond_filter_chips.dart';
-import '../widgets/diamond_sort_bar.dart';
+import '../widgets/diamond_sorting_bottom_sheet.dart';
 import '../widgets/diamond_grid_view.dart';
 import '../widgets/diamond_list_view.dart';
 import '../widgets/diamond_list_empty_state.dart';
 import '../widgets/diamond_list_loading.dart';
 
 class DiamondListingsScreen extends ConsumerStatefulWidget {
-  const DiamondListingsScreen({super.key});
+  const DiamondListingsScreen({
+    super.key,
+    this.title = 'Diamond Results',
+    this.searchRoute = AppRouteNames.diamonds,
+  });
+
+  final String title;
+  final String searchRoute;
 
   @override
   ConsumerState<DiamondListingsScreen> createState() => _DiamondListingsScreenState();
@@ -58,7 +64,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'Diamond Results',
+          widget.title,
           style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -98,8 +104,6 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
       ),
       body: Column(
         children: [
-          const DiamondFilterChips(),
-          const DiamondSortBar(),
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.s16,
@@ -114,8 +118,39 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                   ),
                 ) ?? const SizedBox.shrink(),
                 const Spacer(),
+                GestureDetector(
+                  onTap: () => DiamondSortingBottomSheet.show(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s8,
+                      vertical: AppSpacing.s4,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(AppSpacing.r8),
+                      border: Border.all(
+                        color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.sort, size: 14, color: mutedColor),
+                        const SizedBox(width: AppSpacing.s4),
+                        Text(
+                          'Sort',
+                          style: AppTypography.caption.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: mutedColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.s8),
                 TextButton(
-                  onPressed: () => context.pushReplacement(AppRouteNames.diamonds),
+                  onPressed: () =>
+                      context.pushReplacement(widget.searchRoute),
                   child: const Text('Edit Filters'),
                 ),
               ],

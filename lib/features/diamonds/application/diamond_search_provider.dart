@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../domain/models/diamond_catalog_type.dart';
 import '../domain/models/diamond_filter_state.dart';
+import '../domain/models/sieve_size.dart';
 
 /// Notifier responsible for managing the diamond search query and filter settings.
 class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
@@ -10,6 +12,22 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
 
   void updateOrigin(LabNaturalType value) {
     state = state.copyWith(labNatural: value);
+  }
+
+  void updateLabCategory(String category) {
+    state = state.copyWith(labCategory: category);
+  }
+
+  void toggleGrowthMethod(String method) {
+    final current = List<String>.from(state.selectedGrowthMethods);
+    if (current.contains(method)) {
+      current.remove(method);
+    } else {
+      current.add(method);
+    }
+    state = state.copyWith(
+      selectedGrowthMethods: List<String>.unmodifiable(current),
+    );
   }
 
   void toggleShape(String shape) {
@@ -125,6 +143,18 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
       maxCarat: max,
       selectedCaratQuickRanges: const [],
     );
+  }
+
+  void updateCaratPerPcsRange(double min, double max) {
+    state = state.copyWith(minCaratPerPcs: min, maxCaratPerPcs: max);
+  }
+
+  void updatePricePerPcsRange(double min, double max) {
+    state = state.copyWith(minPricePerPcs: min, maxPricePerPcs: max);
+  }
+
+  void updateTotalPcsRange(double min, double max) {
+    state = state.copyWith(minTotalPcs: min, maxTotalPcs: max);
   }
 
   void toggleCaratQuickRange(int index) {
@@ -246,20 +276,30 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     state = state.copyWith(minClarityIndex: min, maxClarityIndex: max);
   }
 
-  void toggleClarityGradeGroup(List<String> grades) {
+  void toggleClarityGradeGroup(String grade) {
+    final allClarities = DiamondFilterState.clarities;
     final current = List<String>.from(state.selectedClarityGrades);
-    final hasAll = grades.every((g) => current.contains(g));
-    if (hasAll) {
-      for (final g in grades) {
-        current.remove(g);
-      }
+    final targetIndex = allClarities.indexOf(grade);
+
+    if (current.isEmpty) {
+      current.add(grade);
+    } else if (current.contains(grade) && current.length == 1) {
+      current.remove(grade);
     } else {
-      for (final g in grades) {
-        if (!current.contains(g)) {
-          current.add(g);
-        }
+      final firstIndex = allClarities.indexOf(current.first);
+      final minIdx = firstIndex < targetIndex ? firstIndex : targetIndex;
+      final maxIdx = firstIndex > targetIndex ? firstIndex : targetIndex;
+      current.clear();
+      for (int i = minIdx; i <= maxIdx; i++) {
+        current.add(allClarities[i]);
       }
     }
+    state = state.copyWith(selectedClarityGrades: List<String>.unmodifiable(current));
+  }
+
+  void removeClarityGrade(String grade) {
+    final current = List<String>.from(state.selectedClarityGrades);
+    current.remove(grade);
     state = state.copyWith(selectedClarityGrades: List<String>.unmodifiable(current));
   }
 
@@ -327,6 +367,10 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
 
   void toggleSellersWithImages() {
     state = state.copyWith(sellersWithImages: !state.sellersWithImages);
+  }
+
+  void toggleSearchByMedia() {
+    state = state.copyWith(searchByMedia: !state.searchByMedia);
   }
 
   void updateSellerRating(double rating) {
@@ -410,6 +454,140 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     state = state.copyWith(selectedOrigin: country);
   }
 
+  List<String> _computePresetsFromSelection(Set<int> selected) {
+    final active = <String>[];
+    for (final entry in SieveSize.lotTypePresets.entries) {
+      final rangeIndices = SieveSize.indicesInRange(entry.value[0], entry.value[1]);
+      if (rangeIndices.isNotEmpty && rangeIndices.every((i) => selected.contains(i))) {
+        active.add(entry.key);
+      }
+    }
+    return active;
+  }
+
+  void toggleSieveSize(int index) {
+    final allSieves = SieveSize.defaultSieves;
+    final current = List<int>.from(state.selectedSieveIndices);
+
+    if (current.isEmpty) {
+      current.add(index);
+    } else if (current.contains(index) && current.length == 1) {
+      current.remove(index);
+    } else {
+      final firstIndex = current.first;
+      final minIndex = firstIndex < index ? firstIndex : index;
+      final maxIndex = firstIndex > index ? firstIndex : index;
+
+      current
+        ..clear()
+        ..addAll(
+          allSieves
+              .where(
+                (sieve) => sieve.index >= minIndex && sieve.index <= maxIndex,
+              )
+              .map((sieve) => sieve.index),
+        );
+    }
+
+    current.sort();
+    final activePresets = _computePresetsFromSelection(current.toSet());
+    state = state.copyWith(
+      selectedSieveIndices: List<int>.unmodifiable(current),
+      activeSievePresets: List<String>.unmodifiable(activePresets),
+    );
+  }
+
+  void selectSieveRange(int start, int end) {
+    final min = start < end ? start : end;
+    final max = start > end ? start : end;
+    final current = List<int>.from(state.selectedSieveIndices);
+    final rangeIndices = <int>[];
+    for (int i = min; i <= max; i++) {
+      rangeIndices.add(i);
+    }
+    final allPresent = rangeIndices.every((i) => current.contains(i));
+
+    if (allPresent && rangeIndices.isNotEmpty) {
+      for (final i in rangeIndices) {
+        current.remove(i);
+      }
+    } else {
+      for (final i in rangeIndices) {
+        if (!current.contains(i)) {
+          current.add(i);
+        }
+      }
+    }
+    current.sort();
+    final activePresets = _computePresetsFromSelection(current.toSet());
+    state = state.copyWith(
+      selectedSieveIndices: List<int>.unmodifiable(current),
+      activeSievePresets: List<String>.unmodifiable(activePresets),
+    );
+  }
+
+  void toggleSelectAllSieves() {
+    final allIndices = List.generate(SieveSize.defaultSieves.length, (i) => i);
+    final current = List<int>.from(state.selectedSieveIndices);
+    final allSelected = allIndices.every((i) => current.contains(i));
+    if (allSelected) {
+      state = state.copyWith(
+        selectedSieveIndices: const [],
+        activeSievePresets: const [],
+      );
+    } else {
+      final activePresets = _computePresetsFromSelection(allIndices.toSet());
+      state = state.copyWith(
+        selectedSieveIndices: List<int>.unmodifiable(allIndices),
+        activeSievePresets: List<String>.unmodifiable(activePresets),
+      );
+    }
+  }
+
+  void applySievePreset(String preset) {
+    final range = SieveSize.lotTypePresets[preset];
+    if (range == null) return;
+    final indices = SieveSize.indicesInRange(range[0], range[1]);
+    final current = List<int>.from(state.selectedSieveIndices);
+    final presetSet = indices.toSet();
+    final allPresent = presetSet.every((i) => current.contains(i));
+
+    if (allPresent && presetSet.isNotEmpty) {
+      for (final i in indices) {
+        current.remove(i);
+      }
+    } else {
+      for (final i in indices) {
+        if (!current.contains(i)) {
+          current.add(i);
+        }
+      }
+    }
+    current.sort();
+    final activePresets = _computePresetsFromSelection(current.toSet());
+    state = state.copyWith(
+      selectedSieveIndices: List<int>.unmodifiable(current),
+      activeSievePresets: List<String>.unmodifiable(activePresets),
+    );
+  }
+
+  void removeSieveSize(int index) {
+    final current = List<int>.from(state.selectedSieveIndices);
+    current.remove(index);
+    final activePresets = _computePresetsFromSelection(current.toSet());
+    state = state.copyWith(
+      selectedSieveIndices: List<int>.unmodifiable(current),
+      activeSievePresets: List<String>.unmodifiable(activePresets),
+    );
+  }
+
+  void clearSieves() {
+    state = state.copyWith(
+      selectedSieveIndices: const [],
+      activeSievePresets: const [],
+    );
+  }
+
   void reset() {
     state = const DiamondFilterState();
   }
@@ -445,13 +623,21 @@ final diamondSearchProvider = NotifierProvider<DiamondSearchNotifier, DiamondFil
 );
 
 /// Derived provider that calculates matching diamond count from filter state.
-final matchingCountProvider = Provider<int>((ref) {
+/// Must be overridden (with [computeMatchingCount]) in any scope that
+/// overrides [diamondSearchProvider], e.g. the lab-grown shell.
+final matchingCountProvider = Provider<int>(computeMatchingCount);
+
+int computeMatchingCount(ProviderRef<int> ref) {
   final state = ref.watch(diamondSearchProvider);
+  final catalog = ref.watch(diamondCatalogTypeProvider);
+  final baseCount = catalog.isLabGrown ? 86420 : 120450;
   double multiplier = 1.0;
 
-  if (state.labNatural == LabNaturalType.natural) {
+  if (catalog.isLabGrown) {
+    multiplier *= 0.78;
+  } else if (state.labNatural == LabNaturalType.natural) {
     multiplier *= 0.65;
-  } else if (state.labNatural == LabNaturalType.labGrown) {
+  } else if (state.labNatural.usesMeleeFilters) {
     multiplier *= 0.35;
   }
 
@@ -480,10 +666,10 @@ final matchingCountProvider = Provider<int>((ref) {
   }
 
   if (state.selectedClarityGrades.isNotEmpty) {
-    multiplier *= (state.selectedClarityGrades.length / 11.0).clamp(0.08, 1.0);
-  } else {
-    final claritySpan = (state.maxClarityIndex - state.minClarityIndex).toDouble() + 1;
-    multiplier *= (claritySpan / 11.0).clamp(0.09, 1.0);
+    multiplier *= (state.selectedClarityGrades.length / 12.0).clamp(0.08, 1.0);
+    } else {
+      final claritySpan = (state.maxClarityIndex - state.minClarityIndex).toDouble() + 1;
+      multiplier *= (claritySpan / 12.0).clamp(0.09, 1.0);
   }
 
   if (state.selectedCuts.isNotEmpty) {
@@ -531,6 +717,7 @@ final matchingCountProvider = Provider<int>((ref) {
   if (state.heartAndArrow) multiplier *= 0.45;
   if (state.threeEx) multiplier *= 0.35;
   if (state.sellersWithVideo) multiplier *= 0.60;
+  if (state.searchByMedia) multiplier *= 0.60;
   if (state.noBgm) multiplier *= 0.70;
   if (state.eyeClean) multiplier *= 0.80;
 
@@ -538,5 +725,5 @@ final matchingCountProvider = Provider<int>((ref) {
     multiplier *= (1.0 - (state.minSellerRating * 0.15)).clamp(0.4, 1.0);
   }
 
-  return (120450 * multiplier).round().clamp(0, 120450);
-});
+  return (baseCount * multiplier).round().clamp(0, baseCount);
+}

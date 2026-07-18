@@ -2,25 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/diamond_repository_impl.dart';
 import '../domain/models/diamond.dart';
+import '../domain/models/diamond_catalog_type.dart';
+import '../domain/models/sorting_criteria.dart';
 import 'diamond_search_provider.dart';
 
 enum ViewMode { grid, list }
 
-enum DiamondSortField {
-  priceLowHigh,
-  priceHighLow,
-  caratLowHigh,
-  caratHighLow,
-  pricePerCaratLowHigh,
-  pricePerCaratHighLow,
-  discountHighLow,
-  popularity,
-  newest,
-  cutBestWorst,
-  colorBestWorst,
-  clarityBestWorst,
-  shapeAZ,
-}
+/// Holds the active multi-criteria sorting configuration.
+/// Empty list means no sorting applied (default order).
+final diamondSortingProvider = StateProvider<List<SortingCriteria>>((ref) => []);
 
 class DiamondListState {
   final List<Diamond> diamonds;
@@ -64,10 +54,6 @@ class DiamondListState {
 
 final diamondViewModeProvider = StateProvider<ViewMode>((ref) => ViewMode.grid);
 
-final diamondPrimarySortProvider = StateProvider<DiamondSortField>((ref) => DiamondSortField.priceHighLow);
-
-final diamondSecondarySortProvider = StateProvider<DiamondSortField>((ref) => DiamondSortField.caratLowHigh);
-
 final diamondListProvider =
     AsyncNotifierProvider<DiamondListNotifier, DiamondListState>(
   DiamondListNotifier.new,
@@ -86,8 +72,8 @@ class DiamondListNotifier extends AsyncNotifier<DiamondListState> {
   Future<void> _loadFirstPage() async {
     _currentPage = 1;
     final filters = ref.read(diamondSearchProvider);
-    final primarySort = ref.read(diamondPrimarySortProvider);
-    final secondarySort = ref.read(diamondSecondarySortProvider);
+    final sorting = ref.read(diamondSortingProvider);
+    final catalog = ref.read(diamondCatalogTypeProvider);
     final repo = ref.read(diamondRepositoryProvider);
 
     state = const AsyncData(DiamondListState(isInitialLoading: true));
@@ -95,8 +81,8 @@ class DiamondListNotifier extends AsyncNotifier<DiamondListState> {
     final result = await repo.getDiamonds(
       filters: filters,
       page: 1,
-      primarySort: primarySort,
-      secondarySort: secondarySort,
+      sorting: sorting,
+      isLabGrown: catalog.isLabGrown,
     );
 
     switch (result) {
@@ -122,15 +108,15 @@ class DiamondListNotifier extends AsyncNotifier<DiamondListState> {
     _currentPage++;
 
     final filters = ref.read(diamondSearchProvider);
-    final primarySort = ref.read(diamondPrimarySortProvider);
-    final secondarySort = ref.read(diamondSecondarySortProvider);
+    final sorting = ref.read(diamondSortingProvider);
+    final catalog = ref.read(diamondCatalogTypeProvider);
     final repo = ref.read(diamondRepositoryProvider);
 
     final result = await repo.getDiamonds(
       filters: filters,
       page: _currentPage,
-      primarySort: primarySort,
-      secondarySort: secondarySort,
+      sorting: sorting,
+      isLabGrown: catalog.isLabGrown,
     );
 
     switch (result) {
@@ -153,8 +139,8 @@ class DiamondListNotifier extends AsyncNotifier<DiamondListState> {
   Future<void> refresh() async {
     _currentPage = 1;
     final filters = ref.read(diamondSearchProvider);
-    final primarySort = ref.read(diamondPrimarySortProvider);
-    final secondarySort = ref.read(diamondSecondarySortProvider);
+    final sorting = ref.read(diamondSortingProvider);
+    final catalog = ref.read(diamondCatalogTypeProvider);
     final repo = ref.read(diamondRepositoryProvider);
 
     state = AsyncData(
@@ -164,8 +150,8 @@ class DiamondListNotifier extends AsyncNotifier<DiamondListState> {
     final result = await repo.getDiamonds(
       filters: filters,
       page: 1,
-      primarySort: primarySort,
-      secondarySort: secondarySort,
+      sorting: sorting,
+      isLabGrown: catalog.isLabGrown,
     );
 
     switch (result) {

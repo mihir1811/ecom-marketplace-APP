@@ -26,7 +26,7 @@ void main() {
                   const Text(
                     'Something went wrong.',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

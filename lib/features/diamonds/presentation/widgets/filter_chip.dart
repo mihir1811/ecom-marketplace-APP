@@ -15,6 +15,7 @@ class FilterChipWidget extends StatelessWidget {
     this.borderColor,
     this.textStyle,
     this.padding,
+    this.centerLabel = false,
     super.key,
   });
 
@@ -28,6 +29,10 @@ class FilterChipWidget extends StatelessWidget {
   final Color? borderColor;
   final TextStyle? textStyle;
   final EdgeInsets? padding;
+
+  /// Centers the label — for chips stretched to full width (e.g. in a Row of
+  /// Expanded children).
+  final bool centerLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +49,7 @@ class FilterChipWidget extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: padding ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        alignment: centerLabel ? Alignment.center : null,
         decoration: BoxDecoration(
           color: isSelected ? selectedColor : defaultUnselectedBg,
           borderRadius: BorderRadius.circular(AppSpacing.r8),

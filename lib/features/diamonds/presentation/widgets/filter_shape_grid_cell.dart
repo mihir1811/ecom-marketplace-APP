@@ -9,12 +9,16 @@ class FilterShapeGridCell extends StatelessWidget {
     required this.name,
     required this.isSelected,
     required this.onTap,
+    this.svgName,
     super.key,
   });
 
   final String name;
   final bool isSelected;
   final VoidCallback onTap;
+
+  /// Optional SVG asset key when the display name differs from the drawing name.
+  final String? svgName;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +48,7 @@ class FilterShapeGridCell extends StatelessWidget {
                 height: 54,
                 child: Center(
                   child: renderShapeSvg(
-                    name,
+                    svgName ?? name,
                     size: 40,
                     color: isSelected ? activeColor : (isDark ? Colors.white60 : Colors.black54),
                   ),
@@ -58,7 +62,7 @@ class FilterShapeGridCell extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: AppTypography.label.copyWith(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                fontSize: 10,
+                fontSize: 12,
                 color: isSelected
                     ? AppColors.bronze
                     : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),

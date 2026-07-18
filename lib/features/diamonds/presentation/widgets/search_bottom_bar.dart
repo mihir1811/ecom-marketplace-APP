@@ -9,9 +9,14 @@ import '../../../../core/router/route_names.dart';
 import '../../application/diamond_search_provider.dart';
 
 class SearchBottomBar extends ConsumerWidget {
-  const SearchBottomBar({super.key, this.onClear});
+  const SearchBottomBar({
+    super.key,
+    this.onClear,
+    this.resultsRoute = AppRouteNames.diamondResults,
+  });
 
   final VoidCallback? onClear;
+  final String resultsRoute;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,14 +53,14 @@ class SearchBottomBar extends ConsumerWidget {
                 ),
               ),
               onPressed: () {
-                context.push(AppRouteNames.diamondResults);
+                context.push(resultsRoute);
               },
               child: Text(
                 'SHOW ${count.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} DIAMONDS',
                 style: AppTypography.label.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.warmWhite,
-                  fontSize: 14,
+                  fontSize: 16,
                 ),
               ),
             ),

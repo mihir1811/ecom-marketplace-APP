@@ -34,6 +34,32 @@
 </head>
 <body>
   <!--
+    Workaround for flutter/flutter#175074 / #179208 ("ViewInsets cannot be
+    negative" / stale viewport after the mobile keyboard is dismissed).
+    When the virtual keyboard closes, the browser may leave the window
+    scrolled and the DOM input focused, so the engine computes a stale
+    physicalSize and derives negative viewInsets. Resetting scroll and
+    blurring the input forces a correct viewport recalculation. Only acts
+    when the visual viewport height jumps by >100px (keyboard close).
+  -->
+  <script>
+    if (window.visualViewport) {
+      let lastViewportHeight = window.visualViewport.height;
+      window.visualViewport.addEventListener('resize', function () {
+        const currentHeight = window.visualViewport.height;
+        if (currentHeight > lastViewportHeight + 100) {
+          window.scrollTo(0, 0);
+          const active = document.activeElement;
+          if (active && active !== document.body && typeof active.blur === 'function') {
+            active.blur();
+          }
+        }
+        lastViewportHeight = currentHeight;
+      });
+    }
+  </script>
+
+  <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader
     or to give the user feedback during the initialization process.

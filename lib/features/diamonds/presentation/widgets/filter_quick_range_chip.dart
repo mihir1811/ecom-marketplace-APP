@@ -36,7 +36,7 @@ class FilterQuickRangeChip extends StatelessWidget {
           label,
           style: AppTypography.caption.copyWith(
             fontWeight: FontWeight.w600,
-            fontSize: 10,
+            fontSize: 12,
             color: isSelected ? AppColors.bronze : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
           ),
         ),

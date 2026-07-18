@@ -6,7 +6,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/diamond_search_provider.dart';
 import 'diamond_shape_card.dart';
-import 'circular_navigation_button.dart';
 
 const List<Map<String, String>> kAllShapes = [
   {'name': 'Round', 'image': 'public/images/round.png'},
@@ -43,14 +42,13 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
     with WidgetsBindingObserver {
   late final PageController _pageController;
   Timer? _autoScrollTimer;
-  bool _isAutoScrolling = true;
   double _scrollProgress = 0.0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _pageController = PageController(viewportFraction: 0.5);
+    _pageController = PageController(viewportFraction: 0.46);
     _pageController.addListener(_onPageScroll);
     _startAutoScroll();
   }
@@ -60,9 +58,7 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       _autoScrollTimer?.cancel();
     } else if (state == AppLifecycleState.resumed && mounted) {
-      if (_isAutoScrolling) {
-        _startAutoScroll();
-      }
+      _startAutoScroll();
     }
   }
 
@@ -89,7 +85,7 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      if (!_isAutoScrolling || !mounted || !_pageController.hasClients) return;
+      if (!mounted || !_pageController.hasClients) return;
       final page = _pageController.page ?? 0;
       final nextPage = (page.round() + 1) % kAllShapes.length;
       _pageController.animateToPage(
@@ -98,29 +94,6 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
         curve: Curves.easeInOut,
       );
     });
-  }
-
-  void _toggleAutoScroll() {
-    if (!mounted) return;
-    setState(() {
-      _isAutoScrolling = !_isAutoScrolling;
-    });
-    if (_isAutoScrolling) {
-      _startAutoScroll();
-    } else {
-      _autoScrollTimer?.cancel();
-    }
-  }
-
-  void _scrollCarousel(bool forward) {
-    if (!_pageController.hasClients) return;
-    final page = _pageController.page ?? 0;
-    final nextPage = forward ? page + 1 : page - 1;
-    _pageController.animateToPage(
-      nextPage.clamp(0, kAllShapes.length - 1).toInt(),
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
   }
 
   @override
@@ -139,29 +112,11 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
               Text(
                 'Select Diamond\nShapes',
                 style: AppTypography.display.copyWith(
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: FontWeight.w700,
                   height: 1.1,
                   color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                 ),
-              ),
-              Row(
-                children: [
-                  CircularNavigationButton(
-                    icon: _isAutoScrolling ? Icons.pause : Icons.play_arrow,
-                    onPressed: _toggleAutoScroll,
-                  ),
-                  const SizedBox(width: AppSpacing.s8),
-                  CircularNavigationButton(
-                    icon: Icons.chevron_left,
-                    onPressed: () => _scrollCarousel(false),
-                  ),
-                  const SizedBox(width: AppSpacing.s8),
-                  CircularNavigationButton(
-                    icon: Icons.chevron_right,
-                    onPressed: () => _scrollCarousel(true),
-                  ),
-                ],
               ),
             ],
           ),

@@ -20,7 +20,7 @@ class HomeScreen extends StatelessWidget {
           'GemWorld',
           style: AppTypography.title.copyWith(
             fontWeight: FontWeight.w700,
-            fontSize: 22,
+            fontSize: 24,
           ),
         ),
         actions: [
@@ -52,28 +52,44 @@ class HomeScreen extends StatelessWidget {
             Container(
               width: double.infinity,
               color: AppColors.sandSurface,
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.s8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              padding: const EdgeInsets.symmetric(
+                vertical: AppSpacing.s8,
+                horizontal: AppSpacing.s12,
+              ),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: AppSpacing.s16,
+                runSpacing: AppSpacing.s4,
                 children: [
-                  const Icon(Icons.gpp_good_outlined, size: 16, color: AppColors.bronze),
-                  const SizedBox(width: AppSpacing.s4),
-                  Text(
-                    'GIA Certified Diamonds',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: AppColors.textSecondaryLight,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.gpp_good_outlined,
+                          size: 16, color: AppColors.bronze),
+                      const SizedBox(width: AppSpacing.s4),
+                      Text(
+                        'GIA Certified Diamonds',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.textSecondaryLight,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: AppSpacing.s16),
-                  const Icon(Icons.local_shipping_outlined, size: 16, color: AppColors.bronze),
-                  const SizedBox(width: AppSpacing.s4),
-                  Text(
-                    'Worldwide Shipping',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: AppColors.textSecondaryLight,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.local_shipping_outlined,
+                          size: 16, color: AppColors.bronze),
+                      const SizedBox(width: AppSpacing.s4),
+                      Text(
+                        'Worldwide Shipping',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.textSecondaryLight,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -135,17 +151,28 @@ class HomeScreen extends StatelessWidget {
                   ),
                   
                   const SizedBox(height: AppSpacing.s20),
-                  Row(
+                  Wrap(
+                    spacing: AppSpacing.s12,
+                    runSpacing: AppSpacing.s8,
                     children: [
                       ElevatedButton(
                         onPressed: () => context.push(AppRouteNames.diamonds),
-                        child: const Text('Explore Diamonds'),
+                        child: const Text('Explore Natural Diamonds'),
                       ),
-                      const SizedBox(width: AppSpacing.s12),
+                      ElevatedButton(
+                        onPressed: () =>
+                            context.push(AppRouteNames.labGrownDiamonds),
+                        child: const Text('Explore Lab Grown'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => context.push(AppRouteNames.gemstones),
+                        child: const Text('Explore Gemstones'),
+                      ),
                       TextButton(
                         onPressed: () {},
-                        child: Row(
-                          children: const [
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Text('Become a seller'),
                             SizedBox(width: AppSpacing.s4),
                             Icon(Icons.arrow_forward, size: 16),
@@ -193,15 +220,23 @@ class HomeScreen extends StatelessWidget {
                     childAspectRatio: 0.85,
                     children: [
                       _CategoryCard(
-                        title: 'Diamonds',
-                        desc: 'Certified natural and lab grown stones.',
+                        title: 'Natural Diamonds',
+                        desc: 'Certified natural diamonds with full filters.',
                         icon: Icons.diamond_outlined,
                         onTap: () => context.push(AppRouteNames.diamonds),
+                      ),
+                      _CategoryCard(
+                        title: 'Lab Grown Diamonds',
+                        desc: 'Lab-created stones with the same finder tools.',
+                        icon: Icons.auto_awesome_outlined,
+                        onTap: () =>
+                            context.push(AppRouteNames.labGrownDiamonds),
                       ),
                       _CategoryCard(
                         title: 'Gemstones',
                         desc: 'Sapphires, rubies, emeralds, and more.',
                         icon: Icons.brightness_high_outlined,
+                        onTap: () => context.push(AppRouteNames.gemstones),
                       ),
                       _CategoryCard(
                         title: 'Fine Jewelry',
@@ -260,7 +295,7 @@ class HomeScreen extends StatelessWidget {
                     style: AppTypography.title.copyWith(
                       color: AppColors.warmWhite,
                       fontWeight: FontWeight.bold,
-                      fontSize: 22,
+                      fontSize: 24,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.s12),

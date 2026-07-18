@@ -14,98 +14,119 @@ class DiamondFilterChips extends ConsumerWidget {
     final filters = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mutedColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final mutedColor = isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondaryLight;
 
     final chips = <_FilterChipData>[];
 
     if (filters.labNatural != LabNaturalType.natural) {
-      chips.add(_FilterChipData(
-        label: filters.labNatural.label,
-        onRemove: () => notifier.updateOrigin(LabNaturalType.natural),
-      ));
+      chips.add(
+        _FilterChipData(
+          label: filters.labNatural.label,
+          onRemove: () => notifier.updateOrigin(LabNaturalType.natural),
+        ),
+      );
     }
 
     for (final shape in filters.shapes) {
-      chips.add(_FilterChipData(
-        label: shape,
-        onRemove: () => notifier.toggleShape(shape),
-      ));
+      chips.add(
+        _FilterChipData(
+          label: shape,
+          onRemove: () => notifier.toggleShape(shape),
+        ),
+      );
     }
 
     if (filters.minPrice > 0 || filters.maxPrice < 1000000) {
-      final label = '\$${_formatPrice(filters.minPrice)}-\$${_formatPrice(filters.maxPrice)}';
-      chips.add(_FilterChipData(
-        label: label,
-        onRemove: () => notifier.updatePriceRange(0, 1000000),
-      ));
+      final label =
+          '\$${_formatPrice(filters.minPrice)}-\$${_formatPrice(filters.maxPrice)}';
+      chips.add(
+        _FilterChipData(
+          label: label,
+          onRemove: () => notifier.updatePriceRange(0, 1000000),
+        ),
+      );
     }
 
     if (filters.minCarat > 0.16 || filters.maxCarat < 100.0) {
       final label = '${filters.minCarat}-${filters.maxCarat}ct';
-      chips.add(_FilterChipData(
-        label: label,
-        onRemove: () => notifier.updateCaratRange(0.16, 100.0),
-      ));
+      chips.add(
+        _FilterChipData(
+          label: label,
+          onRemove: () => notifier.updateCaratRange(0.16, 100.0),
+        ),
+      );
     }
 
     for (final cut in filters.selectedCuts) {
-      chips.add(_FilterChipData(
-        label: cut,
-        onRemove: () => notifier.toggleCut(cut),
-      ));
+      chips.add(
+        _FilterChipData(label: cut, onRemove: () => notifier.toggleCut(cut)),
+      );
     }
 
     if (filters.minColorIndex > 0 || filters.maxColorIndex < 22) {
       final from = DiamondFilterState.colors[filters.minColorIndex];
       final to = DiamondFilterState.colors[filters.maxColorIndex];
-      chips.add(_FilterChipData(
-        label: '$from-$to',
-        onRemove: () => notifier.updateColorRange(0, 22),
-      ));
+      chips.add(
+        _FilterChipData(
+          label: '$from-$to',
+          onRemove: () => notifier.updateColorRange(0, 22),
+        ),
+      );
     }
 
     for (final color in filters.selectedStandardColors) {
-      chips.add(_FilterChipData(
-        label: color,
-        onRemove: () => notifier.toggleStandardColor(color),
-      ));
+      chips.add(
+        _FilterChipData(
+          label: color,
+          onRemove: () => notifier.toggleStandardColor(color),
+        ),
+      );
     }
 
     if (filters.minClarityIndex > 0 || filters.maxClarityIndex < 10) {
       final from = DiamondFilterState.clarities[filters.minClarityIndex];
       final to = DiamondFilterState.clarities[filters.maxClarityIndex];
-      chips.add(_FilterChipData(
-        label: '$from-$to',
-        onRemove: () => notifier.updateClarityRange(0, 10),
-      ));
+      chips.add(
+        _FilterChipData(
+          label: '$from-$to',
+          onRemove: () => notifier.updateClarityRange(0, 10),
+        ),
+      );
     }
 
     for (final clarity in filters.selectedClarityGrades) {
-      chips.add(_FilterChipData(
-        label: clarity,
-        onRemove: () => notifier.toggleClarityGradeGroup([clarity]),
-      ));
+      chips.add(
+        _FilterChipData(
+          label: clarity,
+          onRemove: () => notifier.removeClarityGrade(clarity),
+        ),
+      );
     }
 
     for (final lab in filters.selectedLabs) {
-      chips.add(_FilterChipData(
-        label: lab,
-        onRemove: () => notifier.toggleLab(lab),
-      ));
+      chips.add(
+        _FilterChipData(label: lab, onRemove: () => notifier.toggleLab(lab)),
+      );
     }
 
     if (filters.noBgm) {
-      chips.add(_FilterChipData(
-        label: 'No BGM',
-        onRemove: () => notifier.toggleNoBgm(),
-      ));
+      chips.add(
+        _FilterChipData(
+          label: 'No BGM',
+          onRemove: () => notifier.toggleNoBgm(),
+        ),
+      );
     }
 
     if (filters.eyeClean) {
-      chips.add(_FilterChipData(
-        label: 'Eye Clean',
-        onRemove: () => notifier.toggleEyeClean(),
-      ));
+      chips.add(
+        _FilterChipData(
+          label: 'Eye Clean',
+          onRemove: () => notifier.toggleEyeClean(),
+        ),
+      );
     }
 
     if (chips.isEmpty) return const SizedBox.shrink();
@@ -138,7 +159,7 @@ class DiamondFilterChips extends ConsumerWidget {
                   chip.label,
                   style: AppTypography.caption.copyWith(
                     fontWeight: FontWeight.w500,
-                    fontSize: 11,
+                    fontSize: 13,
                   ),
                 ),
                 deleteIcon: const Icon(Icons.close, size: 12),
