@@ -30,6 +30,27 @@ class AppColors {
   static const slateSurface = Color(0xFF16181B);
   static const slateBorder = Color(0xFF2E3035);
 
+  /// Soft melee tint of the screen background (same family as [creamBg]/[obsidianBg]).
+  /// Default (non-melee) stays cream/obsidian; melee uses a cool mist shade so the
+  /// switch is clearly visible.
+  static Color screenBg({required bool isDark, bool melee = false}) {
+    if (isDark) {
+      return melee ? const Color(0xFF151C24) : obsidianBg;
+    }
+    return melee ? const Color(0xFFE4EEF3) : creamBg;
+  }
+
+  /// Soft melee tint for sticky surfaces (nav / bottom bar).
+  static Color surfaceBg({required bool isDark, bool melee = false}) {
+    if (isDark) {
+      return melee ? const Color(0xFF1B242E) : charcoalDark;
+    }
+    return melee ? const Color(0xFFD7E4EB) : creamBg;
+  }
+
+  /// Shared duration for melee background color transitions.
+  static const Duration meleeBgDuration = Duration(milliseconds: 1200);
+
   // Text colors (Light mode)
   static const textPrimaryLight = Color(0xFF111827);
   static const textSecondaryLight = Color(0xFF4B5563);

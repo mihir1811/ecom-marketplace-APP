@@ -168,6 +168,14 @@ class HomeScreen extends StatelessWidget {
                         onPressed: () => context.push(AppRouteNames.gemstones),
                         child: const Text('Explore Gemstones'),
                       ),
+                      OutlinedButton(
+                        onPressed: () => context.push(AppRouteNames.watches),
+                        child: const Text('Explore Watches'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => context.push(AppRouteNames.bullions),
+                        child: const Text('Explore Bullion'),
+                      ),
                       TextButton(
                         onPressed: () {},
                         child: const Row(
@@ -239,6 +247,12 @@ class HomeScreen extends StatelessWidget {
                         onTap: () => context.push(AppRouteNames.gemstones),
                       ),
                       _CategoryCard(
+                        title: 'Luxury Watches',
+                        desc: 'Rolex, Patek, Omega, and more with filters.',
+                        icon: Icons.watch_outlined,
+                        onTap: () => context.push(AppRouteNames.watches),
+                      ),
+                      _CategoryCard(
                         title: 'Fine Jewelry',
                         desc: 'Rings, earrings, bracelets, and more.',
                         icon: Icons.star_border,
@@ -247,6 +261,7 @@ class HomeScreen extends StatelessWidget {
                         title: 'Bullion',
                         desc: 'Investment grade metals and coins.',
                         icon: Icons.currency_bitcoin_outlined,
+                        onTap: () => context.push(AppRouteNames.bullions),
                       ),
                     ],
                   ),

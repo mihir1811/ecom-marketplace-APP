@@ -28,6 +28,9 @@ const List<String> kFeaturedGemstones = [
   'Pearl',
 ];
 
+/// Gap between the two cards shown on each carousel page.
+const double _kPairGap = 16.0;
+
 /// Auto-playing carousel of featured gemstone types with navigation buttons,
 /// progress indicator, and pause/play control. Mirrors the diamond shape carousel.
 class GemstoneShowcaseCarousel extends ConsumerStatefulWidget {
@@ -44,11 +47,14 @@ class _GemstoneShowcaseCarouselState
   Timer? _autoScrollTimer;
   double _scrollProgress = 0.0;
 
+  static int get _pairCount => (kFeaturedGemstones.length / 2).ceil();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _pageController = PageController(viewportFraction: 0.46);
+    // Start mid-range so the user can scroll either direction infinitely.
+    _pageController = PageController(initialPage: _pairCount * 100);
     _pageController.addListener(_onPageScroll);
     _startAutoScroll();
   }
@@ -74,12 +80,12 @@ class _GemstoneShowcaseCarouselState
 
   void _onPageScroll() {
     if (!_pageController.hasClients) return;
-    final maxScroll = _pageController.position.maxScrollExtent;
-    final currentScroll = _pageController.position.pixels;
+    final page = _pageController.page ?? 0;
     if (mounted) {
       setState(() {
-        _scrollProgress =
-            maxScroll > 0 ? (currentScroll / maxScroll).clamp(0.0, 1.0) : 0.0;
+        _scrollProgress = (_pairCount > 0)
+            ? ((page % _pairCount) / _pairCount).clamp(0.0, 1.0)
+            : 0.0;
       });
     }
   }
@@ -89,7 +95,7 @@ class _GemstoneShowcaseCarouselState
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!mounted || !_pageController.hasClients) return;
       final page = _pageController.page ?? 0;
-      final nextPage = (page.round() + 1) % kFeaturedGemstones.length;
+      final nextPage = page.round() + 1;
       _pageController.animateToPage(
         nextPage,
         duration: const Duration(milliseconds: 600),
@@ -131,20 +137,52 @@ class _GemstoneShowcaseCarouselState
           const SizedBox(height: AppSpacing.s12),
           SizedBox(
             height: 180,
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: kFeaturedGemstones.length,
-              itemBuilder: (context, index) {
-                final name = kFeaturedGemstones[index];
-                final isSelected = selectedTypes.contains(name) &&
-                    GemstoneFilterState.allGemstoneTypes.contains(name);
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                  child: GemstoneShowcaseCard(
-                    name: name,
-                    isSelected: isSelected,
-                    onTap: () => notifier.toggleGemstoneType(name),
-                  ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const horizontalPad = AppSpacing.s8;
+                final available =
+                    constraints.maxWidth - horizontalPad * 2 - _kPairGap;
+                final cardWidth = available / 2;
+
+                return PageView.builder(
+                  controller: _pageController,
+                  // No itemCount → infinite scroll (same pattern as diamond).
+                  itemBuilder: (context, pageIndex) {
+                    final pairIndex = pageIndex % _pairCount;
+                    final leftIndex =
+                        (pairIndex * 2) % kFeaturedGemstones.length;
+                    final rightIndex =
+                        (leftIndex + 1) % kFeaturedGemstones.length;
+
+                    Widget cardAt(int index) {
+                      final name = kFeaturedGemstones[index];
+                      final isSelected = selectedTypes.contains(name) &&
+                          GemstoneFilterState.allGemstoneTypes.contains(name);
+                      return GemstoneShowcaseCard(
+                        name: name,
+                        isSelected: isSelected,
+                        onTap: () => notifier.toggleGemstoneType(name),
+                      );
+                    }
+
+                    return Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: horizontalPad),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: cardWidth,
+                            child: cardAt(leftIndex),
+                          ),
+                          const SizedBox(width: _kPairGap),
+                          SizedBox(
+                            width: cardWidth,
+                            child: cardAt(rightIndex),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             ),

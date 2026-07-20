@@ -12,9 +12,9 @@ class GlobalSearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.8,
         decoration: BoxDecoration(
           color: isDark ? AppColors.charcoalLight : AppColors.warmWhite,
           borderRadius: BorderRadius.circular(AppSpacing.r20),
@@ -33,21 +33,20 @@ class GlobalSearchBar extends StatelessWidget {
             enabledBorder: InputBorder.none,
             focusedBorder: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s16,
+              horizontal: AppSpacing.s12,
               vertical: AppSpacing.s8,
             ),
-            prefixIcon: Icon(
-              Icons.search,
-              color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
-              size: 20,
-            ),
-            suffixIcon: IconButton(
-              icon: const Icon(
-                Icons.tune,
-                color: AppColors.bronze,
+            prefixIcon: Padding(
+              padding: const EdgeInsets.only(left: AppSpacing.s12, right: AppSpacing.s8),
+              child: Icon(
+                Icons.search,
+                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
                 size: 20,
               ),
-              onPressed: () {},
+            ),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
             ),
           ),
           style: AppTypography.body.copyWith(color: textColor),

@@ -4,6 +4,8 @@ import 'route_names.dart';
 import '../../features/home/home_routes.dart';
 import '../../features/diamonds/diamonds_routes.dart';
 import '../../features/gemstones/gemstones_routes.dart';
+import '../../features/watches/watches_routes.dart';
+import '../../features/bullions/bullions_routes.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -17,5 +19,7 @@ final GoRouter appRouter = GoRouter(
     ...homeRoutes,
     ...diamondsRoutes,
     ...gemstonesRoutes,
+    ...watchesRoutes,
+    ...bullionsRoutes,
   ],
 );

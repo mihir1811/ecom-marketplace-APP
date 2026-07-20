@@ -1,0 +1,399 @@
+import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_shadows.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../domain/models/billion.dart';
+
+enum BullionCardLayout { grid, list }
+
+/// Card UI for a single bullion product.
+class BullionCard extends StatelessWidget {
+  const BullionCard({
+    required this.bullion,
+    this.layout = BullionCardLayout.grid,
+    this.onTap,
+    super.key,
+  });
+
+  final Bullion bullion;
+  final BullionCardLayout layout;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
+    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final textColor =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final mutedColor =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+
+    final accent = _accentColor(context, bullion.metal);
+    final gradient = _metalGradient(bullion.metal, isDark);
+    final icon = _metalIcon(bullion.metal);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(AppSpacing.r16),
+          border: Border.all(color: borderColor),
+          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: layout == BullionCardLayout.grid
+            ? _GridCardBody(
+                bullion: bullion,
+                gradient: gradient,
+                icon: icon,
+                accent: accent,
+                textColor: textColor,
+                mutedColor: mutedColor,
+              )
+            : _ListCardBody(
+                bullion: bullion,
+                gradient: gradient,
+                icon: icon,
+                accent: accent,
+                textColor: textColor,
+                mutedColor: mutedColor,
+              ),
+      ),
+    );
+  }
+
+  Color _accentColor(BuildContext context, BullionMetal metal) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return switch (metal) {
+      BullionMetal.gold => isDark ? AppColors.bronzeLight : AppColors.bronze,
+      BullionMetal.silver => isDark ? AppColors.textMutedDark : AppColors.slateBorder,
+      BullionMetal.platinum => AppColors.bronzeLight,
+      BullionMetal.palladium => AppColors.bronzeDark,
+      BullionMetal.copper => const Color(0xFFDD915E),
+    };
+  }
+
+  LinearGradient _metalGradient(BullionMetal metal, bool isDark) {
+    // Placeholder “metal” gradient (the app currently does not ship bullion photos).
+    final bronze = isDark ? AppColors.bronzeDark : AppColors.bronze;
+    final bronze2 = isDark ? AppColors.bronzeLight : AppColors.bronzeLight;
+
+    return switch (metal) {
+      BullionMetal.gold => LinearGradient(
+          colors: [bronze2.withValues(alpha: 0.25), bronze.withValues(alpha: 0.35)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      BullionMetal.silver => LinearGradient(
+          colors: [
+            AppColors.slateBorder.withValues(alpha: 0.35),
+            AppColors.textMutedDark.withValues(alpha: 0.15),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      BullionMetal.platinum => LinearGradient(
+          colors: [
+            AppColors.warmWhite.withValues(alpha: 0.35),
+            AppColors.sandSurface.withValues(alpha: 0.15),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      BullionMetal.palladium => LinearGradient(
+          colors: [
+            AppColors.bronzeLight.withValues(alpha: 0.25),
+            AppColors.terracotta.withValues(alpha: 0.12),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      BullionMetal.copper => LinearGradient(
+          colors: [
+            const Color(0xFFDD915E).withValues(alpha: 0.35),
+            const Color(0xFFB86B3C).withValues(alpha: 0.2),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+    };
+  }
+
+  IconData _metalIcon(BullionMetal metal) {
+    return switch (metal) {
+      BullionMetal.gold => Icons.currency_bitcoin_outlined,
+      BullionMetal.silver => Icons.currency_exchange_outlined,
+      BullionMetal.platinum => Icons.sports_martial_arts_outlined,
+      BullionMetal.palladium => Icons.monetization_on_outlined,
+      BullionMetal.copper => Icons.hardware_outlined,
+    };
+  }
+}
+
+class _GridCardBody extends StatelessWidget {
+  const _GridCardBody({
+    required this.bullion,
+    required this.gradient,
+    required this.icon,
+    required this.accent,
+    required this.textColor,
+    required this.mutedColor,
+  });
+
+  final Bullion bullion;
+  final LinearGradient gradient;
+  final IconData icon;
+  final Color accent;
+  final Color textColor;
+  final Color mutedColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AspectRatio(
+          aspectRatio: 0.92,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(gradient: gradient),
+                  child: Center(
+                    child: Icon(icon, size: 56, color: accent),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: AppSpacing.s8,
+                left: AppSpacing.s8,
+                child: _VariantChip(label: bullion.presetVariant),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s12,
+            AppSpacing.s8,
+            AppSpacing.s12,
+            AppSpacing.s8,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                bullion.name,
+                style: AppTypography.caption.copyWith(
+                  color: mutedColor,
+                  fontWeight: FontWeight.w500,
+                  height: 1.1,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.s4),
+              Text(
+                '${bullion.weightLabel}  ${bullion.purity.toStringAsFixed(1)}',
+                style: AppTypography.label.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                  height: 1.1,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.s4),
+              Text(
+                '${bullion.shape}  •  ${bullion.condition}',
+                style: AppTypography.caption.copyWith(
+                  color: mutedColor,
+                  height: 1.1,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.s4),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '\$${formatBullionPrice(bullion.price)}',
+                      style: AppTypography.title.copyWith(
+                        color: textColor,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: AppColors.bronze,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ListCardBody extends StatelessWidget {
+  const _ListCardBody({
+    required this.bullion,
+    required this.gradient,
+    required this.icon,
+    required this.accent,
+    required this.textColor,
+    required this.mutedColor,
+  });
+
+  final Bullion bullion;
+  final LinearGradient gradient;
+  final IconData icon;
+  final Color accent;
+  final Color textColor;
+  final Color mutedColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 112,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(gradient: gradient),
+                    child: Center(
+                      child: Icon(icon, size: 44, color: accent),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: AppSpacing.s8,
+                  left: AppSpacing.s8,
+                  child: _VariantChip(label: bullion.presetVariant),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.s12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    bullion.name,
+                    style: AppTypography.label.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.s4),
+                  Text(
+                    '${bullion.weightLabel}  •  ${bullion.shape}  •  ${bullion.condition}',
+                    style: AppTypography.caption.copyWith(color: mutedColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.s4),
+                  Text(
+                    '${bullion.certification}  •  ${bullion.mintMark}',
+                    style: AppTypography.caption.copyWith(color: mutedColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '\$${formatBullionPrice(bullion.price)}',
+                          style: AppTypography.title.copyWith(
+                            color: textColor,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'Qty ${bullion.quantityAvailable}',
+                        style: AppTypography.caption.copyWith(
+                          color: mutedColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VariantChip extends StatelessWidget {
+  const _VariantChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s8,
+        vertical: AppSpacing.s4,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.charcoal,
+        borderRadius: BorderRadius.circular(AppSpacing.r8),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.caption.copyWith(
+          color: AppColors.warmWhite,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+String formatBullionPrice(double price) {
+  if (price >= 1000000) {
+    return '${(price / 1000000).toStringAsFixed(1)}M';
+  }
+  if (price >= 1000) {
+    final s = price.toStringAsFixed(0);
+    final buf = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      final fromEnd = s.length - i;
+      buf.write(s[i]);
+      if (fromEnd > 1 && fromEnd % 3 == 1) buf.write(',');
+    }
+    return buf.toString();
+  }
+  return price.toStringAsFixed(0);
+}
+

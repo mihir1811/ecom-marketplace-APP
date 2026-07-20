@@ -158,6 +158,21 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
   List<Widget> _buildPcsFilters() {
     return [
       FilterRangeSlider(
+        title: 'Total Price',
+        minLimit: widget.totalPriceLimits.$1,
+        maxLimit: widget.totalPriceLimits.$2,
+        currentMin: widget.totalPriceMin,
+        currentMax: widget.totalPriceMax,
+        unitSuffix: '\$',
+        isInteger: true,
+        onChanged: widget.onTotalPriceChanged,
+        onClear: () => widget.onTotalPriceChanged(
+          widget.totalPriceLimits.$1,
+          widget.totalPriceLimits.$2,
+        ),
+      ),
+      const SizedBox(height: AppSpacing.s20),
+      FilterRangeSlider(
         title: 'Carat / Pcs',
         minLimit: widget.caratLimits.$1,
         maxLimit: widget.caratLimits.$2,
@@ -200,7 +215,11 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
           widget.pcsLimits.$2,
         ),
       ),
-      const SizedBox(height: AppSpacing.s20),
+    ];
+  }
+
+  List<Widget> _buildCaratFilters() {
+    return [
       FilterRangeSlider(
         title: 'Total Price',
         minLimit: widget.totalPriceLimits.$1,
@@ -215,11 +234,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
           widget.totalPriceLimits.$2,
         ),
       ),
-    ];
-  }
-
-  List<Widget> _buildCaratFilters() {
-    return [
+      const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
         title: 'Price / Carat',
         minLimit: widget.pricePerUnitLimits.$1,
@@ -246,21 +261,6 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
         onClear: () => widget.onTotalCaratChanged(
           widget.caratLimits.$1,
           widget.caratLimits.$2,
-        ),
-      ),
-      const SizedBox(height: AppSpacing.s20),
-      FilterRangeSlider(
-        title: 'Total Price',
-        minLimit: widget.totalPriceLimits.$1,
-        maxLimit: widget.totalPriceLimits.$2,
-        currentMin: widget.totalPriceMin,
-        currentMax: widget.totalPriceMax,
-        unitSuffix: '\$',
-        isInteger: true,
-        onChanged: widget.onTotalPriceChanged,
-        onClear: () => widget.onTotalPriceChanged(
-          widget.totalPriceLimits.$1,
-          widget.totalPriceLimits.$2,
         ),
       ),
     ];

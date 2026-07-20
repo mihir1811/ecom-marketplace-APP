@@ -45,16 +45,42 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
   @override
   void didUpdateWidget(covariant FilterAdvancedRangeInput oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentMin != widget.currentMin && _minController.text.isNotEmpty) {
-      final oldParsed = double.tryParse(_minController.text);
-      if (oldParsed == oldWidget.currentMin) {
-        _minController.text = widget.currentMin.toStringAsFixed(1);
-      }
+    if (oldWidget.currentMin != widget.currentMin) {
+      _syncControllerFromExternal(
+        controller: _minController,
+        oldExternal: oldWidget.currentMin,
+        newExternal: widget.currentMin,
+        defaultLimit: widget.minLimit,
+      );
     }
-    if (oldWidget.currentMax != widget.currentMax && _maxController.text.isNotEmpty) {
-      final oldParsed = double.tryParse(_maxController.text);
-      if (oldParsed == oldWidget.currentMax) {
-        _maxController.text = widget.currentMax.toStringAsFixed(1);
+    if (oldWidget.currentMax != widget.currentMax) {
+      _syncControllerFromExternal(
+        controller: _maxController,
+        oldExternal: oldWidget.currentMax,
+        newExternal: widget.currentMax,
+        defaultLimit: widget.maxLimit,
+      );
+    }
+  }
+
+  void _syncControllerFromExternal({
+    required TextEditingController controller,
+    required double oldExternal,
+    required double newExternal,
+    required double defaultLimit,
+  }) {
+    if (controller.text.isEmpty) {
+      if (newExternal != defaultLimit) {
+        controller.text = newExternal.toStringAsFixed(1);
+      }
+      return;
+    }
+    final parsed = double.tryParse(controller.text);
+    if (parsed == null || parsed == oldExternal) {
+      if (newExternal == defaultLimit) {
+        controller.clear();
+      } else {
+        controller.text = newExternal.toStringAsFixed(1);
       }
     }
   }

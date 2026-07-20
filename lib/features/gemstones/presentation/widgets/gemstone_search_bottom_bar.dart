@@ -18,26 +18,37 @@ class GemstoneSearchBottomBar extends ConsumerWidget {
     final count = ref.watch(matchingGemstoneCountProvider);
     final notifier = ref.read(gemstoneSearchProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMelee = ref.watch(gemstoneSearchProvider).lotType == 'Melee';
 
     final formattedCount = count.toString().replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]},',
         );
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.charcoalDark : AppColors.creamBg,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+    return TweenAnimationBuilder<Color?>(
+      tween: ColorTween(
+        end: AppColors.surfaceBg(isDark: isDark, melee: isMelee),
+      ),
+      duration: AppColors.meleeBgDuration,
+      curve: Curves.easeInOutCubic,
+      builder: (context, color, child) {
+        return Container(
+          decoration: BoxDecoration(
+            color: color,
+            border: Border(
+              top: BorderSide(
+                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+              ),
+            ),
+            boxShadow: AppShadows.modalLight,
           ),
-        ),
-        boxShadow: AppShadows.modalLight,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s24,
-        vertical: AppSpacing.s16,
-      ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s24,
+            vertical: AppSpacing.s16,
+          ),
+          child: child,
+        );
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

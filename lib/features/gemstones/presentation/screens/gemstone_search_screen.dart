@@ -5,13 +5,15 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/global_search_bar.dart';
+import '../../../../core/widgets/melee_background_shell.dart';
+import '../../application/gemstone_search_provider.dart';
 import '../widgets/gemstone_showcase_carousel.dart';
 import '../widgets/gemstone_filter_category_basic.dart';
-import '../widgets/gemstone_filter_category_quality.dart';
 import '../widgets/gemstone_filter_category_measurements.dart';
+import '../widgets/gemstone_filter_category_preferences.dart';
 import '../widgets/gemstone_search_bottom_bar.dart';
 
-enum GemstoneSection { basic, quality, measurements }
+enum GemstoneSection { basic, preferences, measurements }
 
 /// Gemstone search and filter screen. Mirrors the diamond search screen:
 /// fixed top search bar, sticky category navigation, scrollable filter
@@ -29,7 +31,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
   GemstoneSection _activeSection = GemstoneSection.basic;
 
   final GlobalKey _basicKey = GlobalKey();
-  final GlobalKey _qualityKey = GlobalKey();
+  final GlobalKey _prefKey = GlobalKey();
   final GlobalKey _measKey = GlobalKey();
   final GlobalKey _navKey = GlobalKey();
 
@@ -59,7 +61,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
   void _onScroll() {
     final sections = [
       (_basicKey, GemstoneSection.basic),
-      (_qualityKey, GemstoneSection.quality),
+      (_prefKey, GemstoneSection.preferences),
       (_measKey, GemstoneSection.measurements),
     ];
 
@@ -102,94 +104,104 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMelee = ref.watch(gemstoneSearchProvider).lotType == 'Melee';
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          'GEMSTONE FINDER',
-          style: AppTypography.title.copyWith(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.0,
+    return MeleeBackgroundShell(
+      isMelee: isMelee,
+      isDark: isDark,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          GlobalSearchBar(isDark: isDark),
-          Expanded(
-            child: SafeArea(
-              top: false,
-              child: Stack(
-                children: [
-                  Column(
-                    children: [
-                      _buildStickyNav(isDark),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.only(
-                            left: AppSpacing.s16,
-                            right: AppSpacing.s16,
-                            bottom: 120.0,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const GemstoneShowcaseCarousel(),
-                              const SizedBox(height: AppSpacing.s24),
-                              _buildSearchCardHeader(isDark),
-                              const SizedBox(height: AppSpacing.s24),
-                              _buildSection(
-                                key: _basicKey,
-                                title: 'Basic',
-                                child: const GemstoneFilterCategoryBasic(),
-                              ),
-                              const SizedBox(height: AppSpacing.s32),
-                              _buildSection(
-                                key: _qualityKey,
-                                title: 'Quality & Color',
-                                child: const GemstoneFilterCategoryQuality(),
-                              ),
-                              const SizedBox(height: AppSpacing.s32),
-                              _buildSection(
-                                key: _measKey,
-                                title: 'Measurements',
-                                child:
-                                    const GemstoneFilterCategoryMeasurements(),
-                              ),
-                              const SizedBox(height: AppSpacing.s32),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: GemstoneSearchBottomBar(
-                      onSearch: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Gemstone results screen is coming soon.',
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+          title: Text(
+            'GEMSTONE FINDER',
+            style: AppTypography.title.copyWith(
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
             ),
           ),
-        ],
+          centerTitle: true,
+        ),
+        body: Column(
+          children: [
+            GlobalSearchBar(isDark: isDark),
+            Expanded(
+              child: SafeArea(
+                top: false,
+                child: Stack(
+                  children: [
+                    Column(
+                      children: [
+                        _buildStickyNav(isDark, isMelee),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.only(
+                              left: AppSpacing.s16,
+                              right: AppSpacing.s16,
+                              bottom: 120.0,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const GemstoneShowcaseCarousel(),
+                                const SizedBox(height: AppSpacing.s24),
+                                _buildSearchCardHeader(isDark),
+                                const SizedBox(height: AppSpacing.s24),
+                                _buildSection(
+                                  key: _basicKey,
+                                  title: 'Basic',
+                                  child: const GemstoneFilterCategoryBasic(),
+                                ),
+                                const SizedBox(height: AppSpacing.s32),
+                                _buildSection(
+                                  key: _prefKey,
+                                  title: 'Preferences',
+                                  child: const GemstoneFilterCategoryPreferences(),
+                                ),
+                                const SizedBox(height: AppSpacing.s32),
+                                _buildSection(
+                                  key: _measKey,
+                                  title: 'Measurements',
+                                  child:
+                                      const GemstoneFilterCategoryMeasurements(),
+                                ),
+                                const SizedBox(height: AppSpacing.s32),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: GemstoneSearchBottomBar(
+                        onSearch: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Gemstone results screen is coming soon.',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -241,24 +253,34 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
     );
   }
 
-  Widget _buildStickyNav(bool isDark) {
+  Widget _buildStickyNav(bool isDark, bool isMelee) {
     final sections = [
       (GemstoneSection.basic, 'Basic', Icons.diamond_outlined),
-      (GemstoneSection.quality, 'QUAL', Icons.palette_outlined),
+      (GemstoneSection.preferences, 'PREF', Icons.tune),
       (GemstoneSection.measurements, 'MEAS', Icons.straighten),
     ];
 
-    return Container(
-      key: _navKey,
-      height: _navHeight,
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.charcoalDark : AppColors.creamBg,
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
-          ),
-        ),
+    return TweenAnimationBuilder<Color?>(
+      tween: ColorTween(
+        end: AppColors.surfaceBg(isDark: isDark, melee: isMelee),
       ),
+      duration: AppColors.meleeBgDuration,
+      curve: Curves.easeInOutCubic,
+      builder: (context, color, child) {
+        return Container(
+          key: _navKey,
+          height: _navHeight,
+          decoration: BoxDecoration(
+            color: color,
+            border: Border(
+              bottom: BorderSide(
+                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+              ),
+            ),
+          ),
+          child: child,
+        );
+      },
       child: Row(
         children: sections.map((entry) {
           final section = entry.$1;
@@ -272,7 +294,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                 setState(() => _activeSection = section);
                 final key = switch (section) {
                   GemstoneSection.basic => _basicKey,
-                  GemstoneSection.quality => _qualityKey,
+                  GemstoneSection.preferences => _prefKey,
                   GemstoneSection.measurements => _measKey,
                 };
                 _scrollToSection(key);

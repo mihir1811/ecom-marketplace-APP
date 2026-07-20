@@ -122,6 +122,18 @@ class DiamondFilterState {
     'Multi',
   ];
 
+  /// Fancy color labels for the UI. Melee replaces `Multi` with `Other`.
+  static List<String> fancyColorsForDisplay({
+    required bool isLabCatalog,
+    required bool useMeleeFilters,
+  }) {
+    final base = isLabCatalog ? labFancyColors : fancyColors;
+    if (!useMeleeFilters) return base;
+    return [
+      for (final color in base) color == 'Multi' ? 'Other' : color,
+    ];
+  }
+
   /// Lab-grown catalog categories (single-select switch).
   static const List<String> labCategories = ['Lab Diamond', 'Lab Melee'];
 
@@ -665,6 +677,7 @@ class DiamondFilterState {
     this.threeEx = false,
     this.sellersWithVideo = false,
     this.sellersWithImages = false,
+    this.separable = false,
     this.searchByMedia = false,
     this.selectedPolish = const [],
     this.selectedSymmetry = const [],
@@ -754,6 +767,7 @@ class DiamondFilterState {
   final bool threeEx;
   final bool sellersWithVideo;
   final bool sellersWithImages;
+  final bool separable;
   final bool searchByMedia;
   final List<String> selectedPolish;
   final List<String> selectedSymmetry;
@@ -843,6 +857,7 @@ class DiamondFilterState {
     bool? threeEx,
     bool? sellersWithVideo,
     bool? sellersWithImages,
+    bool? separable,
     bool? searchByMedia,
     List<String>? selectedPolish,
     List<String>? selectedSymmetry,
@@ -928,6 +943,7 @@ class DiamondFilterState {
       threeEx: threeEx ?? this.threeEx,
       sellersWithVideo: sellersWithVideo ?? this.sellersWithVideo,
       sellersWithImages: sellersWithImages ?? this.sellersWithImages,
+      separable: separable ?? this.separable,
       searchByMedia: searchByMedia ?? this.searchByMedia,
       selectedPolish: selectedPolish ?? this.selectedPolish,
       selectedSymmetry: selectedSymmetry ?? this.selectedSymmetry,

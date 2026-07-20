@@ -8,4 +8,6 @@ class AppRouteNames {
   static const String labGrownDiamonds = '/diamonds/lab-grown';
   static const String labGrownDiamondResults = '/diamonds/lab-grown/results';
   static const String gemstones = '/gemstones';
+  static const String watches = '/watches';
+  static const String bullions = '/bullions';
 }

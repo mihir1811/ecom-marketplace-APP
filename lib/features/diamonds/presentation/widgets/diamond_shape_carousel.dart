@@ -31,11 +31,17 @@ const List<Map<String, String>> kAllShapes = [
   {'name': 'Lozenge', 'image': 'public/images/lozenge.png'},
 ];
 
+/// Gap between the two cards shown on each carousel page.
+const double _kPairGap = 16.0;
+
+/// Auto-playing diamond shape carousel — same layout/animation as
+/// [GemstoneShowcaseCarousel] (paired cards, infinite PageView, progress bar).
 class DiamondShapeCarousel extends ConsumerStatefulWidget {
   const DiamondShapeCarousel({super.key});
 
   @override
-  ConsumerState<DiamondShapeCarousel> createState() => _DiamondShapeCarouselState();
+  ConsumerState<DiamondShapeCarousel> createState() =>
+      _DiamondShapeCarouselState();
 }
 
 class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
@@ -44,18 +50,21 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
   Timer? _autoScrollTimer;
   double _scrollProgress = 0.0;
 
+  static int get _pairCount => (kAllShapes.length / 2).ceil();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _pageController = PageController(viewportFraction: 0.46);
+    _pageController = PageController(initialPage: _pairCount * 100);
     _pageController.addListener(_onPageScroll);
     _startAutoScroll();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       _autoScrollTimer?.cancel();
     } else if (state == AppLifecycleState.resumed && mounted) {
       _startAutoScroll();
@@ -73,23 +82,23 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
 
   void _onPageScroll() {
     if (!_pageController.hasClients) return;
-    final maxScroll = _pageController.position.maxScrollExtent;
-    final currentScroll = _pageController.position.pixels;
+    final page = _pageController.page ?? 0;
     if (mounted) {
       setState(() {
-        _scrollProgress = maxScroll > 0 ? (currentScroll / maxScroll).clamp(0.0, 1.0) : 0.0;
+        _scrollProgress = (_pairCount > 0)
+            ? ((page % _pairCount) / _pairCount).clamp(0.0, 1.0)
+            : 0.0;
       });
     }
   }
 
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!mounted || !_pageController.hasClients) return;
       final page = _pageController.page ?? 0;
-      final nextPage = (page.round() + 1) % kAllShapes.length;
       _pageController.animateToPage(
-        nextPage,
+        page.round() + 1,
         duration: const Duration(milliseconds: 600),
         curve: Curves.easeInOut,
       );
@@ -109,13 +118,17 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Select Diamond\nShapes',
-                style: AppTypography.display.copyWith(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  height: 1.1,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              Expanded(
+                child: Text(
+                  'Select Diamond\nShapes',
+                  style: AppTypography.display.copyWith(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    height: 1.1,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
+                  ),
                 ),
               ),
             ],
@@ -123,23 +136,52 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
           const SizedBox(height: AppSpacing.s12),
           SizedBox(
             height: 180,
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: kAllShapes.length,
-              itemBuilder: (context, index) {
-                final item = kAllShapes[index];
-                final name = item['name']!;
-                final image = item['image']!;
-                final isSelected = state.shapes.contains(name);
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                  child: DiamondShapeCard(
-                    name: name,
-                    shapeType: getShapeType(name),
-                    imagePath: image,
-                    isSelected: isSelected,
-                    onTap: () => notifier.toggleShape(name),
-                  ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const horizontalPad = AppSpacing.s8;
+                final available =
+                    constraints.maxWidth - horizontalPad * 2 - _kPairGap;
+                final cardWidth = available / 2;
+
+                return PageView.builder(
+                  controller: _pageController,
+                  itemBuilder: (context, pageIndex) {
+                    final pairIndex = pageIndex % _pairCount;
+                    final leftIndex = (pairIndex * 2) % kAllShapes.length;
+                    final rightIndex = (leftIndex + 1) % kAllShapes.length;
+
+                    Widget cardAt(int index) {
+                      final item = kAllShapes[index];
+                      final name = item['name']!;
+                      final image = item['image']!;
+                      final isSelected = state.shapes.contains(name);
+                      return DiamondShapeCard(
+                        name: name,
+                        shapeType: getShapeType(name),
+                        imagePath: image,
+                        isSelected: isSelected,
+                        onTap: () => notifier.toggleShape(name),
+                      );
+                    }
+
+                    return Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: horizontalPad),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: cardWidth,
+                            child: cardAt(leftIndex),
+                          ),
+                          const SizedBox(width: _kPairGap),
+                          SizedBox(
+                            width: cardWidth,
+                            child: cardAt(rightIndex),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             ),

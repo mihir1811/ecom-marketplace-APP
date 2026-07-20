@@ -6,7 +6,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../diamonds/presentation/widgets/filter_boolean_checkbox.dart';
 import '../../../diamonds/presentation/widgets/filter_chip.dart';
 import '../../../diamonds/presentation/widgets/filter_melee_range_filters.dart';
-import '../../../diamonds/presentation/widgets/filter_origin_dropdown.dart';
 import '../../../diamonds/presentation/widgets/filter_quick_range_chip.dart';
 import '../../../diamonds/presentation/widgets/filter_range_slider.dart';
 import '../../../diamonds/presentation/widgets/filter_scrollable_chips.dart';
@@ -15,6 +14,7 @@ import '../../../diamonds/presentation/widgets/filter_shape_grid_cell.dart';
 import '../../application/gemstone_search_provider.dart';
 import '../../domain/models/gemstone_filter_state.dart';
 import 'birthstone_month_card.dart';
+import 'gemstone_filter_category_quality.dart';
 import 'gemstone_segmented_control.dart';
 
 class GemstoneFilterCategoryBasic extends ConsumerStatefulWidget {
@@ -114,11 +114,20 @@ class _GemstoneFilterCategoryBasicState
           ),
           const SizedBox(height: AppSpacing.s20),
 
-          // === SEPARABLE ===
+          if (isMelee) ...[
+            FilterBooleanCheckbox(
+              label: 'Separable',
+              value: state.separable,
+              onChanged: (_) => notifier.toggleSeparable(),
+            ),
+            const SizedBox(height: AppSpacing.s20),
+          ],
+
+          // === FILTER BY MEDIA ===
           FilterBooleanCheckbox(
-            label: 'Separable',
-            value: state.separable,
-            onChanged: (_) => notifier.toggleSeparable(),
+            label: 'Filter by Media',
+            value: state.searchByMedia,
+            onChanged: (_) => notifier.toggleSearchByMedia(),
           ),
           const SizedBox(height: AppSpacing.s20),
 
@@ -338,6 +347,22 @@ class _GemstoneFilterCategoryBasicState
             ),
           ] else ...[
             FilterRangeSlider(
+              title: 'Total Price',
+              minLimit: GemstoneFilterState.priceMin,
+              maxLimit: GemstoneFilterState.totalPriceMax,
+              currentMin: state.minTotalPrice,
+              currentMax: state.maxTotalPrice,
+              unitSuffix: '\$',
+              isInteger: true,
+              onChanged: (min, max) => notifier.updateTotalPriceRange(min, max),
+              onClear: () => notifier.updateTotalPriceRange(
+                GemstoneFilterState.priceMin,
+                GemstoneFilterState.totalPriceMax,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s20),
+
+            FilterRangeSlider(
               title: 'Total Carat',
               minLimit: GemstoneFilterState.caratMin,
               maxLimit: GemstoneFilterState.caratMax,
@@ -352,6 +377,8 @@ class _GemstoneFilterCategoryBasicState
             ),
             const SizedBox(height: AppSpacing.s12),
             Wrap(
+              alignment: WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.start,
               spacing: AppSpacing.s8,
               runSpacing: AppSpacing.s8,
               children: List.generate(
@@ -384,190 +411,162 @@ class _GemstoneFilterCategoryBasicState
                 GemstoneFilterState.pricePerPieceMax,
               ),
             ),
-            const SizedBox(height: AppSpacing.s20),
-
-            FilterRangeSlider(
-              title: 'Total Price',
-              minLimit: GemstoneFilterState.priceMin,
-              maxLimit: GemstoneFilterState.totalPriceMax,
-              currentMin: state.minTotalPrice,
-              currentMax: state.maxTotalPrice,
-              unitSuffix: '\$',
-              isInteger: true,
-              onChanged: (min, max) => notifier.updateTotalPriceRange(min, max),
-              onClear: () => notifier.updateTotalPriceRange(
-                GemstoneFilterState.priceMin,
-                GemstoneFilterState.totalPriceMax,
-              ),
-            ),
           ],
 
-          const SizedBox(height: AppSpacing.s24),
-          const Divider(),
-          const SizedBox(height: AppSpacing.s16),
-
-          // === ADVANCED CONTENT (moved from Advanced section) ===
-          Center(
-            child: TextButton.icon(
-              onPressed: () {
-                setState(() => _isAdvancedExpanded = !_isAdvancedExpanded);
-              },
-              icon: Icon(
-                _isAdvancedExpanded
-                    ? Icons.keyboard_arrow_up
-                    : Icons.keyboard_arrow_down,
-                color: AppColors.bronze,
-                size: 18,
-              ),
-              label: Text(
-                _isAdvancedExpanded
-                    ? 'Hide Advanced Filters'
-                    : 'Show Advanced Filters',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.bronze,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-
-          if (_isAdvancedExpanded) ...[
+          if (!isMelee) ...[
+            const SizedBox(height: AppSpacing.s24),
+            const Divider(),
             const SizedBox(height: AppSpacing.s16),
 
-            // === TREATMENTS (View More only) ===
-            const FilterSectionHeader(
-              title: 'Treatments',
-              infoText:
-                  'Filter by enhancement processes applied to the gemstone.',
+            Center(
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() => _isAdvancedExpanded = !_isAdvancedExpanded);
+                },
+                icon: Icon(
+                  _isAdvancedExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: AppColors.bronze,
+                  size: 18,
+                ),
+                label: Text(
+                  _isAdvancedExpanded
+                      ? 'Hide Advanced Filters'
+                      : 'Show Advanced Filters',
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.bronze,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: AppSpacing.s8),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-              alignment: Alignment.topCenter,
-              child: Wrap(
+
+            if (_isAdvancedExpanded) ...[
+              const SizedBox(height: AppSpacing.s16),
+
+              const FilterSectionHeader(
+                title: 'Certification',
+                infoText:
+                    'Filter by the gemological laboratory that certified the stone.',
+              ),
+              const SizedBox(height: AppSpacing.s8),
+              Wrap(
                 spacing: AppSpacing.s8,
                 runSpacing: AppSpacing.s8,
-                children: [
-                  ...GemstoneFilterState.treatments
-                      .take(_treatmentDisplayCount)
-                      .map((treatment) {
-                        return FilterChipWidget(
-                          label: treatment,
-                          isSelected: state.selectedTreatments.contains(
-                            treatment,
-                          ),
-                          onTap: () => notifier.toggleTreatment(treatment),
-                        );
-                      }),
-                  if (_treatmentDisplayCount <
-                      GemstoneFilterState.treatments.length)
-                    FilterChipWidget(
-                      label:
-                          'Others (${GemstoneFilterState.treatments.length - _treatmentDisplayCount})',
-                      isSelected: false,
-                      onTap: () {
-                        setState(() {
-                          _treatmentDisplayCount =
-                              GemstoneFilterState.treatments.length;
-                        });
-                      },
-                      selectedColor: AppColors.sandSurface,
-                      unselectedBgColor: AppColors.sandSurface,
-                      unselectedTextColor: AppColors.bronze,
-                      borderColor: AppColors.bronze,
-                    ),
-                ],
+                children: GemstoneFilterState.certifications.map((cert) {
+                  return FilterChipWidget(
+                    label: cert,
+                    isSelected: state.selectedCertifications.contains(cert),
+                    onTap: () => notifier.toggleCertification(cert),
+                  );
+                }).toList(),
               ),
-            ),
-            if (_treatmentDisplayCount < GemstoneFilterState.treatments.length)
-              Center(
-                child: TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _treatmentDisplayCount = (_treatmentDisplayCount + 8)
-                          .clamp(0, GemstoneFilterState.treatments.length);
-                    });
-                  },
-                  icon: const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: AppColors.bronze,
-                    size: 18,
-                  ),
-                  label: Text(
-                    'View More',
-                    style: AppTypography.caption.copyWith(
+              const SizedBox(height: AppSpacing.s20),
+
+              FilterScrollableChips(
+                title: 'Cut Grade',
+                options: GemstoneFilterState.cutGrades,
+                selectedItems: state.selectedCutGrades,
+                onToggle: (val) => notifier.toggleCutGrade(val),
+                infoText: "Filter by the quality of the gemstone's cut.",
+              ),
+              const SizedBox(height: AppSpacing.s20),
+
+              const GemstoneFilterCategoryQuality(),
+              const SizedBox(height: AppSpacing.s20),
+
+              const FilterSectionHeader(
+                title: 'Treatments',
+                infoText:
+                    'Filter by enhancement processes applied to the gemstone.',
+              ),
+              const SizedBox(height: AppSpacing.s8),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child: Wrap(
+                  spacing: AppSpacing.s8,
+                  runSpacing: AppSpacing.s8,
+                  children: [
+                    ...GemstoneFilterState.treatments
+                        .take(_treatmentDisplayCount)
+                        .map((treatment) {
+                          return FilterChipWidget(
+                            label: treatment,
+                            isSelected: state.selectedTreatments.contains(
+                              treatment,
+                            ),
+                            onTap: () => notifier.toggleTreatment(treatment),
+                          );
+                        }),
+                    if (_treatmentDisplayCount <
+                        GemstoneFilterState.treatments.length)
+                      FilterChipWidget(
+                        label:
+                            'Others (${GemstoneFilterState.treatments.length - _treatmentDisplayCount})',
+                        isSelected: false,
+                        onTap: () {
+                          setState(() {
+                            _treatmentDisplayCount =
+                                GemstoneFilterState.treatments.length;
+                          });
+                        },
+                        selectedColor: AppColors.sandSurface,
+                        unselectedBgColor: AppColors.sandSurface,
+                        unselectedTextColor: AppColors.bronze,
+                        borderColor: AppColors.bronze,
+                      ),
+                  ],
+                ),
+              ),
+              if (_treatmentDisplayCount <
+                  GemstoneFilterState.treatments.length)
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _treatmentDisplayCount = (_treatmentDisplayCount + 8)
+                            .clamp(0, GemstoneFilterState.treatments.length);
+                      });
+                    },
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down,
                       color: AppColors.bronze,
-                      fontWeight: FontWeight.bold,
+                      size: 18,
+                    ),
+                    label: Text(
+                      'View More',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.bronze,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            if (_treatmentDisplayCount >= GemstoneFilterState.treatments.length)
-              Center(
-                child: TextButton.icon(
-                  onPressed: () {
-                    setState(() => _treatmentDisplayCount = 8);
-                  },
-                  icon: const Icon(
-                    Icons.keyboard_arrow_up,
-                    color: AppColors.bronze,
-                    size: 18,
-                  ),
-                  label: Text(
-                    'View Less',
-                    style: AppTypography.caption.copyWith(
+              if (_treatmentDisplayCount >=
+                  GemstoneFilterState.treatments.length)
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() => _treatmentDisplayCount = 8);
+                    },
+                    icon: const Icon(
+                      Icons.keyboard_arrow_up,
                       color: AppColors.bronze,
-                      fontWeight: FontWeight.bold,
+                      size: 18,
+                    ),
+                    label: Text(
+                      'View Less',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.bronze,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            const SizedBox(height: AppSpacing.s20),
-
-            // === CERTIFICATION ===
-            const FilterSectionHeader(
-              title: 'Certification',
-              infoText:
-                  'Filter by the gemological laboratory that certified the stone.',
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            Wrap(
-              spacing: AppSpacing.s8,
-              runSpacing: AppSpacing.s8,
-              children: GemstoneFilterState.certifications.map((cert) {
-                return FilterChipWidget(
-                  label: cert,
-                  isSelected: state.selectedCertifications.contains(cert),
-                  onTap: () => notifier.toggleCertification(cert),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: AppSpacing.s20),
-
-            // === SELECT ORIGIN ===
-            FilterOriginDropdown(
-              title: 'Select Origin',
-              hint: 'Select origin',
-              infoText: "Filter by the gemstone's mined origin.",
-              pickerTitle: 'Select Origin',
-              options: GemstoneFilterState.origins,
-              flags: GemstoneFilterState.originFlags,
-              showFlags: true,
-              selectedOrigin: state.selectedOrigin,
-              onSelected: (val) => notifier.updateOrigin(val),
-              isDark: Theme.of(context).brightness == Brightness.dark,
-            ),
-            const SizedBox(height: AppSpacing.s20),
-
-            // === CUT GRADE ===
-            FilterScrollableChips(
-              title: 'Cut Grade',
-              options: GemstoneFilterState.cutGrades,
-              selectedItems: state.selectedCutGrades,
-              onToggle: (val) => notifier.toggleCutGrade(val),
-              infoText: "Filter by the quality of the gemstone's cut.",
-            ),
+            ],
           ],
         ],
       ),

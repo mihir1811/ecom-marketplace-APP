@@ -23,7 +23,15 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
   }
 
   void updateLotType(String? value) {
-    state = state.copyWith(lotType: state.lotType == value ? null : value);
+    final next = state.lotType == value ? null : value;
+    var colors = state.selectedColors;
+    if (next == 'Melee' && colors.contains('Multi')) {
+      colors = List<String>.unmodifiable([
+        for (final c in colors) if (c != 'Multi') c,
+        if (!colors.contains('Other')) 'Other',
+      ]);
+    }
+    state = state.copyWith(lotType: next, selectedColors: colors);
   }
 
   void toggleGemstoneType(String type) {
@@ -155,6 +163,10 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
     state = state.copyWith(separable: !state.separable);
   }
 
+  void toggleSearchByMedia() {
+    state = state.copyWith(searchByMedia: !state.searchByMedia);
+  }
+
   void toggleTreatment(String treatment) {
     state = state.copyWith(
       selectedTreatments: _toggled(state.selectedTreatments, treatment),
@@ -175,6 +187,18 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
     state = state.copyWith(
       selectedCutGrades: _toggled(state.selectedCutGrades, grade),
     );
+  }
+
+  void updateVendorLocation(String location) {
+    state = state.copyWith(vendorLocation: location);
+  }
+
+  void updateCompanyName(String name) {
+    state = state.copyWith(companyName: name);
+  }
+
+  void updateOriginCountry(String? country) {
+    state = state.copyWith(selectedOriginCountry: country);
   }
 
   void updateLengthRange(double min, double max) {
@@ -264,6 +288,10 @@ final matchingGemstoneCountProvider = Provider<int>((ref) {
   if (state.selectedCutGrades.isNotEmpty) {
     multiplier *= (state.selectedCutGrades.length / 5.0).clamp(0.25, 1.0);
   }
+  if (state.searchByMedia) multiplier *= 0.60;
+  if (state.vendorLocation.isNotEmpty) multiplier *= 0.70;
+  if (state.companyName.isNotEmpty) multiplier *= 0.75;
+  if (state.selectedOriginCountry != null) multiplier *= 0.65;
 
   return (86300 * multiplier).round().clamp(0, 86300);
 });

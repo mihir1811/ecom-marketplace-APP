@@ -87,9 +87,14 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final fancyColors = ref.watch(diamondCatalogTypeProvider).isLabGrown
-        ? DiamondFilterState.labFancyColors
-        : DiamondFilterState.fancyColors;
+    final isLabCatalog = ref.watch(diamondCatalogTypeProvider).isLabGrown;
+    final useMeleeFilters = isLabCatalog
+        ? state.labCategory == 'Lab Melee'
+        : state.labNatural.usesMeleeFilters;
+    final fancyColors = DiamondFilterState.fancyColorsForDisplay(
+      isLabCatalog: isLabCatalog,
+      useMeleeFilters: useMeleeFilters,
+    );
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final activeTabColor = isDark
         ? AppColors.charcoalLight
@@ -265,9 +270,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
               itemCount: fancyColors.length,
               itemBuilder: (context, index) {
                 final colorName = fancyColors[index];
-                final isSelected = state.selectedFancyColors.contains(
-                  colorName,
-                );
+                final isSelected =
+                    state.selectedFancyColors.contains(colorName);
                 return Padding(
                   padding: const EdgeInsets.only(right: 12.0),
                   child: FancyColorDiamondButton(
@@ -464,6 +468,7 @@ class FancyColorDiamondButton extends StatelessWidget {
     // Bi-color stones show a two-tone split swatch.
     final isBi = lower == 'bi';
     final hue = _getFancyHue(colorName);
+    final useSpecialSwatch = isOther || isMulti || isBi;
 
     return GestureDetector(
       onTap: onTap,
@@ -479,40 +484,36 @@ class FancyColorDiamondButton extends StatelessWidget {
                   width: 26,
                   height: 26,
                   decoration: BoxDecoration(
-                    color: (isOther || isMulti || isBi) ? null : hue,
-                    gradient: isOther
+                    color: useSpecialSwatch ? null : hue,
+                    gradient: isOther || isMulti
                         ? LinearGradient(
-                            colors: [
-                              Colors.grey.shade400,
-                              Colors.grey.shade600,
-                            ],
+                            colors: isMulti
+                                ? const [
+                                    Color(0xFFEF4444),
+                                    Color(0xFFFACC15),
+                                    Color(0xFF22C55E),
+                                    Color(0xFF2563EB),
+                                  ]
+                                : [
+                                    Colors.grey.shade400,
+                                    Colors.grey.shade600,
+                                  ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           )
-                        : isMulti
+                        : isBi
                             ? const LinearGradient(
                                 colors: [
-                                  Colors.red,
-                                  Colors.yellow,
-                                  Colors.blue,
-                                  Colors.green,
+                                  Color(0xFF2563EB),
+                                  Color(0xFF2563EB),
+                                  Color(0xFFFACC15),
+                                  Color(0xFFFACC15),
                                 ],
+                                stops: [0.0, 0.5, 0.5, 1.0],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               )
-                            : isBi
-                                ? const LinearGradient(
-                                    colors: [
-                                      Color(0xFF2563EB),
-                                      Color(0xFF2563EB),
-                                      Color(0xFFFACC15),
-                                      Color(0xFFFACC15),
-                                    ],
-                                    stops: [0.0, 0.5, 0.5, 1.0],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  )
-                                : null,
+                            : null,
                     border: Border.all(
                       color: isSelected
                           ? AppColors.bronze

@@ -29,6 +29,8 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
     final notifier = ref.read(gemstoneSearchProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final isMelee = state.lotType == 'Melee';
+    final colors = GemstoneFilterState.colorsForDisplay(isMelee: isMelee);
 
     return RepaintBoundary(
       child: Column(
@@ -41,9 +43,9 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
             height: 80,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: GemstoneFilterState.colors.length,
+              itemCount: colors.length,
               itemBuilder: (context, index) {
-                final colorName = GemstoneFilterState.colors[index];
+                final colorName = colors[index];
                 return Padding(
                   padding: const EdgeInsets.only(right: 12.0),
                   child: FancyColorDiamondButton(

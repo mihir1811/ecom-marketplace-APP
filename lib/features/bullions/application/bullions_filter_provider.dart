@@ -1,0 +1,135 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../domain/models/bullions_filter_state.dart';
+
+Set<String> _toggle(Set<String> current, String value) {
+  final next = Set<String>.from(current);
+  if (!next.add(value)) next.remove(value);
+  return next;
+}
+
+class BullionsFilterNotifier extends Notifier<BullionsFilterState> {
+  @override
+  BullionsFilterState build() => const BullionsFilterState();
+
+  void setMetalFilter(BullionsMetalFilter filter) {
+    final available = BullionsFilterState.metalVariants[filter] ?? const <String>[];
+    final keepVariant =
+        state.selectedVariant != null && available.contains(state.selectedVariant);
+    state = state.copyWith(
+      metalFilter: filter,
+      clearVariant: !keepVariant,
+    );
+  }
+
+  void setSelectedVariant(String? variant) {
+    state = state.copyWith(
+      selectedVariant: variant,
+      clearVariant: variant == null,
+    );
+  }
+
+  void setSearchQuery(String query) {
+    state = state.copyWith(searchQuery: query);
+  }
+
+  void replaceWith(BullionsFilterState next) {
+    state = next;
+  }
+
+  void reset() {
+    state = const BullionsFilterState();
+  }
+}
+
+final bullionsFilterProvider =
+    NotifierProvider<BullionsFilterNotifier, BullionsFilterState>(
+  BullionsFilterNotifier.new,
+);
+
+final bullionsViewModeProvider =
+    StateProvider<BullionsViewMode>((ref) => BullionsViewMode.grid);
+
+class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState> {
+  @override
+  BullionsFilterState build() => ref.watch(bullionsFilterProvider);
+
+  void syncFromApplied() {
+    state = ref.read(bullionsFilterProvider);
+  }
+
+  void toggleShape(String value) =>
+      state = state.copyWith(shapes: _toggle(state.shapes, value));
+
+  void toggleWeightChip(String value) =>
+      state = state.copyWith(weightChips: _toggle(state.weightChips, value));
+
+  void toggleCondition(String value) =>
+      state = state.copyWith(conditions: _toggle(state.conditions, value));
+
+  void toggleCertification(String value) => state =
+      state.copyWith(certifications: _toggle(state.certifications, value));
+
+  void toggleMintMark(String value) =>
+      state = state.copyWith(mintMarks: _toggle(state.mintMarks, value));
+
+  void setPriceRange({double? min, double? max}) {
+    state = state.copyWith(
+      priceMin: min ?? state.priceMin,
+      priceMax: max ?? state.priceMax,
+    );
+  }
+
+  void setWeightRange({double? min, double? max}) {
+    state = state.copyWith(
+      weightMin: min ?? state.weightMin,
+      weightMax: max ?? state.weightMax,
+    );
+  }
+
+  void setQuantityRange({double? min, double? max}) {
+    state = state.copyWith(
+      quantityMin: min ?? state.quantityMin,
+      quantityMax: max ?? state.quantityMax,
+    );
+  }
+
+  void setLengthRange({double? min, double? max}) {
+    state = state.copyWith(
+      lengthMin: min ?? state.lengthMin,
+      lengthMax: max ?? state.lengthMax,
+    );
+  }
+
+  void setWidthRange({double? min, double? max}) {
+    state = state.copyWith(
+      widthMin: min ?? state.widthMin,
+      widthMax: max ?? state.widthMax,
+    );
+  }
+
+  void setHeightRange({double? min, double? max}) {
+    state = state.copyWith(
+      heightMin: min ?? state.heightMin,
+      heightMax: max ?? state.heightMax,
+    );
+  }
+
+  void reset() {
+    state = BullionsFilterState(
+      metalFilter: state.metalFilter,
+      selectedVariant: state.selectedVariant,
+      searchQuery: state.searchQuery,
+    );
+  }
+
+  void apply() {
+    ref.read(bullionsFilterProvider.notifier).replaceWith(state);
+  }
+}
+
+final bullionsFilterDraftProvider =
+    NotifierProvider<BullionsFilterDraftNotifier, BullionsFilterState>(
+  BullionsFilterDraftNotifier.new,
+);
+

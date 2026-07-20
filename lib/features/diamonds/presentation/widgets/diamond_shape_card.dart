@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import 'diamond_svg_data.dart';
@@ -467,41 +468,56 @@ class DiamondShapeCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final activeColor = AppColors.bronze;
-    final inactiveBorderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    const activeColor = AppColors.bronze;
+    final inactiveBorderColor =
+        isDark ? AppColors.slateBorder : AppColors.warmBorder;
 
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+          color: isSelected
+              ? (isDark ? AppColors.charcoalLight : AppColors.creamBg)
+              : (isDark ? AppColors.slateSurface : AppColors.warmWhite),
           borderRadius: const BorderRadius.all(Radius.circular(60.0)),
           border: Border.all(
             color: isSelected ? activeColor : inactiveBorderColor,
             width: isSelected ? 2.0 : 1.0,
           ),
+          boxShadow: isSelected ? AppShadows.cardLight : AppShadows.none,
         ),
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.s24, horizontal: AppSpacing.s12),
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.s24,
+          horizontal: AppSpacing.s12,
+        ),
         child: Column(
           children: [
             Expanded(
               child: Center(
-                child: imagePath != null
-                    ? Image.asset(
-                        imagePath!,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => renderShapeSvg(
+                child: SizedBox(
+                  width: 84,
+                  height: 84,
+                  child: imagePath != null
+                      ? Image.asset(
+                          imagePath!,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => renderShapeSvg(
+                            name,
+                            size: 48,
+                            color: isSelected
+                                ? activeColor
+                                : AppColors.bronzeLight,
+                          ),
+                        )
+                      : renderShapeSvg(
                           name,
                           size: 48,
-                          color: isSelected ? activeColor : AppColors.bronzeLight,
+                          color: isSelected
+                              ? activeColor
+                              : AppColors.bronzeLight,
                         ),
-                      )
-                    : renderShapeSvg(
-                        name,
-                        size: 48,
-                        color: isSelected ? activeColor : AppColors.bronzeLight,
-                      ),
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.s16),
@@ -513,7 +529,9 @@ class DiamondShapeCard extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected
                     ? activeColor
-                    : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                    : (isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight),
               ),
             ),
           ],

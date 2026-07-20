@@ -11,11 +11,40 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
   }
 
   void updateOrigin(LabNaturalType value) {
-    state = state.copyWith(labNatural: value);
+    state = state.copyWith(
+      labNatural: value,
+      selectedFancyColors: _remapFancyColorsForMelee(
+        state.selectedFancyColors,
+        useMelee: value.usesMeleeFilters,
+      ),
+    );
   }
 
   void updateLabCategory(String category) {
-    state = state.copyWith(labCategory: category);
+    state = state.copyWith(
+      labCategory: category,
+      selectedFancyColors: _remapFancyColorsForMelee(
+        state.selectedFancyColors,
+        useMelee: category == 'Lab Melee',
+      ),
+    );
+  }
+
+  List<String> _remapFancyColorsForMelee(
+    List<String> colors, {
+    required bool useMelee,
+  }) {
+    final next = <String>{};
+    if (useMelee) {
+      for (final c in colors) {
+        next.add(c == 'Multi' ? 'Other' : c);
+      }
+    } else {
+      for (final c in colors) {
+        next.add(c == 'Other' ? 'Multi' : c);
+      }
+    }
+    return List<String>.unmodifiable(next);
   }
 
   void toggleGrowthMethod(String method) {
@@ -371,6 +400,10 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
 
   void toggleSearchByMedia() {
     state = state.copyWith(searchByMedia: !state.searchByMedia);
+  }
+
+  void toggleSeparable() {
+    state = state.copyWith(separable: !state.separable);
   }
 
   void updateSellerRating(double rating) {

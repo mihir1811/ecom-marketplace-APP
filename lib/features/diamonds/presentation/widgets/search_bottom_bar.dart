@@ -7,6 +7,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/router/route_names.dart';
 import '../../application/diamond_search_provider.dart';
+import '../../domain/models/diamond_catalog_type.dart';
 
 class SearchBottomBar extends ConsumerWidget {
   const SearchBottomBar({
@@ -23,21 +24,36 @@ class SearchBottomBar extends ConsumerWidget {
     final count = ref.watch(matchingCountProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final filterState = ref.watch(diamondSearchProvider);
+    final catalog = ref.watch(diamondCatalogTypeProvider);
+    final useMelee = catalog.isLabGrown
+        ? filterState.labCategory == 'Lab Melee'
+        : filterState.labNatural.usesMeleeFilters;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.charcoalDark : AppColors.creamBg,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+    return TweenAnimationBuilder<Color?>(
+      tween: ColorTween(
+        end: AppColors.surfaceBg(isDark: isDark, melee: useMelee),
+      ),
+      duration: AppColors.meleeBgDuration,
+      curve: Curves.easeInOutCubic,
+      builder: (context, color, child) {
+        return Container(
+          decoration: BoxDecoration(
+            color: color,
+            border: Border(
+              top: BorderSide(
+                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+              ),
+            ),
+            boxShadow: AppShadows.modalLight,
           ),
-        ),
-        boxShadow: AppShadows.modalLight,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s24,
-        vertical: AppSpacing.s16,
-      ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s24,
+            vertical: AppSpacing.s16,
+          ),
+          child: child,
+        );
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

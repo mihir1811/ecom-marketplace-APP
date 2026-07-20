@@ -51,16 +51,44 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
   @override
   void didUpdateWidget(covariant FilterRangeSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentMin != widget.currentMin && _minController.text.isNotEmpty) {
-      final oldParsed = double.tryParse(_minController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
-      if (oldParsed == oldWidget.currentMin) {
-        _minController.text = _formatValue(widget.currentMin);
-      }
+    if (oldWidget.currentMin != widget.currentMin) {
+      _syncControllerFromExternal(
+        controller: _minController,
+        oldExternal: oldWidget.currentMin,
+        newExternal: widget.currentMin,
+        defaultLimit: widget.minLimit,
+      );
     }
-    if (oldWidget.currentMax != widget.currentMax && _maxController.text.isNotEmpty) {
-      final oldParsed = double.tryParse(_maxController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
-      if (oldParsed == oldWidget.currentMax) {
-        _maxController.text = _formatValue(widget.currentMax);
+    if (oldWidget.currentMax != widget.currentMax) {
+      _syncControllerFromExternal(
+        controller: _maxController,
+        oldExternal: oldWidget.currentMax,
+        newExternal: widget.currentMax,
+        defaultLimit: widget.maxLimit,
+      );
+    }
+  }
+
+  void _syncControllerFromExternal({
+    required TextEditingController controller,
+    required double oldExternal,
+    required double newExternal,
+    required double defaultLimit,
+  }) {
+    if (controller.text.isEmpty) {
+      if (newExternal != defaultLimit) {
+        controller.text = _formatValue(newExternal);
+      }
+      return;
+    }
+    final parsed = double.tryParse(
+      controller.text.replaceAll(RegExp(r'[^0-9.]'), ''),
+    );
+    if (parsed == null || parsed == oldExternal) {
+      if (newExternal == defaultLimit) {
+        controller.clear();
+      } else {
+        controller.text = _formatValue(newExternal);
       }
     }
   }

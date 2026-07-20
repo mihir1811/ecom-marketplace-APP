@@ -190,6 +190,15 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
           ),
           const SizedBox(height: AppSpacing.s16),
 
+          if (useMeleeFilters) ...[
+            FilterBooleanCheckbox(
+              label: 'Separable',
+              value: state.separable,
+              onChanged: (_) => notifier.toggleSeparable(),
+            ),
+            const SizedBox(height: AppSpacing.s16),
+          ],
+
           FilterBooleanCheckbox(
             label: 'Filter by Media',
             value: state.searchByMedia,
@@ -208,6 +217,19 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
           ],
           if (showStandardRanges) ...[
             FilterRangeSlider(
+              title: 'Total Price',
+              minLimit: 0.0,
+              maxLimit: 1000000.0,
+              currentMin: state.minPrice,
+              currentMax: state.maxPrice,
+              unitSuffix: '\$',
+              isInteger: true,
+              onChanged: (min, max) => notifier.updatePriceRange(min, max),
+              onClear: () => notifier.updatePriceRange(0.0, 1000000.0),
+            ),
+            const SizedBox(height: AppSpacing.s20),
+
+            FilterRangeSlider(
               title: 'Total Carat',
               minLimit: 0.16,
               maxLimit: 100.00,
@@ -219,6 +241,8 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
             ),
             const SizedBox(height: AppSpacing.s12),
             Wrap(
+              alignment: WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.start,
               spacing: AppSpacing.s8,
               runSpacing: AppSpacing.s8,
               children: List.generate(
@@ -247,19 +271,6 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
               onChanged: (min, max) =>
                   notifier.updatePricePerCaratRange(min, max),
               onClear: () => notifier.updatePricePerCaratRange(0.0, 200000.0),
-            ),
-            const SizedBox(height: AppSpacing.s20),
-
-            FilterRangeSlider(
-              title: 'Total Price',
-              minLimit: 0.0,
-              maxLimit: 1000000.0,
-              currentMin: state.minPrice,
-              currentMax: state.maxPrice,
-              unitSuffix: '\$',
-              isInteger: true,
-              onChanged: (min, max) => notifier.updatePriceRange(min, max),
-              onClear: () => notifier.updatePriceRange(0.0, 1000000.0),
             ),
             const SizedBox(height: AppSpacing.s24),
           ],
