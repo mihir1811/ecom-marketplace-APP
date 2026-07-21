@@ -7,7 +7,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/router/route_names.dart';
 import '../../application/diamond_search_provider.dart';
-import '../../domain/models/diamond_catalog_type.dart';
 
 class SearchBottomBar extends ConsumerWidget {
   const SearchBottomBar({
@@ -24,15 +23,10 @@ class SearchBottomBar extends ConsumerWidget {
     final count = ref.watch(matchingCountProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final filterState = ref.watch(diamondSearchProvider);
-    final catalog = ref.watch(diamondCatalogTypeProvider);
-    final useMelee = catalog.isLabGrown
-        ? filterState.labCategory == 'Lab Melee'
-        : filterState.labNatural.usesMeleeFilters;
 
     return TweenAnimationBuilder<Color?>(
       tween: ColorTween(
-        end: AppColors.surfaceBg(isDark: isDark, melee: useMelee),
+        end: isDark ? AppColors.charcoalDark : AppColors.creamBg,
       ),
       duration: AppColors.meleeBgDuration,
       curve: Curves.easeInOutCubic,

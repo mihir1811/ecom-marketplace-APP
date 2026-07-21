@@ -22,7 +22,8 @@ class FilterSegmentedControl extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
 
-    return Container(
+    return MeleeTintExtentAnchor(
+      child: Container(
       height: 42,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -33,7 +34,11 @@ class FilterSegmentedControl extends StatelessWidget {
         children: options.map((opt) {
           final isCurrent = opt == selected;
           final splash = opt.usesMeleeFilters
-              ? AppColors.screenBg(isDark: isDark, melee: true)
+              ? AppColors.screenBg(
+                  isDark: isDark,
+                  melee: true,
+                  family: MeleeBgFamily.natural,
+                )
               : AppColors.bronzeLight;
           return Expanded(
             child: Material(
@@ -73,6 +78,7 @@ class FilterSegmentedControl extends StatelessWidget {
           );
         }).toList(),
       ),
+    ),
     );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/diamond_search_provider.dart';
@@ -69,7 +68,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
 
   static const _gold = Color(0xFFA57A00);
   static const _goldBorder = Color(0xFFD9C58A);
-  static const _activeBg = Color(0xFF121826);
+  static const _activeBg = Color(0xFF202534);
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +101,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
     return Container(
       height: 36,
       decoration: BoxDecoration(
-        color: isDark ? Colors.black26 : AppColors.sandSurface,
+        color: isDark ? Colors.black26 : Colors.white,
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         border: Border.all(color: _goldBorder.withValues(alpha: 0.4)),
       ),
@@ -128,7 +127,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
         width: 64,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isActive ? _activeBg : Colors.transparent,
+          color: isActive ? _activeBg : Colors.white,
           borderRadius: BorderRadius.circular(AppSpacing.r8 - 2),
           border: isActive ? Border.all(color: _gold, width: 1) : null,
           boxShadow: isActive

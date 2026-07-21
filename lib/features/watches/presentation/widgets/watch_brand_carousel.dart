@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -432,17 +433,18 @@ class _WatchBrandsDirectorySheetState
                                 style: AppTypography.label
                                     .copyWith(fontSize: 14),
                               ),
-                              trailing: selected.contains(brand)
-                                  ? const Icon(Icons.check,
-                                      color: AppColors.bronze)
-                                  : null,
-                              selected: selected.contains(brand),
-                              selectedTileColor: isDark
-                                  ? AppColors.charcoalLight
-                                  : AppColors.creamBg,
-                              onTap: () => ref
-                                  .read(watchFilterProvider.notifier)
-                                  .toggleBrand(brand),
+                              trailing: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 14,
+                                color: AppColors.bronze,
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                final encodedBrand = Uri.encodeComponent(brand);
+                                context.push(
+                                  '/watches/brand/$encodedBrand',
+                                );
+                              },
                             ),
                         ],
                       );

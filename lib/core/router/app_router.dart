@@ -6,6 +6,9 @@ import '../../features/diamonds/diamonds_routes.dart';
 import '../../features/gemstones/gemstones_routes.dart';
 import '../../features/watches/watches_routes.dart';
 import '../../features/bullions/bullions_routes.dart';
+import '../../features/jewelry/jewelry_routes.dart';
+import '../../features/auth/auth_routes.dart';
+import '../../features/seller/seller_routes.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -17,9 +20,12 @@ final GoRouter appRouter = GoRouter(
   initialLocation: AppRouteNames.home,
   routes: [
     ...homeRoutes,
+    ...authRoutes,
+    ...sellerRoutes,
     ...diamondsRoutes,
     ...gemstonesRoutes,
     ...watchesRoutes,
     ...bullionsRoutes,
+    ...jewelryRoutes,
   ],
 );

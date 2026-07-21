@@ -12,21 +12,77 @@ class MeleeRippleOriginNotification extends Notification {
   final Offset globalPosition;
 }
 
-/// Full-screen background that crossfades between default and melee colors
-/// and plays a water-drop circular reveal when [isMelee] changes.
-///
-/// The reveal origin is the last reported tap (via
-/// [MeleeRippleOriginNotification]); falls back to screen center.
+/// Dispatched by [MeleeTintExtentAnchor] so the tinted band ends at the
+/// bottom of the Single / Melee (or Lab Diamond / Lab Melee) switch.
+class MeleeTintExtentNotification extends Notification {
+  const MeleeTintExtentNotification(this.globalBottomY);
+
+  final double globalBottomY;
+}
+
+/// Marks the Single/Melee switch as the bottom edge of the tinted background.
+class MeleeTintExtentAnchor extends StatefulWidget {
+  const MeleeTintExtentAnchor({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  State<MeleeTintExtentAnchor> createState() => _MeleeTintExtentAnchorState();
+}
+
+class _MeleeTintExtentAnchorState extends State<MeleeTintExtentAnchor> {
+  ScrollPosition? _scrollPosition;
+  double? _lastBottom;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final next = Scrollable.maybeOf(context)?.position;
+    if (next == _scrollPosition) return;
+    _scrollPosition?.removeListener(_report);
+    _scrollPosition = next;
+    _scrollPosition?.addListener(_report);
+  }
+
+  @override
+  void dispose() {
+    _scrollPosition?.removeListener(_report);
+    super.dispose();
+  }
+
+  void _report() {
+    if (!mounted) return;
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize || !box.attached) return;
+    final bottom = box.localToGlobal(Offset(0, box.size.height)).dy;
+    if (_lastBottom != null && (bottom - _lastBottom!).abs() < 0.5) return;
+    _lastBottom = bottom;
+    MeleeTintExtentNotification(bottom).dispatch(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _report());
+    return widget.child;
+  }
+}
+
+/// Background that tints from the top down to the Single/Melee switch
+/// ([MeleeTintExtentAnchor]), crossfades colors, and plays a water-drop
+/// reveal when [isMelee] changes. Content below the switch uses the
+/// theme default background.
 class MeleeBackgroundShell extends StatefulWidget {
   const MeleeBackgroundShell({
     required this.isMelee,
     required this.isDark,
     required this.child,
+    this.family = MeleeBgFamily.natural,
     super.key,
   });
 
   final bool isMelee;
   final bool isDark;
+  final MeleeBgFamily family;
   final Widget child;
 
   @override
@@ -46,11 +102,16 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
   Offset? _pendingGlobalOrigin;
   Offset _rippleOrigin = Offset.zero;
   Size _lastSize = Size.zero;
+  double? _tintGlobalBottomY;
 
   @override
   void initState() {
     super.initState();
-    _fromColor = AppColors.screenBg(isDark: widget.isDark, melee: widget.isMelee);
+    _fromColor = AppColors.screenBg(
+      isDark: widget.isDark,
+      melee: widget.isMelee,
+      family: widget.family,
+    );
     _toColor = _fromColor;
 
     _colorController = AnimationController(
@@ -85,14 +146,28 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
     return Offset(size.width * 0.5, size.height * 0.5);
   }
 
+  double _tintHeight(Size size) {
+    final globalBottom = _tintGlobalBottomY;
+    if (globalBottom == null) return size.height;
+    final box = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return size.height;
+    final localY = box.globalToLocal(Offset(0, globalBottom)).dy;
+    return localY.clamp(0.0, size.height);
+  }
+
   @override
   void didUpdateWidget(covariant MeleeBackgroundShell oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final next = AppColors.screenBg(isDark: widget.isDark, melee: widget.isMelee);
+    final next = AppColors.screenBg(
+      isDark: widget.isDark,
+      melee: widget.isMelee,
+      family: widget.family,
+    );
     final changedMode = oldWidget.isMelee != widget.isMelee;
     final changedTheme = oldWidget.isDark != widget.isDark;
+    final changedFamily = oldWidget.family != widget.family;
 
-    if (changedMode || changedTheme) {
+    if (changedMode || changedTheme || changedFamily) {
       _fromColor = Color.lerp(_fromColor, _toColor, _colorT.value) ?? _toColor;
       _toColor = next;
       _colorController.forward(from: 0);
@@ -117,45 +192,90 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<MeleeRippleOriginNotification>(
+    final baseBg =
+        widget.isDark ? AppColors.obsidianBg : AppColors.creamBg;
+
+    return NotificationListener<Notification>(
       onNotification: (notification) {
-        _pendingGlobalOrigin = notification.globalPosition;
-        return true;
+        if (notification is MeleeRippleOriginNotification) {
+          _pendingGlobalOrigin = notification.globalPosition;
+          return true;
+        }
+        if (notification is MeleeTintExtentNotification) {
+          if (_tintGlobalBottomY != notification.globalBottomY) {
+            setState(() => _tintGlobalBottomY = notification.globalBottomY);
+          }
+          return true;
+        }
+        return false;
       },
       child: AnimatedBuilder(
         animation: Listenable.merge([_colorController, _rippleController]),
         builder: (context, child) {
-          final bg = Color.lerp(_fromColor, _toColor, _colorT.value) ?? _toColor;
+          final tint =
+              Color.lerp(_fromColor, _toColor, _colorT.value) ?? _toColor;
           final showRipple = _rippleController.isAnimating ||
               (_rippleT.value > 0 && _rippleT.value < 1);
-          return Stack(
-            key: _stackKey,
-            fit: StackFit.expand,
-            children: [
-              ColoredBox(color: bg),
-              if (showRipple)
-                IgnorePointer(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      _lastSize = constraints.biggest;
-                      return CustomPaint(
-                        painter: _WaterDropPainter(
-                          progress: _rippleT.value,
-                          fillColor: _toColor,
-                          accent: widget.isMelee
-                              ? AppColors.bronzeLight
-                              : AppColors.bronze,
-                          origin: _rippleOrigin == Offset.zero
-                              ? _resolveOrigin(_lastSize)
-                              : _rippleOrigin,
-                        ),
-                        size: Size.infinite,
-                      );
-                    },
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              _lastSize = constraints.biggest;
+              final height = _tintHeight(_lastSize);
+              return Stack(
+                key: _stackKey,
+                fit: StackFit.expand,
+                children: [
+                  ColoredBox(color: baseBg),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: height,
+                    child: ShaderMask(
+                      blendMode: BlendMode.dstIn,
+                      shaderCallback: (bounds) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0xFFFFFFFF),
+                            Color(0xE6FFFFFF),
+                            Color(0x66FFFFFF),
+                            Color(0x00FFFFFF),
+                          ],
+                          stops: [0.0, 0.42, 0.78, 1.0],
+                        ).createShader(bounds);
+                      },
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ColoredBox(color: tint),
+                          if (showRipple)
+                            IgnorePointer(
+                              child: CustomPaint(
+                                painter: _WaterDropPainter(
+                                  progress: _rippleT.value,
+                                  fillColor: _toColor,
+                                  accent: widget.isMelee
+                                      ? AppColors.bronzeLight
+                                      : AppColors.bronze,
+                                  origin: _rippleOrigin == Offset.zero
+                                      ? _resolveOrigin(Size(
+                                          _lastSize.width,
+                                          height,
+                                        ))
+                                      : _rippleOrigin,
+                                ),
+                                size: Size.infinite,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              child!,
-            ],
+                  child!,
+                ],
+              );
+            },
           );
         },
         child: widget.child,

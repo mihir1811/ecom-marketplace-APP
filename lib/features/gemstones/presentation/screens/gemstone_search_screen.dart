@@ -6,7 +6,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/global_search_bar.dart';
 import '../../../../core/widgets/melee_background_shell.dart';
-import '../../application/gemstone_search_provider.dart';
 import '../widgets/gemstone_showcase_carousel.dart';
 import '../widgets/gemstone_filter_category_basic.dart';
 import '../widgets/gemstone_filter_category_measurements.dart';
@@ -104,11 +103,11 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isMelee = ref.watch(gemstoneSearchProvider).lotType == 'Melee';
 
     return MeleeBackgroundShell(
-      isMelee: isMelee,
+      isMelee: false,
       isDark: isDark,
+      family: MeleeBgFamily.gemstone,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -139,7 +138,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                   children: [
                     Column(
                       children: [
-                        _buildStickyNav(isDark, isMelee),
+                        _buildStickyNav(isDark),
                         Expanded(
                           child: SingleChildScrollView(
                             controller: _scrollController,
@@ -253,34 +252,24 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
     );
   }
 
-  Widget _buildStickyNav(bool isDark, bool isMelee) {
+  Widget _buildStickyNav(bool isDark) {
     final sections = [
       (GemstoneSection.basic, 'Basic', Icons.diamond_outlined),
       (GemstoneSection.preferences, 'PREF', Icons.tune),
       (GemstoneSection.measurements, 'MEAS', Icons.straighten),
     ];
 
-    return TweenAnimationBuilder<Color?>(
-      tween: ColorTween(
-        end: AppColors.surfaceBg(isDark: isDark, melee: isMelee),
-      ),
-      duration: AppColors.meleeBgDuration,
-      curve: Curves.easeInOutCubic,
-      builder: (context, color, child) {
-        return Container(
-          key: _navKey,
-          height: _navHeight,
-          decoration: BoxDecoration(
-            color: color,
-            border: Border(
-              bottom: BorderSide(
-                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
-              ),
-            ),
+    return Container(
+      key: _navKey,
+      height: _navHeight,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
           ),
-          child: child,
-        );
-      },
+        ),
+      ),
       child: Row(
         children: sections.map((entry) {
           final section = entry.$1;

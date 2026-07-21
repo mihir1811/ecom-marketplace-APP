@@ -18,7 +18,6 @@ class GemstoneSearchBottomBar extends ConsumerWidget {
     final count = ref.watch(matchingGemstoneCountProvider);
     final notifier = ref.read(gemstoneSearchProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isMelee = ref.watch(gemstoneSearchProvider).lotType == 'Melee';
 
     final formattedCount = count.toString().replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -27,7 +26,7 @@ class GemstoneSearchBottomBar extends ConsumerWidget {
 
     return TweenAnimationBuilder<Color?>(
       tween: ColorTween(
-        end: AppColors.surfaceBg(isDark: isDark, melee: isMelee),
+        end: isDark ? AppColors.charcoalDark : AppColors.creamBg,
       ),
       duration: AppColors.meleeBgDuration,
       curve: Curves.easeInOutCubic,

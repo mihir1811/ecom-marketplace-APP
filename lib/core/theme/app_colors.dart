@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// Which finder owns the Single/Melee screen background palette.
+enum MeleeBgFamily {
+  labGrown,
+  natural,
+  gemstone,
+}
+
 /// Raw color palette definition for GemWorld.
 /// Exposes static constants for styling light and dark modes.
 class AppColors {
@@ -30,22 +37,47 @@ class AppColors {
   static const slateSurface = Color(0xFF16181B);
   static const slateBorder = Color(0xFF2E3035);
 
+  /// Catalog-specific Single/Melee screen background families.
+  static const labGrownSingleBg = Color(0xFFEEF8F3);
+  static const labGrownMeleeBg = Color(0xFFEDF7FB);
+  static const naturalSingleBg = Color(0xFFF0F1F6);
+  static const gemstoneBg = Color(0xFFF5F6FA);
+
   /// Soft melee tint of the screen background (same family as [creamBg]/[obsidianBg]).
-  /// Default (non-melee) stays cream/obsidian; melee uses a cool mist shade so the
-  /// switch is clearly visible.
-  static Color screenBg({required bool isDark, bool melee = false}) {
+  ///
+  /// Light mode by [family]:
+  /// - [MeleeBgFamily.labGrown]: #eef8f3 → #edf7fb
+  /// - [MeleeBgFamily.natural]: #f0f1f6 → [creamBg] (theme default / `--background`)
+  /// - [MeleeBgFamily.gemstone]: always #f5f6fa (no melee shift)
+  static Color screenBg({
+    required bool isDark,
+    bool melee = false,
+    MeleeBgFamily family = MeleeBgFamily.natural,
+  }) {
     if (isDark) {
       return melee ? const Color(0xFF151C24) : obsidianBg;
     }
-    return melee ? const Color(0xFFE4EEF3) : creamBg;
+    switch (family) {
+      case MeleeBgFamily.labGrown:
+        return melee ? labGrownMeleeBg : labGrownSingleBg;
+      case MeleeBgFamily.natural:
+        return melee ? creamBg : naturalSingleBg;
+      case MeleeBgFamily.gemstone:
+        return gemstoneBg;
+    }
   }
 
   /// Soft melee tint for sticky surfaces (nav / bottom bar).
-  static Color surfaceBg({required bool isDark, bool melee = false}) {
+  /// Matches [screenBg] light-mode families so sticky chrome tracks the page.
+  static Color surfaceBg({
+    required bool isDark,
+    bool melee = false,
+    MeleeBgFamily family = MeleeBgFamily.natural,
+  }) {
     if (isDark) {
       return melee ? const Color(0xFF1B242E) : charcoalDark;
     }
-    return melee ? const Color(0xFFD7E4EB) : creamBg;
+    return screenBg(isDark: false, melee: melee, family: family);
   }
 
   /// Shared duration for melee background color transitions.

@@ -36,7 +36,8 @@ class GemstoneSegmentedControl extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasSelection = selected != null;
 
-    return Container(
+    return MeleeTintExtentAnchor(
+      child: Container(
       height: 35,
       padding: EdgeInsets.zero,
       margin: EdgeInsets.zero,
@@ -67,11 +68,17 @@ class GemstoneSegmentedControl extends StatelessWidget {
                 },
                 onTap: () => onSelected(opt.value),
                 splashColor: (opt.value == 'Melee'
-                        ? AppColors.screenBg(isDark: isDark, melee: true)
+                        ? AppColors.screenBg(
+                            isDark: isDark,
+                            family: MeleeBgFamily.gemstone,
+                          )
                         : AppColors.bronzeLight)
                     .withValues(alpha: 0.55),
                 highlightColor: (opt.value == 'Melee'
-                        ? AppColors.screenBg(isDark: isDark, melee: true)
+                        ? AppColors.screenBg(
+                            isDark: isDark,
+                            family: MeleeBgFamily.gemstone,
+                          )
                         : AppColors.bronzeLight)
                     .withValues(alpha: 0.22),
                 borderRadius: BorderRadius.circular(AppSpacing.r12),
@@ -124,6 +131,7 @@ class GemstoneSegmentedControl extends StatelessWidget {
           );
         }).toList(),
       ),
+    ),
     );
   }
 }

@@ -139,9 +139,14 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
       });
     }
 
+    final bgFamily = widget.catalog.isLabGrown
+        ? MeleeBgFamily.labGrown
+        : MeleeBgFamily.natural;
+
     return MeleeBackgroundShell(
       isMelee: useMeleeFilters,
       isDark: isDark,
+      family: bgFamily,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -281,27 +286,17 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
       if (!useMeleeFilters) (Section.advanced, 'ADV', Icons.add),
     ];
 
-    return TweenAnimationBuilder<Color?>(
-      tween: ColorTween(
-        end: AppColors.surfaceBg(isDark: isDark, melee: useMeleeFilters),
-      ),
-      duration: AppColors.meleeBgDuration,
-      curve: Curves.easeInOutCubic,
-      builder: (context, color, child) {
-        return Container(
-          key: _navKey,
-          height: _navHeight,
-          decoration: BoxDecoration(
-            color: color,
-            border: Border(
-              bottom: BorderSide(
-                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
-              ),
-            ),
+    return Container(
+      key: _navKey,
+      height: _navHeight,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
           ),
-          child: child,
-        );
-      },
+        ),
+      ),
       child: Row(
         children: sections.map((entry) {
           final section = entry.$1;

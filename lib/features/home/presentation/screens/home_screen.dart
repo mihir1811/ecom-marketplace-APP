@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.s16),
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => context.push(AppRouteNames.login),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.s16,
@@ -176,6 +176,10 @@ class HomeScreen extends StatelessWidget {
                         onPressed: () => context.push(AppRouteNames.bullions),
                         child: const Text('Explore Bullion'),
                       ),
+                      ElevatedButton(
+                        onPressed: () => context.push(AppRouteNames.jewelry),
+                        child: const Text('Browse Collection'),
+                      ),
                       TextButton(
                         onPressed: () {},
                         child: const Row(
@@ -211,7 +215,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () => context.push(AppRouteNames.jewelry),
                         child: const Text('Browse all'),
                       ),
                     ],
@@ -256,6 +260,7 @@ class HomeScreen extends StatelessWidget {
                         title: 'Fine Jewelry',
                         desc: 'Rings, earrings, bracelets, and more.',
                         icon: Icons.star_border,
+                        onTap: () => context.push(AppRouteNames.jewelry),
                       ),
                       _CategoryCard(
                         title: 'Bullion',
