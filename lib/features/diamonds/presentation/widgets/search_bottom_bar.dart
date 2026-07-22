@@ -22,11 +22,9 @@ class SearchBottomBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final count = ref.watch(matchingCountProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return TweenAnimationBuilder<Color?>(
       tween: ColorTween(
-        end: isDark ? AppColors.charcoalDark : AppColors.creamBg,
+        end: AppColors.creamBg,
       ),
       duration: AppColors.meleeBgDuration,
       curve: Curves.easeInOutCubic,
@@ -36,7 +34,7 @@ class SearchBottomBar extends ConsumerWidget {
             color: color,
             border: Border(
               top: BorderSide(
-                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                color: AppColors.warmBorder,
               ),
             ),
             boxShadow: AppShadows.modalLight,
@@ -86,7 +84,7 @@ class SearchBottomBar extends ConsumerWidget {
               child: Text(
                 'CLEAR ALL FILTERS',
                 style: AppTypography.caption.copyWith(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: AppColors.textSecondaryLight,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
                 ),

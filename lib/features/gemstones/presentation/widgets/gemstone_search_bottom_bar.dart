@@ -17,8 +17,6 @@ class GemstoneSearchBottomBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final count = ref.watch(matchingGemstoneCountProvider);
     final notifier = ref.read(gemstoneSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final formattedCount = count.toString().replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]},',
@@ -26,7 +24,7 @@ class GemstoneSearchBottomBar extends ConsumerWidget {
 
     return TweenAnimationBuilder<Color?>(
       tween: ColorTween(
-        end: isDark ? AppColors.charcoalDark : AppColors.creamBg,
+        end: AppColors.creamBg,
       ),
       duration: AppColors.meleeBgDuration,
       curve: Curves.easeInOutCubic,
@@ -36,7 +34,7 @@ class GemstoneSearchBottomBar extends ConsumerWidget {
             color: color,
             border: Border(
               top: BorderSide(
-                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                color: AppColors.warmBorder,
               ),
             ),
             boxShadow: AppShadows.modalLight,
@@ -81,9 +79,7 @@ class GemstoneSearchBottomBar extends ConsumerWidget {
               child: Text(
                 'CLEAR FILTERS',
                 style: AppTypography.caption.copyWith(
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondaryLight,
+                  color: AppColors.textSecondaryLight,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
                 ),

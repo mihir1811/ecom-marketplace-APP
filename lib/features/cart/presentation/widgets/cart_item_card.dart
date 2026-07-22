@@ -16,9 +16,8 @@ class CartItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final border = isDark ? AppColors.slateBorder : AppColors.warmBorder;
-    final bg = isDark ? AppColors.slateSurface : AppColors.warmWhite;
+    final border = AppColors.warmBorder;
+    final bg = AppColors.warmWhite;
 
     return Container(
       decoration: BoxDecoration(
@@ -34,7 +33,7 @@ class CartItemCard extends ConsumerWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: isDark ? AppColors.charcoalLight : AppColors.sandSurface,
+              color: AppColors.sandSurface,
               borderRadius: BorderRadius.circular(AppSpacing.r12),
             ),
             child: Center(
@@ -78,9 +77,7 @@ class CartItemCard extends ConsumerWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.charcoalLight
-                        : AppColors.sandSurface,
+                    color: AppColors.sandSurface,
                     borderRadius: BorderRadius.circular(AppSpacing.circular),
                   ),
                   child: Text(

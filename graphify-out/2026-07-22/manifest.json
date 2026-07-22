@@ -2310,8 +2310,8 @@
     "semantic_hash": ""
   },
   "lib/features/comparison/presentation/screens/comparison_screen.dart": {
-    "mtime": 1784702471.506601,
-    "ast_hash": "b915cf6b42ebcb35bc32ff57d3635980",
+    "mtime": 1784706366.0723064,
+    "ast_hash": "5c1415d6614499c2704b0c15929a3174",
     "semantic_hash": ""
   },
   "lib/features/comparison/presentation/widgets/compare_add_button.dart": {
@@ -2395,8 +2395,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_product_edit_screen.dart": {
-    "mtime": 1784703727.528183,
-    "ast_hash": "f02994b37dc7c96c2d8a377e6a8a3ccf",
+    "mtime": 1784705602.936822,
+    "ast_hash": "9b9e048d6ede8538dca8a8cb967da845",
     "semantic_hash": ""
   }
 }

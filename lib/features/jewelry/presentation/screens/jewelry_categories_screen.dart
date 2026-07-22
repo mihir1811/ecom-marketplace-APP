@@ -66,10 +66,8 @@ class JewelryCategoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? AppColors.obsidianBg : AppColors.creamBg,
+      backgroundColor: AppColors.creamBg,
       appBar: AppBar(
         automaticallyImplyActions: false,
         title: Text(
@@ -124,7 +122,6 @@ class JewelryCategoriesScreen extends StatelessWidget {
                   final category = jewelryMainCategories[index];
                   return _CategoryCard(
                     category: category,
-                    isDark: isDark,
                     onTap: () => context.push(
                       '${AppRouteNames.jewelryListing}?category=${Uri.encodeComponent(category.filterValue)}',
                     ),
@@ -144,19 +141,17 @@ class JewelryCategoriesScreen extends StatelessWidget {
 class _CategoryCard extends StatelessWidget {
   const _CategoryCard({
     required this.category,
-    required this.isDark,
     required this.onTap,
   });
 
   final JewelryMainCategory category;
-  final bool isDark;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final bg = isDark ? AppColors.slateSurface : AppColors.warmWhite;
-    final border = isDark ? AppColors.slateBorder : AppColors.warmBorder;
-    final muted = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final bg = AppColors.warmWhite;
+    final border = AppColors.warmBorder;
+    final muted = AppColors.textMutedLight;
 
     return GestureDetector(
       onTap: onTap,
@@ -165,7 +160,7 @@ class _CategoryCard extends StatelessWidget {
           color: bg,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: border),
-          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+          boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -176,7 +171,7 @@ class _CategoryCard extends StatelessWidget {
                 category.imageAsset,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => ColoredBox(
-                  color: isDark ? AppColors.charcoalLight : AppColors.sandSurface,
+                  color: AppColors.sandSurface,
                   child: const Icon(
                     Icons.diamond_outlined,
                     color: AppColors.bronze,

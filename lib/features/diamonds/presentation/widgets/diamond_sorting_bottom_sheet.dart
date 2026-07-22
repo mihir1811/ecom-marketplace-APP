@@ -105,14 +105,13 @@ class _DiamondSortingBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
+    final bgColor = AppColors.warmWhite;
     final textColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+        AppColors.textPrimaryLight;
     final mutedColor =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+        AppColors.textSecondaryLight;
     final borderColor =
-        isDark ? AppColors.slateBorder : AppColors.warmBorder;
+        AppColors.warmBorder;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.75,
@@ -125,7 +124,7 @@ class _DiamondSortingBottomSheetState
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppSpacing.r20),
             ),
-            boxShadow: isDark ? AppShadows.modalDark : AppShadows.modalLight,
+            boxShadow: AppShadows.modalLight,
           ),
           child: Column(
             children: [

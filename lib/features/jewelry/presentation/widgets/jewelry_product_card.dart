@@ -49,17 +49,15 @@ class JewelryProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? AppColors.slateSurface : AppColors.warmWhite;
-    final border = isDark ? AppColors.slateBorder : AppColors.warmBorder;
-    final text = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final muted = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final bg = AppColors.warmWhite;
+    final border = AppColors.warmBorder;
+    final text = AppColors.textPrimaryLight;
+    final muted = AppColors.textMutedLight;
     final variants = item.colorVariants.take(4).toList();
     final extra = item.colorVariants.length - variants.length;
 
     if (compact) {
       return _compactCard(
-        isDark: isDark,
         bg: bg,
         border: border,
         text: text,
@@ -69,7 +67,6 @@ class JewelryProductCard extends StatelessWidget {
     }
 
     return _fullCard(
-      isDark: isDark,
       bg: bg,
       border: border,
       text: text,
@@ -80,7 +77,6 @@ class JewelryProductCard extends StatelessWidget {
   }
 
   Widget _compactCard({
-    required bool isDark,
     required Color bg,
     required Color border,
     required Color text,
@@ -94,7 +90,7 @@ class JewelryProductCard extends StatelessWidget {
           color: bg,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: border),
-          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+          boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -105,7 +101,7 @@ class JewelryProductCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  _image(isDark),
+                  _image(),
                   if (item.badge != null) _badge(),
                   Positioned(
                     top: AppSpacing.s8,
@@ -189,7 +185,6 @@ class JewelryProductCard extends StatelessWidget {
   }
 
   Widget _fullCard({
-    required bool isDark,
     required Color bg,
     required Color border,
     required Color text,
@@ -204,7 +199,7 @@ class JewelryProductCard extends StatelessWidget {
           color: bg,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: border),
-          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+          boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -215,7 +210,7 @@ class JewelryProductCard extends StatelessWidget {
               aspectRatio: 1.15,
               child: Stack(
                 children: [
-                  Positioned.fill(child: _image(isDark)),
+                  Positioned.fill(child: _image()),
                   if (item.badge != null) _badge(),
                   Positioned(
                     top: AppSpacing.s8,
@@ -316,9 +311,7 @@ class JewelryProductCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.charcoalLight
-                          : AppColors.sandSurface,
+                      color: AppColors.sandSurface,
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
                     ),
                     child: Text(
@@ -387,13 +380,13 @@ class JewelryProductCard extends StatelessWidget {
     );
   }
 
-  Widget _image(bool isDark) {
+  Widget _image() {
     final asset = item.imageAsset;
-    if (asset == null) return _placeholder(isDark);
+    if (asset == null) return _placeholder();
     return Image.asset(
       asset,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _placeholder(isDark),
+      errorBuilder: (_, __, ___) => _placeholder(),
     );
   }
 
@@ -422,9 +415,9 @@ class JewelryProductCard extends StatelessWidget {
     );
   }
 
-  Widget _placeholder(bool isDark) {
+  Widget _placeholder() {
     return ColoredBox(
-      color: isDark ? AppColors.charcoalLight : AppColors.sandSurface,
+      color: AppColors.sandSurface,
       child: const Center(
         child: Icon(Icons.diamond_outlined, size: 40, color: AppColors.bronze),
       ),
@@ -455,11 +448,10 @@ class JewelryProductListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? AppColors.slateSurface : AppColors.warmWhite;
-    final border = isDark ? AppColors.slateBorder : AppColors.warmBorder;
-    final text = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final muted = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final bg = AppColors.warmWhite;
+    final border = AppColors.warmBorder;
+    final text = AppColors.textPrimaryLight;
+    final muted = AppColors.textMutedLight;
     final variants = item.colorVariants.take(3).toList();
     final purityLabel = item.metalPurity.replaceAll(' ', '').toLowerCase();
 
@@ -470,7 +462,7 @@ class JewelryProductListCard extends StatelessWidget {
           color: bg,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: border),
-          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+          boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
         child: Row(
@@ -486,10 +478,10 @@ class JewelryProductListCard extends StatelessWidget {
                       Image.asset(
                         item.imageAsset!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _listImagePlaceholder(isDark),
+                        errorBuilder: (_, __, ___) => _listImagePlaceholder(),
                       )
                     else
-                      _listImagePlaceholder(isDark),
+                      _listImagePlaceholder(),
                     Positioned(
                       top: AppSpacing.s8,
                       right: AppSpacing.s8,
@@ -638,9 +630,9 @@ class JewelryProductListCard extends StatelessWidget {
     );
   }
 
-  Widget _listImagePlaceholder(bool isDark) {
+  Widget _listImagePlaceholder() {
     return ColoredBox(
-      color: isDark ? AppColors.charcoalLight : AppColors.sandSurface,
+      color: AppColors.sandSurface,
       child: const Icon(
         Icons.diamond_outlined,
         color: AppColors.bronze,
@@ -687,9 +679,7 @@ class _StoneCountBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = Theme.of(context).brightness == Brightness.dark
-        ? AppColors.textMutedDark
-        : AppColors.textMutedLight;
+    final muted = AppColors.textMutedLight;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -734,9 +724,7 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = Theme.of(context).brightness == Brightness.dark
-        ? AppColors.textMutedDark
-        : AppColors.textMutedLight;
+    final muted = AppColors.textMutedLight;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSpacing.r8),

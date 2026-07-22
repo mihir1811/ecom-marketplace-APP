@@ -16,9 +16,7 @@ class JewelryActiveFilterChips extends ConsumerWidget {
     final filters = ref.watch(jewelryFilterProvider);
     final labels = filters.summaryLabels;
     if (labels.isEmpty) return const SizedBox.shrink();
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final border = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final border = AppColors.warmBorder;
 
     return SizedBox(
       height: 40,
@@ -52,7 +50,7 @@ class JewelryActiveFilterChips extends ConsumerWidget {
           return Container(
             padding: const EdgeInsets.only(left: 12, right: 6),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+              color: AppColors.warmWhite,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: border),
             ),

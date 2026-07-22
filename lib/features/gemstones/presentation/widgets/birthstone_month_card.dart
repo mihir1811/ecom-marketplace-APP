@@ -20,8 +20,7 @@ class BirthstoneMonthCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final borderColor = AppColors.warmBorder;
 
     return GestureDetector(
       onTap: onTap,
@@ -34,7 +33,7 @@ class BirthstoneMonthCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.charcoal
-              : (isDark ? AppColors.obsidianBg : AppColors.warmWhite),
+              : (AppColors.warmWhite),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
             color: isSelected ? AppColors.charcoal : borderColor,
@@ -52,9 +51,7 @@ class BirthstoneMonthCard extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 color: isSelected
                     ? AppColors.warmWhite
-                    : (isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimaryLight),
+                    : (AppColors.textPrimaryLight),
               ),
             ),
             const SizedBox(height: 2),
@@ -66,9 +63,7 @@ class BirthstoneMonthCard extends StatelessWidget {
                 fontSize: 10,
                 color: isSelected
                     ? AppColors.warmWhite.withValues(alpha: 0.75)
-                    : (isDark
-                        ? AppColors.textMutedDark
-                        : AppColors.textMutedLight),
+                    : (AppColors.textMutedLight),
               ),
             ),
           ],

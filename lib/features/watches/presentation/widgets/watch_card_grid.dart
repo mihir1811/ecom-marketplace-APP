@@ -25,13 +25,12 @@ class WatchCardGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final bgColor = AppColors.warmWhite;
+    final borderColor = AppColors.warmBorder;
     final textColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+        AppColors.textPrimaryLight;
     final mutedColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        AppColors.textMutedLight;
     final logo = WatchBrandAssets.logoPath(watch.brand);
     final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
@@ -42,7 +41,7 @@ class WatchCardGrid extends ConsumerWidget {
           color: bgColor,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: borderColor),
-          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+          boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -54,9 +53,7 @@ class WatchCardGrid extends ConsumerWidget {
                 children: [
                   Positioned.fill(
                     child: Container(
-                      color: isDark
-                          ? AppColors.charcoalLight
-                          : AppColors.sandSurface,
+                      color: AppColors.sandSurface,
                       child: Center(
                         child: logo != null
                             ? Padding(
@@ -231,13 +228,12 @@ class WatchCardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final bgColor = AppColors.warmWhite;
+    final borderColor = AppColors.warmBorder;
     final textColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+        AppColors.textPrimaryLight;
     final mutedColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        AppColors.textMutedLight;
     final logo = WatchBrandAssets.logoPath(watch.brand);
     final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
@@ -248,7 +244,7 @@ class WatchCardList extends ConsumerWidget {
           color: bgColor,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: borderColor),
-          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+          boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
         child: IntrinsicHeight(
@@ -261,9 +257,7 @@ class WatchCardList extends ConsumerWidget {
                   children: [
                     Positioned.fill(
                       child: Container(
-                        color: isDark
-                            ? AppColors.charcoalLight
-                            : AppColors.sandSurface,
+                        color: AppColors.sandSurface,
                         child: Center(
                           child: logo != null
                               ? Padding(

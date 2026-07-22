@@ -47,11 +47,10 @@ class GemstoneShowcaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hue = gemstoneHue(name);
     const activeColor = AppColors.bronze;
     final inactiveBorderColor =
-        isDark ? AppColors.slateBorder : AppColors.warmBorder;
+        AppColors.warmBorder;
     final imagePath = gemstoneImagePath(name);
 
     return GestureDetector(
@@ -60,8 +59,8 @@ class GemstoneShowcaseCard extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? AppColors.charcoalLight : AppColors.creamBg)
-              : (isDark ? AppColors.slateSurface : AppColors.warmWhite),
+              ? (AppColors.creamBg)
+              : (AppColors.warmWhite),
           borderRadius: const BorderRadius.all(Radius.circular(60.0)),
           border: Border.all(
             color: isSelected ? activeColor : inactiveBorderColor,
@@ -99,9 +98,7 @@ class GemstoneShowcaseCard extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected
                     ? activeColor
-                    : (isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimaryLight),
+                    : (AppColors.textPrimaryLight),
               ),
             ),
           ],

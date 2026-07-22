@@ -74,14 +74,12 @@ class _MeleeTintExtentAnchorState extends State<MeleeTintExtentAnchor> {
 class MeleeBackgroundShell extends StatefulWidget {
   const MeleeBackgroundShell({
     required this.isMelee,
-    required this.isDark,
     required this.child,
     this.family = MeleeBgFamily.natural,
     super.key,
   });
 
   final bool isMelee;
-  final bool isDark;
   final MeleeBgFamily family;
   final Widget child;
 
@@ -108,7 +106,6 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
   void initState() {
     super.initState();
     _fromColor = AppColors.screenBg(
-      isDark: widget.isDark,
       melee: widget.isMelee,
       family: widget.family,
     );
@@ -159,15 +156,13 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
   void didUpdateWidget(covariant MeleeBackgroundShell oldWidget) {
     super.didUpdateWidget(oldWidget);
     final next = AppColors.screenBg(
-      isDark: widget.isDark,
       melee: widget.isMelee,
       family: widget.family,
     );
     final changedMode = oldWidget.isMelee != widget.isMelee;
-    final changedTheme = oldWidget.isDark != widget.isDark;
     final changedFamily = oldWidget.family != widget.family;
 
-    if (changedMode || changedTheme || changedFamily) {
+    if (changedMode || changedFamily) {
       _fromColor = Color.lerp(_fromColor, _toColor, _colorT.value) ?? _toColor;
       _toColor = next;
       _colorController.forward(from: 0);
@@ -193,7 +188,7 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
   @override
   Widget build(BuildContext context) {
     final baseBg =
-        widget.isDark ? AppColors.obsidianBg : AppColors.creamBg;
+        AppColors.creamBg;
 
     return NotificationListener<Notification>(
       onNotification: (notification) {

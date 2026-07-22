@@ -72,10 +72,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
         return Consumer(
           builder: (context, ref, _) {
             final filters = ref.watch(brandWatchFilterProvider);
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            final muted = isDark
-                ? AppColors.textMutedDark
-                : AppColors.textMutedLight;
+            final muted = AppColors.textMutedLight;
             final n = ref.read(brandWatchFilterProvider.notifier);
 
             return Padding(
@@ -115,7 +112,6 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                         return _StyleChip(
                           label: style.toUpperCase(),
                           selected: selected,
-                          isDark: isDark,
                           onTap: () => n.toggleStyle(style),
                         );
                       }).toList(),
@@ -136,7 +132,6 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                         child: _PriceInput(
                           controller: _priceMinController,
                           hint: 'Min',
-                          isDark: isDark,
                           onChanged: n.setPriceMin,
                         ),
                       ),
@@ -153,7 +148,6 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                         child: _PriceInput(
                           controller: _priceMaxController,
                           hint: 'Max',
-                          isDark: isDark,
                           onChanged: n.setPriceMax,
                         ),
                       ),
@@ -233,12 +227,11 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final filters = ref.watch(brandWatchFilterProvider);
     final listAsync = ref.watch(brandWatchListProvider);
     final listState = listAsync.valueOrNull;
     final muted =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        AppColors.textMutedLight;
     final logo = WatchBrandAssets.logoPath(widget.brandName);
 
     return Scaffold(
@@ -296,10 +289,10 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+                color: AppColors.warmWhite,
                 borderRadius: BorderRadius.circular(AppSpacing.r12),
                 border: Border.all(
-                  color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                  color: AppColors.warmBorder,
                 ),
               ),
               child: IntrinsicHeight(
@@ -314,15 +307,11 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: AppTypography.caption.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight,
+                            color: AppColors.textPrimaryLight,
                           ),
                         ),
                         style: TextButton.styleFrom(
-                          foregroundColor: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
+                          foregroundColor: AppColors.textPrimaryLight,
                           padding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.s12,
                             vertical: AppSpacing.s12,
@@ -333,9 +322,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                     ),
                     Container(
                       width: 1,
-                      color: isDark
-                          ? AppColors.slateBorder
-                          : AppColors.warmBorder,
+                      color: AppColors.warmBorder,
                     ),
                     Material(
                       color: Colors.transparent,
@@ -352,9 +339,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                               Icon(
                                 Icons.tune,
                                 size: 22,
-                                color: isDark
-                                    ? AppColors.textPrimaryDark
-                                    : AppColors.textPrimaryLight,
+                                color: AppColors.textPrimaryLight,
                               ),
                               if (filters.hasActiveFilters)
                                 Positioned(
@@ -438,13 +423,11 @@ class _StyleChip extends StatelessWidget {
   const _StyleChip({
     required this.label,
     required this.selected,
-    required this.isDark,
     required this.onTap,
   });
 
   final String label;
   final bool selected;
-  final bool isDark;
   final VoidCallback onTap;
 
   @override
@@ -460,12 +443,12 @@ class _StyleChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? AppColors.charcoal
-              : (isDark ? AppColors.slateSurface : AppColors.warmWhite),
+              : (AppColors.warmWhite),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
             color: selected
                 ? AppColors.charcoal
-                : (isDark ? AppColors.slateBorder : AppColors.warmBorder),
+                : (AppColors.warmBorder),
           ),
         ),
         child: Text(
@@ -473,9 +456,7 @@ class _StyleChip extends StatelessWidget {
           style: AppTypography.caption.copyWith(
             color: selected
                 ? AppColors.warmWhite
-                : (isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight),
+                : (AppColors.textPrimaryLight),
             fontWeight: FontWeight.w600,
             fontSize: 12,
             letterSpacing: 0.4,
@@ -490,18 +471,16 @@ class _PriceInput extends StatelessWidget {
   const _PriceInput({
     required this.controller,
     required this.hint,
-    required this.isDark,
     required this.onChanged,
   });
 
   final TextEditingController controller;
   final String hint;
-  final bool isDark;
   final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final borderColor = AppColors.warmBorder;
 
     return SizedBox(
       height: 40,
@@ -516,7 +495,7 @@ class _PriceInput extends StatelessWidget {
           isDense: true,
           hintText: hint,
           hintStyle: AppTypography.caption.copyWith(
-            color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+            color: AppColors.textMutedLight,
             fontSize: 13,
           ),
           prefixText: '\$',
@@ -525,7 +504,7 @@ class _PriceInput extends StatelessWidget {
           ),
           filled: true,
           fillColor:
-              isDark ? AppColors.slateSurface : AppColors.warmWhite,
+              AppColors.warmWhite,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppSpacing.r8),
             borderSide: BorderSide(color: borderColor),

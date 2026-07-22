@@ -22,8 +22,6 @@ class ComparisonScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(comparisonProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     if (state.items.length < 2 || state.category == null) {
       return Scaffold(
         appBar: AppBar(
@@ -58,12 +56,10 @@ class ComparisonScreen extends ConsumerWidget {
     final items = state.items;
     final specs = specsForCategory(state.category!);
     final muted =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
-    final border = isDark ? AppColors.slateBorder : AppColors.warmBorder;
-    final headerBg = isDark ? AppColors.slateSurface : AppColors.sandSurface;
-    final leadBg = isDark
-        ? const Color(0xFF1E2A24)
-        : const Color(0xFFE9EDE8);
+        AppColors.textMutedLight;
+    final border = AppColors.warmBorder;
+    final headerBg = AppColors.sandSurface;
+    final leadBg = const Color(0xFFE9EDE8);
 
     return Scaffold(
       appBar: AppBar(
@@ -97,7 +93,6 @@ class ComparisonScreen extends ConsumerWidget {
               border: border,
               muted: muted,
               leadBg: leadBg,
-              isDark: isDark,
               onRemove: (id) {
                 ref.read(comparisonProvider.notifier).remove(id);
                 if (ref.read(comparisonProvider).count < 2) {
@@ -133,7 +128,6 @@ class _ComparisonTable extends StatefulWidget {
     required this.border,
     required this.muted,
     required this.leadBg,
-    required this.isDark,
     required this.onRemove,
     required this.onReorder,
   });
@@ -144,7 +138,6 @@ class _ComparisonTable extends StatefulWidget {
   final Color border;
   final Color muted;
   final Color leadBg;
-  final bool isDark;
   final ValueChanged<String> onRemove;
   final void Function(int oldIndex, int newIndex) onReorder;
 
@@ -267,7 +260,6 @@ class _ComparisonTableState extends State<_ComparisonTable> {
                       stripe: row.isEven,
                       border: widget.border,
                       muted: widget.muted,
-                      isDark: widget.isDark,
                     ),
                   ),
                   Expanded(
@@ -279,7 +271,6 @@ class _ComparisonTableState extends State<_ComparisonTable> {
                         stripe: row.isEven,
                         border: widget.border,
                         leadBg: widget.leadBg,
-                        isDark: widget.isDark,
                       ),
                     ),
                   ),
@@ -344,22 +335,17 @@ class _SpecLabelCell extends StatelessWidget {
     required this.stripe,
     required this.border,
     required this.muted,
-    required this.isDark,
   });
 
   final String label;
   final bool stripe;
   final Color border;
   final Color muted;
-  final bool isDark;
-
   @override
   Widget build(BuildContext context) {
     final rowBg = stripe
-        ? (isDark
-            ? AppColors.slateSurface.withValues(alpha: 0.35)
-            : AppColors.sandSurface.withValues(alpha: 0.45))
-        : (isDark ? AppColors.obsidianBg : AppColors.warmWhite);
+        ? AppColors.sandSurface.withValues(alpha: 0.45)
+        : AppColors.warmWhite;
 
     return Container(
       height: _kCompareRowHeight,
@@ -404,8 +390,7 @@ class _ItemHeaderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerBg = isDark ? AppColors.slateSurface : AppColors.sandSurface;
+    final headerBg = AppColors.sandSurface;
 
     return Container(
       color: headerBg,
@@ -437,7 +422,6 @@ class _ItemValuesRow extends StatelessWidget {
     required this.stripe,
     required this.border,
     required this.leadBg,
-    required this.isDark,
   });
 
   final List<CompareItem> items;
@@ -445,8 +429,6 @@ class _ItemValuesRow extends StatelessWidget {
   final bool stripe;
   final Color border;
   final Color leadBg;
-  final bool isDark;
-
   @override
   Widget build(BuildContext context) {
     final displays = items
@@ -460,10 +442,8 @@ class _ItemValuesRow extends StatelessWidget {
     );
 
     final rowBg = stripe
-        ? (isDark
-            ? AppColors.slateSurface.withValues(alpha: 0.35)
-            : AppColors.sandSurface.withValues(alpha: 0.45))
-        : (isDark ? AppColors.obsidianBg : AppColors.warmWhite);
+        ? AppColors.sandSurface.withValues(alpha: 0.45)
+        : AppColors.warmWhite;
 
     return Container(
       height: _kCompareRowHeight,
@@ -623,11 +603,10 @@ class _ItemHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         color: isDragging
-            ? (isDark ? AppColors.slateSurface : AppColors.warmWhite)
+            ? (AppColors.warmWhite)
             : null,
         border: Border(left: BorderSide(color: border)),
         borderRadius: isDragging
@@ -655,9 +634,7 @@ class _ItemHeader extends StatelessWidget {
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.charcoalLight
-                          : AppColors.sandSurface,
+                      color: AppColors.sandSurface,
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
                       border: Border.all(color: border),
                     ),
@@ -688,10 +665,7 @@ class _ItemHeader extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: (isDark
-                                ? AppColors.charcoal
-                                : AppColors.warmWhite)
-                            .withValues(alpha: 0.9),
+                        color: AppColors.warmWhite.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(AppSpacing.r4),
                       ),
                       child: Icon(
@@ -767,7 +741,6 @@ class _FooterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SafeArea(
       top: false,
       child: Container(
@@ -776,10 +749,10 @@ class _FooterBar extends StatelessWidget {
           vertical: AppSpacing.s12,
         ),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+          color: AppColors.warmWhite,
           border: Border(
             top: BorderSide(
-              color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+              color: AppColors.warmBorder,
             ),
           ),
         ),

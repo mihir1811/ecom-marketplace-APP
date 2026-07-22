@@ -20,26 +20,10 @@ class AppShadows {
     ),
   ];
 
-  static final List<BoxShadow> cardDark = [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.3),
-      blurRadius: 12,
-      offset: const Offset(0, 4),
-    ),
-  ];
-
   // Elevated modal/dialog shadow
   static final List<BoxShadow> modalLight = [
     BoxShadow(
       color: const Color(0xFF111827).withOpacity(0.08),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
-    ),
-  ];
-
-  static final List<BoxShadow> modalDark = [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.5),
       blurRadius: 24,
       offset: const Offset(0, 8),
     ),

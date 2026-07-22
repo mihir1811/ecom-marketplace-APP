@@ -104,11 +104,8 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return MeleeBackgroundShell(
       isMelee: false,
-      isDark: isDark,
       family: MeleeBgFamily.gemstone,
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -132,7 +129,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
         ),
         body: Column(
           children: [
-            GlobalSearchBar(isDark: isDark),
+            const GlobalSearchBar(),
             Expanded(
               child: SafeArea(
                 top: false,
@@ -140,7 +137,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                   children: [
                     Column(
                       children: [
-                        _buildStickyNav(isDark),
+                        _buildStickyNav(),
                         Expanded(
                           child: SingleChildScrollView(
                             controller: _scrollController,
@@ -154,7 +151,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                               children: [
                                 const GemstoneShowcaseCarousel(),
                                 const SizedBox(height: AppSpacing.s24),
-                                _buildSearchCardHeader(isDark),
+                                _buildSearchCardHeader(),
                                 const SizedBox(height: AppSpacing.s24),
                                 _buildSection(
                                   key: _basicKey,
@@ -202,7 +199,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
     );
   }
 
-  Widget _buildSearchCardHeader(bool isDark) {
+  Widget _buildSearchCardHeader() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -218,9 +215,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
           'Refine by type, shape, origin, and certification.',
           style: AppTypography.body.copyWith(
             fontSize: 14,
-            color: isDark
-                ? AppColors.textSecondaryDark
-                : AppColors.textSecondaryLight,
+            color: AppColors.textSecondaryLight,
           ),
         ),
       ],
@@ -249,7 +244,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
     );
   }
 
-  Widget _buildStickyNav(bool isDark) {
+  Widget _buildStickyNav() {
     final sections = [
       (GemstoneSection.basic, 'Basic', Icons.diamond_outlined),
       (GemstoneSection.preferences, 'PREF', Icons.tune),
@@ -263,7 +258,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
         color: Colors.transparent,
         border: Border(
           bottom: BorderSide(
-            color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+            color: AppColors.warmBorder,
           ),
         ),
       ),
@@ -303,7 +298,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                       size: 16,
                       color: isSelected
                           ? AppColors.bronze
-                          : (isDark ? Colors.white38 : Colors.black38),
+                          : Colors.black38,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -314,7 +309,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                         letterSpacing: 0.3,
                         color: isSelected
                             ? AppColors.bronze
-                            : (isDark ? Colors.white60 : Colors.black54),
+                            : Colors.black54,
                       ),
                     ),
                   ],

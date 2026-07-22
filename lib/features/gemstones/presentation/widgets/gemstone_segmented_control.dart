@@ -33,7 +33,6 @@ class GemstoneSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasSelection = selected != null;
 
     return MeleeTintExtentAnchor(
@@ -43,13 +42,13 @@ class GemstoneSegmentedControl extends StatelessWidget {
       margin: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: hasSelection
-            ? (isDark ? AppColors.charcoalLight : AppColors.warmWhite)
-            : (isDark ? Colors.black26 : AppColors.sandSurface),
+            ? AppColors.warmWhite
+            : AppColors.sandSurface,
         borderRadius: BorderRadius.circular(AppSpacing.r12),
         border: Border.all(
           color: hasSelection
               ? AppColors.bronze
-              : (isDark ? AppColors.slateBorder : AppColors.warmBorder),
+              : (AppColors.warmBorder),
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -69,14 +68,12 @@ class GemstoneSegmentedControl extends StatelessWidget {
                 onTap: () => onSelected(opt.value),
                 splashColor: (opt.value == 'Melee'
                         ? AppColors.screenBg(
-                            isDark: isDark,
                             family: MeleeBgFamily.gemstone,
                           )
                         : AppColors.bronzeLight)
                     .withValues(alpha: 0.55),
                 highlightColor: (opt.value == 'Melee'
                         ? AppColors.screenBg(
-                            isDark: isDark,
                             family: MeleeBgFamily.gemstone,
                           )
                         : AppColors.bronzeLight)
@@ -101,9 +98,7 @@ class GemstoneSegmentedControl extends StatelessWidget {
                         size: 15,
                         color: isCurrent
                             ? AppColors.warmWhite
-                            : (isDark
-                                  ? AppColors.textMutedDark
-                                  : AppColors.textMutedLight),
+                            : (AppColors.textMutedLight),
                       ),
                       const SizedBox(width: 4),
                       Flexible(
@@ -117,9 +112,7 @@ class GemstoneSegmentedControl extends StatelessWidget {
                             height: 1,
                             color: isCurrent
                                 ? AppColors.warmWhite
-                                : (isDark
-                                      ? AppColors.textMutedDark
-                                      : AppColors.textMutedLight),
+                                : (AppColors.textMutedLight),
                           ),
                         ),
                       ),

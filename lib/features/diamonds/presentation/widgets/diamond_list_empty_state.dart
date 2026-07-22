@@ -10,9 +10,8 @@ class DiamondListEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
-    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final mutedColor = AppColors.textMutedLight;
+    final textColor = AppColors.textPrimaryLight;
 
     return Center(
       child: Padding(

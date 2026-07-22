@@ -13,10 +13,7 @@ class DiamondFilterChips extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filters = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mutedColor = isDark
-        ? AppColors.textSecondaryDark
-        : AppColors.textSecondaryLight;
+    final mutedColor = AppColors.textSecondaryLight;
 
     final chips = <_FilterChipData>[];
 

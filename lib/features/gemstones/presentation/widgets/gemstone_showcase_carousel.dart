@@ -110,8 +110,6 @@ class _GemstoneShowcaseCarouselState
       gemstoneSearchProvider.select((s) => s.selectedGemstoneTypes),
     );
     final notifier = ref.read(gemstoneSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return RepaintBoundary(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,9 +124,7 @@ class _GemstoneShowcaseCarouselState
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     height: 1.1,
-                    color: isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimaryLight,
+                    color: AppColors.textPrimaryLight,
                   ),
                 ),
               ),
@@ -193,7 +189,7 @@ class _GemstoneShowcaseCarouselState
               width: 140,
               height: 4,
               decoration: BoxDecoration(
-                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                color: AppColors.warmBorder,
                 borderRadius: BorderRadius.circular(2),
               ),
               child: Stack(

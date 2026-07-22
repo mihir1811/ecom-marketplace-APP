@@ -16,14 +16,13 @@ class FilterBooleanCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         Checkbox(
           value: value,
           activeColor: AppColors.bronze,
           checkColor: AppColors.warmWhite,
-          side: BorderSide(color: isDark ? AppColors.slateBorder : AppColors.warmBorder),
+          side: BorderSide(color: AppColors.warmBorder),
           onChanged: onChanged,
         ),
         Expanded(
@@ -31,7 +30,7 @@ class FilterBooleanCheckbox extends StatelessWidget {
             label,
             style: AppTypography.body.copyWith(
               fontSize: 14,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: AppColors.textSecondaryLight,
             ),
           ),
         ),

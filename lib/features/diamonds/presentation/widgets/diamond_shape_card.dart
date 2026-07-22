@@ -465,12 +465,8 @@ class DiamondShapeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     const activeColor = AppColors.bronze;
-    final inactiveBorderColor =
-        isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final inactiveBorderColor = AppColors.warmBorder;
 
     return GestureDetector(
       onTap: onTap,
@@ -478,8 +474,8 @@ class DiamondShapeCard extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? AppColors.charcoalLight : AppColors.creamBg)
-              : (isDark ? AppColors.slateSurface : AppColors.warmWhite),
+              ? (AppColors.creamBg)
+              : (AppColors.warmWhite),
           borderRadius: const BorderRadius.all(Radius.circular(60.0)),
           border: Border.all(
             color: isSelected ? activeColor : inactiveBorderColor,
@@ -529,9 +525,7 @@ class DiamondShapeCard extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected
                     ? activeColor
-                    : (isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimaryLight),
+                    : (AppColors.textPrimaryLight),
               ),
             ),
           ],

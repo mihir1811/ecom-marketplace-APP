@@ -77,14 +77,13 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(watchFilterDraftProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final width = MediaQuery.sizeOf(context).width;
     final drawerWidth = width > 480 ? 360.0 : width * 0.88;
     final n = ref.read(watchFilterDraftProvider.notifier);
 
     return Drawer(
       width: drawerWidth,
-      backgroundColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
+      backgroundColor: AppColors.warmWhite,
       child: SafeArea(
         child: Column(
           children: [
@@ -396,11 +395,11 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
                 AppSpacing.s16,
               ),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+                color: AppColors.warmWhite,
                 border: Border(
                   top: BorderSide(
                     color:
-                        isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                        AppColors.warmBorder,
                   ),
                 ),
               ),

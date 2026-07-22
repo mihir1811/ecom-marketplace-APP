@@ -14,9 +14,8 @@ class DiamondSortBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sorting = ref.watch(diamondSortingProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final mutedColor =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+        AppColors.textSecondaryLight;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s16,
@@ -30,10 +29,10 @@ class DiamondSortBar extends ConsumerWidget {
             vertical: AppSpacing.s8,
           ),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+            color: AppColors.warmWhite,
             borderRadius: BorderRadius.circular(AppSpacing.r8),
             border: Border.all(
-              color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+              color: AppColors.warmBorder,
             ),
           ),
           child: Row(

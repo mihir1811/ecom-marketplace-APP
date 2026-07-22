@@ -23,17 +23,15 @@ class BullionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final bgColor = AppColors.warmWhite;
+    final borderColor = AppColors.warmBorder;
     final textColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+        AppColors.textPrimaryLight;
     final mutedColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        AppColors.textMutedLight;
 
     final accent = _accentColor(context, bullion.metal);
-    final gradient = _metalGradient(bullion.metal, isDark);
+    final gradient = _metalGradient(bullion.metal);
     final icon = _metalIcon(bullion.metal);
 
     return GestureDetector(
@@ -43,7 +41,7 @@ class BullionCard extends StatelessWidget {
           color: bgColor,
           borderRadius: BorderRadius.circular(AppSpacing.r16),
           border: Border.all(color: borderColor),
-          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+          boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
         child: layout == BullionCardLayout.grid
@@ -68,20 +66,19 @@ class BullionCard extends StatelessWidget {
   }
 
   Color _accentColor(BuildContext context, BullionMetal metal) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return switch (metal) {
-      BullionMetal.gold => isDark ? AppColors.bronzeLight : AppColors.bronze,
-      BullionMetal.silver => isDark ? AppColors.textMutedDark : AppColors.slateBorder,
+      BullionMetal.gold => AppColors.bronze,
+      BullionMetal.silver => AppColors.slateBorder,
       BullionMetal.platinum => AppColors.bronzeLight,
       BullionMetal.palladium => AppColors.bronzeDark,
       BullionMetal.copper => const Color(0xFFDD915E),
     };
   }
 
-  LinearGradient _metalGradient(BullionMetal metal, bool isDark) {
+  LinearGradient _metalGradient(BullionMetal metal) {
     // Placeholder “metal” gradient (the app currently does not ship bullion photos).
-    final bronze = isDark ? AppColors.bronzeDark : AppColors.bronze;
-    final bronze2 = isDark ? AppColors.bronzeLight : AppColors.bronzeLight;
+    final bronze = AppColors.bronze;
+    final bronze2 = AppColors.bronzeLight;
 
     return switch (metal) {
       BullionMetal.gold => LinearGradient(

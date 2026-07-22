@@ -112,7 +112,6 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final filter = ref.watch(bullionsFilterProvider);
     final listAsync = ref.watch(bullionsListProvider);
     final viewMode = ref.watch(bullionsViewModeProvider);
@@ -157,7 +156,7 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
               delegate: _PinnedHeaderDelegate(
                   height: variants.isEmpty ? 122 : 164,
                   child: Container(
-                  color: isDark ? AppColors.obsidianBg : AppColors.creamBg,
+                  color: AppColors.creamBg,
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.s16,
                     0,
@@ -180,7 +179,6 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
               ),
             ),
             _BullionsBody(
-              isDark: isDark,
               listAsync: listAsync,
               viewMode: viewMode,
               onRetry: () => ref.read(bullionsListProvider.notifier).refresh(),
@@ -197,15 +195,12 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
 
 class _BullionsBody extends StatelessWidget {
   const _BullionsBody({
-    required this.isDark,
     required this.listAsync,
     required this.viewMode,
     required this.onRetry,
     required this.onClear,
     required this.onViewModeChanged,
   });
-
-  final bool isDark;
   final AsyncValue<BullionsListState> listAsync;
   final BullionsViewMode viewMode;
   final VoidCallback onRetry;
@@ -215,7 +210,7 @@ class _BullionsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final listState = listAsync.valueOrNull;
-    final muted = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final muted = AppColors.textMutedLight;
 
     if (listState == null || listState.isInitialLoading) {
       return const SliverFillRemaining(
@@ -260,7 +255,6 @@ class _BullionsBody extends StatelessWidget {
                 ),
                 _ViewModeToggle(
                   mode: viewMode,
-                  isDark: isDark,
                   onChanged: onViewModeChanged,
                 ),
               ],
@@ -304,8 +298,7 @@ class _PinnedControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final muted = AppColors.textMutedLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,11 +354,11 @@ class _PinnedControls extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color:
-                        isDark ? AppColors.slateSurface : AppColors.warmWhite,
+                        AppColors.warmWhite,
                     borderRadius: BorderRadius.circular(AppSpacing.r12),
                     border: Border.all(
                       color:
-                          isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                          AppColors.warmBorder,
                     ),
                   ),
                   child: TextField(
@@ -768,17 +761,15 @@ class _FilterButton extends StatelessWidget {
 class _ViewModeToggle extends StatelessWidget {
   const _ViewModeToggle({
     required this.mode,
-    required this.isDark,
     required this.onChanged,
   });
 
   final BullionsViewMode mode;
-  final bool isDark;
   final ValueChanged<BullionsViewMode> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final border = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final border = AppColors.warmBorder;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -790,14 +781,12 @@ class _ViewModeToggle extends StatelessWidget {
           _ToggleBtn(
             icon: Icons.grid_view,
             selected: mode == BullionsViewMode.grid,
-            isDark: isDark,
             onTap: () => onChanged(BullionsViewMode.grid),
           ),
           Container(width: 1, height: 28, color: border),
           _ToggleBtn(
             icon: Icons.view_agenda_outlined,
             selected: mode == BullionsViewMode.list,
-            isDark: isDark,
             onTap: () => onChanged(BullionsViewMode.list),
           ),
         ],
@@ -810,13 +799,11 @@ class _ToggleBtn extends StatelessWidget {
   const _ToggleBtn({
     required this.icon,
     required this.selected,
-    required this.isDark,
     required this.onTap,
   });
 
   final IconData icon;
   final bool selected;
-  final bool isDark;
   final VoidCallback onTap;
 
   @override
@@ -826,16 +813,14 @@ class _ToggleBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.s8),
         color: selected
-            ? (isDark ? AppColors.slateSurface : AppColors.sandSurface)
+            ? (AppColors.sandSurface)
             : Colors.transparent,
         child: Icon(
           icon,
           size: 18,
           color: selected
               ? AppColors.bronze
-              : (isDark
-                  ? AppColors.textMutedDark
-                  : AppColors.textMutedLight),
+              : (AppColors.textMutedLight),
         ),
       ),
     );

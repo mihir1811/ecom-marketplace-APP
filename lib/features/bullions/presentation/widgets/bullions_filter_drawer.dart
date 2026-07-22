@@ -94,13 +94,12 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
     _syncControllers(draft);
 
     final notifier = ref.read(bullionsFilterDraftProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final width = MediaQuery.sizeOf(context).width;
     final drawerWidth = width > 480 ? 360.0 : width * 0.88;
 
     return Drawer(
       width: drawerWidth,
-      backgroundColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
+      backgroundColor: AppColors.warmWhite,
       child: SafeArea(
         child: Column(
           children: [
@@ -312,10 +311,10 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
                 AppSpacing.s16,
               ),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+                color: AppColors.warmWhite,
                 border: Border(
                   top: BorderSide(
-                    color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                    color: AppColors.warmBorder,
                   ),
                 ),
               ),
@@ -424,9 +423,7 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
     required String maxLabel,
     required VoidCallback onChanged,
   }) {
-    final muted = Theme.of(context).brightness == Brightness.dark
-        ? AppColors.textMutedDark
-        : AppColors.textMutedLight;
+    final muted = AppColors.textMutedLight;
     final placeholders = BullionsFilterState.rangePlaceholders;
     final minHint = placeholders[minKey] ?? '0';
     final maxHint = placeholders[maxKey] ?? '0';
@@ -488,7 +485,6 @@ class _SelectableChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -500,12 +496,12 @@ class _SelectableChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? AppColors.charcoal
-              : (isDark ? AppColors.slateSurface : AppColors.warmWhite),
+              : (AppColors.warmWhite),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
             color: selected
                 ? AppColors.charcoal
-                : (isDark ? AppColors.slateBorder : AppColors.warmBorder),
+                : (AppColors.warmBorder),
           ),
         ),
         child: Text(
@@ -513,9 +509,7 @@ class _SelectableChip extends StatelessWidget {
           style: AppTypography.caption.copyWith(
             color: selected
                 ? AppColors.warmWhite
-                : (isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight),
+                : (AppColors.textPrimaryLight),
             fontWeight: FontWeight.w600,
           ),
           maxLines: 1,

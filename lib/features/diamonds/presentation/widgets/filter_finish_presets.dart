@@ -12,8 +12,7 @@ class FinishPresetsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final borderColor = AppColors.warmBorder;
     final presets = ['3X', 'EX-', 'VG+', 'VG-'];
 
     return Column(
@@ -60,7 +59,7 @@ class FinishPresetsSection extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppColors.charcoal
-                          : (isDark ? AppColors.slateSurface : AppColors.warmWhite),
+                          : (AppColors.warmWhite),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: isSelected ? AppColors.charcoal : borderColor,
@@ -72,7 +71,7 @@ class FinishPresetsSection extends ConsumerWidget {
                         fontWeight: FontWeight.bold,
                         color: isSelected
                             ? AppColors.warmWhite
-                            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                            : (AppColors.textPrimaryLight),
                       ),
                     ),
                   ),

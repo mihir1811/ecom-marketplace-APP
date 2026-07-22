@@ -241,10 +241,8 @@ class _SellerProductEditScreenState
         body: const Center(child: Text('Product not found')),
       );
     }
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        AppColors.textMutedLight;
 
     return Scaffold(
       appBar: AppBar(
@@ -315,7 +313,6 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
@@ -323,7 +320,7 @@ class _SectionHeader extends StatelessWidget {
         vertical: AppSpacing.s12,
       ),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.slateSurface : AppColors.sandSurface,
+        color: AppColors.sandSurface,
         borderRadius: BorderRadius.circular(AppSpacing.r8),
       ),
       child: Text(

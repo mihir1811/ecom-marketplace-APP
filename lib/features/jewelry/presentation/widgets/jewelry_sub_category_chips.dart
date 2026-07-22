@@ -18,8 +18,6 @@ class JewelryCategoryChips extends ConsumerWidget {
     final subs = JewelryFilterState.subCategoriesFor(parent);
     final allLabel = JewelryFilterState.allSubCategoryLabel(parent);
     final selected = filters.subCategories;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final chips = [allLabel, ...subs];
 
     return Align(
@@ -53,14 +51,12 @@ class JewelryCategoryChips extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: active
                       ? AppColors.charcoal
-                      : (isDark ? AppColors.obsidianBg : AppColors.warmWhite),
+                      : (AppColors.warmWhite),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: active
                         ? AppColors.charcoal
-                        : (isDark
-                            ? AppColors.slateBorder
-                            : AppColors.warmBorder),
+                        : (AppColors.warmBorder),
                   ),
                 ),
                 child: Text(
@@ -69,9 +65,7 @@ class JewelryCategoryChips extends ConsumerWidget {
                     fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                     color: active
                         ? AppColors.warmWhite
-                        : (isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight),
+                        : (AppColors.textPrimaryLight),
                   ),
                 ),
               ),

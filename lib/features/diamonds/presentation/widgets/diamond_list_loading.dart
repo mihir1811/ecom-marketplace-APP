@@ -36,9 +36,8 @@ class DiamondListLoading extends StatelessWidget {
   }
 
   Widget _buildShimmerCard(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = isDark ? AppColors.charcoalLight : AppColors.sandSurface;
-    final highlight = isDark ? AppColors.slateSurface : AppColors.warmWhite;
+    final base = AppColors.sandSurface;
+    final highlight = AppColors.warmWhite;
 
     return Container(
       decoration: BoxDecoration(
@@ -90,9 +89,8 @@ class DiamondListLoading extends StatelessWidget {
   }
 
   Widget _buildShimmerRow(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = isDark ? AppColors.charcoalLight : AppColors.sandSurface;
-    final highlight = isDark ? AppColors.slateSurface : AppColors.warmWhite;
+    final base = AppColors.sandSurface;
+    final highlight = AppColors.warmWhite;
 
     return Container(
       height: 100,

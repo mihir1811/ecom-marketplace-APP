@@ -22,8 +22,7 @@ class FilterCategoryPreferences extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final borderColor = AppColors.warmBorder;
 
     return RepaintBoundary(
       child: Column(
@@ -51,7 +50,7 @@ class FilterCategoryPreferences extends ConsumerWidget {
                               decoration: InputDecoration(
                                 hintText: 'Search by location (City, State, Country)',
                                 filled: true,
-                                fillColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
+                                fillColor: AppColors.warmWhite,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
                               ),
@@ -86,7 +85,6 @@ class FilterCategoryPreferences extends ConsumerWidget {
           FilterOriginDropdown(
             selectedOrigin: state.selectedOrigin,
             onSelected: (val) => ref.read(diamondSearchProvider.notifier).updateOriginCountry(val),
-            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.s24),
 
@@ -190,7 +188,7 @@ class FilterCategoryPreferences extends ConsumerWidget {
                               decoration: InputDecoration(
                                 hintText: 'Search by company name',
                                 filled: true,
-                                fillColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
+                                fillColor: AppColors.warmWhite,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
                               ),

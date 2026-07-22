@@ -104,18 +104,17 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final filters = ref.watch(jewelryFilterProvider);
     final sort = ref.watch(jewelrySortProvider);
     final viewMode = ref.watch(jewelryViewModeProvider);
     final listAsync = ref.watch(jewelryListProvider);
     final listState = listAsync.valueOrNull;
-    final muted = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final muted = AppColors.textMutedLight;
     final title = filters.category ?? 'Accessories';
     final hasActiveFilters = filters.activeCount > 0;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.obsidianBg : AppColors.creamBg,
+      backgroundColor: AppColors.creamBg,
       appBar: AppBar(
         automaticallyImplyActions: false,
         title: Text(
@@ -150,14 +149,10 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
                     height: 48,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.slateSurface
-                            : AppColors.warmWhite,
+                        color: AppColors.warmWhite,
                         borderRadius: BorderRadius.circular(AppSpacing.r12),
                         border: Border.all(
-                          color: isDark
-                              ? AppColors.slateBorder
-                              : AppColors.warmBorder,
+                          color: AppColors.warmBorder,
                         ),
                       ),
                       child: TextField(
@@ -246,15 +241,11 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.caption.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight,
+                        color: AppColors.textPrimaryLight,
                       ),
                     ),
                     style: TextButton.styleFrom(
-                      foregroundColor: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimaryLight,
+                      foregroundColor: AppColors.textPrimaryLight,
                       padding: EdgeInsets.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
@@ -263,7 +254,6 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
                 ),
                 _ViewModeToggle(
                   mode: viewMode,
-                  isDark: isDark,
                   onChanged: (mode) =>
                       ref.read(jewelryViewModeProvider.notifier).state = mode,
                 ),
@@ -347,17 +337,15 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
 class _ViewModeToggle extends StatelessWidget {
   const _ViewModeToggle({
     required this.mode,
-    required this.isDark,
     required this.onChanged,
   });
 
   final JewelryViewMode mode;
-  final bool isDark;
   final ValueChanged<JewelryViewMode> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final border = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final border = AppColors.warmBorder;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -369,14 +357,12 @@ class _ViewModeToggle extends StatelessWidget {
           _ToggleBtn(
             icon: Icons.grid_view,
             selected: mode == JewelryViewMode.grid,
-            isDark: isDark,
             onTap: () => onChanged(JewelryViewMode.grid),
           ),
           Container(width: 1, height: 28, color: border),
           _ToggleBtn(
             icon: Icons.view_agenda_outlined,
             selected: mode == JewelryViewMode.list,
-            isDark: isDark,
             onTap: () => onChanged(JewelryViewMode.list),
           ),
         ],
@@ -389,13 +375,11 @@ class _ToggleBtn extends StatelessWidget {
   const _ToggleBtn({
     required this.icon,
     required this.selected,
-    required this.isDark,
     required this.onTap,
   });
 
   final IconData icon;
   final bool selected;
-  final bool isDark;
   final VoidCallback onTap;
 
   @override
@@ -405,16 +389,14 @@ class _ToggleBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.s8),
         color: selected
-            ? (isDark ? AppColors.slateSurface : AppColors.sandSurface)
+            ? (AppColors.sandSurface)
             : Colors.transparent,
         child: Icon(
           icon,
           size: 18,
           color: selected
               ? AppColors.bronze
-              : (isDark
-                  ? AppColors.textMutedDark
-                  : AppColors.textMutedLight),
+              : (AppColors.textMutedLight),
         ),
       ),
     );

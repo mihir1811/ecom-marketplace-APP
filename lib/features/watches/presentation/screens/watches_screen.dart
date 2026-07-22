@@ -93,14 +93,13 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final filters = ref.watch(watchFilterProvider);
     final sort = ref.watch(watchSortProvider);
     final viewMode = ref.watch(watchViewModeProvider);
     final listAsync = ref.watch(watchListProvider);
     final listState = listAsync.valueOrNull;
     final muted =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        AppColors.textMutedLight;
 
     return Scaffold(
       key: _scaffoldKey,
@@ -141,14 +140,10 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
                     height: 48,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.slateSurface
-                            : AppColors.warmWhite,
+                        color: AppColors.warmWhite,
                         borderRadius: BorderRadius.circular(AppSpacing.r12),
                         border: Border.all(
-                          color: isDark
-                              ? AppColors.slateBorder
-                              : AppColors.warmBorder,
+                          color: AppColors.warmBorder,
                         ),
                       ),
                       child: TextField(
@@ -230,7 +225,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
                   delegate: _StickyControlsDelegate(
                     height: 104,
                     child: ColoredBox(
-                      color: isDark ? AppColors.obsidianBg : AppColors.creamBg,
+                      color: AppColors.creamBg,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -258,15 +253,11 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
                                     overflow: TextOverflow.ellipsis,
                                     style: AppTypography.caption.copyWith(
                                       fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppColors.textPrimaryDark
-                                          : AppColors.textPrimaryLight,
+                                      color: AppColors.textPrimaryLight,
                                     ),
                                   ),
                                   style: TextButton.styleFrom(
-                                    foregroundColor: isDark
-                                        ? AppColors.textPrimaryDark
-                                        : AppColors.textPrimaryLight,
+                                    foregroundColor: AppColors.textPrimaryLight,
                                     padding: EdgeInsets.zero,
                                     tapTargetSize:
                                         MaterialTapTargetSize.shrinkWrap,
@@ -275,7 +266,6 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
                                 ),
                                 _ViewModeToggle(
                                   mode: viewMode,
-                                  isDark: isDark,
                                   onChanged: (mode) => ref
                                       .read(watchViewModeProvider.notifier)
                                       .state = mode,
@@ -368,18 +358,16 @@ class _StickyControlsDelegate extends SliverPersistentHeaderDelegate {
 class _ViewModeToggle extends StatelessWidget {
   const _ViewModeToggle({
     required this.mode,
-    required this.isDark,
     required this.onChanged,
   });
 
   final WatchViewMode mode;
-  final bool isDark;
   final ValueChanged<WatchViewMode> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final border =
-        isDark ? AppColors.slateBorder : AppColors.warmBorder;
+        AppColors.warmBorder;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -391,14 +379,12 @@ class _ViewModeToggle extends StatelessWidget {
           _ToggleBtn(
             icon: Icons.grid_view,
             selected: mode == WatchViewMode.grid,
-            isDark: isDark,
             onTap: () => onChanged(WatchViewMode.grid),
           ),
           Container(width: 1, height: 28, color: border),
           _ToggleBtn(
             icon: Icons.view_agenda_outlined,
             selected: mode == WatchViewMode.list,
-            isDark: isDark,
             onTap: () => onChanged(WatchViewMode.list),
           ),
         ],
@@ -411,13 +397,11 @@ class _ToggleBtn extends StatelessWidget {
   const _ToggleBtn({
     required this.icon,
     required this.selected,
-    required this.isDark,
     required this.onTap,
   });
 
   final IconData icon;
   final bool selected;
-  final bool isDark;
   final VoidCallback onTap;
 
   @override
@@ -427,16 +411,14 @@ class _ToggleBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.s8),
         color: selected
-            ? (isDark ? AppColors.slateSurface : AppColors.sandSurface)
+            ? (AppColors.sandSurface)
             : Colors.transparent,
         child: Icon(
           icon,
           size: 18,
           color: selected
               ? AppColors.bronze
-              : (isDark
-                  ? AppColors.textMutedDark
-                  : AppColors.textMutedLight),
+              : (AppColors.textMutedLight),
         ),
       ),
     );

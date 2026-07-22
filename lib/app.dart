@@ -11,8 +11,7 @@ class GemWorldApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'GemWorld Diamond Marketplace',
       theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system, // Dynamically matches system preferences (Light/Dark)
+      themeMode: ThemeMode.light,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
     );

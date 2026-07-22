@@ -139,9 +139,6 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -155,7 +152,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                   widget.title,
                   style: AppTypography.label.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: AppColors.textPrimaryLight,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.s8),
@@ -197,7 +194,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                   Text(
                     'Minimum (${widget.unitSuffix.isEmpty ? 'value' : widget.unitSuffix.trim()})',
                     style: AppTypography.caption.copyWith(
-                      color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+                      color: AppColors.textSecondaryLight,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.s4),
@@ -217,10 +214,10 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           hintText: _formatValue(widget.minLimit),
                           hintStyle: AppTypography.body.copyWith(
                             fontSize: 14,
-                            color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                            color: AppColors.textMutedLight,
                           ),
                           filled: true,
-                          fillColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
+                          fillColor: AppColors.warmWhite,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.s12,
                             vertical: AppSpacing.s8,
@@ -228,13 +225,13 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
                             borderSide: BorderSide(
-                              color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                              color: AppColors.warmBorder,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
                             borderSide: BorderSide(
-                              color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                              color: AppColors.warmBorder,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
@@ -257,7 +254,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                   Text(
                     'Maximum (${widget.unitSuffix.isEmpty ? 'value' : widget.unitSuffix.trim()})',
                     style: AppTypography.caption.copyWith(
-                      color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+                      color: AppColors.textSecondaryLight,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.s4),
@@ -277,10 +274,10 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           hintText: _formatValue(widget.maxLimit),
                           hintStyle: AppTypography.body.copyWith(
                             fontSize: 14,
-                            color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                            color: AppColors.textMutedLight,
                           ),
                           filled: true,
-                          fillColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
+                          fillColor: AppColors.warmWhite,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.s12,
                             vertical: AppSpacing.s8,
@@ -288,13 +285,13 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
                             borderSide: BorderSide(
-                              color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                              color: AppColors.warmBorder,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
                             borderSide: BorderSide(
-                              color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                              color: AppColors.warmBorder,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(

@@ -36,13 +36,12 @@ class FilterChipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultUnselectedBg = unselectedBgColor ??
-        (isDark ? AppColors.obsidianBg : AppColors.warmWhite);
+        (AppColors.warmWhite);
     final defaultBorder = borderColor ??
-        (isDark ? AppColors.slateBorder : AppColors.warmBorder);
+        (AppColors.warmBorder);
     final defaultUnselectedText = unselectedTextColor ??
-        (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight);
+        (AppColors.textPrimaryLight);
 
     return GestureDetector(
       onTap: onTap,

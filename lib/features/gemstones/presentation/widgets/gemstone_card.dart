@@ -25,13 +25,12 @@ class GemstoneCardGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final bgColor = AppColors.warmWhite;
+    final borderColor = AppColors.warmBorder;
     final textColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+        AppColors.textPrimaryLight;
     final mutedColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        AppColors.textMutedLight;
     final inCompare = ref.watch(isInComparisonProvider(gemstone.id));
     final imagePath = gemstone.imageUrl ?? gemstoneImagePath(gemstone.type);
 
@@ -42,7 +41,7 @@ class GemstoneCardGrid extends ConsumerWidget {
           color: bgColor,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: borderColor),
-          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+          boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -54,9 +53,7 @@ class GemstoneCardGrid extends ConsumerWidget {
                 children: [
                   Positioned.fill(
                     child: Container(
-                      color: isDark
-                          ? AppColors.charcoalLight
-                          : AppColors.sandSurface,
+                      color: AppColors.sandSurface,
                       child: imagePath != null
                           ? Padding(
                               padding: const EdgeInsets.all(AppSpacing.s24),
@@ -184,13 +181,12 @@ class GemstoneCardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final bgColor = AppColors.warmWhite;
+    final borderColor = AppColors.warmBorder;
     final textColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+        AppColors.textPrimaryLight;
     final mutedColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        AppColors.textMutedLight;
     final inCompare = ref.watch(isInComparisonProvider(gemstone.id));
     final imagePath = gemstone.imageUrl ?? gemstoneImagePath(gemstone.type);
 
@@ -201,7 +197,7 @@ class GemstoneCardList extends ConsumerWidget {
           color: bgColor,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: borderColor),
-          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+          boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
         child: SizedBox(
@@ -214,9 +210,7 @@ class GemstoneCardList extends ConsumerWidget {
                   children: [
                     Positioned.fill(
                       child: Container(
-                        color: isDark
-                            ? AppColors.charcoalLight
-                            : AppColors.sandSurface,
+                        color: AppColors.sandSurface,
                         child: imagePath != null
                             ? Padding(
                                 padding: const EdgeInsets.all(AppSpacing.s12),

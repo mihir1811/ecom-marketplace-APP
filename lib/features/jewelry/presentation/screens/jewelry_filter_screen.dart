@@ -58,11 +58,10 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
     final draft = ref.watch(jewelryFilterDraftProvider);
     final listState = ref.watch(jewelryListProvider).valueOrNull;
     final n = ref.read(jewelryFilterDraftProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final resultCount = listState?.totalCount;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
+      backgroundColor: AppColors.warmWhite,
       appBar: AppBar(
         title: Text(
           'Filters',
@@ -500,10 +499,10 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
               AppSpacing.s16,
             ),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+              color: AppColors.warmWhite,
               border: Border(
                 top: BorderSide(
-                  color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                  color: AppColors.warmBorder,
                 ),
               ),
             ),

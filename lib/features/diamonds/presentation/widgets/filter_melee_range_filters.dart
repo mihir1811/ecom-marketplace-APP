@@ -72,8 +72,6 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -87,7 +85,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
                 fontSize: 15,
               ),
             ),
-            _buildToggle(isDark),
+            _buildToggle(),
           ],
         ),
         const SizedBox(height: AppSpacing.s20),
@@ -97,21 +95,21 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
     );
   }
 
-  Widget _buildToggle(bool isDark) {
+  Widget _buildToggle() {
     return Container(
       height: 36,
       decoration: BoxDecoration(
-        color: isDark ? Colors.black26 : Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         border: Border.all(color: _goldBorder.withValues(alpha: 0.4)),
       ),
       padding: const EdgeInsets.all(3),
       child: Row(
         children: [
-          _buildTab('Pcs', _isPcsMode, isDark, () {
+          _buildTab('Pcs', _isPcsMode, () {
             setState(() => _isPcsMode = true);
           }),
-          _buildTab('Carat', !_isPcsMode, isDark, () {
+          _buildTab('Carat', !_isPcsMode, () {
             setState(() => _isPcsMode = false);
           }),
         ],
@@ -119,7 +117,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
     );
   }
 
-  Widget _buildTab(String label, bool isActive, bool isDark, VoidCallback onTap) {
+  Widget _buildTab(String label, bool isActive, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -147,7 +145,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
             fontWeight: FontWeight.bold,
             color: isActive
                 ? Colors.white
-                : (isDark ? Colors.white60 : Colors.black54),
+                : Colors.black54,
           ),
         ),
       ),

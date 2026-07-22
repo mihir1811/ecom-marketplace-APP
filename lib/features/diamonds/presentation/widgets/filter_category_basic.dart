@@ -64,8 +64,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final borderColor = AppColors.warmBorder;
 
     final totalShapes = kAllShapes.length;
     final totalRows = (totalShapes / _shapeGridColumns).ceil();
@@ -374,9 +373,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? AppColors.charcoal
-                                        : (isDark
-                                              ? AppColors.slateSurface
-                                              : AppColors.warmWhite),
+                                        : (AppColors.warmWhite),
                                     borderRadius: BorderRadius.circular(
                                       AppSpacing.r8,
                                     ),
@@ -394,9 +391,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                           : FontWeight.w500,
                                       color: isSelected
                                           ? AppColors.warmWhite
-                                          : (isDark
-                                                ? AppColors.textPrimaryDark
-                                                : AppColors.textPrimaryLight),
+                                          : (AppColors.textPrimaryLight),
                                     ),
                                   ),
                                 ),
@@ -433,9 +428,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? AppColors.charcoal
-                                        : (isDark
-                                              ? AppColors.slateSurface
-                                              : AppColors.warmWhite),
+                                        : (AppColors.warmWhite),
                                     borderRadius: BorderRadius.circular(
                                       AppSpacing.r8,
                                     ),
@@ -453,9 +446,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                           : FontWeight.w500,
                                       color: isSelected
                                           ? AppColors.warmWhite
-                                          : (isDark
-                                                ? AppColors.textPrimaryDark
-                                                : AppColors.textPrimaryLight),
+                                          : (AppColors.textPrimaryLight),
                                     ),
                                   ),
                                 ),
@@ -507,9 +498,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                       hex,
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: isDark
-                                            ? Colors.white54
-                                            : Colors.black45,
+                                        color: Colors.black45,
                                       ),
                                     ),
                                   ],
@@ -566,12 +555,10 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.charcoalDark : AppColors.creamBg,
+                  color: AppColors.creamBg,
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
                   border: Border.all(
-                    color: isDark
-                        ? AppColors.slateBorder
-                        : AppColors.warmBorder,
+                    color: AppColors.warmBorder,
                   ),
                 ),
                 child: Row(

@@ -27,8 +27,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gemstoneSearchProvider);
     final notifier = ref.read(gemstoneSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final borderColor = AppColors.warmBorder;
     final isMelee = state.lotType == 'Melee';
     final colors = GemstoneFilterState.colorsForDisplay(isMelee: isMelee);
 
@@ -129,9 +128,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
                                 : FontWeight.w500,
                             color: isSelected
                                 ? AppColors.bronze
-                                : (isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondaryLight),
+                                : (AppColors.textSecondaryLight),
                           ),
                         ),
                       ],

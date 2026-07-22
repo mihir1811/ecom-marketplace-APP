@@ -21,8 +21,7 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final borderColor = AppColors.warmBorder;
 
     const sieves = SieveSize.defaultSieves;
     final selectedSet = state.selectedSieveIndices.toSet();
@@ -63,7 +62,7 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
             ),
             child: Column(
               children: [
-                _SieveTableHeader(isDark: isDark, borderColor: borderColor),
+                _SieveTableHeader(borderColor: borderColor),
                 Expanded(
                   child: Scrollbar(
                     child: ListView.builder(
@@ -75,7 +74,6 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
                         return _SieveTableRow(
                           sieve: sieve,
                           isSelected: isSelected,
-                          isDark: isDark,
                           borderColor: borderColor,
                           onTap: () => notifier.toggleSieveSize(sieve.index),
                         );
@@ -91,7 +89,6 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
           // ---- Selection Summary ----
           _SelectionSummaryCard(
             count: state.selectedSieveIndices.length,
-            isDark: isDark,
             borderColor: borderColor,
             onClear: state.selectedSieveIndices.isEmpty
                 ? null
@@ -116,17 +113,16 @@ class _CompactPresetChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.charcoal : (isDark ? AppColors.obsidianBg : AppColors.warmWhite),
+          color: isActive ? AppColors.charcoal : (AppColors.warmWhite),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: isActive ? AppColors.charcoal : (isDark ? AppColors.slateBorder : AppColors.warmBorder),
+            color: isActive ? AppColors.charcoal : (AppColors.warmBorder),
           ),
         ),
         child: Text(
@@ -138,7 +134,7 @@ class _CompactPresetChip extends StatelessWidget {
             fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             fontSize: 11,
             height: 1.2,
-            color: isActive ? AppColors.warmWhite : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+            color: isActive ? AppColors.warmWhite : (AppColors.textPrimaryLight),
           ),
         ),
       ),
@@ -147,11 +143,9 @@ class _CompactPresetChip extends StatelessWidget {
 }
 
 class _SieveTableHeader extends StatelessWidget {
-  final bool isDark;
   final Color borderColor;
 
   const _SieveTableHeader({
-    required this.isDark,
     required this.borderColor,
   });
 
@@ -160,7 +154,7 @@ class _SieveTableHeader extends StatelessWidget {
     return Container(
       height: 32,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.slateSurface : AppColors.sandSurface,
+        color: AppColors.sandSurface,
         border: Border(
           bottom: BorderSide(color: borderColor),
         ),
@@ -205,14 +199,12 @@ class _HeaderCell extends StatelessWidget {
 class _SieveTableRow extends StatelessWidget {
   final SieveSize sieve;
   final bool isSelected;
-  final bool isDark;
   final Color borderColor;
   final VoidCallback onTap;
 
   const _SieveTableRow({
     required this.sieve,
     required this.isSelected,
-    required this.isDark,
     required this.borderColor,
     required this.onTap,
   });
@@ -235,7 +227,6 @@ class _SieveTableRow extends StatelessWidget {
               child: _DataCell(
                 text: sieve.sieve,
                 isSelected: isSelected,
-                isDark: isDark,
               ),
             ),
             Container(width: 1, color: borderColor),
@@ -243,7 +234,6 @@ class _SieveTableRow extends StatelessWidget {
               child: _DataCell(
                 text: '${sieve.mmMin.toStringAsFixed(2)}-${sieve.mmMax.toStringAsFixed(2)}',
                 isSelected: isSelected,
-                isDark: isDark,
               ),
             ),
             Container(width: 1, color: borderColor),
@@ -251,7 +241,6 @@ class _SieveTableRow extends StatelessWidget {
               child: _DataCell(
                 text: sieve.carat.toStringAsFixed(3),
                 isSelected: isSelected,
-                isDark: isDark,
               ),
             ),
           ],
@@ -264,12 +253,9 @@ class _SieveTableRow extends StatelessWidget {
 class _DataCell extends StatelessWidget {
   final String text;
   final bool isSelected;
-  final bool isDark;
-
   const _DataCell({
     required this.text,
     required this.isSelected,
-    required this.isDark,
   });
 
   @override
@@ -282,7 +268,7 @@ class _DataCell extends StatelessWidget {
           fontSize: 11,
           color: isSelected
               ? AppColors.warmWhite
-              : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+              : (AppColors.textSecondaryLight),
         ),
       ),
     );
@@ -291,13 +277,11 @@ class _DataCell extends StatelessWidget {
 
 class _SelectionSummaryCard extends StatelessWidget {
   final int count;
-  final bool isDark;
   final Color borderColor;
   final VoidCallback? onClear;
 
   const _SelectionSummaryCard({
     required this.count,
-    required this.isDark,
     required this.borderColor,
     this.onClear,
   });
@@ -307,7 +291,7 @@ class _SelectionSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.slateSurface : AppColors.sandSurface,
+        color: AppColors.sandSurface,
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         border: Border.all(color: borderColor),
       ),
@@ -316,7 +300,7 @@ class _SelectionSummaryCard extends StatelessWidget {
           Icon(
             count > 0 ? Icons.check_circle : Icons.circle_outlined,
             size: 18,
-            color: count > 0 ? AppColors.bronze : (isDark ? AppColors.textMutedDark : AppColors.textMutedLight),
+            color: count > 0 ? AppColors.bronze : (AppColors.textMutedLight),
           ),
           const SizedBox(width: AppSpacing.s8),
           Text(
@@ -327,7 +311,7 @@ class _SelectionSummaryCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: count > 0
                   ? AppColors.bronze
-                  : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                  : (AppColors.textSecondaryLight),
             ),
           ),
           const Spacer(),

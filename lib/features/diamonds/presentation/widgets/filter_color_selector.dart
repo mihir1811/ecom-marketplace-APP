@@ -19,7 +19,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
   bool _isStandardExpanded = false;
   bool _isOvertonesExpanded = false;
 
-  Color _getStandardColorBg(String letter, bool isSelected, bool isDark) {
+  Color _getStandardColorBg(String letter, bool isSelected) {
     if (isSelected) {
       return AppColors.charcoal;
     }
@@ -27,19 +27,14 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
     final idx = allLetters.indexOf(letter);
     final fraction = idx / (allLetters.length - 1);
 
-    final Color startColor = isDark
-        ? Colors.white.withOpacity(0.05)
-        : Colors.white;
-    final Color endColor = isDark
-        ? const Color(0xFFFEF3C7).withOpacity(0.2)
-        : const Color(0xFFFEF3C7);
+    const Color startColor = Colors.white;
+    const Color endColor = Color(0xFFFEF3C7);
 
     return Color.lerp(startColor, endColor, fraction) ?? startColor;
   }
 
   Widget _buildChunkRow({
     required List<String> chunk,
-    required bool isDark,
     required dynamic state,
     required dynamic notifier,
     required Color borderColor,
@@ -57,7 +52,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: _getStandardColorBg(colorLetter, isSelected, isDark),
+                  color: _getStandardColorBg(colorLetter, isSelected),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isSelected ? AppColors.charcoal : borderColor,
@@ -70,9 +65,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                     fontWeight: FontWeight.bold,
                     color: isSelected
                         ? AppColors.warmWhite
-                        : (isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight),
+                        : (AppColors.textPrimaryLight),
                   ),
                 ),
               ),
@@ -95,11 +88,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
       isLabCatalog: isLabCatalog,
       useMeleeFilters: useMeleeFilters,
     );
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final activeTabColor = isDark
-        ? AppColors.charcoalLight
-        : AppColors.warmWhite;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final activeTabColor = AppColors.warmWhite;
+    final borderColor = AppColors.warmBorder;
 
     const chunks = [
       ['D', 'E', 'F'],
@@ -126,7 +116,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
         Container(
           height: 38,
           decoration: BoxDecoration(
-            color: isDark ? Colors.black26 : AppColors.sandSurface,
+            color: AppColors.sandSurface,
             borderRadius: BorderRadius.circular(AppSpacing.r8),
           ),
           padding: const EdgeInsets.all(2),
@@ -151,10 +141,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                       style: AppTypography.caption.copyWith(
                         fontWeight: FontWeight.bold,
                         color: !state.isFancyColor
-                            ? (isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.charcoal)
-                            : AppColors.textMutedDark,
+                            ? (AppColors.charcoal)
+                            : AppColors.textMutedLight,
                       ),
                     ),
                   ),
@@ -179,10 +167,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                       style: AppTypography.caption.copyWith(
                         fontWeight: FontWeight.bold,
                         color: state.isFancyColor
-                            ? (isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.charcoal)
-                            : AppColors.textMutedDark,
+                            ? (AppColors.charcoal)
+                            : AppColors.textMutedLight,
                       ),
                     ),
                   ),
@@ -202,7 +188,6 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: _buildChunkRow(
                     chunk: chunk,
-                    isDark: isDark,
                     state: state,
                     notifier: notifier,
                     borderColor: borderColor,
@@ -220,7 +205,6 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                             padding: const EdgeInsets.only(bottom: 8.0),
                             child: _buildChunkRow(
                               chunk: chunk,
-                              isDark: isDark,
                               state: state,
                               notifier: notifier,
                               borderColor: borderColor,
@@ -334,9 +318,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                             : FontWeight.w500,
                         color: isSelected
                             ? AppColors.bronze
-                            : (isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.textSecondaryLight),
+                            : (AppColors.textSecondaryLight),
                       ),
                     ),
                   ),
@@ -409,9 +391,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                               : FontWeight.w500,
                           color: isSelected
                               ? AppColors.warmWhite
-                              : (isDark
-                                    ? AppColors.textPrimaryDark
-                                    : AppColors.textPrimaryLight),
+                              : (AppColors.textPrimaryLight),
                         ),
                       ),
                     ),

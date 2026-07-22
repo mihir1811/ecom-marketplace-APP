@@ -139,9 +139,7 @@ class _GemstoneFilterCategoryBasicState
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(AppSpacing.r8),
               border: Border.all(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.slateBorder
-                    : AppColors.warmBorder,
+                color: AppColors.warmBorder,
               ),
             ),
             padding: const EdgeInsets.symmetric(

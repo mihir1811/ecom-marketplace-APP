@@ -21,8 +21,7 @@ class FilterScrollableChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final containerBorderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final containerBorderColor = AppColors.warmBorder;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,7 +32,7 @@ class FilterScrollableChips extends StatelessWidget {
               title,
               style: AppTypography.label.copyWith(
                 fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: AppColors.textPrimaryLight,
               ),
             ),
             const SizedBox(width: 6),
@@ -70,7 +69,7 @@ class FilterScrollableChips extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppColors.charcoal
-                          : (isDark ? AppColors.obsidianBg : AppColors.warmWhite),
+                          : (AppColors.warmWhite),
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
                       border: Border.all(
                         color: isSelected ? AppColors.charcoal : containerBorderColor,
@@ -82,7 +81,7 @@ class FilterScrollableChips extends StatelessWidget {
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                         color: isSelected
                             ? AppColors.warmWhite
-                            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                            : (AppColors.textPrimaryLight),
                       ),
                     ),
                   ),

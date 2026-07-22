@@ -17,8 +17,7 @@ class FilterQuickRangeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final containerBorderColor = isSelected ? AppColors.bronze : (isDark ? AppColors.slateBorder : AppColors.warmBorder);
+    final containerBorderColor = isSelected ? AppColors.bronze : (AppColors.warmBorder);
 
     return GestureDetector(
       onTap: onTap,
@@ -28,7 +27,7 @@ class FilterQuickRangeChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.bronze.withOpacity(0.12)
-              : (isDark ? AppColors.obsidianBg : AppColors.warmWhite),
+              : (AppColors.warmWhite),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(color: containerBorderColor, width: isSelected ? 1.5 : 1.0),
         ),
@@ -37,7 +36,7 @@ class FilterQuickRangeChip extends StatelessWidget {
           style: AppTypography.caption.copyWith(
             fontWeight: FontWeight.w600,
             fontSize: 12,
-            color: isSelected ? AppColors.bronze : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+            color: isSelected ? AppColors.bronze : (AppColors.textSecondaryLight),
           ),
         ),
       ),

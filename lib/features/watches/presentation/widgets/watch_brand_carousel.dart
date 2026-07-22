@@ -16,8 +16,6 @@ class WatchBrandCarousel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(watchFilterProvider.select((s) => s.brands));
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -40,9 +38,7 @@ class WatchBrandCarousel extends ConsumerWidget {
                     Text(
                       'Select one or more luxury houses',
                       style: AppTypography.caption.copyWith(
-                        color: isDark
-                            ? AppColors.textMutedDark
-                            : AppColors.textMutedLight,
+                        color: AppColors.textMutedLight,
                       ),
                     ),
                   ],
@@ -85,14 +81,12 @@ class WatchBrandCarousel extends ConsumerWidget {
                     vertical: AppSpacing.s12,
                   ),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+                    color: AppColors.warmWhite,
                     borderRadius: BorderRadius.circular(AppSpacing.r12),
                     border: Border.all(
                       color: isSelected
                           ? AppColors.bronze
-                          : (isDark
-                              ? AppColors.slateBorder
-                              : AppColors.warmBorder),
+                          : (AppColors.warmBorder),
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
@@ -144,8 +138,6 @@ class WatchCategoryChips extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selected =
         ref.watch(watchFilterProvider.select((s) => s.categories));
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return SizedBox(
       height: 40,
       child: ListView.separated(
@@ -158,7 +150,6 @@ class WatchCategoryChips extends ConsumerWidget {
           return _CategoryChip(
             label: category.toUpperCase(),
             selected: selected.contains(category),
-            isDark: isDark,
             onTap: () => ref
                 .read(watchFilterProvider.notifier)
                 .toggleCategory(category),
@@ -173,13 +164,11 @@ class _CategoryChip extends StatelessWidget {
   const _CategoryChip({
     required this.label,
     required this.selected,
-    required this.isDark,
     required this.onTap,
   });
 
   final String label;
   final bool selected;
-  final bool isDark;
   final VoidCallback onTap;
 
   @override
@@ -195,12 +184,12 @@ class _CategoryChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? AppColors.charcoal
-              : (isDark ? AppColors.slateSurface : AppColors.warmWhite),
+              : (AppColors.warmWhite),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
             color: selected
                 ? AppColors.charcoal
-                : (isDark ? AppColors.slateBorder : AppColors.warmBorder),
+                : (AppColors.warmBorder),
           ),
         ),
         child: Text(
@@ -208,9 +197,7 @@ class _CategoryChip extends StatelessWidget {
           style: AppTypography.caption.copyWith(
             color: selected
                 ? AppColors.warmWhite
-                : (isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight),
+                : (AppColors.textPrimaryLight),
             fontWeight: FontWeight.w600,
             fontSize: 12,
             letterSpacing: 0.4,
@@ -226,9 +213,7 @@ Future<void> showWatchBrandsDirectory(BuildContext context) {
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: Theme.of(context).brightness == Brightness.dark
-        ? AppColors.obsidianBg
-        : AppColors.creamBg,
+    backgroundColor: AppColors.creamBg,
     builder: (context) => const WatchBrandsDirectorySheet(),
   );
 }
@@ -255,10 +240,9 @@ class _WatchBrandsDirectorySheetState
   @override
   Widget build(BuildContext context) {
     final selected = ref.watch(watchFilterProvider.select((s) => s.brands));
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final height = MediaQuery.sizeOf(context).height * 0.92;
     final muted =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        AppColors.textMutedLight;
 
     final filtered = _query.isEmpty
         ? watchBrandCategories
@@ -303,9 +287,7 @@ class _WatchBrandsDirectorySheetState
                         'Search and select brands.',
                         style: AppTypography.body.copyWith(
                           fontSize: 14,
-                          color: isDark
-                              ? AppColors.textMutedDark
-                              : AppColors.textSecondaryLight,
+                          color: AppColors.textSecondaryLight,
                         ),
                       ),
                     ],
@@ -325,12 +307,10 @@ class _WatchBrandsDirectorySheetState
               child: Container(
                 decoration: BoxDecoration(
                   color:
-                      isDark ? AppColors.slateSurface : AppColors.warmWhite,
+                      AppColors.warmWhite,
                   borderRadius: BorderRadius.circular(AppSpacing.r12),
                   border: Border.all(
-                    color: isDark
-                        ? AppColors.slateBorder
-                        : AppColors.warmBorder,
+                    color: AppColors.warmBorder,
                   ),
                 ),
                 child: TextField(
@@ -411,9 +391,7 @@ class _WatchBrandsDirectorySheetState
                         children: [
                           Container(
                             width: double.infinity,
-                            color: isDark
-                                ? AppColors.slateSurface
-                                : AppColors.sandSurface,
+                            color: AppColors.sandSurface,
                             padding: const EdgeInsets.symmetric(
                               vertical: AppSpacing.s8,
                             ),

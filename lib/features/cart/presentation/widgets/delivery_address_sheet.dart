@@ -15,9 +15,7 @@ Future<DeliveryAddress?> showDeliveryAddressSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: Theme.of(context).brightness == Brightness.dark
-        ? AppColors.slateSurface
-        : AppColors.warmWhite,
+    backgroundColor: AppColors.warmWhite,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
@@ -95,8 +93,6 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
       child: SingleChildScrollView(
@@ -173,7 +169,6 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
                   ),
                 ),
               ),
-              if (isDark) const SizedBox(height: AppSpacing.s8),
             ],
           ),
         ),

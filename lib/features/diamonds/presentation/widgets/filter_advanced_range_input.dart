@@ -116,8 +116,6 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -152,7 +150,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Minimum', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.black54)),
+                  Text('Minimum', style: TextStyle(fontSize: 11, color: Colors.black54)),
                   const SizedBox(height: 2),
                   SizedBox(
                     height: 38,
@@ -169,12 +167,12 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                         decoration: InputDecoration(
                           hintText: widget.minLimit.toStringAsFixed(1),
                           hintStyle: AppTypography.caption.copyWith(
-                            color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                            color: AppColors.textMutedLight,
                           ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
                           filled: true,
-                          fillColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
+                          fillColor: AppColors.warmWhite,
                         ),
                         onFieldSubmitted: _handleMinSubmitted,
                       ),
@@ -188,7 +186,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Maximum', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.black54)),
+                  Text('Maximum', style: TextStyle(fontSize: 11, color: Colors.black54)),
                   const SizedBox(height: 2),
                   SizedBox(
                     height: 38,
@@ -205,12 +203,12 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                         decoration: InputDecoration(
                           hintText: widget.maxLimit.toStringAsFixed(1),
                           hintStyle: AppTypography.caption.copyWith(
-                            color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                            color: AppColors.textMutedLight,
                           ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
                           filled: true,
-                          fillColor: isDark ? AppColors.obsidianBg : AppColors.warmWhite,
+                          fillColor: AppColors.warmWhite,
                         ),
                         onFieldSubmitted: _handleMaxSubmitted,
                       ),

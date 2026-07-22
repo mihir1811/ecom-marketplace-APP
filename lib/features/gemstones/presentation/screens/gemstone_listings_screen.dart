@@ -48,9 +48,8 @@ class _GemstoneListingsScreenState
   Widget build(BuildContext context) {
     final stateAsync = ref.watch(gemstoneListProvider);
     final viewMode = ref.watch(gemstoneViewModeProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+        AppColors.textSecondaryLight;
 
     return Scaffold(
       appBar: AppBar(
@@ -66,10 +65,10 @@ class _GemstoneListingsScreenState
           Container(
             margin: const EdgeInsets.only(right: AppSpacing.s8),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.slateSurface : AppColors.sandSurface,
+              color: AppColors.sandSurface,
               borderRadius: BorderRadius.circular(AppSpacing.r8),
               border: Border.all(
-                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                color: AppColors.warmBorder,
               ),
             ),
             child: Row(
@@ -86,7 +85,7 @@ class _GemstoneListingsScreenState
                 Container(
                   width: 1,
                   height: 24,
-                  color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                  color: AppColors.warmBorder,
                 ),
                 _ModeBtn(
                   icon: Icons.view_list,

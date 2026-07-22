@@ -16,8 +16,6 @@ class GemstoneFilterCategoryAdvanced extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gemstoneSearchProvider);
     final notifier = ref.read(gemstoneSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return RepaintBoundary(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,7 +70,6 @@ class GemstoneFilterCategoryAdvanced extends ConsumerWidget {
             showFlags: true,
             selectedOrigin: state.selectedOrigin,
             onSelected: (val) => notifier.updateOrigin(val),
-            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.s20),
 

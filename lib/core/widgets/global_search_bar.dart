@@ -4,29 +4,27 @@ import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
 class GlobalSearchBar extends StatelessWidget {
-  final bool isDark;
-
-  const GlobalSearchBar({super.key, required this.isDark});
+  const GlobalSearchBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final textColor = AppColors.textPrimaryLight;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? AppColors.charcoalLight : AppColors.warmWhite,
+          color: AppColors.warmWhite,
           borderRadius: BorderRadius.circular(AppSpacing.r20),
           border: Border.all(
-            color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+            color: AppColors.warmBorder,
           ),
         ),
         child: TextField(
           decoration: InputDecoration(
             hintText: 'Search by shape, carat, certificate...',
             hintStyle: AppTypography.body.copyWith(
-              color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+              color: AppColors.textMutedLight,
             ),
             filled: false,
             border: InputBorder.none,
@@ -40,7 +38,7 @@ class GlobalSearchBar extends StatelessWidget {
               padding: const EdgeInsets.only(left: AppSpacing.s12, right: AppSpacing.s8),
               child: Icon(
                 Icons.search,
-                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                color: AppColors.textMutedLight,
                 size: 20,
               ),
             ),

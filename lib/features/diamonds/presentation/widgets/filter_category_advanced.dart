@@ -35,8 +35,6 @@ class _FilterCategoryAdvancedState extends ConsumerState<FilterCategoryAdvanced>
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return RepaintBoundary(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,10 +46,10 @@ class _FilterCategoryAdvancedState extends ConsumerState<FilterCategoryAdvanced>
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.charcoalDark : AppColors.creamBg,
+                  color: AppColors.creamBg,
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
                   border: Border.all(
-                    color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                    color: AppColors.warmBorder,
                   ),
                 ),
                 child: Row(
@@ -171,10 +169,10 @@ class _FilterCategoryAdvancedState extends ConsumerState<FilterCategoryAdvanced>
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.charcoalDark : AppColors.creamBg,
+                  color: AppColors.creamBg,
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
                   border: Border.all(
-                    color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                    color: AppColors.warmBorder,
                   ),
                 ),
                 child: Row(

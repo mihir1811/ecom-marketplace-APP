@@ -18,8 +18,7 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final borderColor = AppColors.warmBorder;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +51,7 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.charcoal
-                      : (isDark ? AppColors.obsidianBg : AppColors.warmWhite),
+                      : (AppColors.warmWhite),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isSelected ? AppColors.charcoal : borderColor,
@@ -64,9 +63,7 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                     color: isSelected
                         ? AppColors.warmWhite
-                        : (isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight),
+                        : (AppColors.textPrimaryLight),
                   ),
                 ),
               ),

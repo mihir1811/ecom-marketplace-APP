@@ -9,7 +9,6 @@ class FilterOriginDropdown extends StatelessWidget {
   const FilterOriginDropdown({
     required this.selectedOrigin,
     required this.onSelected,
-    required this.isDark,
     this.title = 'Origin Country',
     this.hint = 'Select origin country',
     this.infoText = "Filter by the diamond's mined origin country.",
@@ -22,7 +21,6 @@ class FilterOriginDropdown extends StatelessWidget {
 
   final String? selectedOrigin;
   final ValueChanged<String?> onSelected;
-  final bool isDark;
   final String title;
   final String hint;
   final String infoText;
@@ -39,7 +37,7 @@ class FilterOriginDropdown extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: isDark ? AppColors.charcoalDark : AppColors.creamBg,
+      backgroundColor: AppColors.creamBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.r16)),
       ),
@@ -49,7 +47,6 @@ class FilterOriginDropdown extends StatelessWidget {
             onSelected(val);
             Navigator.pop(context);
           },
-          isDark: isDark,
           title: pickerTitle,
           options: options ?? DiamondFilterState.countries,
           flags: flags ?? DiamondFilterState.countryFlags,
@@ -61,7 +58,7 @@ class FilterOriginDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+    final borderColor = AppColors.warmBorder;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +96,7 @@ class FilterOriginDropdown extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border.all(color: borderColor),
               borderRadius: BorderRadius.circular(AppSpacing.r8),
-              color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+              color: AppColors.warmWhite,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -119,15 +116,15 @@ class FilterOriginDropdown extends StatelessWidget {
                       selectedOrigin ?? hint,
                       style: AppTypography.body.copyWith(
                         color: selectedOrigin == null
-                            ? (isDark ? Colors.white38 : Colors.black38)
-                            : (isDark ? Colors.white : Colors.black),
+                            ? Colors.black38
+                            : Colors.black,
                       ),
                     ),
                   ],
                 ),
                 Icon(
                   Icons.keyboard_arrow_down,
-                  color: isDark ? Colors.white70 : Colors.black54,
+                  color: Colors.black54,
                 ),
               ],
             ),
@@ -141,7 +138,6 @@ class FilterOriginDropdown extends StatelessWidget {
 class _CountryPickerModal extends StatefulWidget {
   const _CountryPickerModal({
     required this.onSelected,
-    required this.isDark,
     required this.title,
     required this.options,
     required this.flags,
@@ -149,7 +145,6 @@ class _CountryPickerModal extends StatefulWidget {
   });
 
   final ValueChanged<String?> onSelected;
-  final bool isDark;
   final String title;
   final List<String> options;
   final Map<String, String> flags;

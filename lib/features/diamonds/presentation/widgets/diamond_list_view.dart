@@ -19,7 +19,6 @@ class DiamondListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListView.builder(
       controller: scrollController,
       padding: const EdgeInsets.only(
@@ -41,14 +40,14 @@ class DiamondListView extends StatelessWidget {
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
+                    color: AppColors.charcoal,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.s12),
                 Text(
                   'Loading more...',
                   style: AppTypography.caption.copyWith(
-                    color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                    color: AppColors.textMutedLight,
                   ),
                 ),
               ],

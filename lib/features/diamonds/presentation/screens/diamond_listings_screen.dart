@@ -55,8 +55,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
   Widget build(BuildContext context) {
     final stateAsync = ref.watch(diamondListProvider);
     final viewMode = ref.watch(diamondViewModeProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mutedColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final mutedColor = AppColors.textSecondaryLight;
 
     return Scaffold(
       appBar: AppBar(
@@ -72,10 +71,10 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
           Container(
             margin: const EdgeInsets.only(right: AppSpacing.s8),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.slateSurface : AppColors.sandSurface,
+              color: AppColors.sandSurface,
               borderRadius: BorderRadius.circular(AppSpacing.r8),
               border: Border.all(
-                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                color: AppColors.warmBorder,
               ),
             ),
             child: Row(
@@ -90,7 +89,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                 Container(
                   width: 1,
                   height: 24,
-                  color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                  color: AppColors.warmBorder,
                 ),
                 _ViewModeButton(
                   icon: Icons.view_list,
@@ -131,9 +130,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(AppSpacing.r8),
                         border: Border.all(
-                          color: isDark
-                              ? AppColors.slateBorder
-                              : AppColors.warmBorder,
+                          color: AppColors.warmBorder,
                         ),
                       ),
                       child: Row(

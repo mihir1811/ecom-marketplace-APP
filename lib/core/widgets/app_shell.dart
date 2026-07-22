@@ -8,13 +8,11 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            GlobalSearchBar(isDark: isDark),
+            const GlobalSearchBar(),
             Expanded(child: child),
           ],
         ),

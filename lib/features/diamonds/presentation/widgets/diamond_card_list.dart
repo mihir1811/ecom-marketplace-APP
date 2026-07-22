@@ -23,11 +23,10 @@ class DiamondCardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
-    final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
-    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final bgColor = AppColors.warmWhite;
+    final borderColor = AppColors.warmBorder;
+    final textColor = AppColors.textPrimaryLight;
+    final mutedColor = AppColors.textMutedLight;
     final inCompare = ref.watch(isInComparisonProvider(diamond.id));
 
     return GestureDetector(
@@ -37,14 +36,14 @@ class DiamondCardList extends ConsumerWidget {
           color: bgColor,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: borderColor),
-          boxShadow: isDark ? AppShadows.cardDark : AppShadows.cardLight,
+          boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.hardEdge,
         child: SizedBox(
           height: 148,
           child: Row(
             children: [
-              _buildImageSection(isDark, context, ref, inCompare),
+              _buildImageSection(context, ref, inCompare),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.s8),
@@ -56,7 +55,7 @@ class DiamondCardList extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.s4),
                       _buildDetailsRow(mutedColor),
                       const SizedBox(height: AppSpacing.s4),
-                      _buildSpecRow(textColor, mutedColor, isDark),
+                      _buildSpecRow(textColor, mutedColor),
                     ],
                   ),
                 ),
@@ -69,7 +68,6 @@ class DiamondCardList extends ConsumerWidget {
   }
 
   Widget _buildImageSection(
-    bool isDark,
     BuildContext context,
     WidgetRef ref,
     bool inCompare,
@@ -80,7 +78,7 @@ class DiamondCardList extends ConsumerWidget {
         children: [
           Positioned.fill(
             child: Container(
-              color: isDark ? AppColors.charcoalLight : AppColors.sandSurface,
+              color: AppColors.sandSurface,
               child: Center(
                 child: renderShapeSvg(
                   diamond.shape,
@@ -183,7 +181,7 @@ class DiamondCardList extends ConsumerWidget {
     );
   }
 
-  Widget _buildSpecRow(Color textColor, Color mutedColor, bool isDark) {
+  Widget _buildSpecRow(Color textColor, Color mutedColor) {
     return Row(
       children: [
         Flexible(
@@ -206,7 +204,7 @@ class DiamondCardList extends ConsumerWidget {
               vertical: 2,
             ),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.charcoalDark : AppColors.sandSurface,
+              color: AppColors.sandSurface,
               borderRadius: BorderRadius.circular(AppSpacing.r4),
             ),
             child: Text(

@@ -8,7 +8,7 @@ enum MeleeBgFamily {
 }
 
 /// Raw color palette definition for GemWorld.
-/// Exposes static constants for styling light and dark modes.
+/// Exposes static constants for styling light mode.
 class AppColors {
   const AppColors._();
 
@@ -50,13 +50,9 @@ class AppColors {
   /// - [MeleeBgFamily.natural]: #f0f1f6 → [creamBg] (theme default / `--background`)
   /// - [MeleeBgFamily.gemstone]: always #f5f6fa (no melee shift)
   static Color screenBg({
-    required bool isDark,
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
   }) {
-    if (isDark) {
-      return melee ? const Color(0xFF151C24) : obsidianBg;
-    }
     switch (family) {
       case MeleeBgFamily.labGrown:
         return melee ? labGrownMeleeBg : labGrownSingleBg;
@@ -70,14 +66,10 @@ class AppColors {
   /// Soft melee tint for sticky surfaces (nav / bottom bar).
   /// Matches [screenBg] light-mode families so sticky chrome tracks the page.
   static Color surfaceBg({
-    required bool isDark,
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
   }) {
-    if (isDark) {
-      return melee ? const Color(0xFF1B242E) : charcoalDark;
-    }
-    return screenBg(isDark: false, melee: melee, family: family);
+    return screenBg(melee: melee, family: family);
   }
 
   /// Shared duration for melee background color transitions.

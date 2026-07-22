@@ -129,7 +129,6 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final filterState = ref.watch(diamondSearchProvider);
     final useMeleeFilters = _usesMeleeFilters(filterState);
 
@@ -145,7 +144,6 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
 
     return MeleeBackgroundShell(
       isMelee: useMeleeFilters,
-      isDark: isDark,
       family: bgFamily,
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -169,7 +167,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
         ),
         body: Column(
           children: [
-            GlobalSearchBar(isDark: isDark),
+            const GlobalSearchBar(),
             Expanded(
               child: SafeArea(
                 top: false,
@@ -177,7 +175,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
                   children: [
                     Column(
                       children: [
-                        _buildStickyNav(isDark, useMeleeFilters),
+                        _buildStickyNav(useMeleeFilters),
                         Expanded(
                           child: SingleChildScrollView(
                             controller: _scrollController,
@@ -278,7 +276,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
     );
   }
 
-  Widget _buildStickyNav(bool isDark, bool useMeleeFilters) {
+  Widget _buildStickyNav(bool useMeleeFilters) {
     final sections = [
       (Section.basic, 'Basic', Icons.diamond_outlined),
       (Section.preferences, 'PREF', Icons.tune),
@@ -293,7 +291,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
         color: Colors.transparent,
         border: Border(
           bottom: BorderSide(
-            color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+            color: AppColors.warmBorder,
           ),
         ),
       ),
@@ -345,7 +343,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
                       size: 16,
                       color: isSelected
                           ? AppColors.bronze
-                          : (isDark ? Colors.white38 : Colors.black38),
+                          : Colors.black38,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -356,7 +354,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
                         letterSpacing: 0.3,
                         color: isSelected
                             ? AppColors.bronze
-                            : (isDark ? Colors.white60 : Colors.black54),
+                            : Colors.black54,
                       ),
                     ),
                   ],

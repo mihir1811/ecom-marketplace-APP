@@ -17,24 +17,22 @@ class ComparisonBottomBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(comparisonProvider);
     if (state.isEmpty) return const SizedBox.shrink();
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final category = state.category!;
     final label = state.count == 1 ? category.label : category.labelPlural;
 
     return Material(
       elevation: 8,
-      color: isDark ? AppColors.slateSurface : AppColors.warmWhite,
+      color: AppColors.warmWhite,
       child: SafeArea(
         top: false,
         child: Container(
           decoration: BoxDecoration(
             border: Border(
               top: BorderSide(
-                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                color: AppColors.warmBorder,
               ),
             ),
-            boxShadow: isDark ? AppShadows.cardDark : AppShadows.modalLight,
+            boxShadow: AppShadows.modalLight,
           ),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.s16,
@@ -65,9 +63,7 @@ class ComparisonBottomBar extends ConsumerWidget {
                   'Clear All',
                   style: AppTypography.caption.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
+                    color: AppColors.textSecondaryLight,
                   ),
                 ),
               ),

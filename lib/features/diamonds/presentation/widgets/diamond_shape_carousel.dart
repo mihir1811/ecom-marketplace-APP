@@ -109,8 +109,6 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return RepaintBoundary(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,9 +123,7 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     height: 1.1,
-                    color: isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimaryLight,
+                    color: AppColors.textPrimaryLight,
                   ),
                 ),
               ),
@@ -192,7 +188,7 @@ class _DiamondShapeCarouselState extends ConsumerState<DiamondShapeCarousel>
               width: 140,
               height: 4,
               decoration: BoxDecoration(
-                color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                color: AppColors.warmBorder,
                 borderRadius: BorderRadius.circular(2),
               ),
               child: Stack(

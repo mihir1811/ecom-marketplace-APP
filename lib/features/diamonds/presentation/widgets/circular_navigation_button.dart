@@ -13,14 +13,13 @@ class CircularNavigationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.slateSurface : AppColors.sandSurface,
+        color: AppColors.sandSurface,
         shape: BoxShape.circle,
-        border: Border.all(color: isDark ? AppColors.slateBorder : AppColors.warmBorder),
+        border: Border.all(color: AppColors.warmBorder),
       ),
       child: IconButton(
         padding: EdgeInsets.zero,

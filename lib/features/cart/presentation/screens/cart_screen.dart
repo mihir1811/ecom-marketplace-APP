@@ -41,14 +41,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
     final totals = cart.totals;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
-    final cardBg = isDark ? AppColors.slateSurface : AppColors.warmWhite;
-    final border = isDark ? AppColors.slateBorder : AppColors.warmBorder;
+        AppColors.textMutedLight;
+    final cardBg = AppColors.warmWhite;
+    final border = AppColors.warmBorder;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.obsidianBg : AppColors.creamBg,
+      backgroundColor: AppColors.creamBg,
       appBar: AppBar(
         title: Row(
           children: [
