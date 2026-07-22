@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,6 +7,10 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_empty_state.dart';
+import '../../../../core/widgets/catalog_error_state.dart';
+import '../../../../core/widgets/catalog_list_loading.dart';
+import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/gemstone_list_provider.dart';
 import '../widgets/gemstone_card.dart';
@@ -51,7 +56,7 @@ class _GemstoneListingsScreenState
     final muted =
         AppColors.textSecondaryLight;
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -62,40 +67,15 @@ class _GemstoneListingsScreenState
           style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: AppSpacing.s8),
-            decoration: BoxDecoration(
-              color: AppColors.sandSurface,
-              borderRadius: BorderRadius.circular(AppSpacing.r8),
-              border: Border.all(
-                color: AppColors.warmBorder,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _ModeBtn(
-                  icon: Icons.grid_view,
-                  label: 'Grid',
-                  selected: viewMode == GemstoneViewMode.grid,
-                  onTap: () => ref
-                      .read(gemstoneViewModeProvider.notifier)
-                      .state = GemstoneViewMode.grid,
-                ),
-                Container(
-                  width: 1,
-                  height: 24,
-                  color: AppColors.warmBorder,
-                ),
-                _ModeBtn(
-                  icon: Icons.view_list,
-                  label: 'List',
-                  selected: viewMode == GemstoneViewMode.list,
-                  onTap: () => ref
-                      .read(gemstoneViewModeProvider.notifier)
-                      .state = GemstoneViewMode.list,
-                ),
-              ],
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.s8),
+            child: ViewModeToggle(
+              style: ViewModeToggleStyle.labeled,
+              isGrid: viewMode == GemstoneViewMode.grid,
+              onGrid: () => ref.read(gemstoneViewModeProvider.notifier).state =
+                  GemstoneViewMode.grid,
+              onList: () => ref.read(gemstoneViewModeProvider.notifier).state =
+                  GemstoneViewMode.list,
             ),
           ),
         ],
@@ -128,16 +108,18 @@ class _GemstoneListingsScreenState
               child: stateAsync.when(
                 data: (state) {
                   if (state.isInitialLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                    return CatalogListLoading(
+                      isGrid: viewMode == GemstoneViewMode.grid,
                     );
                   }
                   if (state.gemstones.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'No gemstones match your filters.',
-                        style: AppTypography.body.copyWith(color: muted),
-                      ),
+                    return CatalogEmptyState(
+                      icon: Icons.diamond_outlined,
+                      title: 'No gemstones match your filters.',
+                      message: 'Try adjusting your search criteria.',
+                      actionLabel: 'Edit Filters',
+                      onAction: () =>
+                          context.pushReplacement(AppRouteNames.gemstones),
                     );
                   }
                   return RefreshIndicator(
@@ -198,57 +180,14 @@ class _GemstoneListingsScreenState
                           ),
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                loading: () => CatalogListLoading(
+                  isGrid: viewMode == GemstoneViewMode.grid,
                 ),
-                error: (e, _) => Center(child: Text('$e')),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ModeBtn extends StatelessWidget {
-  const _ModeBtn({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.bronze : Colors.transparent,
-          borderRadius: selected ? BorderRadius.circular(AppSpacing.r8) : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: selected ? AppColors.warmWhite : AppColors.textMutedLight,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: AppTypography.caption.copyWith(
-                fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-                color:
-                    selected ? AppColors.warmWhite : AppColors.textMutedLight,
+                error: (e, _) => CatalogErrorState(
+                  message: '$e',
+                  onRetry: () =>
+                      ref.read(gemstoneListProvider.notifier).refresh(),
+                ),
               ),
             ),
           ],

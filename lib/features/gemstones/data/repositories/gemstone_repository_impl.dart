@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
+import '../../domain/gemstone_assets.dart';
 import '../../domain/models/gemstone.dart';
 import '../../domain/models/gemstone_filter_state.dart';
 import '../../domain/repositories/gemstone_repository.dart';
-import '../../presentation/widgets/gemstone_showcase_card.dart';
 
 final gemstoneRepositoryProvider = Provider<GemstoneRepository>(
   (ref) => GemstoneRepositoryImpl(),

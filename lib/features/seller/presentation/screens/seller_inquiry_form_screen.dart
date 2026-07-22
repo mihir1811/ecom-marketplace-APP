@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/seller_inquiry_mock_data.dart';
@@ -226,10 +227,10 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
 
   Color _accent(InquiryCategory c) => switch (c) {
         InquiryCategory.diamond => AppColors.info,
-        InquiryCategory.gemstone => const Color(0xFF7C3AED),
-        InquiryCategory.bullion => const Color(0xFFEA580C),
+        InquiryCategory.gemstone => AppSwatches.inquiryGemstone,
+        InquiryCategory.bullion => AppSwatches.inquiryBullion,
         InquiryCategory.watch => AppColors.textSecondaryLight,
-        InquiryCategory.jewelry => const Color(0xFFDC2626),
+        InquiryCategory.jewelry => AppSwatches.inquiryJewelry,
       };
 
   IconData _icon(InquiryCategory c) => switch (c) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/seller_product.dart';
@@ -302,7 +303,7 @@ class _ProductCardState extends State<_ProductCard> {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF3EDE4),
+                            color: AppSwatches.sellerCardSurface,
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,7 +24,7 @@ class ComparisonScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(comparisonProvider);
     if (state.items.length < 2 || state.category == null) {
-      return Scaffold(
+      return AppScaffold(
         appBar: AppBar(
           title: Text(
             'Compare',
@@ -61,7 +62,7 @@ class ComparisonScreen extends ConsumerWidget {
     final headerBg = AppColors.sandSurface;
     final leadBg = const Color(0xFFE9EDE8);
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: Text(
           'Compare ${state.category!.labelPlural}',

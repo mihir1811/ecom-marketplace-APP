@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/format_catalog_price.dart';
 import '../../domain/models/diamond_filter_state.dart';
 import '../../application/diamond_search_provider.dart';
 
@@ -37,7 +38,7 @@ class DiamondFilterChips extends ConsumerWidget {
 
     if (filters.minPrice > 0 || filters.maxPrice < 1000000) {
       final label =
-          '\$${_formatPrice(filters.minPrice)}-\$${_formatPrice(filters.maxPrice)}';
+          '\$${formatCatalogPriceWholeK(filters.minPrice)}-\$${formatCatalogPriceWholeK(filters.maxPrice)}';
       chips.add(
         _FilterChipData(
           label: label,
@@ -174,12 +175,6 @@ class DiamondFilterChips extends ConsumerWidget {
     );
   }
 
-  String _formatPrice(double price) {
-    if (price >= 1000) {
-      return '${(price / 1000).toStringAsFixed(0)}K';
-    }
-    return price.toStringAsFixed(0);
-  }
 }
 
 class _FilterChipData {

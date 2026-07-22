@@ -1,25 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/models/sieve_size.dart';
+import '../../../../core/widgets/melee_background_shell.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_filter_state.dart';
-import 'filter_chip.dart';
-import 'filter_text_segmented_control.dart';
-import 'filter_section_header.dart';
-import 'filter_segmented_control.dart';
+import 'package:gemstone/core/widgets/filters/filter_chip.dart';
+import 'package:gemstone/core/widgets/filters/filter_text_segmented_control.dart';
+import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
 import 'filter_color_selector.dart';
-import 'filter_clarity_cards.dart';
-import 'filter_finish_presets.dart';
-import 'filter_scrollable_chips.dart';
-import 'filter_quick_range_chip.dart';
+import 'package:gemstone/core/widgets/filters/filter_scrollable_chips.dart';
 import 'filter_shape_grid_cell.dart';
-import 'filter_boolean_checkbox.dart';
-import 'filter_sieve_size.dart';
-import 'filter_melee_range_filters.dart';
-import 'diamond_shape_carousel.dart';
-import '../widgets/filter_range_slider.dart';
+import 'package:gemstone/core/widgets/filters/filter_boolean_checkbox.dart';
+import 'package:gemstone/core/widgets/filters/melee_range_filters.dart';
+import 'package:gemstone/core/widgets/filters/catalog_standard_range_filters.dart';
+import 'diamond_svg_data.dart';
 
 class FilterCategoryBasic extends ConsumerStatefulWidget {
   const FilterCategoryBasic({
@@ -211,65 +208,45 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
           ],
 
           if (useMeleeFilters) ...[
-            const FilterMeleeRangeFilters(),
+            MeleeRangeFilters(
+              caratPerPcsMin: state.minCaratPerPcs,
+              caratPerPcsMax: state.maxCaratPerPcs,
+              onCaratPerPcsChanged: notifier.updateCaratPerPcsRange,
+              pricePerPcsMin: state.minPricePerPcs,
+              pricePerPcsMax: state.maxPricePerPcs,
+              onPricePerPcsChanged: notifier.updatePricePerPcsRange,
+              totalPcsMin: state.minTotalPcs,
+              totalPcsMax: state.maxTotalPcs,
+              onTotalPcsChanged: notifier.updateTotalPcsRange,
+              totalPriceMin: state.minPrice,
+              totalPriceMax: state.maxPrice,
+              onTotalPriceChanged: notifier.updatePriceRange,
+              pricePerCaratMin: state.minPricePerCarat,
+              pricePerCaratMax: state.maxPricePerCarat,
+              onPricePerCaratChanged: notifier.updatePricePerCaratRange,
+              totalCaratMin: state.minCarat,
+              totalCaratMax: state.maxCarat,
+              onTotalCaratChanged: notifier.updateCaratRange,
+            ),
             const SizedBox(height: AppSpacing.s20),
           ],
           if (showStandardRanges) ...[
-            FilterRangeSlider(
-              title: 'Total Price',
-              minLimit: 0.0,
-              maxLimit: 1000000.0,
-              currentMin: state.minPrice,
-              currentMax: state.maxPrice,
-              unitSuffix: '\$',
-              isInteger: true,
-              onChanged: (min, max) => notifier.updatePriceRange(min, max),
-              onClear: () => notifier.updatePriceRange(0.0, 1000000.0),
-            ),
-            const SizedBox(height: AppSpacing.s20),
-
-            FilterRangeSlider(
-              title: 'Total Carat',
-              minLimit: 0.16,
-              maxLimit: 100.00,
-              currentMin: state.minCarat,
-              currentMax: state.maxCarat,
-              unitSuffix: ' ct',
-              onChanged: (min, max) => notifier.updateCaratRange(min, max),
-              onClear: () => notifier.updateCaratRange(0.16, 100.00),
-            ),
-            const SizedBox(height: AppSpacing.s12),
-            Wrap(
-              alignment: WrapAlignment.start,
-              crossAxisAlignment: WrapCrossAlignment.start,
-              spacing: AppSpacing.s8,
-              runSpacing: AppSpacing.s8,
-              children: List.generate(
-                DiamondFilterState.caratQuickRanges.length,
-                (index) {
-                  final range = DiamondFilterState.caratQuickRanges[index];
-                  final label = '${range['min']} - ${range['max']}';
-                  return FilterQuickRangeChip(
-                    label: label,
-                    isSelected: state.selectedCaratQuickRanges.contains(index),
-                    onTap: () => notifier.toggleCaratQuickRange(index),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: AppSpacing.s20),
-
-            FilterRangeSlider(
-              title: 'Price / Carat',
-              minLimit: 0.0,
-              maxLimit: 200000.0,
-              currentMin: state.minPricePerCarat,
-              currentMax: state.maxPricePerCarat,
-              unitSuffix: '\$',
-              isInteger: true,
-              onChanged: (min, max) =>
-                  notifier.updatePricePerCaratRange(min, max),
-              onClear: () => notifier.updatePricePerCaratRange(0.0, 200000.0),
+            CatalogStandardRangeFilters(
+              totalPriceMin: state.minPrice,
+              totalPriceMax: state.maxPrice,
+              totalPriceLimits: (0.0, 1000000.0),
+              onTotalPriceChanged: notifier.updatePriceRange,
+              totalCaratMin: state.minCarat,
+              totalCaratMax: state.maxCarat,
+              totalCaratLimits: (0.16, 100.00),
+              onTotalCaratChanged: notifier.updateCaratRange,
+              caratQuickRanges: DiamondFilterState.caratQuickRanges,
+              selectedCaratQuickRanges: state.selectedCaratQuickRanges,
+              onToggleCaratQuickRange: notifier.toggleCaratQuickRange,
+              pricePerCaratMin: state.minPricePerCarat,
+              pricePerCaratMax: state.maxPricePerCarat,
+              pricePerCaratLimits: (0.0, 200000.0),
+              onPricePerCaratChanged: notifier.updatePricePerCaratRange,
             ),
             const SizedBox(height: AppSpacing.s24),
           ],
@@ -590,3 +567,553 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
     );
   }
 }
+
+class ClarityCardsSection extends ConsumerStatefulWidget {
+  const ClarityCardsSection({super.key});
+
+  @override
+  ConsumerState<ClarityCardsSection> createState() => _ClarityCardsSectionState();
+}
+
+class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+    final borderColor = AppColors.warmBorder;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Clarity',
+          style: AppTypography.label.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s8),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: DiamondFilterState.clarities.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            childAspectRatio: 2.2,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemBuilder: (context, index) {
+            final grade = DiamondFilterState.clarities[index];
+            final isSelected = state.selectedClarityGrades.contains(grade);
+            return GestureDetector(
+              onTap: () => notifier.toggleClarityGradeGroup(grade),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.charcoal
+                      : (AppColors.warmWhite),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isSelected ? AppColors.charcoal : borderColor,
+                  ),
+                ),
+                child: Text(
+                  grade,
+                  style: AppTypography.caption.copyWith(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    color: isSelected
+                        ? AppColors.warmWhite
+                        : (AppColors.textPrimaryLight),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class FinishPresetsSection extends ConsumerWidget {
+  const FinishPresetsSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+    final borderColor = AppColors.warmBorder;
+    final presets = ['3X', 'EX-', 'VG+', 'VG-'];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Finish (Quick Select)',
+              style: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 6),
+            Tooltip(
+              message: "Quickly select combined grades for Cut, Polish, and Symmetry.",
+              triggerMode: TooltipTriggerMode.tap,
+              preferBelow: false,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              textStyle: const TextStyle(color: Colors.white, fontSize: 13),
+              child: const Icon(
+                Icons.info_outline,
+                size: 16,
+                color: AppColors.bronze,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.s8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: presets.map((preset) {
+            final isSelected = state.selectedFinishPreset.contains(preset);
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: GestureDetector(
+                  onTap: () => notifier.selectFinishPreset(preset),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    height: 38,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.charcoal
+                          : (AppColors.warmWhite),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? AppColors.charcoal : borderColor,
+                      ),
+                    ),
+                    child: Text(
+                      preset,
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isSelected
+                            ? AppColors.warmWhite
+                            : (AppColors.textPrimaryLight),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class FilterSegmentedControl extends StatelessWidget {
+  const FilterSegmentedControl({
+    required this.options,
+    required this.selected,
+    required this.onSelected,
+    super.key,
+  });
+
+  final List<LabNaturalType> options;
+  final LabNaturalType selected;
+  final void Function(LabNaturalType) onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = AppColors.warmBorder;
+
+    return MeleeTintExtentAnchor(
+      child: Container(
+      height: 42,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppSpacing.r8),
+        border: Border.all(color: borderColor),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: options.map((opt) {
+          final isCurrent = opt == selected;
+          final splash = opt.usesMeleeFilters
+              ? AppColors.screenBg(
+                  melee: true,
+                  family: MeleeBgFamily.natural,
+                )
+              : AppColors.bronzeLight;
+          return Expanded(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTapDown: (details) {
+                  MeleeRippleOriginNotification(details.globalPosition)
+                      .dispatch(context);
+                },
+                onTap: () => onSelected(opt),
+                splashColor: splash.withValues(alpha: 0.55),
+                highlightColor: splash.withValues(alpha: 0.22),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  decoration: BoxDecoration(
+                    color: isCurrent
+                        ? AppColors.charcoal
+                        : (AppColors.warmWhite),
+                    borderRadius: BorderRadius.circular(AppSpacing.r8 - 1),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    opt.label,
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+                      color: isCurrent
+                          ? AppColors.warmWhite
+                          : (AppColors.textPrimaryLight),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    ),
+    );
+  }
+}
+
+class FilterSieveSize extends ConsumerStatefulWidget {
+  const FilterSieveSize({super.key});
+
+  @override
+  ConsumerState<FilterSieveSize> createState() => _FilterSieveSizeState();
+}
+
+class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
+  static const double _tableHeight = 280.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+    final borderColor = AppColors.warmBorder;
+
+    const sieves = SieveSize.defaultSieves;
+    final selectedSet = state.selectedSieveIndices.toSet();
+
+    return RepaintBoundary(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const FilterSectionHeader(title: 'Sieve Size'),
+          const SizedBox(height: AppSpacing.s12),
+
+          // ---- Lot Type Presets ----
+          const FilterSectionHeader(title: 'Lot Type Presets'),
+          const SizedBox(height: AppSpacing.s8),
+          Row(
+            children: SieveSize.lotTypePresets.keys.map((label) {
+              final isActive = state.activeSievePresets.contains(label);
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: _CompactPresetChip(
+                    label: label,
+                    isActive: isActive,
+                    onTap: () => notifier.applySievePreset(label),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: AppSpacing.s16),
+
+          // ---- Scrollable Sieve Table ----
+          Container(
+            height: _tableHeight,
+            decoration: BoxDecoration(
+              border: Border.all(color: borderColor),
+              borderRadius: BorderRadius.circular(AppSpacing.r8),
+            ),
+            child: Column(
+              children: [
+                _SieveTableHeader(borderColor: borderColor),
+                Expanded(
+                  child: Scrollbar(
+                    child: ListView.builder(
+                      itemCount: sieves.length,
+                      itemExtent: 36.0,
+                      itemBuilder: (context, index) {
+                        final sieve = sieves[index];
+                        final isSelected = selectedSet.contains(sieve.index);
+                        return _SieveTableRow(
+                          sieve: sieve,
+                          isSelected: isSelected,
+                          borderColor: borderColor,
+                          onTap: () => notifier.toggleSieveSize(sieve.index),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s16),
+
+          // ---- Selection Summary ----
+          _SelectionSummaryCard(
+            count: state.selectedSieveIndices.length,
+            borderColor: borderColor,
+            onClear: state.selectedSieveIndices.isEmpty
+                ? null
+                : () => notifier.clearSieves(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactPresetChip extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _CompactPresetChip({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.charcoal : (AppColors.warmWhite),
+          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          border: Border.all(
+            color: isActive ? AppColors.charcoal : (AppColors.warmBorder),
+          ),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          maxLines: 3,
+          overflow: TextOverflow.visible,
+          style: AppTypography.caption.copyWith(
+            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+            fontSize: 11,
+            height: 1.2,
+            color: isActive ? AppColors.warmWhite : (AppColors.textPrimaryLight),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SieveTableHeader extends StatelessWidget {
+  final Color borderColor;
+
+  const _SieveTableHeader({
+    required this.borderColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 32,
+      decoration: BoxDecoration(
+        color: AppColors.sandSurface,
+        border: Border(
+          bottom: BorderSide(color: borderColor),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Expanded(
+            child: _HeaderCell(label: 'Sieve'),
+          ),
+          Container(width: 1, color: borderColor),
+          const Expanded(
+            child: _HeaderCell(label: 'MM'),
+          ),
+          Container(width: 1, color: borderColor),
+          const Expanded(
+            child: _HeaderCell(label: 'Carat'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderCell extends StatelessWidget {
+  final String label;
+  const _HeaderCell({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        label,
+        style: AppTypography.caption.copyWith(
+          fontWeight: FontWeight.bold,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+}
+
+class _SieveTableRow extends StatelessWidget {
+  final SieveSize sieve;
+  final bool isSelected;
+  final Color borderColor;
+  final VoidCallback onTap;
+
+  const _SieveTableRow({
+    required this.sieve,
+    required this.isSelected,
+    required this.borderColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.charcoal : Colors.transparent,
+          border: Border(
+            bottom: BorderSide(color: borderColor, width: 0.5),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _DataCell(
+                text: sieve.sieve,
+                isSelected: isSelected,
+              ),
+            ),
+            Container(width: 1, color: borderColor),
+            Expanded(
+              child: _DataCell(
+                text: '${sieve.mmMin.toStringAsFixed(2)}-${sieve.mmMax.toStringAsFixed(2)}',
+                isSelected: isSelected,
+              ),
+            ),
+            Container(width: 1, color: borderColor),
+            Expanded(
+              child: _DataCell(
+                text: sieve.carat.toStringAsFixed(3),
+                isSelected: isSelected,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DataCell extends StatelessWidget {
+  final String text;
+  final bool isSelected;
+  const _DataCell({
+    required this.text,
+    required this.isSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        text,
+        style: AppTypography.caption.copyWith(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.w400,
+          fontSize: 11,
+          color: isSelected
+              ? AppColors.warmWhite
+              : (AppColors.textSecondaryLight),
+        ),
+      ),
+    );
+  }
+}
+
+class _SelectionSummaryCard extends StatelessWidget {
+  final int count;
+  final Color borderColor;
+  final VoidCallback? onClear;
+
+  const _SelectionSummaryCard({
+    required this.count,
+    required this.borderColor,
+    this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.sandSurface,
+        borderRadius: BorderRadius.circular(AppSpacing.r8),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            count > 0 ? Icons.check_circle : Icons.circle_outlined,
+            size: 18,
+            color: count > 0 ? AppColors.bronze : (AppColors.textMutedLight),
+          ),
+          const SizedBox(width: AppSpacing.s8),
+          Text(
+            count == 0
+                ? '0 Selected'
+                : '$count Selected',
+            style: AppTypography.label.copyWith(
+              fontWeight: FontWeight.bold,
+              color: count > 0
+                  ? AppColors.bronze
+                  : (AppColors.textSecondaryLight),
+            ),
+          ),
+          const Spacer(),
+          if (onClear != null)
+            GestureDetector(
+              onTap: onClear,
+              child: Text(
+                'Clear',
+                style: AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.terracotta,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+

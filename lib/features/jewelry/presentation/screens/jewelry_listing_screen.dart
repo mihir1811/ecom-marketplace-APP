@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,10 +7,15 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_empty_state.dart';
+import '../../../../core/widgets/catalog_error_state.dart';
+import '../../../../core/widgets/listing_search_filter_bar.dart';
+import '../../../../core/widgets/simple_sort_sheet.dart';
+import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
-import '../widgets/jewelry_category_chips.dart';
+import '../widgets/jewelry_listing_views.dart';
 import '../widgets/jewelry_sub_category_chips.dart';
 
 class JewelryListingScreen extends ConsumerStatefulWidget {
@@ -59,38 +65,14 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
 
   Future<void> _showSortSheet() async {
     final current = ref.read(jewelrySortProvider);
-    final selected = await showModalBottomSheet<JewelrySortOption>(
+    final selected = await showSimpleSortSheet<JewelrySortOption>(
       context: context,
-      showDragHandle: true,
+      options: JewelrySortOption.values,
+      labelOf: (o) => o.label,
+      current: current,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.s16),
-                child: Text(
-                  'Sort by',
-                  style:
-                      AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-                ),
-              ),
-              for (final option in JewelrySortOption.values)
-                ListTile(
-                  title: Text(option.label),
-                  trailing: current == option
-                      ? const Icon(Icons.check, color: AppColors.bronze)
-                      : null,
-                  onTap: () => Navigator.pop(context, option),
-                ),
-              const SizedBox(height: AppSpacing.s12),
-            ],
-          ),
-        );
-      },
     );
     if (selected != null) {
       ref.read(jewelrySortProvider.notifier).state = selected;
@@ -113,7 +95,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
     final title = filters.category ?? 'Accessories';
     final hasActiveFilters = filters.activeCount > 0;
 
-    return Scaffold(
+    return AppScaffold(
       backgroundColor: AppColors.creamBg,
       appBar: AppBar(
         automaticallyImplyActions: false,
@@ -142,82 +124,14 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
           const SizedBox(height: AppSpacing.s8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.warmWhite,
-                        borderRadius: BorderRadius.circular(AppSpacing.r12),
-                        border: Border.all(
-                          color: AppColors.warmBorder,
-                        ),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        textAlignVertical: TextAlignVertical.center,
-                        onChanged: (v) => ref
-                            .read(jewelryFilterProvider.notifier)
-                            .setSearchQuery(v),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          hintText: 'Search by name, SKU, metal, stone...',
-                          prefixIcon:
-                              Icon(Icons.search, color: muted, size: 22),
-                          prefixIconConstraints: const BoxConstraints(
-                            minWidth: 44,
-                            minHeight: 48,
-                          ),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.s8,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.s8),
-                Material(
-                  color: AppColors.charcoal,
-                  borderRadius: BorderRadius.circular(AppSpacing.r12),
-                  child: InkWell(
-                    onTap: _openFilters,
-                    borderRadius: BorderRadius.circular(AppSpacing.r12),
-                    child: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          const Icon(
-                            Icons.tune,
-                            color: AppColors.warmWhite,
-                            size: 22,
-                          ),
-                          if (hasActiveFilters)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.bronze,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            child: ListingSearchFilterBar(
+              controller: _searchController,
+              hintText: 'Search by name, SKU, metal, stone...',
+              mutedColor: muted,
+              activeFilterCount: hasActiveFilters ? 1 : 0,
+              onFilterTap: _openFilters,
+              onChanged: (v) =>
+                  ref.read(jewelryFilterProvider.notifier).setSearchQuery(v),
             ),
           ),
           const SizedBox(height: AppSpacing.s12),
@@ -252,10 +166,14 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
                     ),
                   ),
                 ),
-                _ViewModeToggle(
-                  mode: viewMode,
-                  onChanged: (mode) =>
-                      ref.read(jewelryViewModeProvider.notifier).state = mode,
+                ViewModeToggle(
+                  isGrid: viewMode == JewelryViewMode.grid,
+                  onGrid: () => ref
+                      .read(jewelryViewModeProvider.notifier)
+                      .state = JewelryViewMode.grid,
+                  onList: () => ref
+                      .read(jewelryViewModeProvider.notifier)
+                      .state = JewelryViewMode.list,
                 ),
               ],
             ),
@@ -283,20 +201,17 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : listState.errorMessage != null && listState.items.isEmpty
-                    ? _MessageView(
-                        icon: Icons.error_outline,
-                        iconColor: AppColors.error,
-                        title: listState.errorMessage ?? 'Something went wrong',
-                        actionLabel: 'Retry',
-                        onAction: () =>
+                    ? CatalogErrorState(
+                        message:
+                            listState.errorMessage ?? 'Something went wrong',
+                        onRetry: () =>
                             ref.read(jewelryListProvider.notifier).refresh(),
                       )
                     : listState.items.isEmpty
-                        ? _MessageView(
+                        ? CatalogEmptyState(
                             icon: Icons.diamond_outlined,
-                            iconColor: AppColors.bronze,
                             title: 'No products found',
-                            subtitle:
+                            message:
                                 'Try clearing filters or adjusting search.',
                             actionLabel: 'Clear Filters',
                             onAction: () {
@@ -334,120 +249,3 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
   }
 }
 
-class _ViewModeToggle extends StatelessWidget {
-  const _ViewModeToggle({
-    required this.mode,
-    required this.onChanged,
-  });
-
-  final JewelryViewMode mode;
-  final ValueChanged<JewelryViewMode> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final border = AppColors.warmBorder;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppSpacing.r8),
-        border: Border.all(color: border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _ToggleBtn(
-            icon: Icons.grid_view,
-            selected: mode == JewelryViewMode.grid,
-            onTap: () => onChanged(JewelryViewMode.grid),
-          ),
-          Container(width: 1, height: 28, color: border),
-          _ToggleBtn(
-            icon: Icons.view_agenda_outlined,
-            selected: mode == JewelryViewMode.list,
-            onTap: () => onChanged(JewelryViewMode.list),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ToggleBtn extends StatelessWidget {
-  const _ToggleBtn({
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.s8),
-        color: selected
-            ? (AppColors.sandSurface)
-            : Colors.transparent,
-        child: Icon(
-          icon,
-          size: 18,
-          color: selected
-              ? AppColors.bronze
-              : (AppColors.textMutedLight),
-        ),
-      ),
-    );
-  }
-}
-
-class _MessageView extends StatelessWidget {
-  const _MessageView({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.actionLabel,
-    required this.onAction,
-    this.subtitle,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String? subtitle;
-  final String actionLabel;
-  final VoidCallback onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 48, color: iconColor),
-            const SizedBox(height: AppSpacing.s16),
-            Text(
-              title,
-              style: AppTypography.title.copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-            if (subtitle != null) ...[
-              const SizedBox(height: AppSpacing.s8),
-              Text(
-                subtitle!,
-                style: AppTypography.body.copyWith(fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
-            ],
-            const SizedBox(height: AppSpacing.s20),
-            OutlinedButton(onPressed: onAction, child: Text(actionLabel)),
-          ],
-        ),
-      ),
-    );
-  }
-}

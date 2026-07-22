@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gemstone/core/widgets/search_action_bottom_bar.dart';
 import 'package:gemstone/features/diamonds/presentation/screens/lab_grown_diamond_search_screen.dart';
 import 'package:gemstone/features/diamonds/presentation/widgets/lab_grown_diamond_scope.dart';
-import 'package:gemstone/features/diamonds/presentation/widgets/search_bottom_bar.dart';
 
 void main() {
   testWidgets('lab grown search screen shows SHOW and CLEAR ALL buttons',
@@ -17,7 +17,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byType(SearchBottomBar), findsOneWidget);
+    expect(find.byType(SearchActionBottomBar), findsOneWidget);
     expect(find.textContaining('SHOW'), findsOneWidget);
     expect(find.text('CLEAR ALL FILTERS'), findsOneWidget);
     expect(find.text('Diamond Category'), findsOneWidget);

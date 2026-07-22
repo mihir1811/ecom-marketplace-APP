@@ -1,0 +1,92 @@
+import 'package:flutter/material.dart';
+
+/// App-wide [Scaffold] that keeps the status/nav bars clear of content.
+///
+/// - When an [appBar] is present, top inset is left to the app bar.
+/// - Bottom inset is applied to [body] (or to [bottomNavigationBar] when set)
+///   so sticky footers clear the system nav bar.
+/// - Nested [SafeArea]s remain safe (padding is consumed for descendants).
+class AppScaffold extends StatelessWidget {
+  const AppScaffold({
+    super.key,
+    this.scaffoldKey,
+    this.appBar,
+    this.body,
+    this.floatingActionButton,
+    this.floatingActionButtonLocation,
+    this.drawer,
+    this.endDrawer,
+    this.endDrawerEnableOpenDragGesture = true,
+    this.bottomNavigationBar,
+    this.backgroundColor,
+    this.resizeToAvoidBottomInset,
+    this.extendBody = false,
+    this.extendBodyBehindAppBar = false,
+    this.safeTop,
+    this.safeBottom = true,
+    this.safeLeft = true,
+    this.safeRight = true,
+  });
+
+  /// Forwards to the underlying [Scaffold] so drawers can be opened by key.
+  final GlobalKey<ScaffoldState>? scaffoldKey;
+
+  final PreferredSizeWidget? appBar;
+  final Widget? body;
+  final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
+  final Widget? drawer;
+  final Widget? endDrawer;
+  final bool endDrawerEnableOpenDragGesture;
+  final Widget? bottomNavigationBar;
+  final Color? backgroundColor;
+  final bool? resizeToAvoidBottomInset;
+  final bool extendBody;
+  final bool extendBodyBehindAppBar;
+
+  /// When null, top safe area is applied only if there is no [appBar].
+  final bool? safeTop;
+  final bool safeBottom;
+  final bool safeLeft;
+  final bool safeRight;
+
+  @override
+  Widget build(BuildContext context) {
+    final applyTop = safeTop ?? appBar == null;
+    // When a bottomNavigationBar is present, only pad that bar — otherwise
+    // body bottom padding would leave a gap above the bar.
+    final bodySafeBottom = safeBottom && bottomNavigationBar == null;
+
+    return Scaffold(
+      key: scaffoldKey,
+      appBar: appBar,
+      floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation,
+      drawer: drawer,
+      endDrawer: endDrawer,
+      endDrawerEnableOpenDragGesture: endDrawerEnableOpenDragGesture,
+      bottomNavigationBar: bottomNavigationBar == null
+          ? null
+          : SafeArea(
+              top: false,
+              left: safeLeft,
+              right: safeRight,
+              bottom: safeBottom,
+              child: bottomNavigationBar!,
+            ),
+      backgroundColor: backgroundColor,
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+      extendBody: extendBody,
+      extendBodyBehindAppBar: extendBodyBehindAppBar,
+      body: body == null
+          ? null
+          : SafeArea(
+              top: applyTop,
+              bottom: bodySafeBottom,
+              left: safeLeft,
+              right: safeRight,
+              child: body!,
+            ),
+    );
+  }
+}

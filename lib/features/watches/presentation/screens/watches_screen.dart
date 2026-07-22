@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_empty_state.dart';
+import '../../../../core/widgets/catalog_error_state.dart';
+import '../../../../core/widgets/listing_search_filter_bar.dart';
+import '../../../../core/widgets/simple_sort_sheet.dart';
+import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../application/watch_filter_provider.dart';
 import '../../application/watch_list_provider.dart';
 import '../../domain/models/watch_filter_state.dart';
@@ -56,35 +62,11 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
 
   Future<void> _showSortSheet() async {
     final current = ref.read(watchSortProvider);
-    final selected = await showModalBottomSheet<WatchSortOption>(
+    final selected = await showSimpleSortSheet<WatchSortOption>(
       context: context,
-      showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.s16),
-                child: Text(
-                  'Sort by',
-                  style:
-                      AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-                ),
-              ),
-              for (final option in WatchSortOption.values)
-                ListTile(
-                  title: Text(option.label),
-                  trailing: current == option
-                      ? const Icon(Icons.check, color: AppColors.bronze)
-                      : null,
-                  onTap: () => Navigator.pop(context, option),
-                ),
-              const SizedBox(height: AppSpacing.s12),
-            ],
-          ),
-        );
-      },
+      options: WatchSortOption.values,
+      labelOf: (o) => o.label,
+      current: current,
     );
     if (selected != null) {
       ref.read(watchSortProvider.notifier).state = selected;
@@ -101,8 +83,8 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
     final muted =
         AppColors.textMutedLight;
 
-    return Scaffold(
-      key: _scaffoldKey,
+    return AppScaffold(
+      scaffoldKey: _scaffoldKey,
       endDrawer: const WatchFilterDrawer(),
       endDrawerEnableOpenDragGesture: false,
       appBar: AppBar(
@@ -133,85 +115,16 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
           const SizedBox(height: AppSpacing.s8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.warmWhite,
-                        borderRadius: BorderRadius.circular(AppSpacing.r12),
-                        border: Border.all(
-                          color: AppColors.warmBorder,
-                        ),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        textAlignVertical: TextAlignVertical.center,
-                        onChanged: (v) => ref
-                            .read(watchFilterProvider.notifier)
-                            .setSearchQuery(v),
-                        onSubmitted: (v) => ref
-                            .read(watchFilterProvider.notifier)
-                            .setSearchQuery(v),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          hintText: 'Search for luxury watches...',
-                          prefixIcon: Icon(Icons.search, color: muted, size: 22),
-                          prefixIconConstraints: const BoxConstraints(
-                            minWidth: 44,
-                            minHeight: 48,
-                          ),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.s8,
-                            vertical: 0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.s8),
-                Material(
-                  color: AppColors.charcoal,
-                  borderRadius: BorderRadius.circular(AppSpacing.r12),
-                  child: InkWell(
-                    onTap: _openFilters,
-                    borderRadius: BorderRadius.circular(AppSpacing.r12),
-                    child: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          const Icon(
-                            Icons.tune,
-                            color: AppColors.warmWhite,
-                            size: 22,
-                          ),
-                          if (filters.activeCount > 0)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.bronze,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            child: ListingSearchFilterBar(
+              controller: _searchController,
+              hintText: 'Search for luxury watches...',
+              mutedColor: muted,
+              activeFilterCount: filters.activeCount,
+              onFilterTap: _openFilters,
+              onChanged: (v) =>
+                  ref.read(watchFilterProvider.notifier).setSearchQuery(v),
+              onSubmitted: (v) =>
+                  ref.read(watchFilterProvider.notifier).setSearchQuery(v),
             ),
           ),
           const SizedBox(height: AppSpacing.s12),
@@ -264,11 +177,14 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
                                     visualDensity: VisualDensity.compact,
                                   ),
                                 ),
-                                _ViewModeToggle(
-                                  mode: viewMode,
-                                  onChanged: (mode) => ref
+                                ViewModeToggle(
+                                  isGrid: viewMode == WatchViewMode.grid,
+                                  onGrid: () => ref
                                       .read(watchViewModeProvider.notifier)
-                                      .state = mode,
+                                      .state = WatchViewMode.grid,
+                                  onList: () => ref
+                                      .read(watchViewModeProvider.notifier)
+                                      .state = WatchViewMode.list,
                                 ),
                               ],
                             ),
@@ -287,7 +203,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
                 else if (listState.errorMessage != null &&
                     listState.watches.isEmpty)
                   SliverFillRemaining(
-                    child: _ErrorView(
+                    child: CatalogErrorState(
                       message: listState.errorMessage!,
                       onRetry: () =>
                           ref.read(watchListProvider.notifier).refresh(),
@@ -295,8 +211,12 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
                   )
                 else if (listState.watches.isEmpty)
                   SliverFillRemaining(
-                    child: _EmptyView(
-                      onClear: () {
+                    child: CatalogEmptyState(
+                      icon: Icons.watch_outlined,
+                      title: 'No watches match your filters',
+                      message: 'Try adjusting brand, price, or style filters.',
+                      actionLabel: 'Clear filters',
+                      onAction: () {
                         ref.read(watchFilterProvider.notifier).reset();
                         _searchController.clear();
                       },
@@ -352,152 +272,5 @@ class _StickyControlsDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant _StickyControlsDelegate oldDelegate) {
     return oldDelegate.height != height || oldDelegate.child != child;
-  }
-}
-
-class _ViewModeToggle extends StatelessWidget {
-  const _ViewModeToggle({
-    required this.mode,
-    required this.onChanged,
-  });
-
-  final WatchViewMode mode;
-  final ValueChanged<WatchViewMode> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final border =
-        AppColors.warmBorder;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppSpacing.r8),
-        border: Border.all(color: border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _ToggleBtn(
-            icon: Icons.grid_view,
-            selected: mode == WatchViewMode.grid,
-            onTap: () => onChanged(WatchViewMode.grid),
-          ),
-          Container(width: 1, height: 28, color: border),
-          _ToggleBtn(
-            icon: Icons.view_agenda_outlined,
-            selected: mode == WatchViewMode.list,
-            onTap: () => onChanged(WatchViewMode.list),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ToggleBtn extends StatelessWidget {
-  const _ToggleBtn({
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.s8),
-        color: selected
-            ? (AppColors.sandSurface)
-            : Colors.transparent,
-        child: Icon(
-          icon,
-          size: 18,
-          color: selected
-              ? AppColors.bronze
-              : (AppColors.textMutedLight),
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyView extends StatelessWidget {
-  const _EmptyView({required this.onClear});
-
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.watch_outlined, size: 48, color: AppColors.bronze),
-            const SizedBox(height: AppSpacing.s16),
-            Text(
-              'No watches match your filters',
-              style: AppTypography.title.copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            Text(
-              'Try adjusting brand, price, or style filters.',
-              style: AppTypography.body.copyWith(
-                color: AppColors.textSecondaryLight,
-                fontSize: 14,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.s20),
-            OutlinedButton(
-              onPressed: onClear,
-              child: const Text('Clear filters'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({
-    required this.message,
-    required this.onRetry,
-  });
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-            const SizedBox(height: AppSpacing.s16),
-            Text(
-              message,
-              style: AppTypography.body,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.s20),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

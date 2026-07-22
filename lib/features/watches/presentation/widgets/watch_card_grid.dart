@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/format_catalog_price.dart';
+import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../comparison/application/comparison_provider.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
@@ -25,8 +26,6 @@ class WatchCardGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bgColor = AppColors.warmWhite;
-    final borderColor = AppColors.warmBorder;
     final textColor =
         AppColors.textPrimaryLight;
     final mutedColor =
@@ -34,17 +33,9 @@ class WatchCardGrid extends ConsumerWidget {
     final logo = WatchBrandAssets.logoPath(watch.brand);
     final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
-    return GestureDetector(
+    return MarketplaceProductCardShell(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(AppSpacing.r12),
-          border: Border.all(color: borderColor),
-          boxShadow: AppShadows.cardLight,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AspectRatio(
@@ -171,7 +162,7 @@ class WatchCardGrid extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            '\$${formatWatchPrice(watch.price)}',
+                            '\$${formatGroupedPrice(watch.price)}',
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -194,26 +185,8 @@ class WatchCardGrid extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
-}
-
-String formatWatchPrice(double price) {
-  if (price >= 1000000) {
-    return '${(price / 1000000).toStringAsFixed(1)}M';
-  }
-  if (price >= 1000) {
-    final s = price.toStringAsFixed(0);
-    final buf = StringBuffer();
-    for (var i = 0; i < s.length; i++) {
-      final fromEnd = s.length - i;
-      buf.write(s[i]);
-      if (fromEnd > 1 && fromEnd % 3 == 1) buf.write(',');
-    }
-    return buf.toString();
-  }
-  return price.toStringAsFixed(0);
 }
 
 class WatchCardList extends ConsumerWidget {
@@ -228,8 +201,6 @@ class WatchCardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bgColor = AppColors.warmWhite;
-    final borderColor = AppColors.warmBorder;
     final textColor =
         AppColors.textPrimaryLight;
     final mutedColor =
@@ -237,17 +208,9 @@ class WatchCardList extends ConsumerWidget {
     final logo = WatchBrandAssets.logoPath(watch.brand);
     final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
-    return GestureDetector(
+    return MarketplaceProductCardShell(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(AppSpacing.r12),
-          border: Border.all(color: borderColor),
-          boxShadow: AppShadows.cardLight,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: IntrinsicHeight(
+      child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -330,7 +293,7 @@ class WatchCardList extends ConsumerWidget {
                       Row(
                         children: [
                           Text(
-                            '\$${formatWatchPrice(watch.price)}',
+                            '\$${formatGroupedPrice(watch.price)}',
                             style: GoogleFonts.inter(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -351,7 +314,6 @@ class WatchCardList extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/filters/filter_accordion_section.dart';
+import '../../../../core/widgets/filters/filter_end_drawer_shell.dart';
 import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
 import '../../domain/models/bullions_filter_state.dart';
@@ -94,57 +96,18 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
     _syncControllers(draft);
 
     final notifier = ref.read(bullionsFilterDraftProvider.notifier);
-    final width = MediaQuery.sizeOf(context).width;
-    final drawerWidth = width > 480 ? 360.0 : width * 0.88;
 
-    return Drawer(
-      width: drawerWidth,
-      backgroundColor: AppColors.warmWhite,
-      child: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s20,
-                AppSpacing.s12,
-                AppSpacing.s8,
-                AppSpacing.s12,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Filters',
-                      style: AppTypography.title.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      notifier.reset();
-                      _syncControllers(ref.read(bullionsFilterDraftProvider));
-                    },
-                    child: Text(
-                      'Reset',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.bronze,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Close',
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView(
+    return FilterEndDrawerShell(
+      onReset: () {
+        notifier.reset();
+        _syncControllers(ref.read(bullionsFilterDraftProvider));
+      },
+      onShowResults: () {
+        notifier.apply();
+        ref.read(bullionsListProvider.notifier).refresh();
+        Navigator.of(context).maybePop();
+      },
+      body: ListView(
                 padding: const EdgeInsets.only(bottom: AppSpacing.s24),
                 children: [
                   _section(
@@ -302,88 +265,16 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
                   ),
                 ],
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s16,
-                AppSpacing.s12,
-                AppSpacing.s16,
-                AppSpacing.s16,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.warmWhite,
-                border: Border(
-                  top: BorderSide(
-                    color: AppColors.warmBorder,
-                  ),
-                ),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.charcoal,
-                    foregroundColor: AppColors.warmWhite,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    ),
-                  ),
-                  onPressed: () {
-                    notifier.apply();
-                    ref.read(bullionsListProvider.notifier).refresh();
-                    Navigator.of(context).maybePop();
-                  },
-                  child: Text(
-                    'SHOW RESULTS',
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.warmWhite,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
   Widget _section(String key, String title, Widget child) {
     final open = _expanded[key] ?? false;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        InkWell(
-          onTap: () => setState(() => _expanded[key] = !open),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s20,
-              vertical: AppSpacing.s16,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: AppTypography.label.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Icon(
-                  open ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (open) child,
-        const Divider(height: 1),
-      ],
+    return FilterAccordionSection(
+      title: title,
+      expanded: open,
+      onToggle: () => setState(() => _expanded[key] = !open),
+      child: child,
     );
   }
 

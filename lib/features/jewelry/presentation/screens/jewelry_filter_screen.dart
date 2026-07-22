@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../diamonds/presentation/widgets/filter_boolean_checkbox.dart';
-import '../../../diamonds/presentation/widgets/filter_chip.dart';
-import '../../../diamonds/presentation/widgets/filter_range_slider.dart';
-import '../../../diamonds/presentation/widgets/filter_section_header.dart';
+import 'package:gemstone/core/widgets/filters/filter_boolean_checkbox.dart';
+import 'package:gemstone/core/widgets/filters/filter_chip.dart';
+import 'package:gemstone/core/widgets/filters/filter_range_slider.dart';
+import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
@@ -60,7 +62,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
     final n = ref.read(jewelryFilterDraftProvider.notifier);
     final resultCount = listState?.totalCount;
 
-    return Scaffold(
+    return AppScaffold(
       backgroundColor: AppColors.warmWhite,
       appBar: AppBar(
         title: Text(
@@ -756,7 +758,7 @@ class _MetalColorCircle extends StatelessWidget {
       return const SizedBox.expand(
         child: CustomPaint(
           painter: _HalfCircleMetalPainter(
-            colors: [Color(0xFFD4AF37), Color(0xFFE5E5E5)],
+            colors: [AppSwatches.yellowGold, AppSwatches.whiteGold],
           ),
         ),
       );
@@ -766,9 +768,9 @@ class _MetalColorCircle extends StatelessWidget {
         child: CustomPaint(
           painter: _TriSegmentMetalPainter(
             colors: [
-              Color(0xFFD4AF37),
-              Color(0xFFE5E5E5),
-              Color(0xFFB76E79),
+              AppSwatches.yellowGold,
+              AppSwatches.whiteGold,
+              AppSwatches.roseGold,
             ],
           ),
         ),

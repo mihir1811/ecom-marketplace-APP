@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -57,7 +58,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       });
     }
 
-    return Scaffold(
+    return AppScaffold(
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SafeArea(

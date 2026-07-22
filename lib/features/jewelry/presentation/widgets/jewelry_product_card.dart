@@ -5,33 +5,11 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_swatches.dart';
+import '../../../../core/utils/format_catalog_price.dart';
 import '../../domain/models/jewelry.dart';
 
-Color jewelryMetalSwatch(String label) {
-  return switch (label) {
-    'Yellow Gold' => const Color(0xFFD4AF37),
-    'White Gold' => const Color(0xFFE5E5E5),
-    'Rose Gold' => const Color(0xFFB76E79),
-    'Green Gold' => const Color(0xFF8B9A5B),
-    'Black Gold' => const Color(0xFF2C2C2C),
-    'Two-Tone' => const Color(0xFFC9A227),
-    'Tri-Color' => const Color(0xFFB76E79),
-    'Platinum' => const Color(0xFFD8D8D8),
-    'Silver' => const Color(0xFFC0C0C0),
-    _ => AppColors.bronze,
-  };
-}
-
-String formatJewelryPrice(double price) {
-  final s = price.toStringAsFixed(0);
-  final buf = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    final fromEnd = s.length - i;
-    buf.write(s[i]);
-    if (fromEnd > 1 && fromEnd % 3 == 1) buf.write(',');
-  }
-  return buf.toString();
-}
+Color jewelryMetalSwatch(String label) => AppSwatches.jewelryMetal(label);
 
 class JewelryProductCard extends StatelessWidget {
   const JewelryProductCard({
@@ -158,7 +136,7 @@ class JewelryProductCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '₹${formatJewelryPrice(item.price)}',
+                      '₹${formatInrPrice(item.price)}',
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -287,7 +265,7 @@ class JewelryProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.s8),
                   Text(
-                    '₹${formatJewelryPrice(item.price)}',
+                    '₹${formatInrPrice(item.price)}',
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -539,7 +517,7 @@ class JewelryProductListCard extends StatelessWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
-                            '₹${formatJewelryPrice(item.price)}',
+                            '₹${formatInrPrice(item.price)}',
                             style: GoogleFonts.inter(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
@@ -693,7 +671,7 @@ class _StoneCountBadge extends StatelessWidget {
             width: 8,
             height: 8,
             decoration: const BoxDecoration(
-              color: Color(0xFFE8C547),
+              color: AppSwatches.jewelryAccent,
               shape: BoxShape.circle,
             ),
           ),

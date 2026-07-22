@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_empty_state.dart';
+import '../../../../core/widgets/catalog_error_state.dart';
+import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../application/brand_watch_filter_provider.dart';
 import '../../application/brand_watch_list_provider.dart';
 import '../../domain/models/brand_watch_state.dart';
@@ -190,35 +194,11 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
 
   Future<void> _showSortSheet() async {
     final current = ref.read(brandWatchFilterProvider).sort;
-    final selected = await showModalBottomSheet<BrandWatchSortOption>(
+    final selected = await showSimpleSortSheet<BrandWatchSortOption>(
       context: context,
-      showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.s16),
-                child: Text(
-                  'Sort by',
-                  style:
-                      AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-                ),
-              ),
-              for (final option in BrandWatchSortOption.values)
-                ListTile(
-                  title: Text(option.label),
-                  trailing: current == option
-                      ? const Icon(Icons.check, color: AppColors.bronze)
-                      : null,
-                  onTap: () => Navigator.pop(context, option),
-                ),
-              const SizedBox(height: AppSpacing.s12),
-            ],
-          ),
-        );
-      },
+      options: BrandWatchSortOption.values,
+      labelOf: (o) => o.label,
+      current: current,
     );
     if (selected != null) {
       ref.read(brandWatchFilterProvider.notifier).setSort(selected);
@@ -234,7 +214,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
         AppColors.textMutedLight;
     final logo = WatchBrandAssets.logoPath(widget.brandName);
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         automaticallyImplyActions: false,
         title: Row(
@@ -390,16 +370,20 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : listState.errorMessage != null && listState.watches.isEmpty
-                    ? _ErrorView(
+                    ? CatalogErrorState(
                         message: listState.errorMessage!,
                         onRetry: () => ref
                             .read(brandWatchListProvider.notifier)
                             .refresh(),
                       )
                     : listState.watches.isEmpty
-                        ? _EmptyView(
-                            brandName: widget.brandName,
-                            onClear: () {
+                        ? CatalogEmptyState(
+                            icon: Icons.watch_outlined,
+                            title:
+                                'No ${widget.brandName} watches match your filters',
+                            message: 'Try adjusting style or price range.',
+                            actionLabel: 'Clear filters',
+                            onAction: () {
                               ref
                                   .read(brandWatchFilterProvider.notifier)
                                   .reset();
@@ -521,88 +505,6 @@ class _PriceInput extends StatelessWidget {
             horizontal: AppSpacing.s8,
             vertical: AppSpacing.s8,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyView extends StatelessWidget {
-  const _EmptyView({
-    required this.brandName,
-    required this.onClear,
-  });
-
-  final String brandName;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.watch_outlined, size: 48, color: AppColors.bronze),
-            const SizedBox(height: AppSpacing.s16),
-            Text(
-              'No $brandName watches match your filters',
-              style:
-                  AppTypography.title.copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            Text(
-              'Try adjusting style or price range.',
-              style: AppTypography.body.copyWith(
-                color: AppColors.textSecondaryLight,
-                fontSize: 14,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.s20),
-            OutlinedButton(
-              onPressed: onClear,
-              child: const Text('Clear filters'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({
-    required this.message,
-    required this.onRetry,
-  });
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-            const SizedBox(height: AppSpacing.s16),
-            Text(
-              message,
-              style: AppTypography.body,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.s20),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Retry'),
-            ),
-          ],
         ),
       ),
     );

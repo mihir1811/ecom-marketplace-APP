@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
@@ -66,7 +67,7 @@ class JewelryCategoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
       backgroundColor: AppColors.creamBg,
       appBar: AppBar(
         automaticallyImplyActions: false,

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../diamonds/presentation/widgets/filter_chip.dart';
+import 'package:gemstone/core/widgets/filters/filter_chip.dart';
 import '../../../diamonds/presentation/widgets/filter_color_selector.dart';
-import '../../../diamonds/presentation/widgets/filter_scrollable_chips.dart';
-import '../../../diamonds/presentation/widgets/filter_section_header.dart';
+import 'package:gemstone/core/widgets/filters/filter_scrollable_chips.dart';
+import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
 import '../../application/gemstone_search_provider.dart';
 import '../../domain/models/gemstone_filter_state.dart';
 

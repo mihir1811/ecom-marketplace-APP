@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/format_catalog_price.dart';
+import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../domain/models/billion.dart';
 
 enum BullionCardLayout { grid, list }
@@ -23,8 +25,6 @@ class BullionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = AppColors.warmWhite;
-    final borderColor = AppColors.warmBorder;
     final textColor =
         AppColors.textPrimaryLight;
     final mutedColor =
@@ -34,17 +34,10 @@ class BullionCard extends StatelessWidget {
     final gradient = _metalGradient(bullion.metal);
     final icon = _metalIcon(bullion.metal);
 
-    return GestureDetector(
+    return MarketplaceProductCardShell(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(AppSpacing.r16),
-          border: Border.all(color: borderColor),
-          boxShadow: AppShadows.cardLight,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: layout == BullionCardLayout.grid
+      borderRadius: AppSpacing.r16,
+      child: layout == BullionCardLayout.grid
             ? _GridCardBody(
                 bullion: bullion,
                 gradient: gradient,
@@ -61,7 +54,6 @@ class BullionCard extends StatelessWidget {
                 textColor: textColor,
                 mutedColor: mutedColor,
               ),
-      ),
     );
   }
 
@@ -71,7 +63,7 @@ class BullionCard extends StatelessWidget {
       BullionMetal.silver => AppColors.slateBorder,
       BullionMetal.platinum => AppColors.bronzeLight,
       BullionMetal.palladium => AppColors.bronzeDark,
-      BullionMetal.copper => const Color(0xFFDD915E),
+      BullionMetal.copper => AppSwatches.copper,
     };
   }
 
@@ -221,7 +213,7 @@ class _GridCardBody extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      '\$${formatBullionPrice(bullion.price)}',
+                      '\$${formatGroupedPrice(bullion.price)}',
                       style: AppTypography.title.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w800,
@@ -323,7 +315,7 @@ class _ListCardBody extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          '\$${formatBullionPrice(bullion.price)}',
+                          '\$${formatGroupedPrice(bullion.price)}',
                           style: AppTypography.title.copyWith(
                             color: textColor,
                             fontWeight: FontWeight.w800,
@@ -375,22 +367,5 @@ class _VariantChip extends StatelessWidget {
       ),
     );
   }
-}
-
-String formatBullionPrice(double price) {
-  if (price >= 1000000) {
-    return '${(price / 1000000).toStringAsFixed(1)}M';
-  }
-  if (price >= 1000) {
-    final s = price.toStringAsFixed(0);
-    final buf = StringBuffer();
-    for (var i = 0; i < s.length; i++) {
-      final fromEnd = s.length - i;
-      buf.write(s[i]);
-      if (fromEnd > 1 && fromEnd % 3 == 1) buf.write(',');
-    }
-    return buf.toString();
-  }
-  return price.toStringAsFixed(0);
 }
 

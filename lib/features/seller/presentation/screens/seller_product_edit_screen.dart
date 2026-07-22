@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -231,12 +232,12 @@ class _SellerProductEditScreenState
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
-      return const Scaffold(
+      return const AppScaffold(
         body: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
     if (_product == null) {
-      return Scaffold(
+      return AppScaffold(
         appBar: AppBar(title: const Text('Edit product')),
         body: const Center(child: Text('Product not found')),
       );
@@ -244,7 +245,7 @@ class _SellerProductEditScreenState
     final muted =
         AppColors.textMutedLight;
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: Text(
           'Edit product',

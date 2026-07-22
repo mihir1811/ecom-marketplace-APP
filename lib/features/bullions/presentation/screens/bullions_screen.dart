@@ -1,12 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_empty_state.dart';
+import '../../../../core/widgets/catalog_error_state.dart';
+import '../../../../core/widgets/listing_search_filter_bar.dart';
+import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
 import '../../domain/models/bullions_filter_state.dart';
@@ -117,8 +122,8 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
     final viewMode = ref.watch(bullionsViewModeProvider);
     final variants = filter.availableVariants;
 
-    return Scaffold(
-      key: _scaffoldKey,
+    return AppScaffold(
+      scaffoldKey: _scaffoldKey,
       endDrawer: const BullionsFilterDrawer(),
       endDrawerEnableOpenDragGesture: false,
       appBar: AppBar(
@@ -136,8 +141,7 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
         ),
         actions: const [],
       ),
-      body: SafeArea(
-        child: CustomScrollView(
+      body: CustomScrollView(
           controller: _scrollController,
           slivers: [
             SliverToBoxAdapter(
@@ -188,7 +192,6 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }
@@ -222,13 +225,22 @@ class _BullionsBody extends StatelessWidget {
 
     if (listState.errorMessage != null && listState.bullions.isEmpty) {
       return SliverFillRemaining(
-        child: _ErrorView(message: listState.errorMessage!, onRetry: onRetry),
+        child: CatalogErrorState(
+          message: listState.errorMessage!,
+          onRetry: onRetry,
+        ),
       );
     }
 
     if (listState.bullions.isEmpty) {
       return SliverFillRemaining(
-        child: _EmptyView(onClear: onClear),
+        child: CatalogEmptyState(
+          icon: Icons.account_balance_wallet_outlined,
+          title: 'No bullions match your filters',
+          message: 'Try adjusting metal type or search keywords.',
+          actionLabel: 'Clear filters',
+          onAction: onClear,
+        ),
       );
     }
 
@@ -253,9 +265,10 @@ class _BullionsBody extends StatelessWidget {
                     ),
                   ),
                 ),
-                _ViewModeToggle(
-                  mode: viewMode,
-                  onChanged: onViewModeChanged,
+                ViewModeToggle(
+                  isGrid: viewMode == BullionsViewMode.grid,
+                  onGrid: () => onViewModeChanged(BullionsViewMode.grid),
+                  onList: () => onViewModeChanged(BullionsViewMode.list),
                 ),
               ],
             ),
@@ -346,51 +359,13 @@ class _PinnedControls extends StatelessWidget {
           ),
         ],
         const SizedBox(height: AppSpacing.s8),
-        Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: 48,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color:
-                        AppColors.warmWhite,
-                    borderRadius: BorderRadius.circular(AppSpacing.r12),
-                    border: Border.all(
-                      color:
-                          AppColors.warmBorder,
-                    ),
-                  ),
-                  child: TextField(
-                    controller: searchController,
-                    textAlignVertical: TextAlignVertical.center,
-                    onChanged: onSearchChanged,
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: 'Search bullions...',
-                      prefixIcon: Icon(Icons.search, color: muted, size: 22),
-                      prefixIconConstraints: const BoxConstraints(
-                        minWidth: 44,
-                        minHeight: 48,
-                      ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.s8,
-                        vertical: 0,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.s8),
-            _FilterButton(
-              activeCount: filter.activeCount,
-              onTap: onOpenFilters,
-            ),
-          ],
+        ListingSearchFilterBar(
+          controller: searchController,
+          hintText: 'Search bullions...',
+          mutedColor: muted,
+          activeFilterCount: filter.activeCount,
+          onFilterTap: onOpenFilters,
+          onChanged: onSearchChanged,
         ),
       ],
     );
@@ -708,200 +683,3 @@ class _VariantFilterChip extends StatelessWidget {
     );
   }
 }
-
-class _FilterButton extends StatelessWidget {
-  const _FilterButton({
-    required this.activeCount,
-    required this.onTap,
-  });
-
-  final int activeCount;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.charcoal,
-      borderRadius: BorderRadius.circular(AppSpacing.r12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        child: SizedBox(
-          width: 48,
-          height: 48,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              const Icon(
-                Icons.tune,
-                color: AppColors.warmWhite,
-                size: 22,
-              ),
-              if (activeCount > 0)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.bronze,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ViewModeToggle extends StatelessWidget {
-  const _ViewModeToggle({
-    required this.mode,
-    required this.onChanged,
-  });
-
-  final BullionsViewMode mode;
-  final ValueChanged<BullionsViewMode> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final border = AppColors.warmBorder;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppSpacing.r8),
-        border: Border.all(color: border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _ToggleBtn(
-            icon: Icons.grid_view,
-            selected: mode == BullionsViewMode.grid,
-            onTap: () => onChanged(BullionsViewMode.grid),
-          ),
-          Container(width: 1, height: 28, color: border),
-          _ToggleBtn(
-            icon: Icons.view_agenda_outlined,
-            selected: mode == BullionsViewMode.list,
-            onTap: () => onChanged(BullionsViewMode.list),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ToggleBtn extends StatelessWidget {
-  const _ToggleBtn({
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.s8),
-        color: selected
-            ? (AppColors.sandSurface)
-            : Colors.transparent,
-        child: Icon(
-          icon,
-          size: 18,
-          color: selected
-              ? AppColors.bronze
-              : (AppColors.textMutedLight),
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyView extends StatelessWidget {
-  const _EmptyView({required this.onClear});
-
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.account_balance_wallet_outlined,
-                size: 48, color: AppColors.bronze),
-            const SizedBox(height: AppSpacing.s16),
-            Text(
-              'No bullions match your filters',
-              style: AppTypography.title.copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            Text(
-              'Try adjusting metal type or search keywords.',
-              style: AppTypography.body.copyWith(
-                color: AppColors.textSecondaryLight,
-                fontSize: 14,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.s20),
-            OutlinedButton(
-              onPressed: onClear,
-              child: const Text('Clear filters'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({
-    required this.message,
-    required this.onRetry,
-  });
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-            const SizedBox(height: AppSpacing.s16),
-            Text(
-              message,
-              style: AppTypography.body,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.s20),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-

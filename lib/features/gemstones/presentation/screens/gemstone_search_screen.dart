@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_names.dart';
@@ -7,12 +8,37 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/global_search_bar.dart';
 import '../../../../core/widgets/melee_background_shell.dart';
-import '../widgets/gemstone_showcase_carousel.dart';
+import '../../../../core/widgets/paired_showcase_carousel.dart';
+import '../../../../core/widgets/search_action_bottom_bar.dart';
+import '../../../../core/widgets/showcase_select_card.dart';
+import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
+import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
+import '../../../../core/widgets/filters/catalog_search_add_field.dart';
 import '../widgets/gemstone_filter_category_basic.dart';
-import '../widgets/gemstone_filter_category_measurements.dart';
-import '../widgets/gemstone_filter_category_preferences.dart';
-import '../widgets/gemstone_search_bottom_bar.dart';
+import '../../../diamonds/presentation/widgets/filter_origin_dropdown.dart';
 import '../../application/gemstone_list_provider.dart';
+import '../../application/gemstone_search_provider.dart';
+import '../../domain/gemstone_assets.dart';
+import '../../domain/models/gemstone_filter_state.dart';
+
+/// Featured gemstone types shown in the top carousel.
+const List<String> _kFeaturedGemstones = [
+  'Lapis Lazuli',
+  'Moonstone',
+  'Ruby',
+  'Sapphire',
+  'Emerald',
+  'Tanzanite',
+  'Amethyst',
+  'Aquamarine',
+  'Opal',
+  'Tourmaline',
+  'Garnet',
+  'Peridot',
+  'Topaz',
+  'Citrine',
+  'Pearl',
+];
 
 enum GemstoneSection { basic, preferences, measurements }
 
@@ -107,7 +133,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
     return MeleeBackgroundShell(
       isMelee: false,
       family: MeleeBgFamily.gemstone,
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
@@ -149,7 +175,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const GemstoneShowcaseCarousel(),
+                                _buildShowcaseCarousel(),
                                 const SizedBox(height: AppSpacing.s24),
                                 _buildSearchCardHeader(),
                                 const SizedBox(height: AppSpacing.s24),
@@ -162,14 +188,13 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                                 _buildSection(
                                   key: _prefKey,
                                   title: 'Preferences',
-                                  child: const GemstoneFilterCategoryPreferences(),
+                                  child: _buildPreferenceFilters(),
                                 ),
                                 const SizedBox(height: AppSpacing.s32),
                                 _buildSection(
                                   key: _measKey,
                                   title: 'Measurements',
-                                  child:
-                                      const GemstoneFilterCategoryMeasurements(),
+                                  child: _buildMeasurementFilters(),
                                 ),
                                 const SizedBox(height: AppSpacing.s32),
                               ],
@@ -182,11 +207,16 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      child: GemstoneSearchBottomBar(
-                        onSearch: () {
+                      child: SearchActionBottomBar(
+                        primaryLabel:
+                            'SEARCH ${SearchActionBottomBar.formatCount(ref.watch(matchingGemstoneCountProvider))} GEMSTONES',
+                        onPrimary: () {
                           ref.invalidate(gemstoneListProvider);
                           context.push(AppRouteNames.gemstoneResults);
                         },
+                        clearLabel: 'CLEAR FILTERS',
+                        onClear: () =>
+                            ref.read(gemstoneSearchProvider.notifier).reset(),
                       ),
                     ),
                   ],
@@ -195,6 +225,110 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildShowcaseCarousel() {
+    final selectedTypes = ref.watch(
+      gemstoneSearchProvider.select((s) => s.selectedGemstoneTypes),
+    );
+    final notifier = ref.read(gemstoneSearchProvider.notifier);
+
+    return PairedShowcaseCarousel(
+      title: 'Explore Gemstone\nTypes',
+      itemCount: _kFeaturedGemstones.length,
+      itemBuilder: (context, index) {
+        final name = _kFeaturedGemstones[index];
+        final isSelected = selectedTypes.contains(name) &&
+            GemstoneFilterState.allGemstoneTypes.contains(name);
+        final hue = gemstoneHue(name);
+        final imagePath = gemstoneImagePath(name);
+        final fallback = _GemstoneHueFallback(hue: hue);
+
+        return ShowcaseSelectCard(
+          name: name,
+          isSelected: isSelected,
+          onTap: () => notifier.toggleGemstoneType(name),
+          media: imagePath == null
+              ? fallback
+              : Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => fallback,
+                ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPreferenceFilters() {
+    final state = ref.watch(gemstoneSearchProvider);
+    final notifier = ref.read(gemstoneSearchProvider.notifier);
+
+    return CatalogPreferencesFilters(
+      locationField: CatalogSearchAddField(
+        title: "Vendor's Location",
+        infoText:
+            'Search for gemstones located in a specific city, state, or region.',
+        hintText: 'Search by location (City, State, Country)',
+        onChanged: notifier.updateVendorLocation,
+        onAdd: () {},
+      ),
+      originDropdown: FilterOriginDropdown(
+        title: 'Origin Country',
+        hint: 'Select origin country',
+        infoText: "Filter by the gemstone's origin country.",
+        pickerTitle: 'Select Origin Country',
+        options: GemstoneFilterState.origins,
+        flags: GemstoneFilterState.originFlags,
+        showFlags: true,
+        selectedOrigin: state.selectedOriginCountry,
+        onSelected: notifier.updateOriginCountry,
+      ),
+      companyField: CatalogSearchAddField(
+        title: 'Company Name',
+        infoText:
+            'Search for gemstones supplied by a specific company name.',
+        hintText: 'Search by company name',
+        onChanged: notifier.updateCompanyName,
+        onAdd: () {},
+      ),
+    );
+  }
+
+  Widget _buildMeasurementFilters() {
+    final state = ref.watch(gemstoneSearchProvider);
+    final notifier = ref.read(gemstoneSearchProvider.notifier);
+
+    return CatalogMeasurementFilters(
+      lengthMin: state.minLength,
+      lengthMax: state.maxLength,
+      onLengthMinChanged: (v) =>
+          notifier.updateLengthRange(v, state.maxLength),
+      onLengthMaxChanged: (v) =>
+          notifier.updateLengthRange(state.minLength, v),
+      widthMin: state.minWidth,
+      widthMax: state.maxWidth,
+      onWidthMinChanged: (v) => notifier.updateWidthRange(v, state.maxWidth),
+      onWidthMaxChanged: (v) => notifier.updateWidthRange(state.minWidth, v),
+      heightMin: state.minHeight,
+      heightMax: state.maxHeight,
+      onHeightMinChanged: (v) =>
+          notifier.updateHeightRange(v, state.maxHeight),
+      onHeightMaxChanged: (v) =>
+          notifier.updateHeightRange(state.minHeight, v),
+      ratioMin: state.minRatio,
+      ratioMax: state.maxRatio,
+      onRatioMinChanged: (v) => notifier.updateRatioRange(v, state.maxRatio),
+      onRatioMaxChanged: (v) => notifier.updateRatioRange(state.minRatio, v),
+      dimensionLimits: (
+        GemstoneFilterState.dimensionMin,
+        GemstoneFilterState.dimensionMax,
+      ),
+      ratioLimits: (
+        GemstoneFilterState.ratioMin,
+        GemstoneFilterState.ratioMax,
       ),
     );
   }
@@ -318,6 +452,35 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+class _GemstoneHueFallback extends StatelessWidget {
+  const _GemstoneHueFallback({required this.hue});
+
+  final Color hue;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          center: const Alignment(-0.4, -0.4),
+          colors: [
+            Color.lerp(hue, Colors.white, 0.55)!,
+            hue,
+            Color.lerp(hue, Colors.black, 0.25)!,
+          ],
+          stops: const [0.0, 0.65, 1.0],
+        ),
+      ),
+      child: Icon(
+        Icons.diamond_outlined,
+        size: 30,
+        color: Colors.white.withValues(alpha: 0.55),
       ),
     );
   }

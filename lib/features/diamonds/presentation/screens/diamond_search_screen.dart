@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_names.dart';
@@ -7,15 +8,19 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/global_search_bar.dart';
 import '../../../../core/widgets/melee_background_shell.dart';
+import '../../../../core/widgets/paired_showcase_carousel.dart';
+import '../../../../core/widgets/search_action_bottom_bar.dart';
+import '../../../../core/widgets/showcase_select_card.dart';
+import '../../../../core/widgets/filters/catalog_expandable_advanced_filters.dart';
+import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
+import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
+import '../../../../core/widgets/filters/catalog_search_add_field.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
-import '../widgets/search_bottom_bar.dart';
-import '../widgets/diamond_shape_carousel.dart';
+import '../widgets/diamond_svg_data.dart';
 import '../widgets/filter_category_basic.dart';
-import '../widgets/filter_category_preferences.dart';
-import '../widgets/filter_category_measurements.dart';
-import '../widgets/filter_category_advanced.dart';
+import '../widgets/filter_origin_dropdown.dart';
 
 enum Section { basic, preferences, measurements, advanced }
 
@@ -145,7 +150,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
     return MeleeBackgroundShell(
       isMelee: useMeleeFilters,
       family: bgFamily,
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
@@ -187,7 +192,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const DiamondShapeCarousel(),
+                                _buildShapeCarousel(),
                                 const SizedBox(height: AppSpacing.s24),
                                 _buildSection(
                                   key: _basicKey,
@@ -204,25 +209,20 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
                                 _buildSection(
                                   key: _prefKey,
                                   title: 'Preferences',
-                                  child: FilterCategoryPreferences(
-                                    companyController: _companyController,
-                                    locationController: _locationController,
-                                  ),
+                                  child: _buildPreferenceFilters(),
                                 ),
                                 const SizedBox(height: AppSpacing.s32),
                                 _buildSection(
                                   key: _measKey,
                                   title: 'Measurements',
-                                  child: const FilterCategoryMeasurements(),
+                                  child: _buildMeasurementFilters(),
                                 ),
                                 if (!useMeleeFilters) ...[
                                   const SizedBox(height: AppSpacing.s32),
                                   _buildSection(
                                     key: _advancedKey,
                                     title: 'Advanced',
-                                    child: FilterCategoryAdvanced(
-                                      expandAdvanced: _expandAdvanced,
-                                    ),
+                                    child: _buildAdvancedFilters(),
                                   ),
                                 ],
                                 const SizedBox(height: AppSpacing.s32),
@@ -236,9 +236,16 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      child: SearchBottomBar(
-                        resultsRoute: widget.resultsRoute,
+                      child: SearchActionBottomBar(
+                        primaryLabel:
+                            'SHOW ${SearchActionBottomBar.formatCount(ref.watch(matchingCountProvider))} DIAMONDS',
+                        onPrimary: () =>
+                            context.push(widget.resultsRoute),
+                        clearLabel: 'CLEAR ALL FILTERS',
                         onClear: () {
+                          ref
+                              .read(diamondSearchProvider.notifier)
+                              .reset();
                           _companyController.clear();
                           _locationController.clear();
                         },
@@ -251,6 +258,198 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildShapeCarousel() {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+
+    return PairedShowcaseCarousel(
+      title: 'Select Diamond\nShapes',
+      itemCount: kAllShapes.length,
+      itemBuilder: (context, index) {
+        final item = kAllShapes[index];
+        final name = item['name']!;
+        final imagePath = item['image'];
+        final isSelected = state.shapes.contains(name);
+        final fallback = renderShapeSvg(
+          name,
+          size: 48,
+          color: isSelected ? AppColors.bronze : AppColors.bronzeLight,
+        );
+
+        return ShowcaseSelectCard(
+          name: name,
+          isSelected: isSelected,
+          onTap: () => notifier.toggleShape(name),
+          media: imagePath != null
+              ? Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => fallback,
+                )
+              : fallback,
+        );
+      },
+    );
+  }
+
+  Widget _buildPreferenceFilters() {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+
+    return CatalogPreferencesFilters(
+      locationField: CatalogSearchAddField(
+        title: "Vendor's Location",
+        infoText:
+            'Search for diamonds located in a specific city, state, or region.',
+        hintText: 'Search by location (City, State, Country)',
+        controller: _locationController,
+        onAdd: () =>
+            notifier.updateVendorLocationSearch(_locationController.text),
+      ),
+      originDropdown: FilterOriginDropdown(
+        selectedOrigin: state.selectedOrigin,
+        onSelected: notifier.updateOriginCountry,
+      ),
+      roughSourceOptions: DiamondFilterState.roughSources,
+      selectedRoughSource: state.selectedRoughSource,
+      onRoughSourceChanged: notifier.updateRoughSource,
+      minSellerRating: state.minSellerRating,
+      onSellerRatingChanged: notifier.updateSellerRating,
+      companyField: CatalogSearchAddField(
+        title: 'Company Name',
+        infoText:
+            'Search for diamonds supplied by a specific company name.',
+        hintText: 'Search by company name',
+        controller: _companyController,
+        onAdd: () =>
+            notifier.updateCompanyNameSearch(_companyController.text),
+      ),
+    );
+  }
+
+  Widget _buildMeasurementFilters() {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+
+    return CatalogMeasurementFilters(
+      lengthMin: state.minLength,
+      lengthMax: state.maxLength,
+      onLengthMinChanged: (v) =>
+          notifier.updateLengthRange(v, state.maxLength),
+      onLengthMaxChanged: (v) =>
+          notifier.updateLengthRange(state.minLength, v),
+      widthMin: state.minWidth,
+      widthMax: state.maxWidth,
+      onWidthMinChanged: (v) => notifier.updateWidthRange(v, state.maxWidth),
+      onWidthMaxChanged: (v) => notifier.updateWidthRange(state.minWidth, v),
+      heightMin: state.minHeight,
+      heightMax: state.maxHeight,
+      onHeightMinChanged: (v) =>
+          notifier.updateHeightRange(v, state.maxHeight),
+      onHeightMaxChanged: (v) =>
+          notifier.updateHeightRange(state.minHeight, v),
+      ratioMin: state.minRatio,
+      ratioMax: state.maxRatio,
+      onRatioMinChanged: (v) => notifier.updateRatioRange(v, state.maxRatio),
+      onRatioMaxChanged: (v) => notifier.updateRatioRange(state.minRatio, v),
+    );
+  }
+
+  Widget _buildAdvancedFilters() {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+
+    return CatalogExpandableAdvancedFilters(
+      expandAdvanced: _expandAdvanced,
+      ranges: [
+        CatalogAdvancedRangeSpec(
+          title: 'Table Percentage',
+          currentMin: state.minTable,
+          currentMax: state.maxTable,
+          unit: '%',
+          infoText:
+              'Filter by table width percentage relative to total diameter.',
+          onMinChanged: (v) =>
+              notifier.updateTableRange(v, state.maxTable),
+          onMaxChanged: (v) =>
+              notifier.updateTableRange(state.minTable, v),
+        ),
+        CatalogAdvancedRangeSpec(
+          title: 'Depth Percentage',
+          currentMin: state.minDepth,
+          currentMax: state.maxDepth,
+          unit: '%',
+          infoText:
+              'Filter by total depth percentage relative to total diameter.',
+          onMinChanged: (v) =>
+              notifier.updateDepthRange(v, state.maxDepth),
+          onMaxChanged: (v) =>
+              notifier.updateDepthRange(state.minDepth, v),
+        ),
+        CatalogAdvancedRangeSpec(
+          title: 'Crown Angle Range',
+          currentMin: state.minCrownAngle,
+          currentMax: state.maxCrownAngle,
+          unit: '°',
+          infoText: 'Filter by average crown facet angle.',
+          onMinChanged: (v) =>
+              notifier.updateCrownAngleRange(v, state.maxCrownAngle),
+          onMaxChanged: (v) =>
+              notifier.updateCrownAngleRange(state.minCrownAngle, v),
+        ),
+        CatalogAdvancedRangeSpec(
+          title: 'Crown Height Range',
+          currentMin: state.minCrownHeight,
+          currentMax: state.maxCrownHeight,
+          unit: '%',
+          infoText: 'Filter by crown height relative to total depth.',
+          onMinChanged: (v) =>
+              notifier.updateCrownHeightRange(v, state.maxCrownHeight),
+          onMaxChanged: (v) =>
+              notifier.updateCrownHeightRange(state.minCrownHeight, v),
+        ),
+        CatalogAdvancedRangeSpec(
+          title: 'Pavilion Angle Range',
+          currentMin: state.minPavilionAngle,
+          currentMax: state.maxPavilionAngle,
+          unit: '°',
+          infoText: 'Filter by average pavilion facet angle.',
+          onMinChanged: (v) =>
+              notifier.updatePavilionAngleRange(v, state.maxPavilionAngle),
+          onMaxChanged: (v) =>
+              notifier.updatePavilionAngleRange(state.minPavilionAngle, v),
+        ),
+        CatalogAdvancedRangeSpec(
+          title: 'Pavilion Depth Range',
+          currentMin: state.minPavilionDepth,
+          currentMax: state.maxPavilionDepth,
+          unit: '%',
+          infoText: 'Filter by pavilion depth relative to total depth.',
+          onMinChanged: (v) =>
+              notifier.updatePavilionDepthRange(v, state.maxPavilionDepth),
+          onMaxChanged: (v) =>
+              notifier.updatePavilionDepthRange(state.minPavilionDepth, v),
+        ),
+      ],
+      chipSections: [
+        CatalogAdvancedChipSpec(
+          title: 'Girdle',
+          options: DiamondFilterState.girdles,
+          selectedItems: state.selectedGirdles,
+          onToggle: notifier.toggleGirdle,
+          infoText: 'Filter by thickness of the girdle rim.',
+        ),
+        CatalogAdvancedChipSpec(
+          title: 'Culet Size',
+          options: DiamondFilterState.culets,
+          selectedItems: state.selectedCulets,
+          onToggle: notifier.toggleCulet,
+          infoText: 'Filter by size of the culet facet.',
+        ),
+      ],
     );
   }
 

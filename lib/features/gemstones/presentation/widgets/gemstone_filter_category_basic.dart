@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../diamonds/presentation/widgets/filter_boolean_checkbox.dart';
-import '../../../diamonds/presentation/widgets/filter_chip.dart';
-import '../../../diamonds/presentation/widgets/filter_melee_range_filters.dart';
-import '../../../diamonds/presentation/widgets/filter_quick_range_chip.dart';
-import '../../../diamonds/presentation/widgets/filter_range_slider.dart';
-import '../../../diamonds/presentation/widgets/filter_scrollable_chips.dart';
-import '../../../diamonds/presentation/widgets/filter_section_header.dart';
+import 'package:gemstone/core/widgets/filters/filter_boolean_checkbox.dart';
+import 'package:gemstone/core/widgets/filters/filter_chip.dart';
+import 'package:gemstone/core/widgets/filters/melee_range_filters.dart';
+import 'package:gemstone/core/widgets/filters/catalog_standard_range_filters.dart';
+import 'package:gemstone/core/widgets/filters/filter_scrollable_chips.dart';
+import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
 import '../../../diamonds/presentation/widgets/filter_shape_grid_cell.dart';
 import '../../application/gemstone_search_provider.dart';
 import '../../domain/models/gemstone_filter_state.dart';
@@ -344,70 +343,32 @@ class _GemstoneFilterCategoryBasicState
               onTotalCaratChanged: notifier.updateTotalCaratRange,
             ),
           ] else ...[
-            FilterRangeSlider(
-              title: 'Total Price',
-              minLimit: GemstoneFilterState.priceMin,
-              maxLimit: GemstoneFilterState.totalPriceMax,
-              currentMin: state.minTotalPrice,
-              currentMax: state.maxTotalPrice,
-              unitSuffix: '\$',
-              isInteger: true,
-              onChanged: (min, max) => notifier.updateTotalPriceRange(min, max),
-              onClear: () => notifier.updateTotalPriceRange(
+            CatalogStandardRangeFilters(
+              totalPriceMin: state.minTotalPrice,
+              totalPriceMax: state.maxTotalPrice,
+              totalPriceLimits: (
                 GemstoneFilterState.priceMin,
                 GemstoneFilterState.totalPriceMax,
               ),
-            ),
-            const SizedBox(height: AppSpacing.s20),
-
-            FilterRangeSlider(
-              title: 'Total Carat',
-              minLimit: GemstoneFilterState.caratMin,
-              maxLimit: GemstoneFilterState.caratMax,
-              currentMin: state.minTotalCarat,
-              currentMax: state.maxTotalCarat,
-              unitSuffix: ' ct',
-              onChanged: (min, max) => notifier.updateTotalCaratRange(min, max),
-              onClear: () => notifier.updateTotalCaratRange(
+              onTotalPriceChanged: notifier.updateTotalPriceRange,
+              totalCaratMin: state.minTotalCarat,
+              totalCaratMax: state.maxTotalCarat,
+              totalCaratLimits: (
                 GemstoneFilterState.caratMin,
                 GemstoneFilterState.caratMax,
               ),
-            ),
-            const SizedBox(height: AppSpacing.s12),
-            Wrap(
-              alignment: WrapAlignment.start,
-              crossAxisAlignment: WrapCrossAlignment.start,
-              spacing: AppSpacing.s8,
-              runSpacing: AppSpacing.s8,
-              children: List.generate(
-                GemstoneFilterState.caratQuickRanges.length,
-                (index) {
-                  final range = GemstoneFilterState.caratQuickRanges[index];
-                  final label = '${range['min']} - ${range['max']}';
-                  return FilterQuickRangeChip(
-                    label: label,
-                    isSelected: state.selectedCaratQuickRanges.contains(index),
-                    onTap: () => notifier.toggleCaratQuickRange(index),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: AppSpacing.s20),
-
-            FilterRangeSlider(
-              title: 'Price Per Carat',
-              minLimit: GemstoneFilterState.priceMin,
-              maxLimit: GemstoneFilterState.pricePerPieceMax,
-              currentMin: state.minPricePerPiece,
-              currentMax: state.maxPricePerPiece,
-              unitSuffix: '\$',
-              isInteger: true,
-              onChanged: (min, max) =>
-                  notifier.updatePricePerPieceRange(min, max),
-              onClear: () => notifier.updatePricePerPieceRange(
+              onTotalCaratChanged: notifier.updateTotalCaratRange,
+              caratQuickRanges: GemstoneFilterState.caratQuickRanges,
+              selectedCaratQuickRanges: state.selectedCaratQuickRanges,
+              onToggleCaratQuickRange: notifier.toggleCaratQuickRange,
+              pricePerCaratMin: state.minPricePerPiece,
+              pricePerCaratMax: state.maxPricePerPiece,
+              pricePerCaratLimits: (
                 GemstoneFilterState.priceMin,
                 GemstoneFilterState.pricePerPieceMax,
               ),
+              onPricePerCaratChanged: notifier.updatePricePerPieceRange,
+              pricePerCaratTitle: 'Price Per Carat',
             ),
           ],
 

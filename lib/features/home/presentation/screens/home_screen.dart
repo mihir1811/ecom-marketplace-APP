@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_names.dart';
@@ -17,7 +18,7 @@ class HomeScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final cartCount = ref.watch(cartItemCountProvider);
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: Text(
           'GemWorld',

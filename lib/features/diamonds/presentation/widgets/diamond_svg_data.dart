@@ -399,6 +399,31 @@ final Map<String, String> _shapeSvgRaw = {
   ,
 };
 
+/// Catalog shapes shown in search carousel + filter grid.
+const List<Map<String, String>> kAllShapes = [
+  {'name': 'Round', 'image': 'public/images/round.png'},
+  {'name': 'Cushion', 'image': 'public/images/Cushion.png'},
+  {'name': 'Emerald', 'image': 'public/images/Emerald.png'},
+  {'name': 'Pear', 'image': 'public/images/Pear.png'},
+  {'name': 'Oval', 'image': 'public/images/Oval.png'},
+  {'name': 'Princess', 'image': 'public/images/princess.png'},
+  {'name': 'Marquise', 'image': 'public/images/Marquise.png'},
+  {'name': 'Heart', 'image': 'public/images/Heart.png'},
+  {'name': 'Radiant', 'image': 'public/images/Radiant.png'},
+  {'name': 'Asscher', 'image': 'public/images/Asscher.png'},
+  {'name': 'Trilliant', 'image': 'public/images/trilliant.png'},
+  {'name': 'Baguette', 'image': 'public/images/baguatte.png'},
+  {'name': 'Flanders', 'image': 'public/images/flanders.png'},
+  {'name': 'Shield', 'image': 'public/images/Shield.png'},
+  {'name': 'Polki', 'image': 'public/images/polki.png'},
+  {'name': 'Rose Cut', 'image': 'public/images/rose-cut.png'},
+  {'name': 'Tapered Baguette', 'image': 'public/images/tapered-baguette.png'},
+  {'name': 'Trapezoid', 'image': 'public/images/trapezoid.png'},
+  {'name': 'Half Moon', 'image': 'public/images/half-moon.png'},
+  {'name': 'Bullet', 'image': 'public/images/bullet.png'},
+  {'name': 'Lozenge', 'image': 'public/images/lozenge.png'},
+];
+
 final Map<String, SvgPicture> _svgWidgetCache = {};
 
 Widget renderShapeSvg(String name, {double size = 40, Color color = Colors.black}) {

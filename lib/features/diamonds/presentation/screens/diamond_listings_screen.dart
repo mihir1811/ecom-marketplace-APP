@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/router/route_names.dart';
+import '../../../../core/widgets/catalog_empty_state.dart';
+import '../../../../core/widgets/catalog_list_loading.dart';
+import '../../../../core/widgets/view_mode_toggle.dart';
+import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
+import '../widgets/diamond_cards.dart';
 import '../widgets/diamond_sorting_bottom_sheet.dart';
-import '../widgets/diamond_grid_view.dart';
-import '../widgets/diamond_list_view.dart';
-import '../widgets/diamond_list_empty_state.dart';
-import '../widgets/diamond_list_loading.dart';
-import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 
 class DiamondListingsScreen extends ConsumerStatefulWidget {
   const DiamondListingsScreen({
@@ -57,7 +59,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
     final viewMode = ref.watch(diamondViewModeProvider);
     final mutedColor = AppColors.textSecondaryLight;
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -68,36 +70,17 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
           style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: AppSpacing.s8),
-            decoration: BoxDecoration(
-              color: AppColors.sandSurface,
-              borderRadius: BorderRadius.circular(AppSpacing.r8),
-              border: Border.all(
-                color: AppColors.warmBorder,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _ViewModeButton(
-                  icon: Icons.grid_view,
-                  label: 'Grid',
-                  isSelected: viewMode == ViewMode.grid,
-                  onTap: () => ref.read(diamondViewModeProvider.notifier).state = ViewMode.grid,
-                ),
-                Container(
-                  width: 1,
-                  height: 24,
-                  color: AppColors.warmBorder,
-                ),
-                _ViewModeButton(
-                  icon: Icons.view_list,
-                  label: 'List',
-                  isSelected: viewMode == ViewMode.list,
-                  onTap: () => ref.read(diamondViewModeProvider.notifier).state = ViewMode.list,
-                ),
-              ],
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.s8),
+            child: ViewModeToggle(
+              style: ViewModeToggleStyle.labeled,
+              isGrid: viewMode == ViewMode.grid,
+              onGrid: () =>
+                  ref.read(diamondViewModeProvider.notifier).state =
+                      ViewMode.grid,
+              onList: () =>
+                  ref.read(diamondViewModeProvider.notifier).state =
+                      ViewMode.list,
             ),
           ),
         ],
@@ -163,16 +146,29 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
               child: stateAsync.when(
                 data: (state) {
                   if (state.isInitialLoading) {
-                    return DiamondListLoading(isGrid: viewMode == ViewMode.grid);
+                    return CatalogListLoading(isGrid: viewMode == ViewMode.grid);
                   }
                   if (state.errorMessage != null && state.diamonds.isEmpty) {
                     return _buildError(state.errorMessage!);
                   }
                   if (state.diamonds.isEmpty) {
-                    return DiamondListEmptyState(
-                      onResetFilters: () {
+                    return CatalogEmptyState(
+                      icon: Icons.diamond_outlined,
+                      iconSize: 72,
+                      iconColor: AppColors.textMutedLight.withValues(alpha: 0.4),
+                      title: 'No Diamonds Found',
+                      message:
+                          'Try adjusting your filters or search criteria to find matching diamonds.',
+                      padding: const EdgeInsets.all(AppSpacing.s48),
+                      titleStyle: AppTypography.headline.copyWith(
+                        color: AppColors.textPrimaryLight,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      actionLabel: 'Reset Filters',
+                      onAction: () {
                         ref.read(diamondSearchProvider.notifier).reset();
                       },
+                      actionIcon: Icons.refresh,
                     );
                   }
                   return RefreshIndicator(
@@ -192,7 +188,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                   );
                 },
                 loading: () =>
-                    DiamondListLoading(isGrid: viewMode == ViewMode.grid),
+                    CatalogListLoading(isGrid: viewMode == ViewMode.grid),
                 error: (error, _) => _buildError(error.toString()),
               ),
             ),
@@ -239,51 +235,5 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
       return '${(count / 1000).toStringAsFixed(count >= 10000 ? 0 : 1)}K';
     }
     return count.toString();
-  }
-}
-
-class _ViewModeButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ViewModeButton({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.bronze : Colors.transparent,
-          borderRadius: isSelected ? BorderRadius.circular(AppSpacing.r8) : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isSelected ? AppColors.warmWhite : AppColors.textMutedLight,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: AppTypography.caption.copyWith(
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppColors.warmWhite : AppColors.textMutedLight,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

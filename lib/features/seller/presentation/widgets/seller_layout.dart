@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
@@ -39,10 +40,10 @@ class SellerLayout extends ConsumerWidget {
       return const LoginScreen();
     }
 
-    return Scaffold(
-      key: sellerScaffoldKey,
+    return AppScaffold(
+      scaffoldKey: sellerScaffoldKey,
       drawer: SellerDrawer(selectedRoute: selectedRoute),
-      body: SafeArea(child: child),
+      body: child,
     );
   }
 }

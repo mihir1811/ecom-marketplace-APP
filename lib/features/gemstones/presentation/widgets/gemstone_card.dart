@@ -3,15 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/format_catalog_price.dart';
+import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../comparison/application/comparison_provider.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
+import '../../domain/gemstone_assets.dart';
 import '../../domain/models/gemstone.dart';
-import 'gemstone_showcase_card.dart';
 
 class GemstoneCardGrid extends ConsumerWidget {
   const GemstoneCardGrid({
@@ -25,8 +26,6 @@ class GemstoneCardGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bgColor = AppColors.warmWhite;
-    final borderColor = AppColors.warmBorder;
     final textColor =
         AppColors.textPrimaryLight;
     final mutedColor =
@@ -34,17 +33,9 @@ class GemstoneCardGrid extends ConsumerWidget {
     final inCompare = ref.watch(isInComparisonProvider(gemstone.id));
     final imagePath = gemstone.imageUrl ?? gemstoneImagePath(gemstone.type);
 
-    return GestureDetector(
+    return MarketplaceProductCardShell(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(AppSpacing.r12),
-          border: Border.all(color: borderColor),
-          boxShadow: AppShadows.cardLight,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AspectRatio(
@@ -124,7 +115,7 @@ class GemstoneCardGrid extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '\$${_formatPrice(gemstone.price)}',
+                      '\$${formatCatalogPrice(gemstone.price)}',
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -157,15 +148,7 @@ class GemstoneCardGrid extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
-  }
-
-  String _formatPrice(double price) {
-    if (price >= 1000) {
-      return '${(price / 1000).toStringAsFixed(price >= 10000 ? 0 : 1)}K';
-    }
-    return price.toStringAsFixed(0);
   }
 }
 
@@ -181,8 +164,6 @@ class GemstoneCardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bgColor = AppColors.warmWhite;
-    final borderColor = AppColors.warmBorder;
     final textColor =
         AppColors.textPrimaryLight;
     final mutedColor =
@@ -190,17 +171,9 @@ class GemstoneCardList extends ConsumerWidget {
     final inCompare = ref.watch(isInComparisonProvider(gemstone.id));
     final imagePath = gemstone.imageUrl ?? gemstoneImagePath(gemstone.type);
 
-    return GestureDetector(
+    return MarketplaceProductCardShell(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(AppSpacing.r12),
-          border: Border.all(color: borderColor),
-          boxShadow: AppShadows.cardLight,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: SizedBox(
+      child: SizedBox(
           height: 120,
           child: Row(
             children: [
@@ -252,7 +225,7 @@ class GemstoneCardList extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '\$${_formatPrice(gemstone.price)}',
+                        '\$${formatCatalogPrice(gemstone.price)}',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -282,14 +255,6 @@ class GemstoneCardList extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
-  }
-
-  String _formatPrice(double price) {
-    if (price >= 1000) {
-      return '${(price / 1000).toStringAsFixed(price >= 10000 ? 0 : 1)}K';
-    }
-    return price.toStringAsFixed(0);
   }
 }
