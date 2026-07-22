@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_shadows.dart';
+import '../../../comparison/application/comparison_provider.dart';
+import '../../../comparison/domain/models/compare_item.dart';
+import '../../../comparison/presentation/widgets/compare_add_button.dart';
+import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
 import '../../../diamonds/domain/models/diamond.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 
-class DiamondCardGrid extends StatelessWidget {
+class DiamondCardGrid extends ConsumerWidget {
   final Diamond diamond;
   final VoidCallback? onTap;
 
@@ -18,7 +23,7 @@ class DiamondCardGrid extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
     final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
@@ -26,6 +31,7 @@ class DiamondCardGrid extends StatelessWidget {
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final mutedColor =
         isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final inCompare = ref.watch(isInComparisonProvider(diamond.id));
 
     return GestureDetector(
       onTap: onTap,
@@ -91,6 +97,18 @@ class DiamondCardGrid extends StatelessWidget {
                         size: 18,
                       ),
                     ),
+                  Positioned(
+                    bottom: AppSpacing.s8,
+                    right: AppSpacing.s8,
+                    child: CompareAddButton(
+                      isSelected: inCompare,
+                      onPressed: () => handleCompareToggle(
+                        context,
+                        ref,
+                        CompareItem.fromDiamond(diamond),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

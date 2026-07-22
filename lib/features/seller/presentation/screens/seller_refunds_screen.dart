@@ -102,7 +102,7 @@ class _RefundCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
@@ -115,75 +115,96 @@ class _RefundCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const Spacer(),
                 Text(
                   refund.amountLabel,
                   style: AppTypography.title.copyWith(
                     fontWeight: FontWeight.w800,
+                    fontSize: 20,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            _MetaLine(label: 'Buyer:', value: refund.buyer),
-            const SizedBox(height: 4),
+            const SizedBox(height: 14),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Order: ',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                Expanded(
+                  child: _InfoBlock(
+                    label: 'Buyer',
+                    child: Text(
+                      refund.buyer,
+                      style: AppTypography.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => context.go(
-                    AppRouteNames.sellerOrderDetailPath(refund.orderId),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _InfoBlock(
+                    label: 'Order',
+                    child: GestureDetector(
+                      onTap: () => context.go(
+                        AppRouteNames.sellerOrderDetailPath(refund.orderId),
+                      ),
+                      child: Text(
+                        refund.orderId,
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.bronzeDark,
+                          fontWeight: FontWeight.w700,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
                   ),
-                  child: Text(
-                    refund.orderId,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.bronzeDark,
-                      fontWeight: FontWeight.w700,
-                      decoration: TextDecoration.underline,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _InfoBlock(
+                    label: 'Requested',
+                    child: Text(
+                      refund.requestedAt,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.charcoal,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              refund.requestedAt,
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Buyer reason',
-              style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              refund.buyerReason,
-              style: AppTypography.body.copyWith(
-                color: AppColors.textSecondaryLight,
-              ),
-            ),
-            if (refund.sellerNote != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Your note',
-                style:
-                    AppTypography.label.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                refund.sellerNote!,
-                style: AppTypography.body.copyWith(
-                  color: AppColors.textSecondaryLight,
+            const SizedBox(height: 14),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _InfoBlock(
+                    label: 'Buyer reason',
+                    child: Text(
+                      refund.buyerReason,
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                if (refund.sellerNote != null) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _InfoBlock(
+                      label: 'Your note',
+                      child: Text(
+                        refund.sellerNote!,
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
       ),
@@ -191,32 +212,27 @@ class _RefundCard extends StatelessWidget {
   }
 }
 
-class _MetaLine extends StatelessWidget {
-  const _MetaLine({required this.label, required this.value});
+class _InfoBlock extends StatelessWidget {
+  const _InfoBlock({required this.label, required this.child});
 
   final String label;
-  final String value;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: '$label ',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            color: AppColors.textMutedLight,
+            fontWeight: FontWeight.w600,
           ),
-          TextSpan(
-            text: value,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.charcoal,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 4),
+        child,
+      ],
     );
   }
 }

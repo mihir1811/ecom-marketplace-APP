@@ -10,12 +10,16 @@ class SellerProductCardsView extends StatelessWidget {
     required this.products,
     required this.selectedIds,
     required this.onToggleSelection,
+    this.onEdit,
+    this.onDelete,
     super.key,
   });
 
   final List<SellerProduct> products;
   final Set<String> selectedIds;
   final void Function(String id, bool selected) onToggleSelection;
+  final ValueChanged<SellerProduct>? onEdit;
+  final ValueChanged<SellerProduct>? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +42,8 @@ class SellerProductCardsView extends StatelessWidget {
               product: p,
               selected: selectedIds.contains(p.id),
               onSelected: (v) => onToggleSelection(p.id, v),
+              onEdit: onEdit == null ? null : () => onEdit!(p),
+              onDelete: onDelete == null ? null : () => onDelete!(p),
             );
           },
         );
@@ -51,11 +57,15 @@ class _ProductCard extends StatefulWidget {
     required this.product,
     required this.selected,
     required this.onSelected,
+    this.onEdit,
+    this.onDelete,
   });
 
   final SellerProduct product;
   final bool selected;
   final ValueChanged<bool> onSelected;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   State<_ProductCard> createState() => _ProductCardState();
@@ -153,7 +163,22 @@ class _ProductCardState extends State<_ProductCard> {
                       ),
                       child: const Icon(Icons.more_vert, size: 18),
                     ),
-                    onSelected: (_) {},
+                    onSelected: (action) {
+                      switch (action) {
+                        case _CardAction.quickView:
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Quick view for ${widget.product.stockNumber}',
+                              ),
+                            ),
+                          );
+                        case _CardAction.edit:
+                          widget.onEdit?.call();
+                        case _CardAction.delete:
+                          widget.onDelete?.call();
+                      }
+                    },
                     itemBuilder: (context) => const [
                       PopupMenuItem(
                         value: _CardAction.quickView,

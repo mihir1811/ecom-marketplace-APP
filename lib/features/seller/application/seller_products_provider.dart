@@ -48,9 +48,30 @@ class SellerProductsState {
   }
 }
 
-final sellerProductsCatalogProvider = Provider<List<SellerProduct>>((ref) {
-  return buildSellerProductsMockCatalog();
-});
+final sellerProductsCatalogProvider =
+    NotifierProvider<SellerProductsCatalogNotifier, List<SellerProduct>>(
+  SellerProductsCatalogNotifier.new,
+);
+
+/// Mutable mock catalog so sellers can edit / soft-delete their own products.
+class SellerProductsCatalogNotifier extends Notifier<List<SellerProduct>> {
+  @override
+  List<SellerProduct> build() => buildSellerProductsMockCatalog();
+
+  void updateProduct(SellerProduct product) {
+    state = [
+      for (final p in state)
+        if (p.id == product.id) product else p,
+    ];
+  }
+
+  void deleteProduct(String id) {
+    state = [
+      for (final p in state)
+        if (p.id == id) p.copyWith(isDeleted: true) else p,
+    ];
+  }
+}
 
 class SellerProductsController extends Notifier<SellerProductsState> {
   @override

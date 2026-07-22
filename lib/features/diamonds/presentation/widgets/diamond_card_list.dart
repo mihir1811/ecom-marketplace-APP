@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_shadows.dart';
+import '../../../comparison/application/comparison_provider.dart';
+import '../../../comparison/domain/models/compare_item.dart';
+import '../../../comparison/presentation/widgets/compare_add_button.dart';
+import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
 import '../../../diamonds/domain/models/diamond.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 
-class DiamondCardList extends StatelessWidget {
+class DiamondCardList extends ConsumerWidget {
   final Diamond diamond;
   final VoidCallback? onTap;
 
@@ -17,12 +22,13 @@ class DiamondCardList extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
     final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
     final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
     final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final inCompare = ref.watch(isInComparisonProvider(diamond.id));
 
     return GestureDetector(
       onTap: onTap,
@@ -38,7 +44,7 @@ class DiamondCardList extends StatelessWidget {
           height: 148,
           child: Row(
             children: [
-              _buildImageSection(isDark),
+              _buildImageSection(isDark, context, ref, inCompare),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.s8),
@@ -62,7 +68,12 @@ class DiamondCardList extends StatelessWidget {
     );
   }
 
-  Widget _buildImageSection(bool isDark) {
+  Widget _buildImageSection(
+    bool isDark,
+    BuildContext context,
+    WidgetRef ref,
+    bool inCompare,
+  ) {
     return SizedBox(
       width: 100,
       child: Stack(
@@ -102,6 +113,19 @@ class DiamondCardList extends StatelessWidget {
                 ),
               ),
             ),
+          Positioned(
+            bottom: AppSpacing.s8,
+            right: AppSpacing.s8,
+            child: CompareAddButton(
+              size: 28,
+              isSelected: inCompare,
+              onPressed: () => handleCompareToggle(
+                context,
+                ref,
+                CompareItem.fromDiamond(diamond),
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -11,6 +11,7 @@ import '../../domain/models/watch_filter_state.dart';
 import '../widgets/watch_brand_carousel.dart';
 import '../widgets/watch_filter_drawer.dart';
 import '../widgets/watch_grid_view.dart';
+import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 
 class WatchesScreen extends ConsumerStatefulWidget {
   const WatchesScreen({super.key});
@@ -126,7 +127,8 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
         ),
         actions: const [],
       ),
-      body: Column(
+      body: ComparisonTrayHost(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: AppSpacing.s8),
@@ -327,6 +329,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

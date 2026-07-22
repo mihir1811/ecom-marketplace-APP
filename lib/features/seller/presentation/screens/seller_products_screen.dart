@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -10,6 +12,7 @@ import '../widgets/seller_layout.dart';
 import '../widgets/seller_product_cards_view.dart';
 import '../widgets/seller_product_column_picker.dart';
 import '../widgets/seller_product_data_table.dart';
+import 'seller_product_edit_screen.dart';
 
 class SellerProductsScreen extends ConsumerStatefulWidget {
   const SellerProductsScreen({super.key});
@@ -93,6 +96,20 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
       ),
     );
     Overlay.of(context).insert(_columnPickerOverlay!);
+  }
+
+  Future<void> _editProduct(SellerProduct product) async {
+    await context.push(AppRouteNames.sellerProductEditPath(product.id));
+  }
+
+  Future<void> _deleteProduct(SellerProduct product) async {
+    final ok = await confirmDeleteSellerProduct(context, product);
+    if (!ok || !mounted) return;
+    ref.read(sellerProductsCatalogProvider.notifier).deleteProduct(product.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Deleted ${product.stockNumber}')),
+    );
   }
 
   @override
@@ -222,11 +239,15 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
                   onToggleSelection: ctrl.toggleProductSelection,
                   onToggleSelectAll: (selected) =>
                       ctrl.toggleSelectAllOnPage(pageItems, selected),
+                  onEdit: _editProduct,
+                  onDelete: _deleteProduct,
                 )
               : SellerProductCardsView(
                   products: pageItems,
                   selectedIds: state.selectedProductIds,
                   onToggleSelection: ctrl.toggleProductSelection,
+                  onEdit: _editProduct,
+                  onDelete: _deleteProduct,
                 ),
         ),
         _PaginationBar(

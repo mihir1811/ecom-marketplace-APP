@@ -12,6 +12,7 @@ import '../widgets/diamond_grid_view.dart';
 import '../widgets/diamond_list_view.dart';
 import '../widgets/diamond_list_empty_state.dart';
 import '../widgets/diamond_list_loading.dart';
+import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 
 class DiamondListingsScreen extends ConsumerStatefulWidget {
   const DiamondListingsScreen({
@@ -102,97 +103,104 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s16,
-              vertical: 0,
-            ),
-            child: Row(
-              children: [
-                stateAsync.whenOrNull(
-                  data: (state) => Text(
-                    '${_formatCount(state.totalCount)} diamonds found',
-                    style: AppTypography.caption.copyWith(color: mutedColor),
-                  ),
-                ) ?? const SizedBox.shrink(),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => DiamondSortingBottomSheet.show(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.s8,
-                      vertical: AppSpacing.s4,
+      body: ComparisonTrayHost(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.s16,
+                vertical: 0,
+              ),
+              child: Row(
+                children: [
+                  stateAsync.whenOrNull(
+                    data: (state) => Text(
+                      '${_formatCount(state.totalCount)} diamonds found',
+                      style: AppTypography.caption.copyWith(color: mutedColor),
                     ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
-                      border: Border.all(
-                        color: isDark ? AppColors.slateBorder : AppColors.warmBorder,
+                  ) ??
+                      const SizedBox.shrink(),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => DiamondSortingBottomSheet.show(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.s8,
+                        vertical: AppSpacing.s4,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppSpacing.r8),
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.slateBorder
+                              : AppColors.warmBorder,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.sort, size: 14, color: mutedColor),
+                          const SizedBox(width: AppSpacing.s4),
+                          Text(
+                            'Sort',
+                            style: AppTypography.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: mutedColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.sort, size: 14, color: mutedColor),
-                        const SizedBox(width: AppSpacing.s4),
-                        Text(
-                          'Sort',
-                          style: AppTypography.caption.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: mutedColor,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.s8),
-                TextButton(
-                  onPressed: () =>
-                      context.pushReplacement(widget.searchRoute),
-                  child: const Text('Edit Filters'),
-                ),
-              ],
+                  const SizedBox(width: AppSpacing.s8),
+                  TextButton(
+                    onPressed: () =>
+                        context.pushReplacement(widget.searchRoute),
+                    child: const Text('Edit Filters'),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Divider(height: 0),
-          Expanded(
-            child: stateAsync.when(
-              data: (state) {
-                if (state.isInitialLoading) {
-                  return DiamondListLoading(isGrid: viewMode == ViewMode.grid);
-                }
-                if (state.errorMessage != null && state.diamonds.isEmpty) {
-                  return _buildError(state.errorMessage!);
-                }
-                if (state.diamonds.isEmpty) {
-                  return DiamondListEmptyState(
-                    onResetFilters: () {
-                      ref.read(diamondSearchProvider.notifier).reset();
-                    },
+            const Divider(height: 0),
+            Expanded(
+              child: stateAsync.when(
+                data: (state) {
+                  if (state.isInitialLoading) {
+                    return DiamondListLoading(isGrid: viewMode == ViewMode.grid);
+                  }
+                  if (state.errorMessage != null && state.diamonds.isEmpty) {
+                    return _buildError(state.errorMessage!);
+                  }
+                  if (state.diamonds.isEmpty) {
+                    return DiamondListEmptyState(
+                      onResetFilters: () {
+                        ref.read(diamondSearchProvider.notifier).reset();
+                      },
+                    );
+                  }
+                  return RefreshIndicator(
+                    onRefresh: () =>
+                        ref.read(diamondListProvider.notifier).refresh(),
+                    child: viewMode == ViewMode.grid
+                        ? DiamondGridView(
+                            diamonds: state.diamonds,
+                            scrollController: _scrollController,
+                            isLoadingMore: state.isLoadingMore,
+                          )
+                        : DiamondListView(
+                            diamonds: state.diamonds,
+                            scrollController: _scrollController,
+                            isLoadingMore: state.isLoadingMore,
+                          ),
                   );
-                }
-                return RefreshIndicator(
-                  onRefresh: () => ref.read(diamondListProvider.notifier).refresh(),
-                  child: viewMode == ViewMode.grid
-                      ? DiamondGridView(
-                          diamonds: state.diamonds,
-                          scrollController: _scrollController,
-                          isLoadingMore: state.isLoadingMore,
-                        )
-                      : DiamondListView(
-                          diamonds: state.diamonds,
-                          scrollController: _scrollController,
-                          isLoadingMore: state.isLoadingMore,
-                        ),
-                );
-              },
-              loading: () => DiamondListLoading(isGrid: viewMode == ViewMode.grid),
-              error: (error, _) => _buildError(error.toString()),
+                },
+                loading: () =>
+                    DiamondListLoading(isGrid: viewMode == ViewMode.grid),
+                error: (error, _) => _buildError(error.toString()),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

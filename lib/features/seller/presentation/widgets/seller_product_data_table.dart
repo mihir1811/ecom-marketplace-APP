@@ -12,6 +12,8 @@ class SellerProductDataTable extends StatelessWidget {
     required this.selectedIds,
     required this.onToggleSelection,
     required this.onToggleSelectAll,
+    this.onEdit,
+    this.onDelete,
     super.key,
   });
 
@@ -20,6 +22,8 @@ class SellerProductDataTable extends StatelessWidget {
   final Set<String> selectedIds;
   final void Function(String id, bool selected) onToggleSelection;
   final void Function(bool selected) onToggleSelectAll;
+  final ValueChanged<SellerProduct>? onEdit;
+  final ValueChanged<SellerProduct>? onDelete;
 
   static const _minColWidth = 120.0;
   static const _selectionWidth = 48.0;
@@ -155,13 +159,13 @@ class SellerProductDataTable extends StatelessWidget {
           _ActionIcon(
             icon: Icons.edit_outlined,
             tooltip: 'Edit',
-            onPressed: () {},
+            onPressed: onEdit == null ? null : () => onEdit!(product),
           ),
           _ActionIcon(
             icon: Icons.delete_outline,
             tooltip: 'Delete',
             color: AppColors.error,
-            onPressed: () {},
+            onPressed: onDelete == null ? null : () => onDelete!(product),
           ),
         ],
       );
@@ -267,7 +271,7 @@ class _ActionIcon extends StatelessWidget {
 
   final IconData icon;
   final String tooltip;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color? color;
 
   @override

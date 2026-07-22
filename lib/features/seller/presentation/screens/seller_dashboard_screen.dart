@@ -19,6 +19,8 @@ class SellerDashboardScreen extends ConsumerStatefulWidget {
 
 class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
   SalesRange _range = SalesRange.monthly;
+  DateTime? _customStart;
+  DateTime? _customEnd;
   DashboardMetric _metric = DashboardMetric.totalSales;
 
   static const _metrics = <_MetricData>[
@@ -105,12 +107,52 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SalesRangeTabs(
+                    _SalesRangeDropdown(
                       value: _range,
-                      onChanged: (v) {
-                        setState(() => _range = v);
+                      customStart: _customStart,
+                      customEnd: _customEnd,
+                      onChanged: (v) async {
+                        if (v == SalesRange.custom) {
+                          final picked = await showDateRangePicker(
+                            context: context,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365),
+                            ),
+                            initialDateRange:
+                                _customStart != null && _customEnd != null
+                                    ? DateTimeRange(
+                                        start: _customStart!,
+                                        end: _customEnd!,
+                                      )
+                                    : null,
+                          );
+                          if (picked == null) return;
+                          setState(() {
+                            _range = SalesRange.custom;
+                            _customStart = picked.start;
+                            _customEnd = picked.end;
+                          });
+                          return;
+                        }
+                        setState(() {
+                          _range = v;
+                          _customStart = null;
+                          _customEnd = null;
+                        });
                       },
                     ),
+                    if (_range == SalesRange.custom &&
+                        _customStart != null &&
+                        _customEnd != null) ...[
+                      SizedBox(height: AppSpacing.s8),
+                      Text(
+                        '${_fmtDate(_customStart!)} → ${_fmtDate(_customEnd!)}',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
                     SizedBox(height: AppSpacing.s16),
                     _DashboardBarChart(
                       metric: _metric,
@@ -118,7 +160,9 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                     ),
                     SizedBox(height: AppSpacing.s12),
                     Text(
-                      'To 11/03/2026',
+                      _range == SalesRange.custom && _customEnd != null
+                          ? 'To ${_fmtDate(_customEnd!)}'
+                          : 'To 11/03/2026',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textSecondaryLight,
                       ),
@@ -210,9 +254,14 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
       DashboardMetric.inventoryValue => 'Inventory Value',
     };
   }
+
+  static String _fmtDate(DateTime d) {
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${two(d.month)}/${two(d.day)}/${d.year}';
+  }
 }
 
-enum SalesRange { daily, weekly, monthly, quarterly }
+enum SalesRange { daily, weekly, monthly, quarterly, yearly, custom }
 
 enum DashboardMetric { totalSales, productsSold, orders, inventoryValue }
 
@@ -334,28 +383,6 @@ class _TopHeader extends StatelessWidget {
                 ),
               ),
             ),
-            FilledButton(
-              onPressed: () {},
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.charcoal,
-                foregroundColor: AppColors.warmWhite,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s16,
-                  vertical: AppSpacing.s12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
-                ),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add, size: 18),
-                  SizedBox(width: 6),
-                  Text('Add Product'),
-                ],
-              ),
-            ),
           ],
         ),
         SizedBox(height: AppSpacing.s8),
@@ -412,46 +439,55 @@ class _CardSection extends StatelessWidget {
   }
 }
 
-class _SalesRangeTabs extends StatelessWidget {
-  const _SalesRangeTabs({required this.value, required this.onChanged});
+class _SalesRangeDropdown extends StatelessWidget {
+  const _SalesRangeDropdown({
+    required this.value,
+    required this.onChanged,
+    this.customStart,
+    this.customEnd,
+  });
 
   final SalesRange value;
   final ValueChanged<SalesRange> onChanged;
+  final DateTime? customStart;
+  final DateTime? customEnd;
+
+  static const _labels = {
+    SalesRange.daily: 'Daily',
+    SalesRange.weekly: 'Weekly',
+    SalesRange.monthly: 'Monthly',
+    SalesRange.quarterly: 'Quarterly',
+    SalesRange.yearly: 'Yearly',
+    SalesRange.custom: 'Custom',
+  };
 
   @override
   Widget build(BuildContext context) {
-    const labels = {
-      SalesRange.daily: 'Daily',
-      SalesRange.weekly: 'Weekly',
-      SalesRange.monthly: 'Monthly',
-      SalesRange.quarterly: 'Quarterly',
-    };
-
-    return Wrap(
-      spacing: AppSpacing.s8,
-      runSpacing: AppSpacing.s8,
-      children: [
+    return DropdownButtonFormField<SalesRange>(
+      key: ValueKey('${value.name}_${customStart}_$customEnd'),
+      initialValue: value,
+      decoration: InputDecoration(
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          borderSide: const BorderSide(color: AppColors.warmBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          borderSide: const BorderSide(color: AppColors.warmBorder),
+        ),
+      ),
+      items: [
         for (final range in SalesRange.values)
-          ChoiceChip(
-            label: Text(labels[range]!),
-            selected: value == range,
-            onSelected: (_) => onChanged(range),
-            labelStyle: AppTypography.label.copyWith(
-              color: value == range
-                  ? AppColors.warmWhite
-                  : AppColors.charcoal,
-            ),
-            selectedColor: AppColors.charcoal,
-            backgroundColor: AppColors.sandSurface,
-            side: BorderSide(
-              color: value == range
-                  ? AppColors.charcoal
-                  : AppColors.warmBorder,
-            ),
-            showCheckmark: false,
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+          DropdownMenuItem(
+            value: range,
+            child: Text(_labels[range]!),
           ),
       ],
+      onChanged: (v) {
+        if (v != null) onChanged(v);
+      },
     );
   }
 }
@@ -584,6 +620,10 @@ class _DashboardBarChart extends StatelessWidget {
           [0.03, 0.05, 0.04, 0.06, 0.05, 0.06, 0.06],
       (DashboardMetric.totalSales, SalesRange.quarterly):
           [0.02, 0.04, 0.05, 0.03, 0.06, 0.05, 0.06],
+      (DashboardMetric.totalSales, SalesRange.yearly):
+          [0.12, 0.18, 0.22, 0.19, 0.25, 0.28, 0.3],
+      (DashboardMetric.totalSales, SalesRange.custom):
+          [0.03, 0.05, 0.04, 0.06, 0.05, 0.06, 0.06],
       (DashboardMetric.productsSold, SalesRange.daily):
           [1.0, 0.0, 2.0, 1.0, 0.0, 1.0, 1.0],
       (DashboardMetric.productsSold, SalesRange.weekly):
@@ -592,6 +632,10 @@ class _DashboardBarChart extends StatelessWidget {
           [3.0, 2.0, 4.0, 3.0, 5.0, 2.0, 4.0],
       (DashboardMetric.productsSold, SalesRange.quarterly):
           [2.0, 3.0, 4.0, 3.0, 5.0, 4.0, 4.0],
+      (DashboardMetric.productsSold, SalesRange.yearly):
+          [8.0, 10.0, 12.0, 9.0, 14.0, 11.0, 15.0],
+      (DashboardMetric.productsSold, SalesRange.custom):
+          [3.0, 2.0, 4.0, 3.0, 5.0, 2.0, 4.0],
       (DashboardMetric.orders, SalesRange.daily):
           [2.0, 1.0, 3.0, 2.0, 1.0, 2.0, 1.0],
       (DashboardMetric.orders, SalesRange.weekly):
@@ -600,6 +644,10 @@ class _DashboardBarChart extends StatelessWidget {
           [6.0, 4.0, 8.0, 5.0, 10.0, 7.0, 9.0],
       (DashboardMetric.orders, SalesRange.quarterly):
           [5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 8.0],
+      (DashboardMetric.orders, SalesRange.yearly):
+          [20.0, 24.0, 28.0, 22.0, 30.0, 26.0, 32.0],
+      (DashboardMetric.orders, SalesRange.custom):
+          [6.0, 4.0, 8.0, 5.0, 10.0, 7.0, 9.0],
       (DashboardMetric.inventoryValue, SalesRange.daily):
           [220000.0, 225000.0, 228000.0, 230000.0, 231000.0, 232000.0, 232387.0],
       (DashboardMetric.inventoryValue, SalesRange.weekly):
@@ -608,6 +656,10 @@ class _DashboardBarChart extends StatelessWidget {
           [190000.0, 200000.0, 210000.0, 218000.0, 225000.0, 229000.0, 232387.0],
       (DashboardMetric.inventoryValue, SalesRange.quarterly):
           [180000.0, 195000.0, 205000.0, 215000.0, 222000.0, 228000.0, 232387.0],
+      (DashboardMetric.inventoryValue, SalesRange.yearly):
+          [150000.0, 170000.0, 190000.0, 200000.0, 210000.0, 220000.0, 232387.0],
+      (DashboardMetric.inventoryValue, SalesRange.custom):
+          [190000.0, 200000.0, 210000.0, 218000.0, 225000.0, 229000.0, 232387.0],
     };
     return data[key] ?? const [1, 2, 3, 4, 5, 6, 7];
   }
@@ -634,6 +686,24 @@ class _DashboardBarChart extends StatelessWidget {
           'Jul',
         ],
       SalesRange.quarterly => const ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7'],
+      SalesRange.yearly => const [
+          '2019',
+          '2020',
+          '2021',
+          '2022',
+          '2023',
+          '2024',
+          '2025',
+        ],
+      SalesRange.custom => const [
+          'D1',
+          'D2',
+          'D3',
+          'D4',
+          'D5',
+          'D6',
+          'D7',
+        ],
     };
   }
 
@@ -836,9 +906,7 @@ class _QuickActionsSection extends StatelessWidget {
   const _QuickActionsSection();
 
   static const _actions = [
-    (Icons.add_box_outlined, 'Add Product'),
     (Icons.receipt_long_outlined, 'View Orders'),
-    (Icons.bar_chart_outlined, 'Analytics'),
     (Icons.format_list_bulleted, 'Inventory'),
   ];
 

@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../comparison/application/comparison_provider.dart';
+import '../../../comparison/domain/models/compare_item.dart';
+import '../../../comparison/presentation/widgets/compare_add_button.dart';
+import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
 import '../../domain/models/watch.dart';
 import 'watch_brand_assets.dart';
 
-class WatchCardGrid extends StatelessWidget {
+class WatchCardGrid extends ConsumerWidget {
   const WatchCardGrid({
     required this.watch,
     this.onTap,
@@ -19,7 +24,7 @@ class WatchCardGrid extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
     final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
@@ -28,6 +33,7 @@ class WatchCardGrid extends StatelessWidget {
     final mutedColor =
         isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
     final logo = WatchBrandAssets.logoPath(watch.brand);
+    final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
     return GestureDetector(
       onTap: onTap,
@@ -105,6 +111,18 @@ class WatchCardGrid extends StatelessWidget {
                         ),
                       ),
                     ),
+                  Positioned(
+                    bottom: AppSpacing.s8,
+                    right: AppSpacing.s8,
+                    child: CompareAddButton(
+                      isSelected: inCompare,
+                      onPressed: () => handleCompareToggle(
+                        context,
+                        ref,
+                        CompareItem.fromWatch(watch),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -201,7 +219,7 @@ String formatWatchPrice(double price) {
   return price.toStringAsFixed(0);
 }
 
-class WatchCardList extends StatelessWidget {
+class WatchCardList extends ConsumerWidget {
   const WatchCardList({
     required this.watch,
     this.onTap,
@@ -212,7 +230,7 @@ class WatchCardList extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? AppColors.slateSurface : AppColors.warmWhite;
     final borderColor = isDark ? AppColors.slateBorder : AppColors.warmBorder;
@@ -221,6 +239,7 @@ class WatchCardList extends StatelessWidget {
     final mutedColor =
         isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
     final logo = WatchBrandAssets.logoPath(watch.brand);
+    final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
     return GestureDetector(
       onTap: onTap,
@@ -238,30 +257,49 @@ class WatchCardList extends StatelessWidget {
             children: [
               SizedBox(
                 width: 112,
-                child: Container(
-                  color: isDark
-                      ? AppColors.charcoalLight
-                      : AppColors.sandSurface,
-                  child: Center(
-                    child: logo != null
-                        ? Padding(
-                            padding: const EdgeInsets.all(AppSpacing.s16),
-                            child: Image.asset(
-                              logo,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const Icon(
-                                Icons.watch,
-                                size: 36,
-                                color: AppColors.bronze,
-                              ),
-                            ),
-                          )
-                        : const Icon(
-                            Icons.watch,
-                            size: 36,
-                            color: AppColors.bronze,
-                          ),
-                  ),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Container(
+                        color: isDark
+                            ? AppColors.charcoalLight
+                            : AppColors.sandSurface,
+                        child: Center(
+                          child: logo != null
+                              ? Padding(
+                                  padding: const EdgeInsets.all(AppSpacing.s16),
+                                  child: Image.asset(
+                                    logo,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.watch,
+                                      size: 36,
+                                      color: AppColors.bronze,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.watch,
+                                  size: 36,
+                                  color: AppColors.bronze,
+                                ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: AppSpacing.s8,
+                      right: AppSpacing.s8,
+                      child: CompareAddButton(
+                        size: 28,
+                        isSelected: inCompare,
+                        onPressed: () => handleCompareToggle(
+                          context,
+                          ref,
+                          CompareItem.fromWatch(watch),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Expanded(

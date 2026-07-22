@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -11,6 +12,7 @@ import '../widgets/gemstone_filter_category_basic.dart';
 import '../widgets/gemstone_filter_category_measurements.dart';
 import '../widgets/gemstone_filter_category_preferences.dart';
 import '../widgets/gemstone_search_bottom_bar.dart';
+import '../../application/gemstone_list_provider.dart';
 
 enum GemstoneSection { basic, preferences, measurements }
 
@@ -185,13 +187,8 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                       right: 0,
                       child: GemstoneSearchBottomBar(
                         onSearch: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Gemstone results screen is coming soon.',
-                              ),
-                            ),
-                          );
+                          ref.invalidate(gemstoneListProvider);
+                          context.push(AppRouteNames.gemstoneResults);
                         },
                       ),
                     ),

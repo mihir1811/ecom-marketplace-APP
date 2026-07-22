@@ -2,10 +2,19 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/router/route_names.dart';
 import 'presentation/screens/seller_auctions_screen.dart';
+import 'presentation/screens/seller_chat_detail_screen.dart';
+import 'presentation/screens/seller_chat_list_screen.dart';
 import 'presentation/screens/seller_dashboard_screen.dart';
+import 'presentation/screens/seller_help_center_screen.dart';
+import 'presentation/screens/seller_inquiry_detail_screen.dart';
+import 'presentation/screens/seller_inquiry_form_screen.dart';
+import 'presentation/screens/seller_inquiry_inbox_screen.dart';
 import 'presentation/screens/seller_order_detail_screen.dart';
 import 'presentation/screens/seller_orders_screen.dart';
 import 'presentation/screens/seller_products_screen.dart';
+import 'presentation/screens/seller_product_edit_screen.dart';
+import 'presentation/screens/seller_profile_screen.dart';
+import 'presentation/screens/seller_promotions_screen.dart';
 import 'presentation/screens/seller_refunds_screen.dart';
 import 'presentation/screens/seller_section_screen.dart';
 import 'presentation/widgets/seller_layout.dart';
@@ -31,6 +40,12 @@ final List<RouteBase> sellerRoutes = [
         builder: (context, state) => const SellerProductsScreen(),
       ),
       GoRoute(
+        path: '/seller/products/:productId/edit',
+        builder: (context, state) => SellerProductEditScreen(
+          productId: state.pathParameters['productId']!,
+        ),
+      ),
+      GoRoute(
         path: AppRouteNames.sellerOrders,
         builder: (context, state) => const SellerOrdersScreen(),
       ),
@@ -46,8 +61,18 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerInquiries,
-        builder: (context, state) =>
-            const SellerSectionScreen(title: 'Inquiries'),
+        builder: (context, state) => const SellerInquiryInboxScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerInquiryNew,
+        builder: (context, state) => const SellerInquiryFormScreen(),
+      ),
+      GoRoute(
+        path: '/seller/inquiries/:category/:inquiryId',
+        builder: (context, state) => SellerInquiryDetailScreen(
+          categoryName: state.pathParameters['category']!,
+          inquiryId: state.pathParameters['inquiryId']!,
+        ),
       ),
       GoRoute(
         path: AppRouteNames.sellerOffers,
@@ -69,21 +94,25 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerChat,
-        builder: (context, state) => const SellerSectionScreen(title: 'Chat'),
+        builder: (context, state) => const SellerChatListScreen(),
+      ),
+      GoRoute(
+        path: '/seller/chat/:chatId',
+        builder: (context, state) => SellerChatDetailScreen(
+          chatId: state.pathParameters['chatId']!,
+        ),
       ),
       GoRoute(
         path: AppRouteNames.sellerHelpCenter,
-        builder: (context, state) =>
-            const SellerSectionScreen(title: 'Help center'),
+        builder: (context, state) => const SellerHelpCenterScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerPromotions,
-        builder: (context, state) =>
-            const SellerSectionScreen(title: 'Promotions'),
+        builder: (context, state) => const SellerPromotionsScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerProfile,
-        builder: (context, state) => const SellerSectionScreen(title: 'Profile'),
+        builder: (context, state) => const SellerProfileScreen(),
       ),
     ],
   ),

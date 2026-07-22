@@ -10,6 +10,7 @@ import '../../application/brand_watch_list_provider.dart';
 import '../../domain/models/brand_watch_state.dart';
 import '../widgets/watch_brand_assets.dart';
 import '../widgets/watch_grid_view.dart';
+import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 
 class BrandWatchScreen extends ConsumerStatefulWidget {
   const BrandWatchScreen({required this.brandName, super.key});
@@ -282,7 +283,8 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
           },
         ),
       ),
-      body: Column(
+      body: ComparisonTrayHost(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
@@ -426,6 +428,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                           ),
           ),
         ],
+        ),
       ),
     );
   }
