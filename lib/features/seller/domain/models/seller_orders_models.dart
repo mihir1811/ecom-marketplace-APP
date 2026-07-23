@@ -95,3 +95,55 @@ class SellerAuctionBid {
   final String at;
   final bool isHighest;
 }
+
+enum SellerOfferStatus { pending, accepted, rejected, countered }
+
+class SellerOffer {
+  const SellerOffer({
+    required this.id,
+    required this.productLabel,
+    required this.stockNumber,
+    required this.category,
+    required this.buyer,
+    required this.buyerEmail,
+    required this.listPrice,
+    required this.offerPrice,
+    required this.status,
+    required this.createdAt,
+    this.counterPrice,
+    this.message,
+  });
+
+  final String id;
+  final String productLabel;
+  final String stockNumber;
+  final String category;
+  final String buyer;
+  final String buyerEmail;
+  final String listPrice;
+  final String offerPrice;
+  final String? counterPrice;
+  final SellerOfferStatus status;
+  final String createdAt;
+  final String? message;
+
+  SellerOffer copyWith({
+    SellerOfferStatus? status,
+    String? counterPrice,
+  }) {
+    return SellerOffer(
+      id: id,
+      productLabel: productLabel,
+      stockNumber: stockNumber,
+      category: category,
+      buyer: buyer,
+      buyerEmail: buyerEmail,
+      listPrice: listPrice,
+      offerPrice: offerPrice,
+      counterPrice: counterPrice ?? this.counterPrice,
+      status: status ?? this.status,
+      createdAt: createdAt,
+      message: message,
+    );
+  }
+}

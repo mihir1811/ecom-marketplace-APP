@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "lib/core/theme/app_colors.dart": {
-    "mtime": 1784713750.3296745,
-    "ast_hash": "df384e5e6d713b8c98017700110059f8",
+    "mtime": 1784723137.3117394,
+    "ast_hash": "403e85070ae94e86322c41c78e4682cf",
     "semantic_hash": ""
   },
   "lib/core/theme/app_shadows.dart": {
@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "lib/features/diamonds/presentation/screens/diamond_search_screen.dart": {
-    "mtime": 1784721735.3846898,
-    "ast_hash": "6fb175d5d172df673d94ab9a462ba737",
+    "mtime": 1784725669.1878169,
+    "ast_hash": "759a7aa0952cd7e6a9257ffd883ed381",
     "semantic_hash": ""
   },
   "lib/features/diamonds/presentation/screens/lab_grown_diamond_search_screen.dart": {
@@ -245,8 +245,8 @@
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/screens/gemstone_search_screen.dart": {
-    "mtime": 1784721735.3887057,
-    "ast_hash": "47d9384790e6ece67aea974dd18eb079",
+    "mtime": 1784725670.6271636,
+    "ast_hash": "e42edd67e211c089bcd5cf47f9c779a5",
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/widgets/birthstone_month_card.dart": {
@@ -265,8 +265,8 @@
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/widgets/gemstone_segmented_control.dart": {
-    "mtime": 1784713860.2202375,
-    "ast_hash": "8d5ea9911bebd183aef7c8199b71abb6",
+    "mtime": 1784723137.5252588,
+    "ast_hash": "e6a93e5235f7e736e1815fcecbd50810",
     "semantic_hash": ""
   },
   "lib/features/home/home_routes.dart": {
@@ -525,8 +525,8 @@
     "semantic_hash": "e85d51023096c90ac9c28329f2c60773"
   },
   "test/features/diamonds/lab_grown_search_screen_test.dart": {
-    "mtime": 1784719268.8180213,
-    "ast_hash": "fa32b3f12dc06f1dfff0bbc3b23162ce",
+    "mtime": 1784725679.807637,
+    "ast_hash": "3beeca43a28c76cc807d1680a4623aaa",
     "semantic_hash": ""
   },
   "test/widget_test.dart": {
@@ -1965,8 +1965,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/seller_routes.dart": {
-    "mtime": 1784703432.0335107,
-    "ast_hash": "88a56b70a54642191d2cc91956f82e8a",
+    "mtime": 1784809982.4583588,
+    "ast_hash": "ede8040372d2affd842f4b9ecc511b30",
     "semantic_hash": ""
   },
   "lib/features/seller/application/seller_products_provider.dart": {
@@ -2010,13 +2010,13 @@
     "semantic_hash": ""
   },
   "lib/features/seller/data/seller_orders_mock_data.dart": {
-    "mtime": 1784637704.178465,
-    "ast_hash": "9eebe28b8cd79b16497db957dccbd281",
+    "mtime": 1784809971.556467,
+    "ast_hash": "75e183ee930a5a9c068b0d697fcd120b",
     "semantic_hash": ""
   },
   "lib/features/seller/domain/models/seller_orders_models.dart": {
-    "mtime": 1784637704.1794617,
-    "ast_hash": "121c7f73ea6dd7118c16085a64da50b6",
+    "mtime": 1784809934.6270645,
+    "ast_hash": "6799bf85987b80f004d2eda51bbd24ad",
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_auctions_screen.dart": {
@@ -2095,8 +2095,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_profile_screen.dart": {
-    "mtime": 1784703861.037517,
-    "ast_hash": "29f96d87e863af8c48518e8a79ae3a09",
+    "mtime": 1784806883.448763,
+    "ast_hash": "5c657e1b29384c3fec072eecb14936f3",
     "semantic_hash": ""
   },
   "lib/features/comparison/application/comparison_provider.dart": {
@@ -2210,8 +2210,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_product_edit_screen.dart": {
-    "mtime": 1784721735.4145234,
-    "ast_hash": "35195b55106dce89787b879eb47a6703",
+    "mtime": 1784804264.889878,
+    "ast_hash": "b0dc6cf3a85fae7715ab38939e0518da",
     "semantic_hash": ""
   },
   "lib/core/theme/app_swatches.dart": {
@@ -2300,8 +2300,8 @@
     "semantic_hash": ""
   },
   "lib/core/widgets/search_action_bottom_bar.dart": {
-    "mtime": 1784721447.7269435,
-    "ast_hash": "73e406997507b1ec37f5cdfeb410e1e4",
+    "mtime": 1784725667.388943,
+    "ast_hash": "50bd53eb829977374fa46ea5cdca7b92",
     "semantic_hash": ""
   },
   "lib/core/widgets/simple_sort_sheet.dart": {
@@ -2380,8 +2380,8 @@
     "semantic_hash": ""
   },
   "lib/features/home/presentation/home_network_images.dart": {
-    "mtime": 1784722520.9694204,
-    "ast_hash": "06417c0709e81795a1c86b66427bb153",
+    "mtime": 1784722821.7480159,
+    "ast_hash": "0d7e0b59a1ea114a4adb1fe32935ad5f",
     "semantic_hash": ""
   },
   "lib/features/home/presentation/widgets/home_category_tile.dart": {
@@ -2397,6 +2397,11 @@
   "lib/features/home/presentation/widgets/home_quick_search.dart": {
     "mtime": 1784722620.1006715,
     "ast_hash": "deb5c807ea69df8a655c95f1e371145f",
+    "semantic_hash": ""
+  },
+  "lib/features/seller/presentation/screens/seller_offers_screen.dart": {
+    "mtime": 1784809972.156998,
+    "ast_hash": "8f5158e8b76572a0bdd894491e1be0d6",
     "semantic_hash": ""
   }
 }

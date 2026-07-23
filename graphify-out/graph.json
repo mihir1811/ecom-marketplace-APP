@@ -387,8 +387,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_app",
-      "community": 244,
-      "community_name": "diamondListProvider",
+      "community": 75,
+      "community_name": "jewelry_categories_screen.dart",
       "norm_label": "app.dart"
     },
     {
@@ -398,8 +398,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_app_gemworldapp",
-      "community": 244,
-      "community_name": "diamondListProvider",
+      "community": 75,
+      "community_name": "jewelry_categories_screen.dart",
       "norm_label": "gemworldapp"
     },
     {
@@ -420,8 +420,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_app_build",
-      "community": 244,
-      "community_name": "diamondListProvider",
+      "community": 75,
+      "community_name": "jewelry_categories_screen.dart",
       "norm_label": "build"
     },
     {
@@ -431,8 +431,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "package_flutter_material_dart",
-      "community": 218,
-      "community_name": "DiamondSearchNotifier",
+      "community": 130,
+      "community_name": "jewelry_routes.dart",
       "norm_label": "package:flutter/material.dart"
     },
     {
@@ -442,8 +442,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_router_app_router_dart",
-      "community": 244,
-      "community_name": "diamondListProvider",
+      "community": 75,
+      "community_name": "jewelry_categories_screen.dart",
       "norm_label": "core/router/app_router.dart"
     },
     {
@@ -453,8 +453,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_theme_app_theme_dart",
-      "community": 244,
-      "community_name": "diamondListProvider",
+      "community": 75,
+      "community_name": "jewelry_categories_screen.dart",
       "norm_label": "core/theme/app_theme.dart"
     },
     {
@@ -464,8 +464,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "auth_controller.dart"
     },
     {
@@ -475,8 +475,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_authcontroller",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "authcontroller"
     },
     {
@@ -486,8 +486,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "notifier",
-      "community": 246,
-      "community_name": "build",
+      "community": 247,
+      "community_name": "SellerInquiryFormScreen",
       "norm_label": "notifier"
     },
     {
@@ -497,8 +497,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_build",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "build"
     },
     {
@@ -508,8 +508,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_login",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "login"
     },
     {
@@ -519,8 +519,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_register",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "register"
     },
     {
@@ -530,8 +530,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_sendresetlink",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "sendresetlink"
     },
     {
@@ -541,8 +541,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_logout",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "logout"
     },
     {
@@ -552,8 +552,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_clearerror",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "clearerror"
     },
     {
@@ -563,8 +563,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_seterrormessage",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "seterrormessage"
     },
     {
@@ -574,8 +574,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_setloading",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "_setloading"
     },
     {
@@ -585,8 +585,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_setnotloading",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "_setnotloading"
     },
     {
@@ -596,8 +596,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_controller_clearephemeralflags",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "_clearephemeralflags"
     },
     {
@@ -618,8 +618,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "auth_state_dart",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "auth_state.dart"
     },
     {
@@ -629,8 +629,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "auth_user_dart",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "auth_user.dart"
     },
     {
@@ -640,8 +640,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "auth_validators_dart",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "auth_validators.dart"
     },
     {
@@ -651,8 +651,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_providers",
-      "community": 255,
-      "community_name": "diamonds_routes.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "auth_providers.dart"
     },
     {
@@ -662,8 +662,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_providers_authprovider",
-      "community": 52,
-      "community_name": "filter_chip.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "authprovider"
     },
     {
@@ -673,8 +673,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "auth_controller_dart",
-      "community": 255,
-      "community_name": "diamonds_routes.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "auth_controller.dart"
     },
     {
@@ -684,8 +684,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_state",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "auth_state.dart"
     },
     {
@@ -695,8 +695,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_state_authstate",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "authstate"
     },
     {
@@ -706,8 +706,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_state_user",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "user"
     },
     {
@@ -717,8 +717,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_state_isloading",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "isloading"
     },
     {
@@ -728,8 +728,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_state_errormessage",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "errormessage"
     },
     {
@@ -750,8 +750,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_state_resetlinksent",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "resetlinksent"
     },
     {
@@ -761,8 +761,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_state_isauthenticated",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "isauthenticated"
     },
     {
@@ -772,8 +772,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "bool_get",
-      "community": 122,
-      "community_name": "app_theme.dart",
+      "community": 246,
+      "community_name": "build",
       "norm_label": "bool get"
     },
     {
@@ -783,8 +783,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_state_copywith",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "copywith"
     },
     {
@@ -794,8 +794,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_user",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "auth_user.dart"
     },
     {
@@ -805,8 +805,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_user_authuser",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "authuser"
     },
     {
@@ -816,8 +816,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_user_fullname",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "fullname"
     },
     {
@@ -827,8 +827,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_user_username",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "username"
     },
     {
@@ -838,8 +838,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_auth_auth_user_email",
-      "community": 282,
-      "community_name": "gemstone_listings_screen.dart",
+      "community": 122,
+      "community_name": "app_theme.dart",
       "norm_label": "email"
     },
     {
@@ -1245,8 +1245,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "globalkey",
-      "community": 105,
-      "community_name": "result.dart",
+      "community": 83,
+      "community_name": "app_router.dart",
       "norm_label": "globalkey"
     },
     {
@@ -2141,15 +2141,37 @@
       "norm_label": "naturalsinglebg"
     },
     {
-      "label": "gemstoneBg",
+      "label": "naturalMeleeBg",
       "file_type": "code",
       "source_file": "lib/core/theme/app_colors.dart",
       "source_location": null,
       "_origin": "ast",
-      "id": "lib_core_theme_app_colors_gemstonebg",
+      "id": "lib_core_theme_app_colors_naturalmeleebg",
       "community": 5,
       "community_name": "diamond.dart",
-      "norm_label": "gemstonebg"
+      "norm_label": "naturalmeleebg"
+    },
+    {
+      "label": "gemstoneSingleBg",
+      "file_type": "code",
+      "source_file": "lib/core/theme/app_colors.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_core_theme_app_colors_gemstonesinglebg",
+      "community": 5,
+      "community_name": "diamond.dart",
+      "norm_label": "gemstonesinglebg"
+    },
+    {
+      "label": "gemstoneMeleeBg",
+      "file_type": "code",
+      "source_file": "lib/core/theme/app_colors.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_core_theme_app_colors_gemstonemeleebg",
+      "community": 5,
+      "community_name": "diamond.dart",
+      "norm_label": "gemstonemeleebg"
     },
     {
       "label": "meleeBgDuration",
@@ -2444,8 +2466,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "static_const_double",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "static const double"
     },
     {
@@ -3698,8 +3720,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "voidcallback",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "voidcallback?"
     },
     {
@@ -3742,8 +3764,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "edgeinsetsgeometry",
-      "community": 291,
-      "community_name": "diamond_svg_data.dart",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "edgeinsetsgeometry"
     },
     {
@@ -3758,15 +3780,15 @@
       "norm_label": "titlestyle"
     },
     {
-      "label": "TextStyle?",
+      "label": "TextStyle",
       "file_type": "code",
       "source_file": null,
       "source_location": null,
       "_origin": "ast",
       "id": "textstyle",
-      "community": 53,
-      "community_name": "gemstone_segmented_control.dart",
-      "norm_label": "textstyle?"
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
+      "norm_label": "textstyle"
     },
     {
       "label": "build",
@@ -3808,8 +3830,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_error_state",
-      "community": 291,
-      "community_name": "diamond_svg_data.dart",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "catalog_error_state.dart"
     },
     {
@@ -3819,8 +3841,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_error_state_catalogerrorstate",
-      "community": 291,
-      "community_name": "diamond_svg_data.dart",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "catalogerrorstate"
     },
     {
@@ -3830,8 +3852,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_error_state_message",
-      "community": 291,
-      "community_name": "diamond_svg_data.dart",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "message"
     },
     {
@@ -3841,8 +3863,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_error_state_onretry",
-      "community": 291,
-      "community_name": "diamond_svg_data.dart",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "onretry"
     },
     {
@@ -3852,8 +3874,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_error_state_retrylabel",
-      "community": 291,
-      "community_name": "diamond_svg_data.dart",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "retrylabel"
     },
     {
@@ -3863,8 +3885,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_error_state_padding",
-      "community": 291,
-      "community_name": "diamond_svg_data.dart",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "padding"
     },
     {
@@ -3874,8 +3896,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_error_state_build",
-      "community": 291,
-      "community_name": "diamond_svg_data.dart",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "build"
     },
     {
@@ -3885,8 +3907,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_list_loading",
-      "community": 218,
-      "community_name": "DiamondSearchNotifier",
+      "community": 130,
+      "community_name": "jewelry_routes.dart",
       "norm_label": "catalog_list_loading.dart"
     },
     {
@@ -3896,8 +3918,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_list_loading_cataloglistloading",
-      "community": 218,
-      "community_name": "DiamondSearchNotifier",
+      "community": 130,
+      "community_name": "jewelry_routes.dart",
       "norm_label": "cataloglistloading"
     },
     {
@@ -3907,8 +3929,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_list_loading_isgrid",
-      "community": 218,
-      "community_name": "DiamondSearchNotifier",
+      "community": 130,
+      "community_name": "jewelry_routes.dart",
       "norm_label": "isgrid"
     },
     {
@@ -3918,8 +3940,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_list_loading_build",
-      "community": 218,
-      "community_name": "DiamondSearchNotifier",
+      "community": 130,
+      "community_name": "jewelry_routes.dart",
       "norm_label": "build"
     },
     {
@@ -3929,8 +3951,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_list_loading_buildshimmercard",
-      "community": 218,
-      "community_name": "DiamondSearchNotifier",
+      "community": 130,
+      "community_name": "jewelry_routes.dart",
       "norm_label": "_buildshimmercard"
     },
     {
@@ -3940,8 +3962,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_catalog_list_loading_buildshimmerrow",
-      "community": 218,
-      "community_name": "DiamondSearchNotifier",
+      "community": 130,
+      "community_name": "jewelry_routes.dart",
       "norm_label": "_buildshimmerrow"
     },
     {
@@ -4226,8 +4248,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "class",
-      "community": 224,
-      "community_name": "bullions_filter_provider.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "class"
     },
     {
@@ -4809,8 +4831,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "texteditingcontroller",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 256,
+      "community_name": "MessageHandler",
       "norm_label": "texteditingcontroller"
     },
     {
@@ -4842,8 +4864,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "catalog_standard_range_filters.dart"
     },
     {
@@ -4853,8 +4875,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_catalogstandardrangefilters",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "catalogstandardrangefilters"
     },
     {
@@ -4864,8 +4886,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_totalpricemin",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "totalpricemin"
     },
     {
@@ -4875,8 +4897,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_totalpricemax",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "totalpricemax"
     },
     {
@@ -4886,8 +4908,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_totalpricelimits",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "totalpricelimits"
     },
     {
@@ -4897,8 +4919,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_totalcaratmin",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "totalcaratmin"
     },
     {
@@ -4908,8 +4930,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_totalcaratmax",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "totalcaratmax"
     },
     {
@@ -4919,8 +4941,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_totalcaratlimits",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "totalcaratlimits"
     },
     {
@@ -4930,8 +4952,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_caratquickranges",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "caratquickranges"
     },
     {
@@ -4941,8 +4963,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_selectedcaratquickranges",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "selectedcaratquickranges"
     },
     {
@@ -4952,8 +4974,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_ontogglecaratquickrange",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "ontogglecaratquickrange"
     },
     {
@@ -4963,8 +4985,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_pricepercaratmin",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "pricepercaratmin"
     },
     {
@@ -4974,8 +4996,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_pricepercaratmax",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "pricepercaratmax"
     },
     {
@@ -4985,8 +5007,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_pricepercaratlimits",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "pricepercaratlimits"
     },
     {
@@ -4996,8 +5018,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_pricepercarattitle",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "pricepercarattitle"
     },
     {
@@ -5007,8 +5029,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_catalog_standard_range_filters_build",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "build"
     },
     {
@@ -5018,8 +5040,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "filter_quick_range_chip_dart",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "filter_quick_range_chip.dart"
     },
     {
@@ -5029,8 +5051,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "filter_range_slider_dart",
-      "community": 124,
-      "community_name": "CustomPainter",
+      "community": 26,
+      "community_name": "gemstone_search_screen.dart",
       "norm_label": "filter_range_slider.dart"
     },
     {
@@ -5040,8 +5062,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_accordion_section",
-      "community": 53,
-      "community_name": "gemstone_segmented_control.dart",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "filter_accordion_section.dart"
     },
     {
@@ -5051,8 +5073,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_accordion_section_filteraccordionsection",
-      "community": 53,
-      "community_name": "gemstone_segmented_control.dart",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "filteraccordionsection"
     },
     {
@@ -5062,8 +5084,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_accordion_section_title",
-      "community": 53,
-      "community_name": "gemstone_segmented_control.dart",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "title"
     },
     {
@@ -5073,8 +5095,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_accordion_section_expanded",
-      "community": 53,
-      "community_name": "gemstone_segmented_control.dart",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "expanded"
     },
     {
@@ -5084,8 +5106,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_accordion_section_ontoggle",
-      "community": 53,
-      "community_name": "gemstone_segmented_control.dart",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "ontoggle"
     },
     {
@@ -5095,8 +5117,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_accordion_section_child",
-      "community": 53,
-      "community_name": "gemstone_segmented_control.dart",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "child"
     },
     {
@@ -5106,8 +5128,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_accordion_section_titlestyle",
-      "community": 53,
-      "community_name": "gemstone_segmented_control.dart",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "titlestyle"
     },
     {
@@ -5117,8 +5139,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_accordion_section_build",
-      "community": 53,
-      "community_name": "gemstone_segmented_control.dart",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "build"
     },
     {
@@ -5139,8 +5161,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_advanced_range_input_filteradvancedrangeinput",
-      "community": 243,
-      "community_name": "bullions_repository.dart",
+      "community": 48,
+      "community_name": "gemstone_filter_category_basic.dart",
       "norm_label": "filteradvancedrangeinput"
     },
     {
@@ -5150,8 +5172,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_advanced_range_input_filteradvancedrangeinputstate",
-      "community": 243,
-      "community_name": "bullions_repository.dart",
+      "community": 48,
+      "community_name": "gemstone_filter_category_basic.dart",
       "norm_label": "_filteradvancedrangeinputstate"
     },
     {
@@ -5711,8 +5733,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_quick_range_chip",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "filter_quick_range_chip.dart"
     },
     {
@@ -5722,8 +5744,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_quick_range_chip_filterquickrangechip",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "filterquickrangechip"
     },
     {
@@ -5733,8 +5755,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_quick_range_chip_label",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "label"
     },
     {
@@ -5744,8 +5766,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_quick_range_chip_isselected",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "isselected"
     },
     {
@@ -5755,8 +5777,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_quick_range_chip_ontap",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "ontap"
     },
     {
@@ -5766,8 +5788,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_quick_range_chip_build",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 204,
+      "community_name": "watches_screen.dart",
       "norm_label": "build"
     },
     {
@@ -5788,8 +5810,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_range_slider_filterrangeslider",
-      "community": 48,
-      "community_name": "gemstone_filter_category_basic.dart",
+      "community": 219,
+      "community_name": "bullionsFilterProvider",
       "norm_label": "filterrangeslider"
     },
     {
@@ -5799,8 +5821,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_filters_filter_range_slider_filterrangesliderstate",
-      "community": 48,
-      "community_name": "gemstone_filter_category_basic.dart",
+      "community": 219,
+      "community_name": "bullionsFilterProvider",
       "norm_label": "_filterrangesliderstate"
     },
     {
@@ -6888,8 +6910,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_melee_background_shell_meleetintextentanchor",
-      "community": 48,
-      "community_name": "gemstone_filter_category_basic.dart",
+      "community": 114,
+      "community_name": "filter_boolean_checkbox.dart",
       "norm_label": "meleetintextentanchor"
     },
     {
@@ -6899,8 +6921,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_melee_background_shell_meleetintextentanchorstate",
-      "community": 48,
-      "community_name": "gemstone_filter_category_basic.dart",
+      "community": 114,
+      "community_name": "filter_boolean_checkbox.dart",
       "norm_label": "_meleetintextentanchorstate"
     },
     {
@@ -7691,8 +7713,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_search_action_bottom_bar",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "search_action_bottom_bar.dart"
     },
     {
@@ -7702,9 +7724,20 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_search_action_bottom_bar_searchactionbottombar",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "searchactionbottombar"
+    },
+    {
+      "label": "_FittedLabel",
+      "file_type": "code",
+      "source_file": "lib/core/widgets/search_action_bottom_bar.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_core_widgets_search_action_bottom_bar_fittedlabel",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
+      "norm_label": "_fittedlabel"
     },
     {
       "label": "primaryLabel",
@@ -7713,8 +7746,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_search_action_bottom_bar_primarylabel",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "primarylabel"
     },
     {
@@ -7724,8 +7757,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_search_action_bottom_bar_onprimary",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "onprimary"
     },
     {
@@ -7735,8 +7768,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_search_action_bottom_bar_clearlabel",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "clearlabel"
     },
     {
@@ -7746,20 +7779,31 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_search_action_bottom_bar_onclear",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "onclear"
     },
     {
-      "label": "formatCount",
+      "label": "text",
       "file_type": "code",
       "source_file": "lib/core/widgets/search_action_bottom_bar.dart",
       "source_location": null,
       "_origin": "ast",
-      "id": "lib_core_widgets_search_action_bottom_bar_formatcount",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
-      "norm_label": "formatcount"
+      "id": "lib_core_widgets_search_action_bottom_bar_text",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
+      "norm_label": "text"
+    },
+    {
+      "label": "style",
+      "file_type": "code",
+      "source_file": "lib/core/widgets/search_action_bottom_bar.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_core_widgets_search_action_bottom_bar_style",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
+      "norm_label": "style"
     },
     {
       "label": "build",
@@ -7768,8 +7812,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_core_widgets_search_action_bottom_bar_build",
-      "community": 295,
-      "community_name": "DiamondSearchNotifier",
+      "community": 11,
+      "community_name": "filter_origin_dropdown.dart",
       "norm_label": "build"
     },
     {
@@ -8142,8 +8186,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_forgot_password_screen",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "forgot_password_screen.dart"
     },
     {
@@ -8153,8 +8197,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_forgot_password_screen_forgotpasswordscreen",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "forgotpasswordscreen"
     },
     {
@@ -8175,8 +8219,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_forgot_password_screen_forgotpasswordscreenstate",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "_forgotpasswordscreenstate"
     },
     {
@@ -8197,8 +8241,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_forgot_password_screen_formkey",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "_formkey"
     },
     {
@@ -8208,8 +8252,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_forgot_password_screen_emailcontroller",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "_emailcontroller"
     },
     {
@@ -8219,8 +8263,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_forgot_password_screen_didautoredirect",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "_didautoredirect"
     },
     {
@@ -8230,8 +8274,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_forgot_password_screen_createstate",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "createstate"
     },
     {
@@ -8241,8 +8285,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_forgot_password_screen_dispose",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "dispose"
     },
     {
@@ -8252,8 +8296,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_forgot_password_screen_build",
-      "community": 52,
-      "community_name": "filter_chip.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "build"
     },
     {
@@ -8263,8 +8307,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_sellerdashboard",
-      "community": 52,
-      "community_name": "filter_chip.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "approutenames.sellerdashboard"
     },
     {
@@ -8274,8 +8318,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_login",
-      "community": 52,
-      "community_name": "filter_chip.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "approutenames.login"
     },
     {
@@ -8296,8 +8340,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_auth_auth_providers_dart",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "../../../../core/auth/auth_providers.dart"
     },
     {
@@ -8307,8 +8351,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_auth_auth_validators_dart",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "../../../../core/auth/auth_validators.dart"
     },
     {
@@ -8351,8 +8395,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "formstate",
-      "community": 204,
-      "community_name": "watches_screen.dart",
+      "community": 88,
+      "community_name": "gemstone_segmented_control.dart",
       "norm_label": "formstate"
     },
     {
@@ -8483,8 +8527,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_login_screen_build",
-      "community": 52,
-      "community_name": "filter_chip.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "build"
     },
     {
@@ -8494,8 +8538,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_forgotpassword",
-      "community": 52,
-      "community_name": "filter_chip.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "approutenames.forgotpassword"
     },
     {
@@ -8505,8 +8549,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_register",
-      "community": 52,
-      "community_name": "filter_chip.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "approutenames.register"
     },
     {
@@ -8692,8 +8736,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_auth_presentation_screens_register_screen_build",
-      "community": 52,
-      "community_name": "filter_chip.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "build"
     },
     {
@@ -8824,8 +8868,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_application_bullions_filter_provider_bullionsviewmodeprovider",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "bullionsviewmodeprovider"
     },
     {
@@ -8835,8 +8879,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_application_bullions_filter_provider_bullionsfilterdraftprovider",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "bullionsfilterdraftprovider"
     },
     {
@@ -9187,8 +9231,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_application_bullions_list_provider_bullionslistprovider",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "bullionslistprovider"
     },
     {
@@ -10287,8 +10331,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_presentation_screens_bullions_screen_bullionsscreen",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "bullionsscreen"
     },
     {
@@ -10298,8 +10342,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_presentation_screens_bullions_screen_bullionsscreenstate",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "_bullionsscreenstate"
     },
     {
@@ -10331,8 +10375,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_presentation_screens_bullions_screen_pinnedheaderdelegate",
-      "community": 242,
-      "community_name": "_PairedShowcaseCarouselState",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "_pinnedheaderdelegate"
     },
     {
@@ -10342,8 +10386,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "sliverpersistentheaderdelegate",
-      "community": 242,
-      "community_name": "_PairedShowcaseCarouselState",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "sliverpersistentheaderdelegate"
     },
     {
@@ -10694,8 +10738,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "double_get",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "double get"
     },
     {
@@ -10903,8 +10947,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_presentation_screens_bullions_screen_onscroll",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "_onscroll"
     },
     {
@@ -10936,8 +10980,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_presentation_screens_bullions_screen_openfilters",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "_openfilters"
     },
     {
@@ -10958,8 +11002,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_presentation_screens_bullions_screen_build",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "build"
     },
     {
@@ -10991,8 +11035,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_widgets_catalog_empty_state_dart",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 9,
+      "community_name": "Diamond Listings Results Screen \u2014 UI Specification",
       "norm_label": "../../../../core/widgets/catalog_empty_state.dart"
     },
     {
@@ -11013,8 +11057,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_widgets_listing_search_filter_bar_dart",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "../../../../core/widgets/listing_search_filter_bar.dart"
     },
     {
@@ -11024,8 +11068,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_widgets_view_mode_toggle_dart",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 9,
+      "community_name": "Diamond Listings Results Screen \u2014 UI Specification",
       "norm_label": "../../../../core/widgets/view_mode_toggle.dart"
     },
     {
@@ -11079,8 +11123,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "scaffoldstate",
-      "community": 105,
-      "community_name": "result.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "scaffoldstate"
     },
     {
@@ -11321,8 +11365,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_utils_format_catalog_price_dart",
-      "community": 41,
-      "community_name": "Integration Agent Personality",
+      "community": 125,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "../../../../core/utils/format_catalog_price.dart"
     },
     {
@@ -11354,8 +11398,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_presentation_widgets_bullions_filter_drawer_bullionsfilterdrawer",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "bullionsfilterdrawer"
     },
     {
@@ -11365,8 +11409,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_presentation_widgets_bullions_filter_drawer_bullionsfilterdrawerstate",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "_bullionsfilterdrawerstate"
     },
     {
@@ -11530,8 +11574,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_presentation_widgets_bullions_filter_drawer_initstate",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "initstate"
     },
     {
@@ -11585,8 +11629,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_bullions_presentation_widgets_bullions_filter_drawer_build",
-      "community": 286,
-      "community_name": "home_screen.dart",
+      "community": 230,
+      "community_name": "diamond_list_loading.dart",
       "norm_label": "build"
     },
     {
@@ -11926,8 +11970,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_cart_application_cart_provider_cartitemcountprovider",
-      "community": 39,
-      "community_name": "Integration Agent Personality",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "cartitemcountprovider"
     },
     {
@@ -12531,8 +12575,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_cart_presentation_widgets_delivery_address_sheet_deliveryaddresssheet",
-      "community": 256,
-      "community_name": "MessageHandler",
+      "community": 48,
+      "community_name": "gemstone_filter_category_basic.dart",
       "norm_label": "_deliveryaddresssheet"
     },
     {
@@ -12542,8 +12586,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_cart_presentation_widgets_delivery_address_sheet_deliveryaddresssheetstate",
-      "community": 256,
-      "community_name": "MessageHandler",
+      "community": 48,
+      "community_name": "gemstone_filter_category_basic.dart",
       "norm_label": "_deliveryaddresssheetstate"
     },
     {
@@ -12971,8 +13015,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_application_comparison_provider_comparisonprovider",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "comparisonprovider"
     },
     {
@@ -13103,8 +13147,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "domain_models_compare_item_dart",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "../../domain/models/compare_item.dart"
     },
     {
@@ -13576,8 +13620,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_screens_comparison_screen_comparisonscreen",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "comparisonscreen"
     },
     {
@@ -13587,8 +13631,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_screens_comparison_screen_comparisontable",
-      "community": 48,
-      "community_name": "gemstone_filter_category_basic.dart",
+      "community": 232,
+      "community_name": "DiamondSearchNotifier",
       "norm_label": "_comparisontable"
     },
     {
@@ -13598,8 +13642,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_screens_comparison_screen_comparisontablestate",
-      "community": 48,
-      "community_name": "gemstone_filter_category_basic.dart",
+      "community": 232,
+      "community_name": "DiamondSearchNotifier",
       "norm_label": "_comparisontablestate"
     },
     {
@@ -13620,8 +13664,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_screens_comparison_screen_speclabelcell",
-      "community": 244,
-      "community_name": "diamondListProvider",
+      "community": 232,
+      "community_name": "DiamondSearchNotifier",
       "norm_label": "_speclabelcell"
     },
     {
@@ -13631,8 +13675,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_screens_comparison_screen_itemheaderrow",
-      "community": 244,
-      "community_name": "diamondListProvider",
+      "community": 232,
+      "community_name": "DiamondSearchNotifier",
       "norm_label": "_itemheaderrow"
     },
     {
@@ -13653,8 +13697,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_screens_comparison_screen_draggablecolumnheader",
-      "community": 244,
-      "community_name": "diamondListProvider",
+      "community": 232,
+      "community_name": "DiamondSearchNotifier",
       "norm_label": "_draggablecolumnheader"
     },
     {
@@ -13664,8 +13708,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_screens_comparison_screen_itemheader",
-      "community": 244,
-      "community_name": "diamondListProvider",
+      "community": 232,
+      "community_name": "DiamondSearchNotifier",
       "norm_label": "_itemheader"
     },
     {
@@ -13675,8 +13719,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_screens_comparison_screen_footerbar",
-      "community": 244,
-      "community_name": "diamondListProvider",
+      "community": 232,
+      "community_name": "DiamondSearchNotifier",
       "norm_label": "_footerbar"
     },
     {
@@ -13950,8 +13994,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_screens_comparison_screen_build",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "build"
     },
     {
@@ -14049,8 +14093,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "application_comparison_provider_dart",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "../../application/comparison_provider.dart"
     },
     {
@@ -14192,8 +14236,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_widgets_compare_toggle_helper",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "compare_toggle_helper.dart"
     },
     {
@@ -14203,8 +14247,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_widgets_compare_toggle_helper_result",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "result"
     },
     {
@@ -14214,8 +14258,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_widgets_compare_toggle_helper_message",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "message"
     },
     {
@@ -14225,8 +14269,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_widgets_compare_toggle_helper_handlecomparetoggle",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "handlecomparetoggle"
     },
     {
@@ -14236,8 +14280,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "compare_add_button_dart",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "compare_add_button.dart"
     },
     {
@@ -14247,8 +14291,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_widgets_comparison_bottom_bar",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "comparison_bottom_bar.dart"
     },
     {
@@ -14258,8 +14302,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_widgets_comparison_bottom_bar_comparisonbottombar",
-      "community": 232,
-      "community_name": "DiamondSearchNotifier",
+      "community": 124,
+      "community_name": "CustomPainter",
       "norm_label": "comparisonbottombar"
     },
     {
@@ -14269,8 +14313,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_widgets_comparison_bottom_bar_comparisontrayhost",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "comparisontrayhost"
     },
     {
@@ -14280,8 +14324,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_widgets_comparison_bottom_bar_child",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "child"
     },
     {
@@ -14291,8 +14335,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_widgets_comparison_bottom_bar_barreserve",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "barreserve"
     },
     {
@@ -14302,8 +14346,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_comparison_presentation_widgets_comparison_bottom_bar_build",
-      "community": 39,
-      "community_name": "Integration Agent Personality",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "build"
     },
     {
@@ -14313,8 +14357,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_comparison",
-      "community": 39,
-      "community_name": "Integration Agent Personality",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "approutenames.comparison"
     },
     {
@@ -14324,8 +14368,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_theme_app_shadows_dart",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "../../../../core/theme/app_shadows.dart"
     },
     {
@@ -14357,8 +14401,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_application_diamond_list_provider_diamondliststate",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "diamondliststate"
     },
     {
@@ -14368,8 +14412,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_application_diamond_list_provider_diamondlistnotifier",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "diamondlistnotifier"
     },
     {
@@ -14379,8 +14423,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_application_diamond_list_provider_diamondsortingprovider",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "diamondsortingprovider"
     },
     {
@@ -14522,8 +14566,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_application_diamond_list_provider_loadfirstpage",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "_loadfirstpage"
     },
     {
@@ -14533,8 +14577,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_application_diamond_list_provider_loadnextpage",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "loadnextpage"
     },
     {
@@ -14544,8 +14588,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_application_diamond_list_provider_refresh",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "refresh"
     },
     {
@@ -14599,8 +14643,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "domain_models_diamond_catalog_type_dart",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "../../domain/models/diamond_catalog_type.dart"
     },
     {
@@ -14610,8 +14654,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "domain_models_sorting_criteria_dart",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "../../domain/models/sorting_criteria.dart"
     },
     {
@@ -14654,8 +14698,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_application_diamond_search_provider_diamondsearchprovider",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "diamondsearchprovider"
     },
     {
@@ -14665,8 +14709,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_application_diamond_search_provider_matchingcountprovider",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 1,
+      "community_name": "diamond_search_provider.dart",
       "norm_label": "matchingcountprovider"
     },
     {
@@ -15589,8 +15633,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_application_diamond_search_provider_computematchingcount",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "computematchingcount"
     },
     {
@@ -15600,8 +15644,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "domain_models_diamond_filter_state_dart",
-      "community": 41,
-      "community_name": "Integration Agent Personality",
+      "community": 125,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "../../domain/models/diamond_filter_state.dart"
     },
     {
@@ -15919,8 +15963,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_data_repositories_diamond_repository_impl_diamondrepositoryprovider",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "diamondrepositoryprovider"
     },
     {
@@ -16139,8 +16183,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_diamonds_routes",
-      "community": 212,
-      "community_name": "filter_accordion_section.dart",
+      "community": 242,
+      "community_name": "_PairedShowcaseCarouselState",
       "norm_label": "diamonds_routes.dart"
     },
     {
@@ -16150,8 +16194,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_diamonds_routes_diamondsroutes",
-      "community": 212,
-      "community_name": "filter_accordion_section.dart",
+      "community": 242,
+      "community_name": "_PairedShowcaseCarouselState",
       "norm_label": "diamondsroutes"
     },
     {
@@ -16161,8 +16205,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "presentation_screens_diamond_listings_screen_dart",
-      "community": 212,
-      "community_name": "filter_accordion_section.dart",
+      "community": 242,
+      "community_name": "_PairedShowcaseCarouselState",
       "norm_label": "presentation/screens/diamond_listings_screen.dart"
     },
     {
@@ -16172,8 +16216,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "presentation_screens_diamond_search_screen_dart",
-      "community": 212,
-      "community_name": "filter_accordion_section.dart",
+      "community": 242,
+      "community_name": "_PairedShowcaseCarouselState",
       "norm_label": "presentation/screens/diamond_search_screen.dart"
     },
     {
@@ -16183,8 +16227,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "presentation_screens_lab_grown_diamond_search_screen_dart",
-      "community": 212,
-      "community_name": "filter_accordion_section.dart",
+      "community": 242,
+      "community_name": "_PairedShowcaseCarouselState",
       "norm_label": "presentation/screens/lab_grown_diamond_search_screen.dart"
     },
     {
@@ -16194,8 +16238,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "presentation_widgets_lab_grown_diamond_scope_dart",
-      "community": 212,
-      "community_name": "filter_accordion_section.dart",
+      "community": 242,
+      "community_name": "_PairedShowcaseCarouselState",
       "norm_label": "presentation/widgets/lab_grown_diamond_scope.dart"
     },
     {
@@ -16491,8 +16535,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_domain_models_diamond_catalog_type",
-      "community": 122,
-      "community_name": "app_theme.dart",
+      "community": 246,
+      "community_name": "build",
       "norm_label": "diamond_catalog_type.dart"
     },
     {
@@ -16502,8 +16546,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_domain_models_diamond_catalog_type_diamondcatalogtype",
-      "community": 122,
-      "community_name": "app_theme.dart",
+      "community": 246,
+      "community_name": "build",
       "norm_label": "diamondcatalogtype"
     },
     {
@@ -16513,8 +16557,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_domain_models_diamond_catalog_type_label",
-      "community": 122,
-      "community_name": "app_theme.dart",
+      "community": 246,
+      "community_name": "build",
       "norm_label": "label"
     },
     {
@@ -16524,8 +16568,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_domain_models_diamond_catalog_type_islabgrown",
-      "community": 122,
-      "community_name": "app_theme.dart",
+      "community": 246,
+      "community_name": "build",
       "norm_label": "islabgrown"
     },
     {
@@ -16535,8 +16579,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_domain_models_diamond_catalog_type_diamondcatalogtypeprovider",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "diamondcatalogtypeprovider"
     },
     {
@@ -18306,8 +18350,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_widgets_catalog_list_loading_dart",
-      "community": 9,
-      "community_name": "Diamond Listings Results Screen \u2014 UI Specification",
+      "community": 131,
+      "community_name": "_PairedShowcaseCarouselState",
       "norm_label": "../../../../core/widgets/catalog_list_loading.dart"
     },
     {
@@ -18317,8 +18361,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "comparison_presentation_widgets_comparison_bottom_bar_dart",
-      "community": 9,
-      "community_name": "Diamond Listings Results Screen \u2014 UI Specification",
+      "community": 131,
+      "community_name": "_PairedShowcaseCarouselState",
       "norm_label": "../../../comparison/presentation/widgets/comparison_bottom_bar.dart"
     },
     {
@@ -18328,8 +18372,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "application_diamond_list_provider_dart",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "../../application/diamond_list_provider.dart"
     },
     {
@@ -18339,8 +18383,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "application_diamond_search_provider_dart",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "../../application/diamond_search_provider.dart"
     },
     {
@@ -18614,8 +18658,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_screens_diamond_search_screen_onscroll",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "_onscroll"
     },
     {
@@ -18647,8 +18691,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_screens_diamond_search_screen_build",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "build"
     },
     {
@@ -18658,8 +18702,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_screens_diamond_search_screen_buildshapecarousel",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "_buildshapecarousel"
     },
     {
@@ -18669,8 +18713,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_screens_diamond_search_screen_buildpreferencefilters",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "_buildpreferencefilters"
     },
     {
@@ -18680,8 +18724,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_screens_diamond_search_screen_buildmeasurementfilters",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "_buildmeasurementfilters"
     },
     {
@@ -18691,8 +18735,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_screens_diamond_search_screen_buildadvancedfilters",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "_buildadvancedfilters"
     },
     {
@@ -18724,8 +18768,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_widgets_global_search_bar_dart",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 18,
+      "community_name": "diamond_card_list.dart",
       "norm_label": "../../../../core/widgets/global_search_bar.dart"
     },
     {
@@ -18856,8 +18900,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_screens_lab_grown_diamond_search_screen",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "lab_grown_diamond_search_screen.dart"
     },
     {
@@ -18867,8 +18911,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_screens_lab_grown_diamond_search_screen_labgrowndiamondsearchscreen",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "labgrowndiamondsearchscreen"
     },
     {
@@ -18878,8 +18922,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_screens_lab_grown_diamond_search_screen_build",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "build"
     },
     {
@@ -18889,8 +18933,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "diamond_search_screen_dart",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "diamond_search_screen.dart"
     },
     {
@@ -19131,8 +19175,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_diamond_filter_chips",
-      "community": 41,
-      "community_name": "Integration Agent Personality",
+      "community": 125,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "diamond_filter_chips.dart"
     },
     {
@@ -19142,8 +19186,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_diamond_filter_chips_diamondfilterchips",
-      "community": 41,
-      "community_name": "Integration Agent Personality",
+      "community": 125,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "diamondfilterchips"
     },
     {
@@ -19153,8 +19197,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_diamond_filter_chips_filterchipdata",
-      "community": 41,
-      "community_name": "Integration Agent Personality",
+      "community": 125,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "_filterchipdata"
     },
     {
@@ -19164,8 +19208,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_diamond_filter_chips_label",
-      "community": 41,
-      "community_name": "Integration Agent Personality",
+      "community": 125,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "label"
     },
     {
@@ -19175,8 +19219,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_diamond_filter_chips_onremove",
-      "community": 41,
-      "community_name": "Integration Agent Personality",
+      "community": 125,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "onremove"
     },
     {
@@ -19186,8 +19230,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_diamond_filter_chips_build",
-      "community": 41,
-      "community_name": "Integration Agent Personality",
+      "community": 125,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "build"
     },
     {
@@ -19263,8 +19307,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_diamond_sorting_bottom_sheet_initstate",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "initstate"
     },
     {
@@ -19329,8 +19373,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_diamond_sorting_bottom_sheet_apply",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "_apply"
     },
     {
@@ -19637,8 +19681,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_filter_category_basic_finishpresetssection",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "finishpresetssection"
     },
     {
@@ -19967,8 +20011,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_filter_category_basic_build",
-      "community": 14,
-      "community_name": "diamond_search_screen.dart",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "build"
     },
     {
@@ -20088,8 +20132,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_filter_color_selector_colortabsselector",
-      "community": 92,
-      "community_name": "seller_drawer.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "colortabsselector"
     },
     {
@@ -20099,8 +20143,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_filter_color_selector_colortabsselectorstate",
-      "community": 92,
-      "community_name": "seller_drawer.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "_colortabsselectorstate"
     },
     {
@@ -20209,8 +20253,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_filter_color_selector_build",
-      "community": 21,
-      "community_name": "diamondSearchProvider",
+      "community": 142,
+      "community_name": "listing_search_filter_bar.dart",
       "norm_label": "build"
     },
     {
@@ -20550,8 +20594,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_lab_grown_diamond_scope",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "lab_grown_diamond_scope.dart"
     },
     {
@@ -20561,8 +20605,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_lab_grown_diamond_scope_labgrowndiamondscope",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "labgrowndiamondscope"
     },
     {
@@ -20572,8 +20616,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_lab_grown_diamond_scope_child",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "child"
     },
     {
@@ -20583,8 +20627,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_diamonds_presentation_widgets_lab_grown_diamond_scope_build",
-      "community": 125,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 41,
+      "community_name": "Integration Agent Personality",
       "norm_label": "build"
     },
     {
@@ -20781,8 +20825,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_application_gemstone_list_provider_loadnextpage",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 283,
+      "community_name": "gemstone_list_provider.dart",
       "norm_label": "loadnextpage"
     },
     {
@@ -20803,8 +20847,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "domain_models_gemstone_dart",
-      "community": 283,
-      "community_name": "gemstone_list_provider.dart",
+      "community": 7,
+      "community_name": "gemstone_search_provider.dart",
       "norm_label": "../../domain/models/gemstone.dart"
     },
     {
@@ -20836,7 +20880,7 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_application_gemstone_search_provider_gemstonesearchnotifier",
-      "community": 262,
+      "community": 272,
       "community_name": "GemstoneSearchNotifier",
       "norm_label": "gemstonesearchnotifier"
     },
@@ -20847,8 +20891,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_application_gemstone_search_provider_gemstonesearchprovider",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 283,
+      "community_name": "gemstone_list_provider.dart",
       "norm_label": "gemstonesearchprovider"
     },
     {
@@ -20858,8 +20902,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_application_gemstone_search_provider_matchinggemstonecountprovider",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 12,
+      "community_name": "gemstone_showcase_carousel.dart",
       "norm_label": "matchinggemstonecountprovider"
     },
     {
@@ -21815,7 +21859,7 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_domain_models_gemstone_filter_state_gemstonefilterstate",
-      "community": 262,
+      "community": 272,
       "community_name": "GemstoneSearchNotifier",
       "norm_label": "gemstonefilterstate"
     },
@@ -22948,8 +22992,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_presentation_screens_gemstone_search_screen_gemstonesearchscreen",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 92,
+      "community_name": "seller_drawer.dart",
       "norm_label": "gemstonesearchscreen"
     },
     {
@@ -22959,8 +23003,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_presentation_screens_gemstone_search_screen_gemstonesearchscreenstate",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 92,
+      "community_name": "seller_drawer.dart",
       "norm_label": "_gemstonesearchscreenstate"
     },
     {
@@ -23146,8 +23190,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_presentation_screens_gemstone_search_screen_build",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 283,
+      "community_name": "gemstone_list_provider.dart",
       "norm_label": "build"
     },
     {
@@ -23157,8 +23201,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_gemstoneresults",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 283,
+      "community_name": "gemstone_list_provider.dart",
       "norm_label": "approutenames.gemstoneresults"
     },
     {
@@ -23168,8 +23212,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_presentation_screens_gemstone_search_screen_buildshowcasecarousel",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 283,
+      "community_name": "gemstone_list_provider.dart",
       "norm_label": "_buildshowcasecarousel"
     },
     {
@@ -23179,8 +23223,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_presentation_screens_gemstone_search_screen_buildpreferencefilters",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 283,
+      "community_name": "gemstone_list_provider.dart",
       "norm_label": "_buildpreferencefilters"
     },
     {
@@ -23190,8 +23234,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_presentation_screens_gemstone_search_screen_buildmeasurementfilters",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 283,
+      "community_name": "gemstone_list_provider.dart",
       "norm_label": "_buildmeasurementfilters"
     },
     {
@@ -23399,8 +23443,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_presentation_widgets_gemstone_card_build",
-      "community": 7,
-      "community_name": "gemstone_search_provider.dart",
+      "community": 93,
+      "community_name": "search_action_bottom_bar.dart",
       "norm_label": "build"
     },
     {
@@ -23553,8 +23597,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_presentation_widgets_gemstone_filter_category_basic_build",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 283,
+      "community_name": "gemstone_list_provider.dart",
       "norm_label": "build"
     },
     {
@@ -23619,8 +23663,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_presentation_widgets_gemstone_filter_category_quality_gemstonefiltercategoryquality",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 283,
+      "community_name": "gemstone_list_provider.dart",
       "norm_label": "gemstonefiltercategoryquality"
     },
     {
@@ -23641,8 +23685,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_gemstones_presentation_widgets_gemstone_filter_category_quality_build",
-      "community": 18,
-      "community_name": "diamond_card_list.dart",
+      "community": 283,
+      "community_name": "gemstone_list_provider.dart",
       "norm_label": "build"
     },
     {
@@ -23916,8 +23960,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_screens_home_screen_homescreen",
-      "community": 39,
-      "community_name": "Integration Agent Personality",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "homescreen"
     },
     {
@@ -24015,8 +24059,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_screens_home_screen_build",
-      "community": 39,
-      "community_name": "Integration Agent Personality",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "build"
     },
     {
@@ -24026,8 +24070,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_cart",
-      "community": 39,
-      "community_name": "Integration Agent Personality",
+      "community": 52,
+      "community_name": "filter_chip.dart",
       "norm_label": "approutenames.cart"
     },
     {
@@ -24037,8 +24081,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_screens_home_screen_opendiamonds",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 39,
+      "community_name": "Integration Agent Personality",
       "norm_label": "_opendiamonds"
     },
     {
@@ -24048,8 +24092,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_diamonds",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 39,
+      "community_name": "Integration Agent Personality",
       "norm_label": "approutenames.diamonds"
     },
     {
@@ -24059,8 +24103,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_screens_home_screen_openjewelry",
-      "community": 134,
-      "community_name": "JewelrySortOption",
+      "community": 39,
+      "community_name": "Integration Agent Personality",
       "norm_label": "_openjewelry"
     },
     {
@@ -24070,8 +24114,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_jewelry",
-      "community": 134,
-      "community_name": "JewelrySortOption",
+      "community": 39,
+      "community_name": "Integration Agent Personality",
       "norm_label": "approutenames.jewelry"
     },
     {
@@ -24323,8 +24367,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_widgets_home_quick_search",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 256,
+      "community_name": "MessageHandler",
       "norm_label": "home_quick_search.dart"
     },
     {
@@ -24334,8 +24378,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_widgets_home_quick_search_homequicksearch",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 48,
+      "community_name": "gemstone_filter_category_basic.dart",
       "norm_label": "homequicksearch"
     },
     {
@@ -24345,8 +24389,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_widgets_home_quick_search_homequicksearchstate",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 48,
+      "community_name": "gemstone_filter_category_basic.dart",
       "norm_label": "_homequicksearchstate"
     },
     {
@@ -24356,8 +24400,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_widgets_home_quick_search_controller",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 256,
+      "community_name": "MessageHandler",
       "norm_label": "_controller"
     },
     {
@@ -24367,8 +24411,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_widgets_home_quick_search_focusnode",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 256,
+      "community_name": "MessageHandler",
       "norm_label": "_focusnode"
     },
     {
@@ -24378,8 +24422,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "focusnode",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 256,
+      "community_name": "MessageHandler",
       "norm_label": "focusnode"
     },
     {
@@ -24389,8 +24433,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_widgets_home_quick_search_createstate",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 256,
+      "community_name": "MessageHandler",
       "norm_label": "createstate"
     },
     {
@@ -24400,8 +24444,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_widgets_home_quick_search_initstate",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 256,
+      "community_name": "MessageHandler",
       "norm_label": "initstate"
     },
     {
@@ -24411,8 +24455,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_widgets_home_quick_search_dispose",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 256,
+      "community_name": "MessageHandler",
       "norm_label": "dispose"
     },
     {
@@ -24422,8 +24466,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_widgets_home_quick_search_gofind",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 39,
+      "community_name": "Integration Agent Personality",
       "norm_label": "_gofind"
     },
     {
@@ -24433,8 +24477,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_home_presentation_widgets_home_quick_search_build",
-      "community": 142,
-      "community_name": "listing_search_filter_bar.dart",
+      "community": 256,
+      "community_name": "MessageHandler",
       "norm_label": "build"
     },
     {
@@ -24455,8 +24499,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_application_jewelry_filter_provider_jewelryfilternotifier",
-      "community": 209,
-      "community_name": "watch_grid_view.dart",
+      "community": 247,
+      "community_name": "SellerInquiryFormScreen",
       "norm_label": "jewelryfilternotifier"
     },
     {
@@ -24466,8 +24510,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_application_jewelry_filter_provider_jewelryfilterdraftnotifier",
-      "community": 209,
-      "community_name": "watch_grid_view.dart",
+      "community": 247,
+      "community_name": "SellerInquiryFormScreen",
       "norm_label": "jewelryfilterdraftnotifier"
     },
     {
@@ -25170,8 +25214,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "domain_models_jewelry_dart",
-      "community": 203,
-      "community_name": "jewelry_listing_views.dart",
+      "community": 237,
+      "community_name": "jewelry_product_card.dart",
       "norm_label": "../../domain/models/jewelry.dart"
     },
     {
@@ -25797,8 +25841,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_domain_models_jewelry_filter_state_jewelryfilterstate",
-      "community": 209,
-      "community_name": "watch_grid_view.dart",
+      "community": 247,
+      "community_name": "SellerInquiryFormScreen",
       "norm_label": "jewelryfilterstate"
     },
     {
@@ -25808,8 +25852,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_domain_models_jewelry_filter_state_jewelrysortoption",
-      "community": 22,
-      "community_name": "UX Researcher Agent Personality",
+      "community": 248,
+      "community_name": "WatchSortOption",
       "norm_label": "jewelrysortoption"
     },
     {
@@ -25830,8 +25874,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_domain_models_jewelry_filter_state_jewelrysortoptionlabel",
-      "community": 22,
-      "community_name": "UX Researcher Agent Personality",
+      "community": 248,
+      "community_name": "WatchSortOption",
       "norm_label": "jewelrysortoptionlabel"
     },
     {
@@ -26589,8 +26633,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_domain_repositories_jewelry_repository",
-      "community": 67,
-      "community_name": "Definition of Done \u2014 Checklist Before Moving to the Next Module",
+      "community": 262,
+      "community_name": "jewelry_repository.dart",
       "norm_label": "jewelry_repository.dart"
     },
     {
@@ -26611,8 +26655,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_domain_repositories_jewelry_repository_getjewelry",
-      "community": 67,
-      "community_name": "Definition of Done \u2014 Checklist Before Moving to the Next Module",
+      "community": 262,
+      "community_name": "jewelry_repository.dart",
       "norm_label": "getjewelry"
     },
     {
@@ -26622,8 +26666,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "models_jewelry_dart",
-      "community": 67,
-      "community_name": "Definition of Done \u2014 Checklist Before Moving to the Next Module",
+      "community": 262,
+      "community_name": "jewelry_repository.dart",
       "norm_label": "../models/jewelry.dart"
     },
     {
@@ -26633,8 +26677,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "models_jewelry_filter_state_dart",
-      "community": 67,
-      "community_name": "Definition of Done \u2014 Checklist Before Moving to the Next Module",
+      "community": 262,
+      "community_name": "jewelry_repository.dart",
       "norm_label": "../models/jewelry_filter_state.dart"
     },
     {
@@ -26644,8 +26688,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_jewelry_routes",
-      "community": 238,
-      "community_name": "jewelry_category_chips.dart",
+      "community": 54,
+      "community_name": "List",
       "norm_label": "jewelry_routes.dart"
     },
     {
@@ -26655,8 +26699,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_jewelry_routes_jewelryroutes",
-      "community": 238,
-      "community_name": "jewelry_category_chips.dart",
+      "community": 54,
+      "community_name": "List",
       "norm_label": "jewelryroutes"
     },
     {
@@ -26666,8 +26710,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "presentation_screens_jewelry_categories_screen_dart",
-      "community": 238,
-      "community_name": "jewelry_category_chips.dart",
+      "community": 54,
+      "community_name": "List",
       "norm_label": "presentation/screens/jewelry_categories_screen.dart"
     },
     {
@@ -26677,8 +26721,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "presentation_screens_jewelry_filter_screen_dart",
-      "community": 238,
-      "community_name": "jewelry_category_chips.dart",
+      "community": 54,
+      "community_name": "List",
       "norm_label": "presentation/screens/jewelry_filter_screen.dart"
     },
     {
@@ -26688,8 +26732,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "presentation_screens_jewelry_listing_screen_dart",
-      "community": 238,
-      "community_name": "jewelry_category_chips.dart",
+      "community": 54,
+      "community_name": "List",
       "norm_label": "presentation/screens/jewelry_listing_screen.dart"
     },
     {
@@ -26699,8 +26743,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "jewelry_categories_screen.dart"
     },
     {
@@ -26710,8 +26754,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_jewelrymaincategory",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "jewelrymaincategory"
     },
     {
@@ -26721,8 +26765,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_jewelrycategoriesscreen",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "jewelrycategoriesscreen"
     },
     {
@@ -26732,8 +26776,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_categorycard",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "_categorycard"
     },
     {
@@ -26743,8 +26787,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_title",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "title"
     },
     {
@@ -26754,8 +26798,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_filtervalue",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "filtervalue"
     },
     {
@@ -26765,8 +26809,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_imageasset",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "imageasset"
     },
     {
@@ -26776,8 +26820,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_stylecount",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "stylecount"
     },
     {
@@ -26787,8 +26831,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_jewelrymaincategories",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "jewelrymaincategories"
     },
     {
@@ -26798,8 +26842,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_category",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "category"
     },
     {
@@ -26809,8 +26853,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_ontap",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "ontap"
     },
     {
@@ -26820,8 +26864,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_categories_screen_build",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "build"
     },
     {
@@ -26831,8 +26875,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_home",
-      "community": 75,
-      "community_name": "jewelry_categories_screen.dart",
+      "community": 212,
+      "community_name": "filter_accordion_section.dart",
       "norm_label": "approutenames.home"
     },
     {
@@ -26853,8 +26897,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_filter_screen_jewelryfilterscreen",
-      "community": 134,
-      "community_name": "JewelrySortOption",
+      "community": 49,
+      "community_name": "filter_advanced_range_input.dart",
       "norm_label": "jewelryfilterscreen"
     },
     {
@@ -26864,8 +26908,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_filter_screen_jewelryfilterscreenstate",
-      "community": 134,
-      "community_name": "JewelrySortOption",
+      "community": 49,
+      "community_name": "filter_advanced_range_input.dart",
       "norm_label": "_jewelryfilterscreenstate"
     },
     {
@@ -27117,8 +27161,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "application_jewelry_list_provider_dart",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "../../application/jewelry_list_provider.dart"
     },
     {
@@ -27139,8 +27183,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_listing_screen",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "jewelry_listing_screen.dart"
     },
     {
@@ -27172,8 +27216,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_listing_screen_initialcategory",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "initialcategory"
     },
     {
@@ -27183,8 +27227,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_listing_screen_scrollcontroller",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "_scrollcontroller"
     },
     {
@@ -27194,8 +27238,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_listing_screen_searchcontroller",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "_searchcontroller"
     },
     {
@@ -27205,8 +27249,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_listing_screen_createstate",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "createstate"
     },
     {
@@ -27227,8 +27271,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_screens_jewelry_listing_screen_dispose",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "dispose"
     },
     {
@@ -27293,8 +27337,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "core_widgets_simple_sort_sheet_dart",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "../../../../core/widgets/simple_sort_sheet.dart"
     },
     {
@@ -27304,8 +27348,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "widgets_jewelry_listing_views_dart",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "../widgets/jewelry_listing_views.dart"
     },
     {
@@ -27315,8 +27359,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "widgets_jewelry_sub_category_chips_dart",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 134,
+      "community_name": "JewelrySortOption",
       "norm_label": "../widgets/jewelry_sub_category_chips.dart"
     },
     {
@@ -27359,8 +27403,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_widgets_jewelry_listing_views",
-      "community": 203,
-      "community_name": "jewelry_listing_views.dart",
+      "community": 237,
+      "community_name": "jewelry_product_card.dart",
       "norm_label": "jewelry_listing_views.dart"
     },
     {
@@ -27370,8 +27414,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_widgets_jewelry_listing_views_jewelrylistsliver",
-      "community": 203,
-      "community_name": "jewelry_listing_views.dart",
+      "community": 237,
+      "community_name": "jewelry_product_card.dart",
       "norm_label": "jewelrylistsliver"
     },
     {
@@ -27381,8 +27425,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_widgets_jewelry_listing_views_jewelrygridsliver",
-      "community": 203,
-      "community_name": "jewelry_listing_views.dart",
+      "community": 237,
+      "community_name": "jewelry_product_card.dart",
       "norm_label": "jewelrygridsliver"
     },
     {
@@ -27392,8 +27436,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_widgets_jewelry_listing_views_items",
-      "community": 203,
-      "community_name": "jewelry_listing_views.dart",
+      "community": 237,
+      "community_name": "jewelry_product_card.dart",
       "norm_label": "items"
     },
     {
@@ -27403,8 +27447,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_widgets_jewelry_listing_views_isloadingmore",
-      "community": 203,
-      "community_name": "jewelry_listing_views.dart",
+      "community": 237,
+      "community_name": "jewelry_product_card.dart",
       "norm_label": "isloadingmore"
     },
     {
@@ -27414,8 +27458,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_jewelry_presentation_widgets_jewelry_listing_views_build",
-      "community": 203,
-      "community_name": "jewelry_listing_views.dart",
+      "community": 237,
+      "community_name": "jewelry_product_card.dart",
       "norm_label": "build"
     },
     {
@@ -27425,8 +27469,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "jewelry_product_card_dart",
-      "community": 203,
-      "community_name": "jewelry_listing_views.dart",
+      "community": 237,
+      "community_name": "jewelry_product_card.dart",
       "norm_label": "jewelry_product_card.dart"
     },
     {
@@ -27755,8 +27799,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_application_seller_products_provider_sellerproductscatalognotifier",
-      "community": 246,
-      "community_name": "build",
+      "community": 247,
+      "community_name": "SellerInquiryFormScreen",
       "norm_label": "sellerproductscatalognotifier"
     },
     {
@@ -28371,8 +28415,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_inquiry_mock_data",
-      "community": 258,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 238,
+      "community_name": "jewelry_category_chips.dart",
       "norm_label": "seller_inquiry_mock_data.dart"
     },
     {
@@ -28382,8 +28426,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_inquiry_mock_data_ksellerinquiriesmock",
-      "community": 258,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 238,
+      "community_name": "jewelry_category_chips.dart",
       "norm_label": "ksellerinquiriesmock"
     },
     {
@@ -28393,8 +28437,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_inquiry_mock_data_null",
-      "community": 258,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 238,
+      "community_name": "jewelry_category_chips.dart",
       "norm_label": "null"
     },
     {
@@ -28404,8 +28448,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_inquiry_mock_data_findsellerinquiry",
-      "community": 258,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 238,
+      "community_name": "jewelry_category_chips.dart",
       "norm_label": "findsellerinquiry"
     },
     {
@@ -28415,8 +28459,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_inquiry_mock_data_inquiriesforcategory",
-      "community": 258,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 238,
+      "community_name": "jewelry_category_chips.dart",
       "norm_label": "inquiriesforcategory"
     },
     {
@@ -28426,8 +28470,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_inquiry_mock_data_where",
-      "community": 258,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 238,
+      "community_name": "jewelry_category_chips.dart",
       "norm_label": "where"
     },
     {
@@ -28437,8 +28481,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "domain_models_seller_inquiry_dart",
-      "community": 258,
-      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "community": 238,
+      "community_name": "jewelry_category_chips.dart",
       "norm_label": "../../domain/models/seller_inquiry.dart"
     },
     {
@@ -28448,9 +28492,31 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_orders_mock_data",
-      "community": 11,
-      "community_name": "filter_origin_dropdown.dart",
+      "community": 258,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "seller_orders_mock_data.dart"
+    },
+    {
+      "label": "@mail",
+      "file_type": "concept",
+      "source_file": null,
+      "source_location": null,
+      "_origin": "ast",
+      "id": "annotation_mail",
+      "community": 281,
+      "community_name": "@mail",
+      "norm_label": "@mail"
+    },
+    {
+      "label": "@gmail",
+      "file_type": "concept",
+      "source_file": null,
+      "source_location": null,
+      "_origin": "ast",
+      "id": "annotation_gmail",
+      "community": 280,
+      "community_name": "@gmail",
+      "norm_label": "@gmail"
     },
     {
       "label": "kSellerOrdersMock",
@@ -28459,8 +28525,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_orders_mock_data_ksellerordersmock",
-      "community": 11,
-      "community_name": "filter_origin_dropdown.dart",
+      "community": 258,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "ksellerordersmock"
     },
     {
@@ -28470,8 +28536,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_orders_mock_data_null",
-      "community": 11,
-      "community_name": "filter_origin_dropdown.dart",
+      "community": 258,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "null"
     },
     {
@@ -28481,8 +28547,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_orders_mock_data_ksellerrefundsmock",
-      "community": 11,
-      "community_name": "filter_origin_dropdown.dart",
+      "community": 258,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "ksellerrefundsmock"
     },
     {
@@ -28492,9 +28558,20 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_orders_mock_data_ksellerauctionsmock",
-      "community": 11,
-      "community_name": "filter_origin_dropdown.dart",
+      "community": 258,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "ksellerauctionsmock"
+    },
+    {
+      "label": "kSellerOffersMock",
+      "file_type": "code",
+      "source_file": "lib/features/seller/data/seller_orders_mock_data.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_data_seller_orders_mock_data_kselleroffersmock",
+      "community": 258,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
+      "norm_label": "kselleroffersmock"
     },
     {
       "label": "findSellerOrderById",
@@ -28503,8 +28580,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_data_seller_orders_mock_data_findsellerorderbyid",
-      "community": 11,
-      "community_name": "filter_origin_dropdown.dart",
+      "community": 258,
+      "community_name": "../../domain/models/diamond_catalog_type.dart",
       "norm_label": "findsellerorderbyid"
     },
     {
@@ -28514,8 +28591,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "domain_models_seller_orders_models_dart",
-      "community": 11,
-      "community_name": "filter_origin_dropdown.dart",
+      "community": 266,
+      "community_name": "seller_section_screen.dart",
       "norm_label": "../../domain/models/seller_orders_models.dart"
     },
     {
@@ -28882,6 +28959,28 @@
       "norm_label": "sellerauctionbid"
     },
     {
+      "label": "SellerOfferStatus",
+      "file_type": "code",
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_domain_models_seller_orders_models_sellerofferstatus",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "sellerofferstatus"
+    },
+    {
+      "label": "SellerOffer",
+      "file_type": "code",
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_domain_models_seller_orders_models_selleroffer",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "selleroffer"
+    },
+    {
       "label": "id",
       "file_type": "code",
       "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
@@ -29177,6 +29276,94 @@
       "community": 81,
       "community_name": "app_shadows.dart",
       "norm_label": "ishighest"
+    },
+    {
+      "label": "stockNumber",
+      "file_type": "code",
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_domain_models_seller_orders_models_stocknumber",
+      "community": 81,
+      "community_name": "app_shadows.dart",
+      "norm_label": "stocknumber"
+    },
+    {
+      "label": "buyerEmail",
+      "file_type": "code",
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_domain_models_seller_orders_models_buyeremail",
+      "community": 81,
+      "community_name": "app_shadows.dart",
+      "norm_label": "buyeremail"
+    },
+    {
+      "label": "listPrice",
+      "file_type": "code",
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_domain_models_seller_orders_models_listprice",
+      "community": 81,
+      "community_name": "app_shadows.dart",
+      "norm_label": "listprice"
+    },
+    {
+      "label": "offerPrice",
+      "file_type": "code",
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_domain_models_seller_orders_models_offerprice",
+      "community": 81,
+      "community_name": "app_shadows.dart",
+      "norm_label": "offerprice"
+    },
+    {
+      "label": "counterPrice",
+      "file_type": "code",
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_domain_models_seller_orders_models_counterprice",
+      "community": 81,
+      "community_name": "app_shadows.dart",
+      "norm_label": "counterprice"
+    },
+    {
+      "label": "createdAt",
+      "file_type": "code",
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_domain_models_seller_orders_models_createdat",
+      "community": 81,
+      "community_name": "app_shadows.dart",
+      "norm_label": "createdat"
+    },
+    {
+      "label": "message",
+      "file_type": "code",
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_domain_models_seller_orders_models_message",
+      "community": 81,
+      "community_name": "app_shadows.dart",
+      "norm_label": "message"
+    },
+    {
+      "label": "copyWith",
+      "file_type": "code",
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_domain_models_seller_orders_models_copywith",
+      "community": 81,
+      "community_name": "app_shadows.dart",
+      "norm_label": "copywith"
     },
     {
       "label": "seller_product.dart",
@@ -31066,8 +31253,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "data_seller_inquiry_mock_data_dart",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "../../data/seller_inquiry_mock_data.dart"
     },
     {
@@ -31088,8 +31275,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_form_screen_sellerinquiryformscreen",
-      "community": 247,
-      "community_name": "SellerInquiryFormScreen",
+      "community": 234,
+      "community_name": "register_screen.dart",
       "norm_label": "sellerinquiryformscreen"
     },
     {
@@ -31099,8 +31286,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_form_screen_sellerinquiryformscreenstate",
-      "community": 247,
-      "community_name": "SellerInquiryFormScreen",
+      "community": 234,
+      "community_name": "register_screen.dart",
       "norm_label": "_sellerinquiryformscreenstate"
     },
     {
@@ -31451,8 +31638,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "seller_inquiry_inbox_screen.dart"
     },
     {
@@ -31462,8 +31649,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_sellerinquiryinboxscreen",
-      "community": 48,
-      "community_name": "gemstone_filter_category_basic.dart",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "sellerinquiryinboxscreen"
     },
     {
@@ -31473,8 +31660,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_sellerinquiryinboxscreenstate",
-      "community": 48,
-      "community_name": "gemstone_filter_category_basic.dart",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "_sellerinquiryinboxscreenstate"
     },
     {
@@ -31484,8 +31671,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_categorychip",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "_categorychip"
     },
     {
@@ -31495,8 +31682,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_inquirycard",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "_inquirycard"
     },
     {
@@ -31506,8 +31693,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_category",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "_category"
     },
     {
@@ -31517,8 +31704,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_label",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "label"
     },
     {
@@ -31528,8 +31715,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_icon",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "icon"
     },
     {
@@ -31539,8 +31726,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_selected",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "selected"
     },
     {
@@ -31550,8 +31737,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_accent",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "accent"
     },
     {
@@ -31561,8 +31748,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_ontap",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "ontap"
     },
     {
@@ -31572,8 +31759,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_inquiry",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "inquiry"
     },
     {
@@ -31583,8 +31770,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_onview",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "onview"
     },
     {
@@ -31594,8 +31781,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_createstate",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "createstate"
     },
     {
@@ -31605,8 +31792,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_iconfor",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "_iconfor"
     },
     {
@@ -31616,8 +31803,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_accentfor",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 203,
+      "community_name": "jewelry_listing_views.dart",
       "norm_label": "_accentfor"
     },
     {
@@ -31627,8 +31814,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_build",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 267,
+      "community_name": "build",
       "norm_label": "build"
     },
     {
@@ -31638,8 +31825,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_sellerinquirynew",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 267,
+      "community_name": "build",
       "norm_label": "approutenames.sellerinquirynew"
     },
     {
@@ -31649,9 +31836,295 @@
       "source_location": null,
       "_origin": "ast",
       "id": "route_approutenames_sellerinquirydetailpath",
-      "community": 214,
-      "community_name": "DiamondShapePainter",
+      "community": 267,
+      "community_name": "build",
       "norm_label": "approutenames.sellerinquirydetailpath"
+    },
+    {
+      "label": "seller_offers_screen.dart",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "seller_offers_screen.dart"
+    },
+    {
+      "label": "SellerOffersScreen",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_selleroffersscreen",
+      "community": 48,
+      "community_name": "gemstone_filter_category_basic.dart",
+      "norm_label": "selleroffersscreen"
+    },
+    {
+      "label": "_SellerOffersScreenState",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_selleroffersscreenstate",
+      "community": 48,
+      "community_name": "gemstone_filter_category_basic.dart",
+      "norm_label": "_selleroffersscreenstate"
+    },
+    {
+      "label": "_FilterChip",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_filterchip",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "_filterchip"
+    },
+    {
+      "label": "_OfferCard",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_offercard",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "_offercard"
+    },
+    {
+      "label": "_Pill",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_pill",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "_pill"
+    },
+    {
+      "label": "_PriceBlock",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_priceblock",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "_priceblock"
+    },
+    {
+      "label": "_filter",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_filter",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "_filter"
+    },
+    {
+      "label": "_offers",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_offers",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "_offers"
+    },
+    {
+      "label": "label",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_label",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "label"
+    },
+    {
+      "label": "selected",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_selected",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "selected"
+    },
+    {
+      "label": "onTap",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_ontap",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "ontap"
+    },
+    {
+      "label": "offer",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_offer",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "offer"
+    },
+    {
+      "label": "onAccept",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_onaccept",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "onaccept"
+    },
+    {
+      "label": "onReject",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_onreject",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "onreject"
+    },
+    {
+      "label": "onCounter",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_oncounter",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "oncounter"
+    },
+    {
+      "label": "_statusLabel",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_statuslabel",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "_statuslabel"
+    },
+    {
+      "label": "_statusColor",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_statuscolor",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "_statuscolor"
+    },
+    {
+      "label": "Color get",
+      "file_type": "code",
+      "source_file": null,
+      "source_location": null,
+      "_origin": "ast",
+      "id": "color_get",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "color get"
+    },
+    {
+      "label": "value",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_value",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "value"
+    },
+    {
+      "label": "emphasize",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_emphasize",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "emphasize"
+    },
+    {
+      "label": "createState",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_createstate",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "createstate"
+    },
+    {
+      "label": "initState",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_initstate",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "initstate"
+    },
+    {
+      "label": "_updateOffer",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_updateoffer",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "_updateoffer"
+    },
+    {
+      "label": "_counterOffer",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_counteroffer",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "_counteroffer"
+    },
+    {
+      "label": "build",
+      "file_type": "code",
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "lib_features_seller_presentation_screens_seller_offers_screen_build",
+      "community": 105,
+      "community_name": "result.dart",
+      "norm_label": "build"
     },
     {
       "label": "seller_order_detail_screen.dart",
@@ -31671,8 +32144,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_order_detail_screen_sellerorderdetailscreen",
-      "community": 206,
-      "community_name": "app_typography.dart",
+      "community": 48,
+      "community_name": "gemstone_filter_category_basic.dart",
       "norm_label": "sellerorderdetailscreen"
     },
     {
@@ -31682,8 +32155,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_order_detail_screen_sellerorderdetailscreenstate",
-      "community": 206,
-      "community_name": "app_typography.dart",
+      "community": 48,
+      "community_name": "gemstone_filter_category_basic.dart",
       "norm_label": "_sellerorderdetailscreenstate"
     },
     {
@@ -33409,8 +33882,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_promotions_screen_addpromocodedialog",
-      "community": 48,
-      "community_name": "gemstone_filter_category_basic.dart",
+      "community": 211,
+      "community_name": "app.dart",
       "norm_label": "_addpromocodedialog"
     },
     {
@@ -33420,8 +33893,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_screens_seller_promotions_screen_addpromocodedialogstate",
-      "community": 48,
-      "community_name": "gemstone_filter_category_basic.dart",
+      "community": 211,
+      "community_name": "app.dart",
       "norm_label": "_addpromocodedialogstate"
     },
     {
@@ -34245,8 +34718,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_widgets_seller_layout",
-      "community": 105,
-      "community_name": "result.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "seller_layout.dart"
     },
     {
@@ -34256,8 +34729,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_widgets_seller_layout_sellerlayout",
-      "community": 52,
-      "community_name": "filter_chip.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "sellerlayout"
     },
     {
@@ -34267,8 +34740,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_widgets_seller_layout_sellerscaffoldkey",
-      "community": 105,
-      "community_name": "result.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "sellerscaffoldkey"
     },
     {
@@ -34278,8 +34751,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_widgets_seller_layout_state",
-      "community": 105,
-      "community_name": "result.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "state"
     },
     {
@@ -34289,8 +34762,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_widgets_seller_layout_child",
-      "community": 105,
-      "community_name": "result.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "child"
     },
     {
@@ -34300,8 +34773,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_widgets_seller_layout_selectedroute",
-      "community": 105,
-      "community_name": "result.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "selectedroute"
     },
     {
@@ -34311,8 +34784,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_widgets_seller_layout_opensellerdrawer",
-      "community": 105,
-      "community_name": "result.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "opensellerdrawer"
     },
     {
@@ -34322,8 +34795,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_seller_presentation_widgets_seller_layout_build",
-      "community": 52,
-      "community_name": "filter_chip.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "build"
     },
     {
@@ -34333,8 +34806,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "auth_presentation_screens_login_screen_dart",
-      "community": 105,
-      "community_name": "result.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "../../../auth/presentation/screens/login_screen.dart"
     },
     {
@@ -34344,8 +34817,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "seller_drawer_dart",
-      "community": 105,
-      "community_name": "result.dart",
+      "community": 289,
+      "community_name": "Color?",
       "norm_label": "seller_drawer.dart"
     },
     {
@@ -35130,6 +35603,17 @@
       "norm_label": "presentation/screens/seller_inquiry_inbox_screen.dart"
     },
     {
+      "label": "presentation/screens/seller_offers_screen.dart",
+      "file_type": "code",
+      "source_file": null,
+      "source_location": null,
+      "_origin": "ast",
+      "id": "presentation_screens_seller_offers_screen_dart",
+      "community": 257,
+      "community_name": "diamond_catalog_type.dart",
+      "norm_label": "presentation/screens/seller_offers_screen.dart"
+    },
+    {
       "label": "presentation/screens/seller_order_detail_screen.dart",
       "file_type": "code",
       "source_file": null,
@@ -35246,8 +35730,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_application_brand_watch_filter_provider_brandwatchfilternotifier",
-      "community": 16,
-      "community_name": "../../../../core/theme/app_spacing.dart",
+      "community": 129,
+      "community_name": "State Management \u2014 Riverpod Patterns",
       "norm_label": "brandwatchfilternotifier"
     },
     {
@@ -35653,8 +36137,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_application_watch_filter_provider_watchfilternotifier",
-      "community": 246,
-      "community_name": "build",
+      "community": 57,
+      "community_name": "filter_color_selector.dart",
       "norm_label": "watchfilternotifier"
     },
     {
@@ -35664,8 +36148,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_application_watch_filter_provider_watchfilterdraftnotifier",
-      "community": 246,
-      "community_name": "build",
+      "community": 57,
+      "community_name": "filter_color_selector.dart",
       "norm_label": "watchfilterdraftnotifier"
     },
     {
@@ -36577,8 +37061,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_domain_models_brand_watch_state_brandwatchfilterstate",
-      "community": 16,
-      "community_name": "../../../../core/theme/app_spacing.dart",
+      "community": 129,
+      "community_name": "State Management \u2014 Riverpod Patterns",
       "norm_label": "brandwatchfilterstate"
     },
     {
@@ -37248,8 +37732,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_domain_models_watch_filter_state_watchfilterstate",
-      "community": 246,
-      "community_name": "build",
+      "community": 57,
+      "community_name": "filter_color_selector.dart",
       "norm_label": "watchfilterstate"
     },
     {
@@ -37259,7 +37743,7 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_domain_models_watch_filter_state_watchsortoption",
-      "community": 248,
+      "community": 278,
       "community_name": "WatchSortOption",
       "norm_label": "watchsortoption"
     },
@@ -37281,7 +37765,7 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_domain_models_watch_filter_state_watchsortoptionlabel",
-      "community": 248,
+      "community": 278,
       "community_name": "WatchSortOption",
       "norm_label": "watchsortoptionlabel"
     },
@@ -38293,8 +38777,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "widgets_watch_grid_view_dart",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "../widgets/watch_grid_view.dart"
     },
     {
@@ -38304,8 +38788,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "watches_screen.dart"
     },
     {
@@ -38337,8 +38821,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_stickycontrolsdelegate",
-      "community": 242,
-      "community_name": "_PairedShowcaseCarouselState",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "_stickycontrolsdelegate"
     },
     {
@@ -38348,8 +38832,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_scaffoldkey",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "_scaffoldkey"
     },
     {
@@ -38359,8 +38843,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_scrollcontroller",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "_scrollcontroller"
     },
     {
@@ -38370,8 +38854,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_searchcontroller",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "_searchcontroller"
     },
     {
@@ -38381,8 +38865,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_height",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "height"
     },
     {
@@ -38392,8 +38876,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_child",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "child"
     },
     {
@@ -38403,8 +38887,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_minextent",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "minextent"
     },
     {
@@ -38414,8 +38898,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_maxextent",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "maxextent"
     },
     {
@@ -38425,8 +38909,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_createstate",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "createstate"
     },
     {
@@ -38436,8 +38920,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_initstate",
-      "community": 202,
-      "community_name": "watch_brand_carousel.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "initstate"
     },
     {
@@ -38447,8 +38931,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_dispose",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "dispose"
     },
     {
@@ -38502,8 +38986,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_screens_watches_screen_shouldrebuild",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "shouldrebuild"
     },
     {
@@ -38535,8 +39019,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "widgets_watch_brand_carousel_dart",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "../widgets/watch_brand_carousel.dart"
     },
     {
@@ -38546,8 +39030,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "widgets_watch_filter_drawer_dart",
-      "community": 230,
-      "community_name": "diamond_list_loading.dart",
+      "community": 263,
+      "community_name": "ValueChanged",
       "norm_label": "../widgets/watch_filter_drawer.dart"
     },
     {
@@ -38887,8 +39371,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_features_watches_presentation_widgets_watch_card_grid_build",
-      "community": 7,
-      "community_name": "gemstone_search_provider.dart",
+      "community": 93,
+      "community_name": "search_action_bottom_bar.dart",
       "norm_label": "build"
     },
     {
@@ -39151,8 +39635,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_main",
-      "community": 218,
-      "community_name": "DiamondSearchNotifier",
+      "community": 130,
+      "community_name": "jewelry_routes.dart",
       "norm_label": "main.dart"
     },
     {
@@ -39162,8 +39646,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "lib_main_main",
-      "community": 218,
-      "community_name": "DiamondSearchNotifier",
+      "community": 130,
+      "community_name": "jewelry_routes.dart",
       "norm_label": "main"
     },
     {
@@ -39173,8 +39657,8 @@
       "source_location": null,
       "_origin": "ast",
       "id": "app_dart",
-      "community": 218,
-      "community_name": "DiamondSearchNotifier",
+      "community": 130,
+      "community_name": "jewelry_routes.dart",
       "norm_label": "app.dart"
     },
     {
@@ -52679,6 +53163,17 @@
       "source_location": null,
       "weight": 1.0,
       "_origin": "ast",
+      "source": "lib_core_widgets_search_action_bottom_bar_fittedlabel",
+      "target": "statelesswidget"
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/core/widgets/search_action_bottom_bar.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
       "source": "lib_core_widgets_search_action_bottom_bar_searchactionbottombar",
       "target": "statelesswidget"
     },
@@ -53549,6 +54044,50 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_inquirycard",
+      "target": "statelesswidget"
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen_filterchip",
+      "target": "statelesswidget"
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen_offercard",
+      "target": "statelesswidget"
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen_pill",
+      "target": "statelesswidget"
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen_priceblock",
       "target": "statelesswidget"
     },
     {
@@ -54990,6 +55529,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen",
+      "target": "package_flutter_material_dart"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
       "target": "package_flutter_material_dart"
     },
     {
@@ -58375,7 +58925,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_core_theme_app_colors",
-      "target": "lib_core_theme_app_colors_gemstonebg"
+      "target": "lib_core_theme_app_colors_gemstonemeleebg"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/core/theme/app_colors.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_core_theme_app_colors",
+      "target": "lib_core_theme_app_colors_gemstonesinglebg"
     },
     {
       "relation": "defines",
@@ -58431,6 +58992,17 @@
       "_origin": "ast",
       "source": "lib_core_theme_app_colors",
       "target": "lib_core_theme_app_colors_meleebgfamily"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/core/theme/app_colors.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_core_theme_app_colors",
+      "target": "lib_core_theme_app_colors_naturalmeleebg"
     },
     {
       "relation": "defines",
@@ -61828,6 +62400,18 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "context": "variable_type",
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "voidcallback"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
       "source_file": "lib/features/seller/presentation/screens/seller_orders_screen.dart",
       "source_location": null,
       "weight": 1.0,
@@ -61978,6 +62562,18 @@
       "context": "variable_type",
       "_origin": "ast",
       "source": "lib_core_widgets_filters_filter_chip",
+      "target": "textstyle"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/core/widgets/search_action_bottom_bar.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "context": "variable_type",
+      "_origin": "ast",
+      "source": "lib_core_widgets_search_action_bottom_bar",
       "target": "textstyle"
     },
     {
@@ -63186,6 +63782,17 @@
       "relation": "inherits",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen_selleroffersscreen",
+      "target": "statefulwidget"
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
       "source_file": "lib/features/seller/presentation/screens/seller_order_detail_screen.dart",
       "source_location": null,
       "weight": 1.0,
@@ -63455,6 +64062,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_sellerinquiryinboxscreenstate",
+      "target": "state"
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen_selleroffersscreenstate",
       "target": "state"
     },
     {
@@ -64347,6 +64965,18 @@
       "context": "variable_type",
       "_origin": "ast",
       "source": "lib_features_seller_presentation_screens_seller_inquiry_detail_screen",
+      "target": "list"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "context": "variable_type",
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
       "target": "list"
     },
     {
@@ -68250,7 +68880,7 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_core_widgets_search_action_bottom_bar",
-      "target": "lib_core_widgets_search_action_bottom_bar_formatcount"
+      "target": "lib_core_widgets_search_action_bottom_bar_fittedlabel"
     },
     {
       "relation": "defines",
@@ -68295,6 +68925,28 @@
       "_origin": "ast",
       "source": "lib_core_widgets_search_action_bottom_bar",
       "target": "lib_core_widgets_search_action_bottom_bar_searchactionbottombar"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/core/widgets/search_action_bottom_bar.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_core_widgets_search_action_bottom_bar",
+      "target": "lib_core_widgets_search_action_bottom_bar_style"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/core/widgets/search_action_bottom_bar.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_core_widgets_search_action_bottom_bar",
+      "target": "lib_core_widgets_search_action_bottom_bar_text"
     },
     {
       "relation": "defines",
@@ -70543,6 +71195,17 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "core_theme_app_colors_dart"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
       "source_file": "lib/features/seller/presentation/screens/seller_order_detail_screen.dart",
       "source_location": null,
       "weight": 1.0,
@@ -71269,6 +71932,17 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "core_theme_app_spacing_dart"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
       "source_file": "lib/features/seller/presentation/screens/seller_order_detail_screen.dart",
       "source_location": null,
       "weight": 1.0,
@@ -71934,6 +72608,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen",
+      "target": "core_theme_app_typography_dart"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
       "target": "core_theme_app_typography_dart"
     },
     {
@@ -74909,6 +75594,18 @@
       "context": "variable_type",
       "_origin": "ast",
       "source": "lib_features_seller_presentation_screens_seller_auctions_screen",
+      "target": "string_get"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "context": "variable_type",
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
       "target": "string_get"
     },
     {
@@ -82406,30 +83103,6 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "lib/features/diamonds/presentation/screens/diamond_search_screen.dart",
-      "source_location": null,
-      "weight": 1.0,
-      "context": "riverpod_reference",
-      "_origin": "ast",
-      "source": "lib_features_diamonds_presentation_screens_diamond_search_screen_build",
-      "target": "lib_features_diamonds_application_diamond_search_provider_matchingcountprovider"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "lib/features/diamonds/presentation/screens/diamond_search_screen.dart",
-      "source_location": null,
-      "weight": 1.0,
-      "context": "riverpod_reference",
-      "_origin": "ast",
-      "source": "lib_features_diamonds_presentation_screens_diamond_search_screen_diamondsearchscreenstate",
-      "target": "lib_features_diamonds_application_diamond_search_provider_matchingcountprovider"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
       "source_file": "lib/features/diamonds/application/diamond_search_provider.dart",
       "source_location": null,
       "weight": 1.0,
@@ -88906,30 +89579,6 @@
       "_origin": "ast",
       "source": "lib_features_gemstones_presentation_widgets_gemstone_filter_category_quality_gemstonefiltercategoryquality",
       "target": "lib_features_gemstones_application_gemstone_search_provider_gemstonesearchprovider"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "lib/features/gemstones/presentation/screens/gemstone_search_screen.dart",
-      "source_location": null,
-      "weight": 1.0,
-      "context": "riverpod_reference",
-      "_origin": "ast",
-      "source": "lib_features_gemstones_presentation_screens_gemstone_search_screen_build",
-      "target": "lib_features_gemstones_application_gemstone_search_provider_matchinggemstonecountprovider"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "lib/features/gemstones/presentation/screens/gemstone_search_screen.dart",
-      "source_location": null,
-      "weight": 1.0,
-      "context": "riverpod_reference",
-      "_origin": "ast",
-      "source": "lib_features_gemstones_presentation_screens_gemstone_search_screen_gemstonesearchscreenstate",
-      "target": "lib_features_gemstones_application_gemstone_search_provider_matchinggemstonecountprovider"
     },
     {
       "relation": "imports",
@@ -96952,6 +97601,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_data_seller_orders_mock_data",
+      "target": "lib_features_seller_data_seller_orders_mock_data_kselleroffersmock"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/data/seller_orders_mock_data.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_data_seller_orders_mock_data",
       "target": "lib_features_seller_data_seller_orders_mock_data_ksellerordersmock"
     },
     {
@@ -96985,6 +97645,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_presentation_screens_seller_auctions_screen",
+      "target": "domain_models_seller_orders_models_dart"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
       "target": "domain_models_seller_orders_models_dart"
     },
     {
@@ -97385,6 +98056,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_domain_models_seller_orders_models",
+      "target": "lib_features_seller_domain_models_seller_orders_models_buyeremail"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_domain_models_seller_orders_models",
       "target": "lib_features_seller_domain_models_seller_orders_models_buyerreason"
     },
     {
@@ -97408,6 +98090,39 @@
       "_origin": "ast",
       "source": "lib_features_seller_domain_models_seller_orders_models",
       "target": "lib_features_seller_domain_models_seller_orders_models_category"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_domain_models_seller_orders_models",
+      "target": "lib_features_seller_domain_models_seller_orders_models_copywith"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_domain_models_seller_orders_models",
+      "target": "lib_features_seller_domain_models_seller_orders_models_counterprice"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_domain_models_seller_orders_models",
+      "target": "lib_features_seller_domain_models_seller_orders_models_createdat"
     },
     {
       "relation": "defines",
@@ -97473,6 +98188,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_domain_models_seller_orders_models",
+      "target": "lib_features_seller_domain_models_seller_orders_models_listprice"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_domain_models_seller_orders_models",
       "target": "lib_features_seller_domain_models_seller_orders_models_location"
     },
     {
@@ -97484,7 +98210,29 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_domain_models_seller_orders_models",
+      "target": "lib_features_seller_domain_models_seller_orders_models_message"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_domain_models_seller_orders_models",
       "target": "lib_features_seller_domain_models_seller_orders_models_minbid"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_domain_models_seller_orders_models",
+      "target": "lib_features_seller_domain_models_seller_orders_models_offerprice"
     },
     {
       "relation": "defines",
@@ -97573,6 +98321,29 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_domain_models_seller_orders_models",
+      "target": "lib_features_seller_domain_models_seller_orders_models_selleroffer"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "context": "variable_type",
+      "source": "lib_features_seller_domain_models_seller_orders_models",
+      "target": "lib_features_seller_domain_models_seller_orders_models_sellerofferstatus"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_domain_models_seller_orders_models",
       "target": "lib_features_seller_domain_models_seller_orders_models_sellerorder"
     },
     {
@@ -97630,6 +98401,17 @@
       "_origin": "ast",
       "source": "lib_features_seller_domain_models_seller_orders_models",
       "target": "lib_features_seller_domain_models_seller_orders_models_status"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/domain/models/seller_orders_models.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_domain_models_seller_orders_models",
+      "target": "lib_features_seller_domain_models_seller_orders_models_stocknumber"
     },
     {
       "relation": "defines",
@@ -97769,6 +98551,30 @@
       "_origin": "ast",
       "source": "lib_features_seller_presentation_screens_seller_auctions_screen",
       "target": "lib_features_seller_domain_models_seller_orders_models_sellerauctionbid"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "context": "variable_type",
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_domain_models_seller_orders_models_sellerofferstatus"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "context": "variable_type",
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_domain_models_seller_orders_models_selleroffer"
     },
     {
       "relation": "defines",
@@ -98306,6 +99112,17 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "data_seller_orders_mock_data_dart"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
       "source_file": "lib/features/seller/presentation/screens/seller_order_detail_screen.dart",
       "source_location": null,
       "weight": 1.0,
@@ -98399,6 +99216,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen",
+      "target": "widgets_seller_layout_dart"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
       "target": "widgets_seller_layout_dart"
     },
     {
@@ -100553,6 +101381,293 @@
       "_origin": "ast",
       "source": "lib_features_seller_presentation_screens_seller_inquiry_inbox_screen_build",
       "target": "route_approutenames_sellerinquirynew"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "context": "variable_type",
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "color_get"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_build"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_counteroffer"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_createstate"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_emphasize"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_filter"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_filterchip"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_initstate"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_label"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_offer"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_offercard"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_offers"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_onaccept"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_oncounter"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_onreject"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_ontap"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_pill"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_priceblock"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_selected"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_selleroffersscreen"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_selleroffersscreenstate"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_statuscolor"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_statuslabel"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_updateoffer"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_value"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/presentation/screens/seller_offers_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_presentation_screens_seller_offers_screen_selleroffersscreenstate",
+      "target": "lib_features_seller_presentation_screens_seller_offers_screen_selleroffersscreen"
     },
     {
       "relation": "defines",
@@ -103998,6 +105113,17 @@
       "_origin": "ast",
       "source": "lib_features_seller_seller_routes",
       "target": "presentation_screens_seller_inquiry_inbox_screen_dart"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/seller/seller_routes.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "lib_features_seller_seller_routes",
+      "target": "presentation_screens_seller_offers_screen_dart"
     },
     {
       "relation": "imports",
@@ -121666,5 +122792,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "64cb8ae979d6ab5919b6ddebc8cdc434ed3170f8"
+  "built_at_commit": "7d0c6b5886fd9454bb6c26a9e0f74aa27bb03c6a"
 }

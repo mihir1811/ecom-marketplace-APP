@@ -51,9 +51,9 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   InputDecoration _decoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      isDense: true,
       filled: true,
       fillColor: AppColors.warmWhite,
+      constraints: const BoxConstraints(minHeight: 52),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         borderSide: const BorderSide(color: AppColors.warmBorder),
@@ -63,8 +63,8 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         borderSide: const BorderSide(color: AppColors.warmBorder),
       ),
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s12,
-        vertical: AppSpacing.s12,
+        horizontal: AppSpacing.s16,
+        vertical: 14,
       ),
     );
   }
@@ -110,7 +110,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         const SizedBox(height: 4),
         TextField(
           controller: controller,
-          style: AppTypography.caption.copyWith(fontSize: 13),
+          style: AppTypography.body.copyWith(fontSize: 16, height: 1.35),
           decoration: _decoration(hint),
         ),
       ],

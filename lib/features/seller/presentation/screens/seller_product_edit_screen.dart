@@ -346,7 +346,6 @@ class _FieldGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final narrow = MediaQuery.sizeOf(context).width < 600;
     final rows = <Widget>[];
     var i = 0;
     while (i < fields.length) {
@@ -367,7 +366,7 @@ class _FieldGrid extends StatelessWidget {
       }
 
       final next = i + 1 < fields.length ? fields[i + 1] : null;
-      if (next != null && !next.fullWidth && !narrow) {
+      if (next != null && !next.fullWidth) {
         rows.add(
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.s12),
@@ -403,18 +402,6 @@ class _FieldGrid extends StatelessWidget {
           ),
         );
         i++;
-        if (next != null && !next.fullWidth && narrow) {
-          rows.add(
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-              child: _EditTextField(
-                field: next,
-                controller: controllers[next.id]!,
-              ),
-            ),
-          );
-          i++;
-        }
       }
     }
     return Column(children: rows);

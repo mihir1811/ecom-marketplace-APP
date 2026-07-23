@@ -9,6 +9,7 @@ import 'presentation/screens/seller_help_center_screen.dart';
 import 'presentation/screens/seller_inquiry_detail_screen.dart';
 import 'presentation/screens/seller_inquiry_form_screen.dart';
 import 'presentation/screens/seller_inquiry_inbox_screen.dart';
+import 'presentation/screens/seller_offers_screen.dart';
 import 'presentation/screens/seller_order_detail_screen.dart';
 import 'presentation/screens/seller_orders_screen.dart';
 import 'presentation/screens/seller_products_screen.dart';
@@ -76,7 +77,7 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerOffers,
-        builder: (context, state) => const SellerSectionScreen(title: 'Offers'),
+        builder: (context, state) => const SellerOffersScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerAuctions,
