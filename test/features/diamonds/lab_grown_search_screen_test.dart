@@ -19,7 +19,7 @@ void main() {
 
     expect(find.byType(SearchActionBottomBar), findsOneWidget);
     expect(find.textContaining('SHOW'), findsOneWidget);
-    expect(find.text('CLEAR ALL FILTERS'), findsOneWidget);
+    expect(find.text('CLEAR ALL'), findsOneWidget);
     expect(find.text('Diamond Category'), findsOneWidget);
     expect(find.text('Growth Method (CVD / HPHT)'), findsOneWidget);
 

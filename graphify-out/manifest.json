@@ -275,8 +275,8 @@
     "semantic_hash": "ccbe1f60625f39cbd6c1c23fcb13b4f1"
   },
   "lib/features/home/presentation/screens/home_screen.dart": {
-    "mtime": 1784721735.3696778,
-    "ast_hash": "4c3265b826989bff80f6d2449001c71f",
+    "mtime": 1784722589.8572302,
+    "ast_hash": "ee25472d30aa2debfc5c79c2838adb9a",
     "semantic_hash": ""
   },
   "lib/main.dart": {
@@ -310,9 +310,9 @@
     "semantic_hash": ""
   },
   "macos/Flutter/GeneratedPluginRegistrant.swift": {
-    "mtime": 1784532647.8416078,
-    "ast_hash": "c840bc53b61279c2fb631741134c2ed7",
-    "semantic_hash": "c840bc53b61279c2fb631741134c2ed7"
+    "mtime": 1784722596.1413732,
+    "ast_hash": "c2aa53d101a6bfaf3e29ecf915a1516f",
+    "semantic_hash": ""
   },
   "macos/RunnerTests/RunnerTests.swift": {
     "mtime": 1784532647.8629231,
@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "pubspec.yaml": {
-    "mtime": 1784532648.0526264,
-    "ast_hash": "d9d71868c310dbc57aec7fe2c6e87b2f",
+    "mtime": 1784722496.4341238,
+    "ast_hash": "7c5ff511a2da7f608acd4b1a12926291",
     "semantic_hash": ""
   },
   "web/index.html": {
@@ -2372,6 +2372,31 @@
   "lib/core/widgets/app_scaffold.dart": {
     "mtime": 1784721773.7620976,
     "ast_hash": "a94597df4a45d152547952221db72524",
+    "semantic_hash": ""
+  },
+  "lib/core/widgets/app_network_image.dart": {
+    "mtime": 1784722500.261349,
+    "ast_hash": "30be607d6740860dc5318358a9e0ad71",
+    "semantic_hash": ""
+  },
+  "lib/features/home/presentation/home_network_images.dart": {
+    "mtime": 1784722520.9694204,
+    "ast_hash": "06417c0709e81795a1c86b66427bb153",
+    "semantic_hash": ""
+  },
+  "lib/features/home/presentation/widgets/home_category_tile.dart": {
+    "mtime": 1784722621.514814,
+    "ast_hash": "143bb4b9f913253946324f0e5bfa4250",
+    "semantic_hash": ""
+  },
+  "lib/features/home/presentation/widgets/home_hero.dart": {
+    "mtime": 1784722622.5812387,
+    "ast_hash": "8b8cb225f5a183c6f7ee1f42ff23690b",
+    "semantic_hash": ""
+  },
+  "lib/features/home/presentation/widgets/home_quick_search.dart": {
+    "mtime": 1784722620.1006715,
+    "ast_hash": "deb5c807ea69df8a655c95f1e371145f",
     "semantic_hash": ""
   }
 }

@@ -5,7 +5,7 @@ import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
-/// Sticky search/filter action bar (primary CTA + clear link).
+/// Sticky search/filter action bar (primary CTA + clear action).
 class SearchActionBottomBar extends StatelessWidget {
   const SearchActionBottomBar({
     required this.primaryLabel,
@@ -19,13 +19,6 @@ class SearchActionBottomBar extends StatelessWidget {
   final VoidCallback? onPrimary;
   final String clearLabel;
   final VoidCallback onClear;
-
-  static String formatCount(int count) {
-    return count.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]},',
-        );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +36,8 @@ class SearchActionBottomBar extends StatelessWidget {
             boxShadow: AppShadows.modalLight,
           ),
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s24,
-            vertical: AppSpacing.s16,
+            horizontal: AppSpacing.s16,
+            vertical: AppSpacing.s12,
           ),
           child: child,
         );
@@ -52,27 +45,26 @@ class SearchActionBottomBar extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            flex: 2,
             child: SizedBox(
-              height: 52,
+              height: 48,
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.textSecondaryLight,
-                  side: BorderSide(color: AppColors.warmBorder),
+                  side: const BorderSide(color: AppColors.warmBorder),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
                 ),
                 onPressed: onClear,
-                child: Text(
+                child: _FittedLabel(
                   clearLabel,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textSecondaryLight,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                    letterSpacing: 0.4,
+                    height: 1.15,
                   ),
                 ),
               ),
@@ -80,33 +72,55 @@ class SearchActionBottomBar extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.s12),
           Expanded(
-            flex: 3,
+            flex: 2,
             child: SizedBox(
-              height: 52,
+              height: 48,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.charcoal,
                   foregroundColor: AppColors.warmWhite,
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
                 ),
                 onPressed: onPrimary,
-                child: Text(
+                child: _FittedLabel(
                   primaryLabel,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: AppTypography.label.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.warmWhite,
-                    fontSize: 15,
+                    fontSize: 12,
+                    letterSpacing: 0.3,
+                    height: 1.15,
                   ),
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FittedLabel extends StatelessWidget {
+  const _FittedLabel(this.text, {required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.visible,
+        style: style,
       ),
     );
   }

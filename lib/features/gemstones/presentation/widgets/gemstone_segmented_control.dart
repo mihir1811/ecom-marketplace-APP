@@ -68,15 +68,23 @@ class GemstoneSegmentedControl extends StatelessWidget {
                 onTap: () => onSelected(opt.value),
                 splashColor: (opt.value == 'Melee'
                         ? AppColors.screenBg(
+                            melee: true,
                             family: MeleeBgFamily.gemstone,
                           )
-                        : AppColors.bronzeLight)
+                        : AppColors.screenBg(
+                            melee: false,
+                            family: MeleeBgFamily.gemstone,
+                          ))
                     .withValues(alpha: 0.55),
                 highlightColor: (opt.value == 'Melee'
                         ? AppColors.screenBg(
+                            melee: true,
                             family: MeleeBgFamily.gemstone,
                           )
-                        : AppColors.bronzeLight)
+                        : AppColors.screenBg(
+                            melee: false,
+                            family: MeleeBgFamily.gemstone,
+                          ))
                     .withValues(alpha: 0.22),
                 borderRadius: BorderRadius.circular(AppSpacing.r12),
                 child: AnimatedContainer(

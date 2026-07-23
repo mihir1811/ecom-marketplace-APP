@@ -130,8 +130,12 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMelee = ref.watch(
+      gemstoneSearchProvider.select((s) => s.lotType == 'Melee'),
+    );
+
     return MeleeBackgroundShell(
-      isMelee: false,
+      isMelee: isMelee,
       family: MeleeBgFamily.gemstone,
       child: AppScaffold(
         backgroundColor: Colors.transparent,
@@ -208,13 +212,12 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen> {
                       left: 0,
                       right: 0,
                       child: SearchActionBottomBar(
-                        primaryLabel:
-                            'SEARCH ${SearchActionBottomBar.formatCount(ref.watch(matchingGemstoneCountProvider))} GEMSTONES',
+                        primaryLabel: 'SEARCH GEMSTONES',
                         onPrimary: () {
                           ref.invalidate(gemstoneListProvider);
                           context.push(AppRouteNames.gemstoneResults);
                         },
-                        clearLabel: 'CLEAR FILTERS',
+                        clearLabel: 'CLEAR ALL',
                         onClear: () =>
                             ref.read(gemstoneSearchProvider.notifier).reset(),
                       ),

@@ -38,17 +38,20 @@ class AppColors {
   static const slateBorder = Color(0xFF2E3035);
 
   /// Catalog-specific Single/Melee screen background families.
-  static const labGrownSingleBg = Color(0xFFEEF8F3);
-  static const labGrownMeleeBg = Color(0xFFEDF7FB);
-  static const naturalSingleBg = Color(0xFFF0F1F6);
-  static const gemstoneBg = Color(0xFFF5F6FA);
+  /// Tuned to read clearly under the app bar + search + sticky nav band.
+  static const labGrownSingleBg = Color(0xFFD4EDDF);
+  static const labGrownMeleeBg = Color(0xFFD0E8F6);
+  static const naturalSingleBg = Color(0xFFDCDFEA);
+  static const naturalMeleeBg = Color(0xFFF0E4D4);
+  static const gemstoneSingleBg = Color(0xFFE4D8F2);
+  static const gemstoneMeleeBg = Color(0xFFC8E6F0);
 
   /// Soft melee tint of the screen background (same family as [creamBg]/[obsidianBg]).
   ///
   /// Light mode by [family]:
-  /// - [MeleeBgFamily.labGrown]: #eef8f3 → #edf7fb
-  /// - [MeleeBgFamily.natural]: #f0f1f6 → [creamBg] (theme default / `--background`)
-  /// - [MeleeBgFamily.gemstone]: always #f5f6fa (no melee shift)
+  /// - [MeleeBgFamily.labGrown]: mint → sky blue
+  /// - [MeleeBgFamily.natural]: cool lavender → warm sand
+  /// - [MeleeBgFamily.gemstone]: lilac → soft teal
   static Color screenBg({
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
@@ -57,9 +60,9 @@ class AppColors {
       case MeleeBgFamily.labGrown:
         return melee ? labGrownMeleeBg : labGrownSingleBg;
       case MeleeBgFamily.natural:
-        return melee ? creamBg : naturalSingleBg;
+        return melee ? naturalMeleeBg : naturalSingleBg;
       case MeleeBgFamily.gemstone:
-        return gemstoneBg;
+        return melee ? gemstoneMeleeBg : gemstoneSingleBg;
     }
   }
 

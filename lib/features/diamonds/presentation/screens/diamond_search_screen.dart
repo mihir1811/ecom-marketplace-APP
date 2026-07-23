@@ -237,11 +237,10 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen> {
                       left: 0,
                       right: 0,
                       child: SearchActionBottomBar(
-                        primaryLabel:
-                            'SHOW ${SearchActionBottomBar.formatCount(ref.watch(matchingCountProvider))} DIAMONDS',
+                        primaryLabel: 'SHOW DIAMONDS',
                         onPrimary: () =>
                             context.push(widget.resultsRoute),
-                        clearLabel: 'CLEAR ALL FILTERS',
+                        clearLabel: 'CLEAR ALL',
                         onClear: () {
                           ref
                               .read(diamondSearchProvider.notifier)

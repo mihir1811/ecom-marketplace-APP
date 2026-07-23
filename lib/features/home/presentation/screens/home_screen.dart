@@ -1,33 +1,84 @@
 import 'package:flutter/material.dart';
-import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
+
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_shadows.dart';
 import '../../../cart/application/cart_provider.dart';
+import '../home_network_images.dart';
+import '../widgets/home_category_tile.dart';
+import '../widgets/home_hero.dart';
+import '../widgets/home_quick_search.dart';
 
-/// Landing page/Home Screen displaying the GemWorld Diamond Marketplace.
+/// GemWorld marketplace landing — minimal, image-led, one-tap catalog access.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
+  static const _categories = <_HomeCategory>[
+    _HomeCategory(
+      title: 'Natural Diamonds',
+      subtitle: 'Certified finder',
+      imageUrl: HomeNetworkImages.naturalDiamonds,
+      route: AppRouteNames.diamonds,
+    ),
+    _HomeCategory(
+      title: 'Lab Grown',
+      subtitle: 'CVD & HPHT',
+      imageUrl: HomeNetworkImages.labGrown,
+      route: AppRouteNames.labGrownDiamonds,
+    ),
+    _HomeCategory(
+      title: 'Gemstones',
+      subtitle: 'Ruby to tanzanite',
+      imageUrl: HomeNetworkImages.gemstones,
+      route: AppRouteNames.gemstones,
+    ),
+    _HomeCategory(
+      title: 'Watches',
+      subtitle: 'Luxury brands',
+      imageUrl: HomeNetworkImages.watches,
+      route: AppRouteNames.watches,
+    ),
+    _HomeCategory(
+      title: 'Jewelry',
+      subtitle: 'Rings & more',
+      imageUrl: HomeNetworkImages.jewelry,
+      route: AppRouteNames.jewelry,
+    ),
+    _HomeCategory(
+      title: 'Bullion',
+      subtitle: 'Gold & silver',
+      imageUrl: HomeNetworkImages.bullion,
+      route: AppRouteNames.bullions,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final cartCount = ref.watch(cartItemCountProvider);
 
     return AppScaffold(
+      backgroundColor: AppColors.creamBg,
       appBar: AppBar(
+        backgroundColor: AppColors.creamBg,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
         title: Text(
           'GemWorld',
           style: AppTypography.title.copyWith(
             fontWeight: FontWeight.w700,
-            fontSize: 24,
+            fontSize: 22,
           ),
         ),
         actions: [
+          IconButton(
+            tooltip: 'Compare',
+            onPressed: () => context.push(AppRouteNames.comparison),
+            icon: const Icon(Icons.compare_arrows_rounded),
+          ),
           IconButton(
             tooltip: 'Cart',
             onPressed: () => context.push(AppRouteNames.cart),
@@ -38,431 +89,179 @@ class HomeScreen extends ConsumerWidget {
               child: const Icon(Icons.shopping_bag_outlined),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.s16),
-            child: OutlinedButton(
-              onPressed: () => context.push(AppRouteNames.login),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s16,
-                  vertical: AppSpacing.s8,
-                ),
-                side: const BorderSide(color: AppColors.charcoal, width: 1.0),
+          TextButton(
+            onPressed: () => context.push(AppRouteNames.login),
+            child: Text(
+              'Login',
+              style: AppTypography.label.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.charcoal,
               ),
-              child: const Text('LOGIN'),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.s8),
+        ],
+      ),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: HomeHero(
+              imageUrl: HomeNetworkImages.hero,
+              onPrimary: _openDiamonds,
+              onSecondary: _openJewelry,
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s20)),
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.s20),
+              child: HomeQuickSearch(),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
+              child: Text(
+                'Shop',
+                style: AppTypography.headline.copyWith(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s12)),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: AppSpacing.s12,
+                crossAxisSpacing: AppSpacing.s12,
+                childAspectRatio: 0.92,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final item = _categories[index];
+                  return HomeCategoryTile(
+                    key: ValueKey(item.route),
+                    title: item.title,
+                    subtitle: item.subtitle,
+                    imageUrl: item.imageUrl,
+                    onTap: () => context.push(item.route),
+                  );
+                },
+                childCount: _categories.length,
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
+              child: _SellerBanner(
+                onTap: () => context.push(AppRouteNames.sellerDashboard),
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s20,
+                0,
+                AppSpacing.s20,
+                AppSpacing.s32,
+              ),
+              child: Text(
+                'Certified stones · Transparent sellers · Worldwide shipping',
+                textAlign: TextAlign.center,
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textSecondaryLight,
+                  letterSpacing: 0.2,
+                ),
+              ),
             ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Announcement Bar
-            Container(
-              width: double.infinity,
-              color: AppColors.sandSurface,
-              padding: const EdgeInsets.symmetric(
-                vertical: AppSpacing.s8,
-                horizontal: AppSpacing.s12,
-              ),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: AppSpacing.s16,
-                runSpacing: AppSpacing.s4,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.gpp_good_outlined,
-                          size: 16, color: AppColors.bronze),
-                      const SizedBox(width: AppSpacing.s4),
-                      Text(
-                        'GIA Certified Diamonds',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.textSecondaryLight,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.local_shipping_outlined,
-                          size: 16, color: AppColors.bronze),
-                      const SizedBox(width: AppSpacing.s4),
-                      Text(
-                        'Worldwide Shipping',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.textSecondaryLight,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Hero Section
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.s24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'CERTIFIED DIAMOND MARKETPLACE',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: AppColors.bronze,
-                      letterSpacing: 1.5,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s12),
-                  Text(
-                    'Buy and sell verified diamonds with clarity.',
-                    style: theme.textTheme.displayMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s16),
-                  Text(
-                    'Browse authenticated diamonds, gemstones, fine jewelry, watches, and bullion in one quiet, transparent marketplace.',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: AppColors.textSecondaryLight,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s24),
-                  
-                  // Search Bar Card
-                  Container(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
-                      border: Border.all(color: AppColors.warmBorder),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16, vertical: AppSpacing.s4),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search by shape, carat, certificate...',
-                        filled: false,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.search, color: AppColors.charcoal),
-                          onPressed: () {},
-                        ),
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: AppSpacing.s20),
-                  Wrap(
-                    spacing: AppSpacing.s12,
-                    runSpacing: AppSpacing.s8,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () => context.push(AppRouteNames.diamonds),
-                        child: const Text('Explore Natural Diamonds'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () =>
-                            context.push(AppRouteNames.labGrownDiamonds),
-                        child: const Text('Explore Lab Grown'),
-                      ),
-                      OutlinedButton(
-                        onPressed: () => context.push(AppRouteNames.gemstones),
-                        child: const Text('Explore Gemstones'),
-                      ),
-                      OutlinedButton(
-                        onPressed: () => context.push(AppRouteNames.watches),
-                        child: const Text('Explore Watches'),
-                      ),
-                      OutlinedButton(
-                        onPressed: () => context.push(AppRouteNames.bullions),
-                        child: const Text('Explore Bullion'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => context.push(AppRouteNames.jewelry),
-                        child: const Text('Browse Collection'),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('Become a seller'),
-                            SizedBox(width: AppSpacing.s4),
-                            Icon(Icons.arrow_forward, size: 16),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const Divider(),
-
-            // Shop by Category Section
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.s24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Marketplace Collections',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => context.push(AppRouteNames.jewelry),
-                        child: const Text('Browse all'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.s16),
-                  
-                  // Horizontal Grid or column of category cards
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: AppSpacing.s16,
-                    mainAxisSpacing: AppSpacing.s16,
-                    childAspectRatio: 0.85,
-                    children: [
-                      _CategoryCard(
-                        title: 'Natural Diamonds',
-                        desc: 'Certified natural diamonds with full filters.',
-                        icon: Icons.diamond_outlined,
-                        onTap: () => context.push(AppRouteNames.diamonds),
-                      ),
-                      _CategoryCard(
-                        title: 'Lab Grown Diamonds',
-                        desc: 'Lab-created stones with the same finder tools.',
-                        icon: Icons.auto_awesome_outlined,
-                        onTap: () =>
-                            context.push(AppRouteNames.labGrownDiamonds),
-                      ),
-                      _CategoryCard(
-                        title: 'Gemstones',
-                        desc: 'Sapphires, rubies, emeralds, and more.',
-                        icon: Icons.brightness_high_outlined,
-                        onTap: () => context.push(AppRouteNames.gemstones),
-                      ),
-                      _CategoryCard(
-                        title: 'Luxury Watches',
-                        desc: 'Rolex, Patek, Omega, and more with filters.',
-                        icon: Icons.watch_outlined,
-                        onTap: () => context.push(AppRouteNames.watches),
-                      ),
-                      _CategoryCard(
-                        title: 'Fine Jewelry',
-                        desc: 'Rings, earrings, bracelets, and more.',
-                        icon: Icons.star_border,
-                        onTap: () => context.push(AppRouteNames.jewelry),
-                      ),
-                      _CategoryCard(
-                        title: 'Bullion',
-                        desc: 'Investment grade metals and coins.',
-                        icon: Icons.currency_bitcoin_outlined,
-                        onTap: () => context.push(AppRouteNames.bullions),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const Divider(),
-
-            // Featured Highlights (3 items in a clean row/column)
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.s24),
-              child: Column(
-                children: const [
-                  _HighlightTile(
-                    title: 'Verified listings',
-                    desc: 'Seller and certificate information is surfaced clearly before inquiry or checkout.',
-                    icon: Icons.verified_user_outlined,
-                  ),
-                  SizedBox(height: AppSpacing.s24),
-                  _HighlightTile(
-                    title: 'Secure transactions',
-                    desc: 'Structured buying flows keep product, seller, and payment details easy to review.',
-                    icon: Icons.lock_outline,
-                  ),
-                  SizedBox(height: AppSpacing.s24),
-                  _HighlightTile(
-                    title: 'Global sourcing',
-                    desc: 'Browse across diamonds, gemstones, jewelry, watches, and bullion from one account.',
-                    icon: Icons.public,
-                  ),
-                ],
-              ),
-            ),
-
-            // Footer Bottom Info
-            Container(
-              color: AppColors.charcoal,
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s24, vertical: AppSpacing.s40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'GemWorld',
-                    style: AppTypography.title.copyWith(
-                      color: AppColors.warmWhite,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s12),
-                  Text(
-                    'A focused marketplace for certified diamonds, gemstones, fine jewelry, watches, and bullion.',
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.textSecondaryDark,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s32),
-                  Text(
-                    '© 2026 GemWorld. All rights reserved.',
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedDark,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
+  }
+
+  static void _openDiamonds(BuildContext context) {
+    context.push(AppRouteNames.diamonds);
+  }
+
+  static void _openJewelry(BuildContext context) {
+    context.push(AppRouteNames.jewelry);
   }
 }
 
-class _CategoryCard extends StatelessWidget {
-  final String title;
-  final String desc;
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  const _CategoryCard({
+class _HomeCategory {
+  const _HomeCategory({
     required this.title,
-    required this.desc,
-    required this.icon,
-    this.onTap,
+    required this.subtitle,
+    required this.imageUrl,
+    required this.route,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.r12),
-          border: Border.all(color: AppColors.warmBorder),
-          boxShadow: AppShadows.cardLight,
-        ),
-        padding: const EdgeInsets.all(AppSpacing.s16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.s8),
-              decoration: const BoxDecoration(
-                color: AppColors.creamBg,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: AppColors.bronze, size: 24),
-            ),
-            const Spacer(),
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.s4),
-            Text(
-              desc,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondaryLight,
-                height: 1.3,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  final String title;
+  final String subtitle;
+  final String imageUrl;
+  final String route;
 }
 
-class _HighlightTile extends StatelessWidget {
-  final String title;
-  final String desc;
-  final IconData icon;
+class _SellerBanner extends StatelessWidget {
+  const _SellerBanner({required this.onTap});
 
-  const _HighlightTile({
-    required this.title,
-    required this.desc,
-    required this.icon,
-  });
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.s12),
-          decoration: BoxDecoration(
-            color: AppColors.sandSurface,
-            borderRadius: BorderRadius.circular(AppSpacing.r8),
+    return Material(
+      color: AppColors.charcoal,
+      borderRadius: BorderRadius.circular(AppSpacing.r12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.r12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s20,
+            vertical: AppSpacing.s16,
           ),
-          child: Icon(icon, color: AppColors.bronze, size: 24),
-        ),
-        const SizedBox(width: AppSpacing.s16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sell on GemWorld',
+                      style: AppTypography.title.copyWith(
+                        color: AppColors.warmWhite,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.s4),
+                    Text(
+                      'List diamonds, gems, and jewelry to verified buyers.',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.bronzeLight,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.s4),
-              Text(
-                desc,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondaryLight,
-                  height: 1.4,
-                ),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                color: AppColors.warmWhite,
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

@@ -175,13 +175,13 @@
     "semantic_hash": "c3277673e08cf3843b92cc0b96b7c6db"
   },
   "lib/features/diamonds/presentation/screens/diamond_listings_screen.dart": {
-    "mtime": 1784717926.1449475,
-    "ast_hash": "1679ffbc8c8f024175ddd6f070dd9285",
+    "mtime": 1784721735.3829334,
+    "ast_hash": "3ec066af5c733762a92228acf2502738",
     "semantic_hash": ""
   },
   "lib/features/diamonds/presentation/screens/diamond_search_screen.dart": {
-    "mtime": 1784720686.3396537,
-    "ast_hash": "afd937b3a40714c7d8f4226b181da6a0",
+    "mtime": 1784721735.3846898,
+    "ast_hash": "6fb175d5d172df673d94ab9a462ba737",
     "semantic_hash": ""
   },
   "lib/features/diamonds/presentation/screens/lab_grown_diamond_search_screen.dart": {
@@ -245,8 +245,8 @@
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/screens/gemstone_search_screen.dart": {
-    "mtime": 1784720690.9581742,
-    "ast_hash": "d38301e732ce1340f9e77d454ff7e680",
+    "mtime": 1784721735.3887057,
+    "ast_hash": "47d9384790e6ece67aea974dd18eb079",
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/widgets/birthstone_month_card.dart": {
@@ -275,8 +275,8 @@
     "semantic_hash": "ccbe1f60625f39cbd6c1c23fcb13b4f1"
   },
   "lib/features/home/presentation/screens/home_screen.dart": {
-    "mtime": 1784703361.957305,
-    "ast_hash": "ecfe121f8a99111bf160456409046446",
+    "mtime": 1784721735.3696778,
+    "ast_hash": "4c3265b826989bff80f6d2449001c71f",
     "semantic_hash": ""
   },
   "lib/main.dart": {
@@ -1705,8 +1705,8 @@
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/screens/watches_screen.dart": {
-    "mtime": 1784716461.8235192,
-    "ast_hash": "9846ccc5d5082cf6fd8ca3a73f268ccf",
+    "mtime": 1784721797.979715,
+    "ast_hash": "7a4da37573b40cb2cfc2b19cbe1920f5",
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_brand_assets.dart": {
@@ -1785,8 +1785,8 @@
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/screens/bullions_screen.dart": {
-    "mtime": 1784716551.421704,
-    "ast_hash": "f85c71191dbc504b10655d573da1effe",
+    "mtime": 1784721816.1954286,
+    "ast_hash": "d46508adf3e531edf0bcb035e263c3d3",
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/widgets/billion_card.dart": {
@@ -1845,13 +1845,13 @@
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/screens/jewelry_filter_screen.dart": {
-    "mtime": 1784717651.7521427,
-    "ast_hash": "acfd7e3496cf7cac2f2997603fdc18d3",
+    "mtime": 1784721735.402904,
+    "ast_hash": "d718bd0bedae9b2ddb2529a907655104",
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/screens/jewelry_listing_screen.dart": {
-    "mtime": 1784716849.1822484,
-    "ast_hash": "0bc279f50001048914805909ca8da354",
+    "mtime": 1784721735.3983827,
+    "ast_hash": "a56dcb79b6d1a9729af57c94960da865",
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/widgets/jewelry_category_chips.dart": {
@@ -1865,8 +1865,8 @@
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/screens/jewelry_categories_screen.dart": {
-    "mtime": 1784713749.4170105,
-    "ast_hash": "896b5c6057a413a74779ed9792c1f12e",
+    "mtime": 1784721735.3999376,
+    "ast_hash": "6255f1b19324323ef5fa6b8537be546c",
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/widgets/jewelry_sub_category_chips.dart": {
@@ -1890,8 +1890,8 @@
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/screens/brand_watch_screen.dart": {
-    "mtime": 1784716578.8573747,
-    "ast_hash": "68b2e910f9234b5b1e0dd81b86be2aa5",
+    "mtime": 1784721735.392256,
+    "ast_hash": "d39ebc29f864289c2c8ddfed2e229809",
     "semantic_hash": ""
   },
   "lib/core/auth/auth_controller.dart": {
@@ -1925,18 +1925,18 @@
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/screens/forgot_password_screen.dart": {
-    "mtime": 1784624635.0092883,
-    "ast_hash": "07dcb4dd12e12b48ec6f772ee1ba3475",
+    "mtime": 1784721735.408788,
+    "ast_hash": "4dca05b830eae7f13770266902c9e3f2",
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/screens/login_screen.dart": {
-    "mtime": 1784624976.6053617,
-    "ast_hash": "3e14a4a6f8ed8a9a5eb52036cea61b12",
+    "mtime": 1784721735.40443,
+    "ast_hash": "43e841869e41c4385e11d43f2b77d380",
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/screens/register_screen.dart": {
-    "mtime": 1784624614.1579769,
-    "ast_hash": "a840b0ea9c8b7dcde47853d0aa9321fb",
+    "mtime": 1784721735.4064243,
+    "ast_hash": "01634d321c54bc2b2223b4181b899243",
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/widgets/auth_brand_header.dart": {
@@ -1960,8 +1960,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/widgets/seller_layout.dart": {
-    "mtime": 1784631160.3263738,
-    "ast_hash": "429f97836b575bd49a2d0de47a8bcbab",
+    "mtime": 1784721775.4070835,
+    "ast_hash": "919ebf1a16935b168c18e168d46d6d45",
     "semantic_hash": ""
   },
   "lib/features/seller/seller_routes.dart": {
@@ -2125,8 +2125,8 @@
     "semantic_hash": ""
   },
   "lib/features/comparison/presentation/screens/comparison_screen.dart": {
-    "mtime": 1784713804.6008961,
-    "ast_hash": "00909cf97925b8b598a540fa6d0f6b80",
+    "mtime": 1784721735.379865,
+    "ast_hash": "b2c58ebf4313fdd07114b8789e6a7eac",
     "semantic_hash": ""
   },
   "lib/features/comparison/presentation/widgets/compare_add_button.dart": {
@@ -2165,8 +2165,8 @@
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/screens/gemstone_listings_screen.dart": {
-    "mtime": 1784716378.7468889,
-    "ast_hash": "5b7177487773095fa5b9b01c4cf319d9",
+    "mtime": 1784721735.386689,
+    "ast_hash": "5cd888a10514993890bc85dec8a4e9d9",
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/widgets/gemstone_card.dart": {
@@ -2195,8 +2195,8 @@
     "semantic_hash": ""
   },
   "lib/features/cart/presentation/screens/cart_screen.dart": {
-    "mtime": 1784713750.1338043,
-    "ast_hash": "28633b40f27821fb99c694b3db723b6d",
+    "mtime": 1784721735.376869,
+    "ast_hash": "e179c0b72520ae54d2361f45bb46bca7",
     "semantic_hash": ""
   },
   "lib/features/cart/presentation/widgets/cart_item_card.dart": {
@@ -2210,8 +2210,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_product_edit_screen.dart": {
-    "mtime": 1784713749.345578,
-    "ast_hash": "682cbff3b73490dbe76c0c2978d1a13b",
+    "mtime": 1784721735.4145234,
+    "ast_hash": "35195b55106dce89787b879eb47a6703",
     "semantic_hash": ""
   },
   "lib/core/theme/app_swatches.dart": {
@@ -2300,8 +2300,8 @@
     "semantic_hash": ""
   },
   "lib/core/widgets/search_action_bottom_bar.dart": {
-    "mtime": 1784716296.6484675,
-    "ast_hash": "87efc8bb0645884ee83c3c12008e806d",
+    "mtime": 1784721447.7269435,
+    "ast_hash": "73e406997507b1ec37f5cdfeb410e1e4",
     "semantic_hash": ""
   },
   "lib/core/widgets/simple_sort_sheet.dart": {
@@ -2367,6 +2367,11 @@
   "lib/core/widgets/filters/catalog_search_add_field.dart": {
     "mtime": 1784720637.9297142,
     "ast_hash": "62d9d65ea141539d1060b6e2d4a741f4",
+    "semantic_hash": ""
+  },
+  "lib/core/widgets/app_scaffold.dart": {
+    "mtime": 1784721773.7620976,
+    "ast_hash": "a94597df4a45d152547952221db72524",
     "semantic_hash": ""
   }
 }
