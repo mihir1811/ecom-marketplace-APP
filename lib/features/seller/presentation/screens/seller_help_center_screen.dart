@@ -225,12 +225,7 @@ class _SellerHelpCenterScreenState extends State<SellerHelpCenterScreen> {
               ),
               const SizedBox(height: 12),
               for (final ticket in _tickets) ...[
-                _TicketCard(
-                  ticket: ticket,
-                  onResolve: () {
-                    setState(() => ticket.status = _TicketStatus.closed);
-                  },
-                ),
+                _TicketCard(ticket: ticket),
                 const SizedBox(height: 12),
               ],
             ],
@@ -268,10 +263,9 @@ class _Card extends StatelessWidget {
 }
 
 class _TicketCard extends StatelessWidget {
-  const _TicketCard({required this.ticket, required this.onResolve});
+  const _TicketCard({required this.ticket});
 
   final _HelpTicket ticket;
-  final VoidCallback onResolve;
 
   @override
   Widget build(BuildContext context) {
@@ -366,16 +360,6 @@ class _TicketCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(ticket.adminReply!),
                 ],
-              ),
-            ),
-          ],
-          if (isOpen) ...[
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: OutlinedButton(
-                onPressed: onResolve,
-                child: const Text('Mark as resolved'),
               ),
             ),
           ],

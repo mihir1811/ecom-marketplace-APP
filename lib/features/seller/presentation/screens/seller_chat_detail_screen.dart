@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_names.dart';
+import '../../../../core/router/account_nav.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -62,7 +62,9 @@ class _SellerChatDetailScreenState extends State<SellerChatDetailScreen> {
     if (chat == null) {
       return Center(
         child: TextButton(
-          onPressed: () => context.go(AppRouteNames.sellerChat),
+          onPressed: () => context.go(
+            messagesPathFor(GoRouterState.of(context).uri.path),
+          ),
           child: const Text('Back to chats'),
         ),
       );
@@ -78,7 +80,9 @@ class _SellerChatDetailScreenState extends State<SellerChatDetailScreen> {
             child: Row(
               children: [
                 IconButton(
-                  onPressed: () => context.go(AppRouteNames.sellerChat),
+                  onPressed: () => context.go(
+                    messagesPathFor(GoRouterState.of(context).uri.path),
+                  ),
                   icon: const Icon(Icons.arrow_back, color: AppColors.warmWhite),
                 ),
                 CircleAvatar(

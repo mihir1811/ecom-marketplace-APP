@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_names.dart';
+import '../../../../core/router/account_nav.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/seller_inquiry_mock_data.dart';
 import '../../domain/models/seller_inquiry.dart';
+import '../widgets/inquiry_seller_reply.dart';
 import '../widgets/seller_layout.dart';
 
-class SellerInquiryDetailScreen extends StatelessWidget {
+class SellerInquiryDetailScreen extends StatefulWidget {
   const SellerInquiryDetailScreen({
     required this.categoryName,
     required this.inquiryId,
@@ -21,12 +22,63 @@ class SellerInquiryDetailScreen extends StatelessWidget {
   final String inquiryId;
 
   @override
+  State<SellerInquiryDetailScreen> createState() =>
+      _SellerInquiryDetailScreenState();
+}
+
+class _SellerInquiryDetailScreenState extends State<SellerInquiryDetailScreen> {
+  late final TextEditingController _replyCtrl;
+  late final FocusNode _replyFocus;
+
+  @override
+  void initState() {
+    super.initState();
+    // Always start empty — show placeholder, never seed with an existing reply.
+    _replyCtrl = TextEditingController();
+    _replyFocus = FocusNode(debugLabel: 'inquiry-seller-reply');
+  }
+
+  @override
+  void dispose() {
+    _replyCtrl.dispose();
+    _replyFocus.dispose();
+    super.dispose();
+  }
+
+  String _nowLabel() {
+    final n = DateTime.now();
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${two(n.day)}/${two(n.month)}/${n.year}, ${two(n.hour)}:${two(n.minute)}:${two(n.second)}';
+  }
+
+  void _sendReply(SellerInquiry inquiry) {
+    final text = _replyCtrl.text.trim();
+    if (text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Write a reply before sending')),
+      );
+      return;
+    }
+    setState(() {
+      inquiry.sellerReply = text;
+      inquiry.sellerReplyAt = _nowLabel();
+      inquiry.updatedAtLabel = _nowLabel();
+      _replyCtrl.clear();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Reply sent to buyer')),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final inquiry = findSellerInquiry(inquiryId);
+    final path = GoRouterState.of(context).uri.path;
+    final isBuyer = isBuyerPath(path);
+    final inquiry = findSellerInquiry(widget.inquiryId);
     if (inquiry == null) {
       return Center(
         child: TextButton(
-          onPressed: () => context.go(AppRouteNames.sellerInquiries),
+          onPressed: () => context.go(inquiriesPathFor(path)),
           child: const Text('Back to inquiries'),
         ),
       );
@@ -60,7 +112,7 @@ class SellerInquiryDetailScreen extends StatelessWidget {
                 icon: const Icon(Icons.menu),
               ),
               TextButton.icon(
-                onPressed: () => context.go(AppRouteNames.sellerInquiries),
+                onPressed: () => context.go(inquiriesPathFor(path)),
                 icon: const Icon(Icons.arrow_back, size: 18),
                 label: const Text('All inquiries'),
               ),
@@ -200,7 +252,9 @@ class SellerInquiryDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Specifications from your submission',
+                      isBuyer
+                          ? 'Specifications from your submission'
+                          : 'Specifications submitted by the buyer',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textMutedLight,
                       ),
@@ -218,6 +272,77 @@ class SellerInquiryDetailScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       _TwoColGrid(entries: section.entries),
                     ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              _Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.reply_outlined, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Seller response',
+                          style: AppTypography.title.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isBuyer
+                          ? 'Answers from the seller appear here'
+                          : 'Reply to this buyer inquiry',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textMutedLight,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (inquiry.sellerReply != null &&
+                        inquiry.sellerReply!.trim().isNotEmpty) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.sandSurface,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.warmBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'SELLER REPLY'
+                              '${inquiry.sellerReplyAt != null ? ' · ${inquiry.sellerReplyAt}' : ''}',
+                              style: AppTypography.caption.copyWith(
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            InquiryReplyText(inquiry.sellerReply!),
+                          ],
+                        ),
+                      ),
+                      if (!isBuyer) const SizedBox(height: 16),
+                    ] else if (isBuyer) ...[
+                      Text(
+                        'No seller response yet.',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.textMutedLight,
+                        ),
+                      ),
+                    ],
+                    if (!isBuyer)
+                      InquirySellerReplyComposer(
+                        controller: _replyCtrl,
+                        focusNode: _replyFocus,
+                        onSend: () => _sendReply(inquiry),
+                      ),
                   ],
                 ),
               ),

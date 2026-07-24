@@ -9,11 +9,11 @@ import 'seller_drawer.dart';
 /// Shared scaffold key so any seller-section screen can open the drawer.
 final GlobalKey<ScaffoldState> sellerScaffoldKey = GlobalKey<ScaffoldState>();
 
-/// Opens the seller side drawer from anywhere inside the seller shell.
+/// Opens the side drawer from seller (or buyer-hosted shared) screens.
 void openSellerDrawer([BuildContext? context]) {
-  final state = sellerScaffoldKey.currentState;
-  if (state != null) {
-    state.openDrawer();
+  final sellerState = sellerScaffoldKey.currentState;
+  if (sellerState != null) {
+    sellerState.openDrawer();
     return;
   }
   if (context != null) {

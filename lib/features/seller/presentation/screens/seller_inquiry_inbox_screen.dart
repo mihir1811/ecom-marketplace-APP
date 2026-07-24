@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_names.dart';
+import '../../../../core/router/account_nav.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -124,9 +124,12 @@ class _SellerInquiryInboxScreenState extends State<SellerInquiryInboxScreen> {
                           ),
                         ),
                         const SizedBox(height: 14),
-                        OutlinedButton(
-                          onPressed: () =>
-                              context.go(AppRouteNames.sellerInquiryNew),
+                          OutlinedButton(
+                          onPressed: () => context.go(
+                            inquiryNewPathFor(
+                              GoRouterState.of(context).uri.path,
+                            ),
+                          ),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size.fromHeight(44),
                             backgroundColor: AppColors.warmWhite,
@@ -240,7 +243,8 @@ class _SellerInquiryInboxScreenState extends State<SellerInquiryInboxScreen> {
                     accent: _accentFor(inquiry.category),
                     icon: _iconFor(inquiry.category),
                     onView: () => context.go(
-                      AppRouteNames.sellerInquiryDetailPath(
+                      inquiryDetailPathFor(
+                        GoRouterState.of(context).uri.path,
                         inquiry.category.name,
                         inquiry.id,
                       ),

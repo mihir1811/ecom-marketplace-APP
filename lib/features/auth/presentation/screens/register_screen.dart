@@ -54,7 +54,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       _didAutoRedirect = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
-        context.go(AppRouteNames.sellerDashboard);
+        context.go(AppRouteNames.home);
       });
     }
 

@@ -11,7 +11,7 @@ enum InquiryCategory {
 }
 
 class SellerInquiry {
-  const SellerInquiry({
+  SellerInquiry({
     required this.id,
     required this.category,
     required this.buyerName,
@@ -22,6 +22,8 @@ class SellerInquiry {
     required this.updatedAtLabel,
     required this.createdAtLong,
     required this.fields,
+    this.sellerReply,
+    this.sellerReplyAt,
   });
 
   final String id;
@@ -31,7 +33,11 @@ class SellerInquiry {
   final String userId;
   final String summary;
   final String createdAtLabel;
-  final String updatedAtLabel;
+  String updatedAtLabel;
   final String createdAtLong;
   final Map<String, String> fields;
+
+  /// Seller response visible to the buyer (markdown-lite plain text).
+  String? sellerReply;
+  String? sellerReplyAt;
 }

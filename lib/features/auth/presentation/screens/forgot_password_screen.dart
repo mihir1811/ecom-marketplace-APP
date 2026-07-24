@@ -39,7 +39,7 @@ class _ForgotPasswordScreenState
       _didAutoRedirect = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
-        context.go(AppRouteNames.sellerDashboard);
+        context.go(AppRouteNames.home);
       });
     }
 

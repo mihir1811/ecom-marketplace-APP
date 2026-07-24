@@ -23,7 +23,28 @@ class AppRouteNames {
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
 
-  // Seller/User (authenticated) side
+  // Buyer (home drawer) — buyer paths; shared UI widgets may be reused
+  static const String buyerProfile = '/buyer/profile';
+  static const String buyerOrders = '/buyer/orders';
+  static const String buyerOrderDetail = '/buyer/orders/:orderId';
+  static String buyerOrderDetailPath(String orderId) =>
+      '/buyer/orders/$orderId';
+  static const String buyerInquiries = '/buyer/inquiries';
+  static const String buyerInquiryNew = '/buyer/inquiries/new';
+  static const String buyerInquiryDetail =
+      '/buyer/inquiries/:category/:inquiryId';
+  static String buyerInquiryDetailPath(String category, String inquiryId) =>
+      '/buyer/inquiries/$category/$inquiryId';
+  static const String buyerHelpCenter = '/buyer/help-center';
+  static const String buyerWishlist = '/buyer/wishlist';
+  static const String buyerReviews = '/buyer/reviews';
+  static const String buyerMessages = '/buyer/messages';
+  static const String buyerChatDetail = '/buyer/messages/:chatId';
+  static String buyerChatDetailPath(String chatId) =>
+      '/buyer/messages/$chatId';
+  static const String buyerSettings = '/buyer/settings';
+
+  // Seller (dashboard workspace)
   static const String sellerDashboard = '/seller/dashboard';
   static const String sellerProducts = '/seller/products';
   static const String sellerProductEdit = '/seller/products/:productId/edit';
@@ -33,7 +54,6 @@ class AppRouteNames {
   static const String sellerOrderDetail = '/seller/orders/:orderId';
   static String sellerOrderDetailPath(String orderId) =>
       '/seller/orders/$orderId';
-  static const String sellerRefunds = '/seller/refunds';
   static const String sellerInquiries = '/seller/inquiries';
   static const String sellerInquiryNew = '/seller/inquiries/new';
   static const String sellerInquiryDetail =
@@ -43,7 +63,6 @@ class AppRouteNames {
   static const String sellerOffers = '/seller/offers';
   static const String sellerAuctions = '/seller/auctions';
   static const String sellerAnalytics = '/seller/analytics';
-  static const String sellerInventory = '/seller/inventory';
   static const String sellerChat = '/seller/chat';
   static const String sellerChatDetail = '/seller/chat/:chatId';
   static String sellerChatDetailPath(String chatId) => '/seller/chat/$chatId';

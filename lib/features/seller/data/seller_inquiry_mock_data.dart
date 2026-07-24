@@ -11,6 +11,12 @@ final List<SellerInquiry> kSellerInquiriesMock = [
     createdAtLabel: '5 Jun 2026, 17:41',
     updatedAtLabel: '06/06/2024, 11:43:08',
     createdAtLong: 'Friday, 5 June 2026 at 17:41',
+    sellerReply:
+        'Thanks for your inquiry.\n\n**We have matching stones** in stock:\n'
+        '- 1.12ct Round D VS1 GIA\n'
+        '- 1.51ct Round E VS2 GIA\n\n'
+        'Please confirm preferred carat and budget and we will send certificates.',
+    sellerReplyAt: '06/06/2026, 09:15:00',
     fields: const {
       'Sub-category (PARCEL / SINGLE)': 'SINGLE',
       'Diamond type (LAB / NATURAL)': 'NATURAL',

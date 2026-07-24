@@ -6,7 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
-/// Side drawer shown on seller/user pages when the user is authenticated.
+/// Side drawer for seller workspace screens only.
 class SellerDrawer extends StatelessWidget {
   const SellerDrawer({
     super.key,
@@ -18,67 +18,57 @@ class SellerDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = <_DrawerItem>[
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerDashboard,
         label: 'Dashboard',
         icon: Icons.dashboard_outlined,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerProducts,
         label: 'Products',
         icon: Icons.inventory_2_outlined,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerOrders,
         label: 'Orders',
         icon: Icons.shopping_bag_outlined,
       ),
-      _DrawerItem(
-        route: AppRouteNames.sellerRefunds,
-        label: 'Refunds',
-        icon: Icons.refresh_outlined,
-      ),
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerInquiries,
         label: 'Inquiries',
         icon: Icons.mail_outline,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerOffers,
         label: 'Offers',
         icon: Icons.local_offer_outlined,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerAuctions,
         label: 'Auctions',
         icon: Icons.gavel_outlined,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerAnalytics,
         label: 'Analytics',
         icon: Icons.bar_chart_outlined,
       ),
-      _DrawerItem(
-        route: AppRouteNames.sellerInventory,
-        label: 'Inventory',
-        icon: Icons.storage_outlined,
-      ),
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerChat,
         label: 'Chat',
         icon: Icons.chat_bubble_outline,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerHelpCenter,
         label: 'Help center',
         icon: Icons.help_outline,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerPromotions,
         label: 'Promotions',
         icon: Icons.card_giftcard_outlined,
       ),
-      _DrawerItem(
+      const _DrawerItem(
         route: AppRouteNames.sellerProfile,
         label: 'Profile',
         icon: Icons.person_outline,
@@ -97,7 +87,7 @@ class SellerDrawer extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    'Gem World',
+                    'Seller workspace',
                     style: AppTypography.title,
                   ),
                   const Spacer(),
@@ -138,7 +128,7 @@ class SellerDrawer extends StatelessWidget {
                                   ? AppColors.warmWhite
                                   : AppColors.charcoal,
                             ),
-                            SizedBox(width: AppSpacing.s16),
+                            const SizedBox(width: AppSpacing.s16),
                             Expanded(
                               child: Text(
                                 item.label,
@@ -160,6 +150,20 @@ class SellerDrawer extends StatelessWidget {
                 },
               ),
             ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.storefront_outlined),
+              title: Text(
+                'Back to shop',
+                style: AppTypography.label.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).maybePop();
+                context.go(AppRouteNames.home);
+              },
+            ),
           ],
         ),
       ),
@@ -178,4 +182,3 @@ class _DrawerItem {
   final String label;
   final IconData icon;
 }
-

@@ -113,25 +113,12 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                       customEnd: _customEnd,
                       onChanged: (v) async {
                         if (v == SalesRange.custom) {
-                          final picked = await showDateRangePicker(
-                            context: context,
-                            firstDate: DateTime(2020),
-                            lastDate: DateTime.now().add(
-                              const Duration(days: 365),
-                            ),
-                            initialDateRange:
-                                _customStart != null && _customEnd != null
-                                    ? DateTimeRange(
-                                        start: _customStart!,
-                                        end: _customEnd!,
-                                      )
-                                    : null,
-                          );
+                          final picked = await _pickCustomDateRange(context);
                           if (picked == null) return;
                           setState(() {
                             _range = SalesRange.custom;
-                            _customStart = picked.start;
-                            _customEnd = picked.end;
+                            _customStart = picked.$1;
+                            _customEnd = picked.$2;
                           });
                           return;
                         }
@@ -255,9 +242,166 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
     };
   }
 
+  Future<(DateTime, DateTime)?> _pickCustomDateRange(
+    BuildContext context,
+  ) async {
+    DateTime? start = _customStart;
+    DateTime? end = _customEnd;
+    final firstDate = DateTime(2020);
+    final lastDate = DateTime.now().add(const Duration(days: 365));
+
+    return showDialog<(DateTime, DateTime)>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Future<void> pickStart() async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: start ?? DateTime.now(),
+                firstDate: firstDate,
+                lastDate: end ?? lastDate,
+                helpText: 'Select start date',
+              );
+              if (picked == null) return;
+              setDialogState(() {
+                start = picked;
+                if (end != null && end!.isBefore(picked)) {
+                  end = null;
+                }
+              });
+            }
+
+            Future<void> pickEnd() async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: end ?? start ?? DateTime.now(),
+                firstDate: start ?? firstDate,
+                lastDate: lastDate,
+                helpText: 'Select end date',
+              );
+              if (picked == null) return;
+              setDialogState(() => end = picked);
+            }
+
+            return AlertDialog(
+              backgroundColor: AppColors.warmWhite,
+              title: Text(
+                'Custom date range',
+                style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+              ),
+              content: SizedBox(
+                width: 320,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _CustomDateField(
+                      label: 'Start date',
+                      value: start,
+                      onTap: pickStart,
+                    ),
+                    const SizedBox(height: AppSpacing.s12),
+                    _CustomDateField(
+                      label: 'End date',
+                      value: end,
+                      onTap: pickEnd,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: start != null && end != null
+                      ? () => Navigator.of(dialogContext).pop((start!, end!))
+                      : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.charcoal,
+                    foregroundColor: AppColors.warmWhite,
+                  ),
+                  child: const Text('Apply'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   static String _fmtDate(DateTime d) {
     String two(int v) => v.toString().padLeft(2, '0');
     return '${two(d.month)}/${two(d.day)}/${d.year}';
+  }
+}
+
+class _CustomDateField extends StatelessWidget {
+  const _CustomDateField({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  final String label;
+  final DateTime? value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = value == null
+        ? 'Select date'
+        : _SellerDashboardScreenState._fmtDate(value!);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondaryLight,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Material(
+          color: AppColors.warmWhite,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppSpacing.r8),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: 'Select date',
+                suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.r8),
+                  borderSide: const BorderSide(color: AppColors.warmBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.r8),
+                  borderSide: const BorderSide(color: AppColors.warmBorder),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+              ),
+              child: Text(
+                text,
+                style: AppTypography.body.copyWith(
+                  color: value == null
+                      ? AppColors.textMutedLight
+                      : AppColors.charcoal,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -907,7 +1051,7 @@ class _QuickActionsSection extends StatelessWidget {
 
   static const _actions = [
     (Icons.receipt_long_outlined, 'View Orders'),
-    (Icons.format_list_bulleted, 'Inventory'),
+    (Icons.inventory_2_outlined, 'Products'),
   ];
 
   @override

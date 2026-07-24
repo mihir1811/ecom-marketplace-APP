@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_names.dart';
+import '../../../../core/router/account_nav.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -112,8 +112,12 @@ class _SellerChatListScreenState extends State<SellerChatListScreen> {
             itemBuilder: (context, index) {
               final chat = chats[index];
               return InkWell(
-                onTap: () =>
-                    context.go(AppRouteNames.sellerChatDetailPath(chat.id)),
+                onTap: () => context.go(
+                  chatDetailPathFor(
+                    GoRouterState.of(context).uri.path,
+                    chat.id,
+                  ),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.s16,

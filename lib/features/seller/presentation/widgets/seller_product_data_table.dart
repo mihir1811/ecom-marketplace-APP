@@ -5,7 +5,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/seller_product.dart';
 import '../../domain/models/seller_product_column.dart';
 
-class SellerProductDataTable extends StatelessWidget {
+class SellerProductDataTable extends StatefulWidget {
   const SellerProductDataTable({
     required this.products,
     required this.columns,
@@ -25,14 +25,29 @@ class SellerProductDataTable extends StatelessWidget {
   final ValueChanged<SellerProduct>? onEdit;
   final ValueChanged<SellerProduct>? onDelete;
 
+  @override
+  State<SellerProductDataTable> createState() => _SellerProductDataTableState();
+}
+
+class _SellerProductDataTableState extends State<SellerProductDataTable> {
+  final _verticalController = ScrollController();
+  final _horizontalController = ScrollController();
+
   static const _minColWidth = 120.0;
   static const _selectionWidth = 48.0;
   static const _actionsWidth = 140.0;
   static const _imageWidth = 72.0;
 
   @override
+  void dispose() {
+    _verticalController.dispose();
+    _horizontalController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (columns.isEmpty) {
+    if (widget.columns.isEmpty) {
       return Center(
         child: Text(
           'Select columns using the column picker.',
@@ -41,6 +56,9 @@ class SellerProductDataTable extends StatelessWidget {
       );
     }
 
+    final products = widget.products;
+    final columns = widget.columns;
+    final selectedIds = widget.selectedIds;
     final allSelected = products.isNotEmpty &&
         products.every((p) => selectedIds.contains(p.id));
     final someSelected = products.any((p) => selectedIds.contains(p.id));
@@ -48,13 +66,19 @@ class SellerProductDataTable extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Scrollbar(
+          controller: _verticalController,
           thumbVisibility: true,
           child: SingleChildScrollView(
+            controller: _verticalController,
+            primary: false,
             scrollDirection: Axis.vertical,
             child: Scrollbar(
+              controller: _horizontalController,
               thumbVisibility: true,
-              notificationPredicate: (n) => n.depth == 1,
+              notificationPredicate: (n) => n.depth == 0,
               child: SingleChildScrollView(
+                controller: _horizontalController,
+                primary: false,
                 scrollDirection: Axis.horizontal,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minWidth: constraints.maxWidth),
@@ -85,7 +109,7 @@ class SellerProductDataTable extends StatelessWidget {
                                             ? null
                                             : false,
                                     onChanged: (v) =>
-                                        onToggleSelectAll(v ?? false),
+                                        widget.onToggleSelectAll(v ?? false),
                                   )
                                 : Text(
                                     col.label.toUpperCase(),
@@ -143,8 +167,8 @@ class SellerProductDataTable extends StatelessWidget {
   Widget _cellFor(BuildContext context, String columnId, SellerProduct product) {
     if (columnId == 'selection') {
       return Checkbox(
-        value: selectedIds.contains(product.id),
-        onChanged: (v) => onToggleSelection(product.id, v ?? false),
+        value: widget.selectedIds.contains(product.id),
+        onChanged: (v) => widget.onToggleSelection(product.id, v ?? false),
       );
     }
     if (columnId == 'actions') {
@@ -159,13 +183,16 @@ class SellerProductDataTable extends StatelessWidget {
           _ActionIcon(
             icon: Icons.edit_outlined,
             tooltip: 'Edit',
-            onPressed: onEdit == null ? null : () => onEdit!(product),
+            onPressed:
+                widget.onEdit == null ? null : () => widget.onEdit!(product),
           ),
           _ActionIcon(
             icon: Icons.delete_outline,
             tooltip: 'Delete',
             color: AppColors.error,
-            onPressed: onDelete == null ? null : () => onDelete!(product),
+            onPressed: widget.onDelete == null
+                ? null
+                : () => widget.onDelete!(product),
           ),
         ],
       );
@@ -180,7 +207,11 @@ class SellerProductDataTable extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
           border: Border.all(color: AppColors.warmBorder),
         ),
-        child: const Icon(Icons.image_outlined, size: 20, color: AppColors.textMutedLight),
+        child: const Icon(
+          Icons.image_outlined,
+          size: 20,
+          color: AppColors.textMutedLight,
+        ),
       );
     }
     if (columnId == 'is_on_auction' || columnId == 'is_sold') {
@@ -201,7 +232,8 @@ class SellerProductDataTable extends StatelessWidget {
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              foregroundColor: expired ? AppColors.textMutedLight : AppColors.info,
+              foregroundColor:
+                  expired ? AppColors.textMutedLight : AppColors.info,
             ),
             child: const Text('Active'),
           ),
@@ -211,7 +243,8 @@ class SellerProductDataTable extends StatelessWidget {
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              foregroundColor: expired ? AppColors.charcoal : AppColors.textMutedLight,
+              foregroundColor:
+                  expired ? AppColors.charcoal : AppColors.textMutedLight,
             ),
             child: const Text('Expire'),
           ),
@@ -247,7 +280,9 @@ class _StatusPill extends StatelessWidget {
             : AppColors.sandSurface,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: highlighted ? AppColors.info.withValues(alpha: 0.35) : AppColors.warmBorder,
+          color: highlighted
+              ? AppColors.info.withValues(alpha: 0.35)
+              : AppColors.warmBorder,
         ),
       ),
       child: Text(

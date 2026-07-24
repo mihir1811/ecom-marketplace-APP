@@ -16,11 +16,10 @@ import 'presentation/screens/seller_products_screen.dart';
 import 'presentation/screens/seller_product_edit_screen.dart';
 import 'presentation/screens/seller_profile_screen.dart';
 import 'presentation/screens/seller_promotions_screen.dart';
-import 'presentation/screens/seller_refunds_screen.dart';
 import 'presentation/screens/seller_section_screen.dart';
 import 'presentation/widgets/seller_layout.dart';
 
-/// Modular routes for the authenticated seller/user side.
+/// Modular routes for the authenticated seller workspace.
 ///
 /// All seller pages share one [SellerLayout] shell so the drawer stays global.
 final List<RouteBase> sellerRoutes = [
@@ -57,10 +56,6 @@ final List<RouteBase> sellerRoutes = [
         ),
       ),
       GoRoute(
-        path: AppRouteNames.sellerRefunds,
-        builder: (context, state) => const SellerRefundsScreen(),
-      ),
-      GoRoute(
         path: AppRouteNames.sellerInquiries,
         builder: (context, state) => const SellerInquiryInboxScreen(),
       ),
@@ -87,11 +82,6 @@ final List<RouteBase> sellerRoutes = [
         path: AppRouteNames.sellerAnalytics,
         builder: (context, state) =>
             const SellerSectionScreen(title: 'Analytics'),
-      ),
-      GoRoute(
-        path: AppRouteNames.sellerInventory,
-        builder: (context, state) =>
-            const SellerSectionScreen(title: 'Inventory'),
       ),
       GoRoute(
         path: AppRouteNames.sellerChat,

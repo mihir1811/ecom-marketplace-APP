@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_names.dart';
+import '../../../../core/router/account_nav.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -177,7 +177,7 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('${_category!.label} inquiry submitted')),
     );
-    context.go(AppRouteNames.sellerInquiries);
+    context.go(inquiriesPathFor(GoRouterState.of(context).uri.path));
   }
 
   String _summaryFor(InquiryCategory c) => switch (c) {
@@ -254,7 +254,9 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
                 icon: const Icon(Icons.menu),
               ),
               IconButton(
-                onPressed: () => context.go(AppRouteNames.sellerInquiries),
+                onPressed: () => context.go(
+                  inquiriesPathFor(GoRouterState.of(context).uri.path),
+                ),
                 icon: const Icon(Icons.arrow_back),
               ),
               Expanded(
@@ -297,7 +299,9 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
-                  onPressed: () => context.go(AppRouteNames.sellerInquiries),
+                  onPressed: () => context.go(
+                    inquiriesPathFor(GoRouterState.of(context).uri.path),
+                  ),
                   child: const Text('Open inquiry inbox'),
                 ),
               ),

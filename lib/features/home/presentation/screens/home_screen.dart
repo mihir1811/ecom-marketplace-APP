@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 
+import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -12,6 +13,7 @@ import '../home_network_images.dart';
 import '../widgets/home_category_tile.dart';
 import '../widgets/home_hero.dart';
 import '../widgets/home_quick_search.dart';
+import '../../../buyer/presentation/widgets/buyer_drawer.dart';
 
 /// GemWorld marketplace landing — minimal, image-led, one-tap catalog access.
 class HomeScreen extends ConsumerWidget {
@@ -59,9 +61,13 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartCount = ref.watch(cartItemCountProvider);
+    final isAuthenticated = ref.watch(
+      authProvider.select((s) => s.isAuthenticated),
+    );
 
     return AppScaffold(
       backgroundColor: AppColors.creamBg,
+      drawer: isAuthenticated ? const BuyerDrawer() : null,
       appBar: AppBar(
         backgroundColor: AppColors.creamBg,
         surfaceTintColor: Colors.transparent,
@@ -89,16 +95,29 @@ class HomeScreen extends ConsumerWidget {
               child: const Icon(Icons.shopping_bag_outlined),
             ),
           ),
-          TextButton(
-            onPressed: () => context.push(AppRouteNames.login),
-            child: Text(
-              'Login',
-              style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.charcoal,
+          if (isAuthenticated)
+            TextButton.icon(
+              onPressed: () => context.go(AppRouteNames.sellerDashboard),
+              icon: const Icon(Icons.dashboard_outlined, size: 18),
+              label: Text(
+                'Dashboard',
+                style: AppTypography.label.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.charcoal,
+                ),
+              ),
+            )
+          else
+            TextButton(
+              onPressed: () => context.push(AppRouteNames.login),
+              child: Text(
+                'Login',
+                style: AppTypography.label.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.charcoal,
+                ),
               ),
             ),
-          ),
           const SizedBox(width: AppSpacing.s8),
         ],
       ),
@@ -157,15 +176,17 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
-              child: _SellerBanner(
-                onTap: () => context.push(AppRouteNames.sellerDashboard),
+          if (!isAuthenticated) ...[
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
+                child: _SellerBanner(
+                  onTap: () => context.push(AppRouteNames.login),
+                ),
               ),
             ),
-          ),
+          ],
           const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
           SliverToBoxAdapter(
             child: Padding(
@@ -246,7 +267,7 @@ class _SellerBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.s4),
                     Text(
-                      'List diamonds, gems, and jewelry to verified buyers.',
+                      'Sign in to list diamonds, gems, and jewelry.',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.bronzeLight,
                       ),
