@@ -285,9 +285,9 @@
     "semantic_hash": "64af22ec7ec338f4210f7e964cf5489f"
   },
   "linux/flutter/generated_plugin_registrant.cc": {
-    "mtime": 1784532647.8416078,
-    "ast_hash": "d07afe003d5837167bdd357d593f20a0",
-    "semantic_hash": "d07afe003d5837167bdd357d593f20a0"
+    "mtime": 1784952287.3089414,
+    "ast_hash": "399ad1d69aa4ba27ae90eb088bbc155c",
+    "semantic_hash": ""
   },
   "linux/flutter/generated_plugin_registrant.h": {
     "mtime": 1784532647.8416078,
@@ -310,8 +310,8 @@
     "semantic_hash": ""
   },
   "macos/Flutter/GeneratedPluginRegistrant.swift": {
-    "mtime": 1784722596.1413732,
-    "ast_hash": "c2aa53d101a6bfaf3e29ecf915a1516f",
+    "mtime": 1784952287.3166656,
+    "ast_hash": "86b60381946c3437348389316bc2e968",
     "semantic_hash": ""
   },
   "macos/RunnerTests/RunnerTests.swift": {
@@ -540,9 +540,9 @@
     "semantic_hash": ""
   },
   "windows/flutter/generated_plugin_registrant.cc": {
-    "mtime": 1784532648.0604277,
-    "ast_hash": "a8f91348d8d9090f22ec69d597c41e1f",
-    "semantic_hash": "a8f91348d8d9090f22ec69d597c41e1f"
+    "mtime": 1784952287.3166656,
+    "ast_hash": "2babb9c9335a66f5f7b42bbe96eeead8",
+    "semantic_hash": ""
   },
   "windows/flutter/generated_plugin_registrant.h": {
     "mtime": 1784532648.0614247,
@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "pubspec.yaml": {
-    "mtime": 1784722496.4341238,
-    "ast_hash": "7c5ff511a2da7f608acd4b1a12926291",
+    "mtime": 1784952286.0505533,
+    "ast_hash": "fef9640bc7fb3ffa2431098c3caeefa1",
     "semantic_hash": ""
   },
   "web/index.html": {
@@ -2060,33 +2060,33 @@
     "semantic_hash": ""
   },
   "lib/features/seller/data/seller_inquiry_mock_data.dart": {
-    "mtime": 1784874043.7675853,
-    "ast_hash": "7df2677424c7c474ae71ca62be95020c",
+    "mtime": 1784962126.9922874,
+    "ast_hash": "69fced3a3c74c1589164f0baf68986f5",
     "semantic_hash": ""
   },
   "lib/features/seller/domain/models/seller_inquiry.dart": {
-    "mtime": 1784874154.42979,
-    "ast_hash": "833be6389d86dca19d14d947553c3d7a",
+    "mtime": 1784962126.608411,
+    "ast_hash": "e74ea391c3365d7d4835ae03516bbd59",
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_inquiry_detail_screen.dart": {
-    "mtime": 1784874512.4627988,
-    "ast_hash": "dc293ca41682da6f94c89372e750a2f6",
+    "mtime": 1784962215.0762067,
+    "ast_hash": "1f65273cac210f2f03ed36316b28c114",
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_inquiry_form_screen.dart": {
-    "mtime": 1784873259.0617266,
-    "ast_hash": "011e4722e2e5ee8444e7e468148aa510",
+    "mtime": 1784962243.2499607,
+    "ast_hash": "9afde040d971967209f85abfd468b745",
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_inquiry_inbox_screen.dart": {
-    "mtime": 1784873254.1287954,
-    "ast_hash": "12606d3a4e764fdd447e48e19e6a9fba",
+    "mtime": 1784962259.765544,
+    "ast_hash": "c8107b80590a4f94e192878f19ef9c6f",
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/widgets/inquiry_form_fields.dart": {
-    "mtime": 1784700582.4795806,
-    "ast_hash": "4c7fd4cc91c4b92631566ad071acbbf4",
+    "mtime": 1784952301.694599,
+    "ast_hash": "820b957833a00f88181bfff1a138ca29",
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_profile_screen.dart": {
@@ -2455,8 +2455,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/widgets/inquiry_seller_reply.dart": {
-    "mtime": 1784874500.5244913,
-    "ast_hash": "e0b2dd6f431364f20136cea62ecbd978",
+    "mtime": 1784962260.4966874,
+    "ast_hash": "01194d458cb1aa925cfbfbb664e722a7",
     "semantic_hash": ""
   },
   "lib/features/buyer/application/wishlist_provider.dart": {

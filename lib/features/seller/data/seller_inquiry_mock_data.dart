@@ -4,6 +4,7 @@ final List<SellerInquiry> kSellerInquiriesMock = [
   SellerInquiry(
     id: '1',
     category: InquiryCategory.diamond,
+    sentBy: InquirySenderRole.buyer,
     buyerName: 'John Buyer',
     buyerEmail: 'john.buyer@example.com',
     userId: 'a0000000-0000-0000-0000-000000000000',
@@ -11,12 +12,12 @@ final List<SellerInquiry> kSellerInquiriesMock = [
     createdAtLabel: '5 Jun 2026, 17:41',
     updatedAtLabel: '06/06/2024, 11:43:08',
     createdAtLong: 'Friday, 5 June 2026 at 17:41',
-    sellerReply:
-        'Thanks for your inquiry.\n\n**We have matching stones** in stock:\n'
+    adminReply:
+        'Thanks for your inquiry.\n\n**We reviewed matching stones** in our network:\n'
         '- 1.12ct Round D VS1 GIA\n'
         '- 1.51ct Round E VS2 GIA\n\n'
-        'Please confirm preferred carat and budget and we will send certificates.',
-    sellerReplyAt: '06/06/2026, 09:15:00',
+        'Please confirm preferred carat and budget and we will share certificates.',
+    adminReplyAt: '06/06/2026, 09:15:00',
     fields: const {
       'Sub-category (PARCEL / SINGLE)': 'SINGLE',
       'Diamond type (LAB / NATURAL)': 'NATURAL',
@@ -58,6 +59,7 @@ final List<SellerInquiry> kSellerInquiriesMock = [
   SellerInquiry(
     id: '2',
     category: InquiryCategory.gemstone,
+    sentBy: InquirySenderRole.buyer,
     buyerName: 'Sara Cole',
     buyerEmail: 'sara@example.com',
     userId: 'b1111111-1111-1111-1111-111111111111',
@@ -85,6 +87,7 @@ final List<SellerInquiry> kSellerInquiriesMock = [
   SellerInquiry(
     id: '3',
     category: InquiryCategory.watch,
+    sentBy: InquirySenderRole.buyer,
     buyerName: 'Alex Kim',
     buyerEmail: 'alex@example.com',
     userId: 'c2222222-2222-2222-2222-222222222222',
@@ -104,6 +107,30 @@ final List<SellerInquiry> kSellerInquiriesMock = [
       'Delivery location': 'Dubai, UAE',
     },
   ),
+  SellerInquiry(
+    id: '4',
+    category: InquiryCategory.jewelry,
+    sentBy: InquirySenderRole.seller,
+    buyerName: 'Seller Studio',
+    buyerEmail: 'seller@example.com',
+    userId: 's3333333-3333-3333-3333-333333333333',
+    summary: 'Necklace · Yellow gold',
+    createdAtLabel: '12 Jun 2026, 15:40',
+    updatedAtLabel: '12/06/2026, 15:40:00',
+    createdAtLong: 'Friday, 12 June 2026 at 15:40',
+    adminReply:
+        'Thanks for reaching out.\n\nAn admin reviewed your sourcing request. '
+        'We can connect you with verified manufacturers for **18Kt yellow gold necklaces**. '
+        'Reply with MOQ and target price range.',
+    adminReplyAt: '13/06/2026, 10:02:00',
+    fields: const {
+      'subCategory': 'Necklace',
+      'metalType': 'Gold',
+      'metalColor': 'Yellow',
+      'occasion': 'Wedding',
+      'deliveryLocation': 'Jaipur, IN',
+    },
+  ),
 ];
 
 SellerInquiry? findSellerInquiry(String id) {
@@ -113,6 +140,15 @@ SellerInquiry? findSellerInquiry(String id) {
   return null;
 }
 
-List<SellerInquiry> inquiriesForCategory(InquiryCategory category) {
-  return kSellerInquiriesMock.where((i) => i.category == category).toList();
+List<SellerInquiry> inquiriesForCategory(
+  InquiryCategory category, {
+  InquirySenderRole? sentBy,
+}) {
+  return kSellerInquiriesMock
+      .where(
+        (i) =>
+            i.category == category &&
+            (sentBy == null || i.sentBy == sentBy),
+      )
+      .toList();
 }

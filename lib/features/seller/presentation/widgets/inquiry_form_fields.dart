@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -251,6 +254,207 @@ class InquiryDateField extends StatelessWidget {
           child: Text(text),
         ),
       ),
+    );
+  }
+}
+
+/// Upload / preview reference images for inquiries and seller replies.
+class InquiryImagePickerField extends StatelessWidget {
+  const InquiryImagePickerField({
+    required this.label,
+    required this.images,
+    required this.onChanged,
+    this.helperText = 'Upload a reference image of what you want',
+    this.maxImages = 4,
+    super.key,
+  });
+
+  final String label;
+  final List<Uint8List> images;
+  final ValueChanged<List<Uint8List>> onChanged;
+  final String helperText;
+  final int maxImages;
+
+  Future<void> _pick(BuildContext context) async {
+    if (images.length >= maxImages) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You can add up to $maxImages images')),
+      );
+      return;
+    }
+    final picker = ImagePicker();
+    final remaining = maxImages - images.length;
+    if (remaining == 1) {
+      final file = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1600,
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      onChanged([...images, bytes]);
+      return;
+    }
+    final files = await picker.pickMultiImage(
+      imageQuality: 85,
+      maxWidth: 1600,
+      limit: remaining,
+    );
+    if (files.isEmpty) return;
+    final next = List<Uint8List>.from(images);
+    for (final file in files) {
+      if (next.length >= maxImages) break;
+      next.add(await file.readAsBytes());
+    }
+    onChanged(next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InquiryLabeledField(
+      label: label,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            helperText,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textMutedLight,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (images.isNotEmpty)
+            SizedBox(
+              height: 88,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: images.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.memory(
+                          images[index],
+                          width: 88,
+                          height: 88,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: -6,
+                        right: -6,
+                        child: Material(
+                          color: AppColors.charcoal,
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: () {
+                              final next = List<Uint8List>.from(images)
+                                ..removeAt(index);
+                              onChanged(next);
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Icon(
+                                Icons.close,
+                                size: 14,
+                                color: AppColors.warmWhite,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          if (images.isNotEmpty) const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed:
+                images.length >= maxImages ? null : () => _pick(context),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.charcoal,
+              side: const BorderSide(color: AppColors.warmBorder),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
+            label: Text(
+              images.isEmpty ? 'Upload reference image' : 'Add another image',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Read-only thumbnail strip for inquiry detail.
+class InquiryImageGallery extends StatelessWidget {
+  const InquiryImageGallery({
+    required this.images,
+    this.title,
+    super.key,
+  });
+
+  final List<Uint8List> images;
+  final String? title;
+
+  @override
+  Widget build(BuildContext context) {
+    if (images.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (title != null) ...[
+          Text(
+            title!,
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMutedLight,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        SizedBox(
+          height: 96,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: images.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (ctx) => Dialog(
+                      insetPadding: const EdgeInsets.all(24),
+                      child: InteractiveViewer(
+                        child: Image.memory(images[index], fit: BoxFit.contain),
+                      ),
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.memory(
+                    images[index],
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

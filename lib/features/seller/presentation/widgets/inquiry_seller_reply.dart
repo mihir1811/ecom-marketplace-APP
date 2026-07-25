@@ -1,8 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import 'inquiry_form_fields.dart';
 
 /// Lightweight markdown-style display (**bold**, *italic*, - bullets).
 class InquiryReplyText extends StatelessWidget {
@@ -91,18 +94,22 @@ class _InlineRich extends StatelessWidget {
   }
 }
 
-/// Seller-only rich reply composer (bold / italic / bullet toolbar).
+/// Seller-only rich reply composer (bold / italic / bullet / image toolbar).
 class InquirySellerReplyComposer extends StatefulWidget {
   const InquirySellerReplyComposer({
     super.key,
     required this.controller,
     required this.focusNode,
     required this.onSend,
+    required this.images,
+    required this.onImagesChanged,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final VoidCallback onSend;
+  final List<Uint8List> images;
+  final ValueChanged<List<Uint8List>> onImagesChanged;
 
   @override
   State<InquirySellerReplyComposer> createState() =>
@@ -249,6 +256,14 @@ class _InquirySellerReplyComposerState
           ),
         ),
         const SizedBox(height: 12),
+        InquiryImagePickerField(
+          label: 'Reference image',
+          helperText: 'Attach a photo of what you have for the sender',
+          images: widget.images,
+          onChanged: widget.onImagesChanged,
+          maxImages: 4,
+        ),
+        const SizedBox(height: 4),
         Align(
           alignment: Alignment.centerLeft,
           child: FilledButton.icon(

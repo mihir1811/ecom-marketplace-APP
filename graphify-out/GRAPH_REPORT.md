@@ -1,16 +1,16 @@
-# Graph Report - gemstone  (2026-07-24)
+# Graph Report - gemstone  (2026-07-25)
 
 ## Corpus Check
-- 359 files · ~681,226 words
+- 359 files · ~682,062 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 5008 nodes · 6683 edges · 287 communities (267 shown, 20 thin omitted)
+- 5020 nodes · 6702 edges · 299 communities (279 shown, 20 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 18 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `80a38f82`
+- Built from commit: `56697c5c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -246,25 +246,37 @@
 - seller_product_cards_view.dart
 - seller_layout.dart
 - seller_section_screen.dart
+- compare_toggle_helper.dart
 - DiamondSearchNotifier
 - GemstoneSearchNotifier
 - gemstone_search_bottom_bar.dart
+- listing_search_filter_bar.dart
 - bool get
 - Notification
 - _GemstoneListingsScreenState
 - GemstoneSearchNotifier
 - diamond_svg_data.dart
 - auth_state.dart
+- buyer_settings_screen.dart
 - filter_category_advanced.dart
 - @gmail
 - @mail
 - watch_brand_categories.dart
 - gemstone_list_provider.dart
 - gemstone_repository_impl.dart
+- bullions_grid_view.dart
 - JewelrySortOption
+- filter_shape_grid_cell.dart
+- seller_orders_mock_data.dart
+- watch_grid_view.dart
 - marketplace_product_card_shell.dart
 - diamond_svg_data.dart
+- birthstone_month_card.dart
+- Notifier
 - String get
+- main.dart
+- _PairedShowcaseCarouselState
+- _PinnedHeaderDelegate
 - format_catalog_price.dart
 
 ## God Nodes (most connected - your core abstractions)
@@ -282,19 +294,19 @@
 ## Surprising Connections (you probably didn't know these)
 - `build` --references--> `diamondSearchProvider`  [EXTRACTED]
   lib/features/diamonds/presentation/widgets/diamond_filter_chips.dart → lib/features/diamonds/application/diamond_search_provider.dart
-- `OnCreate` --calls--> `GetClientArea`  [INFERRED]
-  windows/runner/flutter_window.h → windows/runner/win32_window.h
-- `OnCreate` --calls--> `SetChildContent`  [INFERRED]
-  windows/runner/flutter_window.h → windows/runner/win32_window.h
+- `OnCreate` --calls--> `RegisterPlugins()`  [INFERRED]
+  windows/runner/flutter_window.h → windows/flutter/generated_plugin_registrant.cc
 - `wWinMain()` --calls--> `CreateAndAttachConsole()`  [INFERRED]
   windows/runner/main.cpp → windows/runner/utils.cpp
 - `Win32Window::Win32Window()` --calls--> `Destroy`  [INFERRED]
   windows/runner/win32_window.cpp → windows/runner/win32_window.h
+- `_ForgotPasswordScreenState` --references--> `authProvider`  [EXTRACTED]
+  lib/features/auth/presentation/screens/forgot_password_screen.dart → lib/core/auth/auth_providers.dart
 
 ## Import Cycles
 - None detected.
 
-## Communities (287 total, 20 thin omitted)
+## Communities (299 total, 20 thin omitted)
 
 ### Community 0 - "diamond_filter_state.dart"
 Cohesion: 0.02
@@ -313,8 +325,8 @@ Cohesion: 0.16
 Nodes (13): Point, Size, wchar_t, Scale(), Create, Destroy, Win32Window::Win32Window(), WindowClassRegistrar (+5 more)
 
 ### Community 4 - "app_colors.dart"
-Cohesion: 0.05
-Nodes (41): sellerProductsControllerProvider, build, _columnPickerAnchorKey, _columnPickerOverlay, createState, dispose, _editProduct, end (+33 more)
+Cohesion: 0.06
+Nodes (35): _columnPickerAnchorKey, _columnPickerOverlay, createState, dispose, _editProduct, end, icon, initState (+27 more)
 
 ### Community 5 - "diamond.dart"
 Cohesion: 0.05
@@ -325,20 +337,20 @@ Cohesion: 0.08
 Nodes (25): carat, certificate, clarity, color, copyWith, cut, Diamond, DiamondListResponse (+17 more)
 
 ### Community 7 - "gemstone_search_provider.dart"
-Cohesion: 0.10
-Nodes (26): ../../../buyer/domain/models/wishlist_item.dart, ../../../buyer/presentation/widgets/wishlist_toggle_button.dart, ../../../comparison/application/comparison_provider.dart, ../../../comparison/domain/models/compare_item.dart, ../../../comparison/presentation/widgets/compare_add_button.dart, ../../../comparison/presentation/widgets/compare_toggle_helper.dart, ../../../../core/widgets/marketplace_product_card_shell.dart, _buildDetailsRow (+18 more)
+Cohesion: 0.08
+Nodes (38): ../../../buyer/domain/models/wishlist_item.dart, ../../../buyer/presentation/widgets/wishlist_toggle_button.dart, ../../../comparison/application/comparison_provider.dart, ../../../comparison/domain/models/compare_item.dart, ../../../comparison/presentation/widgets/compare_add_button.dart, ../../../comparison/presentation/widgets/compare_toggle_helper.dart, ConsumerWidget, ../../../../core/widgets/marketplace_product_card_shell.dart (+30 more)
 
 ### Community 8 - "AppDelegate"
 Cohesion: 0.09
 Nodes (21): filter_advanced_range_input.dart, build, CatalogMeasurementFilters, dimensionLimits, heightMax, heightMin, lengthMax, lengthMin (+13 more)
 
 ### Community 9 - "Diamond Listings Results Screen — UI Specification"
-Cohesion: 0.15
-Nodes (16): ../../application/gemstone_list_provider.dart, ../../../comparison/presentation/widgets/comparison_bottom_bar.dart, ../../../../core/widgets/catalog_empty_state.dart, ../../../../core/widgets/catalog_error_state.dart, ../../../../core/widgets/catalog_list_loading.dart, gemstoneListProvider, gemstoneViewModeProvider, build (+8 more)
+Cohesion: 0.09
+Nodes (27): ../../application/gemstone_list_provider.dart, ../../../comparison/presentation/widgets/comparison_bottom_bar.dart, ../../../../core/widgets/catalog_empty_state.dart, ../../../../core/widgets/catalog_error_state.dart, ../../../../core/widgets/catalog_list_loading.dart, ../../../../core/widgets/view_mode_toggle.dart, createState, dispose (+19 more)
 
 ### Community 10 - "diamond_repository_impl.dart"
-Cohesion: 0.06
-Nodes (27): Any, Cocoa, Flutter, FlutterAppDelegate, FlutterImplicitEngineBridge, FlutterImplicitEngineDelegate, FlutterMacOS, FlutterPluginRegistry (+19 more)
+Cohesion: 0.16
+Nodes (10): Any, FlutterAppDelegate, FlutterImplicitEngineBridge, FlutterImplicitEngineDelegate, AppDelegate, Bool, AppDelegate, Bool (+2 more)
 
 ### Community 11 - "filter_origin_dropdown.dart"
 Cohesion: 0.17
@@ -354,23 +366,23 @@ Nodes (21): ../../domain/repositories/diamond_repository.dart, _applyMultiSort, 
 
 ### Community 14 - "diamond_search_screen.dart"
 Cohesion: 0.05
-Nodes (41): ../../../../core/widgets/filters/catalog_measurement_filters.dart, ../../../../core/widgets/filters/catalog_preferences_filters.dart, ../../../../core/widgets/filters/catalog_search_add_field.dart, ../../../../core/widgets/global_search_bar.dart, ../../../../core/widgets/paired_showcase_carousel.dart, ../../../../core/widgets/search_action_bottom_bar.dart, ../../../../core/widgets/showcase_select_card.dart, ../../../diamonds/presentation/widgets/filter_origin_dropdown.dart (+33 more)
+Nodes (40): ../../../../core/widgets/filters/catalog_measurement_filters.dart, ../../../../core/widgets/filters/catalog_preferences_filters.dart, ../../../../core/widgets/filters/catalog_search_add_field.dart, ../../../../core/widgets/global_search_bar.dart, ../../../../core/widgets/search_action_bottom_bar.dart, ../../../../core/widgets/showcase_select_card.dart, ../../../diamonds/presentation/widgets/filter_origin_dropdown.dart, loadNextPage (+32 more)
 
 ### Community 15 - "ArchitectUX Agent Personality"
 Cohesion: 0.07
 Nodes (29): 🚀 Advanced Capabilities, ArchitectUX Agent Personality, Bridge PM and Development, Create Developer-Ready Foundations, 🚨 Critical Rules You Must Follow, CSS Architecture Mastery, CSS Design System Foundation, Developer Experience (+21 more)
 
 ### Community 16 - "../../../../core/theme/app_spacing.dart"
-Cohesion: 0.18
-Nodes (11): BrandWatchSortOption, BrandWatchSortOptionLabel, copyWith, hasActiveFilters, label, priceMax, priceMin, selectedStyles (+3 more)
+Cohesion: 0.12
+Nodes (15): bool get, DiamondCatalogType, isLabGrown, label, BrandWatchSortOption, BrandWatchSortOptionLabel, copyWith, hasActiveFilters (+7 more)
 
 ### Community 17 - "ArchitectUX Agent Personality"
 Cohesion: 0.07
 Nodes (29): 🚀 Advanced Capabilities, ArchitectUX Agent Personality, Bridge PM and Development, Create Developer-Ready Foundations, 🚨 Critical Rules You Must Follow, CSS Architecture Mastery, CSS Design System Foundation, Developer Experience (+21 more)
 
 ### Community 18 - "diamond_card_list.dart"
-Cohesion: 0.08
-Nodes (24): ../../data/buyer_orders_mock_data.dart, build, BuyerOrderDetailScreen, _Card, child, copyable, entry, isLast (+16 more)
+Cohesion: 0.12
+Nodes (16): build, BuyerOrderDetailScreen, _Card, child, copyable, entry, isLast, label (+8 more)
 
 ### Community 19 - "UX Researcher Agent Personality"
 Cohesion: 0.07
@@ -381,12 +393,12 @@ Cohesion: 0.07
 Nodes (27): = Advanced Capabilities, Android Jetpack Compose Component, Create Native and Cross-Platform Mobile Apps, =¨ Critical Rules You Must Follow, Cross-Platform Excellence, Cross-Platform React Native Component, Integrate Platform-Specific Features, iOS SwiftUI Component Example (+19 more)
 
 ### Community 21 - "diamondSearchProvider"
-Cohesion: 0.12
-Nodes (24): ../data/repositories/diamond_repository_impl.dart, diamond_search_provider.dart, applyFiltersAndSort, build, clearError, copyWith, _currentPage, DiamondListNotifier (+16 more)
+Cohesion: 0.08
+Nodes (37): ../data/repositories/diamond_repository_impl.dart, diamond_search_provider.dart, applyFiltersAndSort, build, clearError, copyWith, _currentPage, DiamondListNotifier (+29 more)
 
 ### Community 22 - "UX Researcher Agent Personality"
 Cohesion: 0.03
-Nodes (68): allSubCategoryLabel, availability, availabilityOptions, braceletLengthOptions, braceletLengths, braceletSizeOptions, braceletSizes, category (+60 more)
+Nodes (70): allSubCategoryLabel, availability, availabilityOptions, braceletLengthOptions, braceletLengths, braceletSizeOptions, braceletSizes, category (+62 more)
 
 ### Community 23 - "Mobile App Builder Agent Personality"
 Cohesion: 0.07
@@ -433,8 +445,8 @@ Cohesion: 0.08
 Nodes (24): For /graphify add and --watch, For /graphify query, For the commit hook and native CLAUDE.md integration, For --update and --cluster-only, /graphify, Honesty Rules, Interpreter guard for subcommands, Part A - Structural extraction for code files (+16 more)
 
 ### Community 34 - "Test Results Analyzer Agent Personality"
-Cohesion: 0.11
-Nodes (21): ../../application/wishlist_provider.dart, ../../domain/models/wishlist_item.dart, IconData get, isInWishlistProvider, wishlistProvider, WishlistItem, build, BuyerWishlistScreen (+13 more)
+Cohesion: 0.08
+Nodes (30): ../../application/wishlist_provider.dart, ../../domain/models/wishlist_item.dart, IconData get, add, build, clear, contains, isInWishlistProvider (+22 more)
 
 ### Community 35 - "What You Must Do When Invoked"
 Cohesion: 0.08
@@ -453,28 +465,28 @@ Cohesion: 0.08
 Nodes (23): Build Expertise In:, Complete System Screenshots Analysis, Evidence Failures, Fantasy Assessment Indicators, Integration Agent Personality, 🔄 Learning & Memory, Realistic Quality Assessment, Require Overwhelming Evidence (+15 more)
 
 ### Community 39 - "Integration Agent Personality"
-Cohesion: 0.12
-Nodes (16): ../../../buyer/presentation/widgets/buyer_drawer.dart, ../../../cart/application/cart_provider.dart, ../home_network_images.dart, _categories, _HomeCategory, imageUrl, onTap, _openJewelry (+8 more)
+Cohesion: 0.13
+Nodes (14): ../../../buyer/presentation/widgets/buyer_drawer.dart, ../../../cart/application/cart_provider.dart, ../home_network_images.dart, _categories, _HomeCategory, imageUrl, onTap, route (+6 more)
 
 ### Community 40 - "filter_category_basic.dart"
 Cohesion: 0.08
 Nodes (23): Build Expertise In:, Complete System Screenshots Analysis, Evidence Failures, Fantasy Assessment Indicators, Integration Agent Personality, 🔄 Learning & Memory, Realistic Quality Assessment, Require Overwhelming Evidence (+15 more)
 
 ### Community 41 - "Integration Agent Personality"
-Cohesion: 0.11
-Nodes (25): CatalogExpandableAdvancedFilters, _CatalogExpandableAdvancedFiltersState, FilterAdvancedRangeInput, _FilterAdvancedRangeInputState, FilterRangeSlider, _FilterRangeSliderState, _ComparisonTable, _ComparisonTableState (+17 more)
+Cohesion: 0.09
+Nodes (30): CatalogExpandableAdvancedFilters, _CatalogExpandableAdvancedFiltersState, FilterAdvancedRangeInput, _FilterAdvancedRangeInputState, FilterRangeSlider, _FilterRangeSliderState, MeleeBackgroundShell, _MeleeBackgroundShellState (+22 more)
 
 ### Community 42 - "filter_category_advanced.dart"
-Cohesion: 0.10
-Nodes (21): _addField, build, _buildApplyButton, _buildAvailableRow, _buildAvailableSection, _buildEmptyAvailable, _buildEmptySelected, _buildHandle (+13 more)
+Cohesion: 0.08
+Nodes (25): diamondListProvider, _buildError, _onScroll, _addField, _apply, build, _buildApplyButton, _buildAvailableRow (+17 more)
 
 ### Community 43 - "package:flutter/material.dart"
 Cohesion: 0.09
 Nodes (21): FloatingActionButtonLocation?, appBar, AppScaffold, backgroundColor, body, bottomNavigationBar, build, drawer (+13 more)
 
 ### Community 44 - "app_spacing.dart"
-Cohesion: 0.12
-Nodes (16): buyerEmail, buyerName, category, createdAtLabel, createdAtLong, fields, id, InquiryCategory (+8 more)
+Cohesion: 0.10
+Nodes (20): adminReply, adminReplyAt, adminReplyImages, buyerEmail, buyerName, category, createdAtLabel, createdAtLong (+12 more)
 
 ### Community 45 - "diamond_sorting_bottom_sheet.dart"
 Cohesion: 0.09
@@ -490,35 +502,35 @@ Nodes (22): ../../application/bullions_filter_provider.dart, ../../application/b
 
 ### Community 48 - "gemstone_filter_category_basic.dart"
 Cohesion: 0.11
-Nodes (18): ../../../../core/theme/app_swatches.dart, ../../data/seller_inquiry_mock_data.dart, accent, _accentFor, build, _category, _CategoryChip, createState (+10 more)
+Nodes (17): ../../../../core/theme/app_swatches.dart, ../../data/seller_inquiry_mock_data.dart, InquiryCategory, accent, _accentFor, build, _category, _CategoryChip (+9 more)
 
 ### Community 49 - "filter_advanced_range_input.dart"
 Cohesion: 0.08
-Nodes (25): CustomPainter, _WaterDropPainter, _CompareIconPainter, _categorySpecificSections, _chipWrap, colors, createState, _expanded (+17 more)
+Nodes (28): CustomPainter, _WaterDropPainter, _CompareIconPainter, jewelryFilterDraftProvider, build, _categorySpecificSections, _chipWrap, colors (+20 more)
 
 ### Community 50 - "diamond_list_provider.dart"
 Cohesion: 0.07
 Nodes (28): _address1, _address2, _bannerName, build, _city, _companyName, _country, createState (+20 more)
 
 ### Community 51 - "diamond_list_view.dart"
-Cohesion: 0.10
-Nodes (20): _, AppSpacing, circular, r12, r16, r20, r24, r32 (+12 more)
+Cohesion: 0.07
+Nodes (26): _, AppSpacing, circular, r12, r16, r20, r24, r32 (+18 more)
 
 ### Community 52 - "filter_chip.dart"
-Cohesion: 0.13
-Nodes (15): ../../../auth/presentation/screens/login_screen.dart, buyer_drawer.dart, GlobalKey, buyerScaffoldKey, child, openBuyerDrawer, state, title (+7 more)
+Cohesion: 0.12
+Nodes (16): ../../../auth/presentation/screens/login_screen.dart, buyer_drawer.dart, GlobalKey, BuyerLayout, buyerScaffoldKey, child, openBuyerDrawer, state (+8 more)
 
 ### Community 53 - "gemstone_segmented_control.dart"
 Cohesion: 0.13
 Nodes (14): EdgeInsets?, borderColor, build, centerLabel, FilterChipWidget, isSelected, label, onTap (+6 more)
 
 ### Community 54 - "List"
-Cohesion: 0.07
-Nodes (30): ../../core/router/route_names.dart, authRoutes, bullionsRoutes, cartRoutes, comparisonRoutes, diamondsRoutes, gemstonesRoutes, homeRoutes (+22 more)
+Cohesion: 0.08
+Nodes (26): ../../core/router/route_names.dart, authRoutes, bullionsRoutes, cartRoutes, comparisonRoutes, diamondsRoutes, gemstonesRoutes, homeRoutes (+18 more)
 
 ### Community 55 - "sieve_size.dart"
-Cohesion: 0.13
-Nodes (13): unique_ptr, DartProject, HWND, LPARAM, LRESULT, UINT, WPARAM, FlutterWindow (+5 more)
+Cohesion: 0.12
+Nodes (15): unique_ptr, DartProject, HWND, LPARAM, LRESULT, UINT, WPARAM, FlutterWindow (+7 more)
 
 ### Community 56 - "package:flutter_riverpod/flutter_riverpod.dart"
 Cohesion: 0.15
@@ -526,7 +538,7 @@ Nodes (12): 1. Domain Discovery, 2. Domain Modeling Guidance, 3. Architecture Se
 
 ### Community 57 - "filter_color_selector.dart"
 Cohesion: 0.04
-Nodes (48): SellerProductsCatalogNotifier, build, clearBrands, next, replaceWith, reset, setBoxIncluded, setFullSetIncluded (+40 more)
+Nodes (46): build, clearBrands, next, replaceWith, reset, setBoxIncluded, setFullSetIncluded, setPapersIncluded (+38 more)
 
 ### Community 58 - "Software Architect Agent"
 Cohesion: 0.13
@@ -565,8 +577,8 @@ Cohesion: 0.17
 Nodes (11): Accessibility & forms (see `responsiveness-accessibility.md`), Architecture conformance, Consistency, Data safety, Definition of Done — Checklist Before Moving to the Next Module, Error handling, Handoff notes to give the user, Independence & performance (+3 more)
 
 ### Community 67 - "Definition of Done — Checklist Before Moving to the Next Module"
-Cohesion: 0.12
-Nodes (15): ../../../../core/error/failure.dart, ../../../../core/error/result.dart, getDiamonds, getGemstones, getJewelry, getWatches, ../models/diamond.dart, ../models/diamond_filter_state.dart (+7 more)
+Cohesion: 0.15
+Nodes (12): ../../../../core/error/failure.dart, ../../../../core/error/result.dart, getDiamonds, getGemstones, getWatches, ../models/diamond.dart, ../models/diamond_filter_state.dart, ../models/gemstone.dart (+4 more)
 
 ### Community 68 - "Code Reviewer Agent"
 Cohesion: 0.18
@@ -593,8 +605,8 @@ Cohesion: 0.25
 Nodes (10): AuthFailure, debugDetail, Failure, fromDioException, message, _messageForStatus, NetworkFailure, UnknownFailure (+2 more)
 
 ### Community 74 - "failure.dart"
-Cohesion: 0.12
-Nodes (21): ../../application/jewelry_list_provider.dart, ../../../../core/widgets/listing_search_filter_bar.dart, ../../../../core/widgets/simple_sort_sheet.dart, jewelryFilterDraftProvider, jewelryViewModeProvider, jewelryListProvider, build, initState (+13 more)
+Cohesion: 0.11
+Nodes (20): ../../application/jewelry_list_provider.dart, ../../../../core/widgets/listing_search_filter_bar.dart, ../../../../core/widgets/simple_sort_sheet.dart, _openJewelry, jewelryViewModeProvider, jewelryListProvider, build, createState (+12 more)
 
 ### Community 75 - "jewelry_categories_screen.dart"
 Cohesion: 0.05
@@ -629,8 +641,8 @@ Cohesion: 0.20
 Nodes (9): 1. Capture must never be blocked by processing, 2. Recognition must be confidence-based, not "closest match", 3. Reference photos must remain private, 4. Groups define the recognition boundary, Core Product Principles, Project Overview — Intelligent Group Photo Sharing Platform, The Problem, The Solution (+1 more)
 
 ### Community 83 - "app_router.dart"
-Cohesion: 0.07
-Nodes (25): ../../features/auth/auth_routes.dart, ../../features/bullions/bullions_routes.dart, ../../features/buyer/buyer_routes.dart, ../../features/cart/cart_routes.dart, ../../features/comparison/comparison_routes.dart, ../../features/diamonds/diamonds_routes.dart, ../../features/gemstones/gemstones_routes.dart, ../../features/home/home_routes.dart (+17 more)
+Cohesion: 0.12
+Nodes (15): ../../features/auth/auth_routes.dart, ../../features/bullions/bullions_routes.dart, ../../features/buyer/buyer_routes.dart, ../../features/cart/cart_routes.dart, ../../features/comparison/comparison_routes.dart, ../../features/diamonds/diamonds_routes.dart, ../../features/gemstones/gemstones_routes.dart, ../../features/home/home_routes.dart (+7 more)
 
 ### Community 84 - "Design System — Typography, Color, Spacing, Radius, Shadows, Motion, Assets"
 Cohesion: 0.17
@@ -649,8 +661,8 @@ Cohesion: 0.22
 Nodes (8): graphify reference: extra exports and benchmark, Step 6b - Wiki (only if --wiki flag), Step 7 - Neo4j export (only if --neo4j or --neo4j-push flag), Step 7a - FalkorDB export (only if --falkordb or --falkordb-push flag), Step 7b - SVG export (only if --svg flag), Step 7c - GraphML export (only if --graphml flag), Step 7d - MCP server (only if --mcp flag), Step 8 - Token reduction benchmark (only if total_words > 5000)
 
 ### Community 88 - "gemstone_segmented_control.dart"
-Cohesion: 0.12
-Nodes (14): ../../../../core/auth/auth_providers.dart, _Card, children, createState, _marketingEmails, _messageAlerts, _orderAlerts, BuyerDrawerItem (+6 more)
+Cohesion: 0.22
+Nodes (8): ../../../../core/auth/auth_providers.dart, BuyerDrawerItem, icon, _initials, isSellerEntry, items, label, route
 
 ### Community 89 - "Responsive design — no hardcoded dimensions"
 Cohesion: 0.22
@@ -666,11 +678,11 @@ Nodes (11): cached, cacheKey, clearSvgCache, kAllShapes, raw, renderShapeSvg, _s
 
 ### Community 92 - "seller_drawer.dart"
 Cohesion: 0.14
-Nodes (20): ConsumerState, ConsumerStatefulWidget, ForgotPasswordScreen, _ForgotPasswordScreenState, LoginScreen, _LoginScreenState, RegisterScreen, _RegisterScreenState (+12 more)
+Nodes (14): _acceptTerms, createState, _didAutoRedirect, dispose, _emailController, _formKey, _fullNameController, _obscurePassword (+6 more)
 
 ### Community 93 - "search_action_bottom_bar.dart"
-Cohesion: 0.06
-Nodes (39): ../../../../core/widgets/filters/catalog_expandable_advanced_filters.dart, computeMatchingCount, diamondSearchProvider, _activeSection, _advancedKey, _basicKey, build, _buildAdvancedFilters (+31 more)
+Cohesion: 0.07
+Nodes (28): ../../../../core/widgets/filters/catalog_expandable_advanced_filters.dart, ../../../../core/widgets/paired_showcase_carousel.dart, _activeSection, _advancedKey, _basicKey, _buildSection, _buildStickyNav, catalog (+20 more)
 
 ### Community 94 - "Responsive design — no hardcoded dimensions"
 Cohesion: 0.22
@@ -750,7 +762,7 @@ Nodes (6): Error & Exception Handling — Nothing Reaches the UI Unhandled, Laye
 
 ### Community 114 - "filter_boolean_checkbox.dart"
 Cohesion: 0.05
-Nodes (45): Animation, AnimationController, accent, build, child, _colorController, _colorT, createState (+37 more)
+Nodes (42): Animation, AnimationController, accent, build, child, _colorController, _colorT, createState (+34 more)
 
 ### Community 115 - "birthstone_month_card.dart"
 Cohesion: 0.29
@@ -765,8 +777,8 @@ Cohesion: 0.33
 Nodes (5): For /graphify explain, For /graphify path, graphify reference: query, path, explain, Step 0 — Constrained query expansion (REQUIRED before traversal), Step 1 — Traversal
 
 ### Community 118 - "graphify reference: query, path, explain"
-Cohesion: 0.08
-Nodes (24): ../../domain/models/watch.dart, ../../domain/models/watch_filter_state.dart, ../../domain/repositories/watch_repository.dart, _applySort, _cache, caseSizeRangeFor, _catalog, _generateCatalog (+16 more)
+Cohesion: 0.12
+Nodes (17): ../../domain/models/watch_filter_state.dart, ../../domain/repositories/watch_repository.dart, _applySort, _cache, caseSizeRangeFor, _catalog, _generateCatalog, getWatches (+9 more)
 
 ### Community 119 - "State Management — Riverpod Patterns"
 Cohesion: 0.33
@@ -782,19 +794,19 @@ Nodes (26): catalog_search_add_field.dart, filter_section_header.dart, build, Ca
 
 ### Community 122 - "app_theme.dart"
 Cohesion: 0.07
-Nodes (26): auth_controller.dart, auth_state.dart, auth_user.dart, auth_validators.dart, AuthController, build, _clearEphemeralFlags, clearError (+18 more)
+Nodes (25): auth_state.dart, auth_user.dart, auth_validators.dart, AuthController, build, _clearEphemeralFlags, clearError, login (+17 more)
 
 ### Community 123 - "compare_toggle_helper.dart"
 Cohesion: 0.09
-Nodes (20): Color?, activeFilterCount, build, controller, hintText, ListingSearchFilterBar, mutedColor, onChanged (+12 more)
+Nodes (20): Clip, Color?, backgroundColor, borderColor, borderRadius, boxShadow, build, child (+12 more)
 
 ### Community 124 - "CustomPainter"
-Cohesion: 0.17
-Nodes (11): ../../domain/models/brand_watch_state.dart, BrandWatchFilterNotifier, build, next, reset, setPriceMax, setPriceMin, setSort (+3 more)
+Cohesion: 0.09
+Nodes (21): Duration, IndexedWidgetBuilder, autoScrollInterval, _autoScrollTimer, build, createState, didChangeAppLifecycleState, dispose (+13 more)
 
 ### Community 125 - "../../domain/models/diamond_catalog_type.dart"
-Cohesion: 0.29
-Nodes (6): ../../domain/models/seller_inquiry.dart, findSellerInquiry, inquiriesForCategory, kSellerInquiriesMock, null, where
+Cohesion: 0.33
+Nodes (5): ../../domain/models/seller_inquiry.dart, findSellerInquiry, inquiriesForCategory, kSellerInquiriesMock, null
 
 ### Community 126 - "filter_quick_range_chip.dart"
 Cohesion: 0.33
@@ -809,28 +821,28 @@ Cohesion: 0.03
 Nodes (70): availabilityOptions, availabilityStatuses, bezelMaterialOptions, bezelMaterials, bezelTypeOptions, bezelTypes, boxIncluded, brands (+62 more)
 
 ### Community 129 - "State Management — Riverpod Patterns"
-Cohesion: 0.13
-Nodes (14): at, BuyerOrder, BuyerOrderTimelineEntry, carrier, id, location, productLabel, sellerName (+6 more)
+Cohesion: 0.14
+Nodes (13): at, BuyerOrderTimelineEntry, carrier, id, location, productLabel, sellerName, status (+5 more)
 
 ### Community 130 - "jewelry_routes.dart"
-Cohesion: 0.05
-Nodes (38): ../../../../core/theme/app_colors.dart, ../../../../core/theme/app_spacing.dart, ../../../../core/theme/app_typography.dart, ../../../../core/widgets/app_network_image.dart, diamond_svg_data.dart, AuthBrandHeader, build, eyebrow (+30 more)
+Cohesion: 0.10
+Nodes (18): ../../../../core/theme/app_colors.dart, ../../../../core/widgets/app_network_image.dart, aliases, fileName, gemstoneHue, gemstoneImagePath, build, createState (+10 more)
 
 ### Community 131 - "_PairedShowcaseCarouselState"
-Cohesion: 0.04
-Nodes (46): dart:async, Duration, IndexedWidgetBuilder, autoScrollInterval, _autoScrollTimer, build, createState, didChangeAppLifecycleState (+38 more)
+Cohesion: 0.09
+Nodes (22): dart:async, build, _CountryPickerModal, _CountryPickerModalState, createState, _debounce, dispose, _filter (+14 more)
 
 ### Community 132 - "MeleeTintExtentAnchor"
-Cohesion: 0.22
-Nodes (9): build, createState, HomeCategoryTile, _HomeCategoryTileState, imageUrl, onTap, _pressed, subtitle (+1 more)
+Cohesion: 0.12
+Nodes (16): SellerChatThread, build, _chat, _chatBg, chatId, createState, dispose, _headerGreen (+8 more)
 
 ### Community 133 - "auth_user.dart"
-Cohesion: 0.11
-Nodes (18): Clip, backgroundColor, borderColor, borderRadius, boxShadow, build, child, clipBehavior (+10 more)
+Cohesion: 0.17
+Nodes (10): ../../application/diamond_list_provider.dart, diamond_search_screen.dart, ../../domain/models/diamond_catalog_type.dart, ../../domain/models/sorting_criteria.dart, build, LabGrownDiamondSearchScreen, build, child (+2 more)
 
 ### Community 134 - "JewelrySortOption"
-Cohesion: 0.10
-Nodes (21): double get, _PinnedHeaderDelegate, watchViewModeProvider, build, child, createState, dispose, height (+13 more)
+Cohesion: 0.09
+Nodes (22): ../../application/watch_list_provider.dart, double get, _PinnedHeaderDelegate, watchViewModeProvider, build, child, createState, dispose (+14 more)
 
 ### Community 135 - "6. Memory Management"
 Cohesion: 0.50
@@ -914,7 +926,7 @@ Nodes (22): ../../application/watch_filter_provider.dart, ../../domain/models/wa
 
 ### Community 203 - "jewelry_listing_views.dart"
 Cohesion: 0.12
-Nodes (24): authProvider, build, build, build, build, build, BuyerDrawer, build (+16 more)
+Nodes (24): authProvider, build, build, _LoginScreenState, build, build, build, BuyerDrawer (+16 more)
 
 ### Community 204 - "watches_screen.dart"
 Cohesion: 0.20
@@ -933,12 +945,12 @@ Cohesion: 0.22
 Nodes (8): bullion, gemstones, hero, HomeNetworkImages, jewelry, labGrown, naturalDiamonds, watches
 
 ### Community 208 - "diamond_cards.dart"
-Cohesion: 0.27
-Nodes (11): ConsumerWidget, isInComparisonProvider, build, DiamondCardGrid, DiamondCardList, build, GemstoneCardGrid, GemstoneCardList (+3 more)
+Cohesion: 0.11
+Nodes (18): _DraggableColumnHeader, _FooterBar, _ItemHeader, _ItemHeaderRow, _ItemValuesRow, _SpecColumnHeader, _SpecLabelCell, _BarColumn (+10 more)
 
 ### Community 209 - "watch_grid_view.dart"
 Cohesion: 0.05
-Nodes (43): build, clearMetalWeight, clearPriceRange, clearStoneWeight, clearSubCategories, JewelryFilterDraftNotifier, JewelryFilterNotifier, next (+35 more)
+Nodes (40): build, clearMetalWeight, clearPriceRange, clearStoneWeight, clearSubCategories, next, removeSummaryLabel, replaceWith (+32 more)
 
 ### Community 210 - "app_shell.dart"
 Cohesion: 0.09
@@ -946,23 +958,23 @@ Nodes (29): ../../application/brand_watch_filter_provider.dart, ../../applicatio
 
 ### Community 211 - "app.dart"
 Cohesion: 0.05
-Nodes (40): build, child, code, _codeCtrl, createState, _descCtrl, description, _DiscountItem (+32 more)
+Nodes (44): _AddDiscountDialog, _AddDiscountDialogState, build, child, code, _codeCtrl, createState, _descCtrl (+36 more)
 
 ### Community 212 - "filter_accordion_section.dart"
-Cohesion: 0.07
-Nodes (27): ../../application/comparison_provider.dart, compare_add_button.dart, ../../../../core/theme/app_shadows.dart, ../../domain/models/compare_item.dart, comparisonProvider, build, ComparisonScreen, handleCompareToggle (+19 more)
+Cohesion: 0.18
+Nodes (10): category, _CategoryCard, filterValue, imageAsset, JewelryCategoriesScreen, jewelryMainCategories, JewelryMainCategory, onTap (+2 more)
 
 ### Community 213 - "app.dart"
 Cohesion: 0.08
 Nodes (26): adminReply, adminReplyAt, build, _Card, child, createdAt, createState, dispose (+18 more)
 
 ### Community 214 - "DiamondShapePainter"
-Cohesion: 0.07
-Nodes (29): ../../../../core/auth/auth_validators.dart, FormState, createState, _didAutoRedirect, dispose, _emailController, _formKey, createState (+21 more)
+Cohesion: 0.11
+Nodes (19): ../../../../core/auth/auth_validators.dart, FormState, createState, _didAutoRedirect, dispose, _emailController, ForgotPasswordScreen, _ForgotPasswordScreenState (+11 more)
 
 ### Community 215 - "watch_card_grid.dart"
-Cohesion: 0.12
-Nodes (17): brand_watch_filter_provider.dart, _applyBrandFilters, _applySort, _brandName, BrandWatchListNotifier, BrandWatchListState, copyWith, _currentPage (+9 more)
+Cohesion: 0.11
+Nodes (18): AsyncNotifier, brand_watch_filter_provider.dart, _applyBrandFilters, _applySort, _brandName, BrandWatchListNotifier, BrandWatchListState, copyWith (+10 more)
 
 ### Community 216 - "diamond_catalog_type.dart"
 Cohesion: 0.09
@@ -973,16 +985,16 @@ Cohesion: 0.06
 Nodes (35): billion.dart, BullionMetal? get, availableVariants, BullionsMetalFilter, certificationOptions, certifications, conditionOptions, conditions (+27 more)
 
 ### Community 218 - "DiamondSearchNotifier"
-Cohesion: 0.09
-Nodes (23): build, _buildShimmerCard, _buildShimmerRow, CatalogListLoading, isGrid, build, FilterScrollableChips, infoText (+15 more)
+Cohesion: 0.07
+Nodes (30): app.dart, build, _buildShimmerCard, _buildShimmerRow, CatalogListLoading, isGrid, build, FilterScrollableChips (+22 more)
 
 ### Community 219 - "bullionsFilterProvider"
 Cohesion: 0.09
 Nodes (22): build, createState, currentMax, currentMin, didUpdateWidget, dispose, _formatDisplayValue, _formatValue (+14 more)
 
 ### Community 220 - "bullions_repository_impl.dart"
-Cohesion: 0.15
-Nodes (13): dart:math, ../../domain/models/bullions_filter_state.dart, ../../domain/repositories/bullions_repository.dart, BullionsRepositoryImpl, _cache, _catalog, _generateCatalog, _matches (+5 more)
+Cohesion: 0.17
+Nodes (12): ../../domain/models/bullions_filter_state.dart, ../../domain/repositories/bullions_repository.dart, BullionsRepositoryImpl, _cache, _catalog, _generateCatalog, _matches, _matchesRange (+4 more)
 
 ### Community 221 - "billion.dart"
 Cohesion: 0.10
@@ -1012,16 +1024,16 @@ Cohesion: 0.33
 Nodes (5): app_colors.dart, app_spacing.dart, app_typography.dart, _, AppTheme
 
 ### Community 227 - "MessageHandler"
-Cohesion: 0.26
-Nodes (14): RECT, HWND, LPARAM, LRESULT, UINT, WPARAM, EnableFullDpiSupportIfAvailable(), GetClientArea (+6 more)
+Cohesion: 0.17
+Nodes (23): RECT, OnCreate, HWND, LPARAM, LRESULT, UINT, WPARAM, EnableFullDpiSupportIfAvailable() (+15 more)
 
 ### Community 228 - "filter_category_advanced.dart"
 Cohesion: 0.12
 Nodes (16): copyWith, field, fields, id, isDeleted, isExpired, isNatural, isOnAuction (+8 more)
 
 ### Community 230 - "_BullionsScreenState"
-Cohesion: 0.15
-Nodes (13): build, controller, createState, focusNode, _InlineRich, InquiryReplyText, InquirySellerReplyComposer, _InquirySellerReplyComposerState (+5 more)
+Cohesion: 0.12
+Nodes (17): dart:typed_data, inquiry_form_fields.dart, build, controller, createState, focusNode, images, _InlineRich (+9 more)
 
 ### Community 231 - "_PinnedHeaderDelegate"
 Cohesion: 0.13
@@ -1029,11 +1041,7 @@ Nodes (14): emailRegex, evaluatePasswordStrength, hasLower, hasMatch, hasNumber,
 
 ### Community 232 - "DiamondSearchNotifier"
 Cohesion: 0.05
-Nodes (38): ../../domain/models/compare_spec.dart, border, _contentWidth, count, createState, didUpdateWidget, dispose, _DraggableColumnHeader (+30 more)
-
-### Community 233 - "RegisterPlugins"
-Cohesion: 0.33
-Nodes (4): PluginRegistry, RegisterPlugins(), OnCreate, OnCreate
+Nodes (43): ../../application/comparison_provider.dart, compare_add_button.dart, ../../domain/models/compare_item.dart, ../../domain/models/compare_spec.dart, comparisonProvider, border, build, ComparisonScreen (+35 more)
 
 ### Community 234 - "register_screen.dart"
 Cohesion: 0.06
@@ -1052,24 +1060,24 @@ Cohesion: 0.08
 Nodes (23): ../../../buyer/application/wishlist_provider.dart, Jewelry, _badge, borderColor, compact, _compactCard, count, _displayTitle (+15 more)
 
 ### Community 238 - "compare_toggle_helper.dart"
-Cohesion: 0.08
-Nodes (24): build, _Card, categoryName, child, createState, dispose, entries, _FieldSection (+16 more)
+Cohesion: 0.11
+Nodes (18): build, _Card, categoryName, child, entries, _FieldSection, _groupFields, groups (+10 more)
 
 ### Community 239 - "buyer_routes.dart"
 Cohesion: 0.13
 Nodes (14): buyerRoutes, presentation/screens/buyer_order_detail_screen.dart, presentation/screens/buyer_orders_screen.dart, presentation/screens/buyer_reviews_screen.dart, presentation/screens/buyer_settings_screen.dart, presentation/screens/buyer_wishlist_screen.dart, presentation/widgets/buyer_layout.dart, ../seller/presentation/screens/seller_chat_detail_screen.dart (+6 more)
 
 ### Community 240 - "jewelry_repository_impl.dart"
-Cohesion: 0.17
-Nodes (12): ../../domain/repositories/jewelry_repository.dart, _applySort, _badges, _cache, _catalog, _categoryAssets, _generateCatalog, getJewelry (+4 more)
+Cohesion: 0.15
+Nodes (13): dart:math, ../../domain/repositories/jewelry_repository.dart, _applySort, _badges, _cache, _catalog, _categoryAssets, _generateCatalog (+5 more)
 
 ### Community 241 - "app_typography.dart"
 Cohesion: 0.08
 Nodes (24): address, applyPromo, build, CartNotifier, CartState, CartTotals, clear, clearAddress (+16 more)
 
 ### Community 242 - "_PairedShowcaseCarouselState"
-Cohesion: 0.14
-Nodes (13): ../../../../core/router/account_nav.dart, ../../data/seller_chat_mock_data.dart, build, createState, dispose, _query, _searchCtrl, SellerChatListScreen (+5 more)
+Cohesion: 0.15
+Nodes (11): ../../../../core/router/account_nav.dart, ../../data/seller_chat_mock_data.dart, build, createState, dispose, _query, _searchCtrl, build (+3 more)
 
 ### Community 243 - "bullions_repository.dart"
 Cohesion: 0.10
@@ -1077,39 +1085,39 @@ Nodes (19): build, createState, currentMax, currentMin, didUpdateWidget, dispose
 
 ### Community 244 - "diamondListProvider"
 Cohesion: 0.07
-Nodes (35): DateTime?, _ItemHeader, _ItemValuesRow, _BarColumn, _CardSection, _CustomDateField, _DashboardBarChart, _MetricCard (+27 more)
+Nodes (29): DateTime?, build, child, controller, helperText, hint, images, InquiryCheckboxField (+21 more)
 
 ### Community 245 - "listing_search_filter_bar.dart"
-Cohesion: 0.40
-Nodes (4): bool get, DiamondCatalogType, isLabGrown, label
+Cohesion: 0.13
+Nodes (13): ../../domain/models/buyer_order.dart, findBuyerOrderById, kBuyerOrdersMock, null, defaultVisible, defaultVisibleSellerProductColumnIds, id, kSellerProductColumns (+5 more)
 
 ### Community 246 - "ConsumerWidget"
 Cohesion: 0.22
 Nodes (8): CartItem, category, id, imageUrl, priceInr, priceUsd, shape, title
 
 ### Community 249 - "diamondSortingProvider"
-Cohesion: 0.07
-Nodes (26): ../../data/seller_orders_mock_data.dart, ../../domain/models/seller_orders_models.dart, findSellerOrderById, kSellerAuctionsMock, kSellerOffersMock, kSellerOrdersMock, kSellerRefundsMock, null (+18 more)
+Cohesion: 0.10
+Nodes (19): ../../data/seller_orders_mock_data.dart, SellerAuction, SellerAuctionBid, SellerAuctionStatus, auction, _AuctionCard, bid, _BidTile (+11 more)
 
 ### Community 251 - "forgot_password_screen.dart"
 Cohesion: 0.09
 Nodes (27): ../domain/models/compare_category.dart, add, attempted, build, category, clear, CompareAddAlreadySelected, CompareAddCategoryMismatch (+19 more)
 
 ### Community 252 - "diamond_sort_bar.dart"
-Cohesion: 0.05
-Nodes (36): avatarColor, buyerId, buyerName, dateLabel, findSellerChatById, id, isMine, isOnline (+28 more)
+Cohesion: 0.10
+Nodes (20): avatarColor, buyerId, buyerName, dateLabel, findSellerChatById, id, isMine, isOnline (+12 more)
 
 ### Community 253 - "bullions_repository.dart"
 Cohesion: 0.18
 Nodes (10): ../../domain/models/seller_product.dart, buildSellerProductsMockCatalog, _clarities, _colors, kSellerProductsMockTotal, p, prefixes, products (+2 more)
 
 ### Community 254 - "filter_shape_grid_cell.dart"
-Cohesion: 0.20
-Nodes (9): add, build, clear, contains, remove, toggle, watch, wishlistCountProvider (+1 more)
+Cohesion: 0.16
+Nodes (10): Cocoa, file_selector_macos, FlutterMacOS, FlutterPluginRegistry, FlutterViewController, Foundation, RegisterGeneratedPlugins(), MainFlutterWindow (+2 more)
 
 ### Community 255 - "diamonds_routes.dart"
-Cohesion: 0.18
-Nodes (10): package:flutter_riverpod/flutter_riverpod.dart, package:flutter_test/flutter_test.dart, package:gemstone/app.dart, package:gemstone/core/widgets/search_action_bottom_bar.dart, package:gemstone/features/diamonds/application/diamond_search_provider.dart, package:gemstone/features/diamonds/presentation/screens/lab_grown_diamond_search_screen.dart, package:gemstone/features/diamonds/presentation/widgets/lab_grown_diamond_scope.dart, main (+2 more)
+Cohesion: 0.15
+Nodes (11): auth_controller.dart, package:flutter_riverpod/flutter_riverpod.dart, package:flutter_test/flutter_test.dart, package:gemstone/app.dart, package:gemstone/core/widgets/search_action_bottom_bar.dart, package:gemstone/features/diamonds/application/diamond_search_provider.dart, package:gemstone/features/diamonds/presentation/screens/lab_grown_diamond_search_screen.dart, package:gemstone/features/diamonds/presentation/widgets/lab_grown_diamond_scope.dart (+3 more)
 
 ### Community 256 - "MessageHandler"
 Cohesion: 0.10
@@ -1120,32 +1128,32 @@ Cohesion: 0.11
 Nodes (18): sellerRoutes, presentation/screens/seller_auctions_screen.dart, presentation/screens/seller_chat_detail_screen.dart, presentation/screens/seller_chat_list_screen.dart, presentation/screens/seller_dashboard_screen.dart, presentation/screens/seller_help_center_screen.dart, presentation/screens/seller_inquiry_detail_screen.dart, presentation/screens/seller_inquiry_form_screen.dart (+10 more)
 
 ### Community 258 - "../../domain/models/diamond_catalog_type.dart"
-Cohesion: 0.13
-Nodes (13): ../../domain/models/buyer_order.dart, findBuyerOrderById, kBuyerOrdersMock, null, defaultVisible, defaultVisibleSellerProductColumnIds, id, kSellerProductColumns (+5 more)
+Cohesion: 0.18
+Nodes (8): Flutter, FlutterSceneDelegate, SceneDelegate, RunnerTests, RunnerTests, UIKit, XCTest, XCTestCase
 
 ### Community 259 - "watch_brand_categories.dart"
-Cohesion: 0.07
-Nodes (28): ../../application/diamond_list_provider.dart, ../../application/diamond_search_provider.dart, ../../../../core/utils/format_catalog_price.dart, diamond_search_screen.dart, ../../domain/models/diamond_catalog_type.dart, ../../domain/models/diamond_filter_state.dart, ../../domain/models/sorting_criteria.dart, build (+20 more)
+Cohesion: 0.11
+Nodes (17): ../../application/diamond_search_provider.dart, ../../../../core/utils/format_catalog_price.dart, ../../domain/models/diamond_filter_state.dart, build, _FilterChipData, label, onRemove, _buildChunkRow (+9 more)
 
 ### Community 260 - "Win32Window"
-Cohesion: 0.25
-Nodes (9): OnDestroy, HWND, Win32Window, child_content_, OnDestroy, quit_on_close_, SetQuitOnClose, Show (+1 more)
+Cohesion: 0.17
+Nodes (11): ../../domain/models/brand_watch_state.dart, BrandWatchFilterNotifier, build, next, reset, setPriceMax, setPriceMin, setSort (+3 more)
 
 ### Community 261 - "app_theme.dart"
 Cohesion: 0.12
 Nodes (20): ../../application/cart_provider.dart, ../../../diamonds/presentation/widgets/diamond_svg_data.dart, ../../domain/models/cart_item.dart, cartProvider, build, CartScreen, _CartScreenState, createState (+12 more)
 
 ### Community 262 - "buyer_drawer.dart"
-Cohesion: 0.14
-Nodes (11): app.dart, core/router/app_router.dart, core/theme/app_theme.dart, build, GemWorldApp, build, FilterSectionHeader, infoText (+3 more)
+Cohesion: 0.40
+Nodes (4): core/router/app_router.dart, core/theme/app_theme.dart, build, GemWorldApp
 
 ### Community 263 - "ValueChanged"
 Cohesion: 0.09
-Nodes (25): ../../application/watch_list_provider.dart, ../../../../core/widgets/filters/filter_accordion_section.dart, ../../../../core/widgets/filters/filter_boolean_checkbox.dart, ../../../../core/widgets/filters/filter_end_drawer_shell.dart, ../../data/repositories/watch_brand_assets_data.dart, watchFilterDraftProvider, watchListProvider, _onScroll (+17 more)
+Nodes (24): ../../../../core/widgets/filters/filter_accordion_section.dart, ../../../../core/widgets/filters/filter_boolean_checkbox.dart, ../../../../core/widgets/filters/filter_end_drawer_shell.dart, ../../data/repositories/watch_brand_assets_data.dart, watchFilterDraftProvider, watchListProvider, _onScroll, _openFilters (+16 more)
 
 ### Community 264 - "seller_product_cards_view.dart"
-Cohesion: 0.08
-Nodes (25): build, _CardAction, createState, danger, dispose, icon, _imageCount, initState (+17 more)
+Cohesion: 0.07
+Nodes (27): build, _CardAction, createState, danger, dispose, icon, _imageCount, initState (+19 more)
 
 ### Community 265 - "seller_layout.dart"
 Cohesion: 0.11
@@ -1154,6 +1162,10 @@ Nodes (17): _, AppSwatches, blackGold, copper, greenGold, inquiryBullion, inquir
 ### Community 266 - "seller_section_screen.dart"
 Cohesion: 0.08
 Nodes (23): SellerOrder, SellerRefund, background, build, child, createState, dispose, foreground (+15 more)
+
+### Community 267 - "compare_toggle_helper.dart"
+Cohesion: 0.18
+Nodes (10): chatDetailPathFor, helpCenterPathFor, inquiriesPathFor, inquiryDetailPathFor, inquiryNewPathFor, isBuyerLocation, isBuyerPath, messagesPathFor (+2 more)
 
 ### Community 268 - "DiamondSearchNotifier"
 Cohesion: 0.22
@@ -1164,12 +1176,16 @@ Cohesion: 0.09
 Nodes (21): carat, certificate, clarity, color, cut, dimensions, discount, GemstoneListResponse (+13 more)
 
 ### Community 270 - "gemstone_search_bottom_bar.dart"
-Cohesion: 0.05
-Nodes (40): ../../application/seller_products_provider.dart, sellerProductsCatalogProvider, build, confirmDeleteSellerProduct, controller, _controllers, createState, dispose (+32 more)
+Cohesion: 0.06
+Nodes (36): ../../application/seller_products_provider.dart, build, confirmDeleteSellerProduct, controller, _controllers, createState, dispose, _EditField (+28 more)
+
+### Community 271 - "listing_search_filter_bar.dart"
+Cohesion: 0.18
+Nodes (10): activeFilterCount, build, controller, hintText, ListingSearchFilterBar, mutedColor, onChanged, onFilterTap (+2 more)
 
 ### Community 272 - "bool get"
-Cohesion: 0.13
-Nodes (19): ../../../../core/widgets/view_mode_toggle.dart, diamondListProvider, diamondViewModeProvider, build, _buildError, createState, DiamondListingsScreen, _DiamondListingsScreenState (+11 more)
+Cohesion: 0.12
+Nodes (15): body, build, BuyerReviewsScreen, dateLabel, product, rating, _ReviewItem, _reviews (+7 more)
 
 ### Community 273 - "Notification"
 Cohesion: 0.18
@@ -1191,6 +1207,10 @@ Nodes (32): ../../domain/models/sieve_size.dart, filter_color_selector.dart, fil
 Cohesion: 0.18
 Nodes (10): city, country, DeliveryAddress, fullName, label, line1, line2, phone (+2 more)
 
+### Community 278 - "buyer_settings_screen.dart"
+Cohesion: 0.15
+Nodes (19): ConsumerState, ConsumerStatefulWidget, LoginScreen, BuyerSettingsScreen, _BuyerSettingsScreenState, DiamondListingsScreen, _DiamondListingsScreenState, DiamondSearchScreen (+11 more)
+
 ### Community 279 - "filter_category_advanced.dart"
 Cohesion: 0.10
 Nodes (24): bullions_filter_provider.dart, ../data/repositories/bullions_repository_impl.dart, apply, bullionsFilterProvider, syncFromApplied, build, bullions, BullionsListNotifier (+16 more)
@@ -1200,32 +1220,72 @@ Cohesion: 0.40
 Nodes (4): brands, letter, watchBrandCategories, WatchBrandLetterGroup
 
 ### Community 283 - "gemstone_list_provider.dart"
-Cohesion: 0.11
-Nodes (19): AsyncNotifier, ../data/repositories/gemstone_repository_impl.dart, ../../domain/models/gemstone.dart, gemstone_search_provider.dart, build, copyWith, errorMessage, GemstoneListNotifier (+11 more)
+Cohesion: 0.12
+Nodes (18): ../data/repositories/gemstone_repository_impl.dart, ../../domain/models/gemstone.dart, gemstone_search_provider.dart, build, copyWith, errorMessage, GemstoneListNotifier, GemstoneListState (+10 more)
 
 ### Community 284 - "gemstone_repository_impl.dart"
 Cohesion: 0.12
 Nodes (16): ../../domain/gemstone_assets.dart, ../../domain/repositories/gemstone_repository.dart, _cache, _catalog, _clarities, _colors, GemstoneRepositoryImpl, _generate (+8 more)
 
+### Community 285 - "bullions_grid_view.dart"
+Cohesion: 0.20
+Nodes (9): ../../../../core/theme/app_shadows.dart, ../../data/buyer_orders_mock_data.dart, BuyerOrder, build, _BuyerOrderCard, BuyerOrdersScreen, onTap, order (+1 more)
+
+### Community 286 - "JewelrySortOption"
+Cohesion: 0.22
+Nodes (10): sellerProductsCatalogProvider, sellerProductsControllerProvider, _load, _save, build, _deleteProduct, _onTabChanged, SellerProductsScreen (+2 more)
+
+### Community 287 - "filter_shape_grid_cell.dart"
+Cohesion: 0.10
+Nodes (19): ../../../../core/theme/app_spacing.dart, ../../../../core/theme/app_typography.dart, diamond_svg_data.dart, AuthBrandHeader, build, eyebrow, subtitle, build (+11 more)
+
+### Community 288 - "seller_orders_mock_data.dart"
+Cohesion: 0.25
+Nodes (7): ../../domain/models/seller_orders_models.dart, findSellerOrderById, kSellerAuctionsMock, kSellerOffersMock, kSellerOrdersMock, kSellerRefundsMock, null
+
+### Community 289 - "watch_grid_view.dart"
+Cohesion: 0.25
+Nodes (7): ../../domain/models/watch.dart, build, isLoadingMore, watches, WatchGridSliver, WatchListSliver, watch_card_grid.dart
+
 ### Community 290 - "marketplace_product_card_shell.dart"
 Cohesion: 0.08
-Nodes (23): build, child, expanded, FilterAccordionSection, onToggle, title, titleStyle, build (+15 more)
+Nodes (22): build, FilterQuickRangeChip, isSelected, label, onTap, build, clearLabel, _FittedLabel (+14 more)
 
 ### Community 291 - "diamond_svg_data.dart"
 Cohesion: 0.09
 Nodes (20): EdgeInsetsGeometry, actionIcon, actionIsOutlined, actionLabel, build, CatalogEmptyState, icon, iconColor (+12 more)
+
+### Community 292 - "birthstone_month_card.dart"
+Cohesion: 0.22
+Nodes (8): build, child, expanded, FilterAccordionSection, onToggle, title, titleStyle, TextStyle
+
+### Community 293 - "Notifier"
+Cohesion: 0.50
+Nodes (5): JewelryFilterDraftNotifier, JewelryFilterNotifier, JewelryFilterState, SellerProductsCatalogNotifier, Notifier
 
 ### Community 294 - "String get"
 Cohesion: 0.29
 Nodes (6): diamond,
   gemstone,, CompareCategory, label, labelPlural, watch, String get
 
+### Community 295 - "main.dart"
+Cohesion: 0.40
+Nodes (4): jewelryRoutes, presentation/screens/jewelry_categories_screen.dart, presentation/screens/jewelry_filter_screen.dart, presentation/screens/jewelry_listing_screen.dart
+
+### Community 296 - "_PairedShowcaseCarouselState"
+Cohesion: 0.67
+Nodes (3): PairedShowcaseCarousel, _PairedShowcaseCarouselState, WidgetsBindingObserver
+
+### Community 297 - "_PinnedHeaderDelegate"
+Cohesion: 0.50
+Nodes (3): getJewelry, ../models/jewelry.dart, ../models/jewelry_filter_state.dart
+
 ### Community 299 - "format_catalog_price.dart"
 Cohesion: 0.22
 Nodes (8): buf, formatCatalogPrice, formatCatalogPriceWholeK, formatGroupedPrice, formatInrPrice, s, toString, toStringAsFixed
 
 ## Knowledge Gaps
-- **3366 isolated node(s):** `$schema`, `.opencode/plugins/graphify.js`, `build`, `build`, `login` (+3361 more)
+- **3374 isolated node(s):** `$schema`, `.opencode/plugins/graphify.js`, `build`, `build`, `login` (+3369 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **20 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1234,12 +1294,12 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `SieveSize` connect `Software Architect Agent` to `diamond_svg_data.dart`?**
   _High betweenness centrality (0.006) - this node is a cross-community bridge._
-- **Why does `PasswordStrength` connect `_PinnedHeaderDelegate` to `DiamondShapePainter`?**
+- **Why does `PasswordStrength` connect `_PinnedHeaderDelegate` to `seller_drawer.dart`?**
   _High betweenness centrality (0.002) - this node is a cross-community bridge._
-- **Why does `WatchSortOption` connect `SellerInquiryFormScreen` to `5. Accessibility & Responsiveness`, `filter_color_selector.dart`, `JewelrySortOption`?**
+- **Why does `Bullion` connect `billion.dart` to `billion_card.dart`?**
   _High betweenness centrality (0.002) - this node is a cross-community bridge._
 - **What connects `$schema`, `.opencode/plugins/graphify.js`, `build` to the rest of the system?**
-  _3366 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _3374 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `diamond_filter_state.dart` be split into smaller, more focused modules?**
   _Cohesion score 0.018518518518518517 - nodes in this community are weakly interconnected._
 - **Should `diamond_search_provider.dart` be split into smaller, more focused modules?**

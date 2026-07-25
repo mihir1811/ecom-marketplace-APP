@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -27,6 +29,7 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
   final _ctrls = <String, TextEditingController>{};
   final _bools = <String, bool>{};
   DateTime? _urgency;
+  final List<Uint8List> _referenceImages = [];
 
   @override
   void initState() {
@@ -53,6 +56,24 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
       _bools[key] = value;
       _dirty = true;
     });
+  }
+
+  void _setReferenceImages(List<Uint8List> images) {
+    setState(() {
+      _referenceImages
+        ..clear()
+        ..addAll(images);
+      _dirty = true;
+    });
+  }
+
+  Widget _referenceImageField() {
+    return InquiryImagePickerField(
+      label: 'Reference image',
+      helperText: 'Upload a photo of what you want (e.g. “I want like this”)',
+      images: _referenceImages,
+      onChanged: _setReferenceImages,
+    );
   }
 
   void _seedDefaults() {
@@ -120,6 +141,7 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
     }
     _bools.clear();
     _urgency = null;
+    _referenceImages.clear();
     _seedDefaults();
     setState(() => _dirty = false);
   }
@@ -140,6 +162,10 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
 
   void _submit() {
     if (_category == null || !_dirty) return;
+    final path = GoRouterState.of(context).uri.path;
+    final sentBy = isBuyerPath(path)
+        ? InquirySenderRole.buyer
+        : InquirySenderRole.seller;
     final id = '${kSellerInquiriesMock.length + 1}';
     final now = DateTime.now();
     String two(int v) => v.toString().padLeft(2, '0');
@@ -147,6 +173,12 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
         '${now.day} ${_month(now.month)} ${now.year}, ${two(now.hour)}:${two(now.minute)}';
     final fields = <String, String>{};
     for (final e in _ctrls.entries) {
+      final key = e.key.toLowerCase();
+      if (key.contains('imageurl') ||
+          key.contains('image_url') ||
+          key == 'referenceimage') {
+        continue;
+      }
       if (e.value.text.trim().isNotEmpty) {
         fields[e.key] = e.value.text.trim();
       }
@@ -163,8 +195,11 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
       SellerInquiry(
         id: id,
         category: _category!,
-        buyerName: 'You',
-        buyerEmail: 'you@example.com',
+        sentBy: sentBy,
+        buyerName: sentBy == InquirySenderRole.buyer ? 'You' : 'Your store',
+        buyerEmail: sentBy == InquirySenderRole.buyer
+            ? 'you@example.com'
+            : 'seller@example.com',
         userId: 'local-user',
         summary: _summaryFor(_category!),
         createdAtLabel: label,
@@ -172,12 +207,17 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
         createdAtLong:
             '${_weekday(now.weekday)}, ${now.day} ${_month(now.month)} ${now.year} at ${two(now.hour)}:${two(now.minute)}',
         fields: fields,
+        referenceImages: List<Uint8List>.from(_referenceImages),
       ),
     );
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${_category!.label} inquiry submitted')),
+      SnackBar(
+        content: Text(
+          '${_category!.label} inquiry sent to admin',
+        ),
+      ),
     );
-    context.go(inquiriesPathFor(GoRouterState.of(context).uri.path));
+    context.go(inquiriesPathFor(path));
   }
 
   String _summaryFor(InquiryCategory c) => switch (c) {
@@ -281,7 +321,7 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  'Buyer & seller inquiries',
+                  'Sent to admin',
                   style: AppTypography.caption.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -289,8 +329,9 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Choose a category, then complete the form. You need to be signed '
-                'in to submit — we will use your account to attach the inquiry to you.',
+                'Choose a category, then complete the form. Your inquiry is sent '
+                'directly to admin — not to other buyers or sellers. Only admin '
+                'replies will appear in your inbox.',
                 style: AppTypography.body.copyWith(
                   color: AppColors.textSecondaryLight,
                   height: 1.4,
@@ -622,12 +663,7 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
                 value: _urgency,
                 onPick: _pickDate,
               ),
-              InquiryTextField(
-                label: 'imageURL',
-                controller: _c('imageURL'),
-                hint: 'https://example.com/image.jpg',
-                onChanged: _markDirty,
-              ),
+              _referenceImageField(),
               InquiryTextField(
                 label: 'deliveryLocation',
                 controller: _c('deliveryLocation'),
@@ -814,12 +850,7 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
                 value: _urgency,
                 onPick: _pickDate,
               ),
-              InquiryTextField(
-                label: 'imageUrl',
-                controller: _c('imageURL'),
-                hint: 'https://example.com/image.jpg',
-                onChanged: _markDirty,
-              ),
+              _referenceImageField(),
               InquiryTextField(
                 label: 'deliveryLocation',
                 controller: _c('deliveryLocation'),
@@ -987,11 +1018,7 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
                 value: _urgency,
                 onPick: _pickDate,
               ),
-              InquiryTextField(
-                label: 'imageUrl',
-                controller: _c('imageURL'),
-                onChanged: _markDirty,
-              ),
+              _referenceImageField(),
               InquiryTextField(
                 label: 'deliveryLocation',
                 controller: _c('deliveryLocation'),
@@ -1115,11 +1142,7 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
                 maxLines: 3,
                 onChanged: _markDirty,
               ),
-              InquiryTextField(
-                label: 'Image URL',
-                controller: _c('imageURL'),
-                onChanged: _markDirty,
-              ),
+              _referenceImageField(),
               InquiryTextField(
                 label: 'Delivery Location',
                 controller: _c('deliveryLocation'),
@@ -1363,11 +1386,7 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
                 maxLines: 3,
                 onChanged: _markDirty,
               ),
-              InquiryTextField(
-                label: 'referenceImage',
-                controller: _c('referenceImage'),
-                onChanged: _markDirty,
-              ),
+              _referenceImageField(),
               InquiryTextField(
                 label: 'referenceVideo',
                 controller: _c('referenceVideo'),

@@ -39,7 +39,11 @@ class _SellerInquiryInboxScreenState extends State<SellerInquiryInboxScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final items = inquiriesForCategory(_category);
+    final path = GoRouterState.of(context).uri.path;
+    final sentBy = isBuyerPath(path)
+        ? InquirySenderRole.buyer
+        : InquirySenderRole.seller;
+    final items = inquiriesForCategory(_category, sentBy: sentBy);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -98,7 +102,9 @@ class _SellerInquiryInboxScreenState extends State<SellerInquiryInboxScreen> {
                               border: Border.all(color: AppColors.warmBorder),
                             ),
                             child: Text(
-                              'Seller · Inbox',
+                              sentBy == InquirySenderRole.buyer
+                                  ? 'Buyer · Sent to admin'
+                                  : 'Seller · Sent to admin',
                               style: AppTypography.caption.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -107,7 +113,7 @@ class _SellerInquiryInboxScreenState extends State<SellerInquiryInboxScreen> {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          'Inquiry inbox',
+                          'My inquiries',
                           style: AppTypography.headline.copyWith(
                             fontWeight: FontWeight.w800,
                             fontSize: 22,
@@ -115,9 +121,9 @@ class _SellerInquiryInboxScreenState extends State<SellerInquiryInboxScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Incoming product inquiries from buyers across diamond, '
-                          'gemstone, bullion, watches, and jewelry. Open a row to '
-                          'see full specifications.',
+                          'Inquiries you submit go directly to admin — not to '
+                          'other buyers or sellers. Open a row to see your '
+                          'submission and any admin reply.',
                           style: AppTypography.body.copyWith(
                             color: AppColors.textSecondaryLight,
                             height: 1.4,
@@ -364,6 +370,29 @@ class _InquiryCard extends StatelessWidget {
             inquiry.summary,
             style: AppTypography.caption.copyWith(
               color: AppColors.textSecondaryLight,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: inquiry.hasAdminReply
+                    ? AppColors.info.withValues(alpha: 0.12)
+                    : AppColors.sandSurface,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                inquiry.hasAdminReply ? 'Admin replied' : 'Awaiting admin',
+                style: AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                  color: inquiry.hasAdminReply
+                      ? AppColors.info
+                      : AppColors.textMutedLight,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 12),

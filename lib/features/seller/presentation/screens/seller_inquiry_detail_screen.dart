@@ -8,10 +8,11 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/seller_inquiry_mock_data.dart';
 import '../../domain/models/seller_inquiry.dart';
+import '../widgets/inquiry_form_fields.dart';
 import '../widgets/inquiry_seller_reply.dart';
 import '../widgets/seller_layout.dart';
 
-class SellerInquiryDetailScreen extends StatefulWidget {
+class SellerInquiryDetailScreen extends StatelessWidget {
   const SellerInquiryDetailScreen({
     required this.categoryName,
     required this.inquiryId,
@@ -21,60 +22,20 @@ class SellerInquiryDetailScreen extends StatefulWidget {
   final String categoryName;
   final String inquiryId;
 
-  @override
-  State<SellerInquiryDetailScreen> createState() =>
-      _SellerInquiryDetailScreenState();
-}
-
-class _SellerInquiryDetailScreenState extends State<SellerInquiryDetailScreen> {
-  late final TextEditingController _replyCtrl;
-  late final FocusNode _replyFocus;
-
-  @override
-  void initState() {
-    super.initState();
-    // Always start empty — show placeholder, never seed with an existing reply.
-    _replyCtrl = TextEditingController();
-    _replyFocus = FocusNode(debugLabel: 'inquiry-seller-reply');
-  }
-
-  @override
-  void dispose() {
-    _replyCtrl.dispose();
-    _replyFocus.dispose();
-    super.dispose();
-  }
-
-  String _nowLabel() {
-    final n = DateTime.now();
-    String two(int v) => v.toString().padLeft(2, '0');
-    return '${two(n.day)}/${two(n.month)}/${n.year}, ${two(n.hour)}:${two(n.minute)}:${two(n.second)}';
-  }
-
-  void _sendReply(SellerInquiry inquiry) {
-    final text = _replyCtrl.text.trim();
-    if (text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Write a reply before sending')),
-      );
-      return;
-    }
-    setState(() {
-      inquiry.sellerReply = text;
-      inquiry.sellerReplyAt = _nowLabel();
-      inquiry.updatedAtLabel = _nowLabel();
-      _replyCtrl.clear();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Reply sent to buyer')),
-    );
+  bool _isImageFieldKey(String key) {
+    final lower = key.toLowerCase();
+    return lower.contains('imageurl') ||
+        lower.contains('image url') ||
+        lower.contains('reference image') ||
+        lower == 'referenceimage' ||
+        lower == 'imageurl' ||
+        lower == 'image_url';
   }
 
   @override
   Widget build(BuildContext context) {
     final path = GoRouterState.of(context).uri.path;
-    final isBuyer = isBuyerPath(path);
-    final inquiry = findSellerInquiry(widget.inquiryId);
+    final inquiry = findSellerInquiry(inquiryId);
     if (inquiry == null) {
       return Center(
         child: TextButton(
@@ -99,7 +60,10 @@ class _SellerInquiryDetailScreenState extends State<SellerInquiryDetailScreen> {
       InquiryCategory.jewelry => Icons.workspace_premium_outlined,
     };
 
-    final sections = _groupFields(inquiry.fields);
+    final textFields = Map<String, String>.fromEntries(
+      inquiry.fields.entries.where((e) => !_isImageFieldKey(e.key)),
+    );
+    final sections = _groupFields(textFields);
 
     return Column(
       children: [
@@ -195,7 +159,9 @@ class _SellerInquiryDetailScreenState extends State<SellerInquiryDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'CUSTOMER',
+                            inquiry.sentBy == InquirySenderRole.seller
+                                ? 'SUBMITTED BY'
+                                : 'SUBMITTED BY',
                             style: AppTypography.caption.copyWith(
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.4,
@@ -227,6 +193,16 @@ class _SellerInquiryDetailScreenState extends State<SellerInquiryDetailScreen> {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 4),
+                          Text(
+                            inquiry.sentBy == InquirySenderRole.seller
+                                ? 'Seller → Admin'
+                                : 'Buyer → Admin',
+                            style: AppTypography.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.bronze,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -252,9 +228,7 @@ class _SellerInquiryDetailScreenState extends State<SellerInquiryDetailScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isBuyer
-                          ? 'Specifications from your submission'
-                          : 'Specifications submitted by the buyer',
+                      'Specifications from your submission to admin',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textMutedLight,
                       ),
@@ -272,6 +246,13 @@ class _SellerInquiryDetailScreenState extends State<SellerInquiryDetailScreen> {
                       const SizedBox(height: 8),
                       _TwoColGrid(entries: section.entries),
                     ],
+                    if (inquiry.referenceImages.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      InquiryImageGallery(
+                        title: 'YOUR REFERENCE IMAGES',
+                        images: inquiry.referenceImages,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -282,10 +263,10 @@ class _SellerInquiryDetailScreenState extends State<SellerInquiryDetailScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.reply_outlined, size: 18),
+                        const Icon(Icons.support_agent_outlined, size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          'Seller response',
+                          'Admin response',
                           style: AppTypography.title.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -294,16 +275,14 @@ class _SellerInquiryDetailScreenState extends State<SellerInquiryDetailScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isBuyer
-                          ? 'Answers from the seller appear here'
-                          : 'Reply to this buyer inquiry',
+                      'Only admin replies appear here. You cannot message '
+                      'other buyers or sellers on this inquiry.',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textMutedLight,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    if (inquiry.sellerReply != null &&
-                        inquiry.sellerReply!.trim().isNotEmpty) ...[
+                    if (inquiry.hasAdminReply) ...[
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
@@ -316,33 +295,38 @@ class _SellerInquiryDetailScreenState extends State<SellerInquiryDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'SELLER REPLY'
-                              '${inquiry.sellerReplyAt != null ? ' · ${inquiry.sellerReplyAt}' : ''}',
+                              'ADMIN REPLY'
+                              '${inquiry.adminReplyAt != null ? ' · ${inquiry.adminReplyAt}' : ''}',
                               style: AppTypography.caption.copyWith(
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.3,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            InquiryReplyText(inquiry.sellerReply!),
+                            if (inquiry.adminReply != null &&
+                                inquiry.adminReply!.trim().isNotEmpty &&
+                                inquiry.adminReply != '(Image attached)') ...[
+                              const SizedBox(height: 8),
+                              InquiryReplyText(inquiry.adminReply!),
+                            ],
+                            if (inquiry.adminReplyImages.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              InquiryImageGallery(
+                                title: 'ADMIN REFERENCE IMAGES',
+                                images: inquiry.adminReplyImages,
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                      if (!isBuyer) const SizedBox(height: 16),
-                    ] else if (isBuyer) ...[
+                    ] else ...[
                       Text(
-                        'No seller response yet.',
+                        'No admin response yet. Your inquiry was sent to admin '
+                        'and will appear here when they reply.',
                         style: AppTypography.body.copyWith(
                           color: AppColors.textMutedLight,
                         ),
                       ),
                     ],
-                    if (!isBuyer)
-                      InquirySellerReplyComposer(
-                        controller: _replyCtrl,
-                        focusNode: _replyFocus,
-                        onSend: () => _sendReply(inquiry),
-                      ),
                   ],
                 ),
               ),
