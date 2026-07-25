@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -7,11 +8,13 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../buyer/application/wishlist_provider.dart';
+import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../domain/models/jewelry.dart';
 
 Color jewelryMetalSwatch(String label) => AppSwatches.jewelryMetal(label);
 
-class JewelryProductCard extends StatelessWidget {
+class JewelryProductCard extends ConsumerWidget {
   const JewelryProductCard({
     required this.item,
     this.compact = false,
@@ -25,41 +28,69 @@ class JewelryProductCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onWishlist;
 
+  void _toggleWishlist(BuildContext context, WidgetRef ref) {
+    if (onWishlist != null) {
+      onWishlist!();
+      return;
+    }
+    final added = ref
+        .read(wishlistProvider.notifier)
+        .toggle(WishlistItem.fromJewelry(item));
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.hideCurrentSnackBar();
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(added ? 'Added to wishlist' : 'Removed from wishlist'),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final bg = AppColors.warmWhite;
     final border = AppColors.warmBorder;
     final text = AppColors.textPrimaryLight;
     final muted = AppColors.textMutedLight;
     final variants = item.colorVariants.take(4).toList();
     final extra = item.colorVariants.length - variants.length;
+    final wishlisted = ref.watch(isInWishlistProvider(item.id));
 
     if (compact) {
       return _compactCard(
+        context: context,
+        ref: ref,
         bg: bg,
         border: border,
         text: text,
         muted: muted,
         variants: variants,
+        wishlisted: wishlisted,
       );
     }
 
     return _fullCard(
+      context: context,
+      ref: ref,
       bg: bg,
       border: border,
       text: text,
       muted: muted,
       variants: variants,
       extra: extra,
+      wishlisted: wishlisted,
     );
   }
 
   Widget _compactCard({
+    required BuildContext context,
+    required WidgetRef ref,
     required Color bg,
     required Color border,
     required Color text,
     required Color muted,
     required List<String> variants,
+    required bool wishlisted,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -84,14 +115,13 @@ class JewelryProductCard extends StatelessWidget {
                   Positioned(
                     top: AppSpacing.s8,
                     right: AppSpacing.s8,
-                    child: Icon(
-                      item.wishlisted
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      size: 18,
-                      color: item.wishlisted
-                          ? AppColors.terracotta
-                          : muted,
+                    child: InkWell(
+                      onTap: () => _toggleWishlist(context, ref),
+                      child: Icon(
+                        wishlisted ? Icons.favorite : Icons.favorite_border,
+                        size: 18,
+                        color: wishlisted ? AppColors.terracotta : muted,
+                      ),
                     ),
                   ),
                 ],
@@ -163,12 +193,15 @@ class JewelryProductCard extends StatelessWidget {
   }
 
   Widget _fullCard({
+    required BuildContext context,
+    required WidgetRef ref,
     required Color bg,
     required Color border,
     required Color text,
     required Color muted,
     required List<String> variants,
     required int extra,
+    required bool wishlisted,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -194,7 +227,7 @@ class JewelryProductCard extends StatelessWidget {
                     top: AppSpacing.s8,
                     right: AppSpacing.s8,
                     child: InkWell(
-                      onTap: onWishlist,
+                      onTap: () => _toggleWishlist(context, ref),
                       child: Container(
                         width: 36,
                         height: 36,
@@ -203,13 +236,9 @@ class JewelryProductCard extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          item.wishlisted
-                              ? Icons.favorite
-                              : Icons.favorite_border,
+                          wishlisted ? Icons.favorite : Icons.favorite_border,
                           size: 18,
-                          color: item.wishlisted
-                              ? AppColors.terracotta
-                              : muted,
+                          color: wishlisted ? AppColors.terracotta : muted,
                         ),
                       ),
                     ),
@@ -331,9 +360,11 @@ class JewelryProductCard extends StatelessWidget {
                   Row(
                     children: [
                       _QuickAction(
-                        icon: Icons.favorite_border,
+                        icon: wishlisted
+                            ? Icons.favorite
+                            : Icons.favorite_border,
                         label: 'Wishlist',
-                        onTap: onWishlist,
+                        onTap: () => _toggleWishlist(context, ref),
                       ),
                       const SizedBox(width: AppSpacing.s8),
                       _QuickAction(
@@ -403,7 +434,7 @@ class JewelryProductCard extends StatelessWidget {
   }
 }
 
-class JewelryProductListCard extends StatelessWidget {
+class JewelryProductListCard extends ConsumerWidget {
   const JewelryProductListCard({
     required this.item,
     this.onTap,
@@ -424,14 +455,33 @@ class JewelryProductListCard extends StatelessWidget {
     return item.name;
   }
 
+  void _toggleWishlist(BuildContext context, WidgetRef ref) {
+    if (onWishlist != null) {
+      onWishlist!();
+      return;
+    }
+    final added = ref
+        .read(wishlistProvider.notifier)
+        .toggle(WishlistItem.fromJewelry(item));
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.hideCurrentSnackBar();
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(added ? 'Added to wishlist' : 'Removed from wishlist'),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final bg = AppColors.warmWhite;
     final border = AppColors.warmBorder;
     final text = AppColors.textPrimaryLight;
     final muted = AppColors.textMutedLight;
     final variants = item.colorVariants.take(3).toList();
     final purityLabel = item.metalPurity.replaceAll(' ', '').toLowerCase();
+    final wishlisted = ref.watch(isInWishlistProvider(item.id));
 
     return GestureDetector(
       onTap: onTap,
@@ -464,15 +514,11 @@ class JewelryProductListCard extends StatelessWidget {
                       top: AppSpacing.s8,
                       right: AppSpacing.s8,
                       child: InkWell(
-                        onTap: onWishlist,
+                        onTap: () => _toggleWishlist(context, ref),
                         child: Icon(
-                          item.wishlisted
-                              ? Icons.favorite
-                              : Icons.favorite_border,
+                          wishlisted ? Icons.favorite : Icons.favorite_border,
                           size: 18,
-                          color: item.wishlisted
-                              ? AppColors.terracotta
-                              : muted,
+                          color: wishlisted ? AppColors.terracotta : muted,
                         ),
                       ),
                     ),

@@ -259,6 +259,7 @@
   "257": "diamond_catalog_type.dart",
   "258": "../../domain/models/diamond_catalog_type.dart",
   "259": "watch_brand_categories.dart",
+  "260": "Win32Window",
   "261": "app_theme.dart",
   "262": "buyer_drawer.dart",
   "263": "ValueChanged",
@@ -270,6 +271,7 @@
   "270": "gemstone_search_bottom_bar.dart",
   "272": "bool get",
   "273": "Notification",
+  "274": "_GemstoneListingsScreenState",
   "275": "GemstoneSearchNotifier",
   "276": "diamond_svg_data.dart",
   "277": "auth_state.dart",
@@ -279,11 +281,9 @@
   "282": "watch_brand_categories.dart",
   "283": "gemstone_list_provider.dart",
   "284": "gemstone_repository_impl.dart",
-  "285": "compare_item.dart",
-  "287": "_PairedShowcaseCarouselState",
+  "286": "JewelrySortOption",
   "290": "marketplace_product_card_shell.dart",
   "291": "diamond_svg_data.dart",
   "294": "String get",
-  "299": "format_catalog_price.dart",
-  "303": "DiamondSearchNotifier"
+  "299": "format_catalog_price.dart"
 }

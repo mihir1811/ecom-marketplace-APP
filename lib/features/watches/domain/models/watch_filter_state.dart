@@ -1,13 +1,16 @@
-/// Immutable filter state for the watches catalog (drawer filter order).
+/// Immutable filter state for the watches catalog (schema-aligned drawer).
 class WatchFilterState {
   const WatchFilterState({
     this.searchQuery = '',
     this.brands = const {},
+    this.models = const {},
     this.categories = const {},
     this.priceRanges = const {},
     this.movements = const {},
     this.genders = const {},
     this.conditions = const {},
+    this.availabilityStatuses = const {},
+    this.withMedia = const {},
     this.caseMaterials = const {},
     this.dialColors = const {},
     this.caseSizeRanges = const {},
@@ -17,29 +20,35 @@ class WatchFilterState {
     this.crownTypes = const {},
     this.strapColors = const {},
     this.claspTypes = const {},
+    this.claspMaterials = const {},
     this.glassMaterials = const {},
+    this.lugWidths = const {},
     this.powerReserves = const {},
     this.waterResistances = const {},
-    this.authentications = const {},
     this.modelYears = const {},
     this.certifications = const {},
     this.bezelTypes = const {},
     this.bezelMaterials = const {},
-    this.stonesOnDial = const {},
     this.configurations = const {},
     this.materials = const {},
     this.preciousStoneTypes = const {},
-    this.claspMaterials = const {},
     this.indexes = const {},
+    this.boxIncluded = false,
+    this.papersIncluded = false,
+    this.warrantyCardIncluded = false,
+    this.fullSetIncluded = false,
   });
 
   final String searchQuery;
   final Set<String> brands;
+  final Set<String> models;
   final Set<String> categories;
   final Set<String> priceRanges;
   final Set<String> movements;
   final Set<String> genders;
   final Set<String> conditions;
+  final Set<String> availabilityStatuses;
+  final Set<String> withMedia;
   final Set<String> caseMaterials;
   final Set<String> dialColors;
   final Set<String> caseSizeRanges;
@@ -51,35 +60,52 @@ class WatchFilterState {
   final Set<String> claspTypes;
   final Set<String> claspMaterials;
   final Set<String> glassMaterials;
+  final Set<String> lugWidths;
   final Set<String> powerReserves;
   final Set<String> waterResistances;
-  final Set<String> authentications;
   final Set<String> modelYears;
   final Set<String> certifications;
   final Set<String> bezelTypes;
   final Set<String> bezelMaterials;
-  final Set<String> stonesOnDial;
   final Set<String> configurations;
   final Set<String> materials;
   final Set<String> preciousStoneTypes;
   final Set<String> indexes;
+  final bool boxIncluded;
+  final bool papersIncluded;
+  final bool warrantyCardIncluded;
+  final bool fullSetIncluded;
 
-  static const categoryOptions = [
-    'Dress',
-    'Sport',
-    'Luxury',
-    'Diver',
-    'Pilot',
-    'Racing',
-    'Casual',
-    'Vintage',
-    'Minimalist',
-    'Fashion',
-    'Chronograph',
-    'GMT',
-    'Field',
-    'Smart',
+  /// Popular brands shown first in Brand & Model.
+  static const popularBrandOptions = [
+    'Rolex',
+    'Patek Philippe',
+    'Audemars Piguet',
+    'Richard Mille',
+    'Vacheron Constantin',
+    'Omega',
+    'Cartier',
+    'TAG Heuer',
+    'Breitling',
+    'Hublot',
+    'Grand Seiko',
+    'IWC',
+    'Panerai',
+    'Tissot',
   ];
+
+  /// Style options (also used by category chips on the listing screen).
+  static const categoryOptions = [
+    'Luxury',
+    'Vintage',
+    'Dress',
+    'Diver',
+    'Sport',
+    'GMT',
+    'Chronograph',
+  ];
+
+  static const styleOptions = categoryOptions;
 
   static const priceRangeOptions = [
     'Under \$500',
@@ -90,20 +116,35 @@ class WatchFilterState {
     '\$50,000+',
   ];
 
-  static const movementOptions = ['Automatic', 'Quartz', 'Manual'];
+  static const movementOptions = [
+    'Automatic (Self-winding)',
+    'Manual (Hand-winding)',
+    'Quartz (Battery)',
+    'Solar Powered',
+    'Kinetic',
+    'Spring Drive',
+  ];
 
-  static const genderOptions = ['Men', 'Women', 'Unisex'];
+  static const genderOptions = ['Men', 'Women', 'Unisex', 'Kids'];
 
   static const conditionOptions = [
-    'New',
-    'Unworn',
+    'New / Unworn',
+    'Mint',
     'Like New',
-    'Excellent',
-    'Very Good',
-    'Good',
+    'Pre-Owned',
     'Fair',
-    'Used',
     'Vintage',
+  ];
+
+  static const availabilityOptions = [
+    'Available',
+    'On Hold',
+    'Memo',
+  ];
+
+  static const withMediaOptions = [
+    'With Images',
+    'With Video',
   ];
 
   static const caseMaterialOptions = [
@@ -116,10 +157,7 @@ class WatchFilterState {
     'Ceramic',
     'Carbon Fiber',
     'Bronze',
-    'Brass',
     'Two-Tone Steel & Gold',
-    'Palladium',
-    'Sterling Silver',
   ];
 
   static const dialColorOptions = [
@@ -134,125 +172,80 @@ class WatchFilterState {
     'Gold',
     'Rose Gold',
     'Mother of Pearl',
-    'Meteorite',
     'Skeleton',
-    'Multicolour',
   ];
 
   static const caseSizeRangeOptions = [
-    '28–30 mm',
-    '31–34 mm',
-    '35–38 mm',
-    '39–42 mm',
-    '43–46 mm',
+    '10-25 mm',
+    '26-30 mm',
+    '31-35 mm',
+    '36-40 mm',
+    '41-45 mm',
+    '>46 mm',
   ];
 
   static const caseShapeOptions = [
-    'Asymmetrical',
-    'Cushion',
-    'Drop',
-    'Oval',
-    'Rectangular',
     'Round',
     'Square',
+    'Rectangular',
     'Tonneau',
+    'Cushion',
+    'Oval',
     'Octagon',
+    'Asymmetrical',
+    'Drop',
     'Dodecagon',
     'Barrel',
-    'Pentagon',
-    'Hexagon',
-    'Tetradecagon',
-    'Triangular',
   ];
 
   static const caseBackOptions = [
     'Solid',
-    'Exhibition',
-    'Open',
-    'Sapphire',
-    'Transparent',
-    'Display',
+    'Exhibition / Transparent Sapphire',
     'Screw-Down',
-    'Snap-On',
-    'Hinged',
   ];
 
   static const strapMaterialOptions = [
     'Stainless Steel',
-    'Ceramic',
-    'Cotton',
-    'Denim',
-    'Fabric',
     'Leather',
-    'Nato',
-    'Nylon',
     'Rubber',
-    'Satin',
+    'Ceramic',
+    'Nylon',
+    'Nato Fabric',
     'Silicone',
-    'Gold',
-    'Titanium',
+    'Satin',
+    'Fabric',
+    'Denim',
   ];
 
   static const crownTypeOptions = [
-    'Push-Pull Crown',
     'Screw-Down Crown',
-    'Onion Crown',
-    'Pumpkin Crown',
-    'Diamond Crown',
+    'Push-Pull Crown',
     'Cabochon Crown',
+    'Onion Crown',
     'Fluted Crown',
-    'Coin-Edge Crown',
-    'Oversized Crown',
-    'Recessed Crown',
-    'Protected Crown',
-    'Crown Guard Design',
-    'Left-Hand Crown (Destro)',
-    'Twin Crowns',
-    'Compressor Crowns',
-    'Monobloc Crown System',
   ];
 
   static const strapColorOptions = [
-    'Anthracite',
-    'Beige',
     'Black',
-    'Blue',
     'Brown',
-    'Cream',
-    'Green',
-    'Grey',
-    'Multicolour',
-    'Orange',
-    'Pink',
-    'Red',
-    'Rose Gold',
+    'Blue',
+    'Anthracite',
     'Silver',
-    'White',
-    'Yellow',
-    'Yellow Gold',
-    'Burgundy',
-    'Purple',
-    'Turquoise',
-    'Bronze',
     'Gold',
+    'Rose Gold',
+    'Green',
+    'Red',
+    'White',
     'Bicolour',
   ];
 
   static const claspTypeOptions = [
-    'Pin Buckle',
-    'Tang Buckle',
-    'Deployant Clasp',
-    'Deployment Clasp',
     'Folding Clasp',
-    'Double Folding Clasp',
+    'Deployant / Deployment Clasp',
+    'Pin / Tang Buckle',
     'Butterfly Clasp',
     'Hidden Clasp',
     'Jewelry Clasp',
-    'Hook Clasp',
-    'Sliding Clasp',
-    'Ladder Clasp',
-    'Velcro Closure',
-    'Hook-and-Loop Closure',
   ];
 
   static const claspMaterialOptions = [
@@ -264,34 +257,33 @@ class WatchFilterState {
     'Platinum',
     'Ceramic',
     'Carbon Fiber',
-    'Bronze',
-    'Brass',
-    'Silver',
-    'Tungsten',
-    'PVD-Coated Steel',
-    'DLC-Coated Steel',
-    'Gold-Plated Steel',
-    'Two-Tone Steel & Gold',
-    'Titanium & Gold',
   ];
 
   static const glassMaterialOptions = [
     'Sapphire Crystal',
-    'Mineral Glass',
-    'Acrylic',
-    'Hesalite',
-    'Domed Sapphire',
-    'Flat Sapphire',
+    'Mineral Crystal',
+    'Hesalite / Acrylic Glass',
+    'Plexiglass',
+  ];
+
+  static const lugWidthOptions = [
+    'Under 18 mm',
+    '18–20 mm',
+    '21–22 mm',
+    '23–24 mm',
+    'Over 24 mm',
   ];
 
   static const powerReserveOptions = [
-    '0–40 Hours',
-    '41–48 Hours',
-    '49–72 Hours',
-    '73–120 Hours',
-    '121–192 Hours',
-    '193–336 Hours',
-    '337+ Hours',
+    'No Power Reserve / Quartz',
+    'Up to 40 Hours',
+    '41–50 Hours',
+    '51–60 Hours',
+    '61–72 Hours',
+    '73–100 Hours',
+    '101–150 Hours',
+    '151–200 Hours',
+    '200+ Hours',
   ];
 
   static const waterResistanceOptions = [
@@ -306,27 +298,29 @@ class WatchFilterState {
     '500m',
     '600m',
     '1000m',
-    '1200m',
-    '2000m',
-    '3000m',
   ];
 
-  static const authenticationOptions = [
-    'No Included (Original)',
-    'Papers Included (Original)',
-    'Warranty Card Included (Original)',
+  static const modelYearOptions = [
+    '2026',
+    '2025',
+    '2024',
+    '2023',
+    '2022',
+    '2021',
+    '2020',
+    '2019',
+    '2018',
+    '2017',
+    '2016',
+    '2015',
+    'Pre-2015',
   ];
-
-  static const modelYearOptions = ['2024', '2023', '2022', '2021', '2020'];
 
   static const certificationOptions = [
-    'COSC',
-    'Master Chronometer',
+    'COSC Chronometer',
+    'Master Chronometer (METAS)',
+    'Geneva Seal (Poinçon de Genève)',
     'Superlative Chronometer',
-    'Geneva Seal',
-    'Poinçon de Genève',
-    'METAS',
-    'None',
   ];
 
   static const bezelTypeOptions = [
@@ -336,16 +330,7 @@ class WatchFilterState {
     'Countdown',
     'Dive',
     'GMT',
-    'World Time',
     'Tachymeter',
-    'Pulsometer',
-    'Telemeter',
-    'Compass',
-    'Slide Rule',
-    'Ring Command',
-    'Internal Rotating',
-    'Coin Edge',
-    'Engine-Turned',
     'Fluted',
     'Smooth',
     'Gem-Set',
@@ -354,76 +339,60 @@ class WatchFilterState {
   static const bezelMaterialOptions = [
     'Stainless Steel',
     'Titanium',
-    'Aluminum',
     'Ceramic',
-    'High-Tech Ceramic',
-    'Cerachrom (Ceramic Composite)',
-    'Carbon Fiber',
-    'Forged Carbon',
-    'Bronze',
-    'Brass',
+    'Cerachrom',
     'Yellow Gold',
     'Rose Gold',
     'White Gold',
     'Platinum',
-    'Palladium',
     'Sapphire Crystal',
   ];
-
-  static const stonesOnDialOptions = ['1', '2', '3', '4'];
 
   static const configurationOptions = [
     'Date',
     'Day-Date',
     'Chronograph',
-    'GMT',
+    'GMT / Dual Time',
     'Moonphase',
-    'Perpetual Calendar',
-    'Annual Calendar',
     'Tourbillon',
-    'Minute Repeater',
-    'Power Reserve',
-    'World Time',
+    'Perpetual Calendar',
+    'Power Reserve Indicator',
+    'Annual Calendar',
     'Alarm',
   ];
 
   static const materialOptions = [
-    'Luminous hands and markers',
-    'Rotating bezel',
-    'Helium escape valve',
-    'Anti-magnetic',
-    'Shock resistant',
-    'Screw-down crown',
-    'Exhibition caseback',
-    'Quick-set date',
+    'Luminous Hands / Markers',
+    'Helium Escape Valve',
+    'Anti-Magnetic',
+    'Chronometer Certified',
   ];
 
   static const preciousStoneTypeOptions = [
     'Diamond',
-    'Ruby',
     'Sapphire',
+    'Ruby',
     'Emerald',
-    'Onyx',
-    'Mother of Pearl',
   ];
 
   static const indexesOptions = [
-    'Roman',
-    'Arabic',
-    'Baton',
-    'Dot',
-    'Stick',
-    'Diamond',
-    'Mixed',
+    'Arabic Numerals',
+    'Roman Numerals',
+    'Baton / Stick Markers',
+    'Dot / Gem Markers',
+    'Blank / Minimalist',
   ];
 
   bool get hasActiveFilters =>
       brands.isNotEmpty ||
+      models.isNotEmpty ||
       categories.isNotEmpty ||
       priceRanges.isNotEmpty ||
       movements.isNotEmpty ||
       genders.isNotEmpty ||
       conditions.isNotEmpty ||
+      availabilityStatuses.isNotEmpty ||
+      withMedia.isNotEmpty ||
       caseMaterials.isNotEmpty ||
       dialColors.isNotEmpty ||
       caseSizeRanges.isNotEmpty ||
@@ -435,18 +404,21 @@ class WatchFilterState {
       claspTypes.isNotEmpty ||
       claspMaterials.isNotEmpty ||
       glassMaterials.isNotEmpty ||
+      lugWidths.isNotEmpty ||
       powerReserves.isNotEmpty ||
       waterResistances.isNotEmpty ||
-      authentications.isNotEmpty ||
       modelYears.isNotEmpty ||
       certifications.isNotEmpty ||
       bezelTypes.isNotEmpty ||
       bezelMaterials.isNotEmpty ||
-      stonesOnDial.isNotEmpty ||
       configurations.isNotEmpty ||
       materials.isNotEmpty ||
       preciousStoneTypes.isNotEmpty ||
       indexes.isNotEmpty ||
+      boxIncluded ||
+      papersIncluded ||
+      warrantyCardIncluded ||
+      fullSetIncluded ||
       searchQuery.trim().isNotEmpty;
 
   int get activeCount {
@@ -456,11 +428,14 @@ class WatchFilterState {
     }
 
     bump(brands);
+    bump(models);
     bump(categories);
     bump(priceRanges);
     bump(movements);
     bump(genders);
     bump(conditions);
+    bump(availabilityStatuses);
+    bump(withMedia);
     bump(caseMaterials);
     bump(dialColors);
     bump(caseSizeRanges);
@@ -472,29 +447,35 @@ class WatchFilterState {
     bump(claspTypes);
     bump(claspMaterials);
     bump(glassMaterials);
+    bump(lugWidths);
     bump(powerReserves);
     bump(waterResistances);
-    bump(authentications);
     bump(modelYears);
     bump(certifications);
     bump(bezelTypes);
     bump(bezelMaterials);
-    bump(stonesOnDial);
     bump(configurations);
     bump(materials);
     bump(preciousStoneTypes);
     bump(indexes);
+    if (boxIncluded) count++;
+    if (papersIncluded) count++;
+    if (warrantyCardIncluded) count++;
+    if (fullSetIncluded) count++;
     return count;
   }
 
   WatchFilterState copyWith({
     String? searchQuery,
     Set<String>? brands,
+    Set<String>? models,
     Set<String>? categories,
     Set<String>? priceRanges,
     Set<String>? movements,
     Set<String>? genders,
     Set<String>? conditions,
+    Set<String>? availabilityStatuses,
+    Set<String>? withMedia,
     Set<String>? caseMaterials,
     Set<String>? dialColors,
     Set<String>? caseSizeRanges,
@@ -506,27 +487,33 @@ class WatchFilterState {
     Set<String>? claspTypes,
     Set<String>? claspMaterials,
     Set<String>? glassMaterials,
+    Set<String>? lugWidths,
     Set<String>? powerReserves,
     Set<String>? waterResistances,
-    Set<String>? authentications,
     Set<String>? modelYears,
     Set<String>? certifications,
     Set<String>? bezelTypes,
     Set<String>? bezelMaterials,
-    Set<String>? stonesOnDial,
     Set<String>? configurations,
     Set<String>? materials,
     Set<String>? preciousStoneTypes,
     Set<String>? indexes,
+    bool? boxIncluded,
+    bool? papersIncluded,
+    bool? warrantyCardIncluded,
+    bool? fullSetIncluded,
   }) {
     return WatchFilterState(
       searchQuery: searchQuery ?? this.searchQuery,
       brands: brands ?? this.brands,
+      models: models ?? this.models,
       categories: categories ?? this.categories,
       priceRanges: priceRanges ?? this.priceRanges,
       movements: movements ?? this.movements,
       genders: genders ?? this.genders,
       conditions: conditions ?? this.conditions,
+      availabilityStatuses: availabilityStatuses ?? this.availabilityStatuses,
+      withMedia: withMedia ?? this.withMedia,
       caseMaterials: caseMaterials ?? this.caseMaterials,
       dialColors: dialColors ?? this.dialColors,
       caseSizeRanges: caseSizeRanges ?? this.caseSizeRanges,
@@ -538,18 +525,21 @@ class WatchFilterState {
       claspTypes: claspTypes ?? this.claspTypes,
       claspMaterials: claspMaterials ?? this.claspMaterials,
       glassMaterials: glassMaterials ?? this.glassMaterials,
+      lugWidths: lugWidths ?? this.lugWidths,
       powerReserves: powerReserves ?? this.powerReserves,
       waterResistances: waterResistances ?? this.waterResistances,
-      authentications: authentications ?? this.authentications,
       modelYears: modelYears ?? this.modelYears,
       certifications: certifications ?? this.certifications,
       bezelTypes: bezelTypes ?? this.bezelTypes,
       bezelMaterials: bezelMaterials ?? this.bezelMaterials,
-      stonesOnDial: stonesOnDial ?? this.stonesOnDial,
       configurations: configurations ?? this.configurations,
       materials: materials ?? this.materials,
       preciousStoneTypes: preciousStoneTypes ?? this.preciousStoneTypes,
       indexes: indexes ?? this.indexes,
+      boxIncluded: boxIncluded ?? this.boxIncluded,
+      papersIncluded: papersIncluded ?? this.papersIncluded,
+      warrantyCardIncluded: warrantyCardIncluded ?? this.warrantyCardIncluded,
+      fullSetIncluded: fullSetIncluded ?? this.fullSetIncluded,
     );
   }
 }
@@ -559,16 +549,20 @@ enum WatchSortOption {
   priceLowToHigh,
   priceHighToLow,
   newest,
+  oldest,
   brandAz,
+  brandZa,
 }
 
 extension WatchSortOptionLabel on WatchSortOption {
   String get label => switch (this) {
-        WatchSortOption.featured => 'Featured',
+        WatchSortOption.featured => 'Default Sorting',
         WatchSortOption.priceLowToHigh => 'Price: Low to High',
         WatchSortOption.priceHighToLow => 'Price: High to Low',
-        WatchSortOption.newest => 'Newest',
-        WatchSortOption.brandAz => 'Brand A–Z',
+        WatchSortOption.newest => 'Newest Arrivals',
+        WatchSortOption.oldest => 'Oldest Arrivals',
+        WatchSortOption.brandAz => 'Brand Name (A-Z)',
+        WatchSortOption.brandZa => 'Brand Name (Z-A)',
       };
 }
 

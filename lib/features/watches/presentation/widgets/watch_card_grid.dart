@@ -7,6 +7,8 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
+import '../../../buyer/domain/models/wishlist_item.dart';
+import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../comparison/application/comparison_provider.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
@@ -68,12 +70,11 @@ class WatchCardGrid extends ConsumerWidget {
                     ),
                   ),
                   Positioned(
-                    top: AppSpacing.s8,
-                    right: AppSpacing.s8,
-                    child: Icon(
-                      Icons.favorite_border,
+                    top: AppSpacing.s4,
+                    right: AppSpacing.s4,
+                    child: WishlistToggleButton(
+                      item: WishlistItem.fromWatch(watch),
                       size: 18,
-                      color: mutedColor,
                     ),
                   ),
                   if (watch.discount != null && watch.discount! > 0)
@@ -241,6 +242,14 @@ class WatchCardList extends ConsumerWidget {
                                   color: AppColors.bronze,
                                 ),
                         ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: AppSpacing.s8,
+                      left: AppSpacing.s4,
+                      child: WishlistToggleButton(
+                        item: WishlistItem.fromWatch(watch),
+                        size: 16,
                       ),
                     ),
                     Positioned(

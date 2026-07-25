@@ -57,8 +57,14 @@ class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
     state = ref.read(watchFilterProvider);
   }
 
-  void togglePriceRange(String v) =>
-      state = state.copyWith(priceRanges: _toggle(state.priceRanges, v));
+  void toggleBrand(String v) =>
+      state = state.copyWith(brands: _toggle(state.brands, v));
+
+  void toggleModel(String v) =>
+      state = state.copyWith(models: _toggle(state.models, v));
+
+  void toggleStyle(String v) =>
+      state = state.copyWith(categories: _toggle(state.categories, v));
 
   void toggleMovement(String v) =>
       state = state.copyWith(movements: _toggle(state.movements, v));
@@ -68,6 +74,13 @@ class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
 
   void toggleCondition(String v) =>
       state = state.copyWith(conditions: _toggle(state.conditions, v));
+
+  void toggleAvailability(String v) => state = state.copyWith(
+        availabilityStatuses: _toggle(state.availabilityStatuses, v),
+      );
+
+  void toggleWithMedia(String v) =>
+      state = state.copyWith(withMedia: _toggle(state.withMedia, v));
 
   void toggleCaseMaterial(String v) =>
       state = state.copyWith(caseMaterials: _toggle(state.caseMaterials, v));
@@ -102,14 +115,14 @@ class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
   void toggleGlassMaterial(String v) =>
       state = state.copyWith(glassMaterials: _toggle(state.glassMaterials, v));
 
+  void toggleLugWidth(String v) =>
+      state = state.copyWith(lugWidths: _toggle(state.lugWidths, v));
+
   void togglePowerReserve(String v) =>
       state = state.copyWith(powerReserves: _toggle(state.powerReserves, v));
 
   void toggleWaterResistance(String v) => state =
       state.copyWith(waterResistances: _toggle(state.waterResistances, v));
-
-  void toggleAuthentication(String v) => state =
-      state.copyWith(authentications: _toggle(state.authentications, v));
 
   void toggleModelYear(String v) =>
       state = state.copyWith(modelYears: _toggle(state.modelYears, v));
@@ -123,9 +136,6 @@ class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
   void toggleBezelMaterial(String v) =>
       state = state.copyWith(bezelMaterials: _toggle(state.bezelMaterials, v));
 
-  void toggleStonesOnDial(String v) =>
-      state = state.copyWith(stonesOnDial: _toggle(state.stonesOnDial, v));
-
   void toggleConfiguration(String v) =>
       state = state.copyWith(configurations: _toggle(state.configurations, v));
 
@@ -138,6 +148,16 @@ class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
 
   void toggleIndexes(String v) =>
       state = state.copyWith(indexes: _toggle(state.indexes, v));
+
+  void setBoxIncluded(bool v) => state = state.copyWith(boxIncluded: v);
+
+  void setPapersIncluded(bool v) => state = state.copyWith(papersIncluded: v);
+
+  void setWarrantyCardIncluded(bool v) =>
+      state = state.copyWith(warrantyCardIncluded: v);
+
+  void setFullSetIncluded(bool v) =>
+      state = state.copyWith(fullSetIncluded: v);
 
   /// Clears drawer filters only; keeps search, brands, and category chips.
   void reset() {

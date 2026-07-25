@@ -18,22 +18,27 @@ class Watch {
     required this.strapMaterial,
     required this.crownType,
     required this.claspType,
+    required this.claspMaterial,
     required this.movement,
     required this.gender,
     required this.waterResistanceM,
     required this.glassMaterial,
+    required this.lugWidth,
     required this.powerReserveRange,
-    required this.authentication,
     required this.certification,
     required this.bezelType,
     required this.bezelMaterial,
-    required this.stonesOnDial,
     required this.configurations,
     required this.materials,
     required this.preciousStoneTypes,
     required this.indexes,
     required this.category,
+    required this.availabilityStatus,
     this.imageUrl,
+    this.hasVideo = false,
+    this.boxIncluded = false,
+    this.papersIncluded = false,
+    this.warrantyCardIncluded = false,
     this.discount,
     this.inStock = true,
   });
@@ -55,24 +60,32 @@ class Watch {
   final String strapMaterial;
   final String crownType;
   final String claspType;
+  final String claspMaterial;
   final String movement;
   final String gender;
   final int waterResistanceM;
   final String glassMaterial;
+  final String lugWidth;
   final String powerReserveRange;
-  final String authentication;
   final String certification;
   final String bezelType;
   final String bezelMaterial;
-  final int stonesOnDial;
   final List<String> configurations;
   final List<String> materials;
   final List<String> preciousStoneTypes;
   final String indexes;
   final String category;
+  final String availabilityStatus;
   final String? imageUrl;
+  final bool hasVideo;
+  final bool boxIncluded;
+  final bool papersIncluded;
+  final bool warrantyCardIncluded;
   final double? discount;
   final bool inStock;
+
+  bool get fullSetIncluded =>
+      boxIncluded && papersIncluded && warrantyCardIncluded;
 
   String get detailLine => '$collection · $year';
 

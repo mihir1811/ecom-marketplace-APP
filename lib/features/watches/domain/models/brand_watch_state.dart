@@ -14,11 +14,12 @@ class BrandWatchFilterState {
   final BrandWatchSortOption sort;
 
   static const styleOptions = [
+    'Luxury',
+    'Vintage',
     'Dress',
     'Diver',
-    'Pilot',
-    'GMT',
     'Sport',
+    'GMT',
     'Chronograph',
   ];
 

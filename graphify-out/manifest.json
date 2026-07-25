@@ -1675,8 +1675,8 @@
     "semantic_hash": ""
   },
   "lib/features/watches/application/watch_filter_provider.dart": {
-    "mtime": 1784549054.7068217,
-    "ast_hash": "de736a7901091a4ddcf135b810bd1f5e",
+    "mtime": 1784888568.5069275,
+    "ast_hash": "c14155ce11fed0f02306adcbec068855",
     "semantic_hash": ""
   },
   "lib/features/watches/application/watch_list_provider.dart": {
@@ -1685,18 +1685,18 @@
     "semantic_hash": ""
   },
   "lib/features/watches/data/repositories/watch_repository_impl.dart": {
-    "mtime": 1784545595.8348444,
-    "ast_hash": "59a44a77d3a02061272fff657dcb4e2d",
+    "mtime": 1784888722.4862447,
+    "ast_hash": "0e5d88b89c94a0bd8c66d00fdb27fd71",
     "semantic_hash": ""
   },
   "lib/features/watches/domain/models/watch.dart": {
-    "mtime": 1784545590.0035489,
-    "ast_hash": "b2d7b59c903d642dda9fc65928491877",
+    "mtime": 1784888568.0085127,
+    "ast_hash": "b47c94b167a89f5f1d77a7cc5f61f411",
     "semantic_hash": ""
   },
   "lib/features/watches/domain/models/watch_filter_state.dart": {
-    "mtime": 1784549050.6419923,
-    "ast_hash": "54f479c41fe6da5aba525c3761def008",
+    "mtime": 1784888534.2685912,
+    "ast_hash": "9caf23bf584bc886584496466c7f8937",
     "semantic_hash": ""
   },
   "lib/features/watches/domain/repositories/watch_repository.dart": {
@@ -1720,13 +1720,13 @@
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_card_grid.dart": {
-    "mtime": 1784717133.303935,
-    "ast_hash": "5782edbd7d7f9457b247a6d9159edba4",
+    "mtime": 1784877948.562047,
+    "ast_hash": "117f1cb077b40da3ae290ae05eac6969",
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_filter_drawer.dart": {
-    "mtime": 1784716764.4009569,
-    "ast_hash": "880ff45e5496aa4fff499f4fd8bcc1f9",
+    "mtime": 1784890113.24796,
+    "ast_hash": "1caa7961193f6e30d098e7a4be3440de",
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_grid_view.dart": {
@@ -1740,8 +1740,8 @@
     "semantic_hash": ""
   },
   "lib/features/watches/data/repositories/watch_brand_assets_data.dart": {
-    "mtime": 1784532647.8259861,
-    "ast_hash": "3e77bf2c8802437ef2b7a4f3959d584d",
+    "mtime": 1784888723.9019642,
+    "ast_hash": "0ca835cd70b8c3584bc25dbb97f54606",
     "semantic_hash": ""
   },
   "lib/features/watches/domain/models/watch_brand_categories.dart": {
@@ -1860,8 +1860,8 @@
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/widgets/jewelry_product_card.dart": {
-    "mtime": 1784717096.6462126,
-    "ast_hash": "8bad4f189d331aa5c0228c479860a055",
+    "mtime": 1784877854.3346431,
+    "ast_hash": "f89c083764a8047da0b63035438f6b28",
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/screens/jewelry_categories_screen.dart": {
@@ -1885,8 +1885,8 @@
     "semantic_hash": ""
   },
   "lib/features/watches/domain/models/brand_watch_state.dart": {
-    "mtime": 1784618989.1478438,
-    "ast_hash": "6eae6bae5f861ba42d4ed0fa54e4ae13",
+    "mtime": 1784888709.8221405,
+    "ast_hash": "6b3b4e57ba7b5fd3a532613d46a96385",
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/screens/brand_watch_screen.dart": {
@@ -1945,8 +1945,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_dashboard_screen.dart": {
-    "mtime": 1784868916.230178,
-    "ast_hash": "ece4bbba2e784864f364fe6608392034",
+    "mtime": 1784875405.6879206,
+    "ast_hash": "d270e18f50ffea50e6f1ba7d636f16de",
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_section_screen.dart": {
@@ -2070,8 +2070,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_inquiry_detail_screen.dart": {
-    "mtime": 1784874146.9469464,
-    "ast_hash": "83f8d2182ce6d9181728bc8108fec4ce",
+    "mtime": 1784874512.4627988,
+    "ast_hash": "dc293ca41682da6f94c89372e750a2f6",
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_inquiry_form_screen.dart": {
@@ -2090,8 +2090,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_profile_screen.dart": {
-    "mtime": 1784806883.448763,
-    "ast_hash": "5c657e1b29384c3fec072eecb14936f3",
+    "mtime": 1784878066.7306397,
+    "ast_hash": "c6eb5ee9e3015a0bf1e50beaa6c7c53e",
     "semantic_hash": ""
   },
   "lib/features/comparison/application/comparison_provider.dart": {
@@ -2165,8 +2165,8 @@
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/widgets/gemstone_card.dart": {
-    "mtime": 1784719542.8717687,
-    "ast_hash": "96b44f9be4984d42c01af75cdc4c6b32",
+    "mtime": 1784877854.7031124,
+    "ast_hash": "e7becd80d7ae486c6db4b86932c80f06",
     "semantic_hash": ""
   },
   "lib/features/cart/application/cart_provider.dart": {
@@ -2320,8 +2320,8 @@
     "semantic_hash": ""
   },
   "lib/features/diamonds/presentation/widgets/diamond_cards.dart": {
-    "mtime": 1784717851.760034,
-    "ast_hash": "b4fc2317a06c2827b2832b8440804acc",
+    "mtime": 1784877736.2410402,
+    "ast_hash": "a2f1461653120bf237113cb29ff46eee",
     "semantic_hash": ""
   },
   "lib/core/widgets/paired_showcase_carousel.dart": {
@@ -2435,8 +2435,8 @@
     "semantic_hash": ""
   },
   "lib/features/buyer/presentation/screens/buyer_wishlist_screen.dart": {
-    "mtime": 1784872154.583769,
-    "ast_hash": "2f21f31c1dfa0164cb817d621d3fc743",
+    "mtime": 1784877981.034552,
+    "ast_hash": "acf602aacf7dd6700d85d54e67f42a4a",
     "semantic_hash": ""
   },
   "lib/features/buyer/presentation/widgets/buyer_drawer.dart": {
@@ -2455,8 +2455,23 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/widgets/inquiry_seller_reply.dart": {
-    "mtime": 1784874095.2173383,
-    "ast_hash": "d30b1f4c2ee07a98818835984a6ab703",
+    "mtime": 1784874500.5244913,
+    "ast_hash": "e0b2dd6f431364f20136cea62ecbd978",
+    "semantic_hash": ""
+  },
+  "lib/features/buyer/application/wishlist_provider.dart": {
+    "mtime": 1784877684.0597682,
+    "ast_hash": "66861d5a40caee071abeff4ed72e607b",
+    "semantic_hash": ""
+  },
+  "lib/features/buyer/domain/models/wishlist_item.dart": {
+    "mtime": 1784877678.6449516,
+    "ast_hash": "5844f351c5ae1cbbeb3b6761a2b92e28",
+    "semantic_hash": ""
+  },
+  "lib/features/buyer/presentation/widgets/wishlist_toggle_button.dart": {
+    "mtime": 1784877699.2739944,
+    "ast_hash": "7c1ff88b109d532b1670f061bf479e28",
     "semantic_hash": ""
   }
 }

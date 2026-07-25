@@ -212,7 +212,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                 icon: const Icon(Icons.menu),
               ),
               Text(
-                'Seller Profile',
+                'Profile',
                 style: AppTypography.headline.copyWith(
                   fontWeight: FontWeight.w700,
                 ),

@@ -17,14 +17,28 @@ class WatchRepositoryImpl implements WatchRepository {
   List<Watch>? _cache;
 
   static String caseSizeRangeFor(int mm) {
-    if (mm <= 30) return '28–30 mm';
-    if (mm <= 34) return '31–34 mm';
-    if (mm <= 38) return '35–38 mm';
-    if (mm <= 42) return '39–42 mm';
-    return '43–46 mm';
+    if (mm <= 25) return '10-25 mm';
+    if (mm <= 30) return '26-30 mm';
+    if (mm <= 35) return '31-35 mm';
+    if (mm <= 40) return '36-40 mm';
+    if (mm <= 45) return '41-45 mm';
+    return '>46 mm';
+  }
+
+  static String lugWidthFor(int mm) {
+    if (mm < 18) return 'Under 18 mm';
+    if (mm <= 20) return '18–20 mm';
+    if (mm <= 22) return '21–22 mm';
+    if (mm <= 24) return '23–24 mm';
+    return 'Over 24 mm';
   }
 
   static String waterLabel(int meters) => '${meters}m';
+
+  static String modelYearLabel(int year) {
+    if (year < 2015) return 'Pre-2015';
+    return '$year';
+  }
 
   List<Watch> _catalog() => _cache ??= _generateCatalog();
 
@@ -38,7 +52,7 @@ class WatchRepositoryImpl implements WatchRepository {
     for (final brand in brands) {
       final models = modelsByBrand[brand] ?? ['Classic'];
       for (var i = 0; i < 8; i++) {
-        final caseSize = 28 + rng.nextInt(19);
+        final caseSize = 24 + rng.nextInt(26);
         final price = _priceForBrand(brand, rng);
         final configs = <String>[];
         if (rng.nextBool()) configs.add('Chronograph');
@@ -54,26 +68,44 @@ class WatchRepositoryImpl implements WatchRepository {
               rng.nextInt(WatchFilterState.materialOptions.length)]);
         }
 
-        final stones = rng.nextInt(5);
         final precious = <String>[];
-        if (stones > 0 && rng.nextBool()) {
+        if (rng.nextBool()) {
           precious.add(WatchFilterState.preciousStoneTypeOptions[
               rng.nextInt(WatchFilterState.preciousStoneTypeOptions.length)]);
         }
 
-        final waterM = [30, 50, 100, 150, 200, 300, 500][rng.nextInt(7)];
-        final year = 2020 + rng.nextInt(5);
+        final waterM = [
+          30,
+          50,
+          60,
+          100,
+          120,
+          150,
+          200,
+          300,
+          500,
+          600,
+          1000,
+        ][rng.nextInt(11)];
+        final year = 2010 + rng.nextInt(17);
         final hasDiscount = rng.nextDouble() > 0.75;
+        final box = rng.nextBool();
+        final papers = rng.nextBool();
+        final warranty = rng.nextBool();
+        final hasImage = rng.nextDouble() > 0.15;
+        final availability = WatchFilterState.availabilityOptions[
+            rng.nextInt(WatchFilterState.availabilityOptions.length)];
 
         watches.add(Watch(
           id: 'W-$id',
           brand: brand,
           model: models[rng.nextInt(models.length)],
-          collection: ['Heritage', 'Sport', 'Classic', 'Iconic'][rng.nextInt(4)],
+          collection:
+              ['Heritage', 'Sport', 'Classic', 'Iconic'][rng.nextInt(4)],
           year: year,
           price: double.parse(price.toStringAsFixed(0)),
-          condition: WatchFilterState
-              .conditionOptions[rng.nextInt(WatchFilterState.conditionOptions.length)],
+          condition: WatchFilterState.conditionOptions[
+              rng.nextInt(WatchFilterState.conditionOptions.length)],
           caseSizeMm: caseSize,
           caseSizeRange: caseSizeRangeFor(caseSize),
           caseMaterial: WatchFilterState.caseMaterialOptions[
@@ -92,33 +124,39 @@ class WatchRepositoryImpl implements WatchRepository {
               rng.nextInt(WatchFilterState.crownTypeOptions.length)],
           claspType: WatchFilterState.claspTypeOptions[
               rng.nextInt(WatchFilterState.claspTypeOptions.length)],
-          movement: WatchFilterState
-              .movementOptions[rng.nextInt(WatchFilterState.movementOptions.length)],
+          claspMaterial: WatchFilterState.claspMaterialOptions[
+              rng.nextInt(WatchFilterState.claspMaterialOptions.length)],
+          movement: WatchFilterState.movementOptions[
+              rng.nextInt(WatchFilterState.movementOptions.length)],
           gender: WatchFilterState
               .genderOptions[rng.nextInt(WatchFilterState.genderOptions.length)],
           waterResistanceM: waterM,
           glassMaterial: WatchFilterState.glassMaterialOptions[
               rng.nextInt(WatchFilterState.glassMaterialOptions.length)],
+          lugWidth: lugWidthFor(16 + rng.nextInt(12)),
           powerReserveRange: WatchFilterState.powerReserveOptions[
               rng.nextInt(WatchFilterState.powerReserveOptions.length)],
-          authentication: WatchFilterState.authenticationOptions[
-              rng.nextInt(WatchFilterState.authenticationOptions.length)],
           certification: WatchFilterState.certificationOptions[
               rng.nextInt(WatchFilterState.certificationOptions.length)],
           bezelType: WatchFilterState.bezelTypeOptions[
               rng.nextInt(WatchFilterState.bezelTypeOptions.length)],
           bezelMaterial: WatchFilterState.bezelMaterialOptions[
               rng.nextInt(WatchFilterState.bezelMaterialOptions.length)],
-          stonesOnDial: stones,
           configurations: configs,
           materials: mats.toSet().toList(),
           preciousStoneTypes: precious,
-          indexes: WatchFilterState
-              .indexesOptions[rng.nextInt(WatchFilterState.indexesOptions.length)],
-          category: WatchFilterState
-              .categoryOptions[rng.nextInt(WatchFilterState.categoryOptions.length)],
+          indexes: WatchFilterState.indexesOptions[
+              rng.nextInt(WatchFilterState.indexesOptions.length)],
+          category: WatchFilterState.categoryOptions[
+              rng.nextInt(WatchFilterState.categoryOptions.length)],
+          availabilityStatus: availability,
+          imageUrl: hasImage ? 'mock://watch/$id.jpg' : null,
+          hasVideo: rng.nextDouble() > 0.7,
+          boxIncluded: box,
+          papersIncluded: papers,
+          warrantyCardIncluded: warranty,
           discount: hasDiscount ? (10 + rng.nextInt(31)).toDouble() : null,
-          inStock: rng.nextDouble() > 0.12,
+          inStock: availability == 'Available',
         ));
         id++;
       }
@@ -162,10 +200,12 @@ class WatchRepositoryImpl implements WatchRepository {
     final q = f.searchQuery.trim().toLowerCase();
     if (q.isNotEmpty) {
       final hay =
-          '${w.brand} ${w.model} ${w.collection} ${w.category}'.toLowerCase();
+          '${w.brand} ${w.model} ${w.collection} ${w.category} ${w.id}'
+              .toLowerCase();
       if (!hay.contains(q)) return false;
     }
     if (f.brands.isNotEmpty && !f.brands.contains(w.brand)) return false;
+    if (f.models.isNotEmpty && !f.models.contains(w.model)) return false;
     if (f.categories.isNotEmpty && !f.categories.contains(w.category)) {
       return false;
     }
@@ -182,6 +222,15 @@ class WatchRepositoryImpl implements WatchRepository {
     if (f.conditions.isNotEmpty && !f.conditions.contains(w.condition)) {
       return false;
     }
+    if (f.availabilityStatuses.isNotEmpty &&
+        !f.availabilityStatuses.contains(w.availabilityStatus)) {
+      return false;
+    }
+    if (f.withMedia.contains('With Images') &&
+        (w.imageUrl == null || w.imageUrl!.isEmpty)) {
+      return false;
+    }
+    if (f.withMedia.contains('With Video') && !w.hasVideo) return false;
     if (f.caseMaterials.isNotEmpty &&
         !f.caseMaterials.contains(w.caseMaterial)) {
       return false;
@@ -212,8 +261,15 @@ class WatchRepositoryImpl implements WatchRepository {
     if (f.claspTypes.isNotEmpty && !f.claspTypes.contains(w.claspType)) {
       return false;
     }
+    if (f.claspMaterials.isNotEmpty &&
+        !f.claspMaterials.contains(w.claspMaterial)) {
+      return false;
+    }
     if (f.glassMaterials.isNotEmpty &&
         !f.glassMaterials.contains(w.glassMaterial)) {
+      return false;
+    }
+    if (f.lugWidths.isNotEmpty && !f.lugWidths.contains(w.lugWidth)) {
       return false;
     }
     if (f.powerReserves.isNotEmpty &&
@@ -224,12 +280,8 @@ class WatchRepositoryImpl implements WatchRepository {
         !f.waterResistances.contains(waterLabel(w.waterResistanceM))) {
       return false;
     }
-    if (f.authentications.isNotEmpty &&
-        !f.authentications.contains(w.authentication)) {
-      return false;
-    }
     if (f.modelYears.isNotEmpty &&
-        !f.modelYears.contains('${w.year}')) {
+        !f.modelYears.contains(modelYearLabel(w.year))) {
       return false;
     }
     if (f.certifications.isNotEmpty &&
@@ -241,10 +293,6 @@ class WatchRepositoryImpl implements WatchRepository {
     }
     if (f.bezelMaterials.isNotEmpty &&
         !f.bezelMaterials.contains(w.bezelMaterial)) {
-      return false;
-    }
-    if (f.stonesOnDial.isNotEmpty &&
-        !f.stonesOnDial.contains('${w.stonesOnDial}')) {
       return false;
     }
     if (f.configurations.isNotEmpty &&
@@ -259,6 +307,10 @@ class WatchRepositoryImpl implements WatchRepository {
       return false;
     }
     if (f.indexes.isNotEmpty && !f.indexes.contains(w.indexes)) return false;
+    if (f.boxIncluded && !w.boxIncluded) return false;
+    if (f.papersIncluded && !w.papersIncluded) return false;
+    if (f.warrantyCardIncluded && !w.warrantyCardIncluded) return false;
+    if (f.fullSetIncluded && !w.fullSetIncluded) return false;
     return true;
   }
 
@@ -273,10 +325,17 @@ class WatchRepositoryImpl implements WatchRepository {
         sorted.sort((a, b) => b.price.compareTo(a.price));
       case WatchSortOption.newest:
         sorted.sort((a, b) => b.year.compareTo(a.year));
+      case WatchSortOption.oldest:
+        sorted.sort((a, b) => a.year.compareTo(b.year));
       case WatchSortOption.brandAz:
         sorted.sort((a, b) {
           final c = a.brand.compareTo(b.brand);
           return c != 0 ? c : a.model.compareTo(b.model);
+        });
+      case WatchSortOption.brandZa:
+        sorted.sort((a, b) {
+          final c = b.brand.compareTo(a.brand);
+          return c != 0 ? c : b.model.compareTo(a.model);
         });
     }
     return sorted;

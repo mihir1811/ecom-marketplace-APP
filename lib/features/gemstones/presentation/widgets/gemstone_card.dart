@@ -7,6 +7,8 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
+import '../../../buyer/domain/models/wishlist_item.dart';
+import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../comparison/application/comparison_provider.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
@@ -88,6 +90,14 @@ class GemstoneCardGrid extends ConsumerWidget {
                         ),
                       ),
                     ),
+                  Positioned(
+                    bottom: AppSpacing.s8,
+                    left: AppSpacing.s4,
+                    child: WishlistToggleButton(
+                      item: WishlistItem.fromGemstone(gemstone),
+                      size: 18,
+                    ),
+                  ),
                   Positioned(
                     bottom: AppSpacing.s8,
                     right: AppSpacing.s8,
@@ -200,6 +210,14 @@ class GemstoneCardList extends ConsumerWidget {
                                 Icons.diamond_outlined,
                                 color: gemstoneHue(gemstone.type),
                               ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: AppSpacing.s8,
+                      left: AppSpacing.s4,
+                      child: WishlistToggleButton(
+                        item: WishlistItem.fromGemstone(gemstone),
+                        size: 16,
                       ),
                     ),
                     Positioned(
