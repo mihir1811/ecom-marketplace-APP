@@ -93,7 +93,7 @@ class AuthController extends Notifier<AuthState> {
       if (!acceptTerms) {
         state = state.copyWith(
           errorMessage:
-              'Please agree to the Terms of Service and Ethical Sourcing Policy.',
+              'Please agree to the Terms of Service (including chatbot data use) and Ethical Sourcing Policy.',
         );
         return;
       }

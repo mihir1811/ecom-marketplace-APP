@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +26,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  late final TapGestureRecognizer _termsTapRecognizer;
 
   bool _obscurePassword = true;
   bool _acceptTerms = false;
@@ -38,7 +40,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _didAutoRedirect = false;
 
   @override
+  void initState() {
+    super.initState();
+    _termsTapRecognizer = TapGestureRecognizer()
+      ..onTap = () {
+        if (!mounted) return;
+        context.push(AppRouteNames.termsAndConditions);
+      };
+  }
+
+  @override
   void dispose() {
+    _termsTapRecognizer.dispose();
     _fullNameController.dispose();
     _usernameController.dispose();
     _emailController.dispose();
@@ -243,13 +256,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                         color: AppColors.textSecondaryLight,
                                       ),
                                       children: [
-                                        const TextSpan(text: 'I agree to the '),
+                                        const TextSpan(
+                                          text:
+                                              'I agree to the Terms of Service (including chatbot data use for AI training) and ',
+                                        ),
                                         TextSpan(
                                           text: 'Terms of Service',
                                           style: AppTypography.body.copyWith(
                                             color: AppColors.charcoal,
                                             decoration: TextDecoration.underline,
                                           ),
+                                          recognizer: _termsTapRecognizer,
                                         ),
                                         const TextSpan(text: ' and '),
                                         TextSpan(
@@ -258,6 +275,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                             color: AppColors.charcoal,
                                             decoration: TextDecoration.underline,
                                           ),
+                                          recognizer: _termsTapRecognizer,
                                         ),
                                       ],
                                     ),
@@ -296,7 +314,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                           ref
                                               .read(authProvider.notifier)
                                               .setErrorMessage(
-                                                'Please agree to the Terms of Service and Ethical Sourcing Policy.',
+                                                'Please agree to the Terms of Service (including chatbot data use) and Ethical Sourcing Policy.',
                                               );
                                           return;
                                         }

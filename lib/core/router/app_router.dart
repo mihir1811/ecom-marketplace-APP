@@ -12,6 +12,7 @@ import '../../features/buyer/buyer_routes.dart';
 import '../../features/seller/seller_routes.dart';
 import '../../features/comparison/comparison_routes.dart';
 import '../../features/cart/cart_routes.dart';
+import '../../features/info/info_routes.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -23,6 +24,7 @@ final GoRouter appRouter = GoRouter(
   initialLocation: AppRouteNames.home,
   routes: [
     ...homeRoutes,
+    ...infoRoutes,
     ...authRoutes,
     ...buyerRoutes,
     ...sellerRoutes,

@@ -194,7 +194,7 @@ class HomeScreen extends ConsumerWidget {
                 AppSpacing.s20,
                 0,
                 AppSpacing.s20,
-                AppSpacing.s32,
+                AppSpacing.s16,
               ),
               child: Text(
                 'Certified stones · Transparent sellers · Worldwide shipping',
@@ -206,6 +206,45 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
+          SliverToBoxAdapter(
+            child: Center(
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: AppSpacing.s8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () => context.push(AppRouteNames.aboutUs),
+                    child: Text(
+                      'About GemWorld',
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.bronze,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '·',
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.textMutedLight,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        context.push(AppRouteNames.termsAndConditions),
+                    child: Text(
+                      'Terms & Conditions',
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.bronze,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s16)),
         ],
       ),
     );

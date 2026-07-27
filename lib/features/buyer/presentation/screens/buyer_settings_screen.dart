@@ -99,6 +99,22 @@ class _BuyerSettingsScreenState extends ConsumerState<BuyerSettingsScreen> {
               const Divider(height: 1),
               ListTile(
                 contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.info_outline),
+                title: const Text('About GemWorld'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRouteNames.aboutUs),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.description_outlined),
+                title: const Text('Terms & Conditions'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRouteNames.termsAndConditions),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.logout, color: AppColors.error),
                 title: Text(
                   'Sign out',

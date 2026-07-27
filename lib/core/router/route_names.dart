@@ -3,6 +3,8 @@ class AppRouteNames {
   const AppRouteNames._();
 
   static const String home = '/';
+  static const String aboutUs = '/about';
+  static const String termsAndConditions = '/terms';
   static const String diamonds = '/diamonds';
   static const String diamondResults = '/diamonds/results';
   static const String labGrownDiamonds = '/diamonds/lab-grown';
