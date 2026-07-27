@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -282,31 +282,84 @@ class InquiryImagePickerField extends StatelessWidget {
       );
       return;
     }
-    final picker = ImagePicker();
+
     final remaining = maxImages - images.length;
-    if (remaining == 1) {
-      final file = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 85,
-        maxWidth: 1600,
+    try {
+      const typeGroup = XTypeGroup(
+        label: 'images',
+        extensions: <String>['jpg', 'jpeg', 'png', 'webp', 'heic'],
       );
-      if (file == null) return;
-      final bytes = await file.readAsBytes();
-      onChanged([...images, bytes]);
-      return;
+      final files = remaining == 1
+          ? [
+              if (await openFile(acceptedTypeGroups: [typeGroup])
+                  case final file?)
+                file,
+            ]
+          : await openFiles(acceptedTypeGroups: [typeGroup]);
+
+      if (files.isEmpty) return;
+
+      const maxBytes = 5 * 1024 * 1024;
+      final next = List<Uint8List>.from(images);
+      var skippedLarge = false;
+      var skippedUnreadable = false;
+
+      for (final file in files) {
+        if (next.length >= maxImages) break;
+        try {
+          final bytes = await file.readAsBytes();
+          if (bytes.length > maxBytes) {
+            skippedLarge = true;
+            continue;
+          }
+          if (bytes.isEmpty) {
+            skippedUnreadable = true;
+            continue;
+          }
+          next.add(bytes);
+        } catch (_) {
+          skippedUnreadable = true;
+        }
+      }
+
+      if (!context.mounted) return;
+
+      if (next.length == images.length) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              skippedLarge
+                  ? 'Image must be smaller than 5 MB'
+                  : skippedUnreadable
+                      ? 'Could not read the selected file'
+                      : 'No image selected',
+            ),
+          ),
+        );
+        return;
+      }
+
+      onChanged(next);
+
+      if (skippedLarge || skippedUnreadable) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              skippedLarge
+                  ? 'Some images were skipped (max 5 MB each)'
+                  : 'Some images could not be read',
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to open file picker. Please retry.'),
+        ),
+      );
     }
-    final files = await picker.pickMultiImage(
-      imageQuality: 85,
-      maxWidth: 1600,
-      limit: remaining,
-    );
-    if (files.isEmpty) return;
-    final next = List<Uint8List>.from(images);
-    for (final file in files) {
-      if (next.length >= maxImages) break;
-      next.add(await file.readAsBytes());
-    }
-    onChanged(next);
   }
 
   @override

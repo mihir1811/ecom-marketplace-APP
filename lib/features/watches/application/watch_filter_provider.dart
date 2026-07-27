@@ -82,6 +82,9 @@ class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
   void toggleWithMedia(String v) =>
       state = state.copyWith(withMedia: _toggle(state.withMedia, v));
 
+  void togglePriceRange(String v) =>
+      state = state.copyWith(priceRanges: _toggle(state.priceRanges, v));
+
   void toggleCaseMaterial(String v) =>
       state = state.copyWith(caseMaterials: _toggle(state.caseMaterials, v));
 

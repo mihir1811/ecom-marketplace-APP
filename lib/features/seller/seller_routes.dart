@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../../core/router/route_names.dart';
+import 'presentation/screens/seller_analytics_screen.dart';
 import 'presentation/screens/seller_auctions_screen.dart';
 import 'presentation/screens/seller_chat_detail_screen.dart';
 import 'presentation/screens/seller_chat_list_screen.dart';
@@ -16,7 +17,6 @@ import 'presentation/screens/seller_products_screen.dart';
 import 'presentation/screens/seller_product_edit_screen.dart';
 import 'presentation/screens/seller_profile_screen.dart';
 import 'presentation/screens/seller_promotions_screen.dart';
-import 'presentation/screens/seller_section_screen.dart';
 import 'presentation/widgets/seller_layout.dart';
 
 /// Modular routes for the authenticated seller workspace.
@@ -80,8 +80,7 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerAnalytics,
-        builder: (context, state) =>
-            const SellerSectionScreen(title: 'Analytics'),
+        builder: (context, state) => const SellerAnalyticsScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerChat,

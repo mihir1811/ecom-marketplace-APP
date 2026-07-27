@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -26,10 +29,59 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   final _gstNumber = TextEditingController(text: '');
   final _panNumber = TextEditingController(text: '');
 
-  String? _bannerName;
-  String? _logoName;
-  String? _gstFileName;
-  String? _panFileName;
+  _PickedFile? _bannerFile;
+  _PickedFile? _logoFile;
+  _PickedFile? _gstFile;
+  _PickedFile? _panFile;
+
+  Future<void> _pickFile({
+    required bool imageOnly,
+    required ValueChanged<_PickedFile> onSelected,
+  }) async {
+    try {
+      final typeGroup = XTypeGroup(
+        label: imageOnly ? 'images' : 'documents',
+        extensions: imageOnly
+            ? const ['jpg', 'jpeg', 'png', 'webp']
+            : const ['pdf', 'jpg', 'jpeg', 'png'],
+      );
+      final file = await openFile(acceptedTypeGroups: [typeGroup]);
+      if (file == null || !mounted) return;
+
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+
+      final maxBytes = imageOnly ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+      if (bytes.length > maxBytes) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              imageOnly
+                  ? 'Image must be smaller than 5 MB'
+                  : 'Document must be smaller than 10 MB',
+            ),
+          ),
+        );
+        return;
+      }
+      if (bytes.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not read the selected file')),
+        );
+        return;
+      }
+      setState(
+        () => onSelected(
+          _PickedFile(name: file.name, bytes: bytes, size: bytes.length),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to select file. Please retry.')),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -140,9 +192,11 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
 
   Widget _filePicker({
     required String label,
-    required String? fileName,
+    required _PickedFile? file,
     required VoidCallback onPick,
-    Widget? preview,
+    required VoidCallback onRemove,
+    required String helperText,
+    bool imagePreview = false,
     double previewHeight = 72,
   }) {
     return Column(
@@ -157,37 +211,80 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        if (preview != null) ...[
-          SizedBox(height: previewHeight, child: preview),
-          const SizedBox(height: AppSpacing.s8),
-        ],
-        OutlinedButton.icon(
-          onPressed: onPick,
-          icon: const Icon(Icons.upload_file, size: 16),
-          label: Text(
-            fileName ?? 'Choose file',
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.caption.copyWith(fontSize: 12),
-          ),
-          style: OutlinedButton.styleFrom(
-            alignment: Alignment.centerLeft,
-            minimumSize: const Size.fromHeight(40),
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
-          ),
-        ),
-        if (fileName == null)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              'No file chosen',
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
-                fontSize: 11,
+        if (file != null && imagePreview) ...[
+          SizedBox(
+            height: previewHeight,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppSpacing.r8),
+              child: Image.memory(
+                file.bytes,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  decoration: _previewBox(),
+                  child: const Icon(Icons.broken_image_outlined),
+                ),
               ),
             ),
           ),
+          const SizedBox(height: AppSpacing.s8),
+        ],
+        Container(
+          decoration: _previewBox(),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: onPick,
+                  icon: Icon(
+                    imagePreview
+                        ? Icons.add_photo_alternate_outlined
+                        : Icons.upload_file_outlined,
+                    size: 18,
+                  ),
+                  label: Text(
+                    file?.name ?? 'Choose file',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.caption.copyWith(fontSize: 12),
+                  ),
+                  style: TextButton.styleFrom(
+                    alignment: Alignment.centerLeft,
+                    minimumSize: const Size.fromHeight(42),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s12,
+                    ),
+                  ),
+                ),
+              ),
+              if (file != null)
+                IconButton(
+                  tooltip: 'Remove file',
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.close, size: 18),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            file == null ? helperText : _fileSizeLabel(file.size),
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textMutedLight,
+              fontSize: 11,
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  String _fileSizeLabel(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
   BoxDecoration _previewBox() {
@@ -245,35 +342,26 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                     _grid2(
                       _filePicker(
                         label: 'Company logo',
-                        fileName: _logoName,
-                        onPick: () => setState(() => _logoName = 'logo.png'),
-                        preview: Container(
-                          decoration: _previewBox(),
-                          child: const Center(
-                            child: Icon(
-                              Icons.apartment,
-                              size: 32,
-                              color: AppColors.info,
-                            ),
-                          ),
+                        file: _logoFile,
+                        imagePreview: true,
+                        helperText: 'JPG, PNG or WebP · max 5 MB',
+                        onPick: () => _pickFile(
+                          imageOnly: true,
+                          onSelected: (file) => _logoFile = file,
                         ),
+                        onRemove: () => setState(() => _logoFile = null),
                       ),
                       _filePicker(
                         label: 'Storefront banner',
-                        fileName: _bannerName,
-                        onPick: () =>
-                            setState(() => _bannerName = 'banner.jpg'),
-                        previewHeight: 72,
-                        preview: Container(
-                          decoration: _previewBox(),
-                          child: const Center(
-                            child: Icon(
-                              Icons.image_outlined,
-                              size: 32,
-                              color: AppColors.textMutedLight,
-                            ),
-                          ),
+                        file: _bannerFile,
+                        imagePreview: true,
+                        helperText: 'JPG, PNG or WebP · max 5 MB',
+                        onPick: () => _pickFile(
+                          imageOnly: true,
+                          onSelected: (file) => _bannerFile = file,
                         ),
+                        onRemove: () => setState(() => _bannerFile = null),
+                        previewHeight: 72,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.s8),
@@ -353,16 +441,24 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                     ),
                     _grid2(
                       _filePicker(
-                        label: 'PAN card file',
-                        fileName: _panFileName,
-                        onPick: () =>
-                            setState(() => _panFileName = 'pan.pdf'),
+                        label: 'PAN card',
+                        file: _panFile,
+                        helperText: 'PDF, JPG or PNG · max 10 MB',
+                        onPick: () => _pickFile(
+                          imageOnly: false,
+                          onSelected: (file) => _panFile = file,
+                        ),
+                        onRemove: () => setState(() => _panFile = null),
                       ),
                       _filePicker(
                         label: 'GST certificate',
-                        fileName: _gstFileName,
-                        onPick: () =>
-                            setState(() => _gstFileName = 'gst.pdf'),
+                        file: _gstFile,
+                        helperText: 'PDF, JPG or PNG · max 10 MB',
+                        onPick: () => _pickFile(
+                          imageOnly: false,
+                          onSelected: (file) => _gstFile = file,
+                        ),
+                        onRemove: () => setState(() => _gstFile = null),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.s12),
@@ -390,4 +486,16 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
       ],
     );
   }
+}
+
+class _PickedFile {
+  const _PickedFile({
+    required this.name,
+    required this.bytes,
+    required this.size,
+  });
+
+  final String name;
+  final Uint8List bytes;
+  final int size;
 }

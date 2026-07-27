@@ -10,7 +10,7 @@
     "semantic_hash": "b33d000860642c6f4907a877e0387a21"
   },
   "android/app/build.gradle.kts": {
-    "mtime": 1784532647.5565944,
+    "mtime": 1784981400.1442156,
     "ast_hash": "6daa28abac1874cf31035425f18e3201",
     "semantic_hash": ""
   },
@@ -25,7 +25,7 @@
     "semantic_hash": ""
   },
   "android/settings.gradle.kts": {
-    "mtime": 1784532647.5722184,
+    "mtime": 1784981398.0446002,
     "ast_hash": "4440672748462857e9bdbbf5fd06fe1a",
     "semantic_hash": ""
   },
@@ -310,7 +310,7 @@
     "semantic_hash": ""
   },
   "macos/Flutter/GeneratedPluginRegistrant.swift": {
-    "mtime": 1784952287.3166656,
+    "mtime": 1784981406.6226873,
     "ast_hash": "86b60381946c3437348389316bc2e968",
     "semantic_hash": ""
   },
@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "pubspec.yaml": {
-    "mtime": 1784952286.0505533,
-    "ast_hash": "fef9640bc7fb3ffa2431098c3caeefa1",
+    "mtime": 1784981405.7507799,
+    "ast_hash": "112cf99118963682f68a40fffca781b0",
     "semantic_hash": ""
   },
   "web/index.html": {
@@ -1675,8 +1675,8 @@
     "semantic_hash": ""
   },
   "lib/features/watches/application/watch_filter_provider.dart": {
-    "mtime": 1784888568.5069275,
-    "ast_hash": "c14155ce11fed0f02306adcbec068855",
+    "mtime": 1784978164.1611302,
+    "ast_hash": "c4ac7f561c3195c301812962f65c94fd",
     "semantic_hash": ""
   },
   "lib/features/watches/application/watch_list_provider.dart": {
@@ -1725,8 +1725,8 @@
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_filter_drawer.dart": {
-    "mtime": 1784890113.24796,
-    "ast_hash": "1caa7961193f6e30d098e7a4be3440de",
+    "mtime": 1784978311.239304,
+    "ast_hash": "14430dc4122d2ade024b1bf8042246c8",
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_grid_view.dart": {
@@ -1965,8 +1965,8 @@
     "semantic_hash": ""
   },
   "lib/features/seller/seller_routes.dart": {
-    "mtime": 1784872216.7158158,
-    "ast_hash": "9d8ec61a125607c05a75e7cf78bd8a07",
+    "mtime": 1784980432.3750513,
+    "ast_hash": "c7a0d90fda37ae82e57982e276dc8b6d",
     "semantic_hash": ""
   },
   "lib/features/seller/application/seller_products_provider.dart": {
@@ -2085,13 +2085,13 @@
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/widgets/inquiry_form_fields.dart": {
-    "mtime": 1784952301.694599,
-    "ast_hash": "820b957833a00f88181bfff1a138ca29",
+    "mtime": 1784981437.263023,
+    "ast_hash": "ada503088c5482a583f09c99c5555722",
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_profile_screen.dart": {
-    "mtime": 1784878066.7306397,
-    "ast_hash": "c6eb5ee9e3015a0bf1e50beaa6c7c53e",
+    "mtime": 1784981474.9388518,
+    "ast_hash": "a6f7485026d6a433cd509164824fb11d",
     "semantic_hash": ""
   },
   "lib/features/comparison/application/comparison_provider.dart": {
@@ -2472,6 +2472,16 @@
   "lib/features/buyer/presentation/widgets/wishlist_toggle_button.dart": {
     "mtime": 1784877699.2739944,
     "ast_hash": "7c1ff88b109d532b1670f061bf479e28",
+    "semantic_hash": ""
+  },
+  "lib/features/watches/presentation/widgets/watch_filter_swatch_pills.dart": {
+    "mtime": 1784978353.2075899,
+    "ast_hash": "1fa8e6d2e9e78555c82b6bb812e17b73",
+    "semantic_hash": ""
+  },
+  "lib/features/seller/presentation/screens/seller_analytics_screen.dart": {
+    "mtime": 1784982901.7438495,
+    "ast_hash": "ad8ec9cb2a30d0f5dec76c9799e089f7",
     "semantic_hash": ""
   }
 }

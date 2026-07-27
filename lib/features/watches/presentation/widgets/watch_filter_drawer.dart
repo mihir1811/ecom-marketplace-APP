@@ -12,6 +12,7 @@ import '../../application/watch_list_provider.dart';
 import '../../data/repositories/watch_brand_assets_data.dart';
 import '../../domain/models/watch_brand_categories.dart';
 import '../../domain/models/watch_filter_state.dart';
+import 'watch_filter_swatch_pills.dart';
 
 /// Side pop-up filter panel aligned to watch filter schema categories.
 class WatchFilterDrawer extends ConsumerStatefulWidget {
@@ -22,15 +23,25 @@ class WatchFilterDrawer extends ConsumerStatefulWidget {
 }
 
 class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
-  /// Top 5 schema categories open by default; remaining collapsed.
+  /// First five categories open by default; remaining collapsed.
   final Map<String, bool> _expanded = {
-    'brand_model': true,
-    'general_specs': true,
-    'case_bezel': true,
-    'dial_visuals': true,
-    'strap_clasp': true,
-    'movement_mechanics': false,
-    'inclusions_certifications': false,
+    'brand': true,
+    'watch_style': true,
+    'availability': true,
+    'with_media': true,
+    'gender': true,
+    'price_range': false,
+    'movement': false,
+    'case': false,
+    'bezel': false,
+    'dial': false,
+    'strap': false,
+    'clasp': false,
+    'crown': false,
+    'features': false,
+    'model_year': false,
+    'condition': false,
+    'authentication': false,
   };
 
   final Map<String, int> _visible = {
@@ -88,8 +99,8 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
         padding: const EdgeInsets.only(bottom: AppSpacing.s24),
         children: [
           _section(
-            'brand_model',
-            'BRAND & MODEL',
+            'brand',
+            'BRAND',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -122,70 +133,70 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
             ),
           ),
           _section(
-            'general_specs',
-            'GENERAL SPECIFICATIONS',
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _subLabel('Target Gender'),
-                _list(
-                  WatchFilterState.genderOptions,
-                  draft.genders,
-                  n.toggleGender,
-                  grid: true,
-                ),
-                _subLabel('Condition'),
-                _list(
-                  WatchFilterState.conditionOptions,
-                  draft.conditions,
-                  n.toggleCondition,
-                  grid: true,
-                ),
-                _subLabel('Style'),
-                _list(
-                  WatchFilterState.styleOptions,
-                  draft.categories,
-                  n.toggleStyle,
-                  grid: true,
-                ),
-                _subLabel('Availability'),
-                _list(
-                  WatchFilterState.availabilityOptions,
-                  draft.availabilityStatuses,
-                  n.toggleAvailability,
-                  grid: true,
-                ),
-                _subLabel('Media Filter'),
-                _list(
-                  WatchFilterState.withMediaOptions,
-                  draft.withMedia,
-                  n.toggleWithMedia,
-                  grid: true,
-                ),
-                _subLabel('Model Year'),
-                _expandList(
-                  'year',
-                  WatchFilterState.modelYearOptions,
-                  draft.modelYears,
-                  n.toggleModelYear,
-                  grid: true,
-                ),
-              ],
+            'watch_style',
+            'WATCH STYLE',
+            _list(
+              WatchFilterState.styleOptions,
+              draft.categories,
+              n.toggleStyle,
+              grid: true,
             ),
           ),
           _section(
-            'case_bezel',
-            'CASE & BEZEL',
+            'availability',
+            'AVAILABILITY',
+            _list(
+              WatchFilterState.availabilityOptions,
+              draft.availabilityStatuses,
+              n.toggleAvailability,
+              grid: true,
+            ),
+          ),
+          _section(
+            'with_media',
+            'WITH MEDIA',
+            _list(
+              WatchFilterState.withMediaOptions,
+              draft.withMedia,
+              n.toggleWithMedia,
+              grid: true,
+            ),
+          ),
+          _section(
+            'gender',
+            'GENDER',
+            _list(
+              WatchFilterState.genderOptions,
+              draft.genders,
+              n.toggleGender,
+              grid: true,
+            ),
+          ),
+          _section(
+            'price_range',
+            'PRICE RANGE',
+            _list(
+              WatchFilterState.priceRangeOptions,
+              draft.priceRanges,
+              n.togglePriceRange,
+              grid: true,
+            ),
+          ),
+          _section(
+            'movement',
+            'MOVEMENT',
+            _list(
+              WatchFilterState.movementOptions,
+              draft.movements,
+              n.toggleMovement,
+            ),
+          ),
+          _section(
+            'case',
+            'CASE',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _subLabel('Case Diameter / Size'),
-                _list(
-                  WatchFilterState.caseSizeRangeOptions,
-                  draft.caseSizeRanges,
-                  n.toggleCaseSizeRange,
-                  grid: true,
-                ),
                 _subLabel('Case Shape'),
                 _expandList(
                   'caseShape',
@@ -194,37 +205,18 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
                   n.toggleCaseShape,
                   grid: true,
                 ),
-                _subLabel('Case Material'),
+                _subLabel('Case Size'),
                 _list(
-                  WatchFilterState.caseMaterialOptions,
-                  draft.caseMaterials,
-                  n.toggleCaseMaterial,
-                ),
-                _subLabel('Case Back'),
-                _list(
-                  WatchFilterState.caseBackOptions,
-                  draft.caseBacks,
-                  n.toggleCaseBack,
-                ),
-                _subLabel('Bezel Type'),
-                _expandList(
-                  'bezelType',
-                  WatchFilterState.bezelTypeOptions,
-                  draft.bezelTypes,
-                  n.toggleBezelType,
-                ),
-                _subLabel('Bezel Material'),
-                _list(
-                  WatchFilterState.bezelMaterialOptions,
-                  draft.bezelMaterials,
-                  n.toggleBezelMaterial,
+                  WatchFilterState.caseSizeRangeOptions,
+                  draft.caseSizeRanges,
+                  n.toggleCaseSizeRange,
                   grid: true,
                 ),
-                _subLabel('Glass / Crystal'),
-                _list(
-                  WatchFilterState.glassMaterialOptions,
-                  draft.glassMaterials,
-                  n.toggleGlassMaterial,
+                _swatchHeading('Case Material'),
+                WatchFilterSwatchPillGrid(
+                  options: WatchFilterState.caseMaterialOptions,
+                  selected: draft.caseMaterials,
+                  onToggle: n.toggleCaseMaterial,
                 ),
                 _subLabel('Lug Width'),
                 _list(
@@ -233,92 +225,135 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
                   n.toggleLugWidth,
                   grid: true,
                 ),
-                _subLabel('Crown Type'),
-                _list(
-                  WatchFilterState.crownTypeOptions,
-                  draft.crownTypes,
-                  n.toggleCrownType,
-                  grid: true,
+              ],
+            ),
+          ),
+          _section(
+            'bezel',
+            'BEZEL',
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _subLabel('Bezel Type'),
+                _expandList(
+                  'bezelType',
+                  WatchFilterState.bezelTypeOptions,
+                  draft.bezelTypes,
+                  n.toggleBezelType,
+                ),
+                _swatchHeading('Bezel Material'),
+                WatchFilterSwatchPillGrid(
+                  options: WatchFilterState.bezelMaterialOptions,
+                  selected: draft.bezelMaterials,
+                  onToggle: n.toggleBezelMaterial,
                 ),
               ],
             ),
           ),
           _section(
-            'dial_visuals',
-            'DIAL & VISUALS',
+            'dial',
+            'DIAL',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _subLabel('Dial Color'),
-                _list(
-                  WatchFilterState.dialColorOptions,
-                  draft.dialColors,
-                  n.toggleDialColor,
-                  grid: true,
+                _swatchHeading('Dial Color'),
+                WatchFilterSwatchPillGrid(
+                  options: WatchFilterState.dialColorOptions,
+                  selected: draft.dialColors,
+                  onToggle: n.toggleDialColor,
                 ),
-                _subLabel('Dial Index / Markers'),
-                _list(
-                  WatchFilterState.indexesOptions,
-                  draft.indexes,
-                  n.toggleIndexes,
-                ),
-                _subLabel('Precious Stones on Dial'),
+                _subLabel('Precious Stone Type'),
                 _list(
                   WatchFilterState.preciousStoneTypeOptions,
                   draft.preciousStoneTypes,
                   n.togglePreciousStoneType,
                   grid: true,
                 ),
+                _subLabel('Glass'),
+                _list(
+                  WatchFilterState.glassMaterialOptions,
+                  draft.glassMaterials,
+                  n.toggleGlassMaterial,
+                ),
+                _subLabel('Dial Style / Indexes'),
+                _list(
+                  WatchFilterState.indexesOptions,
+                  draft.indexes,
+                  n.toggleIndexes,
+                ),
               ],
             ),
           ),
           _section(
-            'strap_clasp',
-            'STRAP & CLASP',
+            'strap',
+            'STRAP',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _subLabel('Strap Material'),
-                _list(
-                  WatchFilterState.strapMaterialOptions,
-                  draft.strapMaterials,
-                  n.toggleStrapMaterial,
-                  grid: true,
+                _swatchHeading('Strap Material'),
+                WatchFilterSwatchPillGrid(
+                  options: WatchFilterState.strapMaterialOptions,
+                  selected: draft.strapMaterials,
+                  onToggle: n.toggleStrapMaterial,
                 ),
-                _subLabel('Strap Color'),
-                _list(
-                  WatchFilterState.strapColorOptions,
-                  draft.strapColors,
-                  n.toggleStrapColor,
-                  grid: true,
+                _swatchHeading('Strap Color'),
+                WatchFilterSwatchPillGrid(
+                  options: WatchFilterState.strapColorOptions,
+                  selected: draft.strapColors,
+                  onToggle: n.toggleStrapColor,
                 ),
+              ],
+            ),
+          ),
+          _section(
+            'clasp',
+            'CLASP',
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 _subLabel('Clasp Type'),
                 _list(
                   WatchFilterState.claspTypeOptions,
                   draft.claspTypes,
                   n.toggleClaspType,
                 ),
-                _subLabel('Clasp Material'),
-                _list(
-                  WatchFilterState.claspMaterialOptions,
-                  draft.claspMaterials,
-                  n.toggleClaspMaterial,
-                  grid: true,
+                _swatchHeading('Clasp Material'),
+                WatchFilterSwatchPillGrid(
+                  options: WatchFilterState.claspMaterialOptions,
+                  selected: draft.claspMaterials,
+                  onToggle: n.toggleClaspMaterial,
                 ),
               ],
             ),
           ),
           _section(
-            'movement_mechanics',
-            'MOVEMENT & PERFORMANCE',
+            'crown',
+            'CROWN',
+            _list(
+              WatchFilterState.crownTypeOptions,
+              draft.crownTypes,
+              n.toggleCrownType,
+              grid: true,
+            ),
+          ),
+          _section(
+            'features',
+            'FEATURES',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _subLabel('Movement Type'),
+                _subLabel('Features'),
                 _list(
-                  WatchFilterState.movementOptions,
-                  draft.movements,
-                  n.toggleMovement,
+                  WatchFilterState.configurationOptions,
+                  draft.configurations,
+                  n.toggleConfiguration,
+                  grid: true,
+                ),
+                _subLabel('Special Features'),
+                _list(
+                  WatchFilterState.materialOptions,
+                  draft.materials,
+                  n.toggleMaterial,
                 ),
                 _subLabel('Power Reserve'),
                 _list(
@@ -334,25 +369,33 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
                   n.toggleWaterResistance,
                   grid: true,
                 ),
-                _subLabel('Complications'),
-                _list(
-                  WatchFilterState.configurationOptions,
-                  draft.configurations,
-                  n.toggleConfiguration,
-                  grid: true,
-                ),
-                _subLabel('Special Features'),
-                _list(
-                  WatchFilterState.materialOptions,
-                  draft.materials,
-                  n.toggleMaterial,
-                ),
               ],
             ),
           ),
           _section(
-            'inclusions_certifications',
-            'INCLUSIONS & CERTIFICATIONS',
+            'model_year',
+            'MODEL YEAR',
+            _expandList(
+              'year',
+              WatchFilterState.modelYearOptions,
+              draft.modelYears,
+              n.toggleModelYear,
+              grid: true,
+            ),
+          ),
+          _section(
+            'condition',
+            'CONDITION',
+            _list(
+              WatchFilterState.conditionOptions,
+              draft.conditions,
+              n.toggleCondition,
+              grid: true,
+            ),
+          ),
+          _section(
+            'authentication',
+            'AUTHENTICATION',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -438,6 +481,33 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           fontWeight: FontWeight.w600,
           color: AppColors.textMutedLight,
         ),
+      ),
+    );
+  }
+
+  /// All-caps heading + divider used above material/color pill grids.
+  Widget _swatchHeading(String text) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.s16,
+        AppSpacing.s16,
+        AppSpacing.s16,
+        AppSpacing.s8,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            text.toUpperCase(),
+            style: AppTypography.label.copyWith(
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s8),
+          const Divider(height: 1, thickness: 1),
+        ],
       ),
     );
   }
