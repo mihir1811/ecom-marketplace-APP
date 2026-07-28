@@ -84,6 +84,14 @@ class Watch {
   final double? discount;
   final bool inStock;
 
+  String? get renderableImageUrl {
+    final value = imageUrl;
+    if (value == null || value.isEmpty || value.startsWith('mock://')) {
+      return null;
+    }
+    return value;
+  }
+
   bool get fullSetIncluded =>
       boxIncluded && papersIncluded && warrantyCardIncluded;
 

@@ -112,7 +112,7 @@ class ProductDetailScreen extends StatelessWidget {
     return [
       ProductDetailHeader(detail: detail),
       const SizedBox(height: AppSpacing.s24),
-      ProductDetailPrice(price: detail.price),
+      ProductDetailPrice(detail: detail),
       const SizedBox(height: AppSpacing.s24),
       ProductDetailHighlights(highlights: detail.highlights),
       const SizedBox(height: AppSpacing.s16),

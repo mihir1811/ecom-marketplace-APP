@@ -10,6 +10,7 @@ import '../models/product_detail.dart';
 /// Maps a luxury watch onto the universal detail shape.
 ProductDetail watchProductDetail(Watch w) {
   final logo = WatchBrandAssets.logoPath(w.brand);
+  final imageUrl = w.renderableImageUrl;
   final inclusions = [
     if (w.boxIncluded) 'Original box',
     if (w.papersIncluded) 'Papers',
@@ -35,8 +36,8 @@ ProductDetail watchProductDetail(Watch w) {
     ],
     media: ProductMedia(
       images: [
-        if (w.imageUrl != null)
-          ProductImage.network(w.imageUrl!)
+        if (imageUrl != null)
+          ProductImage.network(imageUrl)
         else if (logo != null)
           ProductImage.asset(logo),
       ],
@@ -44,7 +45,7 @@ ProductDetail watchProductDetail(Watch w) {
       certificateLabel: '${w.certification} papers',
       fallbackIcon: Icons.watch_outlined,
       fallbackTint: AppColors.bronze,
-      fit: w.imageUrl == null ? BoxFit.contain : BoxFit.cover,
+      fit: imageUrl == null ? BoxFit.contain : BoxFit.cover,
       hasVideo: true,
       videoLabel: w.hasVideo ? 'Watch video' : 'Video walkthrough',
     ),

@@ -14,9 +14,24 @@ import 'domain/adapters/jewelry_product_detail.dart';
 import 'domain/adapters/watch_product_detail.dart';
 import 'domain/models/product_detail.dart';
 
+final Map<String, ProductDetail> _productDetailCache = {};
+
+String _productDetailCacheKey(String segment, String productId) =>
+    '$segment::$productId';
+
+void rememberProductDetail(ProductDetail detail) {
+  _productDetailCache[_productDetailCacheKey(detail.segment.slug, detail.id)] =
+      detail;
+}
+
+ProductDetail? restoreProductDetail(String segment, String productId) {
+  return _productDetailCache[_productDetailCacheKey(segment, productId)];
+}
+
 /// Single entry point to the shared product detail page. The resolved view
 /// model travels as route `extra` because the catalog is generated per session.
 void openProductDetail(BuildContext context, ProductDetail detail) {
+  rememberProductDetail(detail);
   context.push(
     AppRouteNames.productDetailPath(detail.segment.slug, detail.id),
     extra: detail,

@@ -5,18 +5,26 @@ import '../../core/router/route_names.dart';
 import '../../core/widgets/app_scaffold.dart';
 import '../../core/widgets/catalog_empty_state.dart';
 import 'domain/models/product_detail.dart';
+import 'product_detail_navigation.dart';
 import 'presentation/screens/product_detail_screen.dart';
 
 final List<RouteBase> productDetailRoutes = [
   GoRoute(
     path: AppRouteNames.productDetail,
     builder: (context, state) {
-      final detail = state.extra;
+      final extra = state.extra;
+      final segment = state.pathParameters['segment'] ?? '';
+      final productId = state.pathParameters['productId'] ?? '';
+      final detail = switch (extra) {
+        final ProductDetail product => product,
+        _ => restoreProductDetail(segment, productId),
+      };
       if (detail is ProductDetail) {
+        rememberProductDetail(detail);
         return ProductDetailScreen(detail: detail);
       }
       return _ProductDetailUnavailable(
-        productId: state.pathParameters['productId'] ?? '',
+        productId: productId,
       );
     },
   ),

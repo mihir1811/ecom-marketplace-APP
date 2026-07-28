@@ -67,7 +67,7 @@ class WishlistItem {
       title: '${w.brand} ${w.model}',
       subtitle: '${w.year} · ${w.caseMaterial}',
       priceLabel: '\$${formatGroupedPrice(w.price)}',
-      imageUrl: w.imageUrl,
+      imageUrl: w.renderableImageUrl,
     );
   }
 }

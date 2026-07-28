@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../buyer/application/wishlist_provider.dart';
 import '../../domain/models/product_detail.dart';
 
 /// Price block — the highest-priority number on the page.
-class ProductDetailPrice extends StatelessWidget {
-  const ProductDetailPrice({required this.price, super.key});
+class ProductDetailPrice extends ConsumerWidget {
+  const ProductDetailPrice({required this.detail, super.key});
 
-  final ProductPrice price;
+  final ProductDetail detail;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final price = detail.price;
     final unit = price.unitDisplay;
     final discount = price.discountPercent;
+    final wishlisted = ref.watch(isInWishlistProvider(detail.id));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,40 +28,79 @@ class ProductDetailPrice extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Flexible(
-              child: Text(
-                price.display,
-                style: AppTypography.label.copyWith(
-                  color: AppColors.textPrimaryLight,
-                  fontSize: 30,
-                  fontWeight: FontWeight.w700,
-                  height: 1.1,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            Expanded(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      price.display,
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.textPrimaryLight,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w700,
+                        height: 1.1,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (discount != null && discount > 0) ...[
+                    const SizedBox(width: AppSpacing.s12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.s12,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.terracotta,
+                        borderRadius: BorderRadius.circular(AppSpacing.r8),
+                      ),
+                      child: Text(
+                        '${discount.round()}% off',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.warmWhite,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            if (discount != null && discount > 0) ...[
-              const SizedBox(width: AppSpacing.s12),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s12,
-                  vertical: 4,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _ActionIcon(
+                  icon: Icons.chat_bubble_outline,
+                  tooltip: 'Chat with seller',
+                  onTap: () => context.push(AppRouteNames.buyerMessages),
                 ),
-                decoration: BoxDecoration(
-                  color: AppColors.terracotta,
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
+                const SizedBox(width: AppSpacing.s8),
+                _ActionIcon(
+                  icon: wishlisted ? Icons.favorite : Icons.favorite_border,
+                  tooltip:
+                      wishlisted ? 'Remove from wishlist' : 'Save to wishlist',
+                  tint: wishlisted ? AppColors.terracotta : AppColors.charcoal,
+                  onTap: () {
+                    final added = ref
+                        .read(wishlistProvider.notifier)
+                        .toggle(detail.toWishlistItem());
+                    final messenger = ScaffoldMessenger.maybeOf(context);
+                    messenger?.hideCurrentSnackBar();
+                    messenger?.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          added ? 'Saved to wishlist' : 'Removed from wishlist',
+                        ),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
                 ),
-                child: Text(
-                  '${discount.round()}% off',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.warmWhite,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ],
         ),
         if (unit != null) ...[
@@ -69,6 +114,41 @@ class ProductDetailPrice extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _ActionIcon extends StatelessWidget {
+  const _ActionIcon({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.tint = AppColors.charcoal,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final Color tint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.r8),
+        child: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: AppColors.warmWhite,
+            borderRadius: BorderRadius.circular(AppSpacing.r8),
+            border: Border.all(color: AppColors.warmBorder),
+          ),
+          child: Icon(icon, size: 18, color: tint),
+        ),
+      ),
     );
   }
 }

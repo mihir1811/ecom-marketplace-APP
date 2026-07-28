@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
@@ -22,8 +23,24 @@ class AppNetworkImage extends StatelessWidget {
   final BorderRadius? borderRadius;
   final int? memCacheWidth;
 
+  bool get _supportsNetworkLoading {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return false;
+    if (!uri.hasScheme) return true;
+    if (!kIsWeb) return true;
+
+    return switch (uri.scheme) {
+      'http' || 'https' || 'data' || 'blob' => true,
+      _ => false,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_supportsNetworkLoading) {
+      return _fallback();
+    }
+
     final image = CachedNetworkImage(
       imageUrl: url,
       fit: fit,
@@ -44,7 +61,14 @@ class AppNetworkImage extends StatelessWidget {
           ),
         ),
       ),
-      errorWidget: (_, __, ___) => const ColoredBox(
+      errorWidget: (_, __, ___) => _fallback(),
+    );
+
+    if (borderRadius == null) return image;
+    return ClipRRect(borderRadius: borderRadius!, child: image);
+  }
+
+  Widget _fallback() => const ColoredBox(
         color: AppColors.sandSurface,
         child: Center(
           child: Icon(
@@ -53,10 +77,5 @@ class AppNetworkImage extends StatelessWidget {
             size: 28,
           ),
         ),
-      ),
-    );
-
-    if (borderRadius == null) return image;
-    return ClipRRect(borderRadius: borderRadius!, child: image);
-  }
+      );
 }

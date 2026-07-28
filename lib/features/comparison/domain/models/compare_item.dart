@@ -103,7 +103,7 @@ class CompareItem {
       category: CompareCategory.watch,
       title: '${w.brand} ${w.model}',
       price: w.price,
-      imageUrl: w.imageUrl,
+      imageUrl: w.renderableImageUrl,
       subtitle: w.brand,
       displayValues: {
         'price': '\$${_fmtPrice(w.price)}',
