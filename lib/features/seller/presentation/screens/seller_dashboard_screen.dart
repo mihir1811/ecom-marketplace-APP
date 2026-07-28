@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../widgets/seller_layout.dart';
+import '../../../../core/utils/app_currency.dart';
 
 /// Seller dashboard screen shown after login.
 class SellerDashboardScreen extends ConsumerStatefulWidget {
@@ -27,7 +28,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
     _MetricData(
       metric: DashboardMetric.totalSales,
       title: 'Total Sales',
-      value: r'$0.06',
+      value: '${AppCurrency.symbol}0.06',
       subtitle: 'Revenue from completed orders',
       icon: Icons.attach_money_outlined,
       iconColor: AppColors.bronze,
@@ -51,7 +52,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
     _MetricData(
       metric: DashboardMetric.inventoryValue,
       title: 'Inventory Value',
-      value: r'$232,387',
+      value: '${AppCurrency.symbol}232,387',
       subtitle: '827 active listings',
       icon: Icons.warehouse_outlined,
       iconColor: AppColors.bronzeDark,
@@ -174,21 +175,21 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                   children: [
                     _OrderRow(
                       orderId: '#OTB04666C',
-                      amount: r'$50.02',
+                      amount: '${AppCurrency.symbol}50.02',
                       status: 'Paid',
                       statusColor: AppColors.success,
                     ),
                     SizedBox(height: AppSpacing.s12),
                     _OrderRow(
                       orderId: '#YTT0D1183E',
-                      amount: r'$50.02',
+                      amount: '${AppCurrency.symbol}50.02',
                       status: 'Paid',
                       statusColor: AppColors.success,
                     ),
                     SizedBox(height: AppSpacing.s12),
                     _OrderRow(
                       orderId: '#F46338C4',
-                      amount: r'$264.10',
+                      amount: '${AppCurrency.symbol}264.10',
                       status: 'Pending',
                       statusColor: AppColors.warning,
                     ),
@@ -881,14 +882,14 @@ class _DashboardBarChart extends StatelessWidget {
 
   static String Function(double) _yFormatter(DashboardMetric metric) {
     return switch (metric) {
-      DashboardMetric.totalSales => (v) => '\$${v.toStringAsFixed(2)}',
+      DashboardMetric.totalSales => (v) => AppCurrency.format(v.toStringAsFixed(2)),
       DashboardMetric.productsSold => (v) => v.toStringAsFixed(0),
       DashboardMetric.orders => (v) => v.toStringAsFixed(0),
       DashboardMetric.inventoryValue => (v) {
           if (v >= 1000) {
-            return '\$${(v / 1000).toStringAsFixed(0)}k';
+            return '${AppCurrency.format((v / 1000).toStringAsFixed(0))}k';
           }
-          return '\$${v.toStringAsFixed(0)}';
+          return AppCurrency.format(v.toStringAsFixed(0));
         },
     };
   }

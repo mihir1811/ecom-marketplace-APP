@@ -1,44 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Typography hierarchy using Google Fonts.
-/// Combines Playfair Display (Serif) for headlines/titles and Inter (Sans-Serif) for body/labels/captions.
+/// Typography tokens for the GemWorld design system.
+/// All styles use Manrope.
 class AppTypography {
   const AppTypography._();
 
-  // Display hierarchy (Playfair Display)
-  static TextStyle get display => GoogleFonts.playfairDisplay(
+  static String get fontFamily => GoogleFonts.manrope().fontFamily!;
+
+  static TextStyle get display => GoogleFonts.manrope(
         fontSize: 28,
         fontWeight: FontWeight.w700,
         height: 1.2,
       );
 
-  static TextStyle get headline => GoogleFonts.playfairDisplay(
+  static TextStyle get headline => GoogleFonts.manrope(
         fontSize: 24,
         fontWeight: FontWeight.w700,
         height: 1.25,
       );
 
-  static TextStyle get title => GoogleFonts.playfairDisplay(
+  static TextStyle get title => GoogleFonts.manrope(
         fontSize: 18,
         fontWeight: FontWeight.w600,
         height: 1.3,
       );
 
-  // Body and helper hierarchy (Inter)
-  static TextStyle get body => GoogleFonts.inter(
+  static TextStyle get body => GoogleFonts.manrope(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         height: 1.5,
       );
 
-  static TextStyle get label => GoogleFonts.inter(
+  static TextStyle get label => GoogleFonts.manrope(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         height: 1.4,
       );
 
-  static TextStyle get caption => GoogleFonts.inter(
+  static TextStyle get caption => GoogleFonts.manrope(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         height: 1.4,

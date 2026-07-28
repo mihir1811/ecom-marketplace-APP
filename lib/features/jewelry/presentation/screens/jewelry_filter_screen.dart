@@ -15,6 +15,7 @@ import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
 import '../widgets/jewelry_product_card.dart';
+import '../../../../core/utils/app_currency.dart';
 
 class JewelryFilterScreen extends ConsumerStatefulWidget {
   const JewelryFilterScreen({super.key});
@@ -137,7 +138,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                       maxLimit: JewelryFilterState.priceMaxLimit,
                       currentMin: draft.priceMin,
                       currentMax: draft.priceMax,
-                      unitPrefix: '₹',
+                      unitPrefix: AppCurrency.symbol,
                       isInteger: true,
                       onChanged: n.setPriceRange,
                       onClear: n.clearPriceRange,

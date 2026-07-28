@@ -8,6 +8,7 @@ import '../../domain/models/watch.dart';
 import '../../domain/models/watch_filter_state.dart';
 import '../../domain/repositories/watch_repository.dart';
 import 'watch_brand_assets_data.dart';
+import '../../../../core/utils/app_currency.dart';
 
 final watchRepositoryProvider = Provider<WatchRepository>(
   (ref) => WatchRepositoryImpl(),
@@ -186,12 +187,12 @@ class WatchRepositoryImpl implements WatchRepository {
 
   bool _matchesPriceRange(double price, String range) {
     return switch (range) {
-      'Under \$500' => price < 500,
-      '\$500 – \$1,000' => price >= 500 && price < 1000,
-      '\$1,000 – \$5,000' => price >= 1000 && price < 5000,
-      '\$5,000 – \$15,000' => price >= 5000 && price < 15000,
-      '\$15,000 – \$50,000' => price >= 15000 && price < 50000,
-      '\$50,000+' => price >= 50000,
+      'Under ${AppCurrency.symbol}500' => price < 500,
+      '${AppCurrency.symbol}500 – ${AppCurrency.symbol}1,000' => price >= 500 && price < 1000,
+      '${AppCurrency.symbol}1,000 – ${AppCurrency.symbol}5,000' => price >= 1000 && price < 5000,
+      '${AppCurrency.symbol}5,000 – ${AppCurrency.symbol}15,000' => price >= 5000 && price < 15000,
+      '${AppCurrency.symbol}15,000 – ${AppCurrency.symbol}50,000' => price >= 15000 && price < 50000,
+      '${AppCurrency.symbol}50,000+' => price >= 50000,
       _ => true,
     };
   }

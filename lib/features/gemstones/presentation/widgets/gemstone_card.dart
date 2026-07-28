@@ -15,6 +15,7 @@ import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
 import '../../domain/gemstone_assets.dart';
 import '../../domain/models/gemstone.dart';
+import '../../../../core/utils/app_currency.dart';
 
 class GemstoneCardGrid extends ConsumerWidget {
   const GemstoneCardGrid({
@@ -40,9 +41,9 @@ class GemstoneCardGrid extends ConsumerWidget {
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AspectRatio(
-              aspectRatio: 1.15,
+            Expanded(
               child: Stack(
+                fit: StackFit.expand,
                 children: [
                   Positioned.fill(
                     child: Container(
@@ -113,47 +114,47 @@ class GemstoneCardGrid extends ConsumerWidget {
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s12,
-                  AppSpacing.s8,
-                  AppSpacing.s12,
-                  AppSpacing.s8,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '\$${formatCatalogPrice(gemstone.price)}',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ).copyWith(color: textColor),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s12,
+                AppSpacing.s8,
+                AppSpacing.s12,
+                AppSpacing.s8,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppCurrency.format(formatCatalogPrice(gemstone.price)),
+                    style: GoogleFonts.manrope(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ).copyWith(color: textColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${gemstone.carat.toStringAsFixed(2)}ct · ${gemstone.type}',
+                    style: AppTypography.caption.copyWith(
+                      color: mutedColor,
+                      fontWeight: FontWeight.w500,
                     ),
-                    Text(
-                      '${gemstone.carat}ct ${gemstone.type}',
-                      style: AppTypography.caption.copyWith(
-                        color: mutedColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${gemstone.shape} · ${gemstone.origin}',
+                    style: AppTypography.caption.copyWith(
+                      color: mutedColor,
+                      fontSize: 11,
                     ),
-                    const Spacer(),
-                    Text(
-                      '${gemstone.shape} · ${gemstone.origin}',
-                      style: AppTypography.caption.copyWith(
-                        color: mutedColor,
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
           ],
@@ -243,20 +244,20 @@ class GemstoneCardList extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '\$${formatCatalogPrice(gemstone.price)}',
-                        style: GoogleFonts.inter(
+                        AppCurrency.format(formatCatalogPrice(gemstone.price)),
+                        style: GoogleFonts.manrope(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ).copyWith(color: textColor),
                       ),
                       Text(
-                        '${gemstone.carat}ct ${gemstone.type}',
+                        '${gemstone.carat.toStringAsFixed(2)}ct · ${gemstone.type}',
                         style: AppTypography.caption.copyWith(
                           color: mutedColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(height: 4),
                       Text(
                         '${gemstone.color} · ${gemstone.clarity} · ${gemstone.shape}',
                         style: AppTypography.caption.copyWith(

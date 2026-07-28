@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import 'filter_range_slider.dart';
+import '../../../core/utils/app_currency.dart';
 
 /// Presentational Pcs/Carat range filter group with a toggle switch.
 /// State-agnostic: values and change callbacks are injected, so both the
@@ -158,7 +159,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
         maxLimit: widget.totalPriceLimits.$2,
         currentMin: widget.totalPriceMin,
         currentMax: widget.totalPriceMax,
-        unitSuffix: '\$',
+        unitSuffix: AppCurrency.symbol,
         isInteger: true,
         onChanged: widget.onTotalPriceChanged,
         onClear: () => widget.onTotalPriceChanged(
@@ -187,7 +188,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
         maxLimit: widget.pricePerUnitLimits.$2,
         currentMin: widget.pricePerPcsMin,
         currentMax: widget.pricePerPcsMax,
-        unitSuffix: '\$',
+        unitSuffix: AppCurrency.symbol,
         isInteger: true,
         onChanged: widget.onPricePerPcsChanged,
         onClear: () => widget.onPricePerPcsChanged(
@@ -221,7 +222,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
         maxLimit: widget.totalPriceLimits.$2,
         currentMin: widget.totalPriceMin,
         currentMax: widget.totalPriceMax,
-        unitSuffix: '\$',
+        unitSuffix: AppCurrency.symbol,
         isInteger: true,
         onChanged: widget.onTotalPriceChanged,
         onClear: () => widget.onTotalPriceChanged(
@@ -236,7 +237,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
         maxLimit: widget.pricePerUnitLimits.$2,
         currentMin: widget.pricePerCaratMin,
         currentMax: widget.pricePerCaratMax,
-        unitSuffix: '\$',
+        unitSuffix: AppCurrency.symbol,
         isInteger: true,
         onChanged: widget.onPricePerCaratChanged,
         onClear: () => widget.onPricePerCaratChanged(

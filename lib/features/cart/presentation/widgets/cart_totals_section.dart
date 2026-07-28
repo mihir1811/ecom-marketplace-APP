@@ -6,12 +6,13 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/cart_provider.dart';
+import '../../../../core/utils/app_currency.dart';
 
 /// Price breakdown; rebuilds only when totals change.
 class CartTotalsSection extends ConsumerWidget {
   const CartTotalsSection({super.key});
 
-  String _inr(double v) => '₹${v.toStringAsFixed(0)}';
+  String _inr(double v) => AppCurrency.format(v.toStringAsFixed(0));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,7 +40,7 @@ class CartTotalsSection extends ConsumerWidget {
             const Spacer(),
             Text(
               _inr(totals.totalInr),
-              style: GoogleFonts.inter(
+              style: GoogleFonts.manrope(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
                 color: AppColors.bronze,

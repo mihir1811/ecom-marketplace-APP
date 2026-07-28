@@ -15,6 +15,7 @@ import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
 import '../../domain/models/watch.dart';
 import 'watch_brand_assets.dart';
+import '../../../../core/utils/app_currency.dart';
 
 class WatchCardGrid extends ConsumerWidget {
   const WatchCardGrid({
@@ -163,8 +164,8 @@ class WatchCardGrid extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            '\$${formatGroupedPrice(watch.price)}',
-                            style: GoogleFonts.inter(
+                            AppCurrency.format(formatGroupedPrice(watch.price)),
+                            style: GoogleFonts.manrope(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               height: 1.2,
@@ -302,8 +303,8 @@ class WatchCardList extends ConsumerWidget {
                       Row(
                         children: [
                           Text(
-                            '\$${formatGroupedPrice(watch.price)}',
-                            style: GoogleFonts.inter(
+                            AppCurrency.format(formatGroupedPrice(watch.price)),
+                            style: GoogleFonts.manrope(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                             ).copyWith(color: textColor),

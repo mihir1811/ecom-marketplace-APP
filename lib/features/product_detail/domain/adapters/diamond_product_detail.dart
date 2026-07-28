@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_rates.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../diamonds/domain/models/diamond.dart';
 import '../models/product_detail.dart';
@@ -45,7 +46,7 @@ ProductDetail diamondProductDetail(Diamond d) {
       videoLabel: d.hasVideo ? '360° video' : 'Video walkthrough',
     ),
     price: ProductPrice(
-      currencySymbol: r'$',
+      currencySymbol: AppCurrency.symbol,
       amountLabel: formatGroupedWhole(d.price),
       priceUsd: d.price,
       priceInr: usdToInr(d.price),
@@ -71,7 +72,7 @@ ProductDetail diamondProductDetail(Diamond d) {
         'Carat weight': '$carat ct',
         'Origin type': d.isLabGrown ? 'Lab grown' : 'Natural',
         'Price per carat':
-            perCarat == null ? null : '\$${formatGroupedWhole(perCarat)}',
+            perCarat == null ? null : AppCurrency.format(formatGroupedWhole(perCarat)),
       }),
       specSection(ProductSpecGroup.quality, {
         'Cut grade': d.cut,

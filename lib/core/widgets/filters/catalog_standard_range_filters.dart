@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_spacing.dart';
 import 'filter_quick_range_chip.dart';
 import 'filter_range_slider.dart';
+import '../../../core/utils/app_currency.dart';
 
 /// Standard (non-melee) catalog range filters shared by diamond and gemstone search.
 ///
@@ -59,7 +60,7 @@ class CatalogStandardRangeFilters extends StatelessWidget {
           maxLimit: totalPriceLimits.$2,
           currentMin: totalPriceMin,
           currentMax: totalPriceMax,
-          unitSuffix: '\$',
+          unitSuffix: AppCurrency.symbol,
           isInteger: true,
           onChanged: onTotalPriceChanged,
           onClear: () => onTotalPriceChanged(
@@ -104,7 +105,7 @@ class CatalogStandardRangeFilters extends StatelessWidget {
           maxLimit: pricePerCaratLimits.$2,
           currentMin: pricePerCaratMin,
           currentMax: pricePerCaratMax,
-          unitSuffix: '\$',
+          unitSuffix: AppCurrency.symbol,
           isInteger: true,
           onChanged: onPricePerCaratChanged,
           onClear: () => onPricePerCaratChanged(

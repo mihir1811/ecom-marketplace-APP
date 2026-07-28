@@ -8,6 +8,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../application/cart_provider.dart';
 import '../../domain/models/cart_item.dart';
+import '../../../../core/utils/app_currency.dart';
 
 class CartItemCard extends ConsumerWidget {
   const CartItemCard({required this.item, super.key});
@@ -90,8 +91,8 @@ class CartItemCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.s8),
                 Text(
-                  '\$${item.priceUsd.toStringAsFixed(2)}',
-                  style: GoogleFonts.inter(
+                  AppCurrency.format(item.priceUsd.toStringAsFixed(2)),
+                  style: GoogleFonts.manrope(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),

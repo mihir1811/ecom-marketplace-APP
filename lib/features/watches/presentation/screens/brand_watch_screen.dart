@@ -15,6 +15,7 @@ import '../../domain/models/brand_watch_state.dart';
 import '../widgets/watch_brand_assets.dart';
 import '../widgets/watch_grid_view.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
+import '../../../../core/utils/app_currency.dart';
 
 class BrandWatchScreen extends ConsumerStatefulWidget {
   const BrandWatchScreen({required this.brandName, super.key});
@@ -482,7 +483,7 @@ class _PriceInput extends StatelessWidget {
             color: AppColors.textMutedLight,
             fontSize: 13,
           ),
-          prefixText: '\$',
+          prefixText: AppCurrency.symbol,
           prefixStyle: AppTypography.caption.copyWith(
             fontSize: 13,
           ),

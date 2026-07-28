@@ -7,6 +7,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../domain/models/billion.dart';
+import '../../../../core/utils/app_currency.dart';
 
 enum BullionCardLayout { grid, list }
 
@@ -213,7 +214,7 @@ class _GridCardBody extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      '\$${formatGroupedPrice(bullion.price)}',
+                      AppCurrency.format(formatGroupedPrice(bullion.price)),
                       style: AppTypography.title.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w800,
@@ -315,7 +316,7 @@ class _ListCardBody extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          '\$${formatGroupedPrice(bullion.price)}',
+                          AppCurrency.format(formatGroupedPrice(bullion.price)),
                           style: AppTypography.title.copyWith(
                             color: textColor,
                             fontWeight: FontWeight.w800,

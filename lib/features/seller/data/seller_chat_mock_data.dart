@@ -1,3 +1,4 @@
+import '../../../core/utils/app_currency.dart';
 class SellerChatThread {
   const SellerChatThread({
     required this.id,
@@ -48,7 +49,7 @@ final kSellerChatsMock = <SellerChatThread>[
     productId: '3759',
     productName: 'tttt',
     productSubtitle: 'adsfdsa',
-    priceLabel: r'$23.58',
+    priceLabel: '${AppCurrency.symbol}23.58',
     buyerName: 'Tttt',
     buyerId: '10d4073e-c437-4650-99de-6aab8c7bae61',
     lastMessage: 'fbvgcgb',
@@ -76,7 +77,7 @@ final kSellerChatsMock = <SellerChatThread>[
     productId: '3812',
     productName: 'round diamond',
     productSubtitle: 'GIA certified',
-    priceLabel: r'$1,240',
+    priceLabel: '${AppCurrency.symbol}1,240',
     buyerName: 'Testd',
     buyerId: 'a1b2c3d4-1111-2222-3333-444455556666',
     lastMessage: 'Photo',
@@ -99,7 +100,7 @@ final kSellerChatsMock = <SellerChatThread>[
     productId: '3901',
     productName: 'cushion',
     productSubtitle: 'VVS1',
-    priceLabel: r'$890',
+    priceLabel: '${AppCurrency.symbol}890',
     buyerName: 'Prem',
     buyerId: 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff',
     lastMessage: 'hyy',

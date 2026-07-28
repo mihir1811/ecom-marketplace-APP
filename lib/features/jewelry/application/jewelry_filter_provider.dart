@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/models/jewelry_filter_state.dart';
+import '../../../core/utils/app_currency.dart';
 
 Set<String> _toggle(Set<String> current, String value) {
   final next = Set<String>.from(current);
@@ -78,7 +79,7 @@ class JewelryFilterNotifier extends Notifier<JewelryFilterState> {
       state = state.copyWith(genders: _toggle(state.genders, label));
     } else if (label == state.stoneType) {
       state = state.copyWith(clearStoneType: true);
-    } else if (label.startsWith('₹')) {
+    } else if (label.startsWith(AppCurrency.symbol)) {
       state = state.copyWith(
         priceMin: JewelryFilterState.priceMinLimit,
         priceMax: JewelryFilterState.priceMaxLimit,

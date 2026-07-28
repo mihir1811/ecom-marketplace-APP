@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/utils/currency_rates.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../jewelry/domain/models/jewelry.dart';
 import '../models/product_detail.dart';
@@ -43,7 +44,7 @@ ProductDetail jewelryProductDetail(Jewelry j) {
       videoLabel: 'Jewelry video',
     ),
     price: ProductPrice(
-      currencySymbol: '₹',
+      currencySymbol: AppCurrency.symbol,
       amountLabel: formatInrPrice(j.price),
       priceUsd: inrToUsd(j.price),
       priceInr: j.price,
@@ -51,8 +52,8 @@ ProductDetail jewelryProductDetail(Jewelry j) {
     ),
     highlights: [
       ProductHighlight('Purity', j.metalPurity),
-      ProductHighlight('Metal weight', '${j.metalWeightG} g'),
-      ProductHighlight('Stone weight', '${j.stoneWeightCt} ct'),
+      ProductHighlight('Metal weight', '${formatDecimal(j.metalWeightG)} g'),
+      ProductHighlight('Stone weight', '${formatDecimal(j.stoneWeightCt)} ct'),
       ProductHighlight('Stones', '${j.stoneCount}'),
     ],
     certification: ProductCertification(
@@ -78,8 +79,8 @@ ProductDetail jewelryProductDetail(Jewelry j) {
         'Stone shape': j.stoneShape,
       }),
       specSection(ProductSpecGroup.measurements, {
-        'Metal weight': '${j.metalWeightG} g',
-        'Stone weight': '${j.stoneWeightCt} ct',
+        'Metal weight': '${formatDecimal(j.metalWeightG)} g',
+        'Stone weight': '${formatDecimal(j.stoneWeightCt)} ct',
         'Stone count': '${j.stoneCount}',
         'Ring size': j.ringSize,
         'Bracelet size': j.braceletSize,

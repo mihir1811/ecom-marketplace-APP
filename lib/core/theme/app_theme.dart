@@ -15,6 +15,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: AppTypography.fontFamily,
       colorScheme: const ColorScheme.light(
         primary: AppColors.charcoal,
         onPrimary: AppColors.warmWhite,

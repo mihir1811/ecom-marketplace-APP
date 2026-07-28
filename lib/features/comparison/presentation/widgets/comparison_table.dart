@@ -639,7 +639,7 @@ class _ItemHeader extends StatelessWidget {
           ),
           Text(
             item.displayValues['price'] ?? '',
-            style: GoogleFonts.inter(
+            style: GoogleFonts.manrope(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.bronze,

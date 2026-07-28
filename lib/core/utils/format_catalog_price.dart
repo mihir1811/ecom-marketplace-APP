@@ -42,3 +42,8 @@ String formatGroupedWhole(double price) {
 
 /// Jewelry INR style: comma-grouped whole units (no K/M).
 String formatInrPrice(double price) => formatGroupedWhole(price);
+
+/// Fixed fractional precision for product-detail measurements/weights.
+/// Example: `34.78564` → `34.78`.
+String formatDecimal(double value, {int fractionDigits = 2}) =>
+    value.toStringAsFixed(fractionDigits);

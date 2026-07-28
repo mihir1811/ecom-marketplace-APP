@@ -17,6 +17,7 @@ import '../../application/bullions_list_provider.dart';
 import '../../domain/models/bullions_filter_state.dart';
 import '../widgets/bullions_filter_drawer.dart';
 import '../widgets/bullions_grid_view.dart';
+import '../../../../core/utils/app_currency.dart';
 
 class BullionsScreen extends ConsumerStatefulWidget {
   const BullionsScreen({super.key});
@@ -36,11 +37,11 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
   double _lastTickerValue = 0;
 
   static const _metalPriceItems = [
-    _MetalPriceItem('Gold', 'XAU', '₹63,678', '+0.42%', Color(0xFFFFC94D)),
-    _MetalPriceItem('Silver', 'XAG', '₹744', '+0.18%', Color(0xFF8EA4C8)),
-    _MetalPriceItem('Palladium', 'XPD', '₹81,556', '+0.27%', Color(0xFF4AB5FF)),
-    _MetalPriceItem('Copper', 'HG', '₹811', '+0.14%', Color(0xFFDD915E)),
-    _MetalPriceItem('Platinum', 'XPT', '₹34,285', '+0.21%', Color(0xFFC6B28A)),
+    _MetalPriceItem('Gold', 'XAU', '${AppCurrency.symbol}63,678', '+0.42%', Color(0xFFFFC94D)),
+    _MetalPriceItem('Silver', 'XAG', '${AppCurrency.symbol}744', '+0.18%', Color(0xFF8EA4C8)),
+    _MetalPriceItem('Palladium', 'XPD', '${AppCurrency.symbol}81,556', '+0.27%', Color(0xFF4AB5FF)),
+    _MetalPriceItem('Copper', 'HG', '${AppCurrency.symbol}811', '+0.14%', Color(0xFFDD915E)),
+    _MetalPriceItem('Platinum', 'XPT', '${AppCurrency.symbol}34,285', '+0.21%', Color(0xFFC6B28A)),
   ];
 
   static const _tickerCardWidth = 120.0;

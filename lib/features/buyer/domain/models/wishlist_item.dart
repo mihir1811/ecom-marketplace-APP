@@ -3,6 +3,7 @@ import '../../../diamonds/domain/models/diamond.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
 import '../../../jewelry/domain/models/jewelry.dart';
 import '../../../watches/domain/models/watch.dart';
+import '../../../../core/utils/app_currency.dart';
 
 enum WishlistCategory { diamond, gemstone, jewelry, watch, bullion }
 
@@ -33,7 +34,7 @@ class WishlistItem {
       title: '${d.carat}ct ${d.shape}',
       subtitle:
           '${d.isLabGrown ? 'Lab Grown' : 'Natural'} · ${d.color} ${d.clarity}',
-      priceLabel: '\$${formatCatalogPrice(d.price)}',
+      priceLabel: AppCurrency.format(formatCatalogPrice(d.price)),
       imageUrl: d.imageUrl,
     );
   }
@@ -44,7 +45,7 @@ class WishlistItem {
       category: WishlistCategory.gemstone,
       title: '${g.carat}ct ${g.type}',
       subtitle: '${g.origin} · ${g.color}',
-      priceLabel: '\$${formatCatalogPrice(g.price)}',
+      priceLabel: AppCurrency.format(formatCatalogPrice(g.price)),
       imageUrl: g.imageUrl,
     );
   }
@@ -55,7 +56,7 @@ class WishlistItem {
       category: WishlistCategory.jewelry,
       title: j.name,
       subtitle: '${j.category} · ${j.metalType}',
-      priceLabel: '₹${formatInrPrice(j.price)}',
+      priceLabel: AppCurrency.format(formatInrPrice(j.price)),
       imageAsset: j.imageAsset,
     );
   }
@@ -66,7 +67,7 @@ class WishlistItem {
       category: WishlistCategory.watch,
       title: '${w.brand} ${w.model}',
       subtitle: '${w.year} · ${w.caseMaterial}',
-      priceLabel: '\$${formatGroupedPrice(w.price)}',
+      priceLabel: AppCurrency.format(formatGroupedPrice(w.price)),
       imageUrl: w.renderableImageUrl,
     );
   }

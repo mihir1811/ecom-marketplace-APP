@@ -2,6 +2,7 @@ import '../../../diamonds/domain/models/diamond.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
 import '../../../watches/domain/models/watch.dart';
 import 'compare_category.dart';
+import '../../../../core/utils/app_currency.dart';
 
 /// Snapshot of a product placed in the comparison tray.
 class CompareItem {
@@ -42,7 +43,7 @@ class CompareItem {
       shape: d.shape,
       subtitle: d.isLabGrown ? 'Lab Grown' : 'Natural',
       displayValues: {
-        'price': '\$${_fmtPrice(d.price)}',
+        'price': AppCurrency.format(_fmtPrice(d.price)),
         'carat': '${d.carat}ct',
         'shape': d.shape,
         'measurements': 'N/A',
@@ -75,7 +76,7 @@ class CompareItem {
       shape: g.shape,
       subtitle: g.origin,
       displayValues: {
-        'price': '\$${_fmtPrice(g.price)}',
+        'price': AppCurrency.format(_fmtPrice(g.price)),
         'carat': '${g.carat}ct',
         'type': g.type,
         'origin': g.origin,
@@ -106,7 +107,7 @@ class CompareItem {
       imageUrl: w.renderableImageUrl,
       subtitle: w.brand,
       displayValues: {
-        'price': '\$${_fmtPrice(w.price)}',
+        'price': AppCurrency.format(_fmtPrice(w.price)),
         'brand': w.brand,
         'model': w.model,
         'movement': w.movement,

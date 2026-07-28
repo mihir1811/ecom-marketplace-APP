@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/utils/currency_rates.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../bullions/domain/models/billion.dart';
 import '../models/product_detail.dart';
@@ -36,7 +37,7 @@ ProductDetail bullionProductDetail(Bullion b) {
       videoLabel: 'Bullion video',
     ),
     price: ProductPrice(
-      currencySymbol: r'$',
+      currencySymbol: AppCurrency.symbol,
       amountLabel: formatGroupedWhole(b.price),
       priceUsd: b.price,
       priceInr: usdToInr(b.price),
@@ -73,7 +74,7 @@ ProductDetail bullionProductDetail(Bullion b) {
         'Purity grade': b.presetVariant,
         'Condition': b.condition,
         'Price per gram':
-            perGram == null ? null : '\$${perGram.toStringAsFixed(2)}',
+            perGram == null ? null : AppCurrency.format(perGram.toStringAsFixed(2)),
       }),
       specSection(ProductSpecGroup.quality, {
         'Fineness': '$purity / 1000',
@@ -81,12 +82,12 @@ ProductDetail bullionProductDetail(Bullion b) {
       }),
       specSection(ProductSpecGroup.material, {
         'Metal': metalLabel,
-        'Net metal weight': '${b.weightGrams} g',
+        'Net metal weight': '${formatDecimal(b.weightGrams)} g',
       }),
       specSection(ProductSpecGroup.measurements, {
-        'Length': '${b.lengthMm} mm',
-        'Width': '${b.widthMm} mm',
-        'Thickness': '${b.heightMm} mm',
+        'Length': '${formatDecimal(b.lengthMm)} mm',
+        'Width': '${formatDecimal(b.widthMm)} mm',
+        'Thickness': '${formatDecimal(b.heightMm)} mm',
       }),
       specSection(ProductSpecGroup.provenance, {
         'Certification': b.certification,

@@ -11,6 +11,7 @@ import '../../../../core/utils/format_catalog_price.dart';
 import '../../../buyer/application/wishlist_provider.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../domain/models/jewelry.dart';
+import '../../../../core/utils/app_currency.dart';
 
 Color jewelryMetalSwatch(String label) => AppSwatches.jewelryMetal(label);
 
@@ -106,7 +107,6 @@ class JewelryProductCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 55,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -127,63 +127,66 @@ class JewelryProductCard extends ConsumerWidget {
                 ],
               ),
             ),
-            Expanded(
-              flex: 45,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.s8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        for (var i = 0; i < variants.length; i++) ...[
-                          if (i > 0) const SizedBox(width: 4),
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: jewelryMetalSwatch(variants[i]),
-                              border: Border.all(
-                                color: i == 0 ? AppColors.bronze : border,
-                              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s8,
+                AppSpacing.s8,
+                AppSpacing.s8,
+                AppSpacing.s8,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      for (var i = 0; i < variants.length; i++) ...[
+                        if (i > 0) const SizedBox(width: 4),
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: jewelryMetalSwatch(variants[i]),
+                            border: Border.all(
+                              color: i == 0 ? AppColors.bronze : border,
                             ),
                           ),
-                        ],
+                        ),
                       ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.name,
+                    style: AppTypography.label.copyWith(
+                      color: text,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      height: 1.2,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.name,
-                      style: AppTypography.label.copyWith(
-                        color: text,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppCurrency.format(formatInrPrice(item.price)),
+                    style: GoogleFonts.manrope(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ).copyWith(color: text),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.metalPurity,
+                    style: AppTypography.caption.copyWith(
+                      fontSize: 10,
+                      color: muted,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '₹${formatInrPrice(item.price)}',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ).copyWith(color: text),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.metalPurity,
-                      style: AppTypography.caption.copyWith(
-                        fontSize: 10,
-                        color: muted,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -294,8 +297,8 @@ class JewelryProductCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.s8),
                   Text(
-                    '₹${formatInrPrice(item.price)}',
-                    style: GoogleFonts.inter(
+                    AppCurrency.format(formatInrPrice(item.price)),
+                    style: GoogleFonts.manrope(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       height: 1.2,
@@ -563,8 +566,8 @@ class JewelryProductListCard extends ConsumerWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
-                            '₹${formatInrPrice(item.price)}',
-                            style: GoogleFonts.inter(
+                            AppCurrency.format(formatInrPrice(item.price)),
+                            style: GoogleFonts.manrope(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
                             ).copyWith(color: text),

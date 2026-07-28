@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_rates.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../watches/domain/models/watch.dart';
 import '../../../watches/presentation/widgets/watch_brand_assets.dart';
@@ -50,7 +51,7 @@ ProductDetail watchProductDetail(Watch w) {
       videoLabel: w.hasVideo ? 'Watch video' : 'Video walkthrough',
     ),
     price: ProductPrice(
-      currencySymbol: r'$',
+      currencySymbol: AppCurrency.symbol,
       amountLabel: formatGroupedWhole(w.price),
       priceUsd: w.price,
       priceInr: usdToInr(w.price),

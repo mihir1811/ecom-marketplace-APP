@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../widgets/seller_layout.dart';
+import '../../../../core/utils/app_currency.dart';
 
 /// Seller analytics screen: revenue trend, category mix, order status,
 /// top products, and engagement metrics.
@@ -227,25 +228,25 @@ class _AnalyticsData {
       _AnalyticsRange.last7 => (
           [820.0, 1240.0, 660.0, 1480.0, 990.0, 1720.0, 1310.0],
           const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          r'$8,220',
+          '${AppCurrency.symbol}8,220',
           '31',
-          r'$265',
+          '${AppCurrency.symbol}265',
           '2,410',
         ),
       _AnalyticsRange.last30 => (
           [3200.0, 4100.0, 3600.0, 5200.0, 4700.0, 6100.0, 5400.0, 6900.0],
           const ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8'],
-          r'$39,200',
+          '${AppCurrency.symbol}39,200',
           '142',
-          r'$276',
+          '${AppCurrency.symbol}276',
           '11,860',
         ),
       _AnalyticsRange.last90 => (
           [9800.0, 12400.0, 10900.0, 14800.0, 13200.0, 16400.0],
           const ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-          r'$77,500',
+          '${AppCurrency.symbol}77,500',
           '289',
-          r'$268',
+          '${AppCurrency.symbol}268',
           '32,540',
         ),
       _AnalyticsRange.year => (
@@ -259,9 +260,9 @@ class _AnalyticsData {
             25100.0,
           ],
           const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-          r'$159,400',
+          '${AppCurrency.symbol}159,400',
           '571',
-          r'$279',
+          '${AppCurrency.symbol}279',
           '68,220',
         ),
     };
@@ -627,8 +628,8 @@ class _RevenueLineChart extends StatelessWidget {
   }
 
   static String _fmtShort(double v) {
-    if (v >= 1000) return '\$${(v / 1000).toStringAsFixed(1)}k';
-    return '\$${v.toStringAsFixed(0)}';
+    if (v >= 1000) return '${AppCurrency.format((v / 1000).toStringAsFixed(1))}k';
+    return AppCurrency.format(v.toStringAsFixed(0));
   }
 }
 
@@ -949,7 +950,7 @@ class _OrderStatusBars extends StatelessWidget {
 //                 ),
 //                 const SizedBox(width: AppSpacing.s12),
 //                 Text(
-//                   '\$${products[i].revenue.toStringAsFixed(0)}',
+//                   AppCurrency.format(products[i].revenue.toStringAsFixed(0)),
 //                   style: AppTypography.label.copyWith(
 //                     fontSize: 13,
 //                     fontWeight: FontWeight.w800,

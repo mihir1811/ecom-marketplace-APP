@@ -6,6 +6,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../domain/models/diamond_filter_state.dart';
 import '../../application/diamond_search_provider.dart';
+import '../../../../core/utils/app_currency.dart';
 
 class DiamondFilterChips extends ConsumerWidget {
   const DiamondFilterChips({super.key});
@@ -38,7 +39,7 @@ class DiamondFilterChips extends ConsumerWidget {
 
     if (filters.minPrice > 0 || filters.maxPrice < 1000000) {
       final label =
-          '\$${formatCatalogPriceWholeK(filters.minPrice)}-\$${formatCatalogPriceWholeK(filters.maxPrice)}';
+          '${AppCurrency.format(formatCatalogPriceWholeK(filters.minPrice))}-${AppCurrency.format(formatCatalogPriceWholeK(filters.maxPrice))}';
       chips.add(
         _FilterChipData(
           label: label,

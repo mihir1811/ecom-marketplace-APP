@@ -6,6 +6,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../data/seller_orders_mock_data.dart';
 import '../../domain/models/seller_orders_models.dart';
 import '../widgets/seller_layout.dart';
+import '../../../../core/utils/app_currency.dart';
 
 class SellerOffersScreen extends StatefulWidget {
   const SellerOffersScreen({super.key});
@@ -49,8 +50,8 @@ class _SellerOffersScreenState extends State<SellerOffersScreen> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           autofocus: true,
           decoration: InputDecoration(
-            labelText: 'Your price (USD)',
-            prefixText: r'$',
+             labelText: 'Your price (${AppCurrency.code})',
+            prefixText: AppCurrency.symbol,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.r8),
             ),
@@ -75,7 +76,7 @@ class _SellerOffersScreenState extends State<SellerOffersScreen> {
     );
     controller.dispose();
     if (result == null || !mounted) return;
-    final formatted = result.startsWith(r'$') ? result : '\$$result';
+    final formatted = result.startsWith(AppCurrency.symbol) ? result : AppCurrency.format(result);
     _updateOffer(
       offer.id,
       (o) => o.copyWith(

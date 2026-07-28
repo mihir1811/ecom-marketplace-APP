@@ -1,3 +1,5 @@
+import '../../../../core/utils/app_currency.dart';
+
 /// Immutable filter state for the watches catalog (schema-aligned drawer).
 class WatchFilterState {
   const WatchFilterState({
@@ -108,12 +110,12 @@ class WatchFilterState {
   static const styleOptions = categoryOptions;
 
   static const priceRangeOptions = [
-    'Under \$500',
-    '\$500 – \$1,000',
-    '\$1,000 – \$5,000',
-    '\$5,000 – \$15,000',
-    '\$15,000 – \$50,000',
-    '\$50,000+',
+    'Under ${AppCurrency.symbol}500',
+    '${AppCurrency.symbol}500 – ${AppCurrency.symbol}1,000',
+    '${AppCurrency.symbol}1,000 – ${AppCurrency.symbol}5,000',
+    '${AppCurrency.symbol}5,000 – ${AppCurrency.symbol}15,000',
+    '${AppCurrency.symbol}15,000 – ${AppCurrency.symbol}50,000',
+    '${AppCurrency.symbol}50,000+',
   ];
 
   static const movementOptions = [

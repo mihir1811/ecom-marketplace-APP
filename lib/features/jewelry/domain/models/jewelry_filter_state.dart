@@ -1,3 +1,4 @@
+import '../../../../core/utils/app_currency.dart';
 /// Immutable filter state for the jewelry category listing.
 class JewelryFilterState {
   const JewelryFilterState({
@@ -380,7 +381,7 @@ class JewelryFilterState {
     labels.addAll(stoneCategories);
     labels.addAll(occasions.take(2));
     if (priceMin > priceMinLimit || priceMax < priceMaxLimit) {
-      labels.add('₹${_fmt(priceMin)}–₹${_fmt(priceMax)}');
+      labels.add('${AppCurrency.format(_fmt(priceMin))}–${AppCurrency.format(_fmt(priceMax))}');
     }
     if (stoneType != null) labels.add(stoneType!);
     labels.addAll(availability);

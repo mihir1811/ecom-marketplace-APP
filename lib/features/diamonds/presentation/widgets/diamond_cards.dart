@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
@@ -125,8 +126,8 @@ class DiamondCardGrid extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '\$${formatCatalogPrice(diamond.price)}',
-                      style: GoogleFonts.inter(
+                      AppCurrency.format(formatCatalogPrice(diamond.price)),
+                      style: GoogleFonts.manrope(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
@@ -350,7 +351,7 @@ class DiamondCardList extends ConsumerWidget {
       children: [
         Flexible(
           child: Text(
-            '\$${formatCatalogPrice(diamond.price)}',
+            AppCurrency.format(formatCatalogPrice(diamond.price)),
             style: AppTypography.title.copyWith(
               fontWeight: FontWeight.bold,
               color: textColor,
@@ -364,7 +365,7 @@ class DiamondCardList extends ConsumerWidget {
           const SizedBox(width: AppSpacing.s8),
           Flexible(
             child: Text(
-              '\$${diamond.pricePerCarat!.round()}/ct',
+              '${AppCurrency.format(diamond.pricePerCarat!.round())}/ct',
               style: AppTypography.caption.copyWith(
                 color: mutedColor,
               ),

@@ -24,11 +24,11 @@ class ProductDetailSpecSection extends StatelessWidget {
           ),
           child: Text(
             section.group.title.toUpperCase(),
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.9,
+            style: AppTypography.label.copyWith(
+              color: AppColors.textSecondaryLight,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
             ),
           ),
         ),

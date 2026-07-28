@@ -308,11 +308,13 @@
   "306": "DiamondSearchNotifier",
   "307": "buyer_reviews_screen.dart",
   "308": "bullion_product_detail.dart",
-  "309": "jewelry_product_detail.dart",
-  "310": "CustomPainter",
+  "309": "product_detail_highlights.dart",
+  "310": "cart_items_section.dart",
   "311": "result.dart",
   "312": "seller_inquiry_mock_data.dart",
   "313": "auth_routes.dart",
   "314": "currency_rates.dart",
-  "318": "GemstoneSearchNotifier"
+  "315": "catalog_list_loading.dart",
+  "316": "bool get",
+  "317": "JewelrySortOption"
 }

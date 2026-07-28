@@ -5,6 +5,7 @@ import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/seller_product.dart';
+import '../../../../core/utils/app_currency.dart';
 
 class SellerProductCardsView extends StatelessWidget {
   const SellerProductCardsView({
@@ -328,7 +329,7 @@ class _ProductCardState extends State<_ProductCard> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '\$$price',
+                    AppCurrency.format(price),
                     style: AppTypography.title.copyWith(
                       color: AppColors.info,
                       fontWeight: FontWeight.w800,

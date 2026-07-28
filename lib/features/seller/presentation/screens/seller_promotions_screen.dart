@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../widgets/seller_layout.dart';
+import '../../../../core/utils/app_currency.dart';
 
 enum _PromoTab { discounts, promoCodes }
 
@@ -261,7 +262,7 @@ class _DiscountTile extends StatelessWidget {
           Text(item.name, style: AppTypography.label.copyWith(fontWeight: FontWeight.w700)),
           Text(item.description, style: AppTypography.caption.copyWith(color: AppColors.textSecondaryLight)),
           Text(
-            '${item.type == _DiscountType.percentage ? '${item.value}%' : '₹${item.value}'} · ${item.startDate} → ${item.endDate}',
+            '${item.type == _DiscountType.percentage ? '${item.value}%' : AppCurrency.format(item.value)} · ${item.startDate} → ${item.endDate}',
             style: AppTypography.caption.copyWith(color: AppColors.textMutedLight),
           ),
         ],
@@ -290,7 +291,7 @@ class _PromoTile extends StatelessWidget {
           Text(item.code, style: AppTypography.label.copyWith(fontWeight: FontWeight.w700)),
           Text(item.description, style: AppTypography.caption.copyWith(color: AppColors.textSecondaryLight)),
           Text(
-            '${item.type == _DiscountType.percentage ? '${item.value}%' : '₹${item.value}'}'
+            '${item.type == _DiscountType.percentage ? '${item.value}%' : AppCurrency.format(item.value)}'
             '${item.maxUses != null ? ' · Max ${item.maxUses}' : ''} · ${item.startDate} → ${item.endDate}',
             style: AppTypography.caption.copyWith(color: AppColors.textMutedLight),
           ),

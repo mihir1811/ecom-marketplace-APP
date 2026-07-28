@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/currency_rates.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../gemstones/domain/gemstone_assets.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
@@ -45,7 +46,7 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
       videoLabel: 'Gem video',
     ),
     price: ProductPrice(
-      currencySymbol: r'$',
+      currencySymbol: AppCurrency.symbol,
       amountLabel: formatGroupedWhole(g.price),
       priceUsd: g.price,
       priceInr: usdToInr(g.price),
@@ -72,13 +73,13 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
         'Shape': g.shape,
         'Cut': g.cut,
         'Price per carat':
-            perCarat == null ? null : '\$${formatGroupedWhole(perCarat)}',
+            perCarat == null ? null : AppCurrency.format(formatGroupedWhole(perCarat)),
       }),
       specSection(ProductSpecGroup.quality, {
         'Color': g.color,
         'Clarity': g.clarity,
         'Treatment': g.treatment,
-        'Hardness': '${g.hardness} Mohs',
+        'Hardness': '${formatDecimal(g.hardness)} Mohs',
       }),
       specSection(ProductSpecGroup.measurements, {
         'Dimensions': g.dimensions,
