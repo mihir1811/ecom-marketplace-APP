@@ -101,37 +101,49 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
                   padding: const EdgeInsets.only(right: 12.0),
                   child: GestureDetector(
                     onTap: () => notifier.updateFluorescenceColor(name),
-                    child: Column(
-                      children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          width: 34,
-                          height: 34,
-                          decoration: BoxDecoration(
-                            color: _parseHex(hex),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppColors.bronze
-                                  : borderColor,
-                              width: isSelected ? 2.5 : 1.0,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.charcoal
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppSpacing.r8),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: _parseHex(hex),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppColors.warmWhite
+                                    : borderColor,
+                                width: isSelected ? 2.5 : 1.0,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.s4),
-                        Text(
-                          name,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.w500,
-                            color: isSelected
-                                ? AppColors.bronze
-                                : (AppColors.textSecondaryLight),
+                          const SizedBox(height: AppSpacing.s4),
+                          Text(
+                            name,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? AppColors.warmWhite
+                                  : AppColors.textSecondaryLight,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );

@@ -300,11 +300,11 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                     padding: const EdgeInsets.symmetric(horizontal: 2),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColors.bronze.withOpacity(0.12)
+                          ? AppColors.charcoal
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: isSelected ? AppColors.bronze : borderColor,
+                        color: isSelected ? AppColors.charcoal : borderColor,
                         width: isSelected ? 1.5 : 1.0,
                       ),
                     ),
@@ -317,8 +317,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                             ? FontWeight.bold
                             : FontWeight.w500,
                         color: isSelected
-                            ? AppColors.bronze
-                            : (AppColors.textSecondaryLight),
+                            ? AppColors.warmWhite
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                   ),

@@ -22,18 +22,15 @@ class FilterShapeGridCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const activeColor = AppColors.bronze;
     final borderColor =
-        isSelected ? activeColor : AppColors.warmBorder;
+        isSelected ? AppColors.charcoal : AppColors.warmBorder;
 
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         decoration: BoxDecoration(
-          color: isSelected
-              ? (AppColors.creamBg)
-              : (AppColors.warmWhite),
+          color: isSelected ? AppColors.charcoal : AppColors.warmWhite,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: borderColor, width: isSelected ? 1.5 : 1.0),
         ),
@@ -49,7 +46,7 @@ class FilterShapeGridCell extends StatelessWidget {
                   child: renderShapeSvg(
                     svgName ?? name,
                     size: 40,
-                    color: isSelected ? activeColor : Colors.black54,
+                    color: isSelected ? AppColors.warmWhite : Colors.black54,
                   ),
                 ),
               ),
@@ -63,8 +60,8 @@ class FilterShapeGridCell extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 fontSize: 12,
                 color: isSelected
-                    ? AppColors.bronze
-                    : (AppColors.textPrimaryLight),
+                    ? AppColors.warmWhite
+                    : AppColors.textPrimaryLight,
               ),
             ),
           ],

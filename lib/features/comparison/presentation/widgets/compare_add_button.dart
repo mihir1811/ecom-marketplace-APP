@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 
-/// Circular "add to compare" control matching the overlapping-squares + plus icon.
+/// Circular "add to compare" control.
 class CompareAddButton extends StatelessWidget {
   const CompareAddButton({
     required this.isSelected,
@@ -44,62 +44,16 @@ class CompareAddButton extends StatelessWidget {
               color: fill,
               border: Border.all(color: border),
             ),
-            child: CustomPaint(
-              painter: _CompareIconPainter(color: ink),
+            child: Icon(
+              Icons.add,
+              size: size * 0.55,
+              color: ink,
             ),
           ),
         ),
       ),
     );
   }
-}
-
-class _CompareIconPainter extends CustomPainter {
-  _CompareIconPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final stroke = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4
-      ..strokeJoin = StrokeJoin.round;
-
-    final fill = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final w = size.width;
-    final h = size.height;
-
-    // Back square (offset up-left).
-    final back = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.22, h * 0.18, w * 0.42, h * 0.42),
-      Radius.circular(w * 0.06),
-    );
-    canvas.drawRRect(back, stroke);
-
-    // Front square.
-    final frontRect = Rect.fromLTWH(w * 0.34, h * 0.34, w * 0.42, h * 0.42);
-    final front = RRect.fromRectAndRadius(
-      frontRect,
-      Radius.circular(w * 0.06),
-    );
-    canvas.drawRRect(front, stroke);
-
-    // Plus in front square.
-    final cx = frontRect.center.dx;
-    final cy = frontRect.center.dy;
-    final arm = w * 0.09;
-    canvas.drawRect(Rect.fromCenter(center: Offset(cx, cy), width: arm * 2, height: 1.5), fill);
-    canvas.drawRect(Rect.fromCenter(center: Offset(cx, cy), width: 1.5, height: arm * 2), fill);
-  }
-
-  @override
-  bool shouldRepaint(covariant _CompareIconPainter oldDelegate) =>
-      oldDelegate.color != color;
 }
 
 /// Shows a snackbar for comparison add/toggle outcomes.
