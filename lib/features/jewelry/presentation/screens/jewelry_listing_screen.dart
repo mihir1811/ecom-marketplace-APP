@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,6 +6,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_screen_shell.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
@@ -63,22 +63,6 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
     }
   }
 
-  Future<void> _showSortSheet() async {
-    final current = ref.read(jewelrySortProvider);
-    final selected = await showSimpleSortSheet<JewelrySortOption>(
-      context: context,
-      options: JewelrySortOption.values,
-      labelOf: (o) => o.label,
-      current: current,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-    );
-    if (selected != null) {
-      ref.read(jewelrySortProvider.notifier).state = selected;
-    }
-  }
-
   void _openFilters() {
     ref.read(jewelryFilterDraftProvider.notifier).syncFromApplied();
     context.push(AppRouteNames.jewelryFilters);
@@ -86,162 +70,225 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filters = ref.watch(jewelryFilterProvider);
-    final sort = ref.watch(jewelrySortProvider);
-    final viewMode = ref.watch(jewelryViewModeProvider);
-    final listAsync = ref.watch(jewelryListProvider);
-    final listState = listAsync.valueOrNull;
-    final muted = AppColors.textMutedLight;
-    final title = filters.category ?? 'Accessories';
-    final hasActiveFilters = filters.activeCount > 0;
+    final title = ref.watch(
+      jewelryFilterProvider.select((s) => s.category ?? 'Accessories'),
+    );
 
-    return AppScaffold(
-      backgroundColor: AppColors.creamBg,
-      appBar: AppBar(
-        automaticallyImplyActions: false,
-        title: Text(
-          title == 'All Accessories' ? 'Accessories' : title,
-          style: AppTypography.headline.copyWith(
-            fontWeight: FontWeight.w700,
-            fontSize: 22,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(AppRouteNames.jewelry);
-            }
-          },
-        ),
-        actions: const [],
-      ),
-      body: Column(
+    return CatalogScreenShell(
+      title: title == 'All Accessories' ? 'Accessories' : title,
+      onBack: () {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go(AppRouteNames.jewelry);
+        }
+      },
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: AppSpacing.s8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-            child: ListingSearchFilterBar(
-              controller: _searchController,
-              hintText: 'Search by name, SKU, metal, stone...',
-              mutedColor: muted,
-              activeFilterCount: hasActiveFilters ? 1 : 0,
-              onFilterTap: _openFilters,
-              onChanged: (v) =>
-                  ref.read(jewelryFilterProvider.notifier).setSearchQuery(v),
+            child: _JewelrySearchBar(
+              searchController: _searchController,
+              onOpenFilters: _openFilters,
             ),
           ),
           const SizedBox(height: AppSpacing.s12),
           const JewelryCategoryChips(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s8,
-              AppSpacing.s16,
-              AppSpacing.s4,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: TextButton.icon(
-                    onPressed: _showSortSheet,
-                    icon: const Icon(Icons.sort, size: 18),
-                    label: Text(
-                      'Sort by: ${sort.label}',
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.caption.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimaryLight,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.textPrimaryLight,
-                      padding: EdgeInsets.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                ),
-                ViewModeToggle(
-                  isGrid: viewMode == JewelryViewMode.grid,
-                  onGrid: () => ref
-                      .read(jewelryViewModeProvider.notifier)
-                      .state = JewelryViewMode.grid,
-                  onList: () => ref
-                      .read(jewelryViewModeProvider.notifier)
-                      .state = JewelryViewMode.list,
-                ),
-              ],
+          const _JewelryHeaderRow(),
+          Expanded(
+            child: _JewelryResultsView(
+              scrollController: _scrollController,
+              searchController: _searchController,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              0,
-              AppSpacing.s16,
-              AppSpacing.s8,
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                listState == null || listState.isInitialLoading
-                    ? 'Loading…'
-                    : 'Showing ${listState.totalCount} Products',
-                style: AppTypography.caption.copyWith(color: muted),
+        ],
+      ),
+    );
+  }
+}
+
+class _JewelrySearchBar extends ConsumerWidget {
+  const _JewelrySearchBar({
+    required this.searchController,
+    required this.onOpenFilters,
+  });
+
+  final TextEditingController searchController;
+  final VoidCallback onOpenFilters;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeFilterCount = ref.watch(
+      jewelryFilterProvider.select((s) => s.activeCount > 0 ? 1 : 0),
+    );
+
+    return ListingSearchFilterBar(
+      controller: searchController,
+      hintText: 'Search by name, SKU, metal, stone...',
+      mutedColor: AppColors.textMutedLight,
+      activeFilterCount: activeFilterCount,
+      onFilterTap: onOpenFilters,
+      onChanged: (v) =>
+          ref.read(jewelryFilterProvider.notifier).setSearchQuery(v),
+    );
+  }
+}
+
+class _JewelryHeaderRow extends ConsumerWidget {
+  const _JewelryHeaderRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sortLabel = ref.watch(jewelrySortProvider.select((s) => s.label));
+    final isGrid = ref.watch(
+      jewelryViewModeProvider.select((mode) => mode == JewelryViewMode.grid),
+    );
+    final countLabel = ref.watch(
+      jewelryListProvider.select((value) {
+        final listState = value.valueOrNull;
+        return listState == null || listState.isInitialLoading
+            ? 'Loading…'
+            : 'Showing ${listState.totalCount} Products';
+      }),
+    );
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            AppSpacing.s8,
+            AppSpacing.s16,
+            AppSpacing.s4,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: TextButton.icon(
+                  onPressed: () => showSimpleSortSheet<JewelrySortOption>(
+                    context: context,
+                    options: JewelrySortOption.values,
+                    labelOf: (o) => o.label,
+                    current: ref.read(jewelrySortProvider),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                  ).then((selected) {
+                    if (selected != null) {
+                      ref.read(jewelrySortProvider.notifier).state = selected;
+                    }
+                  }),
+                  icon: const Icon(Icons.sort, size: 18),
+                  label: Text(
+                    'Sort by: $sortLabel',
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.textPrimaryLight,
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ),
+              ViewModeToggle(
+                isGrid: isGrid,
+                onGrid: () => ref.read(jewelryViewModeProvider.notifier).state =
+                    JewelryViewMode.grid,
+                onList: () => ref.read(jewelryViewModeProvider.notifier).state =
+                    JewelryViewMode.list,
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            0,
+            AppSpacing.s16,
+            AppSpacing.s8,
+          ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              countLabel,
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textMutedLight,
               ),
             ),
           ),
-          Expanded(
-            child: listState == null || listState.isInitialLoading
-                ? const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : listState.errorMessage != null && listState.items.isEmpty
-                    ? CatalogErrorState(
-                        message:
-                            listState.errorMessage ?? 'Something went wrong',
-                        onRetry: () =>
-                            ref.read(jewelryListProvider.notifier).refresh(),
-                      )
-                    : listState.items.isEmpty
-                        ? CatalogEmptyState(
-                            icon: Icons.diamond_outlined,
-                            title: 'No products found',
-                            message:
-                                'Try clearing filters or adjusting search.',
-                            actionLabel: 'Clear Filters',
-                            onAction: () {
-                              ref.read(jewelryFilterProvider.notifier).reset();
-                              _searchController.clear();
-                            },
-                          )
-                        : RefreshIndicator(
-                            onRefresh: () => ref
-                                .read(jewelryListProvider.notifier)
-                                .refresh(),
-                            child: CustomScrollView(
-                              controller: _scrollController,
-                              slivers: [
-                                if (viewMode == JewelryViewMode.grid)
-                                  JewelryGridSliver(
-                                    items: listState.items,
-                                    isLoadingMore: listState.isLoadingMore,
-                                  )
-                                else
-                                  JewelryListSliver(
-                                    items: listState.items,
-                                    isLoadingMore: listState.isLoadingMore,
-                                  ),
-                                const SliverToBoxAdapter(
-                                  child: SizedBox(height: AppSpacing.s24),
-                                ),
-                              ],
-                            ),
-                          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _JewelryResultsView extends ConsumerWidget {
+  const _JewelryResultsView({
+    required this.scrollController,
+    required this.searchController,
+  });
+
+  final ScrollController scrollController;
+  final TextEditingController searchController;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final listState = ref.watch(jewelryListProvider).valueOrNull;
+    final isGrid = ref.watch(
+      jewelryViewModeProvider.select((mode) => mode == JewelryViewMode.grid),
+    );
+
+    if (listState == null || listState.isInitialLoading) {
+      return const Center(
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    }
+
+    if (listState.errorMessage != null && listState.items.isEmpty) {
+      return CatalogErrorState(
+        message: listState.errorMessage ?? 'Something went wrong',
+        onRetry: () => ref.read(jewelryListProvider.notifier).refresh(),
+      );
+    }
+
+    if (listState.items.isEmpty) {
+      return CatalogEmptyState(
+        icon: Icons.diamond_outlined,
+        title: 'No products found',
+        message: 'Try clearing filters or adjusting search.',
+        actionLabel: 'Clear Filters',
+        onAction: () {
+          ref.read(jewelryFilterProvider.notifier).reset();
+          searchController.clear();
+        },
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => ref.read(jewelryListProvider.notifier).refresh(),
+      child: CustomScrollView(
+        controller: scrollController,
+        slivers: [
+          if (isGrid)
+            JewelryGridSliver(
+              items: listState.items,
+              isLoadingMore: listState.isLoadingMore,
+            )
+          else
+            JewelryListSliver(
+              items: listState.items,
+              isLoadingMore: listState.isLoadingMore,
+            ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppSpacing.s24),
           ),
         ],
       ),

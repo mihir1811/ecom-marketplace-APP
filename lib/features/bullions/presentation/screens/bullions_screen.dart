@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_screen_shell.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
@@ -117,101 +117,73 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filter = ref.watch(bullionsFilterProvider);
-    final listAsync = ref.watch(bullionsListProvider);
-    final viewMode = ref.watch(bullionsViewModeProvider);
-    final variants = filter.availableVariants;
+    final pinnedHeaderHeight = ref.watch(
+      bullionsFilterProvider.select(
+        (s) => s.availableVariants.isEmpty ? 122.0 : 164.0,
+      ),
+    );
 
-    return AppScaffold(
+    return CatalogScreenShell(
       scaffoldKey: _scaffoldKey,
       endDrawer: const BullionsFilterDrawer(),
-      endDrawerEnableOpenDragGesture: false,
-      appBar: AppBar(
-        automaticallyImplyActions: false,
-        title: Text(
-          'Bullions',
-          style: AppTypography.headline.copyWith(
-            fontWeight: FontWeight.w700,
-            fontSize: 22,
+      title: 'Bullions',
+      onBack: _onBackPressed,
+      child: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s16,
+                AppSpacing.s12,
+                AppSpacing.s16,
+                AppSpacing.s12,
+              ),
+              child: _MetalPricesTicker(controller: _tickerController),
+            ),
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _onBackPressed,
-        ),
-        actions: const [],
-      ),
-      body: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _PinnedHeaderDelegate(
+              height: pinnedHeaderHeight,
+              child: Container(
+                color: AppColors.creamBg,
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.s16,
-                  AppSpacing.s12,
+                  0,
                   AppSpacing.s16,
-                  AppSpacing.s12,
+                  0,
                 ),
-                child: _MetalPricesTicker(controller: _tickerController),
-              ),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _PinnedHeaderDelegate(
-                  height: variants.isEmpty ? 122 : 164,
-                  child: Container(
-                  color: AppColors.creamBg,
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    0,
-                    AppSpacing.s16,
-                    0,
-                  ),
-                  child: _PinnedControls(
-                    filter: filter,
-                    searchController: _searchController,
-                    onSearchChanged: _onSearchChanged,
-                    onOpenFilters: _openFilters,
-                    onMetalSelected: (value) => ref
-                        .read(bullionsFilterProvider.notifier)
-                        .setMetalFilter(value),
-                    onVariantSelected: (value) => ref
-                        .read(bullionsFilterProvider.notifier)
-                        .setSelectedVariant(value),
-                  ),
+                child: _PinnedControls(
+                  searchController: _searchController,
+                  onSearchChanged: _onSearchChanged,
+                  onOpenFilters: _openFilters,
                 ),
               ),
             ),
-            _BullionsBody(
-              listAsync: listAsync,
-              viewMode: viewMode,
-              onRetry: () => ref.read(bullionsListProvider.notifier).refresh(),
-              onClear: _clearFilters,
-              onViewModeChanged: (mode) =>
-                  ref.read(bullionsViewModeProvider.notifier).state = mode,
-            ),
-          ],
-        ),
+          ),
+          _BullionsBody(
+            onRetry: () => ref.read(bullionsListProvider.notifier).refresh(),
+            onClear: _clearFilters,
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _BullionsBody extends StatelessWidget {
+class _BullionsBody extends ConsumerWidget {
   const _BullionsBody({
-    required this.listAsync,
-    required this.viewMode,
     required this.onRetry,
     required this.onClear,
-    required this.onViewModeChanged,
   });
-  final AsyncValue<BullionsListState> listAsync;
-  final BullionsViewMode viewMode;
   final VoidCallback onRetry;
   final VoidCallback onClear;
-  final ValueChanged<BullionsViewMode> onViewModeChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final listAsync = ref.watch(bullionsListProvider);
+    final viewMode = ref.watch(bullionsViewModeProvider);
     final listState = listAsync.valueOrNull;
     final muted = AppColors.textMutedLight;
 
@@ -267,8 +239,10 @@ class _BullionsBody extends StatelessWidget {
                 ),
                 ViewModeToggle(
                   isGrid: viewMode == BullionsViewMode.grid,
-                  onGrid: () => onViewModeChanged(BullionsViewMode.grid),
-                  onList: () => onViewModeChanged(BullionsViewMode.list),
+                  onGrid: () => ref.read(bullionsViewModeProvider.notifier).state =
+                      BullionsViewMode.grid,
+                  onList: () => ref.read(bullionsViewModeProvider.notifier).state =
+                      BullionsViewMode.list,
                 ),
               ],
             ),
@@ -294,6 +268,39 @@ class _BullionsBody extends StatelessWidget {
 
 class _PinnedControls extends StatelessWidget {
   const _PinnedControls({
+    required this.searchController,
+    required this.onSearchChanged,
+    required this.onOpenFilters,
+  });
+
+  final TextEditingController searchController;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onOpenFilters;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final filter = ref.watch(bullionsFilterProvider);
+        return _PinnedControlsContent(
+          filter: filter,
+          searchController: searchController,
+          onSearchChanged: onSearchChanged,
+          onOpenFilters: onOpenFilters,
+          onMetalSelected: (value) => ref
+              .read(bullionsFilterProvider.notifier)
+              .setMetalFilter(value),
+          onVariantSelected: (value) => ref
+              .read(bullionsFilterProvider.notifier)
+              .setSelectedVariant(value),
+        );
+      },
+    );
+  }
+}
+
+class _PinnedControlsContent extends StatelessWidget {
+  const _PinnedControlsContent({
     required this.filter,
     required this.searchController,
     required this.onSearchChanged,
