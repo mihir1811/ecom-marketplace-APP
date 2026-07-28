@@ -314,6 +314,5 @@
   "312": "seller_inquiry_mock_data.dart",
   "313": "auth_routes.dart",
   "314": "currency_rates.dart",
-  "315": "_MeleeBackgroundShellState",
-  "316": "Notification"
+  "318": "GemstoneSearchNotifier"
 }

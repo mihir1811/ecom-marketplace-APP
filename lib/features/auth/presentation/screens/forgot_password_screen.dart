@@ -33,7 +33,16 @@ class _ForgotPasswordScreenState
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final authState = ref.watch(
+      authProvider.select(
+        (s) => (
+          isAuthenticated: s.isAuthenticated,
+          isLoading: s.isLoading,
+          errorMessage: s.errorMessage,
+          resetLinkSent: s.resetLinkSent,
+        ),
+      ),
+    );
 
     if (authState.isAuthenticated && !_didAutoRedirect) {
       _didAutoRedirect = true;

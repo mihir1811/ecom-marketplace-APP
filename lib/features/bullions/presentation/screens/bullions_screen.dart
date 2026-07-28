@@ -25,13 +25,15 @@ class BullionsScreen extends ConsumerStatefulWidget {
   ConsumerState<BullionsScreen> createState() => _BullionsScreenState();
 }
 
-class _BullionsScreenState extends ConsumerState<BullionsScreen> {
+class _BullionsScreenState extends ConsumerState<BullionsScreen>
+    with SingleTickerProviderStateMixin {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _scrollController = ScrollController();
   final _tickerController = ScrollController();
   final _searchController = TextEditingController();
+  late final AnimationController _tickerAnimation;
   Timer? _searchDebounce;
-  Timer? _tickerTimer;
+  double _lastTickerValue = 0;
 
   static const _metalPriceItems = [
     _MetalPriceItem('Gold', 'XAU', '₹63,678', '+0.42%', Color(0xFFFFC94D)),
@@ -51,6 +53,10 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
   @override
   void initState() {
     super.initState();
+    _tickerAnimation = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 18),
+    )..addListener(_advanceTicker);
     _scrollController.addListener(_onScroll);
     final q = ref.read(bullionsFilterProvider).searchQuery;
     if (q.isNotEmpty) _searchController.text = q;
@@ -62,24 +68,32 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _tickerController.dispose();
+    _tickerAnimation
+      ..removeListener(_advanceTicker)
+      ..dispose();
     _searchDebounce?.cancel();
-    _tickerTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   void _startTicker() {
-    _tickerTimer?.cancel();
-    _tickerTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
-      if (!_tickerController.hasClients) return;
-      final loop = _tickerLoopExtent;
-      if (loop <= 0) return;
-      var next = _tickerController.offset + 0.45;
-      if (next >= loop) {
-        next -= loop;
-      }
-      _tickerController.jumpTo(next);
-    });
+    _lastTickerValue = 0;
+    _tickerAnimation
+      ..reset()
+      ..repeat();
+  }
+
+  void _advanceTicker() {
+    if (!_tickerController.hasClients) return;
+    final loop = _tickerLoopExtent;
+    if (loop <= 0) return;
+
+    final value = _tickerAnimation.value;
+    final rawDelta = value - _lastTickerValue;
+    _lastTickerValue = value;
+    final normalizedDelta = rawDelta >= 0 ? rawDelta : rawDelta + 1;
+    final next = (_tickerController.offset + (normalizedDelta * loop)) % loop;
+    _tickerController.jumpTo(next);
   }
 
   void _onSearchChanged(String value) {

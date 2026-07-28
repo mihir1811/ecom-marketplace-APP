@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "lib/features/diamonds/presentation/screens/diamond_search_screen.dart": {
-    "mtime": 1784725669.1878169,
-    "ast_hash": "759a7aa0952cd7e6a9257ffd883ed381",
+    "mtime": 1785234965.7304316,
+    "ast_hash": "fb53c7393c53d29e753d593f5803920a",
     "semantic_hash": ""
   },
   "lib/features/diamonds/presentation/screens/lab_grown_diamond_search_screen.dart": {
@@ -245,8 +245,8 @@
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/screens/gemstone_search_screen.dart": {
-    "mtime": 1784725670.6271636,
-    "ast_hash": "e42edd67e211c089bcd5cf47f9c779a5",
+    "mtime": 1785234976.4757748,
+    "ast_hash": "ed6d85b52f2672851d6efd9361a52a24",
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/widgets/birthstone_month_card.dart": {
@@ -1785,8 +1785,8 @@
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/screens/bullions_screen.dart": {
-    "mtime": 1785234080.0926335,
-    "ast_hash": "fd7ee32e96ad0c48486a343f2aa9dfdd",
+    "mtime": 1785234324.8304892,
+    "ast_hash": "558c715abed7f4fc3d39092b34549b76",
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/widgets/billion_card.dart": {
@@ -1925,18 +1925,18 @@
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/screens/forgot_password_screen.dart": {
-    "mtime": 1784871612.63833,
-    "ast_hash": "76c689a4e6e0cd2bb60bb8c2c43fc967",
+    "mtime": 1785234376.2279475,
+    "ast_hash": "4a8243fc8ca4b0b39c25df1d315332aa",
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/screens/login_screen.dart": {
-    "mtime": 1784871610.4915981,
-    "ast_hash": "fd8e2eaf95172474d430d7883803da3f",
+    "mtime": 1785234363.516873,
+    "ast_hash": "52199f2c1c00315b7a158b1d76ea6150",
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/screens/register_screen.dart": {
-    "mtime": 1785156239.6125023,
-    "ast_hash": "50d9d03d76f4a6906b3f573ca834d7ac",
+    "mtime": 1785234370.4472308,
+    "ast_hash": "cb2c9007f23e6a7a6524265dbf960168",
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/widgets/auth_brand_header.dart": {
@@ -2120,8 +2120,8 @@
     "semantic_hash": ""
   },
   "lib/features/comparison/presentation/screens/comparison_screen.dart": {
-    "mtime": 1784721735.379865,
-    "ast_hash": "b2c58ebf4313fdd07114b8789e6a7eac",
+    "mtime": 1785234829.09475,
+    "ast_hash": "182f098ae1faef56ecbaa828963bfd45",
     "semantic_hash": ""
   },
   "lib/features/comparison/presentation/widgets/compare_add_button.dart": {
@@ -2170,8 +2170,8 @@
     "semantic_hash": ""
   },
   "lib/features/cart/application/cart_provider.dart": {
-    "mtime": 1785227305.8465223,
-    "ast_hash": "8b6fdb0a668c6b31d4f9becedc274cbc",
+    "mtime": 1785234934.1223412,
+    "ast_hash": "9c3888f51219c58d18b0cb37cadc1401",
     "semantic_hash": ""
   },
   "lib/features/cart/cart_routes.dart": {
@@ -2190,8 +2190,8 @@
     "semantic_hash": ""
   },
   "lib/features/cart/presentation/screens/cart_screen.dart": {
-    "mtime": 1784721735.376869,
-    "ast_hash": "e179c0b72520ae54d2361f45bb46bca7",
+    "mtime": 1785234760.6845963,
+    "ast_hash": "ed36cac0a3c01e4a88d172e101beb7e1",
     "semantic_hash": ""
   },
   "lib/features/cart/presentation/widgets/cart_item_card.dart": {
@@ -2597,6 +2597,51 @@
   "lib/core/widgets/catalog_screen_shell.dart": {
     "mtime": 1785233895.4867485,
     "ast_hash": "48f08af2e04bd4aa30f513d5333e3790",
+    "semantic_hash": ""
+  },
+  "lib/core/widgets/catalog_search_filter_layout.dart": {
+    "mtime": 1785234964.3469791,
+    "ast_hash": "fc884b32893950fec6e32d1e62f59b03",
+    "semantic_hash": ""
+  },
+  "lib/core/widgets/catalog_search_filter_shell.dart": {
+    "mtime": 1785234853.8877995,
+    "ast_hash": "bdc8c8ad6ed746ecb5a2f057679ea790",
+    "semantic_hash": ""
+  },
+  "lib/features/cart/presentation/widgets/cart_address_section.dart": {
+    "mtime": 1785234734.5396023,
+    "ast_hash": "b1b5dc10991846356522a5b038747fe9",
+    "semantic_hash": ""
+  },
+  "lib/features/cart/presentation/widgets/cart_checkout_button.dart": {
+    "mtime": 1785234747.3747854,
+    "ast_hash": "acaaef1cfd9969acaf0fade251db25c5",
+    "semantic_hash": ""
+  },
+  "lib/features/cart/presentation/widgets/cart_items_section.dart": {
+    "mtime": 1785234726.3978474,
+    "ast_hash": "6e36bebd699977b1d570cb73c2f8ccd9",
+    "semantic_hash": ""
+  },
+  "lib/features/cart/presentation/widgets/cart_promo_section.dart": {
+    "mtime": 1785234740.513345,
+    "ast_hash": "1ee1cf7f7e67c1382c1973d32a1ea823",
+    "semantic_hash": ""
+  },
+  "lib/features/cart/presentation/widgets/cart_section_card.dart": {
+    "mtime": 1785234720.3340726,
+    "ast_hash": "10c79808d349e620e05287869cb3feaa",
+    "semantic_hash": ""
+  },
+  "lib/features/cart/presentation/widgets/cart_totals_section.dart": {
+    "mtime": 1785234746.5605762,
+    "ast_hash": "69841049d008ef04552da33a3cb31e47",
+    "semantic_hash": ""
+  },
+  "lib/features/comparison/presentation/widgets/comparison_table.dart": {
+    "mtime": 1785234829.0111854,
+    "ast_hash": "8a1bbb25f547e599147aa62638779fa7",
     "semantic_hash": ""
   }
 }

@@ -20,6 +20,27 @@ class CartTotals {
   final double transactionFeeInr;
   final double platformFeeInr;
   final double totalInr;
+
+  @override
+  bool operator ==(Object other) {
+    return other is CartTotals &&
+        other.subtotalInr == subtotalInr &&
+        other.subtotalUsd == subtotalUsd &&
+        other.gstInr == gstInr &&
+        other.transactionFeeInr == transactionFeeInr &&
+        other.platformFeeInr == platformFeeInr &&
+        other.totalInr == totalInr;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        subtotalInr,
+        subtotalUsd,
+        gstInr,
+        transactionFeeInr,
+        platformFeeInr,
+        totalInr,
+      );
 }
 
 class CartState {
@@ -147,4 +168,30 @@ final cartProvider = NotifierProvider<CartNotifier, CartState>(CartNotifier.new)
 
 final cartItemCountProvider = Provider<int>((ref) {
   return ref.watch(cartProvider.select((s) => s.count));
+});
+
+final cartIsEmptyProvider = Provider<bool>((ref) {
+  return ref.watch(cartProvider.select((s) => s.isEmpty));
+});
+
+final cartItemsProvider = Provider<List<CartItem>>((ref) {
+  return ref.watch(cartProvider.select((s) => s.items));
+});
+
+final cartAddressProvider = Provider<DeliveryAddress?>((ref) {
+  return ref.watch(cartProvider.select((s) => s.address));
+});
+
+final cartHasAddressProvider = Provider<bool>((ref) {
+  return ref.watch(cartProvider.select((s) => s.hasAddress));
+});
+
+final cartPromoProvider = Provider<({String? code, bool applied})>((ref) {
+  return ref.watch(
+    cartProvider.select((s) => (code: s.promoCode, applied: s.promoApplied)),
+  );
+});
+
+final cartTotalsProvider = Provider<CartTotals>((ref) {
+  return ref.watch(cartProvider.select((s) => s.totals));
 });

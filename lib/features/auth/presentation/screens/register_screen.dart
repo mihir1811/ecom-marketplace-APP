@@ -61,7 +61,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final authState = ref.watch(
+      authProvider.select(
+        (s) => (
+          isAuthenticated: s.isAuthenticated,
+          isLoading: s.isLoading,
+          errorMessage: s.errorMessage,
+        ),
+      ),
+    );
 
     if (authState.isAuthenticated && !_didAutoRedirect) {
       _didAutoRedirect = true;
