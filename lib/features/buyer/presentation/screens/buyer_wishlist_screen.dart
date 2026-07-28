@@ -87,6 +87,7 @@ class _WishlistTile extends StatelessWidget {
         WishlistCategory.gemstone => Icons.auto_awesome,
         WishlistCategory.jewelry => Icons.workspace_premium_outlined,
         WishlistCategory.watch => Icons.watch_outlined,
+        WishlistCategory.bullion => Icons.savings_outlined,
       };
 
   String get _categoryLabel => switch (item.category) {
@@ -94,6 +95,7 @@ class _WishlistTile extends StatelessWidget {
         WishlistCategory.gemstone => 'Gemstone',
         WishlistCategory.jewelry => 'Jewelry',
         WishlistCategory.watch => 'Watch',
+        WishlistCategory.bullion => 'Bullion',
       };
 
   @override

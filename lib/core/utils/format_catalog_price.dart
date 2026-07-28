@@ -28,8 +28,8 @@ String formatGroupedPrice(double price) {
   return price.toStringAsFixed(0);
 }
 
-/// Jewelry INR style: comma-grouped whole units (no K/M).
-String formatInrPrice(double price) {
+/// Currency-agnostic exact style: comma-grouped whole units (no K/M).
+String formatGroupedWhole(double price) {
   final s = price.toStringAsFixed(0);
   final buf = StringBuffer();
   for (var i = 0; i < s.length; i++) {
@@ -39,3 +39,6 @@ String formatInrPrice(double price) {
   }
   return buf.toString();
 }
+
+/// Jewelry INR style: comma-grouped whole units (no K/M).
+String formatInrPrice(double price) => formatGroupedWhole(price);

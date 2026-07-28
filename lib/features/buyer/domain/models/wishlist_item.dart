@@ -4,7 +4,7 @@ import '../../../gemstones/domain/models/gemstone.dart';
 import '../../../jewelry/domain/models/jewelry.dart';
 import '../../../watches/domain/models/watch.dart';
 
-enum WishlistCategory { diamond, gemstone, jewelry, watch }
+enum WishlistCategory { diamond, gemstone, jewelry, watch, bullion }
 
 /// Snapshot of a catalog product saved to the buyer wishlist.
 class WishlistItem {

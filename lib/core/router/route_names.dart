@@ -20,6 +20,11 @@ class AppRouteNames {
   static const String jewelryListing = '/jewelry/listing';
   static const String jewelryFilters = '/jewelry/filters';
 
+  /// Shared product detail page used by every catalog segment.
+  static const String productDetail = '/product/:segment/:productId';
+  static String productDetailPath(String segment, String productId) =>
+      '/product/$segment/${Uri.encodeComponent(productId)}';
+
   // Auth
   static const String login = '/login';
   static const String register = '/register';

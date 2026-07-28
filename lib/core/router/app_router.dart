@@ -7,6 +7,7 @@ import '../../features/gemstones/gemstones_routes.dart';
 import '../../features/watches/watches_routes.dart';
 import '../../features/bullions/bullions_routes.dart';
 import '../../features/jewelry/jewelry_routes.dart';
+import '../../features/product_detail/product_detail_routes.dart';
 import '../../features/auth/auth_routes.dart';
 import '../../features/buyer/buyer_routes.dart';
 import '../../features/seller/seller_routes.dart';
@@ -33,6 +34,7 @@ final GoRouter appRouter = GoRouter(
     ...watchesRoutes,
     ...bullionsRoutes,
     ...jewelryRoutes,
+    ...productDetailRoutes,
     ...comparisonRoutes,
     ...cartRoutes,
   ],

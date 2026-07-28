@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/jewelry.dart';
 import 'jewelry_product_card.dart';
 
@@ -38,6 +39,7 @@ class JewelryListSliver extends StatelessWidget {
           return JewelryProductListCard(
             key: ValueKey(item.id),
             item: item,
+            onTap: () => openJewelryDetail(context, item),
           );
         },
       ),
@@ -82,6 +84,7 @@ class JewelryGridSliver extends StatelessWidget {
               key: ValueKey('grid-${item.id}'),
               item: item,
               compact: true,
+              onTap: () => openJewelryDetail(context, item),
             );
           },
           childCount: items.length + (isLoadingMore ? 1 : 0),

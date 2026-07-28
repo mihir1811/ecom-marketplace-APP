@@ -12,6 +12,7 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
+import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/gemstone_list_provider.dart';
 import '../widgets/gemstone_card.dart';
 
@@ -150,6 +151,7 @@ class _GemstoneListingsScreenState
                               return GemstoneCardGrid(
                                 key: ValueKey(g.id),
                                 gemstone: g,
+                                onTap: () => openGemstoneDetail(context, g),
                               );
                             },
                           )
@@ -175,6 +177,7 @@ class _GemstoneListingsScreenState
                               return GemstoneCardList(
                                 key: ValueKey(g.id),
                                 gemstone: g,
+                                onTap: () => openGemstoneDetail(context, g),
                               );
                             },
                           ),

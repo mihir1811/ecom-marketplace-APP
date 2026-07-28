@@ -1,0 +1,125 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_scaffold.dart';
+import '../../domain/models/product_detail.dart';
+import '../widgets/product_detail_action_bar.dart';
+import '../widgets/product_detail_assurance.dart';
+import '../widgets/product_detail_header.dart';
+import '../widgets/product_detail_highlights.dart';
+import '../widgets/product_detail_media.dart';
+import '../widgets/product_detail_price.dart';
+import '../widgets/product_detail_specs.dart';
+
+/// One product detail screen for every marketplace segment.
+///
+/// The vertical order is fixed and priority driven: what it looks like, what it
+/// is, what it costs, the four attributes that set its value, whether it is
+/// certified and in stock, then the full specification, then the fine print.
+class ProductDetailScreen extends StatelessWidget {
+  const ProductDetailScreen({required this.detail, super.key});
+
+  static const double _wideBreakpoint = 900;
+  static const double _maxContentWidth = 1120;
+
+  final ProductDetail detail;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppScaffold(
+      backgroundColor: AppColors.creamBg,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/'),
+        ),
+        title: Text(
+          detail.segment.label,
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+        ),
+      ),
+      bottomNavigationBar: ProductDetailActionBar(detail: detail),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= _wideBreakpoint;
+
+          return Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s16,
+                  AppSpacing.s16,
+                  AppSpacing.s16,
+                  AppSpacing.s40,
+                ),
+                children: [
+                  if (isWide)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: ProductDetailMedia(media: detail.media),
+                        ),
+                        const SizedBox(width: AppSpacing.s40),
+                        Expanded(
+                          flex: 6,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: _summaryBlocks(),
+                          ),
+                        ),
+                      ],
+                    )
+                  else ...[
+                    ProductDetailMedia(media: detail.media),
+                    const SizedBox(height: AppSpacing.s24),
+                    ..._summaryBlocks(),
+                  ],
+                  const SizedBox(height: AppSpacing.s40),
+                  for (final section in detail.orderedSpecs) ...[
+                    ProductDetailSpecSection(section: section),
+                    const SizedBox(height: AppSpacing.s32),
+                  ],
+                  if (detail.note != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.s8),
+                      child: Text(
+                        detail.note!,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.textMutedLight,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  List<Widget> _summaryBlocks() {
+    return [
+      ProductDetailHeader(detail: detail),
+      const SizedBox(height: AppSpacing.s24),
+      ProductDetailPrice(price: detail.price),
+      const SizedBox(height: AppSpacing.s24),
+      ProductDetailHighlights(highlights: detail.highlights),
+      const SizedBox(height: AppSpacing.s16),
+      ProductDetailAssurance(
+        certification: detail.certification,
+        availability: detail.availability,
+      ),
+    ];
+  }
+}

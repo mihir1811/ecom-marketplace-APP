@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/watch.dart';
 import 'watch_card_grid.dart';
 
@@ -43,6 +44,7 @@ class WatchGridSliver extends StatelessWidget {
             return WatchCardGrid(
               key: ValueKey(watch.id),
               watch: watch,
+              onTap: () => openWatchDetail(context, watch),
             );
           },
           childCount: watches.length + (isLoadingMore ? 1 : 0),
@@ -86,6 +88,7 @@ class WatchListSliver extends StatelessWidget {
           return WatchCardList(
             key: ValueKey('list-${watch.id}'),
             watch: watch,
+            onTap: () => openWatchDetail(context, watch),
           );
         },
       ),

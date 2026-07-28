@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/billion.dart';
 import 'billion_card.dart';
 
@@ -44,6 +45,7 @@ class BullionsGridSliver extends StatelessWidget {
               key: ValueKey(bullion.id),
               bullion: bullion,
               layout: BullionCardLayout.grid,
+              onTap: () => openBullionDetail(context, bullion),
             );
           },
           childCount: bullions.length + (isLoadingMore ? 1 : 0),
@@ -88,6 +90,7 @@ class BullionsListSliver extends StatelessWidget {
             key: ValueKey('list-${bullion.id}'),
             bullion: bullion,
             layout: BullionCardLayout.list,
+            onTap: () => openBullionDetail(context, bullion),
           );
         },
       ),

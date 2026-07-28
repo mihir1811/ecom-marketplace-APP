@@ -14,6 +14,7 @@ import '../../../comparison/application/comparison_provider.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
+import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/diamond.dart';
 import 'diamond_svg_data.dart';
 
@@ -487,6 +488,7 @@ class DiamondGridView extends StatelessWidget {
         return DiamondCardGrid(
           key: ValueKey(diamond.id),
           diamond: diamond,
+          onTap: () => openDiamondDetail(context, diamond),
         );
       },
     );
@@ -549,6 +551,7 @@ class DiamondListView extends StatelessWidget {
           child: DiamondCardList(
             key: ValueKey(diamond.id),
             diamond: diamond,
+            onTap: () => openDiamondDetail(context, diamond),
           ),
         );
       },

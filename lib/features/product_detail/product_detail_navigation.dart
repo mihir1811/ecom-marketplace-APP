@@ -1,0 +1,39 @@
+import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../core/router/route_names.dart';
+import '../bullions/domain/models/billion.dart';
+import '../diamonds/domain/models/diamond.dart';
+import '../gemstones/domain/models/gemstone.dart';
+import '../jewelry/domain/models/jewelry.dart';
+import '../watches/domain/models/watch.dart';
+import 'domain/adapters/bullion_product_detail.dart';
+import 'domain/adapters/diamond_product_detail.dart';
+import 'domain/adapters/gemstone_product_detail.dart';
+import 'domain/adapters/jewelry_product_detail.dart';
+import 'domain/adapters/watch_product_detail.dart';
+import 'domain/models/product_detail.dart';
+
+/// Single entry point to the shared product detail page. The resolved view
+/// model travels as route `extra` because the catalog is generated per session.
+void openProductDetail(BuildContext context, ProductDetail detail) {
+  context.push(
+    AppRouteNames.productDetailPath(detail.segment.slug, detail.id),
+    extra: detail,
+  );
+}
+
+void openDiamondDetail(BuildContext context, Diamond diamond) =>
+    openProductDetail(context, diamondProductDetail(diamond));
+
+void openGemstoneDetail(BuildContext context, Gemstone gemstone) =>
+    openProductDetail(context, gemstoneProductDetail(gemstone));
+
+void openJewelryDetail(BuildContext context, Jewelry jewelry) =>
+    openProductDetail(context, jewelryProductDetail(jewelry));
+
+void openWatchDetail(BuildContext context, Watch watch) =>
+    openProductDetail(context, watchProductDetail(watch));
+
+void openBullionDetail(BuildContext context, Bullion bullion) =>
+    openProductDetail(context, bullionProductDetail(bullion));

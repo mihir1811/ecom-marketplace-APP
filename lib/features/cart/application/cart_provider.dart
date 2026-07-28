@@ -99,6 +99,16 @@ class CartNotifier extends Notifier<CartState> {
     );
   }
 
+  bool contains(String id) => state.items.any((e) => e.id == id);
+
+  /// Adds [item] unless the same product is already in the cart.
+  /// Returns `true` when the cart changed.
+  bool addItem(CartItem item) {
+    if (contains(item.id)) return false;
+    state = state.copyWith(items: [...state.items, item]);
+    return true;
+  }
+
   void removeItem(String id) {
     state = state.copyWith(
       items: state.items.where((e) => e.id != id).toList(),
