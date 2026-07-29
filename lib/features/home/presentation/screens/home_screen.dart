@@ -240,6 +240,22 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  Text(
+                    '·',
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.textMutedLight,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => context.push(AppRouteNames.policies),
+                    child: Text(
+                      'Policies',
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.bronze,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -5,6 +5,9 @@ class AppRouteNames {
   static const String home = '/';
   static const String aboutUs = '/about';
   static const String termsAndConditions = '/terms';
+  static const String policies = '/policies';
+  static const String policyDetail = '/policies/:policyId';
+  static String policyPath(String policyId) => '/policies/$policyId';
   static const String diamonds = '/diamonds';
   static const String diamondResults = '/diamonds/results';
   static const String labGrownDiamonds = '/diamonds/lab-grown';

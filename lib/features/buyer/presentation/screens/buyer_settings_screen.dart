@@ -107,6 +107,14 @@ class _BuyerSettingsScreenState extends ConsumerState<BuyerSettingsScreen> {
               const Divider(height: 1),
               ListTile(
                 contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.gavel_outlined),
+                title: const Text('Policies & Legal'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRouteNames.policies),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.description_outlined),
                 title: const Text('Terms & Conditions'),
                 trailing: const Icon(Icons.chevron_right),

@@ -68,6 +68,7 @@ flutter:
     - public/images/jewelryCategoryImages/
     - public/images/watch_logo/
     - assets/shapes/
+    - assets/policies/policies.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

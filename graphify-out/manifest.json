@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "lib/core/router/route_names.dart": {
-    "mtime": 1785227305.8425329,
-    "ast_hash": "0605e6a5a3edee066437d6f1671940f0",
+    "mtime": 1785307679.9590807,
+    "ast_hash": "ad11e0a776f255734d03197555b8f972",
     "semantic_hash": ""
   },
   "lib/core/theme/app_colors.dart": {
@@ -275,8 +275,8 @@
     "semantic_hash": "ccbe1f60625f39cbd6c1c23fcb13b4f1"
   },
   "lib/features/home/presentation/screens/home_screen.dart": {
-    "mtime": 1785232447.0469239,
-    "ast_hash": "777197941e88db790dee3e15247dbe62",
+    "mtime": 1785307136.4595075,
+    "ast_hash": "4198756530d907ce44001e756d119a40",
     "semantic_hash": ""
   },
   "lib/main.dart": {
@@ -804,31 +804,6 @@
     "ast_hash": "336aff3d84e97f0523ccff1da42b7830",
     "semantic_hash": ""
   },
-  ".cursor/skills/project-context/SKILL.md": {
-    "mtime": 1784532647.525354,
-    "ast_hash": "fded014726e8e0180a9fafe6daa04357",
-    "semantic_hash": ""
-  },
-  ".cursor/skills/project-context/references/business-rules.md": {
-    "mtime": 1784532647.525354,
-    "ast_hash": "e6f820711a4c6bd956c29ec0187efdc8",
-    "semantic_hash": ""
-  },
-  ".cursor/skills/project-context/references/feature-map.md": {
-    "mtime": 1784532647.525354,
-    "ast_hash": "a03e519c37a33bd79e0069484e630301",
-    "semantic_hash": ""
-  },
-  ".cursor/skills/project-context/references/project-overview.md": {
-    "mtime": 1784532647.525354,
-    "ast_hash": "73cd4d66b30cf1022a8d6d5bc18a46b5",
-    "semantic_hash": ""
-  },
-  ".cursor/skills/project-context/references/user-flow.md": {
-    "mtime": 1784532647.525354,
-    "ast_hash": "ed287a3c3e82e0e3142eced54c2c3119",
-    "semantic_hash": ""
-  },
   ".opencode/agents/design-ui-designer.md": {
     "mtime": 1784532647.525354,
     "ast_hash": "a54921757ccd7c1a2f96421800815ccc",
@@ -1015,8 +990,8 @@
     "semantic_hash": ""
   },
   "pubspec.yaml": {
-    "mtime": 1785224590.3079753,
-    "ast_hash": "0ba8e4e0adc80e4fe51b36d0b1da4b40",
+    "mtime": 1785307680.6469474,
+    "ast_hash": "440565f2e12f29e78d0ff02cc41621d2",
     "semantic_hash": ""
   },
   "web/index.html": {
@@ -2125,8 +2100,8 @@
     "semantic_hash": ""
   },
   "lib/features/comparison/presentation/widgets/compare_add_button.dart": {
-    "mtime": 1784713750.1132886,
-    "ast_hash": "97cbd8eba7d9f6ac5f2806e8f3754b8c",
+    "mtime": 1785244661.9318237,
+    "ast_hash": "f309361e94f6ad0351bbf9f789cd85ff",
     "semantic_hash": ""
   },
   "lib/features/comparison/presentation/widgets/compare_toggle_helper.dart": {
@@ -2430,8 +2405,8 @@
     "semantic_hash": ""
   },
   "lib/features/buyer/presentation/screens/buyer_settings_screen.dart": {
-    "mtime": 1785154999.3169625,
-    "ast_hash": "900f572ceb2cdd0f7474ae5232bcc618",
+    "mtime": 1785307044.5445662,
+    "ast_hash": "16a2d49e874b7bbd3c08a60d1b27672b",
     "semantic_hash": ""
   },
   "lib/features/buyer/presentation/screens/buyer_wishlist_screen.dart": {
@@ -2485,18 +2460,13 @@
     "semantic_hash": ""
   },
   "lib/features/info/info_routes.dart": {
-    "mtime": 1785154995.3742652,
-    "ast_hash": "74f74e456f14ba263649ff64d9a64f9d",
+    "mtime": 1785307679.177105,
+    "ast_hash": "f4c510f5cfb8732c398b6b5917bea5a6",
     "semantic_hash": ""
   },
   "lib/features/info/presentation/screens/about_us_screen.dart": {
     "mtime": 1785156023.8987744,
     "ast_hash": "afa8e36583570924491435b116aa2eb3",
-    "semantic_hash": ""
-  },
-  "lib/features/info/presentation/screens/terms_and_conditions_screen.dart": {
-    "mtime": 1785156234.8476138,
-    "ast_hash": "9011143fb297c7692d45d618d79e3ed5",
     "semantic_hash": ""
   },
   "lib/features/product_detail/domain/adapters/bullion_product_detail.dart": {
@@ -2647,6 +2617,31 @@
   "lib/core/utils/app_currency.dart": {
     "mtime": 1785238455.3059013,
     "ast_hash": "03377f1a0cd52146c5a27132f2632b3d",
+    "semantic_hash": ""
+  },
+  "lib/features/info/domain/models/policy_document.dart": {
+    "mtime": 1785307647.695588,
+    "ast_hash": "fdcf85b0302d5e76e5a4bb07e8cdddb0",
+    "semantic_hash": ""
+  },
+  "lib/features/info/presentation/screens/policies_hub_screen.dart": {
+    "mtime": 1785307677.1400812,
+    "ast_hash": "b3c56d05157b06d2f459808d9d9132b6",
+    "semantic_hash": ""
+  },
+  "assets/policies/policies.json": {
+    "mtime": 1785307585.7958438,
+    "ast_hash": "f8a16f88afa111eb27493f4e9e0a8754",
+    "semantic_hash": ""
+  },
+  "lib/features/info/data/policies_repository.dart": {
+    "mtime": 1785307665.4477603,
+    "ast_hash": "2f051d41c011a85a673361094f92acad",
+    "semantic_hash": ""
+  },
+  "lib/features/info/presentation/screens/policy_detail_screen.dart": {
+    "mtime": 1785307674.9284406,
+    "ast_hash": "f7bf26746dd74d70506ca2aed87615f6",
     "semantic_hash": ""
   }
 }

@@ -1,0 +1,838 @@
+{
+  "policies": [
+    {
+      "id": "terms",
+      "title": "Terms & Conditions",
+      "subtitle": "Marketplace use, accounts, auctions, and liability",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "27 July 2026",
+      "intro": "Welcome to GemWorld. These Terms & Conditions (\"Terms\") govern the use of our platform by buyers, sellers, visitors, and auction participants.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Definitions",
+          "paragraphs": [
+            "In these Terms:"
+          ],
+          "bullets": [
+            "Platform means the GemWorld online marketplace, including its websites, applications, and related services.",
+            "Buyer means any registered user purchasing products or participating in auctions.",
+            "Seller means any registered business or individual authorized to list products.",
+            "Products include Natural Diamonds, Lab-Grown Diamonds, Gemstones, Jewelry, Watches, Bullion Products, and Accessories.",
+            "Auction means any timed bidding event conducted through the Platform.",
+            "User means any buyer, seller, visitor, or auction participant using the Platform.",
+            "Order means a request to purchase one or more Products through the Platform."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Eligibility & Accounts",
+          "paragraphs": [
+            "Users must be at least 18 years old or otherwise have full legal capacity under applicable law.",
+            "Businesses registering as sellers must provide accurate business identity, tax, and KYC information as requested during onboarding.",
+            "Users must provide accurate information, keep it updated, maintain credential confidentiality, and notify the Platform of unauthorized access. Users are responsible for all activity under their account.",
+            "The Platform may refuse registration or suspend or terminate any account if fraudulent, illegal, or policy-violating activity is suspected. Providing false identity, fake documents, or stolen credentials may result in immediate suspension or permanent termination."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Marketplace Role",
+          "paragraphs": [
+            "The Platform provides technology to connect buyers and sellers.",
+            "Unless specifically stated for a particular listing or transaction, GemWorld is not the owner, manufacturer, or certifier of products listed by independent sellers.",
+            "GemWorld may facilitate payments, messaging, dispute handling, and logistics coordination without becoming a party to every buyer–seller contract unless expressly stated.",
+            "The Platform may verify, remove, suspend, or reject any listing, seller, or buyer activity."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Products & Certifications",
+          "paragraphs": [
+            "Product specifications, grading reports, certifications, weights, measurements, colors, clarity, metal purity, and images are provided for informational purposes.",
+            "Slight variations due to photography, monitor settings, lighting, manufacturing tolerances, or natural characteristics are not considered defects.",
+            "Where applicable, diamonds may include grading reports from recognized laboratories; gemstones, bullion, and watches may include certificates or authenticity documentation shown on the listing.",
+            "Buyers should review available documentation before purchasing. Certification does not guarantee future resale value."
+          ]
+        },
+        {
+          "number": "5",
+          "title": "Pricing",
+          "paragraphs": [
+            "Prices are displayed in the applicable marketplace currency (primarily Indian Rupees (INR) unless otherwise stated).",
+            "The Platform may correct pricing errors, cancel orders with obvious pricing mistakes, modify pricing, and apply taxes (including GST where applicable), duties, shipping, insurance, or service fees."
+          ]
+        },
+        {
+          "number": "6",
+          "title": "Orders & Payment",
+          "paragraphs": [
+            "Placing an order does not guarantee acceptance. An order becomes binding only when confirmed by the Platform and/or seller according to checkout terms.",
+            "Orders may be cancelled due to product unavailability, pricing errors, suspected fraud, payment failure, compliance or KYC requirements, trade restrictions, or seller inventory conflicts.",
+            "Accepted payment methods may include bank transfer, cards, UPI and similar gateways, wallets, and other approved methods. Orders are not processed until payment is verified.",
+            "The Platform may request identity or source-of-funds verification for high-value transactions. Chargebacks filed in bad faith may result in account restrictions. Refunds for cancelled orders follow the Refund Policy."
+          ]
+        },
+        {
+          "number": "7",
+          "title": "Auction Terms",
+          "paragraphs": [
+            "Only verified users may participate. Every bid is legally binding. Fake bidding, shill bidding, bid manipulation, or collusion is prohibited.",
+            "The highest valid bidder at auction close must complete payment within 48 hours. Failure to pay may result in bid cancellation, auction suspension, penalties where permitted, and account restrictions.",
+            "The Platform may cancel or suspend an auction for fraud, listing errors, unavailability, technical issues, or seller rule violations. Bids generally cannot be withdrawn except in exceptional circumstances determined by the Platform."
+          ]
+        },
+        {
+          "number": "8",
+          "title": "Seller Obligations",
+          "paragraphs": [
+            "Sellers must list genuine products, describe them accurately, upload authentic images, provide correct certifications, maintain inventory accuracy, ship within required timelines, comply with applicable laws and tax obligations, and pay marketplace fees on time.",
+            "Sellers must not sell counterfeit, stolen, or illegally sourced goods; misrepresent quality, origin, treatment, or certification; manipulate prices or reviews; circumvent platform fees; or conduct off-platform transactions after a GemWorld introduction.",
+            "Repeated cancellations due to unavailable inventory, or other violations, may result in listing removal, fee recovery, reduced visibility, suspension, or permanent removal."
+          ]
+        },
+        {
+          "number": "9",
+          "title": "Shipping, Returns & Refunds",
+          "paragraphs": [
+            "Shipping times are estimates. Delays from customs, natural disasters, courier issues, or similar events do not constitute a breach of these Terms.",
+            "Risk of loss and title transfer according to the shipping terms stated at checkout. Buyers must provide accurate addresses and are responsible for destination duties and taxes unless otherwise stated.",
+            "Buyers should inspect products on delivery and promptly report damage, shortage, or discrepancy with supporting documentation through official support channels.",
+            "Returns follow the Return Policy. Returned products must generally be unused, unaltered, in original packaging, and accompanied by certificates. Customized, made-to-order, or marked non-returnable items may have limited return rights except where required by law.",
+            "Approved refunds are processed via the original payment method where possible; processing times vary by payment provider."
+          ]
+        },
+        {
+          "number": "10",
+          "title": "Trade Compliance",
+          "paragraphs": [
+            "Users must comply with applicable export, import, customs, sanctions, and anti-money-laundering laws.",
+            "Sellers of natural diamonds represent that goods are not knowingly conflict diamonds and, where applicable, comply with Kimberley Process or equivalent requirements.",
+            "GemWorld may request sourcing declarations, KYC documents, or transaction records. Users must not use the Platform to launder money, evade taxes, or circumvent sanctions."
+          ]
+        },
+        {
+          "number": "11",
+          "title": "Prohibited Activities",
+          "paragraphs": [
+            "Users may not commit fraud; use stolen payment methods; engage in money laundering; manipulate auctions; submit fake reviews; impersonate others; upload malware; attempt unauthorized access; scrape marketplace data without authorization; harass users or staff; or interfere with Platform security, availability, or fair pricing."
+          ]
+        },
+        {
+          "number": "12",
+          "title": "Intellectual Property & User Content",
+          "paragraphs": [
+            "Platform content — including logos, software, text, graphics, and designs — is protected by intellectual property laws. Unauthorized use is prohibited.",
+            "By submitting reviews, photographs, messages, chatbot conversations, or other content, users grant GemWorld a non-exclusive, worldwide, royalty-free license to host, display, and use that content for marketplace operations and promotion.",
+            "Users represent that their content does not infringe third-party rights and is not unlawful or misleading. GemWorld may remove content that violates these Terms."
+          ]
+        },
+        {
+          "number": "13",
+          "title": "AI Chatbot & Model Training",
+          "paragraphs": [
+            "GemWorld may offer an AI-powered chatbot to help users browse products and get support.",
+            "By using the chatbot, you agree that GemWorld may collect, store, and process chat conversations to improve the assistant, train and evaluate AI models, detect abuse, and maintain support records.",
+            "Where reasonably practicable, personal identifiers may be anonymized before model training. Do not share passwords, payment card numbers, or government ID numbers in chat. Chat data is retained according to the Privacy Policy. Continued use after updates constitutes acceptance of revised data-use terms."
+          ]
+        },
+        {
+          "number": "14",
+          "title": "Liability & Indemnification",
+          "paragraphs": [
+            "To the maximum extent permitted by law, the Platform is not liable for indirect, incidental, special, punitive, or consequential damages, including lost profits or data.",
+            "Except where prohibited by law, GemWorld's aggregate liability for any claim shall not exceed the fees paid to GemWorld for the specific transaction giving rise to the claim.",
+            "Nothing in these Terms excludes liability for fraud, willful misconduct, or liability that cannot be limited under applicable law.",
+            "Users agree to indemnify GemWorld and its affiliates from claims arising from misuse of the Platform, breach of these Terms, infringement of third-party rights, or unlawful listings or purchases."
+          ]
+        },
+        {
+          "number": "15",
+          "title": "Suspension, Disputes & Governing Law",
+          "paragraphs": [
+            "Accounts may be suspended or terminated for fraud, non-payment, counterfeit listings, policy violations, auction manipulation, chargeback abuse, or illegal activities.",
+            "Users should first attempt to resolve disputes through the Platform's dispute process. These Terms are governed by the laws of India; courts in India have jurisdiction subject to mandatory consumer protection rights.",
+            "Provisions that by nature should survive (including intellectual property, indemnification, limitation of liability, and dispute resolution) survive termination."
+          ]
+        },
+        {
+          "number": "16",
+          "title": "Changes & General",
+          "paragraphs": [
+            "The Platform may modify these Terms by posting an updated version. Continued use constitutes acceptance. Material changes may also be communicated by notice or email where practicable.",
+            "If any provision is held invalid, the remaining provisions continue in force. These Terms, together with the Privacy Policy, Return Policy, Refund Policy, and related category policies, constitute the entire agreement regarding use of the marketplace.",
+            "Personal information is processed under the Privacy Policy. Questions may be submitted through official support channels, including the Help Center."
+          ]
+        }
+      ],
+      "secondaryIntro": "By creating an account, browsing, listing products, placing bids, purchasing, using our AI chatbot, or using any Platform services, you agree to these Terms — including consent to chatbot conversation data being used to train and improve our AI models."
+    },
+    {
+      "id": "privacy",
+      "title": "Privacy Policy",
+      "subtitle": "How we collect, use, and protect your data",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Privacy Policy explains how GemWorld (\"Platform\", \"we\", \"us\") collects, uses, stores, and shares personal information when you use our marketplace for natural diamonds, lab-grown diamonds, gemstones, jewelry, watches, bullion, and related services.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Information We Collect",
+          "paragraphs": [
+            "We collect information you provide and information generated through your use of the Platform."
+          ],
+          "bullets": [
+            "Account details: name, email, phone, password, business name, GST/tax IDs, and KYC documents where required.",
+            "Profile and preferences: saved searches, wishlist items, communication preferences, and language/currency settings.",
+            "Transaction data: orders, bids, invoices, shipping addresses, payment confirmation metadata, and dispute records.",
+            "Seller data: listings, certifications, inventory, payout details, and seller performance metrics.",
+            "Device and usage data: IP address, device type, browser, app version, pages viewed, and approximate location derived from IP.",
+            "Support and AI chatbot conversations used to resolve issues and improve assistance (see Terms §13).",
+            "Cookies and similar technologies as described in our Cookies Policy."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Why We Collect Information",
+          "paragraphs": [
+            "We use personal information only for legitimate marketplace purposes."
+          ],
+          "bullets": [
+            "Create and secure accounts; verify identity for high-value orders or seller onboarding.",
+            "Process orders, auctions, payments, refunds, and deliveries.",
+            "Display listings, enable comparisons, inquiries, messaging, and reviews.",
+            "Detect fraud, fake bidding, money-laundering risks, and policy abuse.",
+            "Provide customer support and improve product discovery and AI assistance.",
+            "Send transactional notices (order status, bidding, security alerts) and, where permitted, marketing communications you can opt out of.",
+            "Comply with tax, customs, sanctions, and other legal obligations."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Cookies",
+          "paragraphs": [
+            "GemWorld and its partners use essential, analytics, and marketing cookies to operate the site, measure performance, and personalize content. Details and control options are in the Cookies Policy. Disabling essential cookies may limit checkout, login, or security features."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Payment Security",
+          "paragraphs": [
+            "Payment card and UPI processing is handled by approved payment gateways. GemWorld does not store full card numbers or CVV on its servers. We receive limited confirmation data (status, reference IDs, last digits where provided) needed to fulfill orders and prevent fraud. High-value transactions may require additional identity or source-of-funds verification."
+          ]
+        },
+        {
+          "number": "5",
+          "title": "Data Sharing",
+          "paragraphs": [
+            "We do not sell personal data. We share information only as needed to operate the marketplace:"
+          ],
+          "bullets": [
+            "With the other party to a transaction (buyer or seller) for order fulfillment, shipping, and dispute resolution.",
+            "With payment processors, logistics partners, certification labs (when you request verification services), and cloud/IT providers under contracts.",
+            "With regulators, courts, or law enforcement when legally required.",
+            "In connection with a merger, acquisition, or corporate reorganization, subject to appropriate safeguards."
+          ],
+          "closing": "Buyers and sellers must not move transactions off-platform. GemWorld is not responsible for privacy or losses from off-platform dealings."
+        },
+        {
+          "number": "6",
+          "title": "Your Rights",
+          "paragraphs": [
+            "Subject to applicable Indian law (including the Digital Personal Data Protection Act, 2023, where applicable), you may request:"
+          ],
+          "bullets": [
+            "Access to personal data we hold about you.",
+            "Correction of inaccurate or incomplete information.",
+            "Withdrawal of consent for optional processing (e.g. marketing).",
+            "Deletion or restriction where legally available, subject to retention needed for transactions, disputes, fraud prevention, and legal compliance.",
+            "Grievance redressal via support@gemworld.com or the Help Center."
+          ]
+        },
+        {
+          "number": "7",
+          "title": "Data Retention",
+          "paragraphs": [
+            "We retain account and transaction records for as long as your account is active and thereafter as required for tax, accounting, dispute, AML, and legal purposes. Chatbot logs and support tickets are retained for service improvement and abuse detection, then deleted or anonymized according to our retention schedule. Inactive accounts may be archived or deleted after notice where practicable."
+          ]
+        },
+        {
+          "number": "8",
+          "title": "Security & Updates",
+          "paragraphs": [
+            "We use administrative, technical, and organizational measures appropriate to the sensitivity of jewelry and diamond marketplace data. No method of transmission is fully secure; please protect your credentials and never share passwords or card numbers in chat.",
+            "We may update this Policy by posting a revised version. Continued use of GemWorld after updates means acceptance of the revised Policy."
+          ]
+        }
+      ],
+      "secondaryIntro": "By creating an account, browsing, purchasing, listing, bidding, or continuing to use GemWorld after updates, you accept this Policy. Please also read our Terms & Conditions and Cookies Policy."
+    },
+    {
+      "id": "refund-return",
+      "title": "Refund & Return Policy",
+      "subtitle": "Returns, custom items, auctions, and refunds",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Policy explains when buyers may return products purchased on GemWorld and how refunds are processed for natural diamonds, lab-grown diamonds, gemstones, jewelry, watches, bullion, and accessories.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Return Period",
+          "paragraphs": [
+            "Unless a listing states otherwise, eligible standard (non-auction, non-custom) purchases may be returned within 7 days of delivery, provided the request is submitted through official GemWorld channels with order details and supporting photos where relevant.",
+            "Return windows for watches, bullion, or special collections may differ and will be shown on the listing or checkout page."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Eligible Products",
+          "paragraphs": [
+            "Returns are generally accepted when all of the following apply:"
+          ],
+          "bullets": [
+            "The product is unused, unworn, unaltered, and in original condition.",
+            "Original packaging, tags, seals, and grading certificates / authenticity documents are included.",
+            "The product matches the order and is not marked non-returnable.",
+            "The buyer followed inspection guidance and reported issues promptly."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Non-Returnable Products",
+          "paragraphs": [
+            "Unless defective or required by law, the following are typically non-returnable:"
+          ],
+          "bullets": [
+            "Customized, engraved, resized, or made-to-order jewelry.",
+            "Products with broken seals, missing certificates, or signs of wear or alteration.",
+            "Items explicitly marked as final sale or non-returnable on the listing.",
+            "Digital services, insurance add-ons, or platform fees once consumed.",
+            "Bullion where market price movement or opened packaging makes resale impractical under listing terms."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Customized Jewelry",
+          "paragraphs": [
+            "Customized or engraved items are made to buyer specifications and are not eligible for return or refund unless they arrive defective, damaged in transit, or materially different from the approved customization brief. Buyers must confirm designs, sizes, metals, and engravings before production begins."
+          ]
+        },
+        {
+          "number": "5",
+          "title": "Auction Purchases",
+          "paragraphs": [
+            "Winning auction bids are binding. Auction purchases are generally final once payment is completed, except where the item is significantly not as described, counterfeit, or arrives damaged with supporting evidence. Failure to pay within 48 hours may lead to bid cancellation, temporary account block, and other penalties under the Auction Policy."
+          ]
+        },
+        {
+          "number": "6",
+          "title": "Refund Timeline",
+          "paragraphs": [
+            "After GemWorld and/or the seller approve a return and receive the product in acceptable condition (and complete any authenticity check), refunds are initiated to the original payment method where possible.",
+            "Bank, card, and UPI providers typically post refunds within 5–10 business days after initiation; exact timing depends on the payment provider. Marketplace fees may be adjusted according to the reason for return."
+          ]
+        },
+        {
+          "number": "7",
+          "title": "Damaged or Incorrect Items",
+          "paragraphs": [
+            "Inspect packages on delivery. If an item is damaged, incomplete, or incorrect, report it promptly via the Help Center with photos of the packaging, product, and certificate. Do not discard packaging until the claim is resolved.",
+            "Approved damaged or incorrect shipments may be replaced or refunded. GemWorld may cancel suspicious orders or claims. Off-platform settlements are not supported and are undertaken at the user’s own risk."
+          ]
+        },
+        {
+          "number": "8",
+          "title": "Bullion & Market Notes",
+          "paragraphs": [
+            "Bullion prices may change due to market fluctuations. Refunds for eligible bullion returns may reflect listing terms regarding price movement, packaging integrity, and assay/certificate requirements. Continued use of GemWorld means acceptance of updates to this Policy."
+          ]
+        }
+      ],
+      "secondaryIntro": "All prices, weights, measurements, and numerical values on listings are approximate and as accurate as reasonably possible. Natural diamonds and gemstones may have natural variations; lab-grown diamonds may have slight manufacturing variations. Product images are for reference; colors may vary by screen."
+    },
+    {
+      "id": "shipping-delivery",
+      "title": "Shipping & Delivery Policy",
+      "subtitle": "Processing, insurance, customs, and delays",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Policy describes how GemWorld orders for diamonds, gemstones, jewelry, watches, and bullion are processed, insured, and delivered.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Shipping Methods",
+          "paragraphs": [
+            "Orders ship via GemWorld-approved courier partners suitable for high-value goods. Available methods (standard, express, or insured specialty) appear at checkout and may vary by product category, seller location, and destination."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Processing Time",
+          "paragraphs": [
+            "Sellers typically process confirmed, paid orders within 1–3 business days, excluding customization lead times. High-value orders may be held pending identity verification. Auction wins are processed after payment clears within the required 48-hour window."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Delivery Estimates",
+          "paragraphs": [
+            "Domestic Indian deliveries commonly take 2–7 business days after dispatch, depending on destination and courier. International timelines vary and may include customs clearance. Estimates shown at checkout are not guarantees."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Insurance",
+          "paragraphs": [
+            "Eligible high-value shipments may include transit insurance arranged by the seller, GemWorld, or the courier as indicated at checkout. Coverage terms, deductibles, and claim procedures follow the insurer’s policy. Buyers should keep packaging and claim evidence."
+          ]
+        },
+        {
+          "number": "5",
+          "title": "Customs Duties & Taxes",
+          "paragraphs": [
+            "For cross-border shipments, buyers are responsible for customs duties, GST/VAT, brokerage, and import charges unless the listing expressly states otherwise. Incorrect addresses or refused customs clearance may delay delivery or incur return costs."
+          ]
+        },
+        {
+          "number": "6",
+          "title": "Lost Packages",
+          "paragraphs": [
+            "If tracking shows no movement beyond the expected window, contact support with the order ID. GemWorld will coordinate with the seller and courier. Proven loss under insured transit may result in replacement or refund per insurance and listing terms."
+          ]
+        },
+        {
+          "number": "7",
+          "title": "Delivery Delays",
+          "paragraphs": [
+            "Delays from customs inspections, weather, natural disasters, courier disruptions, incorrect addresses, or buyer unavailability do not constitute a Platform breach. Provide accurate addresses and be available for OTP or ID checks common for jewelry deliveries.",
+            "Buyers and sellers must complete transactions on GemWorld. The Platform is not responsible for shipping arranged outside the Platform."
+          ]
+        }
+      ],
+      "secondaryIntro": "Shipping delays caused by customs, weather, courier capacity, strikes, or force majeure are outside GemWorld’s direct control. Users are responsible for applicable taxes, duties, and import charges where required."
+    },
+    {
+      "id": "seller",
+      "title": "Seller Policy",
+      "subtitle": "Listing rules, authenticity, and penalties",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Seller Policy sets rules for businesses and individuals listing products on GemWorld. Sellers must provide genuine products, accurate information, and professional fulfillment for diamonds, gemstones, jewelry, watches, bullion, and accessories.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Listing Products",
+          "paragraphs": [
+            "Sellers must keep inventory accurate and publish complete listings with category, specifications, pricing, shipping terms, and return notes where applicable."
+          ],
+          "bullets": [
+            "Use clear titles and truthful descriptions for natural vs lab-grown diamonds, treatments, origin, and metal purity.",
+            "Disclose approximate weights, measurements, and prices as accurately as reasonably possible.",
+            "Upload real product images; stock or borrowed images are prohibited unless clearly disclosed and permitted.",
+            "Update or delist items that are sold, reserved, or no longer available."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Genuine Products Only",
+          "paragraphs": [
+            "Only authentic, legally owned goods may be sold. Stolen, conflict, or illegally sourced merchandise is forbidden. Natural diamond sellers represent that goods are not knowingly conflict diamonds and, where applicable, comply with Kimberley Process or equivalent requirements."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Certifications",
+          "paragraphs": [
+            "Where a listing references GIA, IGI, or other lab reports, certificates, hallmarking, or watch authenticity papers, sellers must provide matching documentation and ship certificates with the product. Misrepresenting grading, treatment, or authenticity is grounds for immediate action."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Shipping Responsibilities",
+          "paragraphs": [
+            "Sellers must pack securely, ship within stated processing times, use approved methods for high-value goods, provide tracking, and cooperate on insurance claims. Delays outside the seller’s control (customs, weather, courier issues) should be communicated promptly to the buyer through Platform channels."
+          ]
+        },
+        {
+          "number": "5",
+          "title": "No Counterfeit Goods",
+          "paragraphs": [
+            "Counterfeit jewelry, fake certificates, replica watches sold as genuine, and adulterated bullion are strictly prohibited. GemWorld may require third-party verification and may permanently remove accounts involved in counterfeits."
+          ]
+        },
+        {
+          "number": "6",
+          "title": "No Off-Platform Sales",
+          "paragraphs": [
+            "Sellers must not solicit buyers to complete payment, shipping, or after-sales deals outside GemWorld after a Platform introduction. Circumventing fees or moving deals off-platform is prohibited. GemWorld is not responsible for any off-platform transaction."
+          ]
+        },
+        {
+          "number": "7",
+          "title": "Seller Penalties",
+          "paragraphs": [
+            "Penalties may apply for fake listings, late shipments without cause, excessive cancellations, review manipulation, auction abuse, non-genuine goods, or policy breaches:"
+          ],
+          "bullets": [
+            "Warning and mandatory listing corrections.",
+            "Temporary listing freeze or search demotion.",
+            "Fee recovery, hold on payouts, or order cancellation.",
+            "Suspension or permanent removal of the seller account."
+          ],
+          "closing": "Continued use of GemWorld as a seller constitutes acceptance of updates to this Policy and related marketplace rules."
+        }
+      ],
+      "secondaryIntro": "Violations may result in listing removal, fee recovery, reduced visibility, temporary suspension, or permanent account removal. GemWorld may cancel suspicious listings or orders at any time."
+    },
+    {
+      "id": "buyer",
+      "title": "Buyer Policy",
+      "subtitle": "Verification, payment, and auction obligations",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Buyer Policy explains buyer responsibilities when shopping, bidding, and communicating on GemWorld.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Account Verification",
+          "paragraphs": [
+            "Buyers must be at least 18 years old (or have legal capacity), provide accurate registration details, and keep contact information current. GemWorld may request KYC or additional verification for high-value purchases, international orders, or risk signals."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Payment Responsibility",
+          "paragraphs": [
+            "Buyers must use legitimate payment methods they are authorized to use, complete payment for confirmed orders and auction wins, and pay applicable taxes, duties, and import charges where required. Chargebacks filed in bad faith may lead to account restrictions."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Inspect Products",
+          "paragraphs": [
+            "Review listing details, certificates, and images before purchase. On delivery, inspect the product, packaging, and documents. Report damage, shortage, or material discrepancies promptly through official support channels with evidence.",
+            "Natural diamonds and gemstones may show natural variations; lab-grown diamonds may have slight manufacturing variations; screen colors may differ from physical appearance. These alone are not defects."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Auction Obligations",
+          "paragraphs": [
+            "Every bid is binding. Winning bidders must pay within 48 hours (1–2 days). Failure to pay may result in bid cancellation, temporary block, and further penalties under the Auction Policy."
+          ]
+        },
+        {
+          "number": "5",
+          "title": "Respect Marketplace Rules",
+          "paragraphs": [
+            "Buyers must not harass sellers or staff, submit fake reviews, attempt to buy stolen or restricted goods, scrape data, or complete transactions outside the Platform. Off-platform deals are unsupported and at the buyer’s sole risk.",
+            "Continued use of GemWorld means acceptance of updated policies."
+          ]
+        }
+      ],
+      "secondaryIntro": "Fake bids, fraudulent activity, and account misuse are prohibited. High-value orders may require identity verification. The Platform may suspend or permanently remove accounts that violate policies."
+    },
+    {
+      "id": "auction",
+      "title": "Auction Policy",
+      "subtitle": "Bidding, 48-hour payment, and fake bids",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Auction Policy governs timed bidding events on GemWorld for eligible diamonds, gemstones, jewelry, watches, bullion, and other catalog items.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Bidding Rules",
+          "paragraphs": [
+            "Only verified users may bid. Bids must meet minimum increments and any reserve rules shown on the auction page. Bids are irrevocable except in exceptional cases determined by GemWorld (for example, clear technical error)."
+          ],
+          "bullets": [
+            "Do not use multiple accounts to influence an auction.",
+            "Do not coordinate with sellers or other bidders to manipulate outcomes.",
+            "Review product details, certificates, and approximate specs before bidding."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Winning Bidder Obligations",
+          "paragraphs": [
+            "The highest valid bidder at close wins, subject to reserve and Platform verification. The winner must complete checkout, provide a valid shipping address, and cooperate with any required identity checks."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Payment Within 48 Hours",
+          "paragraphs": [
+            "Full payment for the winning bid (plus applicable taxes, fees, and shipping shown at checkout) is due within 48 hours of auction close unless a listing states a shorter window. Orders are not processed until payment is verified."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Temporary Block for Non-Payment",
+          "paragraphs": [
+            "Failure to pay on time may result in cancellation of the win, temporary bidding or account blocks, loss of auction privileges, and, for repeated offenses, permanent removal. Sellers may be permitted to re-list the item."
+          ]
+        },
+        {
+          "number": "5",
+          "title": "Fake Bidding Prohibited",
+          "paragraphs": [
+            "Shill bidding, fake bids, bid retraction abuse, collusion, and any activity intended to artificially inflate prices are prohibited and may lead to immediate suspension and legal referral where appropriate."
+          ]
+        },
+        {
+          "number": "6",
+          "title": "Auction Cancellation",
+          "paragraphs": [
+            "GemWorld may cancel or suspend an auction for fraud, listing errors, product unavailability, technical failures, seller violations, or suspicious activity. Where an auction is cancelled before payment completion, winning obligations are released. Material policy updates apply on continued use of the Platform."
+          ]
+        }
+      ],
+      "secondaryIntro": "Winning auction bidders must pay within 1–2 days (48 hours). Fake bids, fraudulent activity, and account misuse are prohibited."
+    },
+    {
+      "id": "payment",
+      "title": "Payment Policy",
+      "subtitle": "Methods, verification, taxes, and chargebacks",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Payment Policy describes how buyers pay for marketplace and auction purchases on GemWorld and how payment issues are handled.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Accepted Payment Methods",
+          "paragraphs": [
+            "Accepted methods may include UPI, credit/debit cards, net banking, approved wallets, bank transfer, and other gateways enabled for your region. Availability can vary by order value and risk checks. Prices are primarily shown in Indian Rupees (INR) unless otherwise stated."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Payment Verification",
+          "paragraphs": [
+            "Orders and auction wins are processed only after payment is successfully verified. GemWorld or its payment partners may request additional verification (OTP, 3-D Secure, KYC, or source-of-funds) especially for high-value jewelry, diamond, or bullion orders."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Failed Payments",
+          "paragraphs": [
+            "If payment fails, expires, or is reversed before confirmation, the order may be cancelled and inventory released. For auctions, failed or incomplete payment within 48 hours is treated as non-payment under the Auction Policy."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Currency Conversion",
+          "paragraphs": [
+            "If your bank or card issues in a currency other than the checkout currency, your provider’s conversion rates and fees apply. Bullion and some precious-metal linked prices may change with market fluctuations before payment is captured."
+          ]
+        },
+        {
+          "number": "5",
+          "title": "Taxes",
+          "paragraphs": [
+            "Applicable GST and other taxes may be calculated at checkout. Import duties and destination taxes for cross-border deliveries are generally the buyer’s responsibility unless expressly stated otherwise on the listing."
+          ]
+        },
+        {
+          "number": "6",
+          "title": "Chargebacks",
+          "paragraphs": [
+            "Contact GemWorld support before filing a chargeback so we can investigate. Chargebacks filed in bad faith, or to avoid valid auction obligations, may result in account suspension or permanent removal. Legitimate payment disputes are reviewed under the Contact & Dispute Policy.",
+            "Continued use of GemWorld after updates constitutes acceptance of this Payment Policy."
+          ]
+        }
+      ],
+      "secondaryIntro": "High-value orders may require identity verification. Users are responsible for applicable taxes, duties, and import charges where required."
+    },
+    {
+      "id": "product-listing",
+      "title": "Product Listing Policy",
+      "subtitle": "Accurate descriptions, images, and certifications",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Policy sets content standards for every GemWorld listing across natural diamonds, lab-grown diamonds, gemstones, jewelry, watches, bullion, and accessories.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Accurate Descriptions",
+          "paragraphs": [
+            "Listings must clearly state product type, key attributes (shape, carat/weight, color, clarity, cut, metal, purity, brand, movement, etc.), treatments, origin where claimed, and whether a diamond is natural or lab-grown."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Real Images",
+          "paragraphs": [
+            "Images must depict the actual item offered for sale (or a clearly labeled representative pair/melee sample where industry practice allows). Do not use another seller’s photos, watermarked lab images as if they were yours without rights, or edited images that hide damage or misrepresent color.",
+            "Product images are for reference; colors may vary by screen. Natural and lab-grown materials may show slight natural or manufacturing variations."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Approximate Weights & Prices",
+          "paragraphs": [
+            "All prices, weights, measurements, and other numerical values are approximate and as accurate as reasonably possible. Sellers must not knowingly inflate carat weight, understate inclusions, or post bait prices they will not honor. Bullion prices may change due to market fluctuations; update live pricing promptly."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Certifications",
+          "paragraphs": [
+            "When certifications are claimed, provide report numbers and matching documents. Do not invent grading reports or reuse a certificate for a different stone. Watches and jewelry authenticity papers must match the item shipped."
+          ]
+        },
+        {
+          "number": "5",
+          "title": "No Misleading Information",
+          "paragraphs": [
+            "Prohibited practices include false scarcity claims, undisclosed treatments, counterfeit branding, fake reviews, and off-platform contact baiting. GemWorld may cancel suspicious listings or orders and suspend accounts that violate this Policy. Continued use means acceptance of updates."
+          ]
+        }
+      ],
+      "secondaryIntro": "Sellers must provide genuine products and accurate information. Misleading listings may be removed and accounts restricted."
+    },
+    {
+      "id": "cookies",
+      "title": "Cookies Policy",
+      "subtitle": "Essential, analytics, and marketing cookies",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Cookies Policy explains how GemWorld uses cookies and similar technologies on our websites and apps.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Essential Cookies",
+          "paragraphs": [
+            "These cookies are required for core functionality such as login sessions, security, fraud prevention, checkout, load balancing, and remembering critical preferences. The Platform may not work correctly if essential cookies are blocked."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Analytics Cookies",
+          "paragraphs": [
+            "Analytics cookies help us understand how users browse categories (diamonds, gemstones, jewelry, watches, bullion), which features are used, and where errors occur so we can improve performance and product discovery. Data is typically aggregated or pseudonymized where practicable."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Marketing Cookies",
+          "paragraphs": [
+            "Where permitted, marketing cookies measure campaign effectiveness and may help show relevant marketplace promotions. You can opt out of non-essential marketing cookies through browser settings or in-product preference controls when available."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "User Control",
+          "paragraphs": [
+            "Most browsers let you block or delete cookies. Managing cookies at the browser or device level may log you out or limit saved carts and preferences. For privacy requests related to cookie-derived data, contact support@gemworld.com or use the Help Center."
+          ]
+        }
+      ],
+      "secondaryIntro": "Continued use of the Platform after updates means acceptance of this Policy. See also our Privacy Policy."
+    },
+    {
+      "id": "intellectual-property",
+      "title": "Intellectual Property Policy",
+      "subtitle": "Logos, images, trademarks, and infringement reports",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Policy protects GemWorld’s brand and content and explains how users may report intellectual property concerns.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Logos",
+          "paragraphs": [
+            "The GemWorld name, logos, and brand assets may not be used without prior written permission, except for factual references that do not imply endorsement or partnership."
+          ]
+        },
+        {
+          "number": "2",
+          "title": "Images",
+          "paragraphs": [
+            "Platform imagery, UI graphics, and marketing visuals are protected. Seller product photos remain the seller’s responsibility; by uploading, sellers warrant they have rights to use those images and grant GemWorld a license to display them for marketplace operations and promotion."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Designs",
+          "paragraphs": [
+            "Software, page layouts, filters, comparison tools, and original design systems on GemWorld are protected by copyright and related rights. Copying, scraping, or reverse engineering beyond what law permits is prohibited."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Trademarks",
+          "paragraphs": [
+            "Third-party trademarks (for example watch brands or lab names) appear for identification of genuine goods. Unauthorized use of another’s trademark in a listing to sell counterfeit or unrelated goods is forbidden."
+          ]
+        },
+        {
+          "number": "5",
+          "title": "Copyright",
+          "paragraphs": [
+            "Text, catalogs, and original content published by GemWorld are protected. Users must not republish Platform content as their own or remove proprietary notices."
+          ]
+        },
+        {
+          "number": "6",
+          "title": "Reporting Infringement",
+          "paragraphs": [
+            "If you believe content on GemWorld infringes your IP rights, email support@gemworld.com with:"
+          ],
+          "bullets": [
+            "Your contact details and proof of rights ownership.",
+            "URLs or listing IDs of the allegedly infringing material.",
+            "A good-faith statement that use is not authorized."
+          ],
+          "closing": "GemWorld may remove content, cancel listings, or suspend accounts involved in infringement. Continued use accepts policy updates."
+        }
+      ]
+    },
+    {
+      "id": "contact-dispute",
+      "title": "Contact & Dispute Policy",
+      "subtitle": "Support channels and dispute resolution",
+      "eyebrow": "GemWorld Marketplace",
+      "effectiveDate": "29 July 2026",
+      "intro": "This Policy explains how to reach GemWorld support and how buyer–seller disputes are handled on the marketplace.",
+      "sections": [
+        {
+          "number": "1",
+          "title": "Contact Methods",
+          "paragraphs": [
+            "You can contact us through:"
+          ],
+          "bullets": [
+            "In-app / website Help Center (buyer or seller help tickets).",
+            "Email: support@gemworld.com",
+            "Order, inquiry, and chat tools inside your GemWorld account for transaction-specific issues."
+          ],
+          "closing": "Include order IDs, listing links, and photos when reporting shipping, authenticity, or quality issues."
+        },
+        {
+          "number": "2",
+          "title": "Complaint Process",
+          "paragraphs": [
+            "Submit a clear description of the issue, desired resolution, and evidence. GemWorld aims to acknowledge support tickets promptly and may request additional documents (certificates, KYC, courier reports). Abusive or fraudulent complaints may lead to account action."
+          ]
+        },
+        {
+          "number": "3",
+          "title": "Buyer–Seller Disputes",
+          "paragraphs": [
+            "Most issues should first be discussed through Platform messaging. If unresolved, either party may escalate via the Help Center. Typical disputes include non-delivery, item not as described, damaged goods, missing certificates, payment confirmation problems, and auction non-payment."
+          ]
+        },
+        {
+          "number": "4",
+          "title": "Platform Decision Process",
+          "paragraphs": [
+            "GemWorld may review listing data, chat logs, payment records, tracking, and certificates. Outcomes may include return authorization, partial or full refund, order cancellation, payout holds, listing removal, temporary blocks, or permanent account removal for policy violations (including fake bidding or counterfeit goods).",
+            "Platform decisions on marketplace disputes are made in good faith under our policies and applicable law. Mandatory consumer rights under Indian law are not waived. These Terms-related policies are governed by the laws of India as stated in the Terms & Conditions.",
+            "Continued use of GemWorld means acceptance of updated Contact & Dispute Policy terms."
+          ]
+        }
+      ],
+      "secondaryIntro": "Buyers and sellers must not complete transactions outside the Platform. GemWorld is not responsible for any off-platform transaction or related dispute."
+    }
+  ]
+}
