@@ -298,7 +298,9 @@ abstract final class DiamondSearchRequestMapper {
 
   static String? _sortBy(List<SortingCriteria> sorting) {
     if (sorting.isEmpty) return null;
-    final first = sorting.first;
+    final ordered = List<SortingCriteria>.from(sorting)
+      ..sort((a, b) => a.priority.compareTo(b.priority));
+    final first = ordered.first;
     final asc = first.direction == SortDirection.ascending;
     return switch (first.fieldKey) {
       'price' => asc ? 'final_price_asc' : 'final_price_desc',

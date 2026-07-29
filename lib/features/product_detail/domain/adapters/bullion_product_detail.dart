@@ -29,12 +29,12 @@ ProductDetail bullionProductDetail(Bullion b) {
       ProductBadge(b.condition),
     ],
     media: ProductMedia(
-      imageSlots: 4,
-      certificateLabel: b.certification,
+      imageSlots: 0,
+      certificateLabel: null,
+      shapeKey: b.shape,
       fallbackIcon: _metalIcon(b.metal),
       fallbackTint: _metalTint(b.metal),
-      hasVideo: true,
-      videoLabel: 'Bullion video',
+      hasVideo: false,
     ),
     price: ProductPrice(
       currencySymbol: AppCurrency.symbol,

@@ -56,9 +56,6 @@ class DiamondSortingFields {
     SortingFieldDef('price', 'Total Price'),
     SortingFieldDef('pricePerCarat', 'Price Per Carat'),
     SortingFieldDef('carat', 'Carat Weight'),
-    SortingFieldDef('discount', 'Discount'),
-    SortingFieldDef('clarity', 'Clarity'),
-    SortingFieldDef('cut', 'Cut'),
   ];
 
   static SortingFieldDef? findByKey(String key) {

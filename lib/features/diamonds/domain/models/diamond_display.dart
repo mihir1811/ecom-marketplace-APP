@@ -33,6 +33,16 @@ abstract final class DiamondDisplay {
     return value!.trim().toUpperCase();
   }
 
+  /// Lab/certificate short label for card badges (IGI, GIA). Null when absent.
+  static String? labBadge(String? value) {
+    final label = optional(value, uppercase: true);
+    if (label == null) return null;
+    // Placeholders that mean "no lab", not a real authority name.
+    const none = {'NC', 'NONE', 'NIL', 'NON', 'NO', 'NULL', 'UNKNOWN'};
+    if (none.contains(label)) return null;
+    return label;
+  }
+
   static String shape(String? value) {
     if (isMissing(value)) return notAvailable;
     return _titleCaseWords(value!.trim());

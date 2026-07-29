@@ -36,12 +36,12 @@ ProductDetail jewelryProductDetail(Jewelry j) {
       images: [
         if (j.imageAsset != null) ProductImage.asset(j.imageAsset!),
       ],
-      imageSlots: 4,
-      certificateLabel: '${j.certification} certificate',
+      imageSlots: j.imageAsset != null ? 1 : 0,
+      certificateLabel: null,
+      shapeKey: j.stoneShape,
       fallbackIcon: Icons.workspace_premium_outlined,
       fallbackTint: AppSwatches.jewelryMetal(j.metalColor),
-      hasVideo: true,
-      videoLabel: 'Jewelry video',
+      hasVideo: false,
     ),
     price: ProductPrice(
       currencySymbol: AppCurrency.symbol,

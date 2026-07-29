@@ -4,7 +4,11 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../diamond_viewer/presentation/widgets/view_in_360_button.dart';
+import '../../../diamond_viewer/utils/viewer_url_resolver.dart';
+import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../domain/models/product_detail.dart';
+import '../screens/certificate_viewer_screen.dart';
 
 /// Hero media frame. Identical framing for every segment — only the content
 /// inside the frame changes, so the page never shifts between categories.
@@ -37,6 +41,7 @@ class _ProductDetailMediaState extends State<ProductDetailMedia> {
   Widget build(BuildContext context) {
     final showcaseAssets = widget.media.showcaseAssets;
     final hasMultiple = showcaseAssets.length > 1;
+    final videoUrl = ViewerUrlResolver.resolve(widget.media.videoUrl);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,6 +79,20 @@ class _ProductDetailMediaState extends State<ProductDetailMedia> {
             ),
           ),
         ),
+        if (videoUrl != null) ...[
+          const SizedBox(height: AppSpacing.s12),
+          ViewIn360Button(
+            viewerUrl: videoUrl,
+            title: widget.media.videoLabel ?? '360° View',
+          ),
+        ],
+        if (widget.media.hasCertificate) ...[
+          const SizedBox(height: AppSpacing.s12),
+          _ViewCertificateButton(
+            url: widget.media.certificateUrl!,
+            label: widget.media.certificateLabel ?? 'Certificate',
+          ),
+        ],
         if (hasMultiple) ...[
           const SizedBox(height: AppSpacing.s12),
           SizedBox(
@@ -133,22 +152,10 @@ class _ShowcaseFrame extends StatelessWidget {
       case ProductShowcaseAssetType.image:
         final image = media.imageAt(asset.imageIndex ?? 0);
         if (image == null) return _Fallback(media: media);
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            _Frame(image: image, fit: media.fit),
-            Positioned(
-              left: AppSpacing.s12,
-              bottom: AppSpacing.s12,
-              child: _MediaBadge(
-                icon: Icons.image_outlined,
-                label: asset.label,
-              ),
-            ),
-          ],
-        );
+        return _Frame(image: image, fit: media.fit);
       case ProductShowcaseAssetType.certificate:
-        return _DocumentFrame(label: asset.label);
+        // Certificates open via the dedicated CTA, not the carousel.
+        return _Fallback(media: media);
       case ProductShowcaseAssetType.video:
         return _VideoFrame(label: asset.label, media: media);
     }
@@ -252,6 +259,7 @@ class _Fallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shape = media.shapeKey?.trim();
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -264,62 +272,13 @@ class _Fallback extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: Icon(media.fallbackIcon, size: 72, color: media.fallbackTint),
-      ),
-    );
-  }
-}
-
-class _DocumentFrame extends StatelessWidget {
-  const _DocumentFrame({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.bronze.withValues(alpha: 0.18),
-            AppColors.sandSurface,
-          ],
-        ),
-      ),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.s24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.description_outlined,
-                size: 56,
-                color: AppColors.charcoal,
-              ),
-              const SizedBox(height: AppSpacing.s16),
-              Text(
-                label,
-                style: AppTypography.label.copyWith(
-                  color: AppColors.textPrimaryLight,
-                  fontWeight: FontWeight.w700,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: AppSpacing.s8),
-              Text(
-                'Certificate image / PDF',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondaryLight,
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: shape != null && shape.isNotEmpty
+            ? renderShapeSvg(
+                shape,
+                size: 96,
+                color: media.fallbackTint,
+              )
+            : Icon(media.fallbackIcon, size: 72, color: media.fallbackTint),
       ),
     );
   }
@@ -333,7 +292,9 @@ class _VideoFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final videoUrl = ViewerUrlResolver.resolve(media.videoUrl);
     final preview = media.imageAt(0);
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -347,9 +308,11 @@ class _VideoFrame extends StatelessWidget {
           )
         else
           _Fallback(media: media),
-        const Center(
+        Center(
           child: Icon(
-            Icons.play_circle_fill_rounded,
+            videoUrl != null
+                ? Icons.threed_rotation
+                : Icons.play_circle_fill_rounded,
             size: 72,
             color: AppColors.warmWhite,
           ),
@@ -362,6 +325,19 @@ class _VideoFrame extends StatelessWidget {
             label: label,
           ),
         ),
+        if (videoUrl != null)
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => ViewIn360Button.open(
+                  context,
+                  viewerUrl: videoUrl,
+                  title: label,
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -401,6 +377,79 @@ class _MediaBadge extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ViewCertificateButton extends StatelessWidget {
+  const _ViewCertificateButton({
+    required this.url,
+    required this.label,
+  });
+
+  final String url;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.warmWhite,
+      borderRadius: BorderRadius.circular(AppSpacing.r16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSpacing.r16),
+        onTap: () => openCertificateViewer(
+          context,
+          url: url,
+          title: label,
+        ),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s16,
+            vertical: AppSpacing.s12,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppSpacing.r16),
+            border: Border.all(color: AppColors.warmBorder),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.description_outlined,
+                color: AppColors.charcoal,
+              ),
+              const SizedBox(width: AppSpacing.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'View certificate',
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.textPrimaryLight,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: AppColors.charcoal,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

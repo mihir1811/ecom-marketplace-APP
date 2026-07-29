@@ -42,13 +42,12 @@ ProductDetail watchProductDetail(Watch w) {
         else if (logo != null)
           ProductImage.asset(logo),
       ],
-      imageSlots: 4,
-      certificateLabel: '${w.certification} papers',
+      imageSlots: (imageUrl != null || logo != null) ? 1 : 0,
+      certificateLabel: null,
       fallbackIcon: Icons.watch_outlined,
       fallbackTint: AppColors.bronze,
       fit: imageUrl == null ? BoxFit.contain : BoxFit.cover,
-      hasVideo: true,
-      videoLabel: w.hasVideo ? 'Watch video' : 'Video walkthrough',
+      hasVideo: false,
     ),
     price: ProductPrice(
       currencySymbol: AppCurrency.symbol,

@@ -34,9 +34,12 @@ class _DiamondSortingBottomSheetState
   @override
   void initState() {
     super.initState();
-    _tempSelected = List<SortingCriteria>.from(
-      ref.read(diamondSortingProvider),
-    );
+    final allowed = DiamondSortingFields.all.map((f) => f.key).toSet();
+    _tempSelected = ref
+        .read(diamondSortingProvider)
+        .where((s) => allowed.contains(s.fieldKey))
+        .toList();
+    _recalculatePriorities();
   }
 
   List<SortingCriteria> get _availableFields {
@@ -97,8 +100,14 @@ class _DiamondSortingBottomSheetState
   }
 
   void _apply() {
-    ref.read(diamondSortingProvider.notifier).state =
-        List<SortingCriteria>.from(_tempSelected);
+    final allowed = DiamondSortingFields.all.map((f) => f.key).toSet();
+    final cleaned = _tempSelected
+        .where((s) => allowed.contains(s.fieldKey))
+        .toList();
+    for (var i = 0; i < cleaned.length; i++) {
+      cleaned[i] = cleaned[i].copyWith(priority: i + 1);
+    }
+    ref.read(diamondSortingProvider.notifier).state = cleaned;
     ref.read(diamondListProvider.notifier).applyFiltersAndSort();
     Navigator.of(context).pop();
   }
@@ -224,7 +233,7 @@ class _DiamondSortingBottomSheetState
         ),
         const SizedBox(height: AppSpacing.s4),
         Text(
-          'Drag and drop the 6-dot icon to prioritize your sorting criteria.',
+          'Priority 1 sorts first. Each next criterion sorts within the previous result (tie-break). Drag to reorder.',
           style: AppTypography.caption.copyWith(color: mutedColor),
         ),
         const SizedBox(height: AppSpacing.s12),

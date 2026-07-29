@@ -59,19 +59,36 @@ class ProductMedia {
     this.images = const [],
     this.imageSlots = 4,
     this.certificateLabel,
+    this.certificateUrl,
+    this.shapeKey,
     this.fit = BoxFit.cover,
     this.hasVideo = false,
     this.videoLabel,
+    this.videoUrl,
   });
 
   final List<ProductImage> images;
   final int imageSlots;
   final String? certificateLabel;
+
+  /// HTTPS certificate PDF/HTML page opened in-app when present.
+  final String? certificateUrl;
+
+  /// Shape name used for SVG placeholders when no product photo exists.
+  final String? shapeKey;
   final IconData fallbackIcon;
   final Color fallbackTint;
   final BoxFit fit;
   final bool hasVideo;
   final String? videoLabel;
+
+  /// Vision360 (or similar) viewer URL from API `videoURL`.
+  final String? videoUrl;
+
+  bool get hasInteractiveVideo {
+    final url = videoUrl?.trim();
+    return url != null && url.isNotEmpty;
+  }
 
   String? get firstNetworkUrl {
     for (final image in images) {
@@ -87,29 +104,30 @@ class ProductMedia {
     return null;
   }
 
-  bool get hasCertificate => certificateLabel != null && certificateLabel!.trim().isNotEmpty;
+  bool get hasCertificate {
+    final url = certificateUrl?.trim();
+    if (url == null || url.isEmpty) return false;
+    final lower = url.toLowerCase();
+    return lower.startsWith('http://') ||
+        lower.startsWith('https://') ||
+        lower.startsWith('www.');
+  }
 
+  /// Only real media — never pads empty image slots.
   List<ProductShowcaseAsset> get showcaseAssets {
     final assets = <ProductShowcaseAsset>[];
-    final slots = imageSlots < 0 ? 0 : imageSlots;
-    for (var i = 0; i < slots; i++) {
+    final imageCount = images.length > 6 ? 6 : images.length;
+    for (var i = 0; i < imageCount; i++) {
       assets.add(
         ProductShowcaseAsset(
           type: ProductShowcaseAssetType.image,
-          label: 'Image ${i + 1}',
+          label: '',
           imageIndex: i,
         ),
       );
     }
-    if (hasCertificate) {
-      assets.add(
-        ProductShowcaseAsset(
-          type: ProductShowcaseAssetType.certificate,
-          label: certificateLabel!,
-        ),
-      );
-    }
-    if (hasVideo) {
+    // Interactive 360 stays a CTA; placeholder video tiles only when no URL.
+    if (!hasInteractiveVideo && hasVideo) {
       assets.add(
         ProductShowcaseAsset(
           type: ProductShowcaseAssetType.video,

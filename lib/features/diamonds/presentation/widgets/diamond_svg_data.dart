@@ -426,12 +426,59 @@ const List<Map<String, String>> kAllShapes = [
 
 final Map<String, SvgPicture> _svgWidgetCache = {};
 
+final Map<String, String> _shapeKeyByLower = {
+  for (final key in _shapeSvgRaw.keys) key.toLowerCase(): key,
+};
+
+const Map<String, String> _shapeAliases = {
+  'rb': 'Round',
+  'round brilliant': 'Round',
+  'br': 'Round',
+  'ov': 'Oval',
+  'em': 'Emerald',
+  'emr': 'Emerald',
+  'pr': 'Princess',
+  'mq': 'Marquise',
+  'cu': 'Cushion',
+  'cushion brilliant': 'Cushion',
+  'ps': 'Pear',
+  'hs': 'Heart',
+  'rad': 'Radiant',
+  'as': 'Asscher',
+  'ash': 'Asscher',
+  'tri': 'Trilliant',
+  'trilliant': 'Trilliant',
+  'baguette': 'Baguette',
+  'baguatte': 'Baguette',
+};
+
+/// Resolves an API/UI shape name onto a known SVG key (e.g. `OVAL` → `Oval`).
+String resolveShapeSvgKey(String? name) {
+  final trimmed = name?.trim();
+  if (trimmed == null || trimmed.isEmpty) return 'Round';
+  if (_shapeSvgRaw.containsKey(trimmed)) return trimmed;
+
+  final lower = trimmed.toLowerCase();
+  final exact = _shapeKeyByLower[lower];
+  if (exact != null) return exact;
+
+  final alias = _shapeAliases[lower];
+  if (alias != null) return alias;
+
+  // "Oval Cut", "Emerald Shape", etc.
+  for (final entry in _shapeKeyByLower.entries) {
+    if (lower.contains(entry.key)) return entry.value;
+  }
+  return 'Round';
+}
+
 Widget renderShapeSvg(String name, {double size = 40, Color color = Colors.black}) {
-  final cacheKey = '${name}@${size}@${color.toARGB32()}';
+  final resolved = resolveShapeSvgKey(name);
+  final cacheKey = '$resolved@$size@${color.toARGB32()}';
   final cached = _svgWidgetCache[cacheKey];
   if (cached != null) return cached;
 
-  final raw = _shapeSvgRaw[name] ?? _shapeSvgRaw['Round']!;
+  final raw = _shapeSvgRaw[resolved] ?? _shapeSvgRaw['Round']!;
   final widget = SvgPicture.string(
     raw,
     width: size,

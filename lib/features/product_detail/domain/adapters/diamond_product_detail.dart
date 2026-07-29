@@ -59,16 +59,24 @@ ProductDetail diamondProductDetail(Diamond d) {
     ],
     media: ProductMedia(
       images: [
-        for (final url in d.imageUrls) ProductImage.network(url),
+        for (final url in d.imageUrls.take(6)) ProductImage.network(url),
         if (d.imageUrls.isEmpty && d.imageUrl != null)
           ProductImage.network(d.imageUrl!),
       ],
-      imageSlots: 4,
-      certificateLabel: authority == null ? null : '$authority certificate',
+      imageSlots: (d.imageUrls.isEmpty
+              ? (d.imageUrl != null ? 1 : 0)
+              : d.imageUrls.length)
+          .clamp(0, 6),
+      certificateLabel: DiamondDisplay.optional(d.certificateUrl) == null
+          ? null
+          : (authority == null ? 'Certificate' : '$authority certificate'),
+      certificateUrl: DiamondDisplay.optional(d.certificateUrl),
+      shapeKey: d.shape,
       fallbackIcon: Icons.diamond_outlined,
       fallbackTint: AppColors.bronze,
       hasVideo: d.hasVideo,
       videoLabel: d.hasVideo ? '360° video' : null,
+      videoUrl: d.videoUrl,
     ),
     price: ProductPrice(
       currencySymbol: AppCurrency.symbol,

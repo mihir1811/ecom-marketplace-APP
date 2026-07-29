@@ -60,7 +60,7 @@ abstract final class DiamondMapper {
         tablePercent: _clean(dto.table),
         depthPercent: _clean(dto.depth),
         certificateNumber: _clean(dto.certificateNumber),
-        certificateUrl: _clean(dto.certification),
+        certificateUrl: _asHttpUrl(dto.certification),
         shade: _clean(dto.shade),
         fancyColor: _clean(dto.fancyColor),
         fancyIntensity: _clean(dto.fancyIntencity),
@@ -121,7 +121,7 @@ abstract final class DiamondMapper {
       tablePercent: _clean(dto.table),
       depthPercent: _clean(dto.depth),
       certificateNumber: _clean(dto.certificateNumber),
-      certificateUrl: _clean(dto.certification),
+      certificateUrl: _asHttpUrl(dto.certification),
       shade: _clean(dto.shade),
       fancyColor: _clean(dto.fancyColor),
       fancyIntensity: _clean(dto.fancyIntencity),
@@ -157,6 +157,18 @@ abstract final class DiamondMapper {
   }
 
   static bool _hasText(String? value) => _clean(value) != null;
+
+  /// Maps API `certification` column to a viewable URL (http/https/www only).
+  static String? _asHttpUrl(String? value) {
+    final cleaned = _clean(value);
+    if (cleaned == null) return null;
+    final lower = cleaned.toLowerCase();
+    if (lower.startsWith('https://') || lower.startsWith('http://')) {
+      return cleaned;
+    }
+    if (lower.startsWith('www.')) return 'https://$cleaned';
+    return null;
+  }
 
   static String? _clean(String? value) {
     if (value == null) return null;

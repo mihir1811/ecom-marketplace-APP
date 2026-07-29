@@ -38,12 +38,12 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
         else if (assetPath != null)
           ProductImage.asset(assetPath),
       ],
-      imageSlots: 4,
-      certificateLabel: '${g.lab} certificate',
+      imageSlots: (g.imageUrl != null || assetPath != null) ? 1 : 0,
+      certificateLabel: null,
+      shapeKey: g.shape,
       fallbackIcon: Icons.auto_awesome,
       fallbackTint: gemstoneHue(g.type),
-      hasVideo: true,
-      videoLabel: 'Gem video',
+      hasVideo: false,
     ),
     price: ProductPrice(
       currencySymbol: AppCurrency.symbol,

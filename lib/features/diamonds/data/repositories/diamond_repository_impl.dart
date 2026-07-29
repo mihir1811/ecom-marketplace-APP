@@ -8,6 +8,7 @@ import '../../../../core/network/dio_provider.dart';
 import '../../domain/models/diamond.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
+import '../../domain/models/diamond_multi_sorter.dart';
 import '../../domain/models/sorting_criteria.dart';
 import '../../domain/repositories/diamond_repository.dart';
 import '../mappers/diamond_mapper.dart';
@@ -83,9 +84,12 @@ class DiamondRepositoryImpl implements DiamondRepository {
               ? currentPage < lastPage
               : diamonds.length >= limit);
 
+      // Primary key goes to the API; remaining keys chain client-side on the page.
+      final sorted = DiamondMultiSorter.apply(diamonds, sorting);
+
       return Result.success(
         DiamondListResponse(
-          diamonds: diamonds,
+          diamonds: sorted,
           totalCount: total,
           hasMore: hasMore,
           page: currentPage,

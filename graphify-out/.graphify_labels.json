@@ -316,9 +316,19 @@
   "314": "currency_rates.dart",
   "315": "gemstone_product_detail.dart",
   "316": "compare_add_button.dart",
-  "317": "app.dart",
-  "318": "../widgets/seller_layout.dart",
-  "319": "ComparisonTable",
+  "317": "product_detail_assurance.dart",
+  "318": "jewelry_product_detail.dart",
+  "319": "filter_shape_grid_cell.dart",
   "320": "JewelrySortOption",
-  "321": "WatchSortOption"
+  "321": "CustomPainter",
+  "322": "viewer_url_resolver.dart",
+  "323": "viewer_resource_policy.dart",
+  "324": "diamonds_routes.dart",
+  "325": "_PinnedHeaderDelegate",
+  "326": "WatchSortOption",
+  "327": "gemstone_product_detail.dart",
+  "328": "CustomPainter",
+  "329": "Notifier",
+  "330": "../widgets/seller_layout.dart",
+  "331": "DiamondSearchNotifier"
 }
