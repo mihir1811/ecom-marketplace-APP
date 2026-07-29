@@ -18,18 +18,35 @@ class PaginatedPage<T> {
 }
 
 /// Shared pagination workflow for catalog providers.
+///
+/// Loads one page at a time, appends on scroll, and discards stale responses
+/// when a newer first-page/refresh request supersedes an in-flight fetch.
 abstract class PaginatedAsyncNotifier<T>
     extends AsyncNotifier<PaginatedListState<T>> {
   int _currentPage = 1;
+  int _epoch = 0;
   bool _listenersRegistered = false;
+  Future<void>? _inFlightNextPage;
 
   /// Providers that should trigger a fresh first-page load.
   Iterable<ProviderListenable<Object?>> get reloadTriggers => const [];
 
+  /// Called before a first-page load so subclasses can cancel network work.
+  void onResetPagination() {}
+
+  /// Called before each page fetch (including page 1).
+  void onBeforePageLoad({required int page, required bool isFirstPage}) {}
+
   @override
   PaginatedListState<T> build() {
     _currentPage = 1;
+    _epoch = 0;
+    _inFlightNextPage = null;
     _registerReloadListeners();
+    ref.onDispose(() {
+      _epoch++;
+      onResetPagination();
+    });
     loadFirstPage();
     return PaginatedListState<T>(isInitialLoading: true);
   }
@@ -37,53 +54,89 @@ abstract class PaginatedAsyncNotifier<T>
   Future<Result<PaginatedPage<T>, Failure>> loadPage(int page);
 
   Future<void> loadFirstPage() async {
+    final epoch = ++_epoch;
     _currentPage = 1;
+    _inFlightNextPage = null;
+    onResetPagination();
+    onBeforePageLoad(page: 1, isFirstPage: true);
+
     state = AsyncData(PaginatedListState<T>(isInitialLoading: true));
     final result = await loadPage(1);
+    if (epoch != _epoch) return;
     _setFirstPage(result);
   }
 
-  Future<void> loadNextPage() async {
+  Future<void> loadNextPage() {
     final current = state.valueOrNull;
     if (current == null ||
         !current.hasMore ||
         current.isLoadingMore ||
-        current.isInitialLoading) {
-      return;
+        current.isInitialLoading ||
+        current.isRefreshing) {
+      return _inFlightNextPage ?? Future<void>.value();
     }
+    if (_inFlightNextPage != null) return _inFlightNextPage!;
 
-    state = AsyncData(current.copyWith(isLoadingMore: true, errorMessage: null));
-    _currentPage++;
+    _inFlightNextPage = _loadNextPageBody(current);
+    return _inFlightNextPage!;
+  }
 
-    final result = await loadPage(_currentPage);
-    switch (result) {
-      case Success(value: final response):
-        state = AsyncData(
-          current.copyWith(
-            items: [...current.items, ...response.items],
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
-            isLoadingMore: false,
-            isRefreshing: false,
-            isInitialLoading: false,
-          ),
-        );
-      case ResultFailure(failure: final failure):
-        _currentPage--;
-        state = AsyncData(
-          current.copyWith(
-            isLoadingMore: false,
-            errorMessage: failure.message,
-          ),
-        );
+  Future<void> _loadNextPageBody(PaginatedListState<T> current) async {
+    final epoch = _epoch;
+    final nextPage = _currentPage + 1;
+
+    state = AsyncData(
+      current.copyWith(isLoadingMore: true, errorMessage: null),
+    );
+    onBeforePageLoad(page: nextPage, isFirstPage: false);
+
+    try {
+      final result = await loadPage(nextPage);
+      if (epoch != _epoch) return;
+
+      switch (result) {
+        case Success(value: final response):
+          _currentPage = nextPage;
+          state = AsyncData(
+            current.copyWith(
+              items: [...current.items, ...response.items],
+              hasMore: response.hasMore && response.items.isNotEmpty,
+              totalCount: response.totalCount,
+              isLoadingMore: false,
+              isRefreshing: false,
+              isInitialLoading: false,
+            ),
+          );
+        case ResultFailure(failure: final failure):
+          if (_isCancelledFailure(failure)) {
+            state = AsyncData(current.copyWith(isLoadingMore: false));
+            return;
+          }
+          state = AsyncData(
+            current.copyWith(
+              isLoadingMore: false,
+              errorMessage: failure.message,
+            ),
+          );
+      }
+    } finally {
+      _inFlightNextPage = null;
     }
   }
 
   Future<void> refresh() async {
     final current = state.valueOrNull ?? PaginatedListState<T>();
+    final epoch = ++_epoch;
     _currentPage = 1;
-    state = AsyncData(current.copyWith(isRefreshing: true, errorMessage: null));
+    _inFlightNextPage = null;
+    onResetPagination();
+    onBeforePageLoad(page: 1, isFirstPage: true);
+
+    state = AsyncData(
+      current.copyWith(isRefreshing: true, errorMessage: null),
+    );
     final result = await loadPage(1);
+    if (epoch != _epoch) return;
     _setFirstPage(result);
   }
 
@@ -109,13 +162,17 @@ abstract class PaginatedAsyncNotifier<T>
         state = AsyncData(
           PaginatedListState<T>(
             items: response.items,
-            hasMore: response.hasMore,
+            hasMore: response.hasMore && response.items.isNotEmpty,
             totalCount: response.totalCount,
             isRefreshing: false,
             isInitialLoading: false,
           ),
         );
       case ResultFailure(failure: final failure):
+        if (_isCancelledFailure(failure)) {
+          // Keep showing the loading shell; a newer in-flight load owns the UI.
+          return;
+        }
         state = AsyncData(
           PaginatedListState<T>(
             errorMessage: failure.message,
@@ -124,5 +181,9 @@ abstract class PaginatedAsyncNotifier<T>
           ),
         );
     }
+  }
+
+  bool _isCancelledFailure(Failure failure) {
+    return failure is NetworkFailure && failure.isCancelled;
   }
 }

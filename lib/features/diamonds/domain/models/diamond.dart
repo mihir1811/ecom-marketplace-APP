@@ -1,3 +1,4 @@
+/// Catalog diamond shown on listing cards and adapted into product detail.
 class Diamond {
   final String id;
   final String shape;
@@ -8,15 +9,54 @@ class Diamond {
   final String clarity;
   final String certificate;
   final String? imageUrl;
+  final List<String> imageUrls;
   final double? pricePerCarat;
   final String? polish;
   final String? symmetry;
   final String? fluorescence;
+  final String? fluorescenceColor;
   final String? lab;
   final bool hasVideo;
   final bool hasImage;
   final double? discount;
   final bool isLabGrown;
+  final bool isMelee;
+  final String? stockNumber;
+  final String? growthType;
+  final String? sellerCompanyName;
+  final String? sellerCity;
+  final String? sellerCountry;
+  final String? measurement;
+  final String? ratio;
+  final String? tablePercent;
+  final String? depthPercent;
+  final String? certificateNumber;
+  final String? certificateUrl;
+  final String? shade;
+  final String? fancyColor;
+  final String? fancyIntensity;
+  final String? fancyOvertone;
+  final String? origin;
+  final String? roughSource;
+  final String? enhancement;
+  final String? girdleCondition;
+  final String? culetCondition;
+  final String? milky;
+  final String? comment;
+  final bool? eyeClean;
+  final bool? bgm;
+  final bool? heartAndArrow;
+  final bool isOnAuction;
+  final bool isSold;
+  final bool isMakeAnOfferAllowed;
+  final int? totalPcs;
+  final double? caratPerPcs;
+  final double? totalCaratWeight;
+  final double? pricePerPcs;
+  final String? sieveLabel;
+  final bool isSeparable;
+  final String? available;
+  final String? videoUrl;
 
   const Diamond({
     required this.id,
@@ -28,58 +68,55 @@ class Diamond {
     required this.clarity,
     required this.certificate,
     this.imageUrl,
+    this.imageUrls = const [],
     this.pricePerCarat,
     this.polish,
     this.symmetry,
     this.fluorescence,
+    this.fluorescenceColor,
     this.lab,
     this.hasVideo = false,
     this.hasImage = false,
     this.discount,
     this.isLabGrown = false,
+    this.isMelee = false,
+    this.stockNumber,
+    this.growthType,
+    this.sellerCompanyName,
+    this.sellerCity,
+    this.sellerCountry,
+    this.measurement,
+    this.ratio,
+    this.tablePercent,
+    this.depthPercent,
+    this.certificateNumber,
+    this.certificateUrl,
+    this.shade,
+    this.fancyColor,
+    this.fancyIntensity,
+    this.fancyOvertone,
+    this.origin,
+    this.roughSource,
+    this.enhancement,
+    this.girdleCondition,
+    this.culetCondition,
+    this.milky,
+    this.comment,
+    this.eyeClean,
+    this.bgm,
+    this.heartAndArrow,
+    this.isOnAuction = false,
+    this.isSold = false,
+    this.isMakeAnOfferAllowed = false,
+    this.totalPcs,
+    this.caratPerPcs,
+    this.totalCaratWeight,
+    this.pricePerPcs,
+    this.sieveLabel,
+    this.isSeparable = false,
+    this.available,
+    this.videoUrl,
   });
-
-  Diamond copyWith({
-    String? id,
-    String? shape,
-    double? carat,
-    double? price,
-    String? cut,
-    String? color,
-    String? clarity,
-    String? certificate,
-    String? imageUrl,
-    double? pricePerCarat,
-    String? polish,
-    String? symmetry,
-    String? fluorescence,
-    String? lab,
-    bool? hasVideo,
-    bool? hasImage,
-    double? discount,
-    bool? isLabGrown,
-  }) {
-    return Diamond(
-      id: id ?? this.id,
-      shape: shape ?? this.shape,
-      carat: carat ?? this.carat,
-      price: price ?? this.price,
-      cut: cut ?? this.cut,
-      color: color ?? this.color,
-      clarity: clarity ?? this.clarity,
-      certificate: certificate ?? this.certificate,
-      imageUrl: imageUrl ?? this.imageUrl,
-      pricePerCarat: pricePerCarat ?? this.pricePerCarat,
-      polish: polish ?? this.polish,
-      symmetry: symmetry ?? this.symmetry,
-      fluorescence: fluorescence ?? this.fluorescence,
-      lab: lab ?? this.lab,
-      hasVideo: hasVideo ?? this.hasVideo,
-      hasImage: hasImage ?? this.hasImage,
-      discount: discount ?? this.discount,
-      isLabGrown: isLabGrown ?? this.isLabGrown,
-    );
-  }
 }
 
 class DiamondListResponse {

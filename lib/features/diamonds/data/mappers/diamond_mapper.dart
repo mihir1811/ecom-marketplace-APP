@@ -1,26 +1,201 @@
 import '../../domain/models/diamond.dart';
 import '../models/diamond_dto.dart';
 
-extension DiamondDtoMapper on DiamondDto {
-  Diamond toDomain() {
+/// Maps API diamond DTOs into domain listing models.
+abstract final class DiamondMapper {
+  static Diamond toDomain(DiamondDto dto, {required bool isLabGrown}) {
+    final images = _images(dto);
+    final firstImage = images.isEmpty ? null : images.first;
+    final cert = _clean(dto.certificateCompanyName) ?? '';
+    final growth = _clean(dto.growthType);
+    final labGrown = isLabGrown || _isLabGrowthType(growth);
+
+    if (dto.isMelee) {
+      final color = _range(dto.colorFrom, dto.colorTo) ?? _clean(dto.color);
+      final clarity =
+          _range(dto.clarityMin, dto.clarityMax) ?? _clean(dto.clarity);
+      final cut = _range(dto.cutFrom, dto.cutTo) ?? _clean(dto.cut);
+      final polish = _range(dto.polishFrom, dto.polishTo) ?? _clean(dto.polish);
+      final symmetry =
+          _range(dto.symmetryFrom, dto.symmetryTo) ?? _clean(dto.symmetry);
+      final fluorescence = _clean(dto.fluorescenceIntensityFrom) ??
+          _clean(dto.fluorescenceIntensity);
+      final carat = dto.totalCaratWeight ??
+          dto.caratWeightPerpcs ??
+          dto.caratWeight ??
+          0;
+      final sieve = _range(dto.sieveSizeMin, dto.sieveSizeMax);
+      final measurement = _range(dto.measurementMin, dto.measurementMax) ??
+          _clean(dto.measurement);
+
+      return Diamond(
+        id: dto.id,
+        shape: _clean(dto.shape) ?? 'Round',
+        carat: carat,
+        price: dto.totalPrice ?? 0,
+        cut: cut ?? '',
+        color: color ?? '',
+        clarity: clarity ?? '',
+        certificate: cert,
+        imageUrl: firstImage,
+        imageUrls: images,
+        pricePerCarat: dto.pricePerCarat,
+        polish: polish,
+        symmetry: symmetry,
+        fluorescence: fluorescence,
+        fluorescenceColor: _clean(dto.fluorescenceColor),
+        lab: cert.isEmpty ? null : cert,
+        hasVideo: _hasText(dto.videoURL),
+        hasImage: firstImage != null,
+        discount: dto.discount,
+        isLabGrown: labGrown,
+        isMelee: true,
+        stockNumber: _clean(dto.stockNumber),
+        growthType: growth,
+        sellerCompanyName: _clean(dto.sellerCompanyName),
+        sellerCity: _clean(dto.sellerCity),
+        sellerCountry: _clean(dto.sellerCountry),
+        measurement: measurement,
+        ratio: _clean(dto.ratio),
+        tablePercent: _clean(dto.table),
+        depthPercent: _clean(dto.depth),
+        certificateNumber: _clean(dto.certificateNumber),
+        certificateUrl: _clean(dto.certification),
+        shade: _clean(dto.shade),
+        fancyColor: _clean(dto.fancyColor),
+        fancyIntensity: _clean(dto.fancyIntencity),
+        fancyOvertone: _clean(dto.fancyOvertone),
+        origin: _clean(dto.origin),
+        roughSource: _clean(dto.roughSource),
+        enhancement: _clean(dto.treatment) ?? _clean(dto.enhancement),
+        girdleCondition: _clean(dto.gridleCondition),
+        culetCondition: _clean(dto.culetCondition),
+        milky: _clean(dto.milky),
+        comment: _clean(dto.comment),
+        eyeClean: dto.eyeClean,
+        bgm: dto.bgm,
+        heartAndArrow: dto.ha,
+        isOnAuction: dto.isOnAuction ?? false,
+        isSold: dto.isSold ?? false,
+        isMakeAnOfferAllowed: dto.isMakeAnOfferAllowed ?? false,
+        totalPcs: dto.totalPcs,
+        caratPerPcs: dto.caratWeightPerpcs,
+        totalCaratWeight: dto.totalCaratWeight,
+        pricePerPcs: dto.pricePerPcs,
+        sieveLabel: sieve,
+        isSeparable: _isTruthy(dto.isSeparable),
+        available: _clean(dto.available),
+        videoUrl: _clean(dto.videoURL),
+      );
+    }
+
     return Diamond(
-      id: id,
-      shape: shape,
-      carat: carat,
-      price: price,
-      cut: cut,
-      color: color,
-      clarity: clarity,
-      certificate: certificate,
-      imageUrl: imageUrl,
-      pricePerCarat: pricePerCarat,
-      polish: polish,
-      symmetry: symmetry,
-      fluorescence: fluorescence,
-      lab: lab,
-      hasVideo: hasVideo,
-      hasImage: hasImage,
-      discount: discount,
+      id: dto.id,
+      shape: _clean(dto.shape) ?? 'Round',
+      carat: dto.caratWeight ?? 0,
+      price: dto.totalPrice ?? 0,
+      cut: _clean(dto.cut) ?? '',
+      color: _clean(dto.color) ?? '',
+      clarity: _clean(dto.clarity) ?? '',
+      certificate: cert,
+      imageUrl: firstImage,
+      imageUrls: images,
+      pricePerCarat: dto.pricePerCarat,
+      polish: _clean(dto.polish),
+      symmetry: _clean(dto.symmetry),
+      fluorescence: _clean(dto.fluorescenceIntensity),
+      fluorescenceColor: _clean(dto.fluorescenceColor),
+      lab: cert.isEmpty ? null : cert,
+      hasVideo: _hasText(dto.videoURL),
+      hasImage: firstImage != null,
+      discount: dto.discount,
+      isLabGrown: labGrown,
+      isMelee: false,
+      stockNumber: _clean(dto.stockNumber),
+      growthType: growth,
+      sellerCompanyName: _clean(dto.sellerCompanyName),
+      sellerCity: _clean(dto.sellerCity),
+      sellerCountry: _clean(dto.sellerCountry),
+      measurement: _clean(dto.measurement),
+      ratio: _clean(dto.ratio),
+      tablePercent: _clean(dto.table),
+      depthPercent: _clean(dto.depth),
+      certificateNumber: _clean(dto.certificateNumber),
+      certificateUrl: _clean(dto.certification),
+      shade: _clean(dto.shade),
+      fancyColor: _clean(dto.fancyColor),
+      fancyIntensity: _clean(dto.fancyIntencity),
+      fancyOvertone: _clean(dto.fancyOvertone),
+      origin: _clean(dto.origin),
+      roughSource: _clean(dto.roughSource),
+      enhancement: _clean(dto.enhancement),
+      girdleCondition: _clean(dto.gridleCondition),
+      culetCondition: _clean(dto.culetCondition),
+      milky: _clean(dto.milky),
+      comment: _clean(dto.comment),
+      eyeClean: dto.eyeClean,
+      bgm: dto.bgm,
+      heartAndArrow: dto.ha,
+      isOnAuction: dto.isOnAuction ?? false,
+      isSold: dto.isSold ?? false,
+      isMakeAnOfferAllowed: dto.isMakeAnOfferAllowed ?? false,
+      available: _clean(dto.available),
+      videoUrl: _clean(dto.videoURL),
     );
   }
+
+  static bool _isLabGrowthType(String? growth) {
+    if (growth == null || growth.isEmpty) return false;
+    final lower = growth.toLowerCase();
+    return lower == 'cvd' || lower == 'hpht';
+  }
+
+  static bool _isTruthy(String? value) {
+    if (value == null) return false;
+    final lower = value.trim().toLowerCase();
+    return lower == 'yes' || lower == 'true' || lower == '1';
+  }
+
+  static bool _hasText(String? value) => _clean(value) != null;
+
+  static String? _clean(String? value) {
+    if (value == null) return null;
+    final t = value.trim();
+    if (t.isEmpty) return null;
+    if (t == '-' || t == '—' || t == '–' || t.toLowerCase() == 'n/a') {
+      return null;
+    }
+    return t;
+  }
+
+  static List<String> _images(DiamondDto dto) {
+    final out = <String>[];
+    for (final url in [
+      dto.image1,
+      dto.image2,
+      dto.image3,
+      dto.image4,
+      dto.image5,
+      dto.image6,
+    ]) {
+      final cleaned = _clean(url);
+      if (cleaned != null) out.add(cleaned);
+    }
+    return out;
+  }
+
+  static String? _range(String? from, String? to) {
+    final a = _clean(from);
+    final b = _clean(to);
+    if (a != null && b != null) {
+      if (a.toLowerCase() == b.toLowerCase()) return a;
+      return '$a–$b';
+    }
+    return a ?? b;
+  }
+}
+
+extension DiamondDtoMapper on DiamondDto {
+  Diamond toDomain({required bool isLabGrown}) =>
+      DiamondMapper.toDomain(this, isLabGrown: isLabGrown);
 }

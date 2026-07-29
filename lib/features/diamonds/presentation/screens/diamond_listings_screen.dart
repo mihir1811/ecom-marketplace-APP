@@ -47,8 +47,21 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 300) {
+    if (!_scrollController.hasClients) return;
+
+    final listState = ref.read(diamondListProvider).valueOrNull;
+    if (listState == null ||
+        !listState.hasMore ||
+        listState.isLoadingMore ||
+        listState.isInitialLoading ||
+        listState.isRefreshing) {
+      return;
+    }
+
+    final position = _scrollController.position;
+    // Prefetch ~1 viewport before the end so the next page arrives seamlessly.
+    final prefetchExtent = position.viewportDimension;
+    if (position.pixels >= position.maxScrollExtent - prefetchExtent) {
       ref.read(diamondListProvider.notifier).loadNextPage();
     }
   }
@@ -134,8 +147,14 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                   ),
                   const SizedBox(width: AppSpacing.s8),
                   TextButton(
-                    onPressed: () =>
-                        context.pushReplacement(widget.searchRoute),
+                    onPressed: () {
+                      // Keep applied filters; just return to the finder.
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go(widget.searchRoute);
+                      }
+                    },
                     child: const Text('Edit Filters'),
                   ),
                 ],
@@ -166,7 +185,9 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                       ),
                       actionLabel: 'Reset Filters',
                       onAction: () {
-                        ref.read(diamondSearchProvider.notifier).reset();
+                        ref
+                            .read(diamondListProvider.notifier)
+                            .resetFiltersAndReload();
                       },
                       actionIcon: Icons.refresh,
                     );

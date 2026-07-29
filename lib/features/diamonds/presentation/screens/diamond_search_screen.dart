@@ -13,6 +13,7 @@ import '../../../../core/widgets/filters/catalog_expandable_advanced_filters.dar
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
 import '../../../../core/widgets/filters/catalog_search_add_field.dart';
+import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
@@ -60,6 +61,9 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   void initState() {
     super.initState();
     catalogScrollController.addListener(_onScroll);
+    final filters = ref.read(diamondSearchProvider);
+    _companyController.text = filters.companyNameSearch ?? '';
+    _locationController.text = filters.vendorLocationSearch ?? '';
   }
 
   @override
@@ -93,8 +97,36 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     return state.labNatural.usesMeleeFilters;
   }
 
+  void _commitPendingSearchFields() {
+    final notifier = ref.read(diamondSearchProvider.notifier);
+    final company = _companyController.text.trim();
+    final location = _locationController.text.trim();
+    // Use '' (not null) so copyWith can clear a previous company/location filter.
+    notifier.updateCompanyNameSearch(company);
+    notifier.updateVendorLocationSearch(location);
+  }
+
+  void _onShowDiamonds() {
+    _commitPendingSearchFields();
+    // Drop any cached pages so results always refetch with current filters.
+    ref.invalidate(diamondListProvider);
+    context.push(widget.resultsRoute);
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Keep text fields in sync when filters are reset from the results screen.
+    ref.listen<DiamondFilterState>(diamondSearchProvider, (previous, next) {
+      final company = next.companyNameSearch ?? '';
+      final location = next.vendorLocationSearch ?? '';
+      if (_companyController.text != company) {
+        _companyController.text = company;
+      }
+      if (_locationController.text != location) {
+        _locationController.text = location;
+      }
+    });
+
     final useMeleeFilters = ref.watch(
       diamondSearchProvider.select(_usesMeleeFilters),
     );
@@ -160,7 +192,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       ),
       scrollController: catalogScrollController,
       primaryLabel: 'SHOW DIAMONDS',
-      onPrimary: () => context.push(widget.resultsRoute),
+      onPrimary: _onShowDiamonds,
       onClear: () {
         ref.read(diamondSearchProvider.notifier).reset();
         _companyController.clear();

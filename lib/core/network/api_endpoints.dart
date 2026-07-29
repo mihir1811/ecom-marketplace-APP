@@ -1,0 +1,7 @@
+/// Path constants relative to [ApiConfig.baseUrl].
+abstract final class ApiEndpoints {
+  static const String diamondSearch = '/diamond/search';
+  static const String diamondFilters = '/diamond/filters';
+  static String diamondById(String id) => '/diamond/$id';
+  static String meleeDiamondById(String id) => '/melee-diamond/$id';
+}

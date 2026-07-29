@@ -1,5 +1,6 @@
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../diamonds/domain/models/diamond.dart';
+import '../../../diamonds/domain/models/diamond_display.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
 import '../../../jewelry/domain/models/jewelry.dart';
 import '../../../watches/domain/models/watch.dart';
@@ -28,12 +29,14 @@ class WishlistItem {
   final String? imageAsset;
 
   factory WishlistItem.fromDiamond(Diamond d) {
+    final color = DiamondDisplay.gradeChip(d.color);
+    final clarity = DiamondDisplay.gradeChip(d.clarity);
     return WishlistItem(
       id: d.id,
       category: WishlistCategory.diamond,
-      title: '${d.carat}ct ${d.shape}',
+      title: '${d.carat}ct ${DiamondDisplay.shape(d.shape)}',
       subtitle:
-          '${d.isLabGrown ? 'Lab Grown' : 'Natural'} · ${d.color} ${d.clarity}',
+          '${d.isLabGrown ? 'Lab Grown' : 'Natural'} · $color $clarity',
       priceLabel: AppCurrency.format(formatCatalogPrice(d.price)),
       imageUrl: d.imageUrl,
     );

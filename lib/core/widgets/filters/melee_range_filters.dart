@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import 'filter_group_card.dart';
 import 'filter_range_slider.dart';
 import '../../../core/utils/app_currency.dart';
 
@@ -71,26 +72,28 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Range Filters',
-              style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
+    return FilterGroupCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Range Filters',
+                style: AppTypography.label.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
               ),
-            ),
-            _buildToggle(),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s20),
-        if (_isPcsMode) ..._buildPcsFilters(),
-        if (!_isPcsMode) ..._buildCaratFilters(),
-      ],
+              _buildToggle(),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.s20),
+          if (_isPcsMode) ..._buildPcsFilters(),
+          if (!_isPcsMode) ..._buildCaratFilters(),
+        ],
+      ),
     );
   }
 

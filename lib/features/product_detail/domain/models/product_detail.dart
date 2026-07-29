@@ -230,8 +230,16 @@ ProductSpecSection specSection(
   final specs = <ProductSpec>[];
   entries.forEach((label, value) {
     if (value == null) return;
-    final text = value is String ? value.trim() : value.toString();
-    if (text.isEmpty || text == 'N/A') return;
+    final text = value is String ? value.trim() : value.toString().trim();
+    if (text.isEmpty) return;
+    if (text == 'N/A' ||
+        text == '-' ||
+        text == '—' ||
+        text == '–' ||
+        text.toLowerCase() == 'n/a') {
+      return;
+    }
+    if (text == 'Not available') return;
     specs.add(ProductSpec(label, text));
   });
   return ProductSpecSection(group, specs);

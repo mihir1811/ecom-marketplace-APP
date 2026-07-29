@@ -10,6 +10,7 @@ import '../../domain/models/diamond_filter_state.dart';
 import 'package:gemstone/core/widgets/filters/filter_chip.dart';
 import 'package:gemstone/core/widgets/filters/filter_text_segmented_control.dart';
 import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
+import 'package:gemstone/core/widgets/filters/filter_group_card.dart';
 import 'filter_color_selector.dart';
 import 'package:gemstone/core/widgets/filters/filter_scrollable_chips.dart';
 import 'filter_shape_grid_cell.dart';
@@ -94,117 +95,141 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
           const SizedBox(height: AppSpacing.s20),
 
           if (widget.isLabCatalog) ...[
-            const FilterSectionHeader(title: 'Diamond Category'),
-            const SizedBox(height: AppSpacing.s8),
-            FilterTextSegmentedControl(
-              options: DiamondFilterState.labCategories,
-              selected: state.labCategory,
-              onSelected: (value) => notifier.updateLabCategory(value),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FilterSectionHeader(title: 'Diamond Category'),
+                const SizedBox(height: AppSpacing.s8),
+                FilterTextSegmentedControl(
+                  options: DiamondFilterState.labCategories,
+                  selected: state.labCategory,
+                  onSelected: (value) => notifier.updateLabCategory(value),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.s20),
 
-            const FilterSectionHeader(title: 'Growth Method (CVD / HPHT)'),
-            const SizedBox(height: AppSpacing.s8),
-            Row(
-              children: DiamondFilterState.growthMethods.map((method) {
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: FilterChipWidget(
-                      label: method,
-                      isSelected:
-                          state.selectedGrowthMethods.contains(method),
-                      centerLabel: true,
-                      onTap: () => notifier.toggleGrowthMethod(method),
+            const SizedBox(height: AppSpacing.s16),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FilterSectionHeader(
+                  title: 'Growth Method (CVD / HPHT)',
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                Row(
+                  children: DiamondFilterState.growthMethods.map((method) {
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: FilterChipWidget(
+                          label: method,
+                          isSelected: state.selectedGrowthMethods.contains(method),
+                          centerLabel: true,
+                          onTap: () => notifier.toggleGrowthMethod(method),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppSpacing.s20),
+          ],
+
+          FilterGroupCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FilterSectionHeader(title: 'Select Shape'),
+                const SizedBox(height: AppSpacing.s8),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.topCenter,
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: shapesToShow,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: _shapeGridColumns,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 1.35,
+                    ),
+                    itemBuilder: (context, index) {
+                      if (index >= totalShapes) {
+                        return const SizedBox.shrink();
+                      }
+                      final name = kAllShapes[index]['name']!;
+                      final isSelected = state.shapes.contains(name);
+                      return FilterShapeGridCell(
+                        name: name,
+                        isSelected: isSelected,
+                        onTap: () => notifier.toggleShape(name),
+                      );
+                    },
+                  ),
+                ),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        if (isAtMax) {
+                          _shapeDisplayRows = 2;
+                        } else {
+                          _shapeDisplayRows = (_shapeDisplayRows + 2).clamp(
+                            0,
+                            totalRows,
+                          );
+                        }
+                      });
+                    },
+                    icon: Icon(
+                      isAtMax
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: AppColors.bronze,
+                      size: 18,
+                    ),
+                    label: Text(
+                      isAtMax ? 'Show Less Shapes' : 'Show More Shapes',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.bronze,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: AppSpacing.s20),
-          ],
-
-          const FilterSectionHeader(title: 'Select Shape'),
-          const SizedBox(height: AppSpacing.s8),
-
-          AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: shapesToShow,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _shapeGridColumns,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 1.35,
-              ),
-              itemBuilder: (context, index) {
-                if (index >= totalShapes) {
-                  return const SizedBox.shrink();
-                }
-                final name = kAllShapes[index]['name']!;
-                final isSelected = state.shapes.contains(name);
-                return FilterShapeGridCell(
-                  name: name,
-                  isSelected: isSelected,
-                  onTap: () => notifier.toggleShape(name),
-                );
-              },
-            ),
-          ),
-
-          Center(
-            child: TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  if (isAtMax) {
-                    _shapeDisplayRows = 2;
-                  } else {
-                    _shapeDisplayRows = (_shapeDisplayRows + 2).clamp(
-                      0,
-                      totalRows,
-                    );
-                  }
-                });
-              },
-              icon: Icon(
-                isAtMax ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                color: AppColors.bronze,
-                size: 18,
-              ),
-              label: Text(
-                isAtMax ? 'Show Less Shapes' : 'Show More Shapes',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.bronze,
-                  fontWeight: FontWeight.bold,
                 ),
-              ),
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.s16),
 
-          if (useMeleeFilters) ...[
-            FilterBooleanCheckbox(
-              label: 'Separable',
-              value: state.separable,
-              onChanged: (_) => notifier.toggleSeparable(),
+          FilterGroupCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (useMeleeFilters) ...[
+                  FilterBooleanCheckbox(
+                    label: 'Separable',
+                    value: state.separable,
+                    onChanged: (_) => notifier.toggleSeparable(),
+                  ),
+                  const SizedBox(height: AppSpacing.s16),
+                ],
+                FilterBooleanCheckbox(
+                  label: 'Filter by Media',
+                  value: state.searchByMedia,
+                  onChanged: (_) => notifier.toggleSearchByMedia(),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.s16),
-          ],
-
-          FilterBooleanCheckbox(
-            label: 'Filter by Media',
-            value: state.searchByMedia,
-            onChanged: (_) => notifier.toggleSearchByMedia(),
           ),
-          const SizedBox(height: AppSpacing.s16),
 
           if (showSieve) ...[
             const FilterSieveSize(),
-            const SizedBox(height: AppSpacing.s24),
           ],
 
           if (useMeleeFilters) ...[
@@ -228,7 +253,6 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
               totalCaratMax: state.maxCarat,
               onTotalCaratChanged: notifier.updateCaratRange,
             ),
-            const SizedBox(height: AppSpacing.s20),
           ],
           if (showStandardRanges) ...[
             CatalogStandardRangeFilters(
@@ -248,15 +272,12 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
               pricePerCaratLimits: (0.0, 200000.0),
               onPricePerCaratChanged: notifier.updatePricePerCaratRange,
             ),
-            const SizedBox(height: AppSpacing.s24),
           ],
 
           // === COLOR, CLARITY, FINISH (always visible) ===
           const ColorTabsSelector(),
-          const SizedBox(height: AppSpacing.s24),
 
           const ClarityCardsSection(),
-          const SizedBox(height: AppSpacing.s24),
 
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
@@ -266,260 +287,291 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: AppSpacing.s24),
-
-                      const FinishPresetsSection(),
-                      const SizedBox(height: AppSpacing.s20),
-
-                      FilterScrollableChips(
-                        title: 'Cut Grade',
-                        options: DiamondFilterState.cuts,
-                        selectedItems: state.selectedCuts,
-                        onToggle: (val) => notifier.toggleCut(val),
-                        infoText: "Filter by the quality of the diamond's cut.",
+                      FilterGroupCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const FinishPresetsSection(wrapWithCard: false),
+                            const SizedBox(height: AppSpacing.s20),
+                            FilterScrollableChips(
+                              title: 'Cut Grade',
+                              options: DiamondFilterState.cuts,
+                              selectedItems: state.selectedCuts,
+                              onToggle: (val) => notifier.toggleCut(val),
+                              infoText:
+                                  "Filter by the quality of the diamond's cut.",
+                              wrapWithCard: false,
+                            ),
+                            const SizedBox(height: AppSpacing.s20),
+                            FilterScrollableChips(
+                              title: 'Polish',
+                              options: DiamondFilterState.polishingGrades,
+                              selectedItems: state.selectedPolish,
+                              onToggle: (val) => notifier.togglePolish(val),
+                              infoText:
+                                  "Filter by the smoothness of the diamond's facets.",
+                              wrapWithCard: false,
+                            ),
+                            const SizedBox(height: AppSpacing.s20),
+                            FilterScrollableChips(
+                              title: 'Symmetry',
+                              options: DiamondFilterState.symmetryGrades,
+                              selectedItems: state.selectedSymmetry,
+                              onToggle: (val) => notifier.toggleSymmetry(val),
+                              infoText:
+                                  "Filter by the exactness of the diamond's shape.",
+                              wrapWithCard: false,
+                            ),
+                            const SizedBox(height: AppSpacing.s20),
+                            FilterScrollableChips(
+                              title: 'Certification',
+                              options: DiamondFilterState.labs,
+                              selectedItems: state.selectedLabs,
+                              onToggle: (val) => notifier.toggleLab(val),
+                              infoText:
+                                  "Filter by the gemological laboratory that certified the diamond.",
+                              wrapWithCard: false,
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: AppSpacing.s20),
-
-                      FilterScrollableChips(
-                        title: 'Polish',
-                        options: DiamondFilterState.polishingGrades,
-                        selectedItems: state.selectedPolish,
-                        onToggle: (val) => notifier.togglePolish(val),
-                        infoText:
-                            "Filter by the smoothness of the diamond's facets.",
-                      ),
-                      const SizedBox(height: AppSpacing.s20),
-
-                      FilterScrollableChips(
-                        title: 'Symmetry',
-                        options: DiamondFilterState.symmetryGrades,
-                        selectedItems: state.selectedSymmetry,
-                        onToggle: (val) => notifier.toggleSymmetry(val),
-                        infoText:
-                            "Filter by the exactness of the diamond's shape.",
-                      ),
-                      const SizedBox(height: AppSpacing.s20),
-
-                      FilterScrollableChips(
-                        title: 'Certification',
-                        options: DiamondFilterState.labs,
-                        selectedItems: state.selectedLabs,
-                        onToggle: (val) => notifier.toggleLab(val),
-                        infoText:
-                            "Filter by the gemological laboratory that certified the diamond.",
-                      ),
-                      const SizedBox(height: AppSpacing.s20),
 
                       // === INCLUSIONS ===
-                      FilterBooleanCheckbox(
-                        label: 'No BGM (No Brown, Green, Milky tints)',
-                        value: state.noBgm,
-                        onChanged: (_) => notifier.toggleNoBgm(),
-                      ),
-                      FilterBooleanCheckbox(
-                        label: 'Eye Clean (No inclusions visible to naked eye)',
-                        value: state.eyeClean,
-                        onChanged: (_) => notifier.toggleEyeClean(),
-                      ),
-                      FilterBooleanCheckbox(
-                        label: 'Hearts & Arrows',
-                        value: state.heartAndArrow,
-                        onChanged: (_) => notifier.toggleHeartAndArrow(),
-                      ),
-                      const SizedBox(height: AppSpacing.s20),
-
-                      // === TREATMENT: Milky ===
-                      const FilterSectionHeader(title: 'Milky'),
-                      const SizedBox(height: AppSpacing.s8),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: DiamondFilterState.milkyGrades.map((grade) {
-                            final isSelected = state.selectedMilkyGrades
-                                .contains(grade);
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: GestureDetector(
-                                onTap: () => notifier.toggleMilkyGrade(grade),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.charcoal
-                                        : (AppColors.warmWhite),
-                                    borderRadius: BorderRadius.circular(
-                                      AppSpacing.r8,
-                                    ),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.charcoal
-                                          : borderColor,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    grade,
-                                    style: AppTypography.caption.copyWith(
-                                      fontWeight: isSelected
-                                          ? FontWeight.bold
-                                          : FontWeight.w500,
-                                      color: isSelected
-                                          ? AppColors.warmWhite
-                                          : (AppColors.textPrimaryLight),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                      FilterGroupCard(
+                        child: Column(
+                          children: [
+                            FilterBooleanCheckbox(
+                              label: 'No BGM (No Brown, Green, Milky tints)',
+                              value: state.noBgm,
+                              onChanged: (_) => notifier.toggleNoBgm(),
+                            ),
+                            FilterBooleanCheckbox(
+                              label:
+                                  'Eye Clean (No inclusions visible to naked eye)',
+                              value: state.eyeClean,
+                              onChanged: (_) => notifier.toggleEyeClean(),
+                            ),
+                            FilterBooleanCheckbox(
+                              label: 'Hearts & Arrows',
+                              value: state.heartAndArrow,
+                              onChanged: (_) =>
+                                  notifier.toggleHeartAndArrow(),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.s20),
 
-                      // === TREATMENT: Fluorescence Intensity ===
-                      const FilterSectionHeader(
-                        title: 'Fluorescence Intensity',
-                      ),
-                      const SizedBox(height: AppSpacing.s8),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: DiamondFilterState.fluorescenceGrades.map((
-                            grade,
-                          ) {
-                            final isSelected = state.selectedFluorescence
-                                .contains(grade);
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: GestureDetector(
-                                onTap: () => notifier.toggleFluorescence(grade),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.charcoal
-                                        : (AppColors.warmWhite),
-                                    borderRadius: BorderRadius.circular(
-                                      AppSpacing.r8,
-                                    ),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.charcoal
-                                          : borderColor,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    grade,
-                                    style: AppTypography.caption.copyWith(
-                                      fontWeight: isSelected
-                                          ? FontWeight.bold
-                                          : FontWeight.w500,
-                                      color: isSelected
-                                          ? AppColors.warmWhite
-                                          : (AppColors.textPrimaryLight),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s20),
-
-                      // === TREATMENT: Fluorescence Color ===
-                      const FilterSectionHeader(title: 'Fluorescence Color'),
-                      const SizedBox(height: AppSpacing.s8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: borderColor),
-                          borderRadius: BorderRadius.circular(AppSpacing.r8),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            isExpanded: true,
-                            hint: const Text('Select fluorescence color'),
-                            value: state.selectedFluorescenceColor,
-                            items: DiamondFilterState.fluorescenceColors.map((
-                              colorName,
-                            ) {
-                              final hex = DiamondFilterState
-                                  .fluorescenceColorsHex[colorName]!;
-                              return DropdownMenuItem<String>(
-                                value: colorName,
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 16,
-                                      height: 16,
-                                      decoration: BoxDecoration(
-                                        color: _parseHex(hex),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.grey.shade400,
+                      // === TREATMENT ===
+                      FilterGroupCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const FilterSectionHeader(title: 'Milky'),
+                            const SizedBox(height: AppSpacing.s8),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: DiamondFilterState.milkyGrades
+                                    .map((grade) {
+                                  final isSelected = state.selectedMilkyGrades
+                                      .contains(grade);
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          notifier.toggleMilkyGrade(grade),
+                                      child: AnimatedContainer(
+                                        duration:
+                                            const Duration(milliseconds: 150),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? AppColors.charcoal
+                                              : (AppColors.warmWhite),
+                                          borderRadius: BorderRadius.circular(
+                                            AppSpacing.r8,
+                                          ),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? AppColors.charcoal
+                                                : borderColor,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          grade,
+                                          style:
+                                              AppTypography.caption.copyWith(
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.w500,
+                                            color: isSelected
+                                                ? AppColors.warmWhite
+                                                : (AppColors
+                                                    .textPrimaryLight),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: AppSpacing.s12),
-                                    Text(colorName),
-                                    const Spacer(),
-                                    Text(
-                                      hex,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black45,
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const FilterSectionHeader(
+                              title: 'Fluorescence Intensity',
+                            ),
+                            const SizedBox(height: AppSpacing.s8),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children:
+                                    DiamondFilterState.fluorescenceGrades.map((
+                                  grade,
+                                ) {
+                                  final isSelected = state
+                                      .selectedFluorescence
+                                      .contains(grade);
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          notifier.toggleFluorescence(grade),
+                                      child: AnimatedContainer(
+                                        duration:
+                                            const Duration(milliseconds: 150),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? AppColors.charcoal
+                                              : (AppColors.warmWhite),
+                                          borderRadius: BorderRadius.circular(
+                                            AppSpacing.r8,
+                                          ),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? AppColors.charcoal
+                                                : borderColor,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          grade,
+                                          style:
+                                              AppTypography.caption.copyWith(
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.w500,
+                                            color: isSelected
+                                                ? AppColors.warmWhite
+                                                : (AppColors
+                                                    .textPrimaryLight),
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const FilterSectionHeader(
+                              title: 'Fluorescence Color',
+                            ),
+                            const SizedBox(height: AppSpacing.s8),
+                            Container(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: borderColor),
+                                borderRadius:
+                                    BorderRadius.circular(AppSpacing.r8),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  isExpanded: true,
+                                  hint: const Text(
+                                    'Select fluorescence color',
+                                  ),
+                                  value: state.selectedFluorescenceColor,
+                                  items: DiamondFilterState.fluorescenceColors
+                                      .map((colorName) {
+                                    final hex = DiamondFilterState
+                                        .fluorescenceColorsHex[colorName]!;
+                                    return DropdownMenuItem<String>(
+                                      value: colorName,
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 16,
+                                            height: 16,
+                                            decoration: BoxDecoration(
+                                              color: _parseHex(hex),
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: Colors.grey.shade400,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: AppSpacing.s12,
+                                          ),
+                                          Text(colorName),
+                                          const Spacer(),
+                                          Text(
+                                            hex,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black45,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) =>
+                                      notifier.updateFluorescenceColor(val),
                                 ),
-                              );
-                            }).toList(),
-                            onChanged: (val) =>
-                                notifier.updateFluorescenceColor(val),
-                          ),
+                              ),
+                            ),
+                            const FilterSectionHeader(title: 'Enhancement'),
+                            const SizedBox(height: AppSpacing.s8),
+                            Container(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: borderColor),
+                                borderRadius:
+                                    BorderRadius.circular(AppSpacing.r8),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  isExpanded: true,
+                                  hint: const Text('Select enhancement'),
+                                  value: state.selectedEnhancement,
+                                  items: DiamondFilterState.enhancements
+                                      .map((enh) {
+                                    return DropdownMenuItem<String>(
+                                      value: enh,
+                                      child: Text(enh),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) =>
+                                      notifier.updateEnhancement(val),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.s20),
-
-                      // === TREATMENT: Enhancement ===
-                      const FilterSectionHeader(title: 'Enhancement'),
-                      const SizedBox(height: AppSpacing.s8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: borderColor),
-                          borderRadius: BorderRadius.circular(AppSpacing.r8),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            isExpanded: true,
-                            hint: const Text('Select enhancement'),
-                            value: state.selectedEnhancement,
-                            items: DiamondFilterState.enhancements.map((enh) {
-                              return DropdownMenuItem<String>(
-                                value: enh,
-                                child: Text(enh),
-                              );
-                            }).toList(),
-                            onChanged: (val) => notifier.updateEnhancement(val),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s24),
                     ],
                   )
                 : const SizedBox(width: double.infinity, height: 0),
           ),
 
-          const SizedBox(height: AppSpacing.s24),
+          const SizedBox(height: AppSpacing.s8),
 
           if (showStandardRanges) ...[
             GestureDetector(
@@ -582,63 +634,71 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
     final notifier = ref.read(diamondSearchProvider.notifier);
     final borderColor = AppColors.warmBorder;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Clarity',
-          style: AppTypography.label.copyWith(
-            fontWeight: FontWeight.bold,
+    return FilterGroupCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Clarity',
+            style: AppTypography.label.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.s8),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: DiamondFilterState.clarities.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            childAspectRatio: 2.2,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemBuilder: (context, index) {
-            final grade = DiamondFilterState.clarities[index];
-            final isSelected = state.selectedClarityGrades.contains(grade);
-            return GestureDetector(
-              onTap: () => notifier.toggleClarityGradeGroup(grade),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.charcoal
-                      : (AppColors.warmWhite),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isSelected ? AppColors.charcoal : borderColor,
-                  ),
-                ),
-                child: Text(
-                  grade,
-                  style: AppTypography.caption.copyWith(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+          const SizedBox(height: AppSpacing.s8),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: DiamondFilterState.clarities.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              childAspectRatio: 2.2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemBuilder: (context, index) {
+              final grade = DiamondFilterState.clarities[index];
+              final isSelected = state.selectedClarityGrades.contains(grade);
+              return GestureDetector(
+                onTap: () => notifier.toggleClarityGradeGroup(grade),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.warmWhite
-                        : (AppColors.textPrimaryLight),
+                        ? AppColors.charcoal
+                        : (AppColors.warmWhite),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? AppColors.charcoal : borderColor,
+                    ),
+                  ),
+                  child: Text(
+                    grade,
+                    style: AppTypography.caption.copyWith(
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected
+                          ? AppColors.warmWhite
+                          : (AppColors.textPrimaryLight),
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        ),
-      ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
 
 class FinishPresetsSection extends ConsumerWidget {
-  const FinishPresetsSection({super.key});
+  const FinishPresetsSection({
+    this.wrapWithCard = true,
+    super.key,
+  });
+
+  final bool wrapWithCard;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -647,72 +707,83 @@ class FinishPresetsSection extends ConsumerWidget {
     final borderColor = AppColors.warmBorder;
     final presets = ['3X', 'EX-', 'VG+', 'VG-'];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Finish (Quick Select)',
-              style: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 6),
-            Tooltip(
-              message: "Quickly select combined grades for Cut, Polish, and Symmetry.",
-              triggerMode: TooltipTriggerMode.tap,
-              preferBelow: false,
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(6),
+    final content = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Finish (Quick Select)',
+                style:
+                    AppTypography.label.copyWith(fontWeight: FontWeight.bold),
               ),
-              textStyle: const TextStyle(color: Colors.white, fontSize: 13),
-              child: const Icon(
-                Icons.info_outline,
-                size: 16,
-                color: AppColors.bronze,
+              const SizedBox(width: 6),
+              Tooltip(
+                message:
+                    "Quickly select combined grades for Cut, Polish, and Symmetry.",
+                triggerMode: TooltipTriggerMode.tap,
+                preferBelow: false,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                textStyle: const TextStyle(color: Colors.white, fontSize: 13),
+                child: const Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: AppColors.bronze,
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: presets.map((preset) {
-            final isSelected = state.selectedFinishPreset.contains(preset);
-            return Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: GestureDetector(
-                  onTap: () => notifier.selectFinishPreset(preset),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    height: 38,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.charcoal
-                          : (AppColors.warmWhite),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: isSelected ? AppColors.charcoal : borderColor,
-                      ),
-                    ),
-                    child: Text(
-                      preset,
-                      style: AppTypography.caption.copyWith(
-                        fontWeight: FontWeight.bold,
+            ],
+          ),
+          const SizedBox(height: AppSpacing.s8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: presets.map((preset) {
+              final isSelected = state.selectedFinishPreset.contains(preset);
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: GestureDetector(
+                    onTap: () => notifier.selectFinishPreset(preset),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      height: 38,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.warmWhite
-                            : (AppColors.textPrimaryLight),
+                            ? AppColors.charcoal
+                            : (AppColors.warmWhite),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color:
+                              isSelected ? AppColors.charcoal : borderColor,
+                        ),
+                      ),
+                      child: Text(
+                        preset,
+                        style: AppTypography.caption.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? AppColors.warmWhite
+                              : (AppColors.textPrimaryLight),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
+              );
+            }).toList(),
+          ),
+        ],
+      );
+
+    if (!wrapWithCard) {
+      return content;
+    }
+
+    return FilterGroupCard(
+      child: content,
     );
   }
 }
@@ -811,74 +882,77 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
     final selectedSet = state.selectedSieveIndices.toSet();
 
     return RepaintBoundary(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const FilterSectionHeader(title: 'Sieve Size'),
-          const SizedBox(height: AppSpacing.s12),
+      child: FilterGroupCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const FilterSectionHeader(title: 'Sieve Size'),
+            const SizedBox(height: AppSpacing.s12),
 
-          // ---- Lot Type Presets ----
-          const FilterSectionHeader(title: 'Lot Type Presets'),
-          const SizedBox(height: AppSpacing.s8),
-          Row(
-            children: SieveSize.lotTypePresets.keys.map((label) {
-              final isActive = state.activeSievePresets.contains(label);
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3),
-                  child: _CompactPresetChip(
-                    label: label,
-                    isActive: isActive,
-                    onTap: () => notifier.applySievePreset(label),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: AppSpacing.s16),
-
-          // ---- Scrollable Sieve Table ----
-          Container(
-            height: _tableHeight,
-            decoration: BoxDecoration(
-              border: Border.all(color: borderColor),
-              borderRadius: BorderRadius.circular(AppSpacing.r8),
-            ),
-            child: Column(
-              children: [
-                _SieveTableHeader(borderColor: borderColor),
-                Expanded(
-                  child: Scrollbar(
-                    child: ListView.builder(
-                      itemCount: sieves.length,
-                      itemExtent: 36.0,
-                      itemBuilder: (context, index) {
-                        final sieve = sieves[index];
-                        final isSelected = selectedSet.contains(sieve.index);
-                        return _SieveTableRow(
-                          sieve: sieve,
-                          isSelected: isSelected,
-                          borderColor: borderColor,
-                          onTap: () => notifier.toggleSieveSize(sieve.index),
-                        );
-                      },
+            // ---- Lot Type Presets ----
+            const FilterSectionHeader(title: 'Lot Type Presets'),
+            const SizedBox(height: AppSpacing.s8),
+            Row(
+              children: SieveSize.lotTypePresets.keys.map((label) {
+                final isActive = state.activeSievePresets.contains(label);
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: _CompactPresetChip(
+                      label: label,
+                      isActive: isActive,
+                      onTap: () => notifier.applySievePreset(label),
                     ),
                   ),
-                ),
-              ],
+                );
+              }).toList(),
             ),
-          ),
-          const SizedBox(height: AppSpacing.s16),
+            const SizedBox(height: AppSpacing.s16),
 
-          // ---- Selection Summary ----
-          _SelectionSummaryCard(
-            count: state.selectedSieveIndices.length,
-            borderColor: borderColor,
-            onClear: state.selectedSieveIndices.isEmpty
-                ? null
-                : () => notifier.clearSieves(),
-          ),
-        ],
+            // ---- Scrollable Sieve Table ----
+            Container(
+              height: _tableHeight,
+              decoration: BoxDecoration(
+                border: Border.all(color: borderColor),
+                borderRadius: BorderRadius.circular(AppSpacing.r8),
+              ),
+              child: Column(
+                children: [
+                  _SieveTableHeader(borderColor: borderColor),
+                  Expanded(
+                    child: Scrollbar(
+                      child: ListView.builder(
+                        itemCount: sieves.length,
+                        itemExtent: 36.0,
+                        itemBuilder: (context, index) {
+                          final sieve = sieves[index];
+                          final isSelected = selectedSet.contains(sieve.index);
+                          return _SieveTableRow(
+                            sieve: sieve,
+                            isSelected: isSelected,
+                            borderColor: borderColor,
+                            onTap: () =>
+                                notifier.toggleSieveSize(sieve.index),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s16),
+
+            // ---- Selection Summary ----
+            _SelectionSummaryCard(
+              count: state.selectedSieveIndices.length,
+              borderColor: borderColor,
+              onClear: state.selectedSieveIndices.isEmpty
+                  ? null
+                  : () => notifier.clearSieves(),
+            ),
+          ],
+        ),
       ),
     );
   }

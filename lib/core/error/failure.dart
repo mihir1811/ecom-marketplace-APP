@@ -11,14 +11,30 @@ sealed class Failure {
 class NetworkFailure extends Failure {
   const NetworkFailure(super.message);
 
-  factory NetworkFailure.fromDioException(DioException e) => switch (e.type) {
-        DioExceptionType.connectionTimeout ||
-        DioExceptionType.receiveTimeout =>
-          const NetworkFailure('This is taking longer than expected. Please try again.'),
-        DioExceptionType.connectionError =>
-          const NetworkFailure('You appear to be offline. Check your connection and try again.'),
-        _ => NetworkFailure(_messageForStatus(e.response?.statusCode)),
-      };
+  /// Returned when a request was intentionally cancelled (stale pagination).
+  static const cancelled = NetworkFailure._cancelled();
+
+  const NetworkFailure._cancelled() : super('Request cancelled.');
+
+  bool get isCancelled => identical(this, cancelled) || message == 'Request cancelled.';
+
+  factory NetworkFailure.fromDioException(DioException e) {
+    if (e.type == DioExceptionType.cancel) {
+      return NetworkFailure.cancelled;
+    }
+    return switch (e.type) {
+      DioExceptionType.connectionTimeout ||
+      DioExceptionType.receiveTimeout =>
+        const NetworkFailure(
+          'This is taking longer than expected. Please try again.',
+        ),
+      DioExceptionType.connectionError =>
+        const NetworkFailure(
+          'You appear to be offline. Check your connection and try again.',
+        ),
+      _ => NetworkFailure(_messageForStatus(e.response?.statusCode)),
+    };
+  }
 
   static String _messageForStatus(int? statusCode) {
     if (statusCode == null) return 'Something went wrong. Please try again.';

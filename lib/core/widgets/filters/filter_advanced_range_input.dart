@@ -94,23 +94,31 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
 
   void _handleMinSubmitted(String text) {
     if (text.trim().isEmpty) {
-      widget.onMinChanged(widget.minLimit);
+      if (widget.currentMin != widget.minLimit) {
+        widget.onMinChanged(widget.minLimit);
+      }
       return;
     }
     final parsed = double.tryParse(text) ?? widget.minLimit;
     final clamped = parsed.clamp(widget.minLimit, widget.currentMax);
-    widget.onMinChanged(clamped);
+    if (clamped != widget.currentMin) {
+      widget.onMinChanged(clamped);
+    }
     _minController.text = clamped.toStringAsFixed(1);
   }
 
   void _handleMaxSubmitted(String text) {
     if (text.trim().isEmpty) {
-      widget.onMaxChanged(widget.maxLimit);
+      if (widget.currentMax != widget.maxLimit) {
+        widget.onMaxChanged(widget.maxLimit);
+      }
       return;
     }
     final parsed = double.tryParse(text) ?? widget.maxLimit;
     final clamped = parsed.clamp(widget.currentMin, widget.maxLimit);
-    widget.onMaxChanged(clamped);
+    if (clamped != widget.currentMax) {
+      widget.onMaxChanged(clamped);
+    }
     _maxController.text = clamped.toStringAsFixed(1);
   }
 

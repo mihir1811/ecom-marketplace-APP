@@ -5,6 +5,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import 'package:gemstone/core/widgets/filters/filter_boolean_checkbox.dart';
 import 'package:gemstone/core/widgets/filters/filter_chip.dart';
+import 'package:gemstone/core/widgets/filters/filter_group_card.dart';
 import 'package:gemstone/core/widgets/filters/melee_range_filters.dart';
 import 'package:gemstone/core/widgets/filters/catalog_standard_range_filters.dart';
 import 'package:gemstone/core/widgets/filters/filter_scrollable_chips.dart';
@@ -75,251 +76,280 @@ class _GemstoneFilterCategoryBasicState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // === STONE TYPE ===
-          const FilterSectionHeader(title: 'Stone Type'),
-          const SizedBox(height: AppSpacing.s8),
-          GemstoneSegmentedControl(
-            options: const [
-              SegmentOption(
-                value: 'Natural',
-                label: 'Natural',
-                icon: Icons.wb_sunny_outlined,
-              ),
-              SegmentOption(
-                value: 'Lab Grown',
-                label: 'Lab-Grown',
-                icon: Icons.science_outlined,
-              ),
-            ],
-            selected: state.stoneType,
-            onSelected: (val) => notifier.updateStoneType(val),
-          ),
-          const SizedBox(height: AppSpacing.s20),
-
-          // === LOT TYPE ===
-          const FilterSectionHeader(title: 'Lot Type'),
-          const SizedBox(height: AppSpacing.s8),
-          GemstoneSegmentedControl(
-            options: const [
-              SegmentOption(
-                value: 'Single',
-                label: 'Single',
-                icon: Icons.star_border,
-              ),
-              SegmentOption(value: 'Melee', label: 'Melee', icon: Icons.grain),
-            ],
-            selected: state.lotType,
-            onSelected: (val) => notifier.updateLotType(val),
-          ),
-          const SizedBox(height: AppSpacing.s20),
-
-          if (isMelee) ...[
-            FilterBooleanCheckbox(
-              label: 'Separable',
-              value: state.separable,
-              onChanged: (_) => notifier.toggleSeparable(),
-            ),
-            const SizedBox(height: AppSpacing.s20),
-          ],
-
-          // === FILTER BY MEDIA ===
-          FilterBooleanCheckbox(
-            label: 'Filter by Media',
-            value: state.searchByMedia,
-            onChanged: (_) => notifier.toggleSearchByMedia(),
-          ),
-          const SizedBox(height: AppSpacing.s20),
-
-          // === GEMSTONE TYPE ===
-          const FilterSectionHeader(title: 'Gemstone Type'),
-          const SizedBox(height: AppSpacing.s8),
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(AppSpacing.r8),
-              border: Border.all(
-                color: AppColors.warmBorder,
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s12,
-              vertical: AppSpacing.s4,
-            ),
-            child: TextField(
-              onChanged: (val) => setState(() => _typeSearchQuery = val),
-              decoration: InputDecoration(
-                hintText: 'Search gemstone types...',
-                hintStyle: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
-                ),
-                prefixIcon: const Icon(Icons.search, size: 18),
-                prefixIconColor: AppColors.textMutedLight,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                suffixIcon: _typeSearchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 16),
-                        onPressed: () => setState(() => _typeSearchQuery = ''),
-                      )
-                    : null,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: Wrap(
-              spacing: AppSpacing.s8,
-              runSpacing: AppSpacing.s8,
+          FilterGroupCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ...visibleTypes.map((type) {
-                  return FilterChipWidget(
-                    label: type,
-                    isSelected: state.selectedGemstoneTypes.contains(type),
-                    onTap: () => notifier.toggleGemstoneType(type),
-                  );
-                }),
-                if (hiddenTypeCount > 0)
-                  FilterChipWidget(
-                    label: 'Others ($hiddenTypeCount)',
-                    isSelected: false,
-                    onTap: () =>
-                        setState(() => _isTypesExpanded = !_isTypesExpanded),
-                    selectedColor: AppColors.sandSurface,
-                    unselectedBgColor: AppColors.sandSurface,
-                    unselectedTextColor: AppColors.bronze,
-                    borderColor: AppColors.bronze,
+                const FilterSectionHeader(title: 'Stone Type'),
+                const SizedBox(height: AppSpacing.s8),
+                GemstoneSegmentedControl(
+                  options: const [
+                    SegmentOption(
+                      value: 'Natural',
+                      label: 'Natural',
+                      icon: Icons.wb_sunny_outlined,
+                    ),
+                    SegmentOption(
+                      value: 'Lab Grown',
+                      label: 'Lab-Grown',
+                      icon: Icons.science_outlined,
+                    ),
+                  ],
+                  selected: state.stoneType,
+                  onSelected: (val) => notifier.updateStoneType(val),
+                ),
+                const SizedBox(height: AppSpacing.s20),
+                const FilterSectionHeader(title: 'Lot Type'),
+                const SizedBox(height: AppSpacing.s8),
+                GemstoneSegmentedControl(
+                  options: const [
+                    SegmentOption(
+                      value: 'Single',
+                      label: 'Single',
+                      icon: Icons.star_border,
+                    ),
+                    SegmentOption(
+                      value: 'Melee',
+                      label: 'Melee',
+                      icon: Icons.grain,
+                    ),
+                  ],
+                  selected: state.lotType,
+                  onSelected: (val) => notifier.updateLotType(val),
+                ),
+              ],
+            ),
+          ),
+
+          FilterGroupCard(
+            child: Column(
+              children: [
+                if (isMelee) ...[
+                  FilterBooleanCheckbox(
+                    label: 'Separable',
+                    value: state.separable,
+                    onChanged: (_) => notifier.toggleSeparable(),
+                  ),
+                  const SizedBox(height: AppSpacing.s12),
+                ],
+                FilterBooleanCheckbox(
+                  label: 'Filter by Media',
+                  value: state.searchByMedia,
+                  onChanged: (_) => notifier.toggleSearchByMedia(),
+                ),
+              ],
+            ),
+          ),
+
+          FilterGroupCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FilterSectionHeader(title: 'Gemstone Type'),
+                const SizedBox(height: AppSpacing.s8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.r8),
+                    border: Border.all(
+                      color: AppColors.warmBorder,
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s12,
+                    vertical: AppSpacing.s4,
+                  ),
+                  child: TextField(
+                    onChanged: (val) => setState(() => _typeSearchQuery = val),
+                    decoration: InputDecoration(
+                      hintText: 'Search gemstone types...',
+                      hintStyle: AppTypography.caption.copyWith(
+                        color: AppColors.textMutedLight,
+                      ),
+                      prefixIcon: const Icon(Icons.search, size: 18),
+                      prefixIconColor: AppColors.textMutedLight,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      suffixIcon: _typeSearchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 16),
+                              onPressed: () =>
+                                  setState(() => _typeSearchQuery = ''),
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.topCenter,
+                  child: Wrap(
+                    spacing: AppSpacing.s8,
+                    runSpacing: AppSpacing.s8,
+                    children: [
+                      ...visibleTypes.map((type) {
+                        return FilterChipWidget(
+                          label: type,
+                          isSelected: state.selectedGemstoneTypes.contains(type),
+                          onTap: () => notifier.toggleGemstoneType(type),
+                        );
+                      }),
+                      if (hiddenTypeCount > 0)
+                        FilterChipWidget(
+                          label: 'Others ($hiddenTypeCount)',
+                          isSelected: false,
+                          onTap: () => setState(
+                            () => _isTypesExpanded = !_isTypesExpanded,
+                          ),
+                          selectedColor: AppColors.sandSurface,
+                          unselectedBgColor: AppColors.sandSurface,
+                          unselectedTextColor: AppColors.bronze,
+                          borderColor: AppColors.bronze,
+                        ),
+                    ],
+                  ),
+                ),
+                if (filteredTypes.isNotEmpty)
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          if (isTypesAtMax) {
+                            _typeDisplayRows = 2;
+                            _isTypesExpanded = false;
+                          } else {
+                            _typeDisplayRows += _typeRowsPerStep;
+                          }
+                        });
+                      },
+                      icon: Icon(
+                        isTypesAtMax
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        color: AppColors.bronze,
+                        size: 18,
+                      ),
+                      label: Text(
+                        isTypesAtMax
+                            ? 'View Less'
+                            : 'View More ($hiddenTypeCount more)',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.bronze,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
               ],
             ),
           ),
-          if (filteredTypes.isNotEmpty)
-            Center(
-              child: TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    if (isTypesAtMax) {
-                      _typeDisplayRows = 2;
-                      _isTypesExpanded = false;
-                    } else {
-                      _typeDisplayRows += _typeRowsPerStep;
-                    }
-                  });
-                },
-                icon: Icon(
-                  isTypesAtMax
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  color: AppColors.bronze,
-                  size: 18,
-                ),
-                label: Text(
-                  isTypesAtMax
-                      ? 'View Less'
-                      : 'View More ($hiddenTypeCount more)',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.bronze,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          const SizedBox(height: AppSpacing.s16),
 
-          // === BIRTHSTONES ===
-          const FilterSectionHeader(
-            title: 'Birthstones',
-            infoText: 'Filter gemstones by their associated birth month.',
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: GemstoneFilterState.birthstones.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 1.5,
+          FilterGroupCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FilterSectionHeader(
+                  title: 'Birthstones',
+                  infoText: 'Filter gemstones by their associated birth month.',
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: GemstoneFilterState.birthstones.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 1.5,
+                  ),
+                  itemBuilder: (context, index) {
+                    final month = GemstoneFilterState.birthstones.keys.elementAt(
+                      index,
+                    );
+                    final gemstone = GemstoneFilterState.birthstones[month]!;
+                    return BirthstoneMonthCard(
+                      month: month,
+                      gemstone: gemstone,
+                      isSelected: state.selectedBirthstoneMonths.contains(month),
+                      onTap: () => notifier.toggleBirthstoneMonth(month),
+                    );
+                  },
+                ),
+              ],
             ),
-            itemBuilder: (context, index) {
-              final month = GemstoneFilterState.birthstones.keys.elementAt(
-                index,
-              );
-              final gemstone = GemstoneFilterState.birthstones[month]!;
-              return BirthstoneMonthCard(
-                month: month,
-                gemstone: gemstone,
-                isSelected: state.selectedBirthstoneMonths.contains(month),
-                onTap: () => notifier.toggleBirthstoneMonth(month),
-              );
-            },
           ),
-          const SizedBox(height: AppSpacing.s20),
 
           // === SHAPE ===
-          const FilterSectionHeader(title: 'Shape'),
-          const SizedBox(height: AppSpacing.s8),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: shapesToShow,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _shapeGridColumns,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 1.35,
-              ),
-              itemBuilder: (context, index) {
-                final name = shapeNames[index];
-                return FilterShapeGridCell(
-                  name: name,
-                  svgName: GemstoneFilterState.shapeSvgNames[name],
-                  isSelected: state.selectedShapes.contains(name),
-                  onTap: () => notifier.toggleShape(name),
-                );
-              },
-            ),
-          ),
-          Center(
-            child: TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  if (isShapesAtMax) {
-                    _shapeDisplayRows = 2;
-                  } else {
-                    _shapeDisplayRows = (_shapeDisplayRows + 2).clamp(
-                      0,
-                      totalShapeRows,
-                    );
-                  }
-                });
-              },
-              icon: Icon(
-                isShapesAtMax
-                    ? Icons.keyboard_arrow_up
-                    : Icons.keyboard_arrow_down,
-                color: AppColors.bronze,
-                size: 18,
-              ),
-              label: Text(
-                isShapesAtMax ? 'Show Less Shapes' : 'Show More Shapes',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.bronze,
-                  fontWeight: FontWeight.bold,
+          FilterGroupCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FilterSectionHeader(title: 'Shape'),
+                const SizedBox(height: AppSpacing.s8),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.topCenter,
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: shapesToShow,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: _shapeGridColumns,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 1.35,
+                    ),
+                    itemBuilder: (context, index) {
+                      final name = shapeNames[index];
+                      return FilterShapeGridCell(
+                        name: name,
+                        svgName: GemstoneFilterState.shapeSvgNames[name],
+                        isSelected: state.selectedShapes.contains(name),
+                        onTap: () => notifier.toggleShape(name),
+                      );
+                    },
+                  ),
                 ),
-              ),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        if (isShapesAtMax) {
+                          _shapeDisplayRows = 2;
+                        } else {
+                          _shapeDisplayRows = (_shapeDisplayRows + 2).clamp(
+                            0,
+                            totalShapeRows,
+                          );
+                        }
+                      });
+                    },
+                    icon: Icon(
+                      isShapesAtMax
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: AppColors.bronze,
+                      size: 18,
+                    ),
+                    label: Text(
+                      isShapesAtMax ? 'Show Less Shapes' : 'Show More Shapes',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.bronze,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.s16),
 
           if (isMelee) ...[
             MeleeRangeFilters(
@@ -404,24 +434,30 @@ class _GemstoneFilterCategoryBasicState
             if (_isAdvancedExpanded) ...[
               const SizedBox(height: AppSpacing.s16),
 
-              const FilterSectionHeader(
-                title: 'Certification',
-                infoText:
-                    'Filter by the gemological laboratory that certified the stone.',
+              FilterGroupCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const FilterSectionHeader(
+                      title: 'Certification',
+                      infoText:
+                          'Filter by the gemological laboratory that certified the stone.',
+                    ),
+                    const SizedBox(height: AppSpacing.s8),
+                    Wrap(
+                      spacing: AppSpacing.s8,
+                      runSpacing: AppSpacing.s8,
+                      children: GemstoneFilterState.certifications.map((cert) {
+                        return FilterChipWidget(
+                          label: cert,
+                          isSelected: state.selectedCertifications.contains(cert),
+                          onTap: () => notifier.toggleCertification(cert),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: AppSpacing.s8),
-              Wrap(
-                spacing: AppSpacing.s8,
-                runSpacing: AppSpacing.s8,
-                children: GemstoneFilterState.certifications.map((cert) {
-                  return FilterChipWidget(
-                    label: cert,
-                    isSelected: state.selectedCertifications.contains(cert),
-                    onTap: () => notifier.toggleCertification(cert),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: AppSpacing.s20),
 
               FilterScrollableChips(
                 title: 'Cut Grade',
@@ -432,99 +468,116 @@ class _GemstoneFilterCategoryBasicState
               ),
               const SizedBox(height: AppSpacing.s20),
 
-              const GemstoneFilterCategoryQuality(),
-              const SizedBox(height: AppSpacing.s20),
-
-              const FilterSectionHeader(
-                title: 'Treatments',
-                infoText:
-                    'Filter by enhancement processes applied to the gemstone.',
-              ),
-              const SizedBox(height: AppSpacing.s8),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                alignment: Alignment.topCenter,
-                child: Wrap(
-                  spacing: AppSpacing.s8,
-                  runSpacing: AppSpacing.s8,
+              FilterGroupCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ...GemstoneFilterState.treatments
-                        .take(_treatmentDisplayCount)
-                        .map((treatment) {
-                          return FilterChipWidget(
-                            label: treatment,
-                            isSelected: state.selectedTreatments.contains(
-                              treatment,
+                    const GemstoneFilterCategoryQuality(
+                      wrapWithCard: false,
+                    ),
+                    const SizedBox(height: AppSpacing.s20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const FilterSectionHeader(
+                          title: 'Treatments',
+                          infoText:
+                              'Filter by enhancement processes applied to the gemstone.',
+                        ),
+                        const SizedBox(height: AppSpacing.s8),
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          alignment: Alignment.topCenter,
+                          child: Wrap(
+                            spacing: AppSpacing.s8,
+                            runSpacing: AppSpacing.s8,
+                            children: [
+                              ...GemstoneFilterState.treatments
+                                  .take(_treatmentDisplayCount)
+                                  .map((treatment) {
+                                    return FilterChipWidget(
+                                      label: treatment,
+                                      isSelected: state.selectedTreatments
+                                          .contains(treatment),
+                                      onTap: () =>
+                                          notifier.toggleTreatment(treatment),
+                                    );
+                                  }),
+                              if (_treatmentDisplayCount <
+                                  GemstoneFilterState.treatments.length)
+                                FilterChipWidget(
+                                  label:
+                                      'Others (${GemstoneFilterState.treatments.length - _treatmentDisplayCount})',
+                                  isSelected: false,
+                                  onTap: () {
+                                    setState(() {
+                                      _treatmentDisplayCount =
+                                          GemstoneFilterState
+                                              .treatments.length;
+                                    });
+                                  },
+                                  selectedColor: AppColors.sandSurface,
+                                  unselectedBgColor: AppColors.sandSurface,
+                                  unselectedTextColor: AppColors.bronze,
+                                  borderColor: AppColors.bronze,
+                                ),
+                            ],
+                          ),
+                        ),
+                        if (_treatmentDisplayCount <
+                            GemstoneFilterState.treatments.length)
+                          Center(
+                            child: TextButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _treatmentDisplayCount =
+                                      (_treatmentDisplayCount + 8).clamp(
+                                    0,
+                                    GemstoneFilterState.treatments.length,
+                                  );
+                                });
+                              },
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down,
+                                color: AppColors.bronze,
+                                size: 18,
+                              ),
+                              label: Text(
+                                'View More',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.bronze,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                            onTap: () => notifier.toggleTreatment(treatment),
-                          );
-                        }),
-                    if (_treatmentDisplayCount <
-                        GemstoneFilterState.treatments.length)
-                      FilterChipWidget(
-                        label:
-                            'Others (${GemstoneFilterState.treatments.length - _treatmentDisplayCount})',
-                        isSelected: false,
-                        onTap: () {
-                          setState(() {
-                            _treatmentDisplayCount =
-                                GemstoneFilterState.treatments.length;
-                          });
-                        },
-                        selectedColor: AppColors.sandSurface,
-                        unselectedBgColor: AppColors.sandSurface,
-                        unselectedTextColor: AppColors.bronze,
-                        borderColor: AppColors.bronze,
-                      ),
+                          ),
+                        if (_treatmentDisplayCount >=
+                            GemstoneFilterState.treatments.length)
+                          Center(
+                            child: TextButton.icon(
+                              onPressed: () {
+                                setState(() => _treatmentDisplayCount = 8);
+                              },
+                              icon: const Icon(
+                                Icons.keyboard_arrow_up,
+                                color: AppColors.bronze,
+                                size: 18,
+                              ),
+                              label: Text(
+                                'View Less',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.bronze,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
-              if (_treatmentDisplayCount <
-                  GemstoneFilterState.treatments.length)
-                Center(
-                  child: TextButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _treatmentDisplayCount = (_treatmentDisplayCount + 8)
-                            .clamp(0, GemstoneFilterState.treatments.length);
-                      });
-                    },
-                    icon: const Icon(
-                      Icons.keyboard_arrow_down,
-                      color: AppColors.bronze,
-                      size: 18,
-                    ),
-                    label: Text(
-                      'View More',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.bronze,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              if (_treatmentDisplayCount >=
-                  GemstoneFilterState.treatments.length)
-                Center(
-                  child: TextButton.icon(
-                    onPressed: () {
-                      setState(() => _treatmentDisplayCount = 8);
-                    },
-                    icon: const Icon(
-                      Icons.keyboard_arrow_up,
-                      color: AppColors.bronze,
-                      size: 18,
-                    ),
-                    label: Text(
-                      'View Less',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.bronze,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ],
         ],

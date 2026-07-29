@@ -1,4 +1,5 @@
 import '../../../diamonds/domain/models/diamond.dart';
+import '../../../diamonds/domain/models/diamond_display.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
 import '../../../watches/domain/models/watch.dart';
 import 'compare_category.dart';
@@ -33,7 +34,8 @@ class CompareItem {
   final Map<String, double?> numericValues;
 
   factory CompareItem.fromDiamond(Diamond d) {
-    final title = '${d.carat}ct ${d.shape.toLowerCase()}';
+    final shape = DiamondDisplay.shape(d.shape);
+    final title = '${d.carat}ct $shape';
     return CompareItem(
       id: d.id,
       category: CompareCategory.diamond,
@@ -45,19 +47,19 @@ class CompareItem {
       displayValues: {
         'price': AppCurrency.format(_fmtPrice(d.price)),
         'carat': '${d.carat}ct',
-        'shape': d.shape,
-        'measurements': 'N/A',
-        'certificate': d.certificate,
-        'cut': d.cut,
-        'color': d.color,
-        'clarity': d.clarity,
-        'table': 'N/A',
-        'depth': 'N/A',
-        'ratio': 'N/A',
-        'polish': d.polish ?? 'N/A',
-        'symmetry': d.symmetry ?? 'N/A',
-        'fluorescence': d.fluorescence ?? 'N/A',
-        'lab': d.lab ?? d.certificate,
+        'shape': shape,
+        'measurements': DiamondDisplay.text(d.measurement),
+        'certificate': DiamondDisplay.text(d.certificate, uppercase: true),
+        'cut': DiamondDisplay.text(d.cut, uppercase: true),
+        'color': DiamondDisplay.text(d.color, uppercase: true),
+        'clarity': DiamondDisplay.text(d.clarity, uppercase: true),
+        'table': DiamondDisplay.text(d.tablePercent),
+        'depth': DiamondDisplay.text(d.depthPercent),
+        'ratio': DiamondDisplay.text(d.ratio),
+        'polish': DiamondDisplay.text(d.polish, uppercase: true),
+        'symmetry': DiamondDisplay.text(d.symmetry, uppercase: true),
+        'fluorescence': DiamondDisplay.text(d.fluorescence, uppercase: true),
+        'lab': DiamondDisplay.text(d.lab ?? d.certificate, uppercase: true),
       },
       numericValues: {
         'price': d.price,

@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
@@ -17,7 +17,29 @@ import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/diamond.dart';
+import '../../domain/models/diamond_display.dart';
 import 'diamond_svg_data.dart';
+
+Widget _diamondThumb(Diamond diamond, {double shapeSize = 48}) {
+  final url = diamond.imageUrl;
+  if (url != null && url.isNotEmpty) {
+    return AppNetworkImage(
+      url: url,
+      fit: BoxFit.cover,
+      memCacheWidth: 400,
+    );
+  }
+  return ColoredBox(
+    color: AppColors.sandSurface,
+    child: Center(
+      child: renderShapeSvg(
+        diamond.shape,
+        size: shapeSize,
+        color: AppColors.bronze,
+      ),
+    ),
+  );
+}
 
 class DiamondCardGrid extends ConsumerWidget {
   final Diamond diamond;
@@ -46,18 +68,7 @@ class DiamondCardGrid extends ConsumerWidget {
               aspectRatio: 1.15,
               child: Stack(
                 children: [
-                  Positioned.fill(
-                    child: Container(
-                      color: AppColors.sandSurface,
-                      child: Center(
-                        child: renderShapeSvg(
-                          diamond.shape,
-                          size: 48,
-                          color: AppColors.bronze,
-                        ),
-                      ),
-                    ),
-                  ),
+                  Positioned.fill(child: _diamondThumb(diamond)),
                   if (diamond.discount != null && diamond.discount! > 0)
                     Positioned(
                       top: AppSpacing.s8,
@@ -137,7 +148,7 @@ class DiamondCardGrid extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${diamond.carat}ct ${diamond.shape}',
+                      '${diamond.carat}ct ${DiamondDisplay.shape(diamond.shape)}',
                       style: AppTypography.caption.copyWith(
                         color: mutedColor,
                         fontWeight: FontWeight.w500,
@@ -147,41 +158,11 @@ class DiamondCardGrid extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
-                    Row(
-                      children: [
-                        Flexible(child: _specChip(diamond.cut, context)),
-                        const SizedBox(width: AppSpacing.s4),
-                        Flexible(child: _specChip(diamond.color, context)),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            diamond.clarity,
-                            style: AppTypography.caption.copyWith(
-                              color: mutedColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 11,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.s8),
-                        Flexible(
-                          child: Text(
-                            diamond.certificate,
-                            style: AppTypography.caption.copyWith(
-                              color: mutedColor,
-                              fontSize: 11,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                    _DiamondSpecChipRow(
+                      cut: diamond.cut,
+                      color: diamond.color,
+                      clarity: diamond.clarity,
+                      lab: diamond.certificate,
                     ),
                   ],
                 ),
@@ -192,31 +173,82 @@ class DiamondCardGrid extends ConsumerWidget {
     );
   }
 
-  Widget _specChip(String label, BuildContext context) {
+}
+
+class _DiamondSpecChipRow extends StatelessWidget {
+  const _DiamondSpecChipRow({
+    required this.cut,
+    required this.color,
+    required this.clarity,
+    required this.lab,
+  });
+
+  final String cut;
+  final String color;
+  final String clarity;
+  final String lab;
+
+  @override
+  Widget build(BuildContext context) {
+    final values = [
+      DiamondDisplay.gradeChip(cut),
+      DiamondDisplay.gradeChip(color),
+      DiamondDisplay.gradeChip(clarity),
+      DiamondDisplay.gradeChip(lab),
+    ];
+
+    return Row(
+      children: [
+        for (var i = 0; i < values.length; i++) ...[
+          if (i > 0) const SizedBox(width: AppSpacing.s4),
+          Expanded(child: _DiamondSpecChip(label: values[i])),
+        ],
+      ],
+    );
+  }
+}
+
+class _DiamondSpecChip extends StatelessWidget {
+  const _DiamondSpecChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final isMissing = label == 'N/A';
     return Container(
+      width: double.infinity,
+      alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s8,
-        vertical: 2,
+        vertical: AppSpacing.s4,
       ),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: AppColors.sandSurface,
         borderRadius: BorderRadius.circular(AppSpacing.r4),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+          color: AppColors.warmBorder.withValues(alpha: 0.8),
         ),
       ),
-      child: Text(
-        label,
-        style: AppTypography.caption.copyWith(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: AppTypography.caption.copyWith(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            height: 1.1,
+            color: isMissing
+                ? AppColors.textMutedLight
+                : AppColors.textPrimaryLight,
+            letterSpacing: 0.2,
+          ),
+          maxLines: 1,
         ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }
-
 }
 
 
@@ -232,79 +264,126 @@ class DiamondCardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bgColor = AppColors.warmWhite;
-    final borderColor = AppColors.warmBorder;
     final textColor = AppColors.textPrimaryLight;
     final mutedColor = AppColors.textMutedLight;
     final inCompare = ref.watch(isInComparisonProvider(diamond.id));
 
-    return GestureDetector(
+    return MarketplaceProductCardShell(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(AppSpacing.r12),
-          border: Border.all(color: borderColor),
-          boxShadow: AppShadows.cardLight,
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: SizedBox(
-          height: 148,
-          child: Row(
-            children: [
-              _buildImageSection(context, ref, inCompare),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.s8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _DiamondListThumb(
+            diamond: diamond,
+            inCompare: inCompare,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s12,
+                AppSpacing.s12,
+                AppSpacing.s12,
+                AppSpacing.s12,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
                     children: [
-                      _buildPriceRow(textColor, mutedColor),
-                      const SizedBox(height: AppSpacing.s4),
-                      _buildDetailsRow(mutedColor),
-                      const SizedBox(height: AppSpacing.s4),
-                      _buildSpecRow(textColor, mutedColor),
+                      Flexible(
+                        child: Text(
+                          AppCurrency.format(
+                            formatCatalogPrice(diamond.price),
+                          ),
+                          style: GoogleFonts.manrope(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            height: 1.15,
+                          ).copyWith(color: textColor),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (diamond.pricePerCarat != null) ...[
+                        const SizedBox(width: AppSpacing.s8),
+                        Flexible(
+                          child: Text(
+                            '${AppCurrency.format(diamond.pricePerCarat!.round())}/ct',
+                            style: AppTypography.caption.copyWith(
+                              color: mutedColor,
+                              fontSize: 11,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      if (diamond.hasVideo) ...[
+                        const SizedBox(width: AppSpacing.s8),
+                        const Icon(
+                          Icons.play_circle_fill,
+                          color: AppColors.bronze,
+                          size: 18,
+                        ),
+                      ],
                     ],
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImageSection(
-    BuildContext context,
-    WidgetRef ref,
-    bool inCompare,
-  ) {
-    return SizedBox(
-      width: 100,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              color: AppColors.sandSurface,
-              child: Center(
-                child: renderShapeSvg(
-                  diamond.shape,
-                  size: 48,
-                  color: AppColors.bronze,
-                ),
+                  const SizedBox(height: AppSpacing.s4),
+                  Text(
+                    '${diamond.carat}ct ${DiamondDisplay.shape(diamond.shape)}',
+                    style: AppTypography.caption.copyWith(
+                      color: mutedColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      height: 1.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                  _DiamondSpecChipRow(
+                    cut: diamond.cut,
+                    color: diamond.color,
+                    clarity: diamond.clarity,
+                    lab: diamond.certificate,
+                  ),
+                ],
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DiamondListThumb extends ConsumerWidget {
+  const _DiamondListThumb({
+    required this.diamond,
+    required this.inCompare,
+  });
+
+  final Diamond diamond;
+  final bool inCompare;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      width: 112,
+      height: 112,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _diamondThumb(diamond, shapeSize: 40),
           if (diamond.discount != null && diamond.discount! > 0)
             Positioned(
-              top: AppSpacing.s4,
-              right: AppSpacing.s4,
+              top: AppSpacing.s8,
+              right: AppSpacing.s8,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2,
+                  horizontal: AppSpacing.s8,
+                  vertical: AppSpacing.s4,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.terracotta,
@@ -322,7 +401,7 @@ class DiamondCardList extends ConsumerWidget {
             ),
           Positioned(
             bottom: AppSpacing.s8,
-            left: AppSpacing.s4,
+            left: AppSpacing.s8,
             child: WishlistToggleButton(
               item: WishlistItem.fromDiamond(diamond),
               size: 16,
@@ -345,101 +424,6 @@ class DiamondCardList extends ConsumerWidget {
       ),
     );
   }
-
-  Widget _buildPriceRow(Color textColor, Color mutedColor) {
-    return Row(
-      children: [
-        Flexible(
-          child: Text(
-            AppCurrency.format(formatCatalogPrice(diamond.price)),
-            style: AppTypography.title.copyWith(
-              fontWeight: FontWeight.bold,
-              color: textColor,
-              fontSize: 18,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (diamond.pricePerCarat != null) ...[
-          const SizedBox(width: AppSpacing.s8),
-          Flexible(
-            child: Text(
-              '${AppCurrency.format(diamond.pricePerCarat!.round())}/ct',
-              style: AppTypography.caption.copyWith(
-                color: mutedColor,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-        const Spacer(),
-        if (diamond.hasVideo)
-          const Icon(
-            Icons.play_circle_fill,
-            color: AppColors.bronze,
-            size: 16,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildDetailsRow(Color mutedColor) {
-    return Text(
-      '${diamond.carat}ct ${diamond.shape} • ${diamond.cut}',
-      style: AppTypography.body.copyWith(
-        color: mutedColor,
-        fontWeight: FontWeight.w500,
-        fontSize: 13,
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-
-  Widget _buildSpecRow(Color textColor, Color mutedColor) {
-    return Row(
-      children: [
-        Flexible(
-          child: Text(
-            '${diamond.color} • ${diamond.clarity}',
-            style: AppTypography.label.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.s8),
-        Flexible(
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s8,
-              vertical: 2,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.sandSurface,
-              borderRadius: BorderRadius.circular(AppSpacing.r4),
-            ),
-            child: Text(
-              diamond.certificate,
-              style: AppTypography.caption.copyWith(
-                color: mutedColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 11,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
 }
 
 
@@ -459,6 +443,8 @@ class DiamondGridView extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.builder(
       controller: scrollController,
+      cacheExtent: 600,
+      addAutomaticKeepAlives: false,
       padding: const EdgeInsets.only(
         left: AppSpacing.s16,
         right: AppSpacing.s16,
@@ -486,10 +472,12 @@ class DiamondGridView extends StatelessWidget {
           );
         }
         final diamond = diamonds[index];
-        return DiamondCardGrid(
-          key: ValueKey(diamond.id),
-          diamond: diamond,
-          onTap: () => openDiamondDetail(context, diamond),
+        return RepaintBoundary(
+          child: DiamondCardGrid(
+            key: ValueKey(diamond.id),
+            diamond: diamond,
+            onTap: () => openDiamondDetail(context, diamond),
+          ),
         );
       },
     );
@@ -513,6 +501,8 @@ class DiamondListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
       controller: scrollController,
+      cacheExtent: 600,
+      addAutomaticKeepAlives: false,
       padding: const EdgeInsets.only(
         left: AppSpacing.s16,
         right: AppSpacing.s16,
@@ -547,12 +537,14 @@ class DiamondListView extends StatelessWidget {
           );
         }
         final diamond = diamonds[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-          child: DiamondCardList(
-            key: ValueKey(diamond.id),
-            diamond: diamond,
-            onTap: () => openDiamondDetail(context, diamond),
+        return RepaintBoundary(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+            child: DiamondCardList(
+              key: ValueKey(diamond.id),
+              diamond: diamond,
+              onTap: () => openDiamondDetail(context, diamond),
+            ),
           ),
         );
       },

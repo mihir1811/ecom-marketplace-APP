@@ -27,17 +27,24 @@ class MarketplaceProductCardShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: backgroundColor ?? AppColors.warmWhite,
-          borderRadius: BorderRadius.circular(borderRadius),
-          border: Border.all(color: borderColor ?? AppColors.warmBorder),
-          boxShadow: boxShadow ?? AppShadows.cardLight,
+    final radius = BorderRadius.circular(borderRadius);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: boxShadow ?? AppShadows.cardLight,
+      ),
+      child: Material(
+        color: backgroundColor ?? AppColors.warmWhite,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: BorderSide(color: borderColor ?? AppColors.warmBorder),
         ),
         clipBehavior: clipBehavior,
-        child: child,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: radius,
+          child: child,
+        ),
       ),
     );
   }
