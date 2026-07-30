@@ -6,10 +6,10 @@ abstract final class AppCurrency {
   const AppCurrency._();
 
   /// Display symbol. Flip to `r'$'` (or another currency) to switch app-wide.
-  static const String symbol = '₹';
+  static const String symbol = '\$';
 
   /// ISO 4217 code for copy, filters, and localization context.
-  static const String code = 'INR';
+  static const String code = 'USD';
 
   /// Prefixes a pre-formatted amount with [symbol].
   static String format(Object amount) => '$symbol$amount';

@@ -10,11 +10,17 @@ import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
+import '../../../cart/application/cart_provider.dart';
+import '../../../comparison/application/comparison_provider.dart';
+import '../../../comparison/domain/models/compare_item.dart';
+import '../../../comparison/presentation/widgets/compare_add_button.dart';
+import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
+import '../../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../domain/models/diamond.dart';
 import '../../domain/models/diamond_display.dart';
 import 'diamond_svg_data.dart';
 
-/// Compact horizontal list card — square media, specs only (no footer actions).
+/// Horizontal list card with specs and footer actions.
 class DiamondCardList extends ConsumerWidget {
   const DiamondCardList({
     required this.diamond,
@@ -25,11 +31,21 @@ class DiamondCardList extends ConsumerWidget {
   final Diamond diamond;
   final VoidCallback? onTap;
 
+  void _notify(BuildContext context, String message) {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.hideCurrentSnackBar();
+    messenger?.showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final title =
         '${diamond.carat.toStringAsFixed(2)}ct ${DiamondDisplay.shape(diamond.shape)}';
     final price = AppCurrency.format(formatCatalogPrice(diamond.price));
+    final inCompare = ref.watch(isInComparisonProvider(diamond.id));
+    final canPurchase = !diamond.isSold;
 
     return MarketplaceProductCardShell(
       borderRadius: AppSpacing.r12,
@@ -74,7 +90,72 @@ class DiamondCardList extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.s12),
-                  _SpecWrap(diamond: diamond),
+                  _SpecGrid(diamond: diamond),
+                  const SizedBox(height: AppSpacing.s12),
+                  Row(
+                    children: [
+                      CompareAddButton(
+                        size: 36,
+                        isSelected: inCompare,
+                        onPressed: () => handleCompareToggle(
+                          context,
+                          ref,
+                          CompareItem.fromDiamond(diamond),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.s8),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: onTap,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.charcoal,
+                            side: const BorderSide(color: AppColors.warmBorder),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.s8,
+                              vertical: AppSpacing.s8,
+                            ),
+                            minimumSize: const Size(0, 36),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          child: const Text('Details'),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.s8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: canPurchase
+                              ? () {
+                                  final added = ref
+                                      .read(cartProvider.notifier)
+                                      .addItem(
+                                        diamondProductDetail(diamond)
+                                            .toCartItem(),
+                                      );
+                                  _notify(
+                                    context,
+                                    added
+                                        ? 'Added to cart'
+                                        : 'Already in your cart',
+                                  );
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.s8,
+                              vertical: AppSpacing.s8,
+                            ),
+                            minimumSize: const Size(0, 36),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          child: Text(
+                            canPurchase ? 'Add to cart' : 'Sold',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -90,14 +171,18 @@ class _ListMedia extends StatelessWidget {
 
   final Diamond diamond;
 
+  static const double _size = 128;
+
   @override
   Widget build(BuildContext context) {
     final hasPhoto =
         diamond.imageUrl != null && diamond.imageUrl!.trim().isNotEmpty;
+    final certLab =
+        DiamondDisplay.labBadge(diamond.lab ?? diamond.certificate);
 
     return SizedBox(
-      width: 96,
-      height: 96,
+      width: _size,
+      height: _size,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -113,18 +198,27 @@ class _ListMedia extends StatelessWidget {
                     ? AppNetworkImage(
                         url: diamond.imageUrl!,
                         fit: BoxFit.cover,
-                        memCacheWidth: 240,
+                        memCacheWidth: 320,
                       )
-                    : Center(
-                        child: renderShapeSvg(
-                          diamond.shape,
-                          size: 52,
-                          color: AppColors.bronze,
+                    : ColoredBox(
+                        color: AppColors.sandSurface,
+                        child: Center(
+                          child: renderShapeSvg(
+                            diamond.shape,
+                            size: 64,
+                            color: AppColors.bronze,
+                          ),
                         ),
                       ),
               ),
             ),
           ),
+          if (certLab != null)
+            Positioned(
+              top: AppSpacing.s8,
+              left: AppSpacing.s8,
+              child: _CertificateLabBadge(label: certLab),
+            ),
           Positioned(
             top: 4,
             right: 4,
@@ -149,53 +243,77 @@ class _ListMedia extends StatelessWidget {
   }
 }
 
-class _SpecWrap extends StatelessWidget {
-  const _SpecWrap({required this.diamond});
+class _CertificateLabBadge extends StatelessWidget {
+  const _CertificateLabBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s8,
+        vertical: AppSpacing.s4,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.bronze,
+        borderRadius: BorderRadius.circular(AppSpacing.r4),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.caption.copyWith(
+          color: AppColors.warmWhite,
+          fontWeight: FontWeight.w700,
+          fontSize: 10,
+          height: 1.1,
+          letterSpacing: 0.3,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+class _SpecGrid extends StatelessWidget {
+  const _SpecGrid({required this.diamond});
 
   final Diamond diamond;
 
   @override
   Widget build(BuildContext context) {
-    final specs = <(String, String, Widget?)>[
-      (
-        'Stock',
-        DiamondDisplay.optional(diamond.stockNumber) ??
-            DiamondDisplay.optional(diamond.id) ??
-            '—',
-        null,
-      ),
-      (
-        'Color',
-        DiamondDisplay.gradeChip(diamond.color),
-        null,
-      ),
-      (
-        'Clarity',
-        DiamondDisplay.gradeChip(diamond.clarity),
-        null,
-      ),
-      (
-        'Shape',
-        DiamondDisplay.shape(diamond.shape),
-        renderShapeSvg(
-          diamond.shape,
-          size: 14,
-          color: AppColors.charcoal,
-        ),
-      ),
-      (
-        'Carat',
-        diamond.carat.toStringAsFixed(2),
-        null,
-      ),
+    final specs = <(String, String)>[
+      ('Cut', DiamondDisplay.gradeChip(diamond.cut)),
+      ('Color', DiamondDisplay.gradeChip(diamond.color)),
+      ('Clarity', DiamondDisplay.gradeChip(diamond.clarity)),
+      ('Certificate', DiamondDisplay.gradeChip(diamond.certificate)),
     ];
 
-    return Wrap(
-      spacing: AppSpacing.s16,
-      runSpacing: AppSpacing.s8,
+    return Column(
       children: [
-        for (final spec in specs)
-          _SpecItem(label: spec.$1, value: spec.$2, leading: spec.$3),
+        Row(
+          children: [
+            Expanded(
+              child: _SpecItem(label: specs[0].$1, value: specs[0].$2),
+            ),
+            const SizedBox(width: AppSpacing.s12),
+            Expanded(
+              child: _SpecItem(label: specs[1].$1, value: specs[1].$2),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.s8),
+        Row(
+          children: [
+            Expanded(
+              child: _SpecItem(label: specs[2].$1, value: specs[2].$2),
+            ),
+            const SizedBox(width: AppSpacing.s12),
+            Expanded(
+              child: _SpecItem(label: specs[3].$1, value: specs[3].$2),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -205,46 +323,39 @@ class _SpecItem extends StatelessWidget {
   const _SpecItem({
     required this.label,
     required this.value,
-    this.leading,
   });
 
   final String label;
   final String value;
-  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 180),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$label: ',
+    final isMissing = value == 'N/A';
+    return Row(
+      children: [
+        Text(
+          '$label: ',
+          style: AppTypography.body.copyWith(
+            fontSize: 13,
+            color: AppColors.textSecondaryLight,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: AppTypography.body.copyWith(
               fontSize: 13,
-              color: AppColors.textSecondaryLight,
-              fontWeight: FontWeight.w500,
+              color: isMissing
+                  ? AppColors.textMutedLight
+                  : AppColors.textPrimaryLight,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          if (leading != null) ...[
-            leading!,
-            const SizedBox(width: 4),
-          ],
-          Flexible(
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.body.copyWith(
-                fontSize: 13,
-                color: AppColors.textPrimaryLight,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

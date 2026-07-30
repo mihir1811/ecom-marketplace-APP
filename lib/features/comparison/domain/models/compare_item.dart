@@ -36,12 +36,16 @@ class CompareItem {
   factory CompareItem.fromDiamond(Diamond d) {
     final shape = DiamondDisplay.shape(d.shape);
     final title = '${d.carat}ct $shape';
+    final uploadedImages = [
+      for (final u in d.imageUrls)
+        if (u.trim().isNotEmpty) u.trim(),
+    ];
     return CompareItem(
       id: d.id,
       category: CompareCategory.diamond,
       title: title,
       price: d.price,
-      imageUrl: d.imageUrl,
+      imageUrl: uploadedImages.isNotEmpty ? uploadedImages.first : d.imageUrl,
       shape: d.shape,
       subtitle: d.isLabGrown ? 'Lab Grown' : 'Natural',
       displayValues: {

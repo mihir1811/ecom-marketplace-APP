@@ -28,9 +28,13 @@ abstract final class DiamondDisplay {
   }
 
   /// Short grade codes for chips (VG, E, VVS2, IGI).
+  /// Placeholder "no lab/cert" codes like NC render as N/A.
   static String gradeChip(String? value) {
     if (isMissing(value)) return 'N/A';
-    return value!.trim().toUpperCase();
+    final label = value!.trim().toUpperCase();
+    const none = {'NC', 'NONE', 'NIL', 'NON', 'NO', 'NULL', 'UNKNOWN'};
+    if (none.contains(label)) return 'N/A';
+    return label;
   }
 
   /// Lab/certificate short label for card badges (IGI, GIA). Null when absent.

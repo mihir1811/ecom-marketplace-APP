@@ -71,7 +71,7 @@ class ProductMedia {
   final int imageSlots;
   final String? certificateLabel;
 
-  /// HTTPS certificate PDF/HTML page opened in-app when present.
+  /// HTTPS certificate PDF/HTML page opened in the system browser when present.
   final String? certificateUrl;
 
   /// Shape name used for SVG placeholders when no product photo exists.
@@ -189,11 +189,26 @@ class ProductCertification {
     required this.authority,
     this.referenceLabel,
     this.referenceValue,
+    this.certificateUrl,
+    this.certificateLabel,
   });
 
   final String authority;
   final String? referenceLabel;
   final String? referenceValue;
+
+  /// Opens in the system browser via the "View certification" action.
+  final String? certificateUrl;
+  final String? certificateLabel;
+
+  bool get hasCertificateLink {
+    final url = certificateUrl?.trim();
+    if (url == null || url.isEmpty) return false;
+    final lower = url.toLowerCase();
+    return lower.startsWith('http://') ||
+        lower.startsWith('https://') ||
+        lower.startsWith('www.');
+  }
 }
 
 enum ProductStockTone { available, limited, unavailable }

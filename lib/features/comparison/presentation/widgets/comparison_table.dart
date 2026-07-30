@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../domain/models/compare_item.dart';
 import '../../domain/models/compare_spec.dart';
@@ -130,6 +131,7 @@ class _ComparisonTableState extends State<ComparisonTable> {
                       rowIndex: 0,
                       child: _ItemHeaderRow(
                         items: widget.items,
+                        specs: widget.specs,
                         border: _border,
                         muted: _muted,
                         onRemove: widget.onRemove,
@@ -336,6 +338,7 @@ class _SpecLabelCell extends StatelessWidget {
 class _ItemHeaderRow extends StatelessWidget {
   const _ItemHeaderRow({
     required this.items,
+    required this.specs,
     required this.border,
     required this.muted,
     required this.onRemove,
@@ -343,6 +346,7 @@ class _ItemHeaderRow extends StatelessWidget {
   });
 
   final List<CompareItem> items;
+  final List<CompareSpecDef> specs;
   final Color border;
   final Color muted;
   final ValueChanged<String> onRemove;
@@ -361,6 +365,7 @@ class _ItemHeaderRow extends StatelessWidget {
               child: _DraggableColumnHeader(
                 item: items[i],
                 index: i,
+                specs: specs,
                 border: border,
                 muted: muted,
                 onRemove: () => onRemove(items[i].id),
@@ -464,6 +469,7 @@ class _DraggableColumnHeader extends StatelessWidget {
   const _DraggableColumnHeader({
     required this.item,
     required this.index,
+    required this.specs,
     required this.border,
     required this.muted,
     required this.onRemove,
@@ -472,6 +478,7 @@ class _DraggableColumnHeader extends StatelessWidget {
 
   final CompareItem item;
   final int index;
+  final List<CompareSpecDef> specs;
   final Color border;
   final Color muted;
   final VoidCallback onRemove;
@@ -491,18 +498,17 @@ class _DraggableColumnHeader extends StatelessWidget {
           delay: const Duration(milliseconds: 180),
           hapticFeedbackOnStart: true,
           feedback: Material(
-            elevation: 8,
+            elevation: 10,
             color: Colors.transparent,
+            borderRadius: BorderRadius.circular(AppSpacing.r8),
             child: SizedBox(
               width: kCompareColWidth,
               child: Opacity(
-                opacity: 0.92,
-                child: _ItemHeader(
+                opacity: 0.95,
+                child: _DragColumnFeedback(
                   item: item,
-                  border: AppColors.bronze,
+                  specs: specs,
                   muted: muted,
-                  onRemove: () {},
-                  isDragging: true,
                 ),
               ),
             ),
@@ -540,38 +546,112 @@ class _DraggableColumnHeader extends StatelessWidget {
   }
 }
 
+/// Full-column ghost shown while dragging (header + all spec cells).
+class _DragColumnFeedback extends StatelessWidget {
+  const _DragColumnFeedback({
+    required this.item,
+    required this.specs,
+    required this.muted,
+  });
+
+  final CompareItem item;
+  final List<CompareSpecDef> specs;
+  final Color muted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.warmWhite,
+        borderRadius: BorderRadius.circular(AppSpacing.r8),
+        border: Border.all(color: AppColors.bronze, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ItemHeader(
+            item: item,
+            border: AppColors.warmBorder,
+            muted: muted,
+            onRemove: () {},
+          ),
+          for (var i = 0; i < specs.length; i++)
+            _DragSpecCell(
+              value: item.displayValues[specs[i].key] ?? 'N/A',
+              stripe: i.isEven,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DragSpecCell extends StatelessWidget {
+  const _DragSpecCell({
+    required this.value,
+    required this.stripe,
+  });
+
+  final String value;
+  final bool stripe;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: kCompareRowHeight,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s8,
+        vertical: AppSpacing.s8,
+      ),
+      decoration: BoxDecoration(
+        color: stripe
+            ? AppColors.sandSurface.withValues(alpha: 0.45)
+            : AppColors.warmWhite,
+        border: const Border(
+          top: BorderSide(color: AppColors.warmBorder),
+        ),
+      ),
+      child: Text(
+        value,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: AppTypography.caption.copyWith(
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+}
+
 class _ItemHeader extends StatelessWidget {
   const _ItemHeader({
     required this.item,
     required this.border,
     required this.muted,
     required this.onRemove,
-    this.isDragging = false,
   });
 
   final CompareItem item;
   final Color border;
   final Color muted;
   final VoidCallback onRemove;
-  final bool isDragging;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: isDragging ? AppColors.warmWhite : null,
         border: Border(left: BorderSide(color: border)),
-        borderRadius:
-            isDragging ? BorderRadius.circular(AppSpacing.r8) : null,
-        boxShadow: isDragging
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.18),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
       ),
       padding: const EdgeInsets.all(AppSpacing.s12),
       child: Column(
@@ -589,6 +669,7 @@ class _ItemHeader extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
                       border: Border.all(color: border),
                     ),
+                    clipBehavior: Clip.antiAlias,
                     child: _thumb(item),
                   ),
                 ),
@@ -651,18 +732,35 @@ class _ItemHeader extends StatelessWidget {
   }
 
   Widget _thumb(CompareItem item) {
-    if (item.imageUrl != null && item.imageUrl!.startsWith('public/')) {
-      return Padding(
-        padding: const EdgeInsets.all(AppSpacing.s12),
-        child: Image.asset(
-          item.imageUrl!,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const Icon(
-            Icons.diamond_outlined,
-            color: AppColors.bronze,
+    final url = item.imageUrl?.trim();
+    if (url != null && url.isNotEmpty) {
+      final lower = url.toLowerCase();
+      final isNetwork = lower.startsWith('http://') ||
+          lower.startsWith('https://') ||
+          lower.startsWith('www.');
+      if (isNetwork) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          child: AppNetworkImage(
+            url: lower.startsWith('www.') ? 'https://$url' : url,
+            fit: BoxFit.cover,
+            memCacheWidth: 280,
           ),
-        ),
-      );
+        );
+      }
+      if (url.startsWith('public/') || url.startsWith('assets/')) {
+        return Padding(
+          padding: const EdgeInsets.all(AppSpacing.s12),
+          child: Image.asset(
+            url,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const Icon(
+              Icons.diamond_outlined,
+              color: AppColors.bronze,
+            ),
+          ),
+        );
+      }
     }
     if (item.shape != null) {
       return Center(

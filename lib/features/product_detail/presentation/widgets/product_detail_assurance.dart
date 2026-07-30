@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/product_detail.dart';
+import '../screens/certificate_viewer_screen.dart';
 
 /// Certification and stock status — the two facts a buyer checks immediately
 /// after the price, before reading any specification.
@@ -50,63 +51,91 @@ class _CertificationRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reference = certification.referenceValue;
+    final hasLink = certification.hasCertificateLink;
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.s16),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.verified_outlined,
-            size: 18,
-            color: AppColors.success,
-          ),
-          const SizedBox(width: AppSpacing.s12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  certification.authority,
-                  style: AppTypography.label.copyWith(
-                    color: AppColors.textPrimaryLight,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (reference != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    '${certification.referenceLabel ?? 'Reference'} · $reference',
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedLight,
+          Row(
+            children: [
+              const Icon(
+                Icons.verified_outlined,
+                size: 18,
+                color: AppColors.success,
+              ),
+              const SizedBox(width: AppSpacing.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      certification.authority,
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.textPrimaryLight,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
-            ),
+                    if (reference != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '${certification.referenceLabel ?? 'Reference'} · $reference',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.textMutedLight,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (reference != null)
+                IconButton(
+                  tooltip: 'Copy reference',
+                  visualDensity: VisualDensity.compact,
+                  iconSize: 16,
+                  color: AppColors.textMutedLight,
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: reference));
+                    final messenger = ScaffoldMessenger.maybeOf(context);
+                    messenger?.hideCurrentSnackBar();
+                    messenger?.showSnackBar(
+                      const SnackBar(
+                        content: Text('Reference copied'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.copy_rounded),
+                ),
+            ],
           ),
-          if (reference != null)
-            IconButton(
-              tooltip: 'Copy reference',
-              visualDensity: VisualDensity.compact,
-              iconSize: 16,
-              color: AppColors.textMutedLight,
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: reference));
-                final messenger = ScaffoldMessenger.maybeOf(context);
-                messenger?.hideCurrentSnackBar();
-                messenger?.showSnackBar(
-                  const SnackBar(
-                    content: Text('Reference copied'),
-                    duration: Duration(seconds: 1),
+          if (hasLink) ...[
+            const SizedBox(height: AppSpacing.s12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => openCertificateViewer(
+                  url: certification.certificateUrl!,
+                  title: certification.certificateLabel ?? 'Certificate',
+                ),
+                icon: const Icon(Icons.open_in_new, size: 16),
+                label: const Text('View certification'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.charcoal,
+                  side: const BorderSide(color: AppColors.warmBorder),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s16,
+                    vertical: AppSpacing.s12,
                   ),
-                );
-              },
-              icon: const Icon(Icons.copy_rounded),
+                ),
+              ),
             ),
+          ],
         ],
       ),
     );

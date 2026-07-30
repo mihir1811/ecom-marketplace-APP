@@ -67,9 +67,9 @@ class DiamondCardGrid extends ConsumerWidget {
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AspectRatio(
-              aspectRatio: 1.15,
+            Expanded(
               child: Stack(
+                fit: StackFit.expand,
                 children: [
                   Positioned.fill(child: _diamondThumb(diamond)),
                   if (diamond.discount != null && diamond.discount! > 0)
@@ -129,7 +129,7 @@ class DiamondCardGrid extends ConsumerWidget {
                 AppSpacing.s12,
                 AppSpacing.s8,
                 AppSpacing.s12,
-                AppSpacing.s8,
+                AppSpacing.s12,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,11 +157,11 @@ class DiamondCardGrid extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: AppSpacing.s8),
-                  _DiamondSpecChipRow(
+                  _DiamondSpecGrid(
                     cut: diamond.cut,
                     color: diamond.color,
                     clarity: diamond.clarity,
-                    lab: diamond.certificate,
+                    certificate: diamond.certificate,
                   ),
                 ],
               ),
@@ -205,53 +205,67 @@ class _CertificateLabBadge extends StatelessWidget {
   }
 }
 
-class _DiamondSpecChipRow extends StatelessWidget {
-  const _DiamondSpecChipRow({
+class _DiamondSpecGrid extends StatelessWidget {
+  const _DiamondSpecGrid({
     required this.cut,
     required this.color,
     required this.clarity,
-    required this.lab,
+    required this.certificate,
   });
 
   final String cut;
   final String color;
   final String clarity;
-  final String lab;
+  final String certificate;
 
   @override
   Widget build(BuildContext context) {
-    final values = [
-      DiamondDisplay.gradeChip(cut),
-      DiamondDisplay.gradeChip(color),
-      DiamondDisplay.gradeChip(clarity),
-      DiamondDisplay.gradeChip(lab),
+    final specs = <(String, String)>[
+      ('Cut', DiamondDisplay.gradeChip(cut)),
+      ('Color', DiamondDisplay.gradeChip(color)),
+      ('Clarity', DiamondDisplay.gradeChip(clarity)),
+      ('Certificate', DiamondDisplay.gradeChip(certificate)),
     ];
 
-    return Row(
+    return Column(
       children: [
-        for (var i = 0; i < values.length; i++) ...[
-          if (i > 0) const SizedBox(width: AppSpacing.s4),
-          Expanded(child: _DiamondSpecChip(label: values[i])),
-        ],
+        Row(
+          children: [
+            Expanded(child: _DiamondSpecItem(label: specs[0].$1, value: specs[0].$2)),
+            const SizedBox(width: AppSpacing.s8),
+            Expanded(child: _DiamondSpecItem(label: specs[1].$1, value: specs[1].$2)),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.s4),
+        Row(
+          children: [
+            Expanded(child: _DiamondSpecItem(label: specs[2].$1, value: specs[2].$2)),
+            const SizedBox(width: AppSpacing.s8),
+            Expanded(child: _DiamondSpecItem(label: specs[3].$1, value: specs[3].$2)),
+          ],
+        ),
       ],
     );
   }
 }
 
-class _DiamondSpecChip extends StatelessWidget {
-  const _DiamondSpecChip({required this.label});
+class _DiamondSpecItem extends StatelessWidget {
+  const _DiamondSpecItem({
+    required this.label,
+    required this.value,
+  });
 
   final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
-    final isMissing = label == 'N/A';
+    final isMissing = value == 'N/A';
     return Container(
       width: double.infinity,
-      alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s8,
-        vertical: AppSpacing.s4,
+        horizontal: AppSpacing.s12,
+        vertical: AppSpacing.s8,
       ),
       decoration: BoxDecoration(
         color: AppColors.sandSurface,
@@ -260,30 +274,41 @@ class _DiamondSpecChip extends StatelessWidget {
           color: AppColors.warmBorder.withValues(alpha: 0.8),
         ),
       ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: AppTypography.caption.copyWith(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            height: 1.1,
-            color: isMissing
-                ? AppColors.textMutedLight
-                : AppColors.textPrimaryLight,
-            letterSpacing: 0.2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.caption.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              height: 1.15,
+              color: AppColors.textMutedLight,
+            ),
           ),
-          maxLines: 1,
-        ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.caption.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              height: 1.15,
+              color: isMissing
+                  ? AppColors.textMutedLight
+                  : AppColors.textPrimaryLight,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
-
-
-
-
 
 class DiamondGridView extends StatelessWidget {
   final List<Diamond> diamonds;
@@ -313,7 +338,7 @@ class DiamondGridView extends StatelessWidget {
         crossAxisCount: 2,
         crossAxisSpacing: AppSpacing.s12,
         mainAxisSpacing: AppSpacing.s12,
-        childAspectRatio: 0.78,
+        childAspectRatio: 0.62,
       ),
       itemCount: diamonds.length + (isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {

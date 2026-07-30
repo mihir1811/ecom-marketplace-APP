@@ -399,7 +399,6 @@ class _ViewCertificateButton extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(AppSpacing.r16),
         onTap: () => openCertificateViewer(
-          context,
           url: url,
           title: label,
         ),
@@ -443,8 +442,8 @@ class _ViewCertificateButton extends StatelessWidget {
                 ),
               ),
               const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
+                Icons.open_in_new,
+                size: 16,
                 color: AppColors.charcoal,
               ),
             ],

@@ -31,9 +31,6 @@ class AppRouteNames {
   /// Fullscreen interactive Vision360 / WebGL product viewer.
   static const String diamondViewer = '/viewer/360';
 
-  /// In-app certificate / grading report viewer.
-  static const String certificateViewer = '/viewer/certificate';
-
   // Auth
   static const String login = '/login';
   static const String register = '/register';

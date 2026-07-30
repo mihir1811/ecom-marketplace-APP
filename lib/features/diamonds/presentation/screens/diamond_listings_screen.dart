@@ -12,7 +12,6 @@ import '../../../../core/widgets/catalog_list_loading.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/diamond_list_provider.dart';
-import '../../application/diamond_search_provider.dart';
 import '../widgets/diamond_cards.dart';
 import '../widgets/diamond_sorting_bottom_sheet.dart';
 
@@ -32,6 +31,13 @@ class DiamondListingsScreen extends ConsumerStatefulWidget {
 
 class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
   final ScrollController _scrollController = ScrollController();
+
+  /// Grid layout mirrors [DiamondGridView] (2 columns, aspect 0.78).
+  static const int _gridCrossAxisCount = 2;
+  static const double _gridChildAspectRatio = 0.62;
+
+  /// Approximate list-card stride (card + bottom gap) for index ↔ offset.
+  static const double _listItemStride = 176;
 
   @override
   void initState() {
@@ -66,11 +72,75 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
     }
   }
 
+  double _gridRowStride(double viewportWidth) {
+    const horizontalPadding = AppSpacing.s16 * 2;
+    const crossSpacing = AppSpacing.s12;
+    const mainSpacing = AppSpacing.s12;
+    final usableWidth = viewportWidth -
+        horizontalPadding -
+        crossSpacing * (_gridCrossAxisCount - 1);
+    final itemWidth = usableWidth / _gridCrossAxisCount;
+    final itemHeight = itemWidth / _gridChildAspectRatio;
+    return itemHeight + mainSpacing;
+  }
+
+  int _estimateVisibleIndex(ViewMode mode) {
+    if (!_scrollController.hasClients) return 0;
+    final offset = _scrollController.offset;
+    final count =
+        ref.read(diamondListProvider).valueOrNull?.diamonds.length ?? 0;
+    if (count == 0) return 0;
+
+    if (mode == ViewMode.grid) {
+      final stride = _gridRowStride(MediaQuery.sizeOf(context).width);
+      if (stride <= 0) return 0;
+      final row = (offset / stride).floor();
+      return (row * _gridCrossAxisCount).clamp(0, count - 1);
+    }
+
+    return (offset / _listItemStride).floor().clamp(0, count - 1);
+  }
+
+  double _offsetForIndex(ViewMode mode, int index) {
+    if (mode == ViewMode.grid) {
+      final stride = _gridRowStride(MediaQuery.sizeOf(context).width);
+      final row = index ~/ _gridCrossAxisCount;
+      return row * stride;
+    }
+    return index * _listItemStride;
+  }
+
+  void _restoreScroll(ViewMode mode, int index) {
+    void tryJump([int attempt = 0]) {
+      if (!mounted) return;
+      if (!_scrollController.hasClients) {
+        if (attempt < 6) {
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => tryJump(attempt + 1));
+        }
+        return;
+      }
+      final max = _scrollController.position.maxScrollExtent;
+      final target = _offsetForIndex(mode, index).clamp(0.0, max);
+      _scrollController.jumpTo(target);
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => tryJump());
+  }
+
+  void _switchViewMode(ViewMode next) {
+    final current = ref.read(diamondViewModeProvider);
+    if (current == next) return;
+    final index = _estimateVisibleIndex(current);
+    ref.read(diamondViewModeProvider.notifier).state = next;
+    _restoreScroll(next, index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final stateAsync = ref.watch(diamondListProvider);
     final viewMode = ref.watch(diamondViewModeProvider);
-    final mutedColor = AppColors.textSecondaryLight;
+    const mutedColor = AppColors.textSecondaryLight;
 
     return AppScaffold(
       appBar: AppBar(
@@ -88,12 +158,8 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
             child: ViewModeToggle(
               style: ViewModeToggleStyle.labeled,
               isGrid: viewMode == ViewMode.grid,
-              onGrid: () =>
-                  ref.read(diamondViewModeProvider.notifier).state =
-                      ViewMode.grid,
-              onList: () =>
-                  ref.read(diamondViewModeProvider.notifier).state =
-                      ViewMode.list,
+              onGrid: () => _switchViewMode(ViewMode.grid),
+              onList: () => _switchViewMode(ViewMode.list),
             ),
           ),
         ],

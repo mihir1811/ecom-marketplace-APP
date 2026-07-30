@@ -107,6 +107,10 @@ ProductDetail diamondProductDetail(Diamond d) {
       referenceValue: DiamondDisplay.optional(d.certificateNumber) ??
           DiamondDisplay.optional(d.stockNumber) ??
           d.id,
+      certificateUrl: DiamondDisplay.optional(d.certificateUrl),
+      certificateLabel: DiamondDisplay.optional(d.certificateUrl) == null
+          ? null
+          : (authority == null ? 'Certificate' : '$authority certificate'),
     ),
     availability: _availability(d),
     specSections: [
@@ -162,7 +166,6 @@ ProductDetail diamondProductDetail(Diamond d) {
       specSection(ProductSpecGroup.provenance, {
         'Grading lab': authority,
         'Certificate no.': DiamondDisplay.optional(d.certificateNumber),
-        'Certificate link': DiamondDisplay.optional(d.certificateUrl),
         'Stock number': DiamondDisplay.optional(d.stockNumber),
         'Origin': DiamondDisplay.optional(d.origin),
         'Rough source': DiamondDisplay.optional(d.roughSource),

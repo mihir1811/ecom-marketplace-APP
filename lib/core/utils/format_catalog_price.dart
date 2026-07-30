@@ -1,49 +1,48 @@
 /// Shared catalog price formatters. Keep variants separate where UI differs.
 library;
 
-/// Diamond / gemstone card style: `1.2K`, `15K`.
-String formatCatalogPrice(double price) {
-  if (price >= 1000) {
-    return '${(price / 1000).toStringAsFixed(price >= 10000 ? 0 : 1)}K';
-  }
-  return price.toStringAsFixed(0);
-}
+/// Exact backend price with at most 2 decimal places.
+/// Whole amounts omit `.00`; a single trailing zero is dropped (`4.50` → `4.5`).
+String formatCatalogPrice(double price) => _formatExact(price, group: false);
 
-/// Filter-chip range style: whole-thousands K only.
-String formatCatalogPriceWholeK(double price) {
-  if (price >= 1000) {
-    return '${(price / 1000).toStringAsFixed(0)}K';
-  }
-  return price.toStringAsFixed(0);
-}
+/// Filter-chip range style — same precision rules as [formatCatalogPrice].
+String formatCatalogPriceWholeK(double price) => formatCatalogPrice(price);
 
-/// Watch / bullion style: `1.5M` or comma-grouped thousands.
-String formatGroupedPrice(double price) {
-  if (price >= 1000000) {
-    return '${(price / 1000000).toStringAsFixed(1)}M';
-  }
-  if (price >= 1000) {
-    return formatInrPrice(price);
-  }
-  return price.toStringAsFixed(0);
-}
+/// Watch / bullion style: comma-grouped exact price (no K/M).
+String formatGroupedPrice(double price) => formatGroupedWhole(price);
 
-/// Currency-agnostic exact style: comma-grouped whole units (no K/M).
-String formatGroupedWhole(double price) {
-  final s = price.toStringAsFixed(0);
-  final buf = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    final fromEnd = s.length - i;
-    buf.write(s[i]);
-    if (fromEnd > 1 && fromEnd % 3 == 1) buf.write(',');
-  }
-  return buf.toString();
-}
+/// Currency-agnostic exact style: comma-grouped, up to 2 decimals.
+String formatGroupedWhole(double price) => _formatExact(price, group: true);
 
-/// Jewelry INR style: comma-grouped whole units (no K/M).
+/// Jewelry INR style: comma-grouped whole/fractional units (no K/M).
 String formatInrPrice(double price) => formatGroupedWhole(price);
 
 /// Fixed fractional precision for product-detail measurements/weights.
 /// Example: `34.78564` → `34.78`.
 String formatDecimal(double value, {int fractionDigits = 2}) =>
     value.toStringAsFixed(fractionDigits);
+
+String _formatExact(double price, {required bool group}) {
+  final fixed = price.toStringAsFixed(2);
+  final negative = fixed.startsWith('-');
+  final raw = negative ? fixed.substring(1) : fixed;
+  final parts = raw.split('.');
+  final whole = group ? _groupDigits(parts[0]) : parts[0];
+  final frac = parts[1];
+  final body = frac == '00'
+      ? whole
+      : frac.endsWith('0')
+          ? '$whole.${frac[0]}'
+          : '$whole.$frac';
+  return negative ? '-$body' : body;
+}
+
+String _groupDigits(String digits) {
+  final buf = StringBuffer();
+  for (var i = 0; i < digits.length; i++) {
+    final fromEnd = digits.length - i;
+    buf.write(digits[i]);
+    if (fromEnd > 1 && fromEnd % 3 == 1) buf.write(',');
+  }
+  return buf.toString();
+}
