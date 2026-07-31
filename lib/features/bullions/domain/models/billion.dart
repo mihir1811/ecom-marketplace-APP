@@ -26,6 +26,12 @@ class Bullion {
     required this.lengthMm,
     required this.widthMm,
     required this.heightMm,
+    this.stockNumber,
+    this.demention,
+    this.availability = 'Available',
+    this.mintYear,
+    this.imageUrl,
+    this.imageUrls = const [],
   });
 
   final String id;
@@ -35,9 +41,9 @@ class Bullion {
   final String shape;
   final String weightLabel;
   final double weightGrams;
+
   /// Purity expressed in parts per thousand (e.g. 999.9).
   final double purity;
-  /// Price in USD (mocked).
   final double price;
   final int quantityAvailable;
   final String condition;
@@ -46,5 +52,20 @@ class Bullion {
   final double lengthMm;
   final double widthMm;
   final double heightMm;
-}
+  final String? stockNumber;
 
+  /// API field spelling (`demention`) — free-text dimensions.
+  final String? demention;
+  final String availability;
+  final int? mintYear;
+  final String? imageUrl;
+  final List<String> imageUrls;
+
+  String? get renderableImageUrl {
+    final value = imageUrl;
+    if (value == null || value.isEmpty || value.startsWith('mock://')) {
+      return null;
+    }
+    return value;
+  }
+}

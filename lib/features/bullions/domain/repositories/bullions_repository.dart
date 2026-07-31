@@ -1,14 +1,23 @@
+import 'package:dio/dio.dart';
+
 import '../models/billion.dart';
 import '../models/bullions_filter_state.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 
-/// Contract for fetching Bullions listings (mocked in this module).
+/// Page size aligned with backend `limit` query param.
+abstract final class BullionPageSize {
+  static const int defaultSize = 20;
+}
+
+/// Contract for fetching bullion listings via `GET /bullion/all`.
 abstract class BullionsRepository {
+  /// Fetches a single page. Never loads the full catalog at once.
   Future<Result<BullionsCatalogResponse, Failure>> searchBullions({
     required BullionsFilterState filters,
     required int page,
-    int pageSize,
+    int pageSize = BullionPageSize.defaultSize,
+    CancelToken? cancelToken,
   });
 }
 
@@ -26,4 +35,3 @@ class BullionsCatalogResponse {
   final bool hasMore;
   final int page;
 }
-

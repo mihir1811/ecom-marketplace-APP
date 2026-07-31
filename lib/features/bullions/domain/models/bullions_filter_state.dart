@@ -76,23 +76,23 @@ class BullionsFilterState {
   final double heightMin;
   final double heightMax;
 
-  static const shapeOptions = ['Bar', 'Coin', 'Granules', 'Round'];
+  static const shapeOptions = ['Bar', 'Biscuit', 'Coin', 'Round'];
   static const weightChipOptions = ['1g', '5g', '10g', '1oz'];
   static const conditionOptions = [
     'New',
-    'Brilliant Uncirculated',
+    'BU',
     'Circulated',
   ];
   static const certificationOptions = [
     'LBMA Good Delivery',
+    'Assay card',
+    'Royal Canadian Mint',
     'PAMP Certificate',
-    'RCM Certificate',
-    'US Mint Certificate',
   ];
   static const mintMarkOptions = [
     'LBMA',
-    'PAMP Suisse',
-    'Royal Canadian Mint',
+    'PAMP',
+    'RCM',
     'US Mint',
   ];
 

@@ -91,6 +91,7 @@ class WishlistItem {
       title: '${b.weightLabel} $metal',
       subtitle: '${b.shape} · ${b.condition}',
       priceLabel: AppCurrency.format(formatGroupedPrice(b.price)),
+      imageUrl: b.renderableImageUrl,
     );
   }
 }

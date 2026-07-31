@@ -41,10 +41,9 @@ class BullionsGridSliver extends StatelessWidget {
               );
             }
             final bullion = bullions[index];
-            return BullionCard(
+            return BullionCardGrid(
               key: ValueKey(bullion.id),
               bullion: bullion,
-              layout: BullionCardLayout.grid,
               onTap: () => openBullionDetail(context, bullion),
             );
           },
@@ -68,10 +67,10 @@ class BullionsListSliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
       sliver: SliverList.separated(
         itemCount: bullions.length + (isLoadingMore ? 1 : 0),
-        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.s12),
+        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.s16),
         itemBuilder: (context, index) {
           if (index >= bullions.length) {
             return const Center(
@@ -86,10 +85,9 @@ class BullionsListSliver extends StatelessWidget {
             );
           }
           final bullion = bullions[index];
-          return BullionCard(
+          return BullionCardList(
             key: ValueKey('list-${bullion.id}'),
             bullion: bullion,
-            layout: BullionCardLayout.list,
             onTap: () => openBullionDetail(context, bullion),
           );
         },
@@ -97,4 +95,3 @@ class BullionsListSliver extends StatelessWidget {
     );
   }
 }
-

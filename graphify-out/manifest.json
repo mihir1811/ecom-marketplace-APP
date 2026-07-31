@@ -1730,8 +1730,8 @@
     "semantic_hash": ""
   },
   "lib/features/bullions/application/bullions_list_provider.dart": {
-    "mtime": 1785234067.4741,
-    "ast_hash": "79a1c23255b048e424600ed8e0bca9bb",
+    "mtime": 1785494608.040607,
+    "ast_hash": "21947fb36958b4ba5c7ea50c6596dfd6",
     "semantic_hash": ""
   },
   "lib/features/bullions/bullions_routes.dart": {
@@ -1740,23 +1740,23 @@
     "semantic_hash": ""
   },
   "lib/features/bullions/data/repositories/bullions_repository_impl.dart": {
-    "mtime": 1784541717.129463,
-    "ast_hash": "5869e05d0da8445c0395338f60eded7d",
+    "mtime": 1785494604.1500607,
+    "ast_hash": "e320a8ade27004f17c55f928140dc81c",
     "semantic_hash": ""
   },
   "lib/features/bullions/domain/models/billion.dart": {
-    "mtime": 1784544604.9924698,
-    "ast_hash": "ae46638896030e858f30134347c3f275",
+    "mtime": 1785494577.3955867,
+    "ast_hash": "1a2e1ef11da20aaee4ee75ddf8600e45",
     "semantic_hash": ""
   },
   "lib/features/bullions/domain/models/bullions_filter_state.dart": {
-    "mtime": 1784544605.2430048,
-    "ast_hash": "df0d826b2345c48a305598f2b60ba74c",
+    "mtime": 1785494611.4618592,
+    "ast_hash": "9eb496fbb4f6d7448193fa1c78bb0f3d",
     "semantic_hash": ""
   },
   "lib/features/bullions/domain/repositories/bullions_repository.dart": {
-    "mtime": 1784541478.5664854,
-    "ast_hash": "efd5217c71f74b73722a0118e9743004",
+    "mtime": 1785494587.680226,
+    "ast_hash": "f7f1c8118074d10dd6c034b50737fff4",
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/screens/bullions_screen.dart": {
@@ -1765,8 +1765,8 @@
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/widgets/billion_card.dart": {
-    "mtime": 1785481021.9543152,
-    "ast_hash": "43a9da4bf58deacc629a3250bbfb312c",
+    "mtime": 1785495721.2453504,
+    "ast_hash": "3ae702be94e547ecdd93a8e3b4d00e18",
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/widgets/bullions_filter_drawer.dart": {
@@ -1775,8 +1775,8 @@
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/widgets/bullions_grid_view.dart": {
-    "mtime": 1785480022.067724,
-    "ast_hash": "2ae2aa0dbc316f84061c76ef2f28adac",
+    "mtime": 1785495455.615119,
+    "ast_hash": "7211ab75fc79eaf5ca280cc582b4f10e",
     "semantic_hash": ""
   },
   "lib/core/widgets/melee_background_shell.dart": {
@@ -2080,17 +2080,17 @@
     "semantic_hash": ""
   },
   "lib/features/comparison/domain/models/compare_category.dart": {
-    "mtime": 1784700755.795952,
+    "mtime": 1785495728.9480753,
     "ast_hash": "1516e9335c3dbf49e05d998932d58da1",
     "semantic_hash": ""
   },
   "lib/features/comparison/domain/models/compare_item.dart": {
-    "mtime": 1785414531.2128444,
+    "mtime": 1785495739.961492,
     "ast_hash": "4a70ab1dd7f0c1eaedeea8e611343981",
     "semantic_hash": ""
   },
   "lib/features/comparison/domain/models/compare_spec.dart": {
-    "mtime": 1784700771.5732405,
+    "mtime": 1785495740.9160442,
     "ast_hash": "55cf59ca6ca4437c40000eeb23b11033",
     "semantic_hash": ""
   },
@@ -2440,8 +2440,8 @@
     "semantic_hash": ""
   },
   "lib/features/buyer/domain/models/wishlist_item.dart": {
-    "mtime": 1785479948.4042418,
-    "ast_hash": "3bf5c1bf1779151b43a3985baa5582a6",
+    "mtime": 1785494611.7742887,
+    "ast_hash": "ab93ca602af2f5434578cec3d9e4e4c5",
     "semantic_hash": ""
   },
   "lib/features/buyer/presentation/widgets/wishlist_toggle_button.dart": {
@@ -2470,8 +2470,8 @@
     "semantic_hash": ""
   },
   "lib/features/product_detail/domain/adapters/bullion_product_detail.dart": {
-    "mtime": 1785327222.0424979,
-    "ast_hash": "2044362db8330bb1cb948c5051c7b83d",
+    "mtime": 1785494639.4203358,
+    "ast_hash": "0a047239dc60a13144118189b3515696",
     "semantic_hash": ""
   },
   "lib/features/product_detail/domain/adapters/diamond_product_detail.dart": {
@@ -2655,8 +2655,8 @@
     "semantic_hash": ""
   },
   "lib/core/network/api_endpoints.dart": {
-    "mtime": 1785474230.3478022,
-    "ast_hash": "43db44185eaa941a14306688563e28cd",
+    "mtime": 1785494537.3492253,
+    "ast_hash": "b6bfaebaded8998d73c54885c617fa50",
     "semantic_hash": ""
   },
   "lib/core/network/dio_client.dart": {
@@ -2832,6 +2832,21 @@
   "lib/features/gemstones/domain/models/gemstone_sort_option.dart": {
     "mtime": 1785490073.3027425,
     "ast_hash": "c60487deecd8973fc9a1d3e0a4e8b721",
+    "semantic_hash": ""
+  },
+  "lib/features/bullions/data/mappers/bullion_list_query_mapper.dart": {
+    "mtime": 1785494566.1354575,
+    "ast_hash": "a2cbe1ab9e7dfcbe171150df9002b05f",
+    "semantic_hash": ""
+  },
+  "lib/features/bullions/data/mappers/bullion_mapper.dart": {
+    "mtime": 1785494565.6974533,
+    "ast_hash": "c3e7daf1d7bb18b2b7cea311403944cf",
+    "semantic_hash": ""
+  },
+  "lib/features/bullions/data/models/bullion_dto.dart": {
+    "mtime": 1785494551.7938747,
+    "ast_hash": "add1bc9d554a461b525bb370e9d74414",
     "semantic_hash": ""
   }
 }

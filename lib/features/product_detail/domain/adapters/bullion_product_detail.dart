@@ -12,7 +12,12 @@ import '../models/product_detail.dart';
 ProductDetail bullionProductDetail(Bullion b) {
   final metalLabel = _metalLabel(b.metal);
   final perGram = b.weightGrams > 0 ? b.price / b.weightGrams : null;
-  final purity = b.purity.toStringAsFixed(1);
+  final purity = b.purity > 0 ? b.purity.toStringAsFixed(1) : b.presetVariant;
+  final networkImages = b.imageUrls.isNotEmpty
+      ? b.imageUrls
+      : [
+          if (b.renderableImageUrl != null) b.renderableImageUrl!,
+        ];
 
   return ProductDetail(
     id: b.id,
@@ -20,16 +25,20 @@ ProductDetail bullionProductDetail(Bullion b) {
     title: b.name,
     subtitle: '${b.weightLabel} $metalLabel ${b.shape} · $purity fine',
     referenceLabel: 'Stock ID',
-    referenceValue: b.id,
+    referenceValue: b.stockNumber ?? b.id,
     shapeKey: b.shape,
     badges: [
       const ProductBadge('Bullion', tone: ProductBadgeTone.accent),
-      ProductBadge(b.certification, tone: ProductBadgeTone.positive),
-      ProductBadge(b.presetVariant),
-      ProductBadge(b.condition),
+      if (b.certification.isNotEmpty)
+        ProductBadge(b.certification, tone: ProductBadgeTone.positive),
+      if (b.presetVariant.isNotEmpty) ProductBadge(b.presetVariant),
+      if (b.condition.isNotEmpty) ProductBadge(b.condition),
     ],
     media: ProductMedia(
-      imageSlots: 0,
+      images: [
+        for (final url in networkImages) ProductImage.network(url),
+      ],
+      imageSlots: networkImages.isEmpty ? 0 : networkImages.length,
       certificateLabel: null,
       shapeKey: b.shape,
       fallbackIcon: _metalIcon(b.metal),
@@ -56,7 +65,7 @@ ProductDetail bullionProductDetail(Bullion b) {
       referenceValue: b.mintMark,
     ),
     availability: ProductAvailability(
-      label: b.quantityAvailable > 0 ? 'In stock' : 'Out of stock',
+      label: b.availability,
       tone: switch (b.quantityAvailable) {
         0 => ProductStockTone.unavailable,
         < 5 => ProductStockTone.limited,
@@ -77,21 +86,26 @@ ProductDetail bullionProductDetail(Bullion b) {
             perGram == null ? null : AppCurrency.format(perGram.toStringAsFixed(2)),
       }),
       specSection(ProductSpecGroup.quality, {
-        'Fineness': '$purity / 1000',
+        'Fineness': purity.isEmpty ? null : '$purity / 1000',
         'Purity grade': b.presetVariant,
       }),
       specSection(ProductSpecGroup.material, {
         'Metal': metalLabel,
-        'Net metal weight': '${formatDecimal(b.weightGrams)} g',
+        'Net metal weight': b.weightGrams > 0
+            ? '${formatDecimal(b.weightGrams)} g'
+            : null,
       }),
       specSection(ProductSpecGroup.measurements, {
-        'Length': '${formatDecimal(b.lengthMm)} mm',
-        'Width': '${formatDecimal(b.widthMm)} mm',
-        'Thickness': '${formatDecimal(b.heightMm)} mm',
+        if (b.demention != null && b.demention!.isNotEmpty)
+          'Dimensions': b.demention,
+        if (b.lengthMm > 0) 'Length': '${formatDecimal(b.lengthMm)} mm',
+        if (b.widthMm > 0) 'Width': '${formatDecimal(b.widthMm)} mm',
+        if (b.heightMm > 0) 'Thickness': '${formatDecimal(b.heightMm)} mm',
       }),
       specSection(ProductSpecGroup.provenance, {
         'Certification': b.certification,
         'Mint mark': b.mintMark,
+        if (b.mintYear != null) 'Mint year': '${b.mintYear}',
       }),
       specSection(ProductSpecGroup.inclusions, {
         'Units available': '${b.quantityAvailable}',

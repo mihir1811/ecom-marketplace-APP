@@ -15,4 +15,10 @@ abstract final class ApiEndpoints {
 
   static const String watchAll = '/watch/all';
   static String watchById(String id) => '/watch/$id';
+
+  static const String bullionAll = '/bullion/all';
+  static String bullionById(String id) => '/bullion/$id';
+  static const String bullionMetalTypes = '/bullion/metal-types';
+  static const String bullionMetalShapes = '/bullion/metal-shapes';
+  static const String bullionMetalFineness = '/bullion/metal-fineness';
 }
