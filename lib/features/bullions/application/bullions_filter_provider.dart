@@ -50,6 +50,9 @@ final bullionsFilterProvider =
 final bullionsViewModeProvider =
     StateProvider<BullionsViewMode>((ref) => BullionsViewMode.grid);
 
+final bullionsSortProvider =
+    StateProvider<BullionsSortOption>((ref) => BullionsSortOption.featured);
+
 class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState> {
   @override
   BullionsFilterState build() => ref.watch(bullionsFilterProvider);

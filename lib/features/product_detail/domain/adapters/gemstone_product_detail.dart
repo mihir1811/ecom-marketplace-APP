@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
-import '../../../gemstones/domain/gemstone_assets.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
 import '../models/product_detail.dart';
 
@@ -11,7 +11,6 @@ import '../models/product_detail.dart';
 ProductDetail gemstoneProductDetail(Gemstone g) {
   final perCarat = g.pricePerCarat ?? (g.carat > 0 ? g.price / g.carat : null);
   final carat = g.carat.toStringAsFixed(2);
-  final assetPath = gemstoneImagePath(g.type);
   final authority = _optional(g.lab, uppercase: true);
   final certificateUrl = _optional(g.certificateUrl);
   final certificateLabel = certificateUrl == null
@@ -46,18 +45,16 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
         if (g.hasNetworkImage)
           for (final url
               in (g.imageUrls.isNotEmpty ? g.imageUrls : [g.imageUrl!]))
-            ProductImage.network(url)
-        else if (assetPath != null)
-          ProductImage.asset(assetPath),
+            ProductImage.network(url),
       ],
       imageSlots: g.hasNetworkImage
           ? (g.imageUrls.isNotEmpty ? g.imageUrls.length : 1)
-          : (assetPath != null ? 1 : 0),
+          : 0,
       certificateLabel: certificateLabel,
       certificateUrl: certificateUrl,
-      shapeKey: g.shape,
+      shapeKey: null,
       fallbackIcon: Icons.auto_awesome,
-      fallbackTint: gemstoneHue(g.type),
+      fallbackTint: AppColors.bronzeLight,
       hasVideo: g.videoUrl != null,
       videoLabel: g.videoUrl != null ? 'Video' : null,
       videoUrl: g.videoUrl,

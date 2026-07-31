@@ -30,6 +30,7 @@ class BullionsRepositoryImpl implements BullionsRepository {
     required BullionsFilterState filters,
     required int page,
     int pageSize = BullionPageSize.defaultSize,
+    BullionsSortOption sort = BullionsSortOption.featured,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -38,6 +39,7 @@ class BullionsRepositoryImpl implements BullionsRepository {
         filters: filters,
         page: page,
         pageSize: limit,
+        sort: sort,
       );
 
       final response = await _dio.get<Map<String, dynamic>>(

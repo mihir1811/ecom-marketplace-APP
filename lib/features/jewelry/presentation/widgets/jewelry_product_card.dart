@@ -9,6 +9,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/application/wishlist_provider.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
@@ -158,9 +159,9 @@ class JewelryProductCard extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.s12,
-                  AppSpacing.s8,
                   AppSpacing.s12,
-                  AppSpacing.s8,
+                  AppSpacing.s12,
+                  AppSpacing.s12,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,20 +434,10 @@ class JewelryProductCard extends ConsumerWidget {
         url: network,
         fit: BoxFit.cover,
         memCacheWidth: 480,
-        error: _assetOrPlaceholder(),
+        error: const CatalogMissingImage(),
       );
     }
-    return _assetOrPlaceholder();
-  }
-
-  Widget _assetOrPlaceholder() {
-    final asset = item.imageAsset;
-    if (asset == null) return _placeholder();
-    return Image.asset(
-      asset,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _placeholder(),
-    );
+    return const CatalogMissingImage();
   }
 
   Widget _badge() {
@@ -470,15 +461,6 @@ class JewelryProductCard extends ConsumerWidget {
             fontSize: 10,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _placeholder() {
-    return ColoredBox(
-      color: AppColors.sandSurface,
-      child: const Center(
-        child: Icon(Icons.diamond_outlined, size: 40, color: AppColors.bronze),
       ),
     );
   }
@@ -564,23 +546,10 @@ class JewelryProductListCard extends ConsumerWidget {
                         url: item.displayImageUrl!,
                         fit: BoxFit.cover,
                         memCacheWidth: 320,
-                        error: item.imageAsset != null
-                            ? Image.asset(
-                                item.imageAsset!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    _listImagePlaceholder(),
-                              )
-                            : _listImagePlaceholder(),
-                      )
-                    else if (item.imageAsset != null)
-                      Image.asset(
-                        item.imageAsset!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _listImagePlaceholder(),
+                        error: const CatalogMissingImage(padding: AppSpacing.s16),
                       )
                     else
-                      _listImagePlaceholder(),
+                      const CatalogMissingImage(padding: AppSpacing.s16),
                     Positioned(
                       top: AppSpacing.s8,
                       right: AppSpacing.s8,
@@ -715,16 +684,6 @@ class JewelryProductListCard extends ConsumerWidget {
             ],
           ),
         ),
-    );
-  }
-
-  Widget _listImagePlaceholder() {
-    return ColoredBox(
-      color: AppColors.sandSurface,
-      child: const Icon(
-        Icons.diamond_outlined,
-        color: AppColors.bronze,
-      ),
     );
   }
 }

@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 enum MeleeBgFamily {
   labGrown,
   natural,
-  gemstone,
+  /// Gemstone finder — Natural stone type (lilac → soft teal).
+  gemstoneNatural,
+  /// Gemstone finder — Lab Grown stone type (aqua → periwinkle).
+  gemstoneLabGrown,
 }
 
 /// Raw color palette definition for GemWorld.
@@ -43,15 +46,29 @@ class AppColors {
   static const labGrownMeleeBg = Color(0xFFD0E8F6);
   static const naturalSingleBg = Color(0xFFDCDFEA);
   static const naturalMeleeBg = Color(0xFFF0E4D4);
-  static const gemstoneSingleBg = Color(0xFFE4D8F2);
-  static const gemstoneMeleeBg = Color(0xFFC8E6F0);
+
+  /// Gemstone Natural — lilac (single) → soft teal (melee).
+  static const gemstoneNaturalSingleBg = Color(0xFFE4D8F2);
+  static const gemstoneNaturalMeleeBg = Color(0xFFC8E6F0);
+
+  /// Gemstone Lab Grown — crystalline aqua (single) → soft periwinkle (melee).
+  static const gemstoneLabSingleBg = Color(0xFFC4EEF2);
+  static const gemstoneLabMeleeBg = Color(0xFFD4D2F5);
+
+  /// Resolves gemstone finder palette from Natural / Lab Grown stone type.
+  /// Defaults to Natural when unset so Single/Melee still have a stable tint.
+  static MeleeBgFamily gemstoneFamily({required String? stoneType}) {
+    if (stoneType == 'Lab Grown') return MeleeBgFamily.gemstoneLabGrown;
+    return MeleeBgFamily.gemstoneNatural;
+  }
 
   /// Soft melee tint of the screen background (same family as [creamBg]/[obsidianBg]).
   ///
   /// Light mode by [family]:
   /// - [MeleeBgFamily.labGrown]: mint → sky blue
   /// - [MeleeBgFamily.natural]: cool lavender → warm sand
-  /// - [MeleeBgFamily.gemstone]: lilac → soft teal
+  /// - [MeleeBgFamily.gemstoneNatural]: lilac → soft teal
+  /// - [MeleeBgFamily.gemstoneLabGrown]: aqua → periwinkle
   static Color screenBg({
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
@@ -61,8 +78,10 @@ class AppColors {
         return melee ? labGrownMeleeBg : labGrownSingleBg;
       case MeleeBgFamily.natural:
         return melee ? naturalMeleeBg : naturalSingleBg;
-      case MeleeBgFamily.gemstone:
-        return melee ? gemstoneMeleeBg : gemstoneSingleBg;
+      case MeleeBgFamily.gemstoneNatural:
+        return melee ? gemstoneNaturalMeleeBg : gemstoneNaturalSingleBg;
+      case MeleeBgFamily.gemstoneLabGrown:
+        return melee ? gemstoneLabMeleeBg : gemstoneLabSingleBg;
     }
   }
 

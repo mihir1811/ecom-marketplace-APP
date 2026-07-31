@@ -3,11 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
@@ -297,24 +297,10 @@ class _BullionCardImage extends StatelessWidget {
         url: network,
         fit: BoxFit.cover,
         memCacheWidth: 480,
-        error: _metalFallback(),
+        error: const CatalogMissingImage(),
       );
     }
-    return _metalFallback();
-  }
-
-  Widget _metalFallback() {
-    final accent = _accentColor(bullion.metal);
-    return ColoredBox(
-      color: AppColors.sandSurface,
-      child: Center(
-        child: Icon(
-          _metalIcon(bullion.metal),
-          size: 40,
-          color: accent,
-        ),
-      ),
-    );
+    return const CatalogMissingImage();
   }
 }
 
@@ -363,24 +349,4 @@ String _listSpecsLine(Bullion b) {
     if (b.mintMark.isNotEmpty) b.mintMark,
     if (b.condition.isNotEmpty) b.condition,
   ].join(' · ');
-}
-
-Color _accentColor(BullionMetal metal) {
-  return switch (metal) {
-    BullionMetal.gold => AppColors.bronze,
-    BullionMetal.silver => AppColors.slateBorder,
-    BullionMetal.platinum => AppColors.bronzeLight,
-    BullionMetal.palladium => AppColors.bronzeDark,
-    BullionMetal.copper => AppSwatches.copper,
-  };
-}
-
-IconData _metalIcon(BullionMetal metal) {
-  return switch (metal) {
-    BullionMetal.gold => Icons.currency_bitcoin_outlined,
-    BullionMetal.silver => Icons.currency_exchange_outlined,
-    BullionMetal.platinum => Icons.sports_martial_arts_outlined,
-    BullionMetal.palladium => Icons.monetization_on_outlined,
-    BullionMetal.copper => Icons.hardware_outlined,
-  };
 }

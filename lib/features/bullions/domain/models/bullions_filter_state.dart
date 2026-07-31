@@ -30,6 +30,30 @@ enum BullionsMetalFilter {
 
 enum BullionsViewMode { grid, list }
 
+/// Server-side sort options for `GET /bullion/all?sort=`.
+enum BullionsSortOption {
+  featured,
+  priceLowToHigh,
+  priceHighToLow,
+  newest,
+  oldest,
+  weightLowToHigh,
+  weightHighToLow,
+}
+
+extension BullionsSortOptionLabel on BullionsSortOption {
+  String get label => switch (this) {
+        BullionsSortOption.featured => 'Default Sorting',
+        BullionsSortOption.priceLowToHigh => 'Price: Low to High',
+        BullionsSortOption.priceHighToLow => 'Price: High to Low',
+        BullionsSortOption.newest => 'Newest Arrivals',
+        BullionsSortOption.oldest => 'Oldest Arrivals',
+        BullionsSortOption.weightLowToHigh => 'Weight: Low to High',
+        BullionsSortOption.weightHighToLow => 'Weight: High to Low',
+      };
+}
+
+
 /// Immutable filter state for Bullions listings.
 class BullionsFilterState {
   const BullionsFilterState({

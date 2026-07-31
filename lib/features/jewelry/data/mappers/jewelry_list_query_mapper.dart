@@ -4,12 +4,16 @@ import '../../domain/models/jewelry_filter_state.dart';
 import '../../domain/repositories/jewelry_repository.dart';
 
 /// Builds `GET /jewellery` query params from UI filter/sort state.
+///
+/// Category / subcategory filtering must use `subcategoryId` — nested
+/// `subcategory.category.name` filters return HTTP 400 from the live API.
 abstract final class JewelryListQueryMapper {
   static Map<String, dynamic> toQuery({
     required JewelryFilterState filters,
     required int page,
     int pageSize = JewelryPageSize.defaultSize,
     JewelrySortOption sort = JewelrySortOption.featured,
+    List<String> subcategoryIds = const [],
   }) {
     final query = <String, dynamic>{
       'page': page < 1 ? 1 : page,
@@ -25,7 +29,10 @@ abstract final class JewelryListQueryMapper {
     final sortField = _sortField(sort);
     if (sortField != null) query['sort'] = sortField;
 
-    final prismaFilters = _buildFilters(filters);
+    final prismaFilters = _buildFilters(
+      filters,
+      subcategoryIds: subcategoryIds,
+    );
     if (prismaFilters.isNotEmpty) {
       query['filters'] = jsonEncode(prismaFilters);
     }
@@ -47,45 +54,24 @@ abstract final class JewelryListQueryMapper {
     };
   }
 
-  static Map<String, dynamic> _buildFilters(JewelryFilterState f) {
+  static Map<String, dynamic> _buildFilters(
+    JewelryFilterState f, {
+    List<String> subcategoryIds = const [],
+  }) {
     final filters = <String, dynamic>{};
 
-    final category = f.category;
-    if (category != null &&
-        category.isNotEmpty &&
-        category != 'All Accessories') {
-      final apiCategory = _mapCategoryToApi(category);
-      if (apiCategory != null) {
-        filters['subcategory'] = {
-          'category': {
-            'name': {'equals': apiCategory},
-          },
-        };
-      }
-    }
-
-    if (f.subCategories.isNotEmpty) {
-      final names = f.subCategories
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty && !s.toLowerCase().startsWith('all '))
-          .toList();
-      if (names.length == 1) {
-        filters['subcategory'] = {
-          ...(filters['subcategory'] as Map<String, dynamic>? ?? {}),
-          'name': {'equals': names.first},
-        };
-      } else if (names.length > 1) {
-        filters['subcategory'] = {
-          ...(filters['subcategory'] as Map<String, dynamic>? ?? {}),
-          'name': {'in': names},
-        };
-      }
-    }
-
-    final genders = f.genders
-        .map(_mapGenderToApi)
-        .whereType<String>()
+    final ids = subcategoryIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
         .toList();
+    if (ids.length == 1) {
+      filters['subcategoryId'] = {'equals': ids.first};
+    } else if (ids.length > 1) {
+      filters['subcategoryId'] = {'in': ids};
+    }
+
+    final genders =
+        f.genders.map(_mapGenderToApi).whereType<String>().toList();
     _putEqualsOrIn(filters, 'gender', genders);
 
     final occasions = f.occasions
@@ -157,17 +143,6 @@ abstract final class JewelryListQueryMapper {
     }
   }
 
-  static String? _mapCategoryToApi(String ui) {
-    return switch (ui.trim()) {
-      'Rings' => 'Ring',
-      'Earrings' => 'Earring',
-      'Bracelets' => 'Bracelet',
-      'Necklaces' => 'Necklace',
-      'Chains' => 'Necklace',
-      _ => null,
-    };
-  }
-
   static String? _mapGenderToApi(String ui) {
     return switch (ui.trim().toLowerCase()) {
       'women' || 'woman' => 'women',
@@ -188,7 +163,6 @@ abstract final class JewelryListQueryMapper {
   }
 
   static String _normalizePurity(String purity) {
-    // UI may use "950 Platinum"; API sample uses "18K" / "950".
     if (purity.contains('Platinum')) {
       return purity.replaceAll(RegExp(r'\s*Platinum'), '').trim();
     }

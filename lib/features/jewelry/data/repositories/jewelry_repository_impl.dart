@@ -22,6 +22,9 @@ class JewelryRepositoryImpl implements JewelryRepository {
 
   final Dio _dio;
 
+  /// Cached from `GET /jewellery-categories` for subcategoryId resolution.
+  List<_JewelryCategoryRef>? _categoriesCache;
+
   @override
   Future<Result<JewelryListResponse, Failure>> getJewelry({
     required JewelryFilterState filters,
@@ -32,11 +35,17 @@ class JewelryRepositoryImpl implements JewelryRepository {
   }) async {
     try {
       final limit = pageSize < 1 ? JewelryPageSize.defaultSize : pageSize;
+      final subcategoryIds = await _resolveSubcategoryIds(
+        filters,
+        cancelToken: cancelToken,
+      );
+
       final query = JewelryListQueryMapper.toQuery(
         filters: filters,
         page: page,
         pageSize: limit,
         sort: sort,
+        subcategoryIds: subcategoryIds,
       );
 
       final response = await _dio.get<Map<String, dynamic>>(
@@ -67,7 +76,6 @@ class JewelryRepositoryImpl implements JewelryRepository {
       final total = _asInt(meta['total']) ?? items.length;
       final currentPage = _asInt(meta['currentPage']) ?? page;
       final lastPage = _asInt(meta['lastPage']);
-      // Prefer backend cursor: meta.next is null on the last page.
       final hasMore = meta.containsKey('next')
           ? meta['next'] != null
           : (lastPage != null
@@ -89,10 +97,146 @@ class JewelryRepositoryImpl implements JewelryRepository {
     }
   }
 
+  /// Maps UI category / subcategory selections to live `subcategoryId` values.
+  Future<List<String>> _resolveSubcategoryIds(
+    JewelryFilterState filters, {
+    CancelToken? cancelToken,
+  }) async {
+    final category = filters.category;
+    final hasCategory = category != null &&
+        category.isNotEmpty &&
+        category != 'All Accessories';
+    final selectedSubs = filters.subCategories
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty && !s.toLowerCase().startsWith('all '))
+        .toList();
+
+    if (!hasCategory && selectedSubs.isEmpty) return const [];
+
+    final categories = await _loadCategories(cancelToken: cancelToken);
+    if (categories.isEmpty) return const [];
+
+    final apiCategoryName = hasCategory ? _mapUiCategoryToApi(category) : null;
+    final scoped = apiCategoryName == null
+        ? categories
+        : categories
+            .where(
+              (c) => c.name.toLowerCase() == apiCategoryName.toLowerCase(),
+            )
+            .toList();
+
+    if (scoped.isEmpty) return const [];
+
+    if (selectedSubs.isEmpty) {
+      // Whole parent category → all of its subcategory IDs.
+      return scoped.expand((c) => c.subcategories.map((s) => s.id)).toList();
+    }
+
+    final ids = <String>{};
+    for (final uiName in selectedSubs) {
+      for (final cat in scoped) {
+        for (final sub in cat.subcategories) {
+          if (_subcategoryMatches(uiName, sub.name)) {
+            ids.add(sub.id);
+          }
+        }
+      }
+    }
+    return ids.toList();
+  }
+
+  Future<List<_JewelryCategoryRef>> _loadCategories({
+    CancelToken? cancelToken,
+  }) async {
+    final cached = _categoriesCache;
+    if (cached != null) return cached;
+
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.jewelleryCategories,
+      cancelToken: cancelToken,
+    );
+    final root = response.data ?? const <String, dynamic>{};
+    final dataNode = root['data'];
+    final payload = dataNode is Map<String, dynamic>
+        ? dataNode
+        : const <String, dynamic>{};
+    final listJson = payload['data'];
+    final list = listJson is List ? listJson : const [];
+
+    final parsed = <_JewelryCategoryRef>[];
+    for (final item in list) {
+      if (item is! Map<String, dynamic>) continue;
+      final id = item['id']?.toString() ?? '';
+      final name = item['name']?.toString() ?? '';
+      if (id.isEmpty || name.isEmpty) continue;
+      final subsJson = item['subcategories'];
+      final subs = <_JewelrySubcategoryRef>[];
+      if (subsJson is List) {
+        for (final sub in subsJson) {
+          if (sub is! Map<String, dynamic>) continue;
+          final sid = sub['id']?.toString() ?? '';
+          final sname = sub['name']?.toString() ?? '';
+          if (sid.isEmpty || sname.isEmpty) continue;
+          if (sub['isActive'] == false) continue;
+          subs.add(_JewelrySubcategoryRef(id: sid, name: sname));
+        }
+      }
+      if (item['isActive'] == false) continue;
+      parsed.add(_JewelryCategoryRef(id: id, name: name, subcategories: subs));
+    }
+
+    _categoriesCache = parsed;
+    return parsed;
+  }
+
+  static String? _mapUiCategoryToApi(String ui) {
+    return switch (ui.trim()) {
+      'Rings' => 'Ring',
+      'Earrings' => 'Earring',
+      'Bracelets' => 'Bracelet',
+      'Necklaces' || 'Chains' => 'Necklace',
+      _ => null,
+    };
+  }
+
+  /// Matches UI chip labels like "Engagement" / "Drop Earrings" to API names.
+  static bool _subcategoryMatches(String uiName, String apiName) {
+    final a = uiName.trim().toLowerCase();
+    final b = apiName.trim().toLowerCase();
+    if (a.isEmpty || b.isEmpty) return false;
+    if (a == b) return true;
+    if (b.startsWith(a) || a.startsWith(b)) return true;
+    // "Drop Earrings" ↔ "Drop Earring"
+    final aSingular = a.endsWith('s') ? a.substring(0, a.length - 1) : a;
+    final bSingular = b.endsWith('s') ? b.substring(0, b.length - 1) : b;
+    return aSingular == bSingular ||
+        bSingular.startsWith(aSingular) ||
+        aSingular.startsWith(bSingular);
+  }
+
   static int? _asInt(Object? value) {
     if (value == null) return null;
     if (value is int) return value;
     if (value is num) return value.toInt();
     return int.tryParse(value.toString());
   }
+}
+
+class _JewelryCategoryRef {
+  const _JewelryCategoryRef({
+    required this.id,
+    required this.name,
+    required this.subcategories,
+  });
+
+  final String id;
+  final String name;
+  final List<_JewelrySubcategoryRef> subcategories;
+}
+
+class _JewelrySubcategoryRef {
+  const _JewelrySubcategoryRef({required this.id, required this.name});
+
+  final String id;
+  final String name;
 }

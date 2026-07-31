@@ -71,6 +71,7 @@ class _GemstoneFilterCategoryBasicState
     final isShapesAtMax = _shapeDisplayRows >= totalShapeRows;
 
     final isMelee = state.lotType == 'Melee';
+    final meleeFamily = AppColors.gemstoneFamily(stoneType: state.stoneType);
 
     return RepaintBoundary(
       child: Column(
@@ -97,6 +98,8 @@ class _GemstoneFilterCategoryBasicState
                   ],
                   selected: state.stoneType,
                   onSelected: (val) => notifier.updateStoneType(val),
+                  family: meleeFamily,
+                  isMelee: isMelee,
                 ),
                 const SizedBox(height: AppSpacing.s20),
                 const FilterSectionHeader(title: 'Lot Type'),
@@ -116,6 +119,8 @@ class _GemstoneFilterCategoryBasicState
                   ],
                   selected: state.lotType,
                   onSelected: (val) => notifier.updateLotType(val),
+                  family: meleeFamily,
+                  isMelee: isMelee,
                 ),
               ],
             ),

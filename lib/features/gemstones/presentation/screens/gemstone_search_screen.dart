@@ -93,6 +93,10 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     final isMelee = ref.watch(
       gemstoneSearchProvider.select((s) => s.lotType == 'Melee'),
     );
+    final stoneType = ref.watch(
+      gemstoneSearchProvider.select((s) => s.stoneType),
+    );
+    final meleeFamily = AppColors.gemstoneFamily(stoneType: stoneType);
 
     final sections = <CatalogSearchNavSection<GemstoneSection>>[
       CatalogSearchNavSection(
@@ -118,7 +122,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     return CatalogSearchFilterShell(
       title: 'GEMSTONE FINDER',
       isMelee: isMelee,
-      meleeFamily: MeleeBgFamily.gemstone,
+      meleeFamily: meleeFamily,
       stickyNav: CatalogSearchSectionNav<GemstoneSection>(
         navKey: catalogNavKey,
         sections: sections,

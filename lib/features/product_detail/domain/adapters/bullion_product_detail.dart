@@ -40,7 +40,7 @@ ProductDetail bullionProductDetail(Bullion b) {
       ],
       imageSlots: networkImages.isEmpty ? 0 : networkImages.length,
       certificateLabel: null,
-      shapeKey: b.shape,
+      shapeKey: null,
       fallbackIcon: _metalIcon(b.metal),
       fallbackTint: _metalTint(b.metal),
       hasVideo: false,

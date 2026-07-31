@@ -71,10 +71,9 @@ abstract final class JewelryMapper {
       ringSize: _clean(variant?.ringSize),
       badge: dto.isOnAuction == true ? 'Auction' : null,
       imageUrl: images.isEmpty ? null : images.first,
-      imageAsset: _categoryAsset(categoryUi),
+      imageAsset: null,
       discount: discountPct,
-      hasMedia: images.isNotEmpty ||
-          (_clean(dto.videoURL) != null),
+      hasMedia: images.isNotEmpty || (_clean(dto.videoURL) != null),
     );
   }
 
@@ -116,17 +115,6 @@ abstract final class JewelryMapper {
     if (v.contains('lab')) return 'Lab-Grown';
     if (v.contains('natural')) return 'Natural';
     return raw?.trim().isNotEmpty == true ? raw!.trim() : '';
-  }
-
-  static String? _categoryAsset(String category) {
-    return switch (category) {
-      'Bracelets' => 'public/images/jewelryCategoryImages/bracelet.webp',
-      'Necklaces' || 'Chains' =>
-        'public/images/jewelryCategoryImages/necklace.webp',
-      'Earrings' => 'public/images/jewelryCategoryImages/earrings.webp',
-      'Rings' => 'public/images/jewelryCategoryImages/ring.webp',
-      _ => 'public/images/jewelryCategoryImages/set.webp',
-    };
   }
 
   static List<String> _images(JewelryVariantDto? variant) {

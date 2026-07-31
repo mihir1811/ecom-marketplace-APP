@@ -7,17 +7,21 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+// import '../../../../core/utils/app_currency.dart'; // Metal prices (AURUM) disabled
+// import '../../../../core/utils/format_catalog_price.dart'; // Metal prices (AURUM) disabled
 import '../../../../core/widgets/catalog_screen_shell.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
+import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
+// import '../../application/metal_prices_provider.dart'; // Metal prices (AURUM) disabled
 import '../../domain/models/bullions_filter_state.dart';
+// import '../../domain/models/metal_spot_price.dart'; // Metal prices (AURUM) disabled
 import '../widgets/bullions_filter_drawer.dart';
 import '../widgets/bullions_grid_view.dart';
-import '../../../../core/utils/app_currency.dart';
 
 class BullionsScreen extends ConsumerStatefulWidget {
   const BullionsScreen({super.key});
@@ -26,76 +30,67 @@ class BullionsScreen extends ConsumerStatefulWidget {
   ConsumerState<BullionsScreen> createState() => _BullionsScreenState();
 }
 
-class _BullionsScreenState extends ConsumerState<BullionsScreen>
-    with SingleTickerProviderStateMixin {
+class _BullionsScreenState extends ConsumerState<BullionsScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _scrollController = ScrollController();
-  final _tickerController = ScrollController();
+  // final _tickerController = ScrollController(); // Metal prices ticker disabled
   final _searchController = TextEditingController();
-  late final AnimationController _tickerAnimation;
+  // late final AnimationController _tickerAnimation; // Metal prices ticker disabled
   Timer? _searchDebounce;
-  double _lastTickerValue = 0;
+  // double _lastTickerValue = 0; // Metal prices ticker disabled
+  // int _tickerItemCount = 5; // Metal prices ticker disabled
 
-  static const _metalPriceItems = [
-    _MetalPriceItem('Gold', 'XAU', '${AppCurrency.symbol}63,678', '+0.42%', Color(0xFFFFC94D)),
-    _MetalPriceItem('Silver', 'XAG', '${AppCurrency.symbol}744', '+0.18%', Color(0xFF8EA4C8)),
-    _MetalPriceItem('Palladium', 'XPD', '${AppCurrency.symbol}81,556', '+0.27%', Color(0xFF4AB5FF)),
-    _MetalPriceItem('Copper', 'HG', '${AppCurrency.symbol}811', '+0.14%', Color(0xFFDD915E)),
-    _MetalPriceItem('Platinum', 'XPT', '${AppCurrency.symbol}34,285', '+0.21%', Color(0xFFC6B28A)),
-  ];
-
-  static const _tickerCardWidth = 120.0;
-  static const _tickerSeparator = AppSpacing.s12;
-
-  static double get _tickerLoopExtent =>
-      _metalPriceItems.length * _tickerCardWidth +
-      (_metalPriceItems.length - 1) * _tickerSeparator;
+  // static const _tickerCardWidth = 120.0;
+  // static const _tickerSeparator = AppSpacing.s12;
+  // double get _tickerLoopExtent =>
+  //     _tickerItemCount * _tickerCardWidth +
+  //     (_tickerItemCount - 1) * _tickerSeparator;
 
   @override
   void initState() {
     super.initState();
-    _tickerAnimation = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 18),
-    )..addListener(_advanceTicker);
+    // Metal prices ticker animation — disabled
+    // _tickerAnimation = AnimationController(
+    //   vsync: this,
+    //   duration: const Duration(seconds: 18),
+    // )..addListener(_advanceTicker);
     _scrollController.addListener(_onScroll);
     final q = ref.read(bullionsFilterProvider).searchQuery;
     if (q.isNotEmpty) _searchController.text = q;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _startTicker());
+    // WidgetsBinding.instance.addPostFrameCallback((_) => _startTicker());
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
-    _tickerController.dispose();
-    _tickerAnimation
-      ..removeListener(_advanceTicker)
-      ..dispose();
+    // _tickerController.dispose();
+    // _tickerAnimation
+    //   ..removeListener(_advanceTicker)
+    //   ..dispose();
     _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  void _startTicker() {
-    _lastTickerValue = 0;
-    _tickerAnimation
-      ..reset()
-      ..repeat();
-  }
+  // void _startTicker() {
+  //   _lastTickerValue = 0;
+  //   _tickerAnimation
+  //     ..reset()
+  //     ..repeat();
+  // }
 
-  void _advanceTicker() {
-    if (!_tickerController.hasClients) return;
-    final loop = _tickerLoopExtent;
-    if (loop <= 0) return;
-
-    final value = _tickerAnimation.value;
-    final rawDelta = value - _lastTickerValue;
-    _lastTickerValue = value;
-    final normalizedDelta = rawDelta >= 0 ? rawDelta : rawDelta + 1;
-    final next = (_tickerController.offset + (normalizedDelta * loop)) % loop;
-    _tickerController.jumpTo(next);
-  }
+  // void _advanceTicker() {
+  //   if (!_tickerController.hasClients) return;
+  //   final loop = _tickerLoopExtent;
+  //   if (loop <= 0) return;
+  //   final value = _tickerAnimation.value;
+  //   final rawDelta = value - _lastTickerValue;
+  //   _lastTickerValue = value;
+  //   final normalizedDelta = rawDelta >= 0 ? rawDelta : rawDelta + 1;
+  //   final next = (_tickerController.offset + (normalizedDelta * loop)) % loop;
+  //   _tickerController.jumpTo(next);
+  // }
 
   void _onSearchChanged(String value) {
     _searchDebounce?.cancel();
@@ -132,6 +127,14 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Metal prices provider listen (would trigger AURUM fetch) — disabled
+    // ref.listen(metalSpotPricesProvider, (_, next) {
+    //   final count = next.valueOrNull?.length ?? 0;
+    //   if (count > 0 && count != _tickerItemCount) {
+    //     setState(() => _tickerItemCount = count);
+    //   }
+    // });
+
     final pinnedHeaderHeight = ref.watch(
       bullionsFilterProvider.select(
         (s) => s.availableVariants.isEmpty ? 122.0 : 164.0,
@@ -146,17 +149,18 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
       child: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s16,
-                AppSpacing.s12,
-                AppSpacing.s16,
-                AppSpacing.s12,
-              ),
-              child: _MetalPricesTicker(controller: _tickerController),
-            ),
-          ),
+          // Metal prices section (AURUM API) — disabled
+          // SliverToBoxAdapter(
+          //   child: Padding(
+          //     padding: const EdgeInsets.fromLTRB(
+          //       AppSpacing.s16,
+          //       AppSpacing.s12,
+          //       AppSpacing.s16,
+          //       AppSpacing.s12,
+          //     ),
+          //     child: _MetalPricesTicker(controller: _tickerController),
+          //   ),
+          // ),
           SliverPersistentHeader(
             pinned: true,
             delegate: _PinnedHeaderDelegate(
@@ -252,6 +256,34 @@ class _BullionsBody extends ConsumerWidget {
                     ),
                   ),
                 ),
+                TextButton.icon(
+                  onPressed: () => showSimpleSortSheet<BullionsSortOption>(
+                    context: context,
+                    options: BullionsSortOption.values,
+                    labelOf: (o) => o.label,
+                    current: ref.read(bullionsSortProvider),
+                  ).then((selected) {
+                    if (selected != null) {
+                      ref.read(bullionsSortProvider.notifier).state = selected;
+                    }
+                  }),
+                  icon: const Icon(Icons.sort, size: 18),
+                  label: Text(
+                    'Sort by: ${ref.watch(bullionsSortProvider.select((s) => s.label))}',
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.textPrimaryLight,
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.s8),
                 ViewModeToggle(
                   isGrid: viewMode == BullionsViewMode.grid,
                   onGrid: () => ref.read(bullionsViewModeProvider.notifier).state =
@@ -435,14 +467,16 @@ class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
   }
 }
 
-class _MetalPricesTicker extends StatelessWidget {
+/* Metal prices UI (AURUM) — disabled; restore with section above.
+class _MetalPricesTicker extends ConsumerWidget {
   const _MetalPricesTicker({required this.controller});
 
   final ScrollController controller;
 
   @override
-  Widget build(BuildContext context) {
-    const items = _BullionsScreenState._metalPriceItems;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pricesAsync = ref.watch(metalSpotPricesProvider);
+    final items = pricesAsync.valueOrNull ?? const <MetalSpotPrice>[];
     const loopCount = 2;
 
     return DecoratedBox(
@@ -478,23 +512,74 @@ class _MetalPricesTicker extends StatelessWidget {
                     letterSpacing: 0.8,
                   ),
                 ),
+                const Spacer(),
+                if (pricesAsync.isLoading)
+                  const SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.5,
+                      color: AppColors.bronze,
+                    ),
+                  ),
               ],
             ),
           ),
           SizedBox(
             height: 92,
-            child: ListView.separated(
-              controller: controller,
-              scrollDirection: Axis.horizontal,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.s12,
-                vertical: AppSpacing.s8,
+            child: items.isEmpty
+                ? Center(
+                    child: pricesAsync.hasError
+                        ? TextButton.icon(
+                            onPressed: () => ref
+                                .read(metalSpotPricesProvider.notifier)
+                                .retry(),
+                            icon: const Icon(Icons.refresh, size: 16),
+                            label: const Text('Retry live prices'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.bronze,
+                              textStyle: AppTypography.caption.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            'Loading live prices…',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textMutedLight,
+                            ),
+                          ),
+                  )
+                : ListView.separated(
+                    controller: controller,
+                    scrollDirection: Axis.horizontal,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s12,
+                      vertical: AppSpacing.s8,
+                    ),
+                    itemBuilder: (context, index) => _MetalPriceCard(
+                      item: items[index % items.length],
+                    ),
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(width: AppSpacing.s12),
+                    itemCount: items.length * loopCount,
+                  ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s12,
+              0,
+              AppSpacing.s12,
+              AppSpacing.s12,
+            ),
+            child: Text(
+              'Approximate live spot prices — actual market prices may vary slightly.',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textMutedLight,
+                fontSize: 10,
+                height: 1.3,
               ),
-              itemBuilder: (context, index) =>
-                  _MetalPriceCard(item: items[index % items.length]),
-              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.s12),
-              itemCount: items.length * loopCount,
             ),
           ),
         ],
@@ -503,29 +588,20 @@ class _MetalPricesTicker extends StatelessWidget {
   }
 }
 
-class _MetalPriceItem {
-  const _MetalPriceItem(
-    this.name,
-    this.code,
-    this.price,
-    this.change,
-    this.border,
-  );
-
-  final String name;
-  final String code;
-  final String price;
-  final String change;
-  final Color border;
-}
-
 class _MetalPriceCard extends StatelessWidget {
   const _MetalPriceCard({required this.item});
 
-  final _MetalPriceItem item;
+  final MetalSpotPrice item;
 
   @override
   Widget build(BuildContext context) {
+    final accent = _metalAccent(item.id);
+    final changePositive = item.changePercent >= 0;
+    final changeLabel =
+        '${changePositive ? '+' : ''}${item.changePercent.toStringAsFixed(2)}%';
+    final priceLabel =
+        '${AppCurrency.format(formatGroupedPrice(item.priceUsd))}${item.unitLabel}';
+
     return Container(
       width: 120,
       padding: const EdgeInsets.symmetric(
@@ -538,11 +614,12 @@ class _MetalPriceCard extends StatelessWidget {
         border: Border.all(color: AppColors.warmBorder),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
             width: 3,
             decoration: BoxDecoration(
-              color: item.border,
+              color: accent,
               borderRadius: BorderRadius.circular(AppSpacing.circular),
             ),
           ),
@@ -550,7 +627,7 @@ class _MetalPriceCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
                   children: [
@@ -560,6 +637,7 @@ class _MetalPriceCard extends StatelessWidget {
                         style: AppTypography.label.copyWith(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
+                          height: 1.1,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -569,20 +647,28 @@ class _MetalPriceCard extends StatelessWidget {
                       item.code,
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textMutedLight,
+                        height: 1.1,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.s4),
                 Text(
-                  item.price,
-                  style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
+                  priceLabel,
+                  style: AppTypography.label.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.1,
+                    fontSize: 12,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  item.change,
+                  changeLabel,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.success,
+                    color: changePositive ? AppColors.success : AppColors.error,
                     fontWeight: FontWeight.w700,
+                    height: 1.1,
                   ),
                 ),
               ],
@@ -592,7 +678,20 @@ class _MetalPriceCard extends StatelessWidget {
       ),
     );
   }
+
+  Color _metalAccent(String id) {
+    return switch (id) {
+      'gold' => const Color(0xFFFFC94D),
+      'silver' => const Color(0xFF8EA4C8),
+      'platinum' => const Color(0xFFC6B28A),
+      'palladium' => const Color(0xFF4AB5FF),
+      'copper' => const Color(0xFFDD915E),
+      _ => AppColors.bronze,
+    };
+  }
 }
+
+*/
 
 class _HorizontalChipRow extends StatelessWidget {
   const _HorizontalChipRow({required this.children});
@@ -608,7 +707,10 @@ class _HorizontalChipRow extends StatelessWidget {
         padding: EdgeInsets.zero,
         itemCount: children.length,
         separatorBuilder: (_, __) => const SizedBox.shrink(),
-        itemBuilder: (context, index) => children[index],
+        itemBuilder: (context, index) => Align(
+          alignment: Alignment.center,
+          child: children[index],
+        ),
       ),
     );
   }
@@ -635,10 +737,9 @@ class _PresetChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s16,
-            vertical: AppSpacing.s4,
-          ),
+          height: 32,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
           decoration: BoxDecoration(
             color: selected ? AppColors.charcoal : AppColors.warmWhite,
             borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -646,12 +747,14 @@ class _PresetChip extends StatelessWidget {
           ),
           child: Text(
             label,
+            textAlign: TextAlign.center,
             style: AppTypography.label.copyWith(
               color: selected
                   ? AppColors.warmWhite
                   : AppColors.textPrimaryLight,
               fontWeight: FontWeight.w700,
               height: 1.0,
+              leadingDistribution: TextLeadingDistribution.even,
             ),
           ),
         ),
@@ -679,10 +782,9 @@ class _VariantFilterChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s12,
-            vertical: AppSpacing.s4,
-          ),
+          height: 32,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
           decoration: BoxDecoration(
             color: selected ? AppColors.charcoal : AppColors.warmWhite,
             borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -692,12 +794,14 @@ class _VariantFilterChip extends StatelessWidget {
           ),
           child: Text(
             label,
+            textAlign: TextAlign.center,
             style: AppTypography.caption.copyWith(
               color: selected
                   ? AppColors.warmWhite
                   : AppColors.textPrimaryLight,
               fontWeight: FontWeight.w700,
               height: 1.0,
+              leadingDistribution: TextLeadingDistribution.even,
             ),
           ),
         ),
@@ -705,3 +809,4 @@ class _VariantFilterChip extends StatelessWidget {
     );
   }
 }
+

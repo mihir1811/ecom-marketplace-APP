@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../diamond_viewer/presentation/widgets/view_in_360_button.dart';
 import '../../../diamond_viewer/utils/viewer_url_resolver.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
@@ -173,20 +174,17 @@ class _Frame extends StatelessWidget {
     if (!image.isAsset) {
       return AppNetworkImage(url: image.path, fit: fit);
     }
+    if (image.path == CatalogMissingImage.assetPath ||
+        image.path.toLowerCase().endsWith('.svg')) {
+      return const CatalogMissingImage(showLabel: false, padding: AppSpacing.s40);
+    }
     return Padding(
       padding: EdgeInsets.all(fit == BoxFit.contain ? AppSpacing.s40 : 0),
       child: Image.asset(
         image.path,
         fit: fit,
-        errorBuilder: (_, __, ___) => const ColoredBox(
-          color: AppColors.sandSurface,
-          child: Center(
-            child: Icon(
-              Icons.image_not_supported_outlined,
-              color: AppColors.bronzeLight,
-            ),
-          ),
-        ),
+        errorBuilder: (_, __, ___) =>
+            const CatalogMissingImage(showLabel: false),
       ),
     );
   }
@@ -260,27 +258,30 @@ class _Fallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shape = media.shapeKey?.trim();
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            media.fallbackTint.withValues(alpha: 0.16),
-            AppColors.sandSurface,
-          ],
+    // Diamond listings keep shape SVG placeholders; other catalogs use the
+    // shared missing-image asset when no photo exists.
+    if (shape != null && shape.isNotEmpty) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              media.fallbackTint.withValues(alpha: 0.16),
+              AppColors.sandSurface,
+            ],
+          ),
         ),
-      ),
-      child: Center(
-        child: shape != null && shape.isNotEmpty
-            ? renderShapeSvg(
-                shape,
-                size: 96,
-                color: media.fallbackTint,
-              )
-            : Icon(media.fallbackIcon, size: 72, color: media.fallbackTint),
-      ),
-    );
+        child: Center(
+          child: renderShapeSvg(
+            shape,
+            size: 96,
+            color: media.fallbackTint,
+          ),
+        ),
+      );
+    }
+    return const CatalogMissingImage(showLabel: true, padding: AppSpacing.s40);
   }
 }
 

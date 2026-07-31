@@ -17,6 +17,7 @@ abstract class BullionsRepository {
     required BullionsFilterState filters,
     required int page,
     int pageSize = BullionPageSize.defaultSize,
+    BullionsSortOption sort = BullionsSortOption.featured,
     CancelToken? cancelToken,
   });
 }

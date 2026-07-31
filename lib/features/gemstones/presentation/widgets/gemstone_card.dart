@@ -8,6 +8,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
@@ -16,7 +17,6 @@ import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
 import '../../../product_detail/product_detail_navigation.dart';
-import '../../domain/gemstone_assets.dart';
 import '../../domain/models/gemstone.dart';
 
 class GemstoneCardGrid extends ConsumerWidget {
@@ -460,12 +460,6 @@ class _GemstoneThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = Icon(
-      Icons.diamond_outlined,
-      size: 40,
-      color: gemstoneHue(gemstone.type),
-    );
-
     if (gemstone.hasNetworkImage) {
       return ColoredBox(
         color: AppColors.sandSurface,
@@ -473,25 +467,12 @@ class _GemstoneThumb extends StatelessWidget {
           url: gemstone.imageUrl!,
           fit: cover ? BoxFit.cover : BoxFit.contain,
           memCacheWidth: cover ? 280 : 400,
-          error: Center(child: fallback),
+          error: CatalogMissingImage(padding: padding),
         ),
       );
     }
 
-    final assetPath = gemstoneImagePath(gemstone.type);
-    return ColoredBox(
-      color: AppColors.sandSurface,
-      child: assetPath != null
-          ? Padding(
-              padding: EdgeInsets.all(padding),
-              child: Image.asset(
-                assetPath,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => fallback,
-              ),
-            )
-          : Center(child: fallback),
-    );
+    return CatalogMissingImage(padding: padding);
   }
 }
 

@@ -5,12 +5,10 @@ import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../watches/domain/models/watch.dart';
-import '../../../watches/presentation/widgets/watch_brand_assets.dart';
 import '../models/product_detail.dart';
 
 /// Maps a luxury watch onto the universal detail shape.
 ProductDetail watchProductDetail(Watch w) {
-  final logo = WatchBrandAssets.logoPath(w.brand);
   final imageUrl = w.renderableImageUrl;
   final inclusions = [
     if (w.boxIncluded) 'Original box',
@@ -37,16 +35,13 @@ ProductDetail watchProductDetail(Watch w) {
     ],
     media: ProductMedia(
       images: [
-        if (imageUrl != null)
-          ProductImage.network(imageUrl)
-        else if (logo != null)
-          ProductImage.asset(logo),
+        if (imageUrl != null) ProductImage.network(imageUrl),
       ],
-      imageSlots: (imageUrl != null || logo != null) ? 1 : 0,
+      imageSlots: imageUrl != null ? 1 : 0,
       certificateLabel: null,
       fallbackIcon: Icons.watch_outlined,
       fallbackTint: AppColors.bronze,
-      fit: imageUrl == null ? BoxFit.contain : BoxFit.cover,
+      fit: BoxFit.cover,
       hasVideo: false,
     ),
     price: ProductPrice(

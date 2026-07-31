@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
@@ -15,7 +16,6 @@ import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
 import '../../domain/models/watch.dart';
-import 'watch_brand_assets.dart';
 import '../../../../core/utils/app_currency.dart';
 
 class WatchCardGrid extends ConsumerWidget {
@@ -34,7 +34,6 @@ class WatchCardGrid extends ConsumerWidget {
         AppColors.textPrimaryLight;
     final mutedColor =
         AppColors.textSecondaryLight;
-    final logo = WatchBrandAssets.logoPath(watch.brand);
     final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
     return MarketplaceProductCardShell(
@@ -48,7 +47,7 @@ class WatchCardGrid extends ConsumerWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: _WatchCardImage(watch: watch, logo: logo),
+                    child: _WatchCardImage(watch: watch),
                   ),
                   Positioned(
                     top: AppSpacing.s4,
@@ -188,7 +187,6 @@ class WatchCardList extends ConsumerWidget {
         AppColors.textPrimaryLight;
     final secondaryColor =
         AppColors.textSecondaryLight;
-    final logo = WatchBrandAssets.logoPath(watch.brand);
     final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
     return MarketplaceProductCardShell(
@@ -203,7 +201,7 @@ class WatchCardList extends ConsumerWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: _WatchCardImage(watch: watch, logo: logo),
+                    child: _WatchCardImage(watch: watch),
                   ),
                   Positioned(
                     bottom: AppSpacing.s8,
@@ -311,10 +309,9 @@ class WatchCardList extends ConsumerWidget {
 }
 
 class _WatchCardImage extends StatelessWidget {
-  const _WatchCardImage({required this.watch, this.logo});
+  const _WatchCardImage({required this.watch});
 
   final Watch watch;
-  final String? logo;
 
   @override
   Widget build(BuildContext context) {
@@ -324,35 +321,9 @@ class _WatchCardImage extends StatelessWidget {
         url: network,
         fit: BoxFit.cover,
         memCacheWidth: 480,
-        error: _brandFallback(),
+        error: const CatalogMissingImage(),
       );
     }
-    return _brandFallback();
-  }
-
-  Widget _brandFallback() {
-    return ColoredBox(
-      color: AppColors.sandSurface,
-      child: Center(
-        child: logo != null
-            ? Padding(
-                padding: const EdgeInsets.all(AppSpacing.s16),
-                child: Image.asset(
-                  logo!,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.watch,
-                    size: 40,
-                    color: AppColors.bronze,
-                  ),
-                ),
-              )
-            : const Icon(
-                Icons.watch,
-                size: 40,
-                color: AppColors.bronze,
-              ),
-      ),
-    );
+    return const CatalogMissingImage();
   }
 }

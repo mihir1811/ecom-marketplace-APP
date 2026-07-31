@@ -35,12 +35,10 @@ ProductDetail jewelryProductDetail(Jewelry j) {
     media: ProductMedia(
       images: [
         if (j.displayImageUrl != null) ProductImage.network(j.displayImageUrl!),
-        if (j.displayImageUrl == null && j.imageAsset != null)
-          ProductImage.asset(j.imageAsset!),
       ],
-      imageSlots: (j.displayImageUrl != null || j.imageAsset != null) ? 1 : 0,
+      imageSlots: j.displayImageUrl != null ? 1 : 0,
       certificateLabel: null,
-      shapeKey: j.stoneShape,
+      shapeKey: null,
       fallbackIcon: Icons.workspace_premium_outlined,
       fallbackTint: AppSwatches.jewelryMetal(j.metalColor),
       hasVideo: false,

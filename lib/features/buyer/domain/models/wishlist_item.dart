@@ -62,7 +62,6 @@ class WishlistItem {
       subtitle: '${j.category} · ${j.metalType}',
       priceLabel: AppCurrency.format(formatInrPrice(j.price)),
       imageUrl: j.displayImageUrl,
-      imageAsset: j.imageAsset,
     );
   }
 

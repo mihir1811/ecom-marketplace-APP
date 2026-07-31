@@ -27,6 +27,7 @@ class BullionsListNotifier extends PaginatedAsyncNotifier<Bullion> {
   @override
   Iterable<ProviderListenable<Object?>> get reloadTriggers => [
         bullionsFilterProvider,
+        bullionsSortProvider,
       ];
 
   @override
@@ -42,11 +43,13 @@ class BullionsListNotifier extends PaginatedAsyncNotifier<Bullion> {
   Future<Result<PaginatedPage<Bullion>, Failure>> loadPage(int page) async {
     _cancelToken ??= CancelToken();
     final filter = ref.read(bullionsFilterProvider);
+    final sort = ref.read(bullionsSortProvider);
     final repo = ref.read(bullionsRepositoryProvider);
     final result = await repo.searchBullions(
       filters: filter,
       page: page,
       pageSize: BullionPageSize.defaultSize,
+      sort: sort,
       cancelToken: _cancelToken,
     );
     return switch (result) {

@@ -3,17 +3,18 @@ import 'dart:convert';
 import '../../domain/models/bullions_filter_state.dart';
 import '../../domain/repositories/bullions_repository.dart';
 
-/// Builds `GET /bullion/all` query params from UI filter state.
+/// Builds `GET /bullion/all` query params from UI filter/sort state.
 abstract final class BullionListQueryMapper {
   static Map<String, dynamic> toQuery({
     required BullionsFilterState filters,
     required int page,
     int pageSize = BullionPageSize.defaultSize,
+    BullionsSortOption sort = BullionsSortOption.featured,
   }) {
     final query = <String, dynamic>{
       'page': page < 1 ? 1 : page,
       'limit': pageSize < 1 ? BullionPageSize.defaultSize : pageSize,
-      'sort': '-createdAt',
+      'sort': _sortField(sort),
     };
 
     final search = filters.searchQuery.trim();
@@ -28,6 +29,19 @@ abstract final class BullionListQueryMapper {
     }
 
     return query;
+  }
+
+  /// Maps UI sort to API `sort` (`-` prefix = DESC).
+  static String _sortField(BullionsSortOption sort) {
+    return switch (sort) {
+      BullionsSortOption.featured => '-createdAt',
+      BullionsSortOption.newest => '-createdAt',
+      BullionsSortOption.oldest => 'createdAt',
+      BullionsSortOption.priceLowToHigh => 'price',
+      BullionsSortOption.priceHighToLow => '-price',
+      BullionsSortOption.weightLowToHigh => 'metalWeight',
+      BullionsSortOption.weightHighToLow => '-metalWeight',
+    };
   }
 
   static Map<String, dynamic> _buildFilters(BullionsFilterState f) {

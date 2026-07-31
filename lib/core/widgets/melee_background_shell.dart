@@ -166,15 +166,14 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
       _fromColor = Color.lerp(_fromColor, _toColor, _colorT.value) ?? _toColor;
       _toColor = next;
       _colorController.forward(from: 0);
-      if (changedMode) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          setState(() {
-            _rippleOrigin = _resolveOrigin(_lastSize);
-          });
-          _rippleController.forward(from: 0);
+      // Ripple on Single/Melee and on Natural/Lab Grown family switches.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _rippleOrigin = _resolveOrigin(_lastSize);
         });
-      }
+        _rippleController.forward(from: 0);
+      });
     }
   }
 
