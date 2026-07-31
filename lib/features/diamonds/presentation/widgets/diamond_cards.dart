@@ -23,12 +23,24 @@ import 'diamond_list_card.dart';
 export 'diamond_list_card.dart' show DiamondCardList;
 
 Widget _diamondThumb(Diamond diamond, {double shapeSize = 48}) {
-  final url = diamond.imageUrl;
+  final url = diamond.imageUrl?.trim();
   if (url != null && url.isNotEmpty) {
-    return AppNetworkImage(
-      url: url,
-      fit: BoxFit.cover,
-      memCacheWidth: 400,
+    return SizedBox.expand(
+      child: AppNetworkImage(
+        url: url,
+        fit: BoxFit.cover,
+        memCacheWidth: 400,
+        error: ColoredBox(
+          color: AppColors.sandSurface,
+          child: Center(
+            child: renderShapeSvg(
+              diamond.shape,
+              size: shapeSize,
+              color: AppColors.bronze,
+            ),
+          ),
+        ),
+      ),
     );
   }
   return ColoredBox(

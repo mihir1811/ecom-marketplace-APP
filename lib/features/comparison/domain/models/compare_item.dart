@@ -78,7 +78,7 @@ class CompareItem {
       category: CompareCategory.gemstone,
       title: '${g.carat}ct ${g.type}',
       price: g.price,
-      imageUrl: g.imageUrl,
+      imageUrl: g.hasNetworkImage ? g.imageUrl : null,
       shape: g.shape,
       subtitle: g.origin,
       displayValues: {

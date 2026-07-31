@@ -9,7 +9,7 @@ abstract final class DiamondSearchRequestMapper {
   static const _defaultMaxPrice = 1000000.0;
   static const _defaultMinPpc = 0.0;
   static const _defaultMaxPpc = 200000.0;
-  static const _defaultMinCarat = 0.16;
+  static const _defaultMinCarat = 0.0;
   static const _defaultMaxCarat = 100.0;
   static const _defaultMinRatio = 0.5;
   static const _defaultMaxRatio = 5.0;
@@ -23,7 +23,7 @@ abstract final class DiamondSearchRequestMapper {
   static const _defaultMaxWidth = 100.0;
   static const _defaultMinHeight = 0.0;
   static const _defaultMaxHeight = 100.0;
-  static const _defaultMinCaratPerPcs = 0.16;
+  static const _defaultMinCaratPerPcs = 0.0;
   static const _defaultMaxCaratPerPcs = 100.0;
   static const _defaultMinPricePerPcs = 0.0;
   static const _defaultMaxPricePerPcs = 200000.0;
@@ -249,7 +249,7 @@ abstract final class DiamondSearchRequestMapper {
         _defaultMinCarat,
         _defaultMaxCarat,
       );
-      _putRange(
+      _putNarrowedRange(
         body,
         'table_min',
         'table_max',
@@ -258,7 +258,7 @@ abstract final class DiamondSearchRequestMapper {
         _defaultMinTable,
         _defaultMaxTable,
       );
-      _putRange(
+      _putNarrowedRange(
         body,
         'depth_min',
         'depth_max',
@@ -377,9 +377,9 @@ abstract final class DiamondSearchRequestMapper {
   }
 
   static List<String> _claritiesFromIndexRange(int minIndex, int maxIndex) {
-    // UI default is 0..10 (not the full 0..11 list), treat as "no filter".
-    if (minIndex <= 0 && maxIndex >= 10) return const [];
     final clarities = DiamondFilterState.clarities;
+    // Full clarity span (incl. I3) means "no filter".
+    if (minIndex <= 0 && maxIndex >= clarities.length - 1) return const [];
     final start = minIndex.clamp(0, clarities.length - 1);
     final end = maxIndex.clamp(0, clarities.length - 1);
     if (start > end) return const [];

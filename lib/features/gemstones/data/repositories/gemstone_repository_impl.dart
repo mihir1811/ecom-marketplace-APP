@@ -1,169 +1,129 @@
-import 'dart:math';
-
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
-import '../../domain/gemstone_assets.dart';
+import '../../../../core/network/api_endpoints.dart';
+import '../../../../core/network/dio_provider.dart';
 import '../../domain/models/gemstone.dart';
 import '../../domain/models/gemstone_filter_state.dart';
 import '../../domain/repositories/gemstone_repository.dart';
+import '../mappers/gemstone_mapper.dart';
+import '../mappers/gemstone_search_request_mapper.dart';
+import '../models/gemstone_dto.dart';
 
 final gemstoneRepositoryProvider = Provider<GemstoneRepository>(
-  (ref) => GemstoneRepositoryImpl(),
+  (ref) => GemstoneRepositoryImpl(ref.watch(dioProvider)),
 );
 
+/// Live gemstone listing / detail repository backed by `/gem-stone/*` APIs.
 class GemstoneRepositoryImpl implements GemstoneRepository {
-  List<Gemstone>? _cache;
+  GemstoneRepositoryImpl(this._dio);
 
-  static const _types = [
-    'Ruby',
-    'Sapphire',
-    'Emerald',
-    'Tanzanite',
-    'Amethyst',
-    'Aquamarine',
-    'Topaz',
-    'Garnet',
-    'Opal',
-    'Tourmaline',
-    'Peridot',
-    'Morganite',
-    'Citrine',
-    'Spinel',
-    'Jade',
-  ];
-
-  static const _origins = [
-    'Brazil',
-    'Madagascar',
-    'Colombia',
-    'Sri Lanka',
-    'Myanmar',
-    'Zambia',
-    'India',
-    'Tanzania',
-  ];
-
-  static const _shapes = [
-    'Oval',
-    'Emerald',
-    'Round',
-    'Cushion',
-    'Pear',
-    'Marquise',
-    'Princess',
-  ];
-
-  static const _colors = [
-    'Blue',
-    'Pink',
-    'Green',
-    'Red',
-    'Purple',
-    'Yellow',
-    'Orange',
-    'White',
-  ];
-
-  static const _clarities = ['Eye Clean', 'Slightly Included', 'Included'];
-  static const _treatments = ['None', 'Heated', 'Oiled', 'Irradiated'];
-  static const _labs = ['GIA', 'IGI', 'SSEF', 'Gübelin', 'AGL'];
-
-  List<Gemstone> _catalog() {
-    return _cache ??= _generate(count: 160, seed: 21);
-  }
-
-  List<Gemstone> _generate({required int count, required int seed}) {
-    final rng = Random(seed);
-    final list = <Gemstone>[];
-    for (var i = 0; i < count; i++) {
-      final type = _types[rng.nextInt(_types.length)];
-      final carat = 0.4 + rng.nextDouble() * 8.5;
-      final price = carat * (80 + rng.nextDouble() * 900) + rng.nextDouble() * 200;
-      final length = 4 + rng.nextDouble() * 12;
-      final width = 3 + rng.nextDouble() * 10;
-      final depth = 2 + rng.nextDouble() * 6;
-      final imagePath = gemstoneImagePath(type);
-
-      list.add(
-        Gemstone(
-          id: 'GS-${100001 + i}',
-          type: type,
-          carat: double.parse(carat.toStringAsFixed(2)),
-          price: double.parse(price.toStringAsFixed(2)),
-          origin: _origins[rng.nextInt(_origins.length)],
-          color: _colors[rng.nextInt(_colors.length)],
-          clarity: _clarities[rng.nextInt(_clarities.length)],
-          treatment: _treatments[rng.nextInt(_treatments.length)],
-          shape: _shapes[rng.nextInt(_shapes.length)],
-          hardness: double.parse(
-            (6.5 + rng.nextDouble() * 3).toStringAsFixed(1),
-          ),
-          lab: '${_labs[rng.nextInt(_labs.length)]}-${9000 + rng.nextInt(999)}',
-          dimensions:
-              '${length.toStringAsFixed(1)}*${width.toStringAsFixed(1)}*${depth.toStringAsFixed(1)}',
-          cut: rng.nextBool() ? null : 'Excellent',
-          certificate: rng.nextBool() ? null : 'CERT-${20000 + i}',
-          imageUrl: imagePath,
-          discount: rng.nextDouble() > 0.75
-              ? (5 + rng.nextInt(25)).toDouble()
-              : null,
-        ),
-      );
-    }
-    return list;
-  }
-
-  bool _matches(Gemstone g, GemstoneFilterState f) {
-    if (f.selectedGemstoneTypes.isNotEmpty &&
-        !f.selectedGemstoneTypes.contains(g.type)) {
-      return false;
-    }
-    if (f.selectedShapes.isNotEmpty && !f.selectedShapes.contains(g.shape)) {
-      return false;
-    }
-    if (g.carat < f.minTotalCarat || g.carat > f.maxTotalCarat) return false;
-    if (g.price < f.minPricePerPiece || g.price > f.maxPricePerPiece) {
-      return false;
-    }
-    if (f.selectedColors.isNotEmpty && !f.selectedColors.contains(g.color)) {
-      return false;
-    }
-    return true;
-  }
+  final Dio _dio;
 
   @override
   Future<Result<GemstoneListResponse, Failure>> getGemstones({
     required GemstoneFilterState filters,
     required int page,
-    int pageSize = 20,
+    int pageSize = GemstonePageSize.defaultSize,
+    String? sortBy,
+    CancelToken? cancelToken,
   }) async {
     try {
-      await Future<void>.delayed(const Duration(milliseconds: 280));
-      final filtered = _catalog().where((g) => _matches(g, filters)).toList();
-      final start = (page - 1) * pageSize;
-      if (start >= filtered.length) {
-        return Success(
-          GemstoneListResponse(
-            gemstones: const [],
-            totalCount: filtered.length,
-            hasMore: false,
-            page: page,
-          ),
-        );
+      final limit = pageSize < 1 ? GemstonePageSize.defaultSize : pageSize;
+      final body = GemstoneSearchRequestMapper.toBody(
+        filters: filters,
+        page: page,
+        pageSize: limit,
+        sortBy: sortBy,
+      );
+
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiEndpoints.gemStoneSearch,
+        data: body,
+        cancelToken: cancelToken,
+      );
+
+      final root = response.data ?? const <String, dynamic>{};
+      final dataNode = root['data'];
+      final payload = dataNode is Map<String, dynamic>
+          ? dataNode
+          : const <String, dynamic>{};
+      final itemsJson = payload['data'];
+      final metaJson = payload['meta'];
+      final meta =
+          metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+
+      final list = itemsJson is List ? itemsJson : const [];
+      final gemstones = <Gemstone>[];
+      for (final item in list) {
+        if (item is! Map<String, dynamic>) continue;
+        final dto = GemstoneDto.fromJson(item);
+        if (dto.id.isEmpty) continue;
+        gemstones.add(GemstoneMapper.toDomain(dto));
       }
-      final end = (start + pageSize).clamp(0, filtered.length);
-      return Success(
+
+      final total = _asInt(meta['total']) ?? gemstones.length;
+      final currentPage = _asInt(meta['currentPage']) ?? page;
+      final lastPage = _asInt(meta['lastPage']);
+      // Prefer backend cursor: meta.next is null on the last page.
+      final hasMore = meta.containsKey('next')
+          ? meta['next'] != null
+          : (lastPage != null
+              ? currentPage < lastPage
+              : gemstones.length >= limit);
+
+      return Result.success(
         GemstoneListResponse(
-          gemstones: filtered.sublist(start, end),
-          totalCount: filtered.length,
-          hasMore: end < filtered.length,
-          page: page,
+          gemstones: gemstones,
+          totalCount: total,
+          hasMore: hasMore,
+          page: currentPage,
         ),
       );
+    } on DioException catch (e) {
+      return Result.failure(NetworkFailure.fromDioException(e));
     } catch (e) {
-      return ResultFailure(UnknownFailure(e.toString()));
+      return Result.failure(UnknownFailure(e.toString()));
     }
+  }
+
+  @override
+  Future<Result<Gemstone, Failure>> getGemstoneById({
+    required String id,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiEndpoints.gemStoneById(id),
+        cancelToken: cancelToken,
+      );
+      final root = response.data ?? const <String, dynamic>{};
+      final data = root['data'];
+      if (data is! Map<String, dynamic>) {
+        return Result.failure(
+          const NetworkFailure('The requested gemstone was not found.'),
+        );
+      }
+      final dto = GemstoneDto.fromJson(data);
+      if (dto.id.isEmpty) {
+        return Result.failure(
+          const NetworkFailure('The requested gemstone was not found.'),
+        );
+      }
+      return Result.success(GemstoneMapper.toDomain(dto));
+    } on DioException catch (e) {
+      return Result.failure(NetworkFailure.fromDioException(e));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
+
+  static int? _asInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 }

@@ -262,7 +262,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
               onTotalPriceChanged: notifier.updatePriceRange,
               totalCaratMin: state.minCarat,
               totalCaratMax: state.maxCarat,
-              totalCaratLimits: (0.16, 100.00),
+              totalCaratLimits: (0.0, 100.00),
               onTotalCaratChanged: notifier.updateCaratRange,
               caratQuickRanges: DiamondFilterState.caratQuickRanges,
               selectedCaratQuickRanges: state.selectedCaratQuickRanges,

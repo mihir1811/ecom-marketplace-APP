@@ -48,12 +48,12 @@ class DiamondFilterChips extends ConsumerWidget {
       );
     }
 
-    if (filters.minCarat > 0.16 || filters.maxCarat < 100.0) {
+    if (filters.minCarat > 0.0 || filters.maxCarat < 100.0) {
       final label = '${filters.minCarat}-${filters.maxCarat}ct';
       chips.add(
         _FilterChipData(
           label: label,
-          onRemove: () => notifier.updateCaratRange(0.16, 100.0),
+          onRemove: () => notifier.updateCaratRange(0.0, 100.0),
         ),
       );
     }
@@ -84,13 +84,17 @@ class DiamondFilterChips extends ConsumerWidget {
       );
     }
 
-    if (filters.minClarityIndex > 0 || filters.maxClarityIndex < 10) {
+    if (filters.minClarityIndex > 0 ||
+        filters.maxClarityIndex < DiamondFilterState.clarities.length - 1) {
       final from = DiamondFilterState.clarities[filters.minClarityIndex];
       final to = DiamondFilterState.clarities[filters.maxClarityIndex];
       chips.add(
         _FilterChipData(
           label: '$from-$to',
-          onRemove: () => notifier.updateClarityRange(0, 10),
+          onRemove: () => notifier.updateClarityRange(
+            0,
+            DiamondFilterState.clarities.length - 1,
+          ),
         ),
       );
     }

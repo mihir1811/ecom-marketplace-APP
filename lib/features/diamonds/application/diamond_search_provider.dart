@@ -210,7 +210,7 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
       minC = DiamondFilterState.caratQuickRanges[current.first]['min']!;
       maxC = DiamondFilterState.caratQuickRanges[current.last]['max']!;
     } else {
-      minC = 0.16;
+      minC = 0.0;
       maxC = 100.00;
     }
 

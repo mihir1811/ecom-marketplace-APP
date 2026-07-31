@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../application/wishlist_provider.dart';
 import '../../domain/models/wishlist_item.dart';
 import '../widgets/buyer_layout.dart';
@@ -127,10 +128,10 @@ class _WishlistTile extends StatelessWidget {
                     ),
                   )
                 : item.imageUrl != null
-                    ? Image.network(
-                        item.imageUrl!,
+                    ? AppNetworkImage(
+                        url: item.imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
+                        error: Icon(
                           _icon,
                           color: AppColors.bronze,
                         ),

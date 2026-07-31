@@ -9,22 +9,32 @@ import '../models/product_detail.dart';
 
 /// Maps a gemstone listing onto the universal detail shape.
 ProductDetail gemstoneProductDetail(Gemstone g) {
-  final perCarat = g.carat > 0 ? g.price / g.carat : null;
+  final perCarat = g.pricePerCarat ?? (g.carat > 0 ? g.price / g.carat : null);
   final carat = g.carat.toStringAsFixed(2);
   final assetPath = gemstoneImagePath(g.type);
+  final authority = _optional(g.lab, uppercase: true);
+  final certificateUrl = _optional(g.certificateUrl);
+  final certificateLabel = certificateUrl == null
+      ? null
+      : (authority == null ? 'Certificate' : '$authority certificate');
 
   return ProductDetail(
     id: g.id,
     segment: ProductSegment.gemstone,
     title: '$carat ct ${g.type}',
-    subtitle: '${g.origin} origin · ${g.color}',
+    subtitle: [
+      if (g.origin.isNotEmpty) '${g.origin} origin',
+      if (g.color.isNotEmpty) g.color,
+    ].join(' · '),
     referenceLabel: 'Stock ID',
-    referenceValue: g.id,
+    referenceValue: g.stockNumber ?? g.id,
     shapeKey: g.shape,
     badges: [
       const ProductBadge('Gemstone', tone: ProductBadgeTone.accent),
-      ProductBadge('${g.lab} certified', tone: ProductBadgeTone.positive),
-      ProductBadge(g.treatment),
+      if (authority != null)
+        ProductBadge('$authority certified', tone: ProductBadgeTone.positive),
+      if (g.qualityGrade != null) ProductBadge(g.qualityGrade!),
+      if (g.treatment.isNotEmpty) ProductBadge(g.treatment),
       if (g.discount != null && g.discount! > 0)
         ProductBadge(
           '${g.discount!.round()}% below list',
@@ -33,17 +43,24 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
     ],
     media: ProductMedia(
       images: [
-        if (g.imageUrl != null)
-          ProductImage.network(g.imageUrl!)
+        if (g.hasNetworkImage)
+          for (final url
+              in (g.imageUrls.isNotEmpty ? g.imageUrls : [g.imageUrl!]))
+            ProductImage.network(url)
         else if (assetPath != null)
           ProductImage.asset(assetPath),
       ],
-      imageSlots: (g.imageUrl != null || assetPath != null) ? 1 : 0,
-      certificateLabel: null,
+      imageSlots: g.hasNetworkImage
+          ? (g.imageUrls.isNotEmpty ? g.imageUrls.length : 1)
+          : (assetPath != null ? 1 : 0),
+      certificateLabel: certificateLabel,
+      certificateUrl: certificateUrl,
       shapeKey: g.shape,
       fallbackIcon: Icons.auto_awesome,
       fallbackTint: gemstoneHue(g.type),
-      hasVideo: false,
+      hasVideo: g.videoUrl != null,
+      videoLabel: g.videoUrl != null ? 'Video' : null,
+      videoUrl: g.videoUrl,
     ),
     price: ProductPrice(
       currencySymbol: AppCurrency.symbol,
@@ -57,40 +74,87 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
     ),
     highlights: [
       ProductHighlight('Carat', carat),
-      ProductHighlight('Origin', g.origin),
-      ProductHighlight('Color', g.color),
-      ProductHighlight('Treatment', g.treatment),
+      ProductHighlight('Origin', g.origin.isEmpty ? 'N/A' : g.origin),
+      ProductHighlight('Color', g.color.isEmpty ? 'N/A' : g.color),
+      ProductHighlight(
+        'Treatment',
+        g.treatment.isEmpty ? 'N/A' : g.treatment,
+      ),
     ],
     certification: ProductCertification(
-      authority: g.lab,
+      authority: authority ?? 'Not certified',
       referenceLabel: 'Certificate',
-      referenceValue: g.certificate ?? g.id,
+      referenceValue: _optional(g.certificate) ?? g.stockNumber ?? g.id,
+      certificateUrl: certificateUrl,
+      certificateLabel: certificateLabel,
     ),
+    availability: _availability(g),
     specSections: [
       specSection(ProductSpecGroup.essentials, {
         'Gemstone type': g.type,
         'Carat weight': '$carat ct',
-        'Shape': g.shape,
-        'Cut': g.cut,
-        'Price per carat':
-            perCarat == null ? null : AppCurrency.format(formatGroupedWhole(perCarat)),
+        'Shape': _optional(g.shape),
+        'Cut': _optional(g.cut),
+        'Price per carat': perCarat == null
+            ? null
+            : AppCurrency.format(formatGroupedWhole(perCarat)),
       }),
       specSection(ProductSpecGroup.quality, {
-        'Color': g.color,
-        'Clarity': g.clarity,
-        'Treatment': g.treatment,
-        'Hardness': '${formatDecimal(g.hardness)} Mohs',
+        'Color': _optional(g.color),
+        'Clarity': _optional(g.clarity),
+        'Quality grade': _optional(g.qualityGrade),
+        'Treatment': _optional(g.treatment),
+        'Hardness': g.hardness > 0
+            ? '${formatDecimal(g.hardness)} Mohs'
+            : null,
       }),
       specSection(ProductSpecGroup.measurements, {
-        'Dimensions': g.dimensions,
+        'Dimensions': _optional(g.dimensions),
       }),
       specSection(ProductSpecGroup.provenance, {
-        'Origin': g.origin,
-        'Grading lab': g.lab,
-        'Certificate': g.certificate,
+        'Origin': _optional(g.origin),
+        'Grading lab': authority,
+        'Certificate no.': _optional(g.certificate),
+        'Stock number': _optional(g.stockNumber),
       }),
     ],
     note: 'Treatment disclosure follows the laboratory report. Untreated '
         'stones of the same grade carry a premium.',
   );
+}
+
+ProductAvailability _availability(Gemstone g) {
+  if (g.isSold) {
+    return const ProductAvailability(
+      label: 'Sold',
+      tone: ProductStockTone.unavailable,
+    );
+  }
+  return switch ((g.availability ?? '').toLowerCase()) {
+    'hold' => const ProductAvailability(
+        label: 'On hold',
+        tone: ProductStockTone.limited,
+      ),
+    'memo' => const ProductAvailability(
+        label: 'On memo',
+        tone: ProductStockTone.limited,
+      ),
+    'yes' => const ProductAvailability(
+        label: 'Available',
+        tone: ProductStockTone.available,
+      ),
+    _ => const ProductAvailability(
+        label: 'Availability not listed',
+        tone: ProductStockTone.limited,
+      ),
+  };
+}
+
+String? _optional(String? value, {bool uppercase = false}) {
+  if (value == null) return null;
+  final t = value.trim();
+  if (t.isEmpty || t == '-' || t == '—' || t == '–' || t.toLowerCase() == 'n/a') {
+    return null;
+  }
+  return uppercase ? t.toUpperCase() : t;
 }

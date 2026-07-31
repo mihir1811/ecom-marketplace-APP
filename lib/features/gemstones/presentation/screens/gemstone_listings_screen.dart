@@ -12,7 +12,6 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
-import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/gemstone_list_provider.dart';
 import '../widgets/gemstone_card.dart';
 
@@ -127,59 +126,17 @@ class _GemstoneListingsScreenState
                     onRefresh: () =>
                         ref.read(gemstoneListProvider.notifier).refresh(),
                     child: viewMode == GemstoneViewMode.grid
-                        ? GridView.builder(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.all(AppSpacing.s16),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: AppSpacing.s12,
-                              mainAxisSpacing: AppSpacing.s12,
-                              childAspectRatio: 0.72,
-                            ),
-                            itemCount: state.gemstones.length +
-                                (state.isLoadingMore ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (index >= state.gemstones.length) {
-                                return const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                );
-                              }
-                              final g = state.gemstones[index];
-                              return GemstoneCardGrid(
-                                key: ValueKey(g.id),
-                                gemstone: g,
-                                onTap: () => openGemstoneDetail(context, g),
-                              );
-                            },
+                        ? GemstoneGridView(
+                            key: const ValueKey('gemstone-grid'),
+                            gemstones: state.gemstones,
+                            scrollController: _scrollController,
+                            isLoadingMore: state.isLoadingMore,
                           )
-                        : ListView.separated(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.all(AppSpacing.s16),
-                            itemCount: state.gemstones.length +
-                                (state.isLoadingMore ? 1 : 0),
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: AppSpacing.s12),
-                            itemBuilder: (context, index) {
-                              if (index >= state.gemstones.length) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(AppSpacing.s16),
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                );
-                              }
-                              final g = state.gemstones[index];
-                              return GemstoneCardList(
-                                key: ValueKey(g.id),
-                                gemstone: g,
-                                onTap: () => openGemstoneDetail(context, g),
-                              );
-                            },
+                        : GemstoneListView(
+                            key: const ValueKey('gemstone-list'),
+                            gemstones: state.gemstones,
+                            scrollController: _scrollController,
+                            isLoadingMore: state.isLoadingMore,
                           ),
                   );
                 },

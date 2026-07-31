@@ -5,6 +5,11 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
 /// Shared network image with shimmer-style placeholder and graceful fallback.
+///
+/// On web, loads via an HTML `<img>` element ([WebHtmlElementStrategy.prefer])
+/// so third-party hosts without `Access-Control-Allow-Origin` (S3, Nivoda CDN,
+/// 360view stills, etc.) still render. CanvasKit/XHR fetches require CORS;
+/// `<img>` display does not.
 class AppNetworkImage extends StatelessWidget {
   const AppNetworkImage({
     required this.url,
@@ -14,6 +19,7 @@ class AppNetworkImage extends StatelessWidget {
     this.height,
     this.borderRadius,
     this.memCacheWidth,
+    this.error,
   });
 
   final String url;
@@ -22,6 +28,9 @@ class AppNetworkImage extends StatelessWidget {
   final double? height;
   final BorderRadius? borderRadius;
   final int? memCacheWidth;
+
+  /// Shown on load failure (bad URL, 4xx/5xx, etc.).
+  final Widget? error;
 
   bool get _supportsNetworkLoading {
     final uri = Uri.tryParse(url);
@@ -38,17 +47,61 @@ class AppNetworkImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!_supportsNetworkLoading) {
-      return _fallback();
+      return error ?? _fallback();
     }
 
-    final image = CachedNetworkImage(
+    final image = kIsWeb ? _webImage() : _nativeImage();
+
+    if (borderRadius == null) return image;
+    return ClipRRect(borderRadius: borderRadius!, child: image);
+  }
+
+  /// HTML `<img>` path — avoids browser CORS blocks on cross-origin CDNs.
+  Widget _webImage() {
+    // HTML images can report unbounded intrinsics; expand into parent bounds.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = width ??
+            (constraints.maxWidth.isFinite ? constraints.maxWidth : null);
+        final h = height ??
+            (constraints.maxHeight.isFinite ? constraints.maxHeight : null);
+        final image = Image.network(
+          url,
+          fit: fit,
+          width: w,
+          height: h,
+          webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
+          gaplessPlayback: true,
+          filterQuality: FilterQuality.medium,
+          loadingBuilder: (context, child, progress) {
+            if (progress == null) return child;
+            return _placeholder();
+          },
+          errorBuilder: (_, __, ___) => error ?? _fallback(),
+        );
+        if (w != null && h != null) return image;
+        if (constraints.hasBoundedWidth && constraints.hasBoundedHeight) {
+          return SizedBox.expand(child: image);
+        }
+        return image;
+      },
+    );
+  }
+
+  Widget _nativeImage() {
+    return CachedNetworkImage(
       imageUrl: url,
       fit: fit,
       width: width,
       height: height,
       memCacheWidth: memCacheWidth,
       fadeInDuration: const Duration(milliseconds: 280),
-      placeholder: (_, __) => const ColoredBox(
+      placeholder: (_, __) => _placeholder(),
+      errorWidget: (_, __, ___) => error ?? _fallback(),
+    );
+  }
+
+  Widget _placeholder() => const ColoredBox(
         color: AppColors.sandSurface,
         child: Center(
           child: SizedBox(
@@ -60,13 +113,7 @@ class AppNetworkImage extends StatelessWidget {
             ),
           ),
         ),
-      ),
-      errorWidget: (_, __, ___) => _fallback(),
-    );
-
-    if (borderRadius == null) return image;
-    return ClipRRect(borderRadius: borderRadius!, child: image);
-  }
+      );
 
   Widget _fallback() => const ColoredBox(
         color: AppColors.sandSurface,

@@ -28,7 +28,7 @@ class MeleeRangeFilters extends StatefulWidget {
     required this.totalCaratMin,
     required this.totalCaratMax,
     required this.onTotalCaratChanged,
-    this.caratLimits = const (0.16, 100.0),
+    this.caratLimits = const (0.0, 100.0),
     this.pricePerUnitLimits = const (0.0, 200000.0),
     this.pcsLimits = const (1.0, 1000000.0),
     this.totalPriceLimits = const (0.0, 1000000.0),

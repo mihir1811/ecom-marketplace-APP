@@ -263,11 +263,13 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                         ref.read(diamondListProvider.notifier).refresh(),
                     child: viewMode == ViewMode.grid
                         ? DiamondGridView(
+                            key: const ValueKey('diamond-grid'),
                             diamonds: state.diamonds,
                             scrollController: _scrollController,
                             isLoadingMore: state.isLoadingMore,
                           )
                         : DiamondListView(
+                            key: const ValueKey('diamond-list'),
                             diamonds: state.diamonds,
                             scrollController: _scrollController,
                             isLoadingMore: state.isLoadingMore,

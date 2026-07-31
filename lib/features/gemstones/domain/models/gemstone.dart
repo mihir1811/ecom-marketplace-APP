@@ -15,8 +15,23 @@ class Gemstone {
     required this.dimensions,
     this.cut,
     this.certificate,
+    this.certificateUrl,
     this.imageUrl,
     this.discount,
+    this.stockNumber,
+    this.subType,
+    this.qualityGrade,
+    this.pricePerCarat,
+    this.pricePerPcs,
+    this.caratPerPcs,
+    this.quantity,
+    this.colorIntensity,
+    this.imageUrls = const [],
+    this.isSeparable = false,
+    this.isOnAuction = false,
+    this.isSold = false,
+    this.availability,
+    this.videoUrl,
   });
 
   final String id;
@@ -33,8 +48,31 @@ class Gemstone {
   final String dimensions;
   final String? cut;
   final String? certificate;
+
+  /// Viewable lab report URL when API `certification` is an http(s) link.
+  final String? certificateUrl;
   final String? imageUrl;
   final double? discount;
+  final String? stockNumber;
+  final String? subType;
+  final String? qualityGrade;
+  final double? pricePerCarat;
+  final double? pricePerPcs;
+  final double? caratPerPcs;
+  final int? quantity;
+  final String? colorIntensity;
+  final List<String> imageUrls;
+  final bool isSeparable;
+  final bool isOnAuction;
+  final bool isSold;
+  final String? availability;
+  final String? videoUrl;
+
+  /// True when [imageUrl] is a remote http(s) URL.
+  bool get hasNetworkImage {
+    final url = imageUrl?.trim() ?? '';
+    return url.startsWith('http://') || url.startsWith('https://');
+  }
 }
 
 class GemstoneListResponse {

@@ -3,11 +3,17 @@ abstract final class ViewerUrlResolver {
   static const String s3Base =
       'https://diamondshow.s3.ap-south-1.amazonaws.com';
   static const String workshopViewBase = 'https://workshop.360view.link/view';
+  static const String stillCdnBase =
+      'https://data1.360view.link/data/1/imaged';
 
   /// Returns a sanitized absolute URL, or `null` when the input is unusable.
   static String? resolve(String? raw, {bool httpsOnly = true}) {
     final trimmed = raw?.trim();
     if (trimmed == null || trimmed.isEmpty) return null;
+
+    // CDN still frames belong to the interactive viewer, not as a viewer page.
+    final fromStill = viewerUrlFromStillAsset(trimmed);
+    if (fromStill != null) return fromStill;
 
     final asUri = Uri.tryParse(trimmed);
     if (asUri != null && asUri.hasScheme) {
@@ -30,6 +36,66 @@ abstract final class ViewerUrlResolver {
     }
 
     return '$s3Base/$id';
+  }
+
+  /// True for 360view CDN still frames (listing thumbnails / gallery stills).
+  static bool isStillAssetUrl(String? url) {
+    final trimmed = url?.trim();
+    if (trimmed == null || trimmed.isEmpty) return false;
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null || uri.host.isEmpty) return false;
+    final host = uri.host.toLowerCase();
+    if (!host.endsWith('360view.link')) return false;
+    if (host == 'workshop.360view.link') return false;
+    final path = uri.path.toLowerCase();
+    return path.contains('/imaged/') || path.endsWith('/still.jpg');
+  }
+
+  /// Workshop viewer URL from a CDN still path.
+  static String? viewerUrlFromStillAsset(String? url) {
+    if (!isStillAssetUrl(url)) return null;
+    final uri = Uri.tryParse(url!.trim());
+    if (uri == null) return null;
+    final segments =
+        uri.pathSegments.where((s) => s.trim().isNotEmpty).toList();
+    final imagedIdx =
+        segments.indexWhere((s) => s.toLowerCase() == 'imaged');
+    if (imagedIdx >= 0 && imagedIdx + 1 < segments.length) {
+      final id = segments[imagedIdx + 1].trim();
+      if (id.isNotEmpty && !_looksLikeFileName(id)) {
+        return '$workshopViewBase/$id';
+      }
+    }
+    return null;
+  }
+
+  /// Listing/gallery still when API only returns `videoURL` (workshop view).
+  static String? stillUrlFromViewer(String? viewerUrl) {
+    final resolved = resolve(viewerUrl);
+    if (resolved == null) return null;
+    final uri = Uri.tryParse(resolved);
+    if (uri == null) return null;
+    final host = uri.host.toLowerCase();
+    if (host != 'workshop.360view.link') return null;
+    final segments =
+        uri.pathSegments.where((s) => s.trim().isNotEmpty).toList();
+    // /view/{id}
+    final viewIdx = segments.indexWhere((s) => s.toLowerCase() == 'view');
+    final id = viewIdx >= 0 && viewIdx + 1 < segments.length
+        ? segments[viewIdx + 1].trim()
+        : (segments.isNotEmpty ? segments.last.trim() : '');
+    if (id.isEmpty || _looksLikeFileName(id)) return null;
+    return '$stillCdnBase/$id/still.jpg';
+  }
+
+  static bool _looksLikeFileName(String segment) {
+    final lower = segment.toLowerCase();
+    return lower.contains('.') &&
+        (lower.endsWith('.jpg') ||
+            lower.endsWith('.jpeg') ||
+            lower.endsWith('.png') ||
+            lower.endsWith('.webp') ||
+            lower.endsWith('.gif'));
   }
 
   static bool _looksLike360ViewId(String id) {

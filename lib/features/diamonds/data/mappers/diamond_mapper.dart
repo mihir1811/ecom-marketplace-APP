@@ -1,10 +1,12 @@
+import '../../../diamond_viewer/utils/viewer_url_resolver.dart';
 import '../../domain/models/diamond.dart';
 import '../models/diamond_dto.dart';
 
 /// Maps API diamond DTOs into domain listing models.
 abstract final class DiamondMapper {
   static Diamond toDomain(DiamondDto dto, {required bool isLabGrown}) {
-    final images = _images(dto);
+    final videoUrl = ViewerUrlResolver.resolve(_clean(dto.videoURL));
+    final images = _images(dto, videoUrl: videoUrl);
     final firstImage = images.isEmpty ? null : images.first;
     final cert = _clean(dto.certificateCompanyName) ?? '';
     final growth = _clean(dto.growthType);
@@ -45,7 +47,7 @@ abstract final class DiamondMapper {
         fluorescence: fluorescence,
         fluorescenceColor: _clean(dto.fluorescenceColor),
         lab: cert.isEmpty ? null : cert,
-        hasVideo: _hasText(dto.videoURL),
+        hasVideo: videoUrl != null,
         hasImage: firstImage != null,
         discount: dto.discount,
         isLabGrown: labGrown,
@@ -85,7 +87,7 @@ abstract final class DiamondMapper {
         sieveLabel: sieve,
         isSeparable: _isTruthy(dto.isSeparable),
         available: _clean(dto.available),
-        videoUrl: _clean(dto.videoURL),
+        videoUrl: videoUrl,
       );
     }
 
@@ -106,7 +108,7 @@ abstract final class DiamondMapper {
       fluorescence: _clean(dto.fluorescenceIntensity),
       fluorescenceColor: _clean(dto.fluorescenceColor),
       lab: cert.isEmpty ? null : cert,
-      hasVideo: _hasText(dto.videoURL),
+      hasVideo: videoUrl != null,
       hasImage: firstImage != null,
       discount: dto.discount,
       isLabGrown: labGrown,
@@ -140,7 +142,7 @@ abstract final class DiamondMapper {
       isSold: dto.isSold ?? false,
       isMakeAnOfferAllowed: dto.isMakeAnOfferAllowed ?? false,
       available: _clean(dto.available),
-      videoUrl: _clean(dto.videoURL),
+      videoUrl: videoUrl,
     );
   }
 
@@ -155,8 +157,6 @@ abstract final class DiamondMapper {
     final lower = value.trim().toLowerCase();
     return lower == 'yes' || lower == 'true' || lower == '1';
   }
-
-  static bool _hasText(String? value) => _clean(value) != null;
 
   /// Maps API `certification` column to a viewable URL (http/https/www only).
   static String? _asHttpUrl(String? value) {
@@ -180,8 +180,11 @@ abstract final class DiamondMapper {
     return t;
   }
 
-  static List<String> _images(DiamondDto dto) {
+  /// Collects photo URLs from image1–6 (API often puts the 360 still in image2).
+  /// When only `videoURL` is present, derives the CDN still for listing thumbs.
+  static List<String> _images(DiamondDto dto, {String? videoUrl}) {
     final out = <String>[];
+    final seen = <String>{};
     for (final url in [
       dto.image1,
       dto.image2,
@@ -191,7 +194,13 @@ abstract final class DiamondMapper {
       dto.image6,
     ]) {
       final cleaned = _clean(url);
-      if (cleaned != null) out.add(cleaned);
+      if (cleaned == null) continue;
+      if (!seen.add(cleaned)) continue;
+      out.add(cleaned);
+    }
+    if (out.isEmpty && videoUrl != null) {
+      final still = ViewerUrlResolver.stillUrlFromViewer(videoUrl);
+      if (still != null) out.add(still);
     }
     return out;
   }

@@ -49,7 +49,7 @@ class WishlistItem {
       title: '${g.carat}ct ${g.type}',
       subtitle: '${g.origin} · ${g.color}',
       priceLabel: AppCurrency.format(formatCatalogPrice(g.price)),
-      imageUrl: g.imageUrl,
+      imageUrl: g.hasNetworkImage ? g.imageUrl : null,
     );
   }
 
