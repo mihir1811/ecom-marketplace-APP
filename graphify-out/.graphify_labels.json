@@ -327,13 +327,11 @@
   "325": "compare_add_button.dart",
   "326": "seller_inquiry_mock_data.dart",
   "327": "home_category_tile.dart",
-  "328": "gemstone_sort_option.dart",
-  "329": "bool get",
-  "330": "seller_inquiry_mock_data.dart",
   "331": "../widgets/seller_layout.dart",
   "332": "SellerAnalyticsScreen",
   "333": "cart_item.dart",
   "334": "sellerProductsCatalogProvider",
   "335": "metal_spot_price.dart",
-  "336": "_MeleeBackgroundShellState"
+  "337": "filter_end_drawer_shell.dart",
+  "341": "api_config.dart"
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/catalog_content_sized_grid.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/billion.dart';
 import 'billion_card.dart';
@@ -17,39 +18,17 @@ class BullionsGridSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: AppSpacing.s12,
-          mainAxisSpacing: AppSpacing.s12,
-          childAspectRatio: 0.68,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            if (index >= bullions.length) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.s16),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              );
-            }
-            final bullion = bullions[index];
-            return BullionCardGrid(
-              key: ValueKey(bullion.id),
-              bullion: bullion,
-              onTap: () => openBullionDetail(context, bullion),
-            );
-          },
-          childCount: bullions.length + (isLoadingMore ? 1 : 0),
-        ),
-      ),
+    return CatalogContentSizedGridSliver(
+      itemCount: bullions.length,
+      isLoadingMore: isLoadingMore,
+      itemBuilder: (context, index) {
+        final bullion = bullions[index];
+        return BullionCardGrid(
+          key: ValueKey(bullion.id),
+          bullion: bullion,
+          onTap: () => openBullionDetail(context, bullion),
+        );
+      },
     );
   }
 }

@@ -32,12 +32,11 @@ class DiamondListingsScreen extends ConsumerStatefulWidget {
 class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
   final ScrollController _scrollController = ScrollController();
 
-  /// Grid layout mirrors [DiamondGridView] (2 columns, aspect 0.68).
+  /// Grid is 2 columns of content-sized cards (see [DiamondGridView]).
   static const int _gridCrossAxisCount = 2;
-  static const double _gridChildAspectRatio = 0.68;
 
   /// Approximate list-card stride (card + bottom gap) for index ↔ offset.
-  static const double _listItemStride = 176;
+  static const double _listItemStride = 200;
 
   @override
   void initState() {
@@ -73,15 +72,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
   }
 
   double _gridRowStride(double viewportWidth) {
-    const horizontalPadding = AppSpacing.s16 * 2;
-    const crossSpacing = AppSpacing.s12;
-    const mainSpacing = AppSpacing.s12;
-    final usableWidth = viewportWidth -
-        horizontalPadding -
-        crossSpacing * (_gridCrossAxisCount - 1);
-    final itemWidth = usableWidth / _gridCrossAxisCount;
-    final itemHeight = itemWidth / _gridChildAspectRatio;
-    return itemHeight + mainSpacing;
+    return diamondGridRowStride(context, viewportWidth);
   }
 
   int _estimateVisibleIndex(ViewMode mode) {

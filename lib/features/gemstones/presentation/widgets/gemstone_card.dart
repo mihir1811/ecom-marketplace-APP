@@ -9,6 +9,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
+import '../../../../core/widgets/catalog_content_sized_grid.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
@@ -40,145 +41,148 @@ class GemstoneCardGrid extends ConsumerWidget {
 
     return MarketplaceProductCardShell(
       onTap: onTap,
-      child: SizedBox.expand(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AspectRatio(
-              aspectRatio: 1.05,
-              child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AspectRatio(
+            aspectRatio: 1.05,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: _GemstoneThumb(
+                    gemstone: gemstone,
+                    padding: AppSpacing.s24,
+                  ),
+                ),
+                Positioned(
+                  top: AppSpacing.s4,
+                  right: AppSpacing.s4,
+                  child: WishlistToggleButton(
+                    item: WishlistItem.fromGemstone(gemstone),
+                    size: 18,
+                  ),
+                ),
+                if (gemstone.discount != null && gemstone.discount! > 0)
+                  Positioned(
+                    top: AppSpacing.s8,
+                    left: AppSpacing.s8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.s8,
+                        vertical: AppSpacing.s4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.terracotta,
+                        borderRadius: BorderRadius.circular(AppSpacing.r4),
+                      ),
+                      child: Text(
+                        '-${gemstone.discount!.round()}%',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.warmWhite,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ),
+                Positioned(
+                  bottom: AppSpacing.s8,
+                  right: AppSpacing.s8,
+                  child: CompareAddButton(
+                    isSelected: inCompare,
+                    onPressed: () => handleCompareToggle(
+                      context,
+                      ref,
+                      CompareItem.fromGemstone(gemstone),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s12,
+                AppSpacing.s12,
+                AppSpacing.s12,
+                AppSpacing.s12,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Positioned.fill(
-                    child: _GemstoneThumb(
-                      gemstone: gemstone,
-                      padding: AppSpacing.s24,
+                  Text(
+                    title,
+                    style: AppTypography.label.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      height: 1.3,
                     ),
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  Positioned(
-                    top: AppSpacing.s4,
-                    right: AppSpacing.s4,
-                    child: WishlistToggleButton(
-                      item: WishlistItem.fromGemstone(gemstone),
-                      size: 18,
+                  if (gradesLine != null) ...[
+                    const SizedBox(height: AppSpacing.cardLineGap),
+                    Text(
+                      gradesLine,
+                      style: AppTypography.caption.copyWith(
+                        color: mutedColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  if (gemstone.discount != null && gemstone.discount! > 0)
-                    Positioned(
-                      top: AppSpacing.s8,
-                      left: AppSpacing.s8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s8,
-                          vertical: AppSpacing.s4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.terracotta,
-                          borderRadius: BorderRadius.circular(AppSpacing.r4),
-                        ),
+                  ],
+                  if (metaLine != null) ...[
+                    const SizedBox(height: AppSpacing.cardLineGap),
+                    Text(
+                      metaLine,
+                      style: AppTypography.caption.copyWith(
+                        color: mutedColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const Spacer(),
+                  const SizedBox(height: AppSpacing.cardPriceGap),
+                  Row(
+                    children: [
+                      Expanded(
                         child: Text(
-                          '-${gemstone.discount!.round()}%',
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.warmWhite,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
+                          AppCurrency.format(
+                            formatCatalogPrice(gemstone.price),
                           ),
+                          style: GoogleFonts.manrope(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ).copyWith(color: textColor),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                  Positioned(
-                    bottom: AppSpacing.s8,
-                    right: AppSpacing.s8,
-                    child: CompareAddButton(
-                      isSelected: inCompare,
-                      onPressed: () => handleCompareToggle(
-                        context,
-                        ref,
-                        CompareItem.fromGemstone(gemstone),
+                      const Icon(
+                        Icons.arrow_forward,
+                        size: 16,
+                        color: AppColors.bronze,
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s12,
-                  AppSpacing.s12,
-                  AppSpacing.s12,
-                  AppSpacing.s12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 2),
-                    Text(
-                      title,
-                      style: AppTypography.label.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                    ),
-                    if (gradesLine != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        gradesLine,
-                        style: AppTypography.caption.copyWith(
-                          color: mutedColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 2,
-                        softWrap: true,
-                      ),
-                    ],
-                    if (metaLine != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        metaLine,
-                        style: AppTypography.caption.copyWith(
-                          color: mutedColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 2,
-                        softWrap: true,
-                      ),
-                    ],
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppCurrency.format(
-                              formatCatalogPrice(gemstone.price),
-                            ),
-                            style: GoogleFonts.manrope(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              height: 1.2,
-                            ).copyWith(color: textColor),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward,
-                          size: 16,
-                          color: AppColors.bronze,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -206,105 +210,118 @@ class GemstoneCardList extends ConsumerWidget {
 
     return MarketplaceProductCardShell(
       onTap: onTap,
-      child: SizedBox(
-        height: 140,
+      child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(
               width: 140,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: _GemstoneThumb(
-                      gemstone: gemstone,
-                      padding: AppSpacing.s16,
-                      cover: true,
-                    ),
-                  ),
-                  Positioned(
-                    bottom: AppSpacing.s8,
-                    left: AppSpacing.s8,
-                    child: WishlistToggleButton(
-                      item: WishlistItem.fromGemstone(gemstone),
-                      size: 18,
-                    ),
-                  ),
-                  Positioned(
-                    bottom: AppSpacing.s8,
-                    right: AppSpacing.s8,
-                    child: CompareAddButton(
-                      size: 32,
-                      isSelected: inCompare,
-                      onPressed: () => handleCompareToggle(
-                        context,
-                        ref,
-                        CompareItem.fromGemstone(gemstone),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 140),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Positioned.fill(
+                      child: _GemstoneThumb(
+                        gemstone: gemstone,
+                        padding: AppSpacing.s16,
+                        cover: true,
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      bottom: AppSpacing.s8,
+                      left: AppSpacing.s8,
+                      child: WishlistToggleButton(
+                        item: WishlistItem.fromGemstone(gemstone),
+                        size: 18,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: AppSpacing.s8,
+                      right: AppSpacing.s8,
+                      child: CompareAddButton(
+                        size: 32,
+                        isSelected: inCompare,
+                        onPressed: () => handleCompareToggle(
+                          context,
+                          ref,
+                          CompareItem.fromGemstone(gemstone),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.s16,
-                  AppSpacing.s12,
                   AppSpacing.s16,
-                  AppSpacing.s12,
+                  AppSpacing.s16,
+                  AppSpacing.s16,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const SizedBox(height: 2),
                     Text(
                       title,
                       style: AppTypography.label.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       softWrap: true,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.cardLineGap),
                     Text(
                       detail,
                       style: AppTypography.caption.copyWith(
                         color: secondaryColor,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
+                        height: 1.35,
                       ),
                       maxLines: 2,
                       softWrap: true,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     if (meta != null) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppSpacing.cardLineGap),
                       Text(
                         meta,
                         style: AppTypography.caption.copyWith(
                           color: secondaryColor,
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
+                          height: 1.35,
                         ),
                         maxLines: 2,
                         softWrap: true,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                    const Spacer(),
+                    const SizedBox(height: AppSpacing.cardPriceGap),
                     Row(
                       children: [
-                        Text(
-                          AppCurrency.format(
-                            formatCatalogPrice(gemstone.price),
+                        Expanded(
+                          child: Text(
+                            AppCurrency.format(
+                              formatCatalogPrice(gemstone.price),
+                            ),
+                            style: GoogleFonts.manrope(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                            ).copyWith(color: textColor),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          style: GoogleFonts.manrope(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                          ).copyWith(color: textColor),
                         ),
-                        const Spacer(),
                         const Icon(
                           Icons.arrow_forward,
                           size: 18,
@@ -404,43 +421,16 @@ class GemstoneGridView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
+    return CatalogContentSizedGrid(
       controller: scrollController,
-      cacheExtent: 600,
-      addAutomaticKeepAlives: false,
-      padding: const EdgeInsets.only(
-        left: AppSpacing.s16,
-        right: AppSpacing.s16,
-        top: AppSpacing.s8,
-        bottom: AppSpacing.s24,
-      ),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: AppSpacing.s12,
-        mainAxisSpacing: AppSpacing.s12,
-        childAspectRatio: 0.68,
-      ),
-      itemCount: gemstones.length + (isLoadingMore ? 1 : 0),
+      itemCount: gemstones.length,
+      isLoadingMore: isLoadingMore,
       itemBuilder: (context, index) {
-        if (index >= gemstones.length) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(AppSpacing.s16),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          );
-        }
         final gemstone = gemstones[index];
-        return RepaintBoundary(
-          child: GemstoneCardGrid(
-            key: ValueKey(gemstone.id),
-            gemstone: gemstone,
-            onTap: () => openGemstoneDetail(context, gemstone),
-          ),
+        return GemstoneCardGrid(
+          key: ValueKey(gemstone.id),
+          gemstone: gemstone,
+          onTap: () => openGemstoneDetail(context, gemstone),
         );
       },
     );

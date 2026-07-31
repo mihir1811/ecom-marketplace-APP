@@ -57,101 +57,104 @@ class BullionCardGrid extends StatelessWidget {
 
     return MarketplaceProductCardShell(
       onTap: onTap,
-      child: SizedBox.expand(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AspectRatio(
-              aspectRatio: 1.05,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: _BullionCardImage(bullion: bullion),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AspectRatio(
+            aspectRatio: 1.05,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: _BullionCardImage(bullion: bullion),
+                ),
+                Positioned(
+                  top: AppSpacing.s4,
+                  right: AppSpacing.s4,
+                  child: WishlistToggleButton(
+                    item: WishlistItem.fromBullion(bullion),
+                    size: 18,
                   ),
-                  Positioned(
-                    top: AppSpacing.s4,
-                    right: AppSpacing.s4,
-                    child: WishlistToggleButton(
-                      item: WishlistItem.fromBullion(bullion),
-                      size: 18,
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s12,
+                AppSpacing.s12,
+                AppSpacing.s12,
+                AppSpacing.s12,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    metalLabel,
+                    style: AppTypography.caption.copyWith(
+                      color: mutedColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 11,
+                      height: 1.35,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.cardLineGap),
+                  Text(
+                    title,
+                    style: AppTypography.label.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.cardLineGap),
+                  Text(
+                    specs,
+                    style: AppTypography.caption.copyWith(
+                      color: mutedColor,
+                      fontSize: 11,
+                      height: 1.35,
+                    ),
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Spacer(),
+                  const SizedBox(height: AppSpacing.cardPriceGap),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppCurrency.format(
+                            formatGroupedPrice(bullion.price),
+                          ),
+                          style: GoogleFonts.manrope(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ).copyWith(color: textColor),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward,
+                        size: 16,
+                        color: AppColors.bronze,
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s12,
-                  AppSpacing.s12,
-                  AppSpacing.s12,
-                  AppSpacing.s12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      metalLabel,
-                      style: AppTypography.caption.copyWith(
-                        color: mutedColor,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      title,
-                      style: AppTypography.label.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      specs,
-                      style: AppTypography.caption.copyWith(
-                        color: mutedColor,
-                        fontSize: 11,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                    ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppCurrency.format(
-                              formatGroupedPrice(bullion.price),
-                            ),
-                            style: GoogleFonts.manrope(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              height: 1.2,
-                            ).copyWith(color: textColor),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward,
-                          size: 16,
-                          color: AppColors.bronze,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -178,39 +181,43 @@ class BullionCardList extends StatelessWidget {
 
     return MarketplaceProductCardShell(
       onTap: onTap,
-      child: SizedBox(
-        height: 156,
+      child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(
               width: 140,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: _BullionCardImage(bullion: bullion),
-                  ),
-                  Positioned(
-                    bottom: AppSpacing.s8,
-                    left: AppSpacing.s8,
-                    child: WishlistToggleButton(
-                      item: WishlistItem.fromBullion(bullion),
-                      size: 18,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 140),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Positioned.fill(
+                      child: _BullionCardImage(bullion: bullion),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      bottom: AppSpacing.s8,
+                      left: AppSpacing.s8,
+                      child: WishlistToggleButton(
+                        item: WishlistItem.fromBullion(bullion),
+                        size: 18,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.s16,
-                  AppSpacing.s12,
                   AppSpacing.s16,
-                  AppSpacing.s12,
+                  AppSpacing.s16,
+                  AppSpacing.s16,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       metalLabel,
@@ -218,54 +225,67 @@ class BullionCardList extends StatelessWidget {
                         color: secondaryColor,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
+                        height: 1.35,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: AppSpacing.cardLineGap),
                     Text(
                       bullion.name,
                       style: AppTypography.label.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       softWrap: true,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.cardLineGap),
                     Text(
                       detailLine,
                       style: AppTypography.caption.copyWith(
                         color: secondaryColor,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
+                        height: 1.35,
                       ),
                       maxLines: 2,
                       softWrap: true,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: AppSpacing.cardLineGap),
                     Text(
                       specsLine,
                       style: AppTypography.caption.copyWith(
                         color: secondaryColor,
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
+                        height: 1.35,
                       ),
                       maxLines: 2,
                       softWrap: true,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const Spacer(),
+                    const SizedBox(height: AppSpacing.cardPriceGap),
                     Row(
                       children: [
-                        Text(
-                          AppCurrency.format(
-                            formatGroupedPrice(bullion.price),
+                        Expanded(
+                          child: Text(
+                            AppCurrency.format(
+                              formatGroupedPrice(bullion.price),
+                            ),
+                            style: GoogleFonts.manrope(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                            ).copyWith(color: textColor),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          style: GoogleFonts.manrope(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                          ).copyWith(color: textColor),
                         ),
-                        const Spacer(),
                         const Icon(
                           Icons.arrow_forward,
                           size: 18,

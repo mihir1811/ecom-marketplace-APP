@@ -111,121 +111,124 @@ class JewelryProductCard extends ConsumerWidget {
 
     return MarketplaceProductCardShell(
       onTap: onTap,
-      child: SizedBox.expand(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AspectRatio(
-              aspectRatio: 1.05,
-              child: Stack(
-                children: [
-                  Positioned.fill(child: _image()),
-                  if (item.badge != null) _badge(),
-                  Positioned(
-                    top: AppSpacing.s4,
-                    right: AppSpacing.s4,
-                    child: WishlistToggleButton(
-                      item: WishlistItem.fromJewelry(item),
-                      size: 18,
-                    ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AspectRatio(
+            aspectRatio: 1.05,
+            child: Stack(
+              children: [
+                Positioned.fill(child: _image()),
+                if (item.badge != null) _badge(),
+                Positioned(
+                  top: AppSpacing.s4,
+                  right: AppSpacing.s4,
+                  child: WishlistToggleButton(
+                    item: WishlistItem.fromJewelry(item),
+                    size: 18,
                   ),
-                  if (item.discount != null && item.discount! > 0)
-                    Positioned(
-                      top: AppSpacing.s8,
-                      left: AppSpacing.s8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s8,
-                          vertical: AppSpacing.s4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.terracotta,
-                          borderRadius: BorderRadius.circular(AppSpacing.r4),
-                        ),
-                        child: Text(
-                          '-${item.discount!.round()}%',
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.warmWhite,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
+                ),
+                if (item.discount != null && item.discount! > 0)
+                  Positioned(
+                    top: AppSpacing.s8,
+                    left: AppSpacing.s8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.s8,
+                        vertical: AppSpacing.s4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.terracotta,
+                        borderRadius: BorderRadius.circular(AppSpacing.r4),
+                      ),
+                      child: Text(
+                        '-${item.discount!.round()}%',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.warmWhite,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
                         ),
                       ),
                     ),
+                  ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s12,
+                AppSpacing.s12,
+                AppSpacing.s12,
+                AppSpacing.s12,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.category,
+                    style: AppTypography.caption.copyWith(
+                      color: muted,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 11,
+                      height: 1.35,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.cardLineGap),
+                  Text(
+                    title,
+                    style: AppTypography.label.copyWith(
+                      color: text,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.cardLineGap),
+                  Text(
+                    specs,
+                    style: AppTypography.caption.copyWith(
+                      color: muted,
+                      fontSize: 11,
+                      height: 1.35,
+                    ),
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Spacer(),
+                  const SizedBox(height: AppSpacing.cardPriceGap),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppCurrency.format(formatInrPrice(item.price)),
+                          style: GoogleFonts.manrope(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ).copyWith(color: text),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward,
+                        size: 16,
+                        color: AppColors.bronze,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s12,
-                  AppSpacing.s12,
-                  AppSpacing.s12,
-                  AppSpacing.s12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.category,
-                      style: AppTypography.caption.copyWith(
-                        color: muted,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      title,
-                      style: AppTypography.label.copyWith(
-                        color: text,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      specs,
-                      style: AppTypography.caption.copyWith(
-                        color: muted,
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppCurrency.format(formatInrPrice(item.price)),
-                            style: GoogleFonts.manrope(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              height: 1.2,
-                            ).copyWith(color: text),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward,
-                          size: 16,
-                          color: AppColors.bronze,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -532,49 +535,59 @@ class JewelryProductListCard extends ConsumerWidget {
           boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 112,
-              height: 148,
-              child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (item.displayImageUrl != null)
-                      AppNetworkImage(
-                        url: item.displayImageUrl!,
-                        fit: BoxFit.cover,
-                        memCacheWidth: 320,
-                        error: const CatalogMissingImage(padding: AppSpacing.s16),
-                      )
-                    else
-                      const CatalogMissingImage(padding: AppSpacing.s16),
-                    Positioned(
-                      top: AppSpacing.s8,
-                      right: AppSpacing.s8,
-                      child: InkWell(
-                        onTap: () => _toggleWishlist(context, ref),
-                        child: Icon(
-                          wishlisted ? Icons.favorite : Icons.favorite_border,
-                          size: 18,
-                          color: wishlisted ? AppColors.terracotta : secondary,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                width: 112,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 140),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (item.displayImageUrl != null)
+                        AppNetworkImage(
+                          url: item.displayImageUrl!,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 320,
+                          error: const CatalogMissingImage(
+                            padding: AppSpacing.s16,
+                          ),
+                        )
+                      else
+                        const CatalogMissingImage(padding: AppSpacing.s16),
+                      Positioned(
+                        top: AppSpacing.s8,
+                        right: AppSpacing.s8,
+                        child: InkWell(
+                          onTap: () => _toggleWishlist(context, ref),
+                          child: Icon(
+                            wishlisted
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            size: 18,
+                            color: wishlisted
+                                ? AppColors.terracotta
+                                : secondary,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s12,
-                    AppSpacing.s12,
-                    AppSpacing.s12,
-                    AppSpacing.s8,
+                    AppSpacing.s16,
+                    AppSpacing.s16,
+                    AppSpacing.s16,
+                    AppSpacing.s16,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         item.category,
@@ -582,50 +595,56 @@ class JewelryProductListCard extends ConsumerWidget {
                           color: secondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
+                          height: 1.35,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppSpacing.cardLineGap),
                       Text(
                         _displayTitle(item),
                         style: AppTypography.label.copyWith(
                           color: text,
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
-                          height: 1.25,
+                          height: 1.3,
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
+                        softWrap: true,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.cardLineGap),
                       Text(
                         metalLine,
                         style: AppTypography.caption.copyWith(
                           color: secondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
+                          height: 1.35,
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
+                        softWrap: true,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (stoneLine != null) ...[
-                        const SizedBox(height: 2),
+                        const SizedBox(height: AppSpacing.cardLineGap),
                         Text(
                           stoneLine,
                           style: AppTypography.caption.copyWith(
                             color: secondary,
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
+                            height: 1.35,
                           ),
-                          maxLines: 1,
+                          maxLines: 2,
+                          softWrap: true,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
-                      const SizedBox(height: AppSpacing.s8),
+                      const SizedBox(height: AppSpacing.cardPriceGap),
                       Wrap(
                         spacing: AppSpacing.s8,
-                        runSpacing: AppSpacing.s4,
+                        runSpacing: AppSpacing.s8,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
@@ -637,7 +656,8 @@ class JewelryProductListCard extends ConsumerWidget {
                           ),
                           _OutlineBadge(
                             label: purityLabel,
-                            borderColor: AppColors.bronze.withValues(alpha: 0.45),
+                            borderColor:
+                                AppColors.bronze.withValues(alpha: 0.45),
                             textColor: AppColors.bronze,
                           ),
                           if (item.stoneCount > 0)
@@ -645,7 +665,7 @@ class JewelryProductListCard extends ConsumerWidget {
                         ],
                       ),
                       if (variants.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.s8),
+                        const SizedBox(height: AppSpacing.cardPriceGap),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -684,6 +704,7 @@ class JewelryProductListCard extends ConsumerWidget {
             ],
           ),
         ),
+      ),
     );
   }
 }
