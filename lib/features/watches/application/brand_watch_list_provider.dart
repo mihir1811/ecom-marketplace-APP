@@ -5,6 +5,7 @@ import '../data/repositories/watch_repository_impl.dart';
 import '../domain/models/brand_watch_state.dart';
 import '../domain/models/watch.dart';
 import '../domain/models/watch_filter_state.dart';
+import '../domain/repositories/watch_repository.dart';
 import 'brand_watch_filter_provider.dart';
 
 class BrandWatchListState {
@@ -78,6 +79,7 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
     final result = await repo.getWatches(
       filters: brandFilters,
       page: 1,
+      pageSize: WatchPageSize.defaultSize,
       sort: _mapSort(filterState.sort),
     );
 
@@ -114,6 +116,7 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
     final result = await repo.getWatches(
       filters: brandFilters,
       page: _currentPage,
+      pageSize: WatchPageSize.defaultSize,
       sort: _mapSort(filterState.sort),
     );
 

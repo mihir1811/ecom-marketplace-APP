@@ -34,9 +34,11 @@ ProductDetail jewelryProductDetail(Jewelry j) {
     ],
     media: ProductMedia(
       images: [
-        if (j.imageAsset != null) ProductImage.asset(j.imageAsset!),
+        if (j.displayImageUrl != null) ProductImage.network(j.displayImageUrl!),
+        if (j.displayImageUrl == null && j.imageAsset != null)
+          ProductImage.asset(j.imageAsset!),
       ],
-      imageSlots: j.imageAsset != null ? 1 : 0,
+      imageSlots: (j.displayImageUrl != null || j.imageAsset != null) ? 1 : 0,
       certificateLabel: null,
       shapeKey: j.stoneShape,
       fallbackIcon: Icons.workspace_premium_outlined,

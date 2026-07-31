@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -18,7 +19,7 @@ import '../../domain/models/diamond.dart';
 import '../../domain/models/diamond_display.dart';
 import 'diamond_svg_data.dart';
 
-/// Horizontal list card with specs and compare action.
+/// Horizontal list card matching [WatchCardList] layout with diamond data.
 class DiamondCardList extends ConsumerWidget {
   const DiamondCardList({
     required this.diamond,
@@ -31,166 +32,146 @@ class DiamondCardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final title =
-        '${diamond.carat.toStringAsFixed(2)}ct ${DiamondDisplay.shape(diamond.shape)}';
-    final price = AppCurrency.format(formatCatalogPrice(diamond.price));
+    const textColor = AppColors.textPrimaryLight;
+    const secondaryColor = AppColors.textSecondaryLight;
     final inCompare = ref.watch(isInComparisonProvider(diamond.id));
+    final title = _listTitle(diamond);
+    final detail = _listDetailLine(diamond);
+    final meta = _listMetaLine(diamond);
 
     return MarketplaceProductCardShell(
-      borderRadius: AppSpacing.r12,
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.s16,
-          AppSpacing.s20,
-          AppSpacing.s16,
-          AppSpacing.s20,
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _ListMedia(
-                diamond: diamond,
-                inCompare: inCompare,
-                onCompare: () => handleCompareToggle(
-                  context,
-                  ref,
-                  CompareItem.fromDiamond(diamond),
-                ),
+      child: SizedBox(
+        height: 140,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 140,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: _DiamondListThumb(diamond: diamond),
+                  ),
+                  Positioned(
+                    bottom: AppSpacing.s8,
+                    left: AppSpacing.s8,
+                    child: WishlistToggleButton(
+                      item: WishlistItem.fromDiamond(diamond),
+                      size: 18,
+                    ),
+                  ),
+                  Positioned(
+                    bottom: AppSpacing.s8,
+                    right: AppSpacing.s8,
+                    child: CompareAddButton(
+                      size: 32,
+                      isSelected: inCompare,
+                      onPressed: () => handleCompareToggle(
+                        context,
+                        ref,
+                        CompareItem.fromDiamond(diamond),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: AppSpacing.s16),
-              Expanded(
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s16,
+                  AppSpacing.s12,
+                  AppSpacing.s16,
+                  AppSpacing.s12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: AppTypography.title.copyWith(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                              height: 1.3,
-                              color: AppColors.textPrimaryLight,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                    const SizedBox(height: 2),
+                    Text(
+                      title,
+                      style: AppTypography.label.copyWith(
+                        color: textColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      detail,
+                      style: AppTypography.caption.copyWith(
+                        color: secondaryColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
+                    ),
+                    if (meta != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        meta,
+                        style: AppTypography.caption.copyWith(
+                          color: secondaryColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
                         ),
-                        const SizedBox(width: AppSpacing.s12),
+                        maxLines: 2,
+                        softWrap: true,
+                      ),
+                    ],
+                    const Spacer(),
+                    Row(
+                      children: [
                         Text(
-                          price,
-                          style: AppTypography.title.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                            height: 1.3,
-                            color: AppColors.textPrimaryLight,
+                          AppCurrency.format(
+                            formatCatalogPrice(diamond.price),
                           ),
+                          style: GoogleFonts.manrope(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ).copyWith(color: textColor),
+                        ),
+                        const Spacer(),
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 18,
+                          color: AppColors.bronze,
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.s20),
-                    _SpecGrid(diamond: diamond),
-                    const SizedBox(height: AppSpacing.s16),
-                    _MetaRow(diamond: diamond),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _ListMedia extends StatelessWidget {
-  const _ListMedia({
-    required this.diamond,
-    required this.inCompare,
-    required this.onCompare,
-  });
+class _DiamondListThumb extends StatelessWidget {
+  const _DiamondListThumb({required this.diamond});
 
   final Diamond diamond;
-  final bool inCompare;
-  final VoidCallback onCompare;
-
-  static const double _width = 116;
-  static const double _minHeight = 132;
 
   @override
   Widget build(BuildContext context) {
     final photoUrl = diamond.imageUrl?.trim();
     final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
-    final certLab =
-        DiamondDisplay.labBadge(diamond.lab ?? diamond.certificate);
+    final fallback = _ShapeFallback(shape: diamond.shape, size: 52);
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: _minHeight),
-      child: SizedBox(
-        width: _width,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: AppColors.sandSurface,
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
-                  child: hasPhoto
-                      ? AppNetworkImage(
-                          url: photoUrl,
-                          fit: BoxFit.cover,
-                          width: _width,
-                          memCacheWidth: 300,
-                          error: _ShapeFallback(shape: diamond.shape, size: 52),
-                        )
-                      : _ShapeFallback(shape: diamond.shape, size: 52),
-                ),
-              ),
-            ),
-            if (certLab != null)
-              Positioned(
-                top: AppSpacing.s8,
-                left: AppSpacing.s8,
-                child: _CertificateLabBadge(label: certLab),
-              ),
-            Positioned(
-              top: AppSpacing.s4,
-              right: AppSpacing.s4,
-              child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  color: AppColors.warmWhite,
-                  shape: BoxShape.circle,
-                  border: Border.fromBorderSide(
-                    BorderSide(color: AppColors.warmBorder),
-                  ),
-                ),
-                child: WishlistToggleButton(
-                  item: WishlistItem.fromDiamond(diamond),
-                  size: 13,
-                  padded: true,
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: AppSpacing.s4,
-              right: AppSpacing.s4,
-              child: CompareAddButton(
-                size: 30,
-                isSelected: inCompare,
-                onPressed: onCompare,
-              ),
-            ),
-          ],
-        ),
-      ),
+    if (!hasPhoto) return fallback;
+
+    return AppNetworkImage(
+      url: photoUrl,
+      fit: BoxFit.cover,
+      memCacheWidth: 480,
+      error: fallback,
     );
   }
 }
@@ -216,157 +197,50 @@ class _ShapeFallback extends StatelessWidget {
   }
 }
 
-class _CertificateLabBadge extends StatelessWidget {
-  const _CertificateLabBadge({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s8,
-        vertical: AppSpacing.s4,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.bronze,
-        borderRadius: BorderRadius.circular(AppSpacing.r4),
-      ),
-      child: Text(
-        label,
-        style: AppTypography.caption.copyWith(
-          color: AppColors.warmWhite,
-          fontWeight: FontWeight.w700,
-          fontSize: 9,
-          height: 1.1,
-          letterSpacing: 0.2,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
+String _listTitle(Diamond diamond) {
+  final carat = '${diamond.carat.toStringAsFixed(2)}ct';
+  final shape = DiamondDisplay.shape(diamond.shape);
+  if (shape == DiamondDisplay.notAvailable) return carat;
+  return '$carat $shape';
 }
 
-class _SpecGrid extends StatelessWidget {
-  const _SpecGrid({required this.diamond});
-
-  final Diamond diamond;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _SpecItem(
-                label: 'Cut',
-                value: DiamondDisplay.gradeChip(diamond.cut),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.s16),
-            Expanded(
-              child: _SpecItem(
-                label: 'Color',
-                value: DiamondDisplay.gradeChip(diamond.color),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        Row(
-          children: [
-            Expanded(
-              child: _SpecItem(
-                label: 'Clarity',
-                value: DiamondDisplay.gradeChip(diamond.clarity),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.s16),
-            Expanded(
-              child: _SpecItem(
-                label: 'Polish',
-                value: DiamondDisplay.gradeChip(diamond.polish),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
+String _listDetailLine(Diamond diamond) {
+  final parts = <String>[];
+  final color = DiamondDisplay.gradeChip(diamond.color);
+  final clarity = DiamondDisplay.gradeChip(diamond.clarity);
+  final cut = DiamondDisplay.gradeChip(diamond.cut);
+  if (color != 'N/A') parts.add('Col $color');
+  if (clarity != 'N/A') parts.add(clarity);
+  if (cut != 'N/A') parts.add('Cut $cut');
+  if (parts.isEmpty) {
+    final polish = DiamondDisplay.gradeChip(diamond.polish);
+    final symmetry = DiamondDisplay.gradeChip(diamond.symmetry);
+    if (polish != 'N/A') parts.add('Pol $polish');
+    if (symmetry != 'N/A') parts.add('Sym $symmetry');
   }
+  if (parts.isEmpty) return 'Grades unavailable';
+  return parts.join(' · ');
 }
 
-class _MetaRow extends StatelessWidget {
-  const _MetaRow({required this.diamond});
-
-  final Diamond diamond;
-
-  @override
-  Widget build(BuildContext context) {
-    final ppc = diamond.pricePerCarat;
-    final ppcLabel = ppc == null
-        ? 'N/A'
-        : AppCurrency.format(formatCatalogPrice(ppc));
-    final hasMeasure = DiamondDisplay.optional(diamond.measurement) != null;
-    final measure = DiamondDisplay.optional(diamond.measurement) ??
-        DiamondDisplay.optional(diamond.stockNumber) ??
-        'N/A';
-
-    return Row(
-      children: [
-        Expanded(child: _SpecItem(label: '\$/ct', value: ppcLabel)),
-        const SizedBox(width: AppSpacing.s16),
-        Expanded(
-          child: _SpecItem(
-            label: hasMeasure ? 'Size' : 'Stock',
-            value: measure,
-          ),
-        ),
-      ],
-    );
+String? _listMetaLine(Diamond diamond) {
+  final parts = <String>[];
+  final lab = DiamondDisplay.labBadge(diamond.lab ?? diamond.certificate);
+  if (lab != null) parts.add(lab);
+  final ppc = diamond.pricePerCarat;
+  if (ppc != null && ppc > 0) {
+    parts.add('${AppCurrency.format(formatCatalogPrice(ppc))}/ct');
   }
-}
-
-class _SpecItem extends StatelessWidget {
-  const _SpecItem({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final isMissing = value == 'N/A';
-    return Row(
-      children: [
-        Text(
-          '$label: ',
-          style: AppTypography.body.copyWith(
-            fontSize: 12,
-            height: 1.35,
-            color: AppColors.textSecondaryLight,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.body.copyWith(
-              fontSize: 12,
-              height: 1.35,
-              color: isMissing
-                  ? AppColors.textMutedLight
-                  : AppColors.textPrimaryLight,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ],
-    );
+  final measure = DiamondDisplay.optional(diamond.measurement);
+  if (measure != null) {
+    parts.add(measure);
+  } else {
+    final stock = DiamondDisplay.optional(diamond.stockNumber);
+    if (stock != null) parts.add('Stock $stock');
   }
+  // final fluorescence = DiamondDisplay.optional(diamond.fluorescence);
+  // if (fluorescence != null && parts.length < 3) {
+  //   parts.add('Fluor $fluorescence');
+  // }
+  if (parts.isEmpty) return null;
+  return parts.join(' · ');
 }

@@ -49,6 +49,14 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant BrandWatchScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.brandName != widget.brandName) {
+      ref.read(brandWatchListProvider.notifier).setBrandName(widget.brandName);
+    }
+  }
+
+  @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
@@ -392,9 +400,17 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                               _priceMaxController.clear();
                             },
                           )
-                        : WatchGridSliver(
-                            watches: listState.watches,
-                            isLoadingMore: listState.isLoadingMore,
+                        : CustomScrollView(
+                            controller: _scrollController,
+                            slivers: [
+                              WatchGridSliver(
+                                watches: listState.watches,
+                                isLoadingMore: listState.isLoadingMore,
+                              ),
+                              const SliverToBoxAdapter(
+                                child: SizedBox(height: AppSpacing.s24),
+                              ),
+                            ],
                           ),
           ),
         ],

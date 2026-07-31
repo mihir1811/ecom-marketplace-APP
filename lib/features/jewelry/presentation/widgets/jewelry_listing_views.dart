@@ -66,7 +66,7 @@ class JewelryGridSliver extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: AppSpacing.s12,
           mainAxisSpacing: AppSpacing.s12,
-          childAspectRatio: 0.72,
+          childAspectRatio: 0.68,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {

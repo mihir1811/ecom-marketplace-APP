@@ -1,4 +1,5 @@
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../bullions/domain/models/billion.dart';
 import '../../../diamonds/domain/models/diamond.dart';
 import '../../../diamonds/domain/models/diamond_display.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
@@ -60,6 +61,7 @@ class WishlistItem {
       title: j.name,
       subtitle: '${j.category} · ${j.metalType}',
       priceLabel: AppCurrency.format(formatInrPrice(j.price)),
+      imageUrl: j.displayImageUrl,
       imageAsset: j.imageAsset,
     );
   }
@@ -72,6 +74,23 @@ class WishlistItem {
       subtitle: '${w.year} · ${w.caseMaterial}',
       priceLabel: AppCurrency.format(formatGroupedPrice(w.price)),
       imageUrl: w.renderableImageUrl,
+    );
+  }
+
+  factory WishlistItem.fromBullion(Bullion b) {
+    final metal = switch (b.metal) {
+      BullionMetal.gold => 'Gold',
+      BullionMetal.silver => 'Silver',
+      BullionMetal.platinum => 'Platinum',
+      BullionMetal.palladium => 'Palladium',
+      BullionMetal.copper => 'Copper',
+    };
+    return WishlistItem(
+      id: b.id,
+      category: WishlistCategory.bullion,
+      title: '${b.weightLabel} $metal',
+      subtitle: '${b.shape} · ${b.condition}',
+      priceLabel: AppCurrency.format(formatGroupedPrice(b.price)),
     );
   }
 }

@@ -67,10 +67,10 @@ class WatchListSliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
       sliver: SliverList.separated(
         itemCount: watches.length + (isLoadingMore ? 1 : 0),
-        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.s12),
+        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.s16),
         itemBuilder: (context, index) {
           if (index >= watches.length) {
             return const Center(

@@ -62,15 +62,6 @@ ProductDetail watchProductDetail(Watch w) {
       ProductHighlight('Year', '${w.year}'),
       ProductHighlight('Condition', w.condition),
     ],
-    certification: ProductCertification(
-      authority: w.certification,
-      referenceLabel: 'Stock ID',
-      referenceValue: w.id,
-    ),
-    availability: ProductAvailability(
-      label: w.availabilityStatus,
-      tone: w.inStock ? ProductStockTone.available : ProductStockTone.unavailable,
-    ),
     specSections: [
       specSection(ProductSpecGroup.essentials, {
         'Brand': w.brand,

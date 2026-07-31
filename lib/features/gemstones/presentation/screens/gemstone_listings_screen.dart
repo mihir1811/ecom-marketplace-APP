@@ -10,9 +10,11 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
+import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/gemstone_list_provider.dart';
+import '../../domain/models/gemstone_sort_option.dart';
 import '../widgets/gemstone_card.dart';
 
 /// Grid/list results screen for gemstone search.
@@ -46,6 +48,21 @@ class _GemstoneListingsScreenState
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 300) {
       ref.read(gemstoneListProvider.notifier).loadNextPage();
+    }
+  }
+
+  Future<void> _openSortSheet(BuildContext context) async {
+    final selected = await showSimpleSortSheet<GemstoneSortOption>(
+      context: context,
+      options: GemstoneSortOption.values,
+      labelOf: (o) => o.label,
+      current: ref.read(gemstoneSortProvider),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+    );
+    if (selected != null) {
+      ref.read(gemstoneSortProvider.notifier).state = selected;
     }
   }
 
@@ -87,18 +104,44 @@ class _GemstoneListingsScreenState
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
               child: Row(
                 children: [
-                  stateAsync.whenOrNull(
-                        data: (s) => Text(
-                          '${s.totalCount} gemstones found',
-                          style: AppTypography.caption.copyWith(color: muted),
-                        ),
-                      ) ??
-                      const SizedBox.shrink(),
-                  const Spacer(),
+                  Flexible(
+                    child: stateAsync.whenOrNull(
+                          data: (s) => Text(
+                            '${s.totalCount} gemstones found',
+                            style:
+                                AppTypography.caption.copyWith(color: muted),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ) ??
+                        const SizedBox.shrink(),
+                  ),
                   TextButton(
                     onPressed: () =>
                         context.pushReplacement(AppRouteNames.gemstones),
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     child: const Text('Edit Filters'),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _openSortSheet(context),
+                    icon: const Icon(Icons.sort, size: 18),
+                    label: Text(
+                      ref.watch(
+                        gemstoneSortProvider.select((s) => s.shortLabel),
+                      ),
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textPrimaryLight,
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.only(left: AppSpacing.s4),
+                    ),
                   ),
                 ],
               ),

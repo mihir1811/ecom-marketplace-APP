@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/failure.dart';
@@ -6,6 +7,7 @@ import '../../../core/pagination/paginated_list_state.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/watch_repository_impl.dart';
 import '../domain/models/watch.dart';
+import '../domain/repositories/watch_repository.dart';
 import 'watch_filter_provider.dart';
 
 typedef WatchListState = PaginatedListState<Watch>;
@@ -20,6 +22,8 @@ final watchListProvider =
 );
 
 class WatchListNotifier extends PaginatedAsyncNotifier<Watch> {
+  CancelToken? _cancelToken;
+
   @override
   Iterable<ProviderListenable<Object?>> get reloadTriggers => [
     watchFilterProvider,
@@ -27,14 +31,26 @@ class WatchListNotifier extends PaginatedAsyncNotifier<Watch> {
   ];
 
   @override
+  void onResetPagination() {
+    final token = _cancelToken;
+    if (token != null && !token.isCancelled) {
+      token.cancel('watch-list-reset');
+    }
+    _cancelToken = CancelToken();
+  }
+
+  @override
   Future<Result<PaginatedPage<Watch>, Failure>> loadPage(int page) async {
+    _cancelToken ??= CancelToken();
     final filters = ref.read(watchFilterProvider);
     final sort = ref.read(watchSortProvider);
     final repo = ref.read(watchRepositoryProvider);
     final result = await repo.getWatches(
       filters: filters,
       page: page,
+      pageSize: WatchPageSize.defaultSize,
       sort: sort,
+      cancelToken: _cancelToken,
     );
     return switch (result) {
       Success(value: final response) => Success(

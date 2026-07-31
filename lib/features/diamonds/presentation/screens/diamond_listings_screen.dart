@@ -32,9 +32,9 @@ class DiamondListingsScreen extends ConsumerStatefulWidget {
 class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
   final ScrollController _scrollController = ScrollController();
 
-  /// Grid layout mirrors [DiamondGridView] (2 columns, aspect 0.78).
+  /// Grid layout mirrors [DiamondGridView] (2 columns, aspect 0.68).
   static const int _gridCrossAxisCount = 2;
-  static const double _gridChildAspectRatio = 0.62;
+  static const double _gridChildAspectRatio = 0.68;
 
   /// Approximate list-card stride (card + bottom gap) for index ↔ offset.
   static const double _listItemStride = 176;

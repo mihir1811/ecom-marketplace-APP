@@ -7,6 +7,7 @@ import '../../../core/pagination/paginated_async_notifier.dart';
 import '../../../core/pagination/paginated_list_state.dart';
 import '../data/repositories/gemstone_repository_impl.dart';
 import '../domain/models/gemstone.dart';
+import '../domain/models/gemstone_sort_option.dart';
 import '../domain/repositories/gemstone_repository.dart';
 import 'gemstone_search_provider.dart';
 
@@ -21,6 +22,9 @@ extension GemstoneListStateX on GemstoneListState {
 final gemstoneViewModeProvider =
     StateProvider<GemstoneViewMode>((ref) => GemstoneViewMode.grid);
 
+final gemstoneSortProvider =
+    StateProvider<GemstoneSortOption>((ref) => GemstoneSortOption.newest);
+
 /// Results list. Uses backend `page` / `limit` + `meta.next` for infinite scroll.
 final gemstoneListProvider =
     AsyncNotifierProvider<GemstoneListNotifier, GemstoneListState>(
@@ -31,7 +35,9 @@ class GemstoneListNotifier extends PaginatedAsyncNotifier<Gemstone> {
   CancelToken? _cancelToken;
 
   @override
-  Iterable<ProviderListenable<Object?>> get reloadTriggers => const [];
+  Iterable<ProviderListenable<Object?>> get reloadTriggers => [
+        gemstoneSortProvider,
+      ];
 
   @override
   void onResetPagination() {
@@ -46,11 +52,13 @@ class GemstoneListNotifier extends PaginatedAsyncNotifier<Gemstone> {
   Future<Result<PaginatedPage<Gemstone>, Failure>> loadPage(int page) async {
     _cancelToken ??= CancelToken();
     final filters = ref.read(gemstoneSearchProvider);
+    final sort = ref.read(gemstoneSortProvider);
     final repo = ref.read(gemstoneRepositoryProvider);
     final result = await repo.getGemstones(
       filters: filters,
       page: page,
       pageSize: GemstonePageSize.defaultSize,
+      sortBy: sort.apiValue,
       cancelToken: _cancelToken,
     );
     return switch (result) {

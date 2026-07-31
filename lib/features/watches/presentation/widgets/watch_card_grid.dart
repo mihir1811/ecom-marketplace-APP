@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
@@ -32,13 +33,14 @@ class WatchCardGrid extends ConsumerWidget {
     final textColor =
         AppColors.textPrimaryLight;
     final mutedColor =
-        AppColors.textMutedLight;
+        AppColors.textSecondaryLight;
     final logo = WatchBrandAssets.logoPath(watch.brand);
     final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
     return MarketplaceProductCardShell(
       onTap: onTap,
-      child: Column(
+      child: SizedBox.expand(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AspectRatio(
@@ -46,29 +48,7 @@ class WatchCardGrid extends ConsumerWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: Container(
-                      color: AppColors.sandSurface,
-                      child: Center(
-                        child: logo != null
-                            ? Padding(
-                                padding: const EdgeInsets.all(AppSpacing.s24),
-                                child: Image.asset(
-                                  logo,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => const Icon(
-                                    Icons.watch,
-                                    size: 48,
-                                    color: AppColors.bronze,
-                                  ),
-                                ),
-                              )
-                            : const Icon(
-                                Icons.watch,
-                                size: 48,
-                                color: AppColors.bronze,
-                              ),
-                      ),
-                    ),
+                    child: _WatchCardImage(watch: watch, logo: logo),
                   ),
                   Positioned(
                     top: AppSpacing.s4,
@@ -120,9 +100,9 @@ class WatchCardGrid extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.s12,
-                  AppSpacing.s8,
                   AppSpacing.s12,
-                  AppSpacing.s8,
+                  AppSpacing.s12,
+                  AppSpacing.s12,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,7 +127,7 @@ class WatchCardGrid extends ConsumerWidget {
                         height: 1.2,
                       ),
                       maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -156,10 +136,10 @@ class WatchCardGrid extends ConsumerWidget {
                         color: mutedColor,
                         fontSize: 11,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      softWrap: true,
                     ),
-                    const SizedBox(height: AppSpacing.s8),
+                    const Spacer(),
                     Row(
                       children: [
                         Expanded(
@@ -187,6 +167,7 @@ class WatchCardGrid extends ConsumerWidget {
             ),
           ],
         ),
+      ),
     );
   }
 }
@@ -205,125 +186,173 @@ class WatchCardList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textColor =
         AppColors.textPrimaryLight;
-    final mutedColor =
-        AppColors.textMutedLight;
+    final secondaryColor =
+        AppColors.textSecondaryLight;
     final logo = WatchBrandAssets.logoPath(watch.brand);
     final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
     return MarketplaceProductCardShell(
       onTap: onTap,
-      child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                width: 112,
-                child: Stack(
+      child: SizedBox(
+        height: 156,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 140,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: _WatchCardImage(watch: watch, logo: logo),
+                  ),
+                  Positioned(
+                    bottom: AppSpacing.s8,
+                    left: AppSpacing.s8,
+                    child: WishlistToggleButton(
+                      item: WishlistItem.fromWatch(watch),
+                      size: 18,
+                    ),
+                  ),
+                  Positioned(
+                    bottom: AppSpacing.s8,
+                    right: AppSpacing.s8,
+                    child: CompareAddButton(
+                      size: 32,
+                      isSelected: inCompare,
+                      onPressed: () => handleCompareToggle(
+                        context,
+                        ref,
+                        CompareItem.fromWatch(watch),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s16,
+                  AppSpacing.s12,
+                  AppSpacing.s16,
+                  AppSpacing.s12,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Positioned.fill(
-                      child: Container(
-                        color: AppColors.sandSurface,
-                        child: Center(
-                          child: logo != null
-                              ? Padding(
-                                  padding: const EdgeInsets.all(AppSpacing.s16),
-                                  child: Image.asset(
-                                    logo,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => const Icon(
-                                      Icons.watch,
-                                      size: 36,
-                                      color: AppColors.bronze,
-                                    ),
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.watch,
-                                  size: 36,
-                                  color: AppColors.bronze,
-                                ),
-                        ),
+                    Text(
+                      watch.brand,
+                      style: AppTypography.caption.copyWith(
+                        color: secondaryColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Positioned(
-                      bottom: AppSpacing.s8,
-                      left: AppSpacing.s4,
-                      child: WishlistToggleButton(
-                        item: WishlistItem.fromWatch(watch),
-                        size: 16,
+                    const SizedBox(height: 2),
+                    Text(
+                      watch.model,
+                      style: AppTypography.label.copyWith(
+                        color: textColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
                       ),
+                      maxLines: 2,
+                      softWrap: true,
                     ),
-                    Positioned(
-                      bottom: AppSpacing.s8,
-                      right: AppSpacing.s8,
-                      child: CompareAddButton(
-                        size: 28,
-                        isSelected: inCompare,
-                        onPressed: () => handleCompareToggle(
-                          context,
-                          ref,
-                          CompareItem.fromWatch(watch),
-                        ),
+                    const SizedBox(height: 4),
+                    Text(
+                      watch.detailLine,
+                      style: AppTypography.caption.copyWith(
+                        color: secondaryColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
+                      maxLines: 2,
+                      softWrap: true,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${watch.specsLine} · ${watch.condition}',
+                      style: AppTypography.caption.copyWith(
+                        color: secondaryColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Text(
+                          AppCurrency.format(formatGroupedPrice(watch.price)),
+                          style: GoogleFonts.manrope(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ).copyWith(color: textColor),
+                        ),
+                        const Spacer(),
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 18,
+                          color: AppColors.bronze,
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.s12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        watch.brand,
-                        style: AppTypography.caption.copyWith(
-                          color: mutedColor,
-                          fontSize: 11,
-                        ),
-                      ),
-                      Text(
-                        watch.model,
-                        style: AppTypography.label.copyWith(
-                          color: textColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        watch.detailLine,
-                        style: AppTypography.caption.copyWith(
-                          color: mutedColor,
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s8),
-                      Row(
-                        children: [
-                          Text(
-                            AppCurrency.format(formatGroupedPrice(watch.price)),
-                            style: GoogleFonts.manrope(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ).copyWith(color: textColor),
-                          ),
-                          const Spacer(),
-                          const Icon(
-                            Icons.arrow_forward,
-                            size: 16,
-                            color: AppColors.bronze,
-                          ),
-                        ],
-                      ),
-                    ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WatchCardImage extends StatelessWidget {
+  const _WatchCardImage({required this.watch, this.logo});
+
+  final Watch watch;
+  final String? logo;
+
+  @override
+  Widget build(BuildContext context) {
+    final network = watch.renderableImageUrl;
+    if (network != null) {
+      return AppNetworkImage(
+        url: network,
+        fit: BoxFit.cover,
+        memCacheWidth: 480,
+        error: _brandFallback(),
+      );
+    }
+    return _brandFallback();
+  }
+
+  Widget _brandFallback() {
+    return ColoredBox(
+      color: AppColors.sandSurface,
+      child: Center(
+        child: logo != null
+            ? Padding(
+                padding: const EdgeInsets.all(AppSpacing.s16),
+                child: Image.asset(
+                  logo!,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.watch,
+                    size: 40,
+                    color: AppColors.bronze,
                   ),
                 ),
+              )
+            : const Icon(
+                Icons.watch,
+                size: 40,
+                color: AppColors.bronze,
               ),
-            ],
-          ),
-        ),
+      ),
     );
   }
 }

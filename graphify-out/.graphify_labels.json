@@ -323,7 +323,18 @@
   "321": "watch_brand_categories.dart",
   "322": "viewer_url_resolver.dart",
   "323": "viewer_resource_policy.dart",
-  "324": "dart:async",
-  "325": "Notifier",
-  "327": "home_category_tile.dart"
+  "324": "JewelryFilterDraftNotifier",
+  "325": "cart_items_section.dart",
+  "326": "seller_inquiry_mock_data.dart",
+  "327": "home_category_tile.dart",
+  "328": "api_config.dart",
+  "329": "wishlist_provider.dart",
+  "330": "jewelry_repository_impl.dart",
+  "331": "sellerProductsCatalogProvider",
+  "332": "diamond_filter_chips.dart",
+  "333": "cart_item.dart",
+  "334": "api_config.dart",
+  "335": "dart:async",
+  "336": "_SellerOrdersScreenState",
+  "337": "SellerProfileScreen"
 }

@@ -30,6 +30,7 @@ class Jewelry {
     this.ringSize,
     this.badge,
     this.imageAsset,
+    this.imageUrl,
     this.discount,
     this.hasMedia = true,
     this.rating,
@@ -66,11 +67,20 @@ class Jewelry {
   final String? ringSize;
   final String? badge;
   final String? imageAsset;
+  /// Absolute network image URL from the jewellery API (preferred over [imageAsset]).
+  final String? imageUrl;
   final double? discount;
   final bool hasMedia;
   final double? rating;
   final int? reviewCount;
   final bool wishlisted;
+
+  /// Prefer network image when present; otherwise local asset fallback.
+  String? get displayImageUrl {
+    final network = imageUrl?.trim();
+    if (network != null && network.isNotEmpty) return network;
+    return null;
+  }
 }
 
 class JewelryListResponse {

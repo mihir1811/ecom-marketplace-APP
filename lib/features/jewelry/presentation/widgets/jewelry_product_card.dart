@@ -8,8 +8,11 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/application/wishlist_provider.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
+import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../domain/models/jewelry.dart';
 import '../../../../core/utils/app_currency.dart';
 
@@ -52,7 +55,7 @@ class JewelryProductCard extends ConsumerWidget {
     final bg = AppColors.warmWhite;
     final border = AppColors.warmBorder;
     final text = AppColors.textPrimaryLight;
-    final muted = AppColors.textMutedLight;
+    final muted = AppColors.textSecondaryLight;
     final variants = item.colorVariants.take(4).toList();
     final extra = item.colorVariants.length - variants.length;
     final wishlisted = ref.watch(isInWishlistProvider(item.id));
@@ -93,100 +96,131 @@ class JewelryProductCard extends ConsumerWidget {
     required List<String> variants,
     required bool wishlisted,
   }) {
-    return GestureDetector(
+    final title = () {
+      final dash = item.name.split(' — ');
+      if (dash.length > 1) return dash.first.trim();
+      return item.name;
+    }();
+    final specs = [
+      item.metalType,
+      if (item.metalPurity.trim().isNotEmpty) item.metalPurity,
+      if (item.stoneWeightCt > 0)
+        '${item.stoneWeightCt.toStringAsFixed(2)}ct',
+    ].join(' · ');
+
+    return MarketplaceProductCardShell(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(AppSpacing.r12),
-          border: Border.all(color: border),
-          boxShadow: AppShadows.cardLight,
-        ),
-        clipBehavior: Clip.antiAlias,
+      child: SizedBox.expand(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
+            AspectRatio(
+              aspectRatio: 1.05,
               child: Stack(
-                fit: StackFit.expand,
                 children: [
-                  _image(),
+                  Positioned.fill(child: _image()),
                   if (item.badge != null) _badge(),
                   Positioned(
-                    top: AppSpacing.s8,
-                    right: AppSpacing.s8,
-                    child: InkWell(
-                      onTap: () => _toggleWishlist(context, ref),
-                      child: Icon(
-                        wishlisted ? Icons.favorite : Icons.favorite_border,
-                        size: 18,
-                        color: wishlisted ? AppColors.terracotta : muted,
-                      ),
+                    top: AppSpacing.s4,
+                    right: AppSpacing.s4,
+                    child: WishlistToggleButton(
+                      item: WishlistItem.fromJewelry(item),
+                      size: 18,
                     ),
                   ),
+                  if (item.discount != null && item.discount! > 0)
+                    Positioned(
+                      top: AppSpacing.s8,
+                      left: AppSpacing.s8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s8,
+                          vertical: AppSpacing.s4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.terracotta,
+                          borderRadius: BorderRadius.circular(AppSpacing.r4),
+                        ),
+                        child: Text(
+                          '-${item.discount!.round()}%',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.warmWhite,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s8,
-                AppSpacing.s8,
-                AppSpacing.s8,
-                AppSpacing.s8,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      for (var i = 0; i < variants.length; i++) ...[
-                        if (i > 0) const SizedBox(width: 4),
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: jewelryMetalSwatch(variants[i]),
-                            border: Border.all(
-                              color: i == 0 ? AppColors.bronze : border,
-                            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s12,
+                  AppSpacing.s8,
+                  AppSpacing.s12,
+                  AppSpacing.s8,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.category,
+                      style: AppTypography.caption.copyWith(
+                        color: muted,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      title,
+                      style: AppTypography.label.copyWith(
+                        color: text,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      specs,
+                      style: AppTypography.caption.copyWith(
+                        color: muted,
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            AppCurrency.format(formatInrPrice(item.price)),
+                            style: GoogleFonts.manrope(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                            ).copyWith(color: text),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 16,
+                          color: AppColors.bronze,
+                        ),
                       ],
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.name,
-                    style: AppTypography.label.copyWith(
-                      color: text,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      height: 1.2,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppCurrency.format(formatInrPrice(item.price)),
-                    style: GoogleFonts.manrope(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ).copyWith(color: text),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.metalPurity,
-                    style: AppTypography.caption.copyWith(
-                      fontSize: 10,
-                      color: muted,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -393,6 +427,19 @@ class JewelryProductCard extends ConsumerWidget {
   }
 
   Widget _image() {
+    final network = item.displayImageUrl;
+    if (network != null) {
+      return AppNetworkImage(
+        url: network,
+        fit: BoxFit.cover,
+        memCacheWidth: 480,
+        error: _assetOrPlaceholder(),
+      );
+    }
+    return _assetOrPlaceholder();
+  }
+
+  Widget _assetOrPlaceholder() {
     final asset = item.imageAsset;
     if (asset == null) return _placeholder();
     return Image.asset(
@@ -481,10 +528,17 @@ class JewelryProductListCard extends ConsumerWidget {
     final bg = AppColors.warmWhite;
     final border = AppColors.warmBorder;
     final text = AppColors.textPrimaryLight;
-    final muted = AppColors.textMutedLight;
+    final secondary = AppColors.textSecondaryLight;
     final variants = item.colorVariants.take(3).toList();
     final purityLabel = item.metalPurity.replaceAll(' ', '').toLowerCase();
     final wishlisted = ref.watch(isInWishlistProvider(item.id));
+    final stoneLine = _jewelryStoneLine(item);
+    final metalLine = [
+      item.metalType,
+      if (item.metalColor.trim().isNotEmpty) item.metalColor,
+      if (item.metalWeightG > 0)
+        '${item.metalWeightG.toStringAsFixed(item.metalWeightG >= 10 ? 1 : 2)}g',
+    ].join(' · ');
 
     return GestureDetector(
       onTap: onTap,
@@ -501,11 +555,25 @@ class JewelryProductListCard extends ConsumerWidget {
           children: [
             SizedBox(
               width: 112,
-              height: 132,
+              height: 148,
               child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    if (item.imageAsset != null)
+                    if (item.displayImageUrl != null)
+                      AppNetworkImage(
+                        url: item.displayImageUrl!,
+                        fit: BoxFit.cover,
+                        memCacheWidth: 320,
+                        error: item.imageAsset != null
+                            ? Image.asset(
+                                item.imageAsset!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    _listImagePlaceholder(),
+                              )
+                            : _listImagePlaceholder(),
+                      )
+                    else if (item.imageAsset != null)
                       Image.asset(
                         item.imageAsset!,
                         fit: BoxFit.cover,
@@ -521,7 +589,7 @@ class JewelryProductListCard extends ConsumerWidget {
                         child: Icon(
                           wishlisted ? Icons.favorite : Icons.favorite_border,
                           size: 18,
-                          color: wishlisted ? AppColors.terracotta : muted,
+                          color: wishlisted ? AppColors.terracotta : secondary,
                         ),
                       ),
                     ),
@@ -540,6 +608,17 @@ class JewelryProductListCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
+                        item.category,
+                        style: AppTypography.caption.copyWith(
+                          color: secondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
                         _displayTitle(item),
                         style: AppTypography.label.copyWith(
                           color: text,
@@ -547,18 +626,33 @@ class JewelryProductListCard extends ConsumerWidget {
                           fontSize: 15,
                           height: 1.25,
                         ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        item.sku,
+                        metalLine,
                         style: AppTypography.caption.copyWith(
-                          color: muted,
-                          fontSize: 11,
-                          letterSpacing: 0.4,
+                          color: secondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      if (stoneLine != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          stoneLine,
+                          style: AppTypography.caption.copyWith(
+                            color: secondary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                       const SizedBox(height: AppSpacing.s8),
                       Wrap(
                         spacing: AppSpacing.s8,
@@ -573,7 +667,7 @@ class JewelryProductListCard extends ConsumerWidget {
                             ).copyWith(color: text),
                           ),
                           _OutlineBadge(
-                            label: item.metalType,
+                            label: purityLabel,
                             borderColor: AppColors.bronze.withValues(alpha: 0.45),
                             textColor: AppColors.bronze,
                           ),
@@ -581,72 +675,39 @@ class JewelryProductListCard extends ConsumerWidget {
                             _StoneCountBadge(count: item.stoneCount),
                         ],
                       ),
-                      const SizedBox(height: AppSpacing.s8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'COLOR',
-                                style: AppTypography.caption.copyWith(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w600,
-                                  color: muted,
-                                  letterSpacing: 0.5,
-                                ),
+                      if (variants.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.s8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'COLOR',
+                              style: AppTypography.caption.copyWith(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                                color: secondary,
+                                letterSpacing: 0.5,
                               ),
-                              const SizedBox(width: 4),
-                              for (var i = 0; i < variants.length; i++) ...[
-                                if (i > 0) const SizedBox(width: 3),
-                                Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: jewelryMetalSwatch(variants[i]),
-                                    border: Border.all(
-                                      color: i == 0 ? text : border,
-                                      width: i == 0 ? 1.5 : 1,
-                                    ),
+                            ),
+                            const SizedBox(width: 4),
+                            for (var i = 0; i < variants.length; i++) ...[
+                              if (i > 0) const SizedBox(width: 3),
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: jewelryMetalSwatch(variants[i]),
+                                  border: Border.all(
+                                    color: i == 0 ? text : border,
+                                    width: i == 0 ? 1.5 : 1,
                                   ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'PURITY',
-                                style: AppTypography.caption.copyWith(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w600,
-                                  color: muted,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 56),
-                                child: Text(
-                                  purityLabel,
-                                  style: AppTypography.caption.copyWith(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: text,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -666,6 +727,21 @@ class JewelryProductListCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+String? _jewelryStoneLine(Jewelry item) {
+  final parts = <String>[];
+  if (item.stoneType.trim().isNotEmpty) parts.add(item.stoneType);
+  if (item.stoneShape.trim().isNotEmpty) parts.add(item.stoneShape);
+  if (item.stoneWeightCt > 0) {
+    parts.add('${item.stoneWeightCt.toStringAsFixed(2)}ct');
+  }
+  if (item.certification.trim().isNotEmpty &&
+      item.certification.toLowerCase() != 'n/a') {
+    parts.add(item.certification);
+  }
+  if (parts.isEmpty) return null;
+  return parts.join(' · ');
 }
 
 class _OutlineBadge extends StatelessWidget {
@@ -706,7 +782,7 @@ class _StoneCountBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = AppColors.textMutedLight;
+    final muted = AppColors.textSecondaryLight;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -751,7 +827,7 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = AppColors.textMutedLight;
+    final muted = AppColors.textSecondaryLight;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSpacing.r8),
