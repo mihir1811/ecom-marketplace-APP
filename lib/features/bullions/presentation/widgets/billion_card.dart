@@ -181,124 +181,120 @@ class BullionCardList extends StatelessWidget {
 
     return MarketplaceProductCardShell(
       onTap: onTap,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              width: 140,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 140),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Positioned.fill(
-                      child: _BullionCardImage(bullion: bullion),
-                    ),
-                    Positioned(
-                      bottom: AppSpacing.s8,
-                      left: AppSpacing.s8,
-                      child: WishlistToggleButton(
-                        item: WishlistItem.fromBullion(bullion),
-                        size: 18,
-                      ),
-                    ),
-                  ],
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            height: 140,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned.fill(
+                  child: _BullionCardImage(bullion: bullion),
                 ),
-              ),
+                Positioned(
+                  bottom: AppSpacing.s8,
+                  left: AppSpacing.s8,
+                  child: WishlistToggleButton(
+                    item: WishlistItem.fromBullion(bullion),
+                    size: 18,
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      metalLabel,
-                      style: AppTypography.caption.copyWith(
-                        color: secondaryColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        height: 1.35,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s16,
+                AppSpacing.s16,
+                AppSpacing.s16,
+                AppSpacing.s16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    metalLabel,
+                    style: AppTypography.caption.copyWith(
+                      color: secondaryColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      height: 1.35,
                     ),
-                    const SizedBox(height: AppSpacing.cardLineGap),
-                    Text(
-                      bullion.name,
-                      style: AppTypography.label.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        height: 1.3,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.cardLineGap),
+                  Text(
+                    bullion.name,
+                    style: AppTypography.label.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      height: 1.3,
                     ),
-                    const SizedBox(height: AppSpacing.cardLineGap),
-                    Text(
-                      detailLine,
-                      style: AppTypography.caption.copyWith(
-                        color: secondaryColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        height: 1.35,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.cardLineGap),
+                  Text(
+                    detailLine,
+                    style: AppTypography.caption.copyWith(
+                      color: secondaryColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      height: 1.35,
                     ),
-                    const SizedBox(height: AppSpacing.cardLineGap),
-                    Text(
-                      specsLine,
-                      style: AppTypography.caption.copyWith(
-                        color: secondaryColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        height: 1.35,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.cardLineGap),
+                  Text(
+                    specsLine,
+                    style: AppTypography.caption.copyWith(
+                      color: secondaryColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      height: 1.35,
                     ),
-                    const SizedBox(height: AppSpacing.cardPriceGap),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppCurrency.format(
-                              formatGroupedPrice(bullion.price),
-                            ),
-                            style: GoogleFonts.manrope(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              height: 1.2,
-                            ).copyWith(color: textColor),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.cardPriceGap),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppCurrency.format(
+                            formatGroupedPrice(bullion.price),
                           ),
+                          style: GoogleFonts.manrope(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ).copyWith(color: textColor),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const Icon(
-                          Icons.arrow_forward,
-                          size: 18,
-                          color: AppColors.bronze,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward,
+                        size: 18,
+                        color: AppColors.bronze,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

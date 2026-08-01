@@ -535,174 +535,170 @@ class JewelryProductListCard extends ConsumerWidget {
           boxShadow: AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                width: 112,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 140),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (item.displayImageUrl != null)
-                        AppNetworkImage(
-                          url: item.displayImageUrl!,
-                          fit: BoxFit.cover,
-                          memCacheWidth: 320,
-                          error: const CatalogMissingImage(
-                            padding: AppSpacing.s16,
-                          ),
-                        )
-                      else
-                        const CatalogMissingImage(padding: AppSpacing.s16),
-                      Positioned(
-                        top: AppSpacing.s8,
-                        right: AppSpacing.s8,
-                        child: InkWell(
-                          onTap: () => _toggleWishlist(context, ref),
-                          child: Icon(
-                            wishlisted
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            size: 18,
-                            color: wishlisted
-                                ? AppColors.terracotta
-                                : secondary,
-                          ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 112,
+              height: 140,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (item.displayImageUrl != null)
+                    AppNetworkImage(
+                      url: item.displayImageUrl!,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 320,
+                      error: const CatalogMissingImage(
+                        padding: AppSpacing.s16,
+                      ),
+                    )
+                  else
+                    const CatalogMissingImage(padding: AppSpacing.s16),
+                  Positioned(
+                    top: AppSpacing.s8,
+                    right: AppSpacing.s8,
+                    child: InkWell(
+                      onTap: () => _toggleWishlist(context, ref),
+                      child: Icon(
+                        wishlisted
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        size: 18,
+                        color: wishlisted
+                            ? AppColors.terracotta
+                            : secondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s16,
+                  AppSpacing.s16,
+                  AppSpacing.s16,
+                  AppSpacing.s16,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.category,
+                      style: AppTypography.caption.copyWith(
+                        color: secondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: AppSpacing.cardLineGap),
+                    Text(
+                      _displayTitle(item),
+                      style: AppTypography.label.copyWith(
+                        color: text,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: AppSpacing.cardLineGap),
+                    Text(
+                      metalLine,
+                      style: AppTypography.caption.copyWith(
+                        color: secondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (stoneLine != null) ...[
+                      const SizedBox(height: AppSpacing.cardLineGap),
+                      Text(
+                        stoneLine,
+                        style: AppTypography.caption.copyWith(
+                          color: secondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          height: 1.35,
                         ),
+                        maxLines: 2,
+                        softWrap: true,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    AppSpacing.s16,
-                    AppSpacing.s16,
-                    AppSpacing.s16,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        item.category,
-                        style: AppTypography.caption.copyWith(
-                          color: secondary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          height: 1.35,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: AppSpacing.cardLineGap),
-                      Text(
-                        _displayTitle(item),
-                        style: AppTypography.label.copyWith(
-                          color: text,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        softWrap: true,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: AppSpacing.cardLineGap),
-                      Text(
-                        metalLine,
-                        style: AppTypography.caption.copyWith(
-                          color: secondary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          height: 1.35,
-                        ),
-                        maxLines: 2,
-                        softWrap: true,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (stoneLine != null) ...[
-                        const SizedBox(height: AppSpacing.cardLineGap),
+                    const SizedBox(height: AppSpacing.cardPriceGap),
+                    Wrap(
+                      spacing: AppSpacing.s8,
+                      runSpacing: AppSpacing.s8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
                         Text(
-                          stoneLine,
-                          style: AppTypography.caption.copyWith(
-                            color: secondary,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            height: 1.35,
-                          ),
-                          maxLines: 2,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
+                          AppCurrency.format(formatInrPrice(item.price)),
+                          style: GoogleFonts.manrope(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ).copyWith(color: text),
                         ),
+                        _OutlineBadge(
+                          label: purityLabel,
+                          borderColor:
+                              AppColors.bronze.withValues(alpha: 0.45),
+                          textColor: AppColors.bronze,
+                        ),
+                        if (item.stoneCount > 0)
+                          _StoneCountBadge(count: item.stoneCount),
                       ],
+                    ),
+                    if (variants.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.cardPriceGap),
-                      Wrap(
-                        spacing: AppSpacing.s8,
-                        runSpacing: AppSpacing.s8,
-                        crossAxisAlignment: WrapCrossAlignment.center,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            AppCurrency.format(formatInrPrice(item.price)),
-                            style: GoogleFonts.manrope(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                            ).copyWith(color: text),
-                          ),
-                          _OutlineBadge(
-                            label: purityLabel,
-                            borderColor:
-                                AppColors.bronze.withValues(alpha: 0.45),
-                            textColor: AppColors.bronze,
-                          ),
-                          if (item.stoneCount > 0)
-                            _StoneCountBadge(count: item.stoneCount),
-                        ],
-                      ),
-                      if (variants.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.cardPriceGap),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'COLOR',
-                              style: AppTypography.caption.copyWith(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w600,
-                                color: secondary,
-                                letterSpacing: 0.5,
-                              ),
+                            'COLOR',
+                            style: AppTypography.caption.copyWith(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                              color: secondary,
+                              letterSpacing: 0.5,
                             ),
-                            const SizedBox(width: 4),
-                            for (var i = 0; i < variants.length; i++) ...[
-                              if (i > 0) const SizedBox(width: 3),
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: jewelryMetalSwatch(variants[i]),
-                                  border: Border.all(
-                                    color: i == 0 ? text : border,
-                                    width: i == 0 ? 1.5 : 1,
-                                  ),
+                          ),
+                          const SizedBox(width: 4),
+                          for (var i = 0; i < variants.length; i++) ...[
+                            if (i > 0) const SizedBox(width: 3),
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: jewelryMetalSwatch(variants[i]),
+                                border: Border.all(
+                                  color: i == 0 ? text : border,
+                                  width: i == 0 ? 1.5 : 1,
                                 ),
                               ),
-                            ],
+                            ),
                           ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

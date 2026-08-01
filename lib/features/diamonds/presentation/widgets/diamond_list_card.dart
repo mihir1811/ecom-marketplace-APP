@@ -41,75 +41,86 @@ class DiamondCardList extends ConsumerWidget {
 
     return MarketplaceProductCardShell(
       onTap: onTap,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              width: 140,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 140),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Positioned.fill(
-                      child: _DiamondListThumb(diamond: diamond),
-                    ),
-                    Positioned(
-                      bottom: AppSpacing.s8,
-                      left: AppSpacing.s8,
-                      child: WishlistToggleButton(
-                        item: WishlistItem.fromDiamond(diamond),
-                        size: 18,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: AppSpacing.s8,
-                      right: AppSpacing.s8,
-                      child: CompareAddButton(
-                        size: 32,
-                        isSelected: inCompare,
-                        onPressed: () => handleCompareToggle(
-                          context,
-                          ref,
-                          CompareItem.fromDiamond(diamond),
-                        ),
-                      ),
-                    ),
-                  ],
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            height: 140,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned.fill(
+                  child: _DiamondListThumb(diamond: diamond),
                 ),
-              ),
+                Positioned(
+                  bottom: AppSpacing.s8,
+                  left: AppSpacing.s8,
+                  child: WishlistToggleButton(
+                    item: WishlistItem.fromDiamond(diamond),
+                    size: 18,
+                  ),
+                ),
+                Positioned(
+                  bottom: AppSpacing.s8,
+                  right: AppSpacing.s8,
+                  child: CompareAddButton(
+                    size: 32,
+                    isSelected: inCompare,
+                    onPressed: () => handleCompareToggle(
+                      context,
+                      ref,
+                      CompareItem.fromDiamond(diamond),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: AppTypography.label.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        height: 1.3,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s16,
+                AppSpacing.s16,
+                AppSpacing.s16,
+                AppSpacing.s16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: AppTypography.label.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      height: 1.3,
                     ),
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.cardLineGap),
+                  Text(
+                    detail,
+                    style: AppTypography.caption.copyWith(
+                      color: secondaryColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      height: 1.35,
+                    ),
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (meta != null) ...[
                     const SizedBox(height: AppSpacing.cardLineGap),
                     Text(
-                      detail,
+                      meta,
                       style: AppTypography.caption.copyWith(
                         color: secondaryColor,
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w500,
                         height: 1.35,
                       ),
@@ -117,51 +128,36 @@ class DiamondCardList extends ConsumerWidget {
                       softWrap: true,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (meta != null) ...[
-                      const SizedBox(height: AppSpacing.cardLineGap),
-                      Text(
-                        meta,
-                        style: AppTypography.caption.copyWith(
-                          color: secondaryColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          height: 1.35,
+                  ],
+                  const SizedBox(height: AppSpacing.cardPriceGap),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppCurrency.format(
+                            formatCatalogPrice(diamond.price),
+                          ),
+                          style: GoogleFonts.manrope(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ).copyWith(color: textColor),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        softWrap: true,
-                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Icon(
+                        Icons.arrow_forward,
+                        size: 18,
+                        color: AppColors.bronze,
                       ),
                     ],
-                    const SizedBox(height: AppSpacing.cardPriceGap),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppCurrency.format(
-                              formatCatalogPrice(diamond.price),
-                            ),
-                            style: GoogleFonts.manrope(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              height: 1.2,
-                            ).copyWith(color: textColor),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward,
-                          size: 18,
-                          color: AppColors.bronze,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -60,7 +60,7 @@
     "semantic_hash": ""
   },
   "lib/app.dart": {
-    "mtime": 1784713749.0656874,
+    "mtime": 1785564379.4409935,
     "ast_hash": "49aea2613aeb78c55265d70b1af341b7",
     "semantic_hash": ""
   },
@@ -80,12 +80,12 @@
     "semantic_hash": ""
   },
   "lib/core/router/route_names.dart": {
-    "mtime": 1785411248.756606,
+    "mtime": 1785564379.131824,
     "ast_hash": "efe69a8068c9ac1bb8090109aeea1a2d",
     "semantic_hash": ""
   },
   "lib/core/theme/app_colors.dart": {
-    "mtime": 1785500308.186,
+    "mtime": 1785564379.087237,
     "ast_hash": "d74daefbcd0f7b7da304234ca958ed14",
     "semantic_hash": ""
   },
@@ -100,12 +100,12 @@
     "semantic_hash": ""
   },
   "lib/core/theme/app_theme.dart": {
-    "mtime": 1785237724.9729588,
+    "mtime": 1785564379.4409935,
     "ast_hash": "d811a941f4113e850e3bd7d2ba6c2a19",
     "semantic_hash": ""
   },
   "lib/core/theme/app_typography.dart": {
-    "mtime": 1785237811.4276977,
+    "mtime": 1785563526.0086231,
     "ast_hash": "f26ea60b2f59787862cc42b3c1b7098d",
     "semantic_hash": ""
   },
@@ -270,12 +270,12 @@
     "semantic_hash": ""
   },
   "lib/features/home/home_routes.dart": {
-    "mtime": 1784532647.8259861,
+    "mtime": 1785564379.1338196,
     "ast_hash": "ccbe1f60625f39cbd6c1c23fcb13b4f1",
-    "semantic_hash": "ccbe1f60625f39cbd6c1c23fcb13b4f1"
+    "semantic_hash": ""
   },
   "lib/features/home/presentation/screens/home_screen.dart": {
-    "mtime": 1785307136.4595075,
+    "mtime": 1785564379.425404,
     "ast_hash": "4198756530d907ce44001e756d119a40",
     "semantic_hash": ""
   },
@@ -1695,8 +1695,8 @@
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_card_grid.dart": {
-    "mtime": 1785503570.9970775,
-    "ast_hash": "5dbadcc04a5bc4ba16fd88c532562911",
+    "mtime": 1785565180.5691612,
+    "ast_hash": "3f6f47902d4456c64f1506d32ac378fd",
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_filter_drawer.dart": {
@@ -1765,8 +1765,8 @@
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/widgets/billion_card.dart": {
-    "mtime": 1785503599.382159,
-    "ast_hash": "783925b31a5c284a25c67ca9b0110f05",
+    "mtime": 1785565180.9110093,
+    "ast_hash": "6d6bd6b0f6589821dc9f136afa1b88e7",
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/widgets/bullions_filter_drawer.dart": {
@@ -1835,8 +1835,8 @@
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/widgets/jewelry_product_card.dart": {
-    "mtime": 1785503599.490904,
-    "ast_hash": "0e3a1dcedc3945f736a02eff1e11b876",
+    "mtime": 1785565136.4243312,
+    "ast_hash": "85069a547dc83223a6a6578b54183162",
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/screens/jewelry_categories_screen.dart": {
@@ -2140,8 +2140,8 @@
     "semantic_hash": ""
   },
   "lib/features/gemstones/presentation/widgets/gemstone_card.dart": {
-    "mtime": 1785503583.2796555,
-    "ast_hash": "53961da2ecd029a4e5a55034266fc56a",
+    "mtime": 1785565171.3752365,
+    "ast_hash": "9cb558666e3955ecc113ed41ef6233c3",
     "semantic_hash": ""
   },
   "lib/features/cart/application/cart_provider.dart": {
@@ -2350,23 +2350,8 @@
     "semantic_hash": ""
   },
   "lib/features/home/presentation/home_network_images.dart": {
-    "mtime": 1784722821.7480159,
+    "mtime": 1785564379.1217535,
     "ast_hash": "0d7e0b59a1ea114a4adb1fe32935ad5f",
-    "semantic_hash": ""
-  },
-  "lib/features/home/presentation/widgets/home_category_tile.dart": {
-    "mtime": 1785232446.9375768,
-    "ast_hash": "143bb4b9f913253946324f0e5bfa4250",
-    "semantic_hash": ""
-  },
-  "lib/features/home/presentation/widgets/home_hero.dart": {
-    "mtime": 1785232446.9219527,
-    "ast_hash": "8b8cb225f5a183c6f7ee1f42ff23690b",
-    "semantic_hash": ""
-  },
-  "lib/features/home/presentation/widgets/home_quick_search.dart": {
-    "mtime": 1785232446.8972204,
-    "ast_hash": "deb5c807ea69df8a655c95f1e371145f",
     "semantic_hash": ""
   },
   "lib/features/seller/presentation/screens/seller_offers_screen.dart": {
@@ -2770,8 +2755,8 @@
     "semantic_hash": ""
   },
   "lib/features/diamonds/presentation/widgets/diamond_list_card.dart": {
-    "mtime": 1785503090.8201373,
-    "ast_hash": "ab98281ae83b24ac3de046f9f164121c",
+    "mtime": 1785565148.4529681,
+    "ast_hash": "9ce774a2111143487b881541e49255c9",
     "semantic_hash": ""
   },
   "lib/core/router/navigator_keys.dart": {
@@ -2877,6 +2862,26 @@
   "lib/core/widgets/catalog_content_sized_grid.dart": {
     "mtime": 1785503520.7559104,
     "ast_hash": "d31336d7f28818656cad36a3f3e4185d",
+    "semantic_hash": ""
+  },
+  "lib/features/home/presentation/widgets/home_category_tile.dart": {
+    "mtime": 1785563566.2592907,
+    "ast_hash": "842e4e7c1010b3dd1a868444d94abf69",
+    "semantic_hash": ""
+  },
+  "lib/features/home/presentation/widgets/home_hero.dart": {
+    "mtime": 1785563566.2592907,
+    "ast_hash": "bee1c960fc70e263057218ef068810e6",
+    "semantic_hash": ""
+  },
+  "lib/features/home/presentation/widgets/home_quick_search.dart": {
+    "mtime": 1785563566.2592907,
+    "ast_hash": "6a6de4c75239f7bc66fe0cdd29923ffb",
+    "semantic_hash": ""
+  },
+  "devtools_options.yaml": {
+    "mtime": 1785563301.475077,
+    "ast_hash": "d1ff5187b1b67653e7357395895e8449",
     "semantic_hash": ""
   }
 }
