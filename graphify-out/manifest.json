@@ -1680,8 +1680,8 @@
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/screens/watches_screen.dart": {
-    "mtime": 1785234086.5446403,
-    "ast_hash": "ef5aa0c8868945f9d63097643c7a4696",
+    "mtime": 1785568688.4693675,
+    "ast_hash": "6cca71bab8f0ab9681487e3b01171ed2",
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_brand_assets.dart": {
@@ -1690,8 +1690,8 @@
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_brand_carousel.dart": {
-    "mtime": 1784713839.9240208,
-    "ast_hash": "0dbe0c3c80cba87a5399dcae2ff7b6f6",
+    "mtime": 1785567932.7800758,
+    "ast_hash": "2e001ccc484506848ee1a975e25beb84",
     "semantic_hash": ""
   },
   "lib/features/watches/presentation/widgets/watch_card_grid.dart": {
@@ -1760,8 +1760,8 @@
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/screens/bullions_screen.dart": {
-    "mtime": 1785498378.566183,
-    "ast_hash": "e7e432994f08e552086961f33edc8570",
+    "mtime": 1785568688.4693675,
+    "ast_hash": "b6ff88839b71068b43b8d1e624783003",
     "semantic_hash": ""
   },
   "lib/features/bullions/presentation/widgets/billion_card.dart": {
@@ -1825,8 +1825,8 @@
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/screens/jewelry_listing_screen.dart": {
-    "mtime": 1785234091.39001,
-    "ast_hash": "985d6376c0b0d8741507f9cddfcfe592",
+    "mtime": 1785568710.6805713,
+    "ast_hash": "b3d97158811156b2432bbe728fc3c1ff",
     "semantic_hash": ""
   },
   "lib/features/jewelry/presentation/widgets/jewelry_category_chips.dart": {

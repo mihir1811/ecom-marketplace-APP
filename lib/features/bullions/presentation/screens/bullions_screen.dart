@@ -135,55 +135,37 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
     //   }
     // });
 
-    final pinnedHeaderHeight = ref.watch(
-      bullionsFilterProvider.select(
-        (s) => s.availableVariants.isEmpty ? 122.0 : 164.0,
-      ),
-    );
-
     return CatalogScreenShell(
       scaffoldKey: _scaffoldKey,
       endDrawer: const BullionsFilterDrawer(),
       title: 'Bullions',
       onBack: _onBackPressed,
-      child: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          // Metal prices section (AURUM API) — disabled
-          // SliverToBoxAdapter(
-          //   child: Padding(
-          //     padding: const EdgeInsets.fromLTRB(
-          //       AppSpacing.s16,
-          //       AppSpacing.s12,
-          //       AppSpacing.s16,
-          //       AppSpacing.s12,
-          //     ),
-          //     child: _MetalPricesTicker(controller: _tickerController),
-          //   ),
-          // ),
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _PinnedHeaderDelegate(
-              height: pinnedHeaderHeight,
-              child: Container(
-                color: AppColors.creamBg,
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s16,
-                  0,
-                  AppSpacing.s16,
-                  0,
-                ),
-                child: _PinnedControls(
-                  searchController: _searchController,
-                  onSearchChanged: _onSearchChanged,
-                  onOpenFilters: _openFilters,
-                ),
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: AppSpacing.s8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+            child: _BullionsSearchBar(
+              searchController: _searchController,
+              onSearchChanged: _onSearchChanged,
+              onOpenFilters: _openFilters,
             ),
           ),
-          _BullionsBody(
-            onRetry: () => ref.read(bullionsListProvider.notifier).refresh(),
-            onClear: _clearFilters,
+          const SizedBox(height: AppSpacing.s12),
+          Expanded(
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                const SliverToBoxAdapter(child: _BullionsPresetsSection()),
+                const SliverToBoxAdapter(child: _BullionsHeaderRow()),
+                _BullionsBody(
+                  onRetry: () =>
+                      ref.read(bullionsListProvider.notifier).refresh(),
+                  onClear: _clearFilters,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -204,7 +186,6 @@ class _BullionsBody extends ConsumerWidget {
     final listAsync = ref.watch(bullionsListProvider);
     final viewMode = ref.watch(bullionsViewModeProvider);
     final listState = listAsync.valueOrNull;
-    final muted = AppColors.textMutedLight;
 
     if (listState == null || listState.isInitialLoading) {
       return const SliverFillRemaining(
@@ -237,64 +218,6 @@ class _BullionsBody extends ConsumerWidget {
 
     return SliverMainAxisGroup(
       slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s4,
-              AppSpacing.s16,
-              AppSpacing.s4,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Showing ${listState.bullions.length} of ${listState.totalCount} bullions',
-                    style: AppTypography.caption.copyWith(
-                      color: muted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () => showSimpleSortSheet<BullionsSortOption>(
-                    context: context,
-                    options: BullionsSortOption.values,
-                    labelOf: (o) => o.label,
-                    current: ref.read(bullionsSortProvider),
-                  ).then((selected) {
-                    if (selected != null) {
-                      ref.read(bullionsSortProvider.notifier).state = selected;
-                    }
-                  }),
-                  icon: const Icon(Icons.sort, size: 18),
-                  label: Text(
-                    'Sort by: ${ref.watch(bullionsSortProvider.select((s) => s.label))}',
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.caption.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimaryLight,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.textPrimaryLight,
-                    padding: EdgeInsets.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.s8),
-                ViewModeToggle(
-                  isGrid: viewMode == BullionsViewMode.grid,
-                  onGrid: () => ref.read(bullionsViewModeProvider.notifier).state =
-                      BullionsViewMode.grid,
-                  onList: () => ref.read(bullionsViewModeProvider.notifier).state =
-                      BullionsViewMode.list,
-                ),
-              ],
-            ),
-          ),
-        ),
         if (viewMode == BullionsViewMode.grid)
           BullionsGridSliver(
             bullions: listState.bullions,
@@ -313,8 +236,8 @@ class _BullionsBody extends ConsumerWidget {
   }
 }
 
-class _PinnedControls extends StatelessWidget {
-  const _PinnedControls({
+class _BullionsSearchBar extends ConsumerWidget {
+  const _BullionsSearchBar({
     required this.searchController,
     required this.onSearchChanged,
     required this.onOpenFilters,
@@ -325,103 +248,83 @@ class _PinnedControls extends StatelessWidget {
   final VoidCallback onOpenFilters;
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final filter = ref.watch(bullionsFilterProvider);
-        return _PinnedControlsContent(
-          filter: filter,
-          searchController: searchController,
-          onSearchChanged: onSearchChanged,
-          onOpenFilters: onOpenFilters,
-          onMetalSelected: (value) => ref
-              .read(bullionsFilterProvider.notifier)
-              .setMetalFilter(value),
-          onVariantSelected: (value) => ref
-              .read(bullionsFilterProvider.notifier)
-              .setSelectedVariant(value),
-        );
-      },
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeFilterCount = ref.watch(
+      bullionsFilterProvider.select((s) => s.activeCount),
+    );
+    final muted = AppColors.textMutedLight;
+
+    return ListingSearchFilterBar(
+      controller: searchController,
+      hintText: 'Search bullions...',
+      mutedColor: muted,
+      activeFilterCount: activeFilterCount,
+      onFilterTap: onOpenFilters,
+      onChanged: onSearchChanged,
     );
   }
 }
 
-class _PinnedControlsContent extends StatelessWidget {
-  const _PinnedControlsContent({
-    required this.filter,
-    required this.searchController,
-    required this.onSearchChanged,
-    required this.onOpenFilters,
-    required this.onMetalSelected,
-    required this.onVariantSelected,
-  });
-
-  final BullionsFilterState filter;
-  final TextEditingController searchController;
-  final ValueChanged<String> onSearchChanged;
-  final VoidCallback onOpenFilters;
-  final ValueChanged<BullionsMetalFilter> onMetalSelected;
-  final ValueChanged<String?> onVariantSelected;
+class _BullionsPresetsSection extends ConsumerWidget {
+  const _BullionsPresetsSection();
 
   @override
-  Widget build(BuildContext context) {
-    final muted = AppColors.textMutedLight;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filter = ref.watch(bullionsFilterProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'PRESETS:',
-          style: AppTypography.caption.copyWith(
-            color: AppColors.bronzeDark,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.6,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PRESETS:',
+            style: AppTypography.caption.copyWith(
+              color: AppColors.bronzeDark,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.s8),
-        _HorizontalChipRow(
-          children: [
-              for (final value in const [
-              BullionsMetalFilter.all,
-              BullionsMetalFilter.gold,
-              BullionsMetalFilter.silver,
-              BullionsMetalFilter.platinum,
-              BullionsMetalFilter.palladium,
-              BullionsMetalFilter.copper,
-            ])
-              _PresetChip(
-                label: value.label,
-                selected: filter.metalFilter == value,
-                accent: _metalAccent(value),
-                onTap: () => onMetalSelected(value),
-              ),
-          ],
-        ),
-        if (filter.availableVariants.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.s8),
           _HorizontalChipRow(
             children: [
-              for (final variant in filter.availableVariants)
-                _VariantFilterChip(
-                  label: variant,
-                  selected: filter.selectedVariant == variant,
-                  onTap: () => onVariantSelected(
-                    filter.selectedVariant == variant ? null : variant,
-                  ),
+              for (final value in const [
+                BullionsMetalFilter.all,
+                BullionsMetalFilter.gold,
+                BullionsMetalFilter.silver,
+                BullionsMetalFilter.platinum,
+                BullionsMetalFilter.palladium,
+                BullionsMetalFilter.copper,
+              ])
+                _PresetChip(
+                  label: value.label,
+                  selected: filter.metalFilter == value,
+                  accent: _metalAccent(value),
+                  onTap: () => ref
+                      .read(bullionsFilterProvider.notifier)
+                      .setMetalFilter(value),
                 ),
             ],
           ),
+          if (filter.availableVariants.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.s8),
+            _HorizontalChipRow(
+              children: [
+                for (final variant in filter.availableVariants)
+                  _VariantFilterChip(
+                    label: variant,
+                    selected: filter.selectedVariant == variant,
+                    onTap: () => ref
+                        .read(bullionsFilterProvider.notifier)
+                        .setSelectedVariant(
+                          filter.selectedVariant == variant ? null : variant,
+                        ),
+                  ),
+              ],
+            ),
+          ],
         ],
-        const SizedBox(height: AppSpacing.s8),
-        ListingSearchFilterBar(
-          controller: searchController,
-          hintText: 'Search bullions...',
-          mutedColor: muted,
-          activeFilterCount: filter.activeCount,
-          onFilterTap: onOpenFilters,
-          onChanged: onSearchChanged,
-        ),
-      ],
+      ),
     );
   }
 
@@ -437,33 +340,96 @@ class _PinnedControlsContent extends StatelessWidget {
   }
 }
 
-class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
-  const _PinnedHeaderDelegate({
-    required this.height,
-    required this.child,
-  });
-
-  final double height;
-  final Widget child;
+class _BullionsHeaderRow extends ConsumerWidget {
+  const _BullionsHeaderRow();
 
   @override
-  double get minExtent => height;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sortLabel = ref.watch(bullionsSortProvider.select((s) => s.label));
+    final isGrid = ref.watch(
+      bullionsViewModeProvider.select((mode) => mode == BullionsViewMode.grid),
+    );
+    final countLabel = ref.watch(
+      bullionsListProvider.select((value) {
+        final listState = value.valueOrNull;
+        return listState == null || listState.isInitialLoading
+            ? 'Loading…'
+            : 'Showing ${listState.totalCount} Products';
+      }),
+    );
 
-  @override
-  double get maxExtent => height;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return child;
-  }
-
-  @override
-  bool shouldRebuild(covariant _PinnedHeaderDelegate oldDelegate) {
-    return oldDelegate.height != height || oldDelegate.child != child;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            AppSpacing.s8,
+            AppSpacing.s16,
+            AppSpacing.s4,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: TextButton.icon(
+                  onPressed: () => showSimpleSortSheet<BullionsSortOption>(
+                    context: context,
+                    options: BullionsSortOption.values,
+                    labelOf: (o) => o.label,
+                    current: ref.read(bullionsSortProvider),
+                  ).then((selected) {
+                    if (selected != null) {
+                      ref.read(bullionsSortProvider.notifier).state = selected;
+                    }
+                  }),
+                  icon: const Icon(Icons.sort, size: 18),
+                  label: Text(
+                    'Sort by: $sortLabel',
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.textPrimaryLight,
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ),
+              ViewModeToggle(
+                isGrid: isGrid,
+                onGrid: () =>
+                    ref.read(bullionsViewModeProvider.notifier).state =
+                        BullionsViewMode.grid,
+                onList: () =>
+                    ref.read(bullionsViewModeProvider.notifier).state =
+                        BullionsViewMode.list,
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            0,
+            AppSpacing.s16,
+            AppSpacing.s8,
+          ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              countLabel,
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textMutedLight,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 

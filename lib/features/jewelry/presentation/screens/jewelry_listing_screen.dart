@@ -95,8 +95,6 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.s12),
-          const JewelryCategoryChips(),
-          const _JewelryHeaderRow(),
           Expanded(
             child: _JewelryResultsView(
               scrollController: _scrollController,
@@ -247,28 +245,55 @@ class _JewelryResultsView extends ConsumerWidget {
     );
 
     if (listState == null || listState.isInitialLoading) {
-      return const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
+      return CustomScrollView(
+        controller: scrollController,
+        slivers: const [
+          SliverToBoxAdapter(child: JewelryCategoryChips()),
+          SliverToBoxAdapter(child: _JewelryHeaderRow()),
+          SliverFillRemaining(
+            child: Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ],
       );
     }
 
     if (listState.errorMessage != null && listState.items.isEmpty) {
-      return CatalogErrorState(
-        message: listState.errorMessage ?? 'Something went wrong',
-        onRetry: () => ref.read(jewelryListProvider.notifier).refresh(),
+      return CustomScrollView(
+        controller: scrollController,
+        slivers: [
+          const SliverToBoxAdapter(child: JewelryCategoryChips()),
+          const SliverToBoxAdapter(child: _JewelryHeaderRow()),
+          SliverFillRemaining(
+            child: CatalogErrorState(
+              message: listState.errorMessage ?? 'Something went wrong',
+              onRetry: () => ref.read(jewelryListProvider.notifier).refresh(),
+            ),
+          ),
+        ],
       );
     }
 
     if (listState.items.isEmpty) {
-      return CatalogEmptyState(
-        icon: Icons.diamond_outlined,
-        title: 'No products found',
-        message: 'Try clearing filters or adjusting search.',
-        actionLabel: 'Clear Filters',
-        onAction: () {
-          ref.read(jewelryFilterProvider.notifier).reset();
-          searchController.clear();
-        },
+      return CustomScrollView(
+        controller: scrollController,
+        slivers: [
+          const SliverToBoxAdapter(child: JewelryCategoryChips()),
+          const SliverToBoxAdapter(child: _JewelryHeaderRow()),
+          SliverFillRemaining(
+            child: CatalogEmptyState(
+              icon: Icons.diamond_outlined,
+              title: 'No products found',
+              message: 'Try clearing filters or adjusting search.',
+              actionLabel: 'Clear Filters',
+              onAction: () {
+                ref.read(jewelryFilterProvider.notifier).reset();
+                searchController.clear();
+              },
+            ),
+          ),
+        ],
       );
     }
 
@@ -277,6 +302,8 @@ class _JewelryResultsView extends ConsumerWidget {
       child: CustomScrollView(
         controller: scrollController,
         slivers: [
+          const SliverToBoxAdapter(child: JewelryCategoryChips()),
+          const SliverToBoxAdapter(child: _JewelryHeaderRow()),
           if (isGrid)
             JewelryGridSliver(
               items: listState.items,

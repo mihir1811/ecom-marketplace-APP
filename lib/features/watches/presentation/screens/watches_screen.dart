@@ -90,17 +90,14 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
-                  const SliverToBoxAdapter(child: WatchBrandCarousel()),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _StickyControlsDelegate(
-                      height: 104,
-                      child: const ColoredBox(
-                        color: AppColors.creamBg,
-                        child: _WatchStickyControls(),
-                      ),
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: AppSpacing.s12),
+                      child: WatchCategoryChips(),
                     ),
                   ),
+                  const SliverToBoxAdapter(child: WatchBrandCarousel()),
+                  const SliverToBoxAdapter(child: _WatchHeaderRow()),
                   _WatchResultsSliver(
                     searchController: _searchController,
                   ),
@@ -142,8 +139,8 @@ class _WatchSearchBar extends ConsumerWidget {
   }
 }
 
-class _WatchStickyControls extends ConsumerWidget {
-  const _WatchStickyControls();
+class _WatchHeaderRow extends ConsumerWidget {
+  const _WatchHeaderRow();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -151,64 +148,89 @@ class _WatchStickyControls extends ConsumerWidget {
     final isGrid = ref.watch(
       watchViewModeProvider.select((mode) => mode == WatchViewMode.grid),
     );
+    final countLabel = ref.watch(
+      watchListProvider.select((value) {
+        final listState = value.valueOrNull;
+        return listState == null || listState.isInitialLoading
+            ? 'Loading…'
+            : 'Showing ${listState.totalCount} Products';
+      }),
+    );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: AppSpacing.s12),
-          child: WatchCategoryChips(),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s16,
-            0,
-            AppSpacing.s16,
-            AppSpacing.s8,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton.icon(
-                onPressed: () => showSimpleSortSheet<WatchSortOption>(
-                  context: context,
-                  options: WatchSortOption.values,
-                  labelOf: (o) => o.label,
-                  current: ref.read(watchSortProvider),
-                ).then((selected) {
-                  if (selected != null) {
-                    ref.read(watchSortProvider.notifier).state = selected;
-                  }
-                }),
-                icon: const Icon(Icons.sort, size: 18),
-                label: Text(
-                  'Sort by: $sortLabel',
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.caption.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimaryLight,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s16,
+              AppSpacing.s8,
+              AppSpacing.s16,
+              AppSpacing.s4,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: TextButton.icon(
+                    onPressed: () => showSimpleSortSheet<WatchSortOption>(
+                      context: context,
+                      options: WatchSortOption.values,
+                      labelOf: (o) => o.label,
+                      current: ref.read(watchSortProvider),
+                    ).then((selected) {
+                      if (selected != null) {
+                        ref.read(watchSortProvider.notifier).state = selected;
+                      }
+                    }),
+                    icon: const Icon(Icons.sort, size: 18),
+                    label: Text(
+                      'Sort by: $sortLabel',
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimaryLight,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textPrimaryLight,
+                      padding: EdgeInsets.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                 ),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.textPrimaryLight,
-                  padding: EdgeInsets.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
+                ViewModeToggle(
+                  isGrid: isGrid,
+                  onGrid: () =>
+                      ref.read(watchViewModeProvider.notifier).state =
+                          WatchViewMode.grid,
+                  onList: () =>
+                      ref.read(watchViewModeProvider.notifier).state =
+                          WatchViewMode.list,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s16,
+              0,
+              AppSpacing.s16,
+              AppSpacing.s8,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                countLabel,
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textMutedLight,
                 ),
               ),
-              ViewModeToggle(
-                isGrid: isGrid,
-                onGrid: () =>
-                    ref.read(watchViewModeProvider.notifier).state =
-                        WatchViewMode.grid,
-                onList: () =>
-                    ref.read(watchViewModeProvider.notifier).state =
-                        WatchViewMode.list,
-              ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -279,32 +301,3 @@ class _WatchResultsSliver extends ConsumerWidget {
   }
 }
 
-class _StickyControlsDelegate extends SliverPersistentHeaderDelegate {
-  const _StickyControlsDelegate({
-    required this.height,
-    required this.child,
-  });
-
-  final double height;
-  final Widget child;
-
-  @override
-  double get minExtent => height;
-
-  @override
-  double get maxExtent => height;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return child;
-  }
-
-  @override
-  bool shouldRebuild(covariant _StickyControlsDelegate oldDelegate) {
-    return oldDelegate.height != height || oldDelegate.child != child;
-  }
-}

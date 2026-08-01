@@ -16,7 +16,9 @@ class WatchBrandCarousel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(watchFilterProvider.select((s) => s.brands));
-    return Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s16),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
@@ -104,6 +106,7 @@ class WatchBrandCarousel extends ConsumerWidget {
           ),
         ),
       ],
+      ),
     );
   }
 }
@@ -179,7 +182,7 @@ class _CategoryChip extends StatelessWidget {
         duration: const Duration(milliseconds: 140),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.s16,
-          vertical: AppSpacing.s12,
+          vertical: 8,
         ),
         decoration: BoxDecoration(
           color: selected
@@ -192,15 +195,17 @@ class _CategoryChip extends StatelessWidget {
                 : (AppColors.warmBorder),
           ),
         ),
-        child: Text(
-          label,
-          style: AppTypography.caption.copyWith(
-            color: selected
-                ? AppColors.warmWhite
-                : (AppColors.textPrimaryLight),
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-            letterSpacing: 0.4,
+        child: Center(
+          child: Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              color: selected
+                  ? AppColors.warmWhite
+                  : (AppColors.textPrimaryLight),
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              letterSpacing: 0.4,
+            ),
           ),
         ),
       ),
