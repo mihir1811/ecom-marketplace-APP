@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../diamonds/domain/models/diamond.dart';
 import '../../../diamonds/domain/models/diamond_display.dart';
 import '../models/product_detail.dart';
@@ -36,6 +37,8 @@ ProductDetail diamondProductDetail(Diamond d) {
   return ProductDetail(
     id: d.id,
     segment: segment,
+    apiProductType:
+        d.isMelee ? CartProductType.meleeDiamond : CartProductType.diamond,
     title: '$carat ct $shape',
     subtitle: subtitleParts.isEmpty
         ? DiamondDisplay.notAvailable

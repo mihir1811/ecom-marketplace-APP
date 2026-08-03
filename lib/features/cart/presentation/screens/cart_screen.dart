@@ -13,13 +13,15 @@ import '../widgets/cart_items_section.dart';
 import '../widgets/cart_promo_section.dart';
 import '../widgets/cart_totals_section.dart';
 
-/// Buyer cart — shell only; sections watch their own cart slices.
+/// Buyer cart — live API; sections watch their own cart slices.
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isLoading = ref.watch(cartIsLoadingProvider);
     final isEmpty = ref.watch(cartIsEmptyProvider);
+    final error = ref.watch(cartErrorProvider);
 
     return AppScaffold(
       backgroundColor: AppColors.creamBg,
@@ -27,27 +29,39 @@ class CartScreen extends ConsumerWidget {
         title: const _CartAppBarTitle(),
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            onPressed: () => ref.read(cartProvider.notifier).refresh(),
+          ),
+          IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => context.pop(),
           ),
         ],
       ),
-      body: isEmpty
-          ? const _CartEmptyState()
-          : ListView(
-              padding: const EdgeInsets.all(AppSpacing.s16),
-              children: const [
-                CartItemsSection(),
-                CartAddressSection(),
-                SizedBox(height: AppSpacing.s12),
-                CartPromoSection(),
-                SizedBox(height: AppSpacing.s16),
-                CartTotalsSection(),
-                SizedBox(height: AppSpacing.s24),
-                CartCheckoutButton(),
-                SizedBox(height: AppSpacing.s24),
-              ],
-            ),
+      body: isLoading && isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : error != null && isEmpty
+              ? _CartErrorState(
+                  message: error,
+                  onRetry: () => ref.read(cartProvider.notifier).refresh(),
+                )
+              : isEmpty
+                  ? const _CartEmptyState()
+                  : ListView(
+                      padding: const EdgeInsets.all(AppSpacing.s16),
+                      children: const [
+                        CartItemsSection(),
+                        CartAddressSection(),
+                        SizedBox(height: AppSpacing.s12),
+                        CartPromoSection(),
+                        SizedBox(height: AppSpacing.s16),
+                        CartTotalsSection(),
+                        SizedBox(height: AppSpacing.s24),
+                        CartCheckoutButton(),
+                        SizedBox(height: AppSpacing.s24),
+                      ],
+                    ),
     );
   }
 }
@@ -107,6 +121,30 @@ class _CartEmptyState extends StatelessWidget {
             child: const Text('Continue shopping'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CartErrorState extends StatelessWidget {
+  const _CartErrorState({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.s24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(message, textAlign: TextAlign.center, style: AppTypography.body),
+            const SizedBox(height: AppSpacing.s16),
+            FilledButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ),
       ),
     );
   }

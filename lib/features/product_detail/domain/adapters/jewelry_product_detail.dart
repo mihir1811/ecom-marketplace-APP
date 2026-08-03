@@ -4,6 +4,7 @@ import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../jewelry/domain/models/jewelry.dart';
 import '../models/product_detail.dart';
 
@@ -12,6 +13,7 @@ ProductDetail jewelryProductDetail(Jewelry j) {
   return ProductDetail(
     id: j.id,
     segment: ProductSegment.jewelry,
+    apiProductType: CartProductType.jewellery,
     title: j.name,
     subtitle: '${j.category} · ${j.metalPurity} ${j.metalColor}',
     referenceLabel: 'SKU',

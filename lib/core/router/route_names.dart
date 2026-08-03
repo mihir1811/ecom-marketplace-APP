@@ -17,6 +17,9 @@ class AppRouteNames {
   static const String watches = '/watches';
   static const String comparison = '/comparison';
   static const String cart = '/cart';
+  static const String paymentConfirmation = '/payment/confirmation/:orderId';
+  static String paymentConfirmationPath(String orderId) =>
+      '/payment/confirmation/$orderId';
   static const String brandWatch = '/watches/brand/:brandName';
   static const String bullions = '/bullions';
   static const String jewelry = '/jewelry';
@@ -35,6 +38,8 @@ class AppRouteNames {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+  static const String verifyOtp = '/verify-otp';
+  static const String resetPassword = '/reset-password';
 
   // Buyer (home drawer) — buyer paths; shared UI widgets may be reused
   static const String buyerProfile = '/buyer/profile';

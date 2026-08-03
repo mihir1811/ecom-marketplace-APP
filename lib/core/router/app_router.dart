@@ -14,6 +14,7 @@ import '../../features/buyer/buyer_routes.dart';
 import '../../features/seller/seller_routes.dart';
 import '../../features/comparison/comparison_routes.dart';
 import '../../features/cart/cart_routes.dart';
+import '../../features/payment/payment_routes.dart';
 import '../../features/info/info_routes.dart';
 
 export 'navigator_keys.dart';
@@ -38,5 +39,6 @@ final GoRouter appRouter = GoRouter(
     ...diamondViewerRoutes,
     ...comparisonRoutes,
     ...cartRoutes,
+    ...paymentRoutes,
   ],
 );

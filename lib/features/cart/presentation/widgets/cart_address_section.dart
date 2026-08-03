@@ -1,30 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/cart_provider.dart';
+import '../../domain/models/delivery_address.dart';
 import 'cart_section_card.dart';
 import 'delivery_address_sheet.dart';
 
-/// Delivery address block; rebuilds only when address changes.
+/// Delivery address block; create + select via delivery-options APIs.
 class CartAddressSection extends ConsumerWidget {
   const CartAddressSection({super.key});
 
-  Future<void> _openAddress(BuildContext context, WidgetRef ref) async {
-    final current = ref.read(cartAddressProvider);
-    final saved = await showDeliveryAddressSheet(context, initial: current);
-    if (saved != null) {
-      ref.read(cartProvider.notifier).setAddress(saved);
+  Future<void> _addNewAddress(BuildContext context, WidgetRef ref) async {
+    // Blank form — never prefill from a selected address.
+    final saved = await showDeliveryAddressSheet(context);
+    if (saved == null) return;
+    final result =
+        await ref.read(cartProvider.notifier).saveAndSelectAddress(saved);
+    if (!context.mounted) return;
+    if (result case ResultFailure(:final failure)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(failure.message)),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Address saved')),
+      );
+    }
+  }
+
+  Future<void> _selectExisting(
+    BuildContext context,
+    WidgetRef ref,
+    DeliveryAddress address,
+  ) async {
+    final id = address.id;
+    if (id == null || id.isEmpty) return;
+    final result =
+        await ref.read(cartProvider.notifier).selectExistingAddress(id);
+    if (!context.mounted) return;
+    if (result case ResultFailure(:final failure)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(failure.message)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final address = ref.watch(cartAddressProvider);
-    final hasAddress = address != null;
+    final addresses = ref.watch(cartAddressesProvider);
+    final mutating = ref.watch(cartIsMutatingProvider);
     final muted = AppColors.textMutedLight;
+
+    // Prefer full list; ensure selected address is visible even if list lagged.
+    final list = <DeliveryAddress>[
+      ...addresses,
+      if (address != null &&
+          address.id != null &&
+          !addresses.any((a) => a.id == address.id))
+        address,
+    ];
 
     return CartSectionCard(
       child: Column(
@@ -44,26 +83,65 @@ class CartAddressSection extends ConsumerWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const Spacer(),
-              TextButton(
-                onPressed: () => _openAddress(context, ref),
-                child: Text(
-                  hasAddress ? 'Edit' : 'Add address',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.bronze,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
             ],
           ),
-          Text(
-            hasAddress
-                ? '${address.fullName}\n${address.summaryLine}'
-                : 'Add a delivery address to proceed to payment.',
-            style: AppTypography.caption.copyWith(
-              color: muted,
-              height: 1.4,
+          const SizedBox(height: AppSpacing.s12),
+          if (list.isEmpty)
+            Text(
+              'No delivery address yet. Add one to proceed to payment.',
+              style: AppTypography.caption.copyWith(
+                color: muted,
+                height: 1.4,
+              ),
+            )
+          else ...[
+            Text(
+              'Saved addresses',
+              style: AppTypography.caption.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.s8),
+            ...list.map((a) {
+              final selected = a.id != null && a.id == address?.id;
+              return ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                  color: AppColors.bronze,
+                  size: 20,
+                ),
+                title: Text(
+                  a.label?.isNotEmpty == true ? a.label! : a.fullName,
+                  style: AppTypography.caption.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: Text(
+                  '${a.fullName}\n${a.summaryLine}',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.caption.copyWith(color: muted),
+                ),
+                onTap: mutating || selected
+                    ? null
+                    : () => _selectExisting(context, ref, a),
+              );
+            }),
+          ],
+          const SizedBox(height: AppSpacing.s12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: mutating ? null : () => _addNewAddress(context, ref),
+              icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+              label: const Text('Add new address'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.charcoal,
+                side: const BorderSide(color: AppColors.warmBorder),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
             ),
           ),
         ],

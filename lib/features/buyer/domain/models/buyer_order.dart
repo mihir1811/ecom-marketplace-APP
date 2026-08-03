@@ -1,35 +1,24 @@
+/// Buyer-facing order summary (mapped from payment APIs).
 class BuyerOrder {
   const BuyerOrder({
     required this.id,
     required this.productLabel,
     required this.sellerName,
     required this.status,
-    required this.carrier,
-    required this.location,
-    required this.trackingNumber,
-    required this.updatedAt,
-    required this.timeline,
+    required this.amountInr,
+    required this.amountUsd,
+    required this.currency,
+    this.createdAt,
+    this.itemCount = 0,
   });
 
   final String id;
   final String productLabel;
   final String sellerName;
   final String status;
-  final String carrier;
-  final String location;
-  final String trackingNumber;
-  final String updatedAt;
-  final List<BuyerOrderTimelineEntry> timeline;
-}
-
-class BuyerOrderTimelineEntry {
-  const BuyerOrderTimelineEntry({
-    required this.title,
-    required this.subtitle,
-    required this.at,
-  });
-
-  final String title;
-  final String subtitle;
-  final String at;
+  final double amountInr;
+  final double amountUsd;
+  final String currency;
+  final DateTime? createdAt;
+  final int itemCount;
 }

@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../watches/domain/models/watch.dart';
 import '../models/product_detail.dart';
 
@@ -19,6 +20,7 @@ ProductDetail watchProductDetail(Watch w) {
   return ProductDetail(
     id: w.id,
     segment: ProductSegment.watch,
+    apiProductType: CartProductType.watch,
     title: '${w.brand} ${w.model}',
     subtitle: '${w.collection} · ${w.year}',
     referenceLabel: 'Stock ID',

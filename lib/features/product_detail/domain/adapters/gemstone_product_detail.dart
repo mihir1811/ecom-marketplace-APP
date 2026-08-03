@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
 import '../models/product_detail.dart';
 
@@ -20,6 +21,7 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
   return ProductDetail(
     id: g.id,
     segment: ProductSegment.gemstone,
+    apiProductType: CartProductType.gemstone,
     title: '$carat ct ${g.type}',
     subtitle: [
       if (g.origin.isNotEmpty) '${g.origin} origin',

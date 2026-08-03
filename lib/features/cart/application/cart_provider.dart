@@ -1,166 +1,475 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_providers.dart';
+import '../../../core/error/failure.dart';
+import '../../../core/error/result.dart';
+import '../data/mappers/cart_mapper.dart';
+import '../data/repositories/cart_repository_impl.dart';
+import '../data/repositories/delivery_repository_impl.dart';
 import '../domain/models/cart_item.dart';
+import '../domain/models/cart_summary.dart';
 import '../domain/models/delivery_address.dart';
+import '../domain/repositories/cart_repository.dart';
+import '../domain/repositories/delivery_repository.dart';
 
-/// Cart totals derived from line items + fixed fee schedule (mock).
+/// Display totals derived from cart summary + optional FX rate.
 class CartTotals {
   const CartTotals({
-    required this.subtotalInr,
     required this.subtotalUsd,
-    required this.gstInr,
-    required this.transactionFeeInr,
-    required this.platformFeeInr,
-    required this.totalInr,
+    required this.discountedSubtotalUsd,
+    required this.totalDiscountUsd,
+    required this.promoDiscountUsd,
+    required this.automaticDiscountUsd,
+    this.estimatedTotalInr,
+    this.exchangeRate,
   });
 
-  final double subtotalInr;
   final double subtotalUsd;
-  final double gstInr;
-  final double transactionFeeInr;
-  final double platformFeeInr;
-  final double totalInr;
+  final double discountedSubtotalUsd;
+  final double totalDiscountUsd;
+  final double promoDiscountUsd;
+  final double automaticDiscountUsd;
+  final double? estimatedTotalInr;
+  final double? exchangeRate;
+
+  static const empty = CartTotals(
+    subtotalUsd: 0,
+    discountedSubtotalUsd: 0,
+    totalDiscountUsd: 0,
+    promoDiscountUsd: 0,
+    automaticDiscountUsd: 0,
+  );
+
+  factory CartTotals.fromSummary(CartSummary summary, {double? rate}) {
+    final usd = summary.discountedSubtotal;
+    return CartTotals(
+      subtotalUsd: summary.subtotal,
+      discountedSubtotalUsd: usd,
+      totalDiscountUsd: summary.totalDiscount,
+      promoDiscountUsd: summary.promoDiscountTotal,
+      automaticDiscountUsd: summary.automaticDiscountTotal,
+      exchangeRate: rate,
+      estimatedTotalInr: rate == null ? null : usd * rate,
+    );
+  }
 
   @override
   bool operator ==(Object other) {
     return other is CartTotals &&
-        other.subtotalInr == subtotalInr &&
         other.subtotalUsd == subtotalUsd &&
-        other.gstInr == gstInr &&
-        other.transactionFeeInr == transactionFeeInr &&
-        other.platformFeeInr == platformFeeInr &&
-        other.totalInr == totalInr;
+        other.discountedSubtotalUsd == discountedSubtotalUsd &&
+        other.totalDiscountUsd == totalDiscountUsd &&
+        other.promoDiscountUsd == promoDiscountUsd &&
+        other.automaticDiscountUsd == automaticDiscountUsd &&
+        other.estimatedTotalInr == estimatedTotalInr &&
+        other.exchangeRate == exchangeRate;
   }
 
   @override
   int get hashCode => Object.hash(
-        subtotalInr,
         subtotalUsd,
-        gstInr,
-        transactionFeeInr,
-        platformFeeInr,
-        totalInr,
+        discountedSubtotalUsd,
+        totalDiscountUsd,
+        promoDiscountUsd,
+        automaticDiscountUsd,
+        estimatedTotalInr,
+        exchangeRate,
       );
 }
 
+/// Cart screen state backed by live cart/delivery APIs.
 class CartState {
   const CartState({
     this.items = const [],
+    this.summary = CartSummary.empty,
     this.address,
-    this.promoCode,
-    this.promoApplied = false,
+    this.addresses = const [],
+    this.canCheckout = false,
+    this.isLoading = false,
+    this.isMutating = false,
+    this.errorMessage,
+    this.exchangeRate,
   });
 
   final List<CartItem> items;
+  final CartSummary summary;
   final DeliveryAddress? address;
-  final String? promoCode;
-  final bool promoApplied;
+  final List<DeliveryAddress> addresses;
+  final bool canCheckout;
+  final bool isLoading;
+  final bool isMutating;
+  final String? errorMessage;
+  final double? exchangeRate;
 
   int get count => items.length;
   bool get isEmpty => items.isEmpty;
   bool get hasAddress => address != null;
 
-  CartTotals get totals {
-    final subInr = items.fold<double>(0, (s, i) => s + i.priceInr);
-    final subUsd = items.fold<double>(0, (s, i) => s + i.priceUsd);
-    final gst = subInr * 0.03;
-    final txn = subInr * 0.02245;
-    const platform = 100.0;
-    var total = subInr + gst + txn + platform;
-    if (promoApplied) total = (total * 0.95).clamp(0, double.infinity);
-    return CartTotals(
-      subtotalInr: subInr,
-      subtotalUsd: subUsd,
-      gstInr: gst,
-      transactionFeeInr: txn,
-      platformFeeInr: platform,
-      totalInr: total,
-    );
+  CartTotals get totals =>
+      CartTotals.fromSummary(summary, rate: exchangeRate);
+
+  ({String? code, bool applied}) get promo {
+    final codes = summary.appliedPromoCodes;
+    if (codes.isEmpty) return (code: null, applied: false);
+    return (code: codes.first.code, applied: true);
   }
 
   CartState copyWith({
     List<CartItem>? items,
+    CartSummary? summary,
     DeliveryAddress? address,
-    String? promoCode,
-    bool? promoApplied,
+    List<DeliveryAddress>? addresses,
+    bool? canCheckout,
+    bool? isLoading,
+    bool? isMutating,
+    String? errorMessage,
+    double? exchangeRate,
     bool clearAddress = false,
-    bool clearPromo = false,
+    bool clearError = false,
   }) {
     return CartState(
       items: items ?? this.items,
+      summary: summary ?? this.summary,
       address: clearAddress ? null : (address ?? this.address),
-      promoCode: clearPromo ? null : (promoCode ?? this.promoCode),
-      promoApplied: promoApplied ?? this.promoApplied,
+      addresses: addresses ?? this.addresses,
+      canCheckout: canCheckout ?? this.canCheckout,
+      isLoading: isLoading ?? this.isLoading,
+      isMutating: isMutating ?? this.isMutating,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      exchangeRate: exchangeRate ?? this.exchangeRate,
     );
   }
 }
 
 class CartNotifier extends Notifier<CartState> {
+  CancelToken? _loadToken;
+
+  CartRepository get _cart => ref.read(cartRepositoryProvider);
+  DeliveryRepository get _delivery => ref.read(deliveryRepositoryProvider);
+
   @override
   CartState build() {
-    return const CartState(
-      items: [
-        CartItem(
-          id: 'cart-dm-1',
-          title: '0.25ct pear',
-          category: 'Diamond',
-          priceUsd: 27.50,
-          priceInr: 2648,
-          shape: 'Pear',
-        ),
-        CartItem(
-          id: 'cart-dm-2',
-          title: '0.23ct marquise',
-          category: 'Diamond',
-          priceUsd: 25.30,
-          priceInr: 2433,
-          shape: 'Marquise',
-        ),
-      ],
-    );
+    ref.onDispose(() {
+      _loadToken?.cancel();
+      _loadToken = null;
+    });
+
+    ref.listen(authProvider, (prev, next) {
+      if (next.isAuthenticated) {
+        refresh();
+      } else if (prev?.isAuthenticated == true && !next.isAuthenticated) {
+        state = const CartState();
+      }
+    });
+
+    Future.microtask(() {
+      if (ref.read(authProvider).isAuthenticated) {
+        refresh();
+      }
+    });
+
+    return const CartState(isLoading: true);
   }
 
-  bool contains(String id) => state.items.any((e) => e.id == id);
-
-  /// Adds [item] unless the same product is already in the cart.
-  /// Returns `true` when the cart changed.
-  bool addItem(CartItem item) {
-    if (contains(item.id)) return false;
-    state = state.copyWith(items: [...state.items, item]);
-    return true;
-  }
-
-  void removeItem(String id) {
-    state = state.copyWith(
-      items: state.items.where((e) => e.id != id).toList(),
-    );
-  }
-
-  void setAddress(DeliveryAddress address) {
-    state = state.copyWith(address: address);
-  }
-
-  void clearAddress() {
-    state = state.copyWith(clearAddress: true);
-  }
-
-  /// Returns true when the mock promo is accepted.
-  bool applyPromo(String code) {
-    final normalized = code.trim().toUpperCase();
-    if (normalized.isEmpty) {
-      state = state.copyWith(promoApplied: false, clearPromo: true);
-      return false;
+  Future<void> refresh() async {
+    if (!ref.read(authProvider).isAuthenticated) {
+      state = const CartState();
+      return;
     }
-    final ok = normalized == 'GEM5' || normalized == 'SAVE5';
-    state = state.copyWith(
-      promoCode: normalized,
-      promoApplied: ok,
+
+    _loadToken?.cancel();
+    final token = CancelToken();
+    _loadToken = token;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final results = await Future.wait([
+      _cart.getCart(cancelToken: token),
+      _cart.getSummary(cancelToken: token),
+      _delivery.getCartDelivery(cancelToken: token),
+      _delivery.listAddresses(cancelToken: token),
+    ]);
+
+    if (token.isCancelled) return;
+
+    final cartResult = results[0] as Result<List<CartItem>, Failure>;
+    final summaryResult = results[1] as Result<CartSummary, Failure>;
+    final deliveryResult = results[2] as Result<CartDeliveryState, Failure>;
+    final addressesResult = results[3] as Result<List<DeliveryAddress>, Failure>;
+
+    Failure? firstFailure;
+    var items = <CartItem>[];
+    var summary = CartSummary.empty;
+    DeliveryAddress? address;
+    var addresses = <DeliveryAddress>[];
+    var canCheckout = false;
+
+    switch (cartResult) {
+      case Success(:final value):
+        items = value;
+      case ResultFailure(:final failure):
+        if (failure is NetworkFailure && failure.isCancelled) return;
+        firstFailure = failure;
+    }
+
+    switch (summaryResult) {
+      case Success(:final value):
+        summary = value;
+      case ResultFailure(:final failure):
+        if (failure is NetworkFailure && failure.isCancelled) return;
+        firstFailure ??= failure;
+    }
+
+    switch (deliveryResult) {
+      case Success(:final value):
+        address = value.selectedAddress;
+        addresses = value.addresses;
+        canCheckout = value.canCheckout;
+      case ResultFailure(:final failure):
+        if (failure is NetworkFailure && failure.isCancelled) return;
+        // Delivery is optional for cart browsing; keep cart items.
+        firstFailure ??= failure;
+    }
+
+    switch (addressesResult) {
+      case Success(:final value):
+        if (value.isNotEmpty) {
+          addresses = _mergeAddresses(value, addresses);
+        }
+      case ResultFailure(:final failure):
+        if (failure is NetworkFailure && failure.isCancelled) return;
+    }
+
+    if (firstFailure != null && items.isEmpty) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: firstFailure.message,
+      );
+      return;
+    }
+
+    state = CartState(
+      items: CartMapper.mergeSummaryPrices(items, summary),
+      summary: summary,
+      address: address,
+      addresses: addresses,
+      canCheckout: canCheckout || address != null,
+      isLoading: false,
+      exchangeRate: state.exchangeRate,
     );
-    return ok;
   }
 
-  void clear() {
-    state = const CartState();
+  List<DeliveryAddress> _mergeAddresses(
+    List<DeliveryAddress> primary,
+    List<DeliveryAddress> secondary,
+  ) {
+    final byId = <String, DeliveryAddress>{};
+    for (final a in [...secondary, ...primary]) {
+      final id = a.id;
+      if (id == null || id.isEmpty) continue;
+      byId[id] = a;
+    }
+    return byId.values.toList(growable: false);
+  }
+
+  Future<Result<void, Failure>> addProduct({
+    required String productId,
+    required String productType,
+    int quantity = 1,
+    Map<String, dynamic>? specifications,
+  }) async {
+    state = state.copyWith(isMutating: true, clearError: true);
+    final result = await _cart.addItem(
+      productId: productId,
+      productType: productType,
+      quantity: quantity,
+      specifications: specifications,
+    );
+    switch (result) {
+      case Success():
+        await refresh();
+        state = state.copyWith(isMutating: false);
+        return Result.success(null);
+      case ResultFailure(:final failure):
+        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        return Result.failure(failure);
+    }
+  }
+
+  Future<Result<void, Failure>> removeItem(String cartId) async {
+    state = state.copyWith(isMutating: true, clearError: true);
+    final result = await _cart.removeItem(cartId: cartId);
+    switch (result) {
+      case Success():
+        await refresh();
+        state = state.copyWith(isMutating: false);
+        return Result.success(null);
+      case ResultFailure(:final failure):
+        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        return Result.failure(failure);
+    }
+  }
+
+  Future<Result<void, Failure>> updateQuantity({
+    required String cartId,
+    required int quantity,
+  }) async {
+    state = state.copyWith(isMutating: true, clearError: true);
+    final result = await _cart.updateQuantity(
+      cartId: cartId,
+      quantity: quantity,
+    );
+    switch (result) {
+      case Success():
+        await refresh();
+        state = state.copyWith(isMutating: false);
+        return Result.success(null);
+      case ResultFailure(:final failure):
+        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        return Result.failure(failure);
+    }
+  }
+
+  Future<Result<void, Failure>> applyPromo(String code) async {
+    final normalized = code.trim();
+    if (normalized.isEmpty) {
+      return Result.failure(const ValidationFailure('Enter a promo code.'));
+    }
+    state = state.copyWith(isMutating: true, clearError: true);
+    final result = await _cart.applyPromo(code: normalized);
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          summary: value,
+          items: CartMapper.mergeSummaryPrices(state.items, value),
+          isMutating: false,
+        );
+        return Result.success(null);
+      case ResultFailure(:final failure):
+        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        return Result.failure(failure);
+    }
+  }
+
+  Future<Result<void, Failure>> removePromo(String code) async {
+    state = state.copyWith(isMutating: true, clearError: true);
+    final result = await _cart.removePromo(code: code);
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          summary: value,
+          items: CartMapper.mergeSummaryPrices(state.items, value),
+          isMutating: false,
+        );
+        return Result.success(null);
+      case ResultFailure(:final failure):
+        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        return Result.failure(failure);
+    }
+  }
+
+  Future<Result<DeliveryAddress, Failure>> saveAndSelectAddress(
+    DeliveryAddress draft,
+  ) async {
+    state = state.copyWith(isMutating: true, clearError: true);
+
+    final String addressId;
+    if (draft.id != null && draft.id!.isNotEmpty) {
+      addressId = draft.id!;
+    } else {
+      final created = await _delivery.createAddress(draft);
+      switch (created) {
+        case Success(:final value):
+          addressId = value.id ?? '';
+          if (addressId.isEmpty) {
+            state = state.copyWith(isMutating: false);
+            return Result.failure(
+              const NetworkFailure('Could not save the delivery address.'),
+            );
+          }
+        case ResultFailure(:final failure):
+          state =
+              state.copyWith(isMutating: false, errorMessage: failure.message);
+          return Result.failure(failure);
+      }
+    }
+
+    final selected = await _delivery.selectAddress(addressId: addressId);
+    switch (selected) {
+      case Success(:final value):
+        final merged = _mergeAddresses(
+          [...state.addresses, value],
+          state.addresses,
+        );
+        state = state.copyWith(
+          address: value,
+          addresses: merged,
+          canCheckout: true,
+          isMutating: false,
+        );
+        unawaitedRefreshDelivery();
+        return Result.success(value);
+      case ResultFailure(:final failure):
+        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        return Result.failure(failure);
+    }
+  }
+
+  Future<Result<void, Failure>> selectExistingAddress(String addressId) async {
+    state = state.copyWith(isMutating: true, clearError: true);
+    final selected = await _delivery.selectAddress(addressId: addressId);
+    switch (selected) {
+      case Success(:final value):
+        state = state.copyWith(
+          address: value,
+          canCheckout: true,
+          isMutating: false,
+        );
+        return Result.success(null);
+      case ResultFailure(:final failure):
+        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        return Result.failure(failure);
+    }
+  }
+
+  void setExchangeRate(double? rate) {
+    if (rate == state.exchangeRate) return;
+    state = state.copyWith(exchangeRate: rate);
+  }
+
+  void unawaitedRefreshDelivery() {
+    Future(() async {
+      final results = await Future.wait([
+        _delivery.getCartDelivery(),
+        _delivery.listAddresses(),
+      ]);
+      final delivery = results[0] as Result<CartDeliveryState, Failure>;
+      final listed = results[1] as Result<List<DeliveryAddress>, Failure>;
+
+      var addresses = state.addresses;
+      DeliveryAddress? selected = state.address;
+      var canCheckout = state.canCheckout;
+
+      if (delivery case Success(:final value)) {
+        selected = value.selectedAddress ?? selected;
+        if (value.addresses.isNotEmpty) {
+          addresses = _mergeAddresses(value.addresses, addresses);
+        }
+        canCheckout = value.canCheckout || selected != null;
+      }
+      if (listed case Success(:final value)) {
+        if (value.isNotEmpty) {
+          addresses = _mergeAddresses(value, addresses);
+        }
+      }
+
+      state = state.copyWith(
+        address: selected,
+        addresses: addresses,
+        canCheckout: canCheckout,
+      );
+    });
   }
 }
 
@@ -174,6 +483,18 @@ final cartIsEmptyProvider = Provider<bool>((ref) {
   return ref.watch(cartProvider.select((s) => s.isEmpty));
 });
 
+final cartIsLoadingProvider = Provider<bool>((ref) {
+  return ref.watch(cartProvider.select((s) => s.isLoading));
+});
+
+final cartIsMutatingProvider = Provider<bool>((ref) {
+  return ref.watch(cartProvider.select((s) => s.isMutating));
+});
+
+final cartErrorProvider = Provider<String?>((ref) {
+  return ref.watch(cartProvider.select((s) => s.errorMessage));
+});
+
 final cartItemsProvider = Provider<List<CartItem>>((ref) {
   return ref.watch(cartProvider.select((s) => s.items));
 });
@@ -182,16 +503,26 @@ final cartAddressProvider = Provider<DeliveryAddress?>((ref) {
   return ref.watch(cartProvider.select((s) => s.address));
 });
 
+final cartAddressesProvider = Provider<List<DeliveryAddress>>((ref) {
+  return ref.watch(cartProvider.select((s) => s.addresses));
+});
+
 final cartHasAddressProvider = Provider<bool>((ref) {
   return ref.watch(cartProvider.select((s) => s.hasAddress));
 });
 
+final cartCanCheckoutProvider = Provider<bool>((ref) {
+  return ref.watch(cartProvider.select((s) => s.canCheckout && !s.isEmpty));
+});
+
 final cartPromoProvider = Provider<({String? code, bool applied})>((ref) {
-  return ref.watch(
-    cartProvider.select((s) => (code: s.promoCode, applied: s.promoApplied)),
-  );
+  return ref.watch(cartProvider.select((s) => s.promo));
 });
 
 final cartTotalsProvider = Provider<CartTotals>((ref) {
   return ref.watch(cartProvider.select((s) => s.totals));
+});
+
+final cartSummaryProvider = Provider<CartSummary>((ref) {
+  return ref.watch(cartProvider.select((s) => s.summary));
 });

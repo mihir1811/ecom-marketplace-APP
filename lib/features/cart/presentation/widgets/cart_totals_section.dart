@@ -6,32 +6,82 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/cart_provider.dart';
-import '../../../../core/utils/app_currency.dart';
+import '../../../payment/application/payment_checkout_provider.dart';
 
-/// Price breakdown; rebuilds only when totals change.
+/// Price breakdown from cart summary (no estimated INR row).
 class CartTotalsSection extends ConsumerWidget {
   const CartTotalsSection({super.key});
 
-  String _inr(double v) => AppCurrency.format(v.toStringAsFixed(0));
+  static const _verificationRate = 0.01;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(exchangeRateProvider);
     final totals = ref.watch(cartTotalsProvider);
+    final summary = ref.watch(cartSummaryProvider);
+    final wantVerification = ref.watch(
+      paymentCheckoutProvider.select((s) => s.wantGemworldVerification),
+    );
+
+    final merchandise = totals.discountedSubtotalUsd;
+    final verificationFee =
+        wantVerification ? merchandise * _verificationRate : 0.0;
+    final displayTotal = merchandise + verificationFee;
 
     return Column(
       children: [
         _priceRow(
           'Subtotal',
-          '${_inr(totals.subtotalInr)} · \$${totals.subtotalUsd.toStringAsFixed(2)}',
+          '\$${totals.subtotalUsd.toStringAsFixed(2)}',
         ),
-        _priceRow('GST (3%)', _inr(totals.gstInr)),
-        _priceRow('Transaction fee (2.18%)', _inr(totals.transactionFeeInr)),
-        _priceRow('Platform fee', _inr(totals.platformFeeInr)),
+        if (totals.automaticDiscountUsd > 0)
+          _priceRow(
+            'Automatic discount',
+            '-\$${totals.automaticDiscountUsd.toStringAsFixed(2)}',
+          ),
+        if (totals.promoDiscountUsd > 0)
+          _priceRow(
+            'Promo discount',
+            '-\$${totals.promoDiscountUsd.toStringAsFixed(2)}',
+          ),
+        if (totals.totalDiscountUsd > 0 &&
+            totals.promoDiscountUsd <= 0 &&
+            totals.automaticDiscountUsd <= 0)
+          _priceRow(
+            'Discount',
+            '-\$${totals.totalDiscountUsd.toStringAsFixed(2)}',
+          ),
+        _priceRow(
+          'Merchandise total',
+          '\$${merchandise.toStringAsFixed(2)}',
+        ),
+        if (wantVerification)
+          _priceRow(
+            'GemWorld verification (1%)',
+            '\$${verificationFee.toStringAsFixed(2)}',
+          ),
+        if (summary.appliedPromoCodes.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.s8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Wrap(
+              spacing: 6,
+              children: [
+                for (final promo in summary.appliedPromoCodes)
+                  Chip(
+                    label: Text(promo.code),
+                    visualDensity: VisualDensity.compact,
+                    backgroundColor: AppColors.sandSurface,
+                  ),
+              ],
+            ),
+          ),
+        ],
         const Divider(height: 24),
         Row(
           children: [
             Text(
-              'Total',
+              'Total (USD)',
               style: AppTypography.label.copyWith(
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
@@ -39,7 +89,7 @@ class CartTotalsSection extends ConsumerWidget {
             ),
             const Spacer(),
             Text(
-              _inr(totals.totalInr),
+              '\$${displayTotal.toStringAsFixed(2)}',
               style: GoogleFonts.manrope(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
@@ -47,6 +97,13 @@ class CartTotalsSection extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: AppSpacing.s4),
+        Text(
+          'Final INR (GST & fees) is confirmed at payment.',
+          style: AppTypography.caption.copyWith(
+            color: AppColors.textMutedLight,
+          ),
         ),
       ],
     );

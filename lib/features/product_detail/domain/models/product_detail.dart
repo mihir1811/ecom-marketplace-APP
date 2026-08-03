@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 
 import '../../../buyer/domain/models/wishlist_item.dart';
-import '../../../cart/domain/models/cart_item.dart';
 
 /// Marketplace segments that share the single product detail presentation.
 enum ProductSegment {
@@ -286,6 +285,7 @@ class ProductDetail {
   const ProductDetail({
     required this.id,
     required this.segment,
+    required this.apiProductType,
     required this.title,
     required this.subtitle,
     required this.referenceLabel,
@@ -303,6 +303,9 @@ class ProductDetail {
 
   final String id;
   final ProductSegment segment;
+
+  /// Backend cart `productType` (`diamond`, `jewellery`, …).
+  final String apiProductType;
   final String title;
   final String subtitle;
 
@@ -358,15 +361,4 @@ class ProductDetail {
     );
   }
 
-  CartItem toCartItem() {
-    return CartItem(
-      id: id,
-      title: title,
-      category: segment.label,
-      priceUsd: price.priceUsd,
-      priceInr: price.priceInr,
-      imageUrl: media.firstNetworkUrl,
-      shape: shapeKey,
-    );
-  }
 }

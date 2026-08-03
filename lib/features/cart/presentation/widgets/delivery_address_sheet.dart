@@ -55,7 +55,7 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
     _city = TextEditingController(text: i?.city ?? '');
     _state = TextEditingController(text: i?.state ?? '');
     _postal = TextEditingController(text: i?.postalCode ?? '');
-    _country = TextEditingController(text: i?.country ?? 'India');
+    _country = TextEditingController(text: i?.country ?? '');
     _label = TextEditingController(text: i?.label ?? '');
   }
 

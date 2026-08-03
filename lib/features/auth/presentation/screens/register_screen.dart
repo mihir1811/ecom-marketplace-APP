@@ -1,8 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_validators.dart';
@@ -31,6 +32,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _obscurePassword = true;
   bool _acceptTerms = false;
   String _profileImageLabel = 'Upload profile image';
+  XFile? _profilePicture;
 
   PasswordStrength _strength = const PasswordStrength(
     isStrong: false,
@@ -210,11 +212,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               child: OutlinedButton(
                                 onPressed: authState.isLoading
                                     ? null
-                                    : () {
-                                        // No file-picking dependency configured yet.
+                                    : () async {
+                                        final picker = ImagePicker();
+                                        final file = await picker.pickImage(
+                                          source: ImageSource.gallery,
+                                          imageQuality: 85,
+                                        );
+                                        if (file == null || !mounted) return;
                                         setState(() {
-                                          _profileImageLabel =
-                                              'Profile image selected';
+                                          _profilePicture = file;
+                                          _profileImageLabel = file.name;
                                         });
                                       },
                                 style: OutlinedButton.styleFrom(
@@ -236,7 +243,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   children: [
                                     const Icon(Icons.upload_outlined),
                                     SizedBox(width: AppSpacing.s12),
-                                    Text(_profileImageLabel),
+                                    Flexible(
+                                      child: Text(
+                                        _profileImageLabel,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -327,7 +339,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                           return;
                                         }
 
-                                        await ref
+                                        final registered = await ref
                                             .read(authProvider.notifier)
                                             .register(
                                               fullName:
@@ -338,7 +350,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                               password:
                                                   _passwordController.text,
                                               acceptTerms: _acceptTerms,
+                                              profilePicture: _profilePicture,
                                             );
+                                        if (!context.mounted || !registered) {
+                                          return;
+                                        }
+                                        final pending = ref
+                                            .read(authProvider)
+                                            .pendingVerificationEmail;
+                                        if (pending != null &&
+                                            pending.isNotEmpty) {
+                                          context.go(
+                                            '${AppRouteNames.verifyOtp}?email=${Uri.encodeComponent(pending)}',
+                                          );
+                                        }
                                       },
                                 style: FilledButton.styleFrom(
                                   backgroundColor: AppColors.charcoal,

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/cart_provider.dart';
 import 'cart_section_card.dart';
 
-/// Promo code field; rebuilds only when promo state changes.
+/// Promo code field wired to POST/DELETE promo APIs.
 class CartPromoSection extends ConsumerStatefulWidget {
   const CartPromoSection({super.key});
 
@@ -17,16 +18,59 @@ class CartPromoSection extends ConsumerStatefulWidget {
 
 class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
   final _promoController = TextEditingController();
+  bool _hasText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _promoController.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    final next = _promoController.text.trim().isNotEmpty;
+    if (next != _hasText) setState(() => _hasText = next);
+  }
 
   @override
   void dispose() {
+    _promoController.removeListener(_onTextChanged);
     _promoController.dispose();
     super.dispose();
+  }
+
+  Future<void> _apply() async {
+    if (!_hasText) return;
+    final result =
+        await ref.read(cartProvider.notifier).applyPromo(_promoController.text);
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    switch (result) {
+      case Success():
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Promo applied')),
+        );
+      case ResultFailure(:final failure):
+        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+    }
+  }
+
+  Future<void> _remove(String code) async {
+    final result = await ref.read(cartProvider.notifier).removePromo(code);
+    if (!mounted) return;
+    if (result case ResultFailure(:final failure)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(failure.message)),
+      );
+    } else {
+      _promoController.clear();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final promo = ref.watch(cartPromoProvider);
+    final mutating = ref.watch(cartIsMutatingProvider);
+    final canApply = _hasText && !mutating && !promo.applied;
 
     return CartSectionCard(
       child: Column(
@@ -54,6 +98,7 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
               Expanded(
                 child: TextField(
                   controller: _promoController,
+                  enabled: !mutating && !promo.applied,
                   decoration: InputDecoration(
                     hintText: 'Enter code',
                     isDense: true,
@@ -61,29 +106,31 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
                     ),
                   ),
+                  onSubmitted: (_) {
+                    if (canApply) _apply();
+                  },
                 ),
               ),
               const SizedBox(width: AppSpacing.s8),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.textMutedLight,
+                  backgroundColor: promo.applied
+                      ? AppColors.textMutedLight
+                      : (canApply
+                          ? AppColors.charcoal
+                          : AppColors.textMutedLight),
                   foregroundColor: AppColors.warmWhite,
+                  disabledBackgroundColor:
+                      AppColors.textMutedLight.withValues(alpha: 0.5),
+                  disabledForegroundColor:
+                      AppColors.warmWhite.withValues(alpha: 0.7),
                 ),
-                onPressed: () {
-                  final ok = ref
-                      .read(cartProvider.notifier)
-                      .applyPromo(_promoController.text);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        ok
-                            ? 'Promo applied (5% off)'
-                            : 'Invalid promo code. Try GEM5',
-                      ),
-                    ),
-                  );
-                },
-                child: const Text('Apply'),
+                onPressed: mutating
+                    ? null
+                    : promo.applied && promo.code != null
+                        ? () => _remove(promo.code!)
+                        : (canApply ? _apply : null),
+                child: Text(promo.applied ? 'Remove' : 'Apply'),
               ),
             ],
           ),

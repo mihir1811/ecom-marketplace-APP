@@ -6,6 +6,7 @@ import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../bullions/domain/models/billion.dart';
+import '../../../cart/domain/models/cart_product_type.dart';
 import '../models/product_detail.dart';
 
 /// Maps a bullion bar/coin onto the universal detail shape.
@@ -22,6 +23,7 @@ ProductDetail bullionProductDetail(Bullion b) {
   return ProductDetail(
     id: b.id,
     segment: ProductSegment.bullion,
+    apiProductType: CartProductType.bullion,
     title: b.name,
     subtitle: '${b.weightLabel} $metalLabel ${b.shape} · $purity fine',
     referenceLabel: 'Stock ID',
