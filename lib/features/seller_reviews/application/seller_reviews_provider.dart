@@ -30,6 +30,21 @@ final orderSellerReviewsProvider = FutureProvider.autoDispose
   };
 });
 
+/// Public reviews for a seller — visible regardless of order payment status.
+final publicSellerReviewsProvider = FutureProvider.autoDispose
+    .family<List<SellerReview>, String>((ref, sellerId) async {
+  if (sellerId.isEmpty) return const [];
+  final result = await ref.watch(sellerReviewRepositoryProvider).listReviews(
+        sellerId: sellerId,
+        page: 1,
+        limit: 20,
+      );
+  return switch (result) {
+    Success(:final value) => value.reviews,
+    ResultFailure(:final failure) => throw failure,
+  };
+});
+
 /// Imperative submit helper — invalidates review lists on success.
 Future<Result<SellerReview, Failure>> submitSellerReview(
   WidgetRef ref,
@@ -40,6 +55,7 @@ Future<Result<SellerReview, Failure>> submitSellerReview(
   if (result case Success()) {
     ref.invalidate(mySellerReviewsProvider);
     ref.invalidate(orderSellerReviewsProvider(input.orderId));
+    ref.invalidate(publicSellerReviewsProvider(input.sellerId));
   }
   return result;
 }

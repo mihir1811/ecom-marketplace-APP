@@ -43,6 +43,8 @@ abstract final class ApiEndpoints {
 
   // Delivery options (checkout prerequisite)
   static const String deliveryAddresses = '/delivery-options/addresses';
+  static String deliveryAddressById(String id) =>
+      '/delivery-options/addresses/$id';
   static const String deliveryCart = '/delivery-options/cart';
   static const String deliveryCartSelect = '/delivery-options/cart/select';
 

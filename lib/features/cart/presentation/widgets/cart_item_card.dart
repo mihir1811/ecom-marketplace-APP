@@ -74,23 +74,6 @@ class CartItemCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.sandSurface,
-                    borderRadius: BorderRadius.circular(AppSpacing.circular),
-                  ),
-                  child: Text(
-                    item.category,
-                    style: AppTypography.caption.copyWith(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
                 if (item.seller != null && item.seller!.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.s4),
                   Text(

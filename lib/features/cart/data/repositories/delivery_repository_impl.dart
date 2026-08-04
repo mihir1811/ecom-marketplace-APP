@@ -70,6 +70,55 @@ class DeliveryRepositoryImpl implements DeliveryRepository {
   }
 
   @override
+  Future<Result<DeliveryAddress, Failure>> updateAddress(
+    DeliveryAddress address,
+  ) async {
+    final id = address.id;
+    if (id == null || id.isEmpty) {
+      return Result.failure(
+        const NetworkFailure('Could not update the delivery address.'),
+      );
+    }
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        ApiEndpoints.deliveryAddressById(id),
+        data: CartMapper.addressToCreateBody(address),
+      );
+      final root = response.data ?? const <String, dynamic>{};
+      final data = root['data'];
+      if (data is! Map<String, dynamic>) {
+        return Result.failure(
+          const NetworkFailure('Could not update the delivery address.'),
+        );
+      }
+      return Result.success(CartMapper.addressFromJson(data));
+    } on DioException catch (e) {
+      return Result.failure(ApiError.fromDio(e));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<void, Failure>> deleteAddress(String addressId) async {
+    if (addressId.isEmpty) {
+      return Result.failure(
+        const NetworkFailure('Could not delete the delivery address.'),
+      );
+    }
+    try {
+      await _dio.delete<Map<String, dynamic>>(
+        ApiEndpoints.deliveryAddressById(addressId),
+      );
+      return Result.success(null);
+    } on DioException catch (e) {
+      return Result.failure(ApiError.fromDio(e));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Result<CartDeliveryState, Failure>> getCartDelivery({
     CancelToken? cancelToken,
   }) async {

@@ -5,14 +5,16 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../application/cart_provider.dart';
+import '../../../../core/utils/app_currency.dart';
+import '../../../../core/utils/format_catalog_price.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
+import '../../application/cart_provider.dart';
+import '../../domain/models/cart_order_estimate.dart';
+import 'cart_section_card.dart';
 
-/// Price breakdown from cart summary (no estimated INR row).
+/// Order summary card — merchandise from API, GST / fees computed on-device.
 class CartTotalsSection extends ConsumerWidget {
   const CartTotalsSection({super.key});
-
-  static const _verificationRate = 0.01;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,48 +25,69 @@ class CartTotalsSection extends ConsumerWidget {
       paymentCheckoutProvider.select((s) => s.wantGemworldVerification),
     );
 
-    final merchandise = totals.discountedSubtotalUsd;
-    final verificationFee =
-        wantVerification ? merchandise * _verificationRate : 0.0;
-    final displayTotal = merchandise + verificationFee;
+    final estimate = CartOrderEstimate.compute(
+      merchandiseUsd: totals.discountedSubtotalUsd,
+      exchangeRate: totals.exchangeRate,
+      wantVerification: wantVerification,
+    );
 
-    return Column(
-      children: [
-        _priceRow(
-          'Subtotal',
-          '\$${totals.subtotalUsd.toStringAsFixed(2)}',
-        ),
-        if (totals.automaticDiscountUsd > 0)
-          _priceRow(
-            'Automatic discount',
-            '-\$${totals.automaticDiscountUsd.toStringAsFixed(2)}',
+    return CartSectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'ORDER SUMMARY',
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textMutedLight,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
+            ),
           ),
-        if (totals.promoDiscountUsd > 0)
-          _priceRow(
-            'Promo discount',
-            '-\$${totals.promoDiscountUsd.toStringAsFixed(2)}',
-          ),
-        if (totals.totalDiscountUsd > 0 &&
-            totals.promoDiscountUsd <= 0 &&
-            totals.automaticDiscountUsd <= 0)
-          _priceRow(
-            'Discount',
-            '-\$${totals.totalDiscountUsd.toStringAsFixed(2)}',
-          ),
-        _priceRow(
-          'Merchandise total',
-          '\$${merchandise.toStringAsFixed(2)}',
-        ),
-        if (wantVerification)
-          _priceRow(
-            'GemWorld verification (1%)',
-            '\$${verificationFee.toStringAsFixed(2)}',
-          ),
-        if (summary.appliedPromoCodes.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.s8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Wrap(
+          const SizedBox(height: AppSpacing.s16),
+          if (totals.subtotalUsd > totals.discountedSubtotalUsd &&
+              totals.totalDiscountUsd > 0) ...[
+            _usdOnlyRow('Items subtotal', totals.subtotalUsd),
+            if (totals.automaticDiscountUsd > 0)
+              _usdOnlyRow(
+                'Automatic discount',
+                -totals.automaticDiscountUsd,
+              ),
+            if (totals.promoDiscountUsd > 0)
+              _usdOnlyRow('Promo discount', -totals.promoDiscountUsd),
+            if (totals.totalDiscountUsd > 0 &&
+                totals.promoDiscountUsd <= 0 &&
+                totals.automaticDiscountUsd <= 0)
+              _usdOnlyRow('Discount', -totals.totalDiscountUsd),
+          ],
+          _subtotalRow(estimate),
+          if (wantVerification && estimate.verificationUsd > 0)
+            _inrRow(
+              'GemWorld verification (1%)',
+              estimate.verificationInr,
+              fallbackUsd: estimate.verificationUsd,
+              hasRate: estimate.hasLiveRate,
+            ),
+          if (estimate.hasLiveRate) ...[
+            _inrRow(
+              'GST (${(CartFeeConfig.gstRate * 100).toStringAsFixed(0)}%)',
+              estimate.gstInr,
+              hasRate: true,
+            ),
+            _inrRow(
+              'Transaction fee (${(CartFeeConfig.transactionFeeRate * 100).toStringAsFixed(2)})',
+              estimate.transactionFeeInr,
+              hasRate: true,
+            ),
+            if (estimate.platformFeeInr > 0)
+              _inrRow(
+                'Platform fee',
+                estimate.platformFeeInr,
+                hasRate: true,
+              ),
+          ],
+          if (summary.appliedPromoCodes.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.s8),
+            Wrap(
               spacing: 6,
               children: [
                 for (final promo in summary.appliedPromoCodes)
@@ -75,59 +98,142 @@ class CartTotalsSection extends ConsumerWidget {
                   ),
               ],
             ),
-          ),
-        ],
-        const Divider(height: 24),
-        Row(
-          children: [
-            Text(
-              'Total (USD)',
-              style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              '\$${displayTotal.toStringAsFixed(2)}',
-              style: GoogleFonts.manrope(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.bronze,
-              ),
-            ),
           ],
-        ),
-        const SizedBox(height: AppSpacing.s4),
-        Text(
-          'Final INR (GST & fees) is confirmed at payment.',
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _priceRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.s8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
+          const Divider(height: 28),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Total',
+                style: AppTypography.label.copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
               ),
-            ),
-          ),
-          Text(
-            value,
-            style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    estimate.hasLiveRate
+                        ? _inrLabel(estimate.totalInr)
+                        : AppCurrency.usd(estimate.totalUsd),
+                    style: GoogleFonts.manrope(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.bronze,
+                    ),
+                  ),
+                  if (estimate.hasLiveRate) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      '${AppCurrency.usd(estimate.totalUsd)} · ${estimate.liveRateLabel}',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textMutedLight,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _subtotalRow(CartOrderEstimate estimate) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Subtotal',
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondaryLight,
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                estimate.hasLiveRate
+                    ? _inrLabel(estimate.merchandiseInr)
+                    : AppCurrency.usd(estimate.merchandiseUsd),
+                style: AppTypography.label.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (estimate.hasLiveRate)
+                Text(
+                  AppCurrency.usd(estimate.merchandiseUsd),
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textMutedLight,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _inrRow(
+    String label,
+    double inrValue, {
+    required bool hasRate,
+    double? fallbackUsd,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondaryLight,
+            ),
+          ),
+          Text(
+            hasRate
+                ? _inrLabel(inrValue)
+                : AppCurrency.usd(fallbackUsd ?? 0),
+            style: AppTypography.label.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _usdOnlyRow(String label, double usdValue) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondaryLight,
+            ),
+          ),
+          Text(
+            AppCurrency.usd(usdValue),
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _inrLabel(double amount) =>
+      '${AppCurrency.inrSymbol}${formatGroupedWhole(amount.roundToDouble())}';
 }

@@ -7,17 +7,17 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../buyer/application/buyer_orders_provider.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
 import '../../../payment/presentation/widgets/payment_success_dialog.dart';
 import '../../application/cart_provider.dart';
+import '../../domain/models/cart_order_estimate.dart';
 import 'delivery_address_sheet.dart';
 
 /// Checkout CTA — create-order → Razorpay → verify.
 class CartCheckoutButton extends ConsumerWidget {
   const CartCheckoutButton({super.key});
-
-  static const _verificationRate = 0.01;
 
   Future<void> _addAddress(BuildContext context, WidgetRef ref) async {
     // Never prefills — always a blank form for a new address.
@@ -56,14 +56,14 @@ class CartCheckoutButton extends ConsumerWidget {
     final mutating = ref.watch(cartIsMutatingProvider);
     final checkout = ref.watch(paymentCheckoutProvider);
     final totals = ref.watch(cartTotalsProvider);
-    final fxAsync = ref.watch(exchangeRateProvider);
+    ref.watch(exchangeRateProvider);
     final busy = mutating || checkout.isBusy;
 
-    final merchandise = totals.discountedSubtotalUsd;
-    final verificationFee =
-        checkout.wantGemworldVerification ? merchandise * _verificationRate : 0.0;
-    final payableUsd = merchandise + verificationFee;
-    final rate = fxAsync.asData?.value.rate;
+    final estimate = CartOrderEstimate.compute(
+      merchandiseUsd: totals.discountedSubtotalUsd,
+      exchangeRate: totals.exchangeRate,
+      wantVerification: checkout.wantGemworldVerification,
+    );
 
     String label;
     if (!hasAddress) {
@@ -75,20 +75,17 @@ class CartCheckoutButton extends ConsumerWidget {
     } else if (checkout.phase == CheckoutPhase.verifying) {
       label = 'Verifying payment…';
     } else {
-      label = 'Proceed to payment';
+      label = 'Continue to checkout';
     }
 
-    final subtitleParts = <String>[];
+    String? subtitle;
     if (!hasAddress) {
-      subtitleParts.add('Required before payment');
+      subtitle = 'Required before payment';
+    } else if (!busy && estimate.hasLiveRate) {
+      subtitle =
+          '${AppCurrency.usd(estimate.totalUsd)} USD · ${estimate.liveRateLabel}';
     } else if (!busy) {
-      subtitleParts.add('\$${payableUsd.toStringAsFixed(2)}');
-      if (checkout.wantGemworldVerification) {
-        subtitleParts.add('+1% verification');
-      }
-      if (rate != null && rate > 0) {
-        subtitleParts.add('1 USD = ₹${rate.toStringAsFixed(2)}');
-      }
+      subtitle = AppCurrency.usd(estimate.totalUsd);
     }
 
     return Column(
@@ -162,9 +159,9 @@ class CartCheckoutButton extends ConsumerWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      if (subtitleParts.isNotEmpty)
+                      if (subtitle != null)
                         Text(
-                          subtitleParts.join(' · '),
+                          subtitle,
                           style: AppTypography.caption.copyWith(
                             color: AppColors.warmWhite.withValues(alpha: 0.75),
                             fontSize: 11,

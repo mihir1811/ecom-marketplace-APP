@@ -119,6 +119,16 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
       clearOrder: true,
     );
 
+    final synced =
+        await ref.read(cartProvider.notifier).syncSelectedAddressForCheckout();
+    if (synced is ResultFailure<void, Failure>) {
+      state = state.copyWith(
+        phase: CheckoutPhase.failed,
+        errorMessage: synced.failure.message,
+      );
+      return Result.failure(synced.failure);
+    }
+
     final created = await _payments.createOrder(
       wantGemworldVerification: state.wantGemworldVerification,
     );

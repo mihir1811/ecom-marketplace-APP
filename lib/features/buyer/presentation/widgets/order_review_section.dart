@@ -11,7 +11,7 @@ import '../../../seller_reviews/application/seller_reviews_provider.dart';
 import '../../../seller_reviews/domain/models/seller_review.dart';
 import '../../../seller_reviews/presentation/widgets/seller_review_form.dart';
 
-/// Review form + existing reviews for an order (order detail / success).
+/// Public seller ratings + optional write form after payment.
 class OrderReviewSection extends ConsumerStatefulWidget {
   const OrderReviewSection({required this.order, super.key});
 
@@ -106,14 +106,21 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
 
   @override
   Widget build(BuildContext context) {
-    final reviewsAsync =
-        ref.watch(orderSellerReviewsProvider(widget.order.id));
-    final existing = reviewsAsync.asData?.value ?? const <SellerReview>[];
-    final hasExisting = existing.isNotEmpty || _submittedLocally;
+    final sellerId = _sellerId;
+    final publicAsync = sellerId == null
+        ? const AsyncValue<List<SellerReview>>.data([])
+        : ref.watch(publicSellerReviewsProvider(sellerId));
+    final orderAsync = ref.watch(orderSellerReviewsProvider(widget.order.id));
+
+    final publicReviews = publicAsync.asData?.value ?? const <SellerReview>[];
+    final orderReviews = orderAsync.asData?.value ?? const <SellerReview>[];
+    final alreadyReviewedThisOrder =
+        _submittedLocally || orderReviews.isNotEmpty;
     final canForm = _isPaid &&
-        _sellerId != null &&
-        !hasExisting &&
-        !reviewsAsync.isLoading;
+        sellerId != null &&
+        !alreadyReviewedThisOrder &&
+        !orderAsync.isLoading;
+    final isLoading = publicAsync.isLoading || orderAsync.isLoading;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -122,34 +129,49 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
           'Seller Rating & review',
           style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
         ),
+        const SizedBox(height: 4),
+        Text(
+          'Public ratings for $_sellerName',
+          style: AppTypography.caption.copyWith(
+            color: AppColors.textMutedLight,
+          ),
+        ),
         const SizedBox(height: 12),
-        reviewsAsync.when(
-          loading: () => const Padding(
+        if (isLoading)
+          const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (e, _) => Text(
-            e is Failure ? e.message : 'Could not load reviews.',
+          )
+        else if (publicAsync.hasError)
+          Text(
+            publicAsync.error is Failure
+                ? (publicAsync.error! as Failure).message
+                : 'Could not load reviews.',
             style: AppTypography.caption.copyWith(color: AppColors.error),
+          )
+        else if (publicReviews.isEmpty)
+          Text(
+            'No reviews yet for this seller.',
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textMutedLight,
+            ),
+          )
+        else
+          Column(
+            children: [
+              for (final review in publicReviews)
+                _ExistingReviewCard(review: review),
+            ],
           ),
-          data: (reviews) {
-            if (reviews.isEmpty && !canForm) {
-              return Text(
-                _isPaid
-                    ? 'No review yet.'
-                    : 'Reviews are available after payment.',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
-                ),
-              );
-            }
-            return Column(
-              children: [
-                for (final review in reviews) _ExistingReviewCard(review: review),
-              ],
-            );
-          },
-        ),
+        if (!_isPaid && sellerId != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'You can leave a review after payment is complete.',
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textMutedLight,
+            ),
+          ),
+        ],
         if (canForm) ...[
           const SizedBox(height: 8),
           SellerReviewForm(

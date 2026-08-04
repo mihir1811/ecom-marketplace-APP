@@ -32,6 +32,70 @@ class CartAddressSection extends ConsumerWidget {
     }
   }
 
+  Future<void> _editAddress(
+    BuildContext context,
+    WidgetRef ref,
+    DeliveryAddress address,
+  ) async {
+    final edited = await showDeliveryAddressSheet(context, initial: address);
+    if (edited == null) return;
+    final result =
+        await ref.read(cartProvider.notifier).saveAndSelectAddress(edited);
+    if (!context.mounted) return;
+    if (result case ResultFailure(:final failure)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(failure.message)),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Address updated')),
+      );
+    }
+  }
+
+  Future<void> _deleteAddress(
+    BuildContext context,
+    WidgetRef ref,
+    DeliveryAddress address,
+  ) async {
+    final id = address.id;
+    if (id == null || id.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete address?'),
+        content: Text(
+          'Remove ${address.label?.isNotEmpty == true ? address.label! : address.fullName} from your saved addresses?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final result = await ref.read(cartProvider.notifier).deleteAddress(id);
+    if (!context.mounted) return;
+    if (result case ResultFailure(:final failure)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(failure.message)),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Address deleted')),
+      );
+    }
+  }
+
   Future<void> _selectExisting(
     BuildContext context,
     WidgetRef ref,
@@ -39,8 +103,7 @@ class CartAddressSection extends ConsumerWidget {
   ) async {
     final id = address.id;
     if (id == null || id.isEmpty) return;
-    final result =
-        await ref.read(cartProvider.notifier).selectExistingAddress(id);
+    final result = ref.read(cartProvider.notifier).selectExistingAddress(id);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,6 +186,29 @@ class CartAddressSection extends ConsumerWidget {
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.caption.copyWith(color: muted),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'Edit address',
+                      onPressed: mutating
+                          ? null
+                          : () => _editAddress(context, ref, a),
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      color: AppColors.textSecondaryLight,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    IconButton(
+                      tooltip: 'Delete address',
+                      onPressed: mutating
+                          ? null
+                          : () => _deleteAddress(context, ref, a),
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      color: AppColors.textMutedLight,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ),
                 onTap: mutating || selected
                     ? null

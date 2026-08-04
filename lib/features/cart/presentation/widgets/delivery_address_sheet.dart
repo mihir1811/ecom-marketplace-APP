@@ -77,6 +77,7 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     Navigator.of(context).pop(
       DeliveryAddress(
+        id: widget.initial?.id,
         fullName: _name.text.trim(),
         phone: _phone.text.trim(),
         line1: _line1.text.trim(),
@@ -160,7 +161,9 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
                   ),
                   onPressed: _save,
                   child: Text(
-                    'Save address',
+                    widget.initial?.id != null
+                        ? 'Update address'
+                        : 'Save address',
                     style: AppTypography.label.copyWith(
                       color: AppColors.warmWhite,
                       fontWeight: FontWeight.w700,

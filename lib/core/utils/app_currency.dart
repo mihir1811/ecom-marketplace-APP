@@ -1,16 +1,41 @@
-/// Marketplace display currency — single switch for the whole app.
+/// Market display currencies — USD (primary) and INR (secondary).
 ///
-/// Change [symbol] (and optionally [code]) once; every price UI that imports
-/// this file picks up the new symbol automatically.
+/// Keep the single source for symbols/formats here so every price UI that
+/// imports this file renders both currencies consistently.
 abstract final class AppCurrency {
   const AppCurrency._();
 
-  /// Display symbol. Flip to `r'$'` (or another currency) to switch app-wide.
-  static const String symbol = '\$';
+  /// USD display symbol.
+  static const String usdSymbol = '\$';
 
-  /// ISO 4217 code for copy, filters, and localization context.
-  static const String code = 'USD';
+  /// INR display symbol.
+  static const String inrSymbol = '₹';
 
-  /// Prefixes a pre-formatted amount with [symbol].
-  static String format(Object amount) => '$symbol$amount';
+  /// ISO 4217 codes.
+  static const String usdCode = 'USD';
+  static const String inrCode = 'INR';
+
+  /// Legacy aliases (USD) kept for callers referencing them directly.
+  static const String symbol = usdSymbol;
+  static const String code = usdCode;
+
+  /// Prefixes a pre-formatted amount with the USD symbol (legacy helper).
+  static String format(Object amount) => '$usdSymbol$amount';
+
+  /// Formats a USD amount with [decimals] places.
+  static String usd(num amount, {int decimals = 2}) =>
+      '$usdSymbol${amount.toStringAsFixed(decimals)}';
+
+  /// Formats an INR amount with [decimals] places.
+  static String inr(num amount, {int decimals = 2}) =>
+      '$inrSymbol${amount.toStringAsFixed(decimals)}';
+
+  /// Combines a USD and an equivalent INR value, e.g. `$12.50 · ₹1,080.00`.
+  static String dual(num usdAmount, num inrAmount, {int decimals = 2}) =>
+      '${usd(usdAmount, decimals: decimals)} · '
+      '${inr(inrAmount, decimals: decimals)}';
+
+  /// Converts a USD amount to an estimated INR using [rate] (null-safe → 0).
+  static double toInr(num usdAmount, double? rate) =>
+      (rate == null || rate <= 0) ? 0 : usdAmount * rate;
 }

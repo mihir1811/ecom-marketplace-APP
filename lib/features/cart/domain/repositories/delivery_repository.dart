@@ -12,6 +12,10 @@ abstract class DeliveryRepository {
 
   Future<Result<DeliveryAddress, Failure>> createAddress(DeliveryAddress address);
 
+  Future<Result<DeliveryAddress, Failure>> updateAddress(DeliveryAddress address);
+
+  Future<Result<void, Failure>> deleteAddress(String addressId);
+
   Future<Result<CartDeliveryState, Failure>> getCartDelivery({
     CancelToken? cancelToken,
   });

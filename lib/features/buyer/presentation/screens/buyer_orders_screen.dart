@@ -123,6 +123,9 @@ class _BuyerOrderCard extends StatelessWidget {
     final dateLabel = date == null
         ? null
         : '${date.day}/${date.month}/${date.year}';
+    final itemLabel = order.itemCount <= 0
+        ? null
+        : '${order.itemCount} item${order.itemCount == 1 ? '' : 's'}';
 
     return Material(
       color: Colors.transparent,
@@ -142,11 +145,12 @@ class _BuyerOrderCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Text(
                         order.productLabel,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.title.copyWith(
                           fontWeight: FontWeight.w800,
@@ -160,49 +164,77 @@ class _BuyerOrderCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
-                  'Order ${order.id} · ${order.sellerName}',
+                  [
+                    'Sold by ${order.sellerName}',
+                    if (itemLabel != null) itemLabel,
+                  ].join(' · '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textMutedLight,
                   ),
                 ),
                 const SizedBox(height: 12),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    order.status,
-                    style: AppTypography.caption.copyWith(
-                      color: accent,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
-                      child: Text(
-                        AppCurrency.format(
-                          order.amountInr.toStringAsFixed(0),
-                        ),
-                        style: AppTypography.caption.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppCurrency.usd(order.amountUsd),
+                            style: AppTypography.caption.copyWith(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                              color: AppColors.charcoal,
+                            ),
+                          ),
+                          if (order.amountInr > 0)
+                            Text(
+                              AppCurrency.inr(order.amountInr),
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textMutedLight,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    if (dateLabel != null)
-                      Text(
-                        dateLabel,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.textMutedLight,
+                    const SizedBox(width: AppSpacing.s8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            order.status,
+                            style: AppTypography.caption.copyWith(
+                              color: accent,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
-                      ),
+                        if (dateLabel != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            dateLabel,
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textMutedLight,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ],

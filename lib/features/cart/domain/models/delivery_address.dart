@@ -36,18 +36,32 @@ class DeliveryAddress {
     return parts.join(', ');
   }
 
-  DeliveryAddress copyWith({String? id, bool? isDefault}) {
+  DeliveryAddress copyWith({
+    String? id,
+    String? fullName,
+    String? phone,
+    String? line1,
+    String? line2,
+    String? city,
+    String? state,
+    String? postalCode,
+    String? country,
+    String? label,
+    bool? isDefault,
+    bool clearLine2 = false,
+    bool clearLabel = false,
+  }) {
     return DeliveryAddress(
       id: id ?? this.id,
-      fullName: fullName,
-      phone: phone,
-      line1: line1,
-      line2: line2,
-      city: city,
-      state: state,
-      postalCode: postalCode,
-      country: country,
-      label: label,
+      fullName: fullName ?? this.fullName,
+      phone: phone ?? this.phone,
+      line1: line1 ?? this.line1,
+      line2: clearLine2 ? null : (line2 ?? this.line2),
+      city: city ?? this.city,
+      state: state ?? this.state,
+      postalCode: postalCode ?? this.postalCode,
+      country: country ?? this.country,
+      label: clearLabel ? null : (label ?? this.label),
       isDefault: isDefault ?? this.isDefault,
     );
   }

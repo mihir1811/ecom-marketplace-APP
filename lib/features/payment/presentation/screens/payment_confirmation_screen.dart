@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 
 import '../../../../core/error/failure.dart';
@@ -100,30 +101,24 @@ class _OrderBody extends ConsumerWidget {
         ...order.items.map((item) => _ItemTile(item: item)),
         if (pricing != null) ...[
           const SizedBox(height: AppSpacing.s16),
-          _PriceRow('Subtotal (USD)', '\$${pricing.subtotal.toStringAsFixed(2)}'),
+          _UsdPriceRow('Subtotal', pricing.subtotal),
           if (pricing.promotionDiscount > 0)
-            _PriceRow(
+            _UsdPriceRow(
               'Promo discount',
-              '-\$${pricing.promotionDiscount.toStringAsFixed(2)}',
+              -pricing.promotionDiscount,
             ),
-          _PriceRow('GST', AppCurrency.format(pricing.gst.toStringAsFixed(0))),
-          _PriceRow(
-            'Transaction fee',
-            AppCurrency.format(pricing.transactionFee.toStringAsFixed(0)),
-          ),
-          _PriceRow(
-            'Platform fee',
-            AppCurrency.format(pricing.platformFee.toStringAsFixed(0)),
-          ),
+          _InrPriceRow('GST', pricing.gst),
+          _InrPriceRow('Transaction fee', pricing.transactionFee),
+          _InrPriceRow('Platform fee', pricing.platformFee),
           if (pricing.gemworldVerificationCommission > 0)
-            _PriceRow(
+            _InrPriceRow(
               'GemWorld verification',
-              AppCurrency.format(
-                pricing.gemworldVerificationCommission.toStringAsFixed(0),
-              ),
+              pricing.gemworldVerificationCommission,
             ),
           const Divider(height: 24),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Total',
@@ -132,23 +127,52 @@ class _OrderBody extends ConsumerWidget {
                   fontSize: 16,
                 ),
               ),
-              const Spacer(),
-              Text(
-                AppCurrency.format(
-                  (pricing.totalInr > 0 ? pricing.totalInr : order.amount)
-                      .toStringAsFixed(0),
-                ),
-                style: GoogleFonts.manrope(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.bronze,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    AppCurrency.usd(
+                      pricing.totalUsd > 0 ? pricing.totalUsd : order.amountUsd,
+                    ),
+                    style: GoogleFonts.manrope(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.bronze,
+                    ),
+                  ),
+                  Text(
+                    AppCurrency.inr(
+                      pricing.totalInr > 0 ? pricing.totalInr : order.amount,
+                    ),
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.bronze,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ],
         const SizedBox(height: AppSpacing.s24),
         OrderReviewSection(order: order),
+        const SizedBox(height: AppSpacing.s24),
+        if (order.invoiceUrl != null && order.invoiceUrl!.isNotEmpty) ...[
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.charcoal,
+                foregroundColor: AppColors.warmWhite,
+              ),
+              onPressed: () => _downloadInvoice(context, order),
+              icon: const Icon(Icons.download_outlined, size: 20),
+              label: const Text('Download invoice'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s8),
+        ],
         const SizedBox(height: AppSpacing.s32),
         FilledButton(
           onPressed: () {
@@ -207,10 +231,18 @@ class _ItemTile extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                if (item.quantity > 1)
+                  Text(
+                    'Qty ${item.quantity}',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textMutedLight,
+                    ),
+                  ),
                 Text(
-                  'Qty ${item.quantity} · \$${item.lineTotal.toStringAsFixed(2)}',
+                  AppCurrency.usd(item.lineTotal),
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textSecondaryLight,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -222,32 +254,90 @@ class _ItemTile extends StatelessWidget {
   }
 }
 
-class _PriceRow extends StatelessWidget {
-  const _PriceRow(this.label, this.value);
+class _UsdPriceRow extends StatelessWidget {
+  const _UsdPriceRow(this.label, this.usdValue);
 
   final String label;
-  final String value;
+  final double usdValue;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.s8),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Text(
-              label,
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
-              ),
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondaryLight,
             ),
           ),
           Text(
-            value,
-            style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+            AppCurrency.usd(usdValue),
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _InrPriceRow extends StatelessWidget {
+  const _InrPriceRow(this.label, this.inrValue);
+
+  final String label;
+  final double inrValue;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondaryLight,
+            ),
+          ),
+          Text(
+            AppCurrency.inr(inrValue, decimals: 0),
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _downloadInvoice(BuildContext context, PaymentOrder order) async {
+  final raw = order.invoiceUrl;
+  if (raw == null || raw.trim().isEmpty) return;
+  var url = raw.trim();
+  if (url.toLowerCase().startsWith('www.')) url = 'https://$url';
+  final uri = Uri.tryParse(url);
+  if (uri == null) return;
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    final ok = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+      webOnlyWindowName: '_blank',
+    );
+    if (!ok) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not open the invoice.')),
+      );
+    }
+  } catch (_) {
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Could not open the invoice.')),
     );
   }
 }

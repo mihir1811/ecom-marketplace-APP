@@ -376,7 +376,15 @@ class CartNotifier extends Notifier<CartState> {
 
     final String addressId;
     if (draft.id != null && draft.id!.isNotEmpty) {
-      addressId = draft.id!;
+      final updated = await _delivery.updateAddress(draft);
+      switch (updated) {
+        case Success(:final value):
+          addressId = value.id ?? draft.id!;
+        case ResultFailure(:final failure):
+          state =
+              state.copyWith(isMutating: false, errorMessage: failure.message);
+          return Result.failure(failure);
+      }
     } else {
       final created = await _delivery.createAddress(draft);
       switch (created) {
@@ -416,16 +424,78 @@ class CartNotifier extends Notifier<CartState> {
     }
   }
 
-  Future<Result<void, Failure>> selectExistingAddress(String addressId) async {
-    state = state.copyWith(isMutating: true, clearError: true);
-    final selected = await _delivery.selectAddress(addressId: addressId);
+  /// Local selection only — no network. Sync to the server at checkout.
+  Result<void, Failure> selectExistingAddress(String addressId) {
+    if (addressId.isEmpty) {
+      return Result.failure(
+        const NetworkFailure('Could not select the delivery address.'),
+      );
+    }
+    DeliveryAddress? match;
+    for (final a in state.addresses) {
+      if (a.id == addressId) {
+        match = a;
+        break;
+      }
+    }
+    match ??= state.address?.id == addressId ? state.address : null;
+    if (match == null) {
+      return Result.failure(
+        const NetworkFailure('Could not select the delivery address.'),
+      );
+    }
+    state = state.copyWith(
+      address: match,
+      canCheckout: true,
+      clearError: true,
+    );
+    return Result.success(null);
+  }
+
+  /// Persists the locally selected address before create-order.
+  Future<Result<void, Failure>> syncSelectedAddressForCheckout() async {
+    final id = state.address?.id;
+    if (id == null || id.isEmpty) {
+      return Result.failure(
+        const ValidationFailure(
+          'Please add and select a delivery address before payment.',
+        ),
+      );
+    }
+    final selected = await _delivery.selectAddress(addressId: id);
     switch (selected) {
       case Success(:final value):
         state = state.copyWith(
           address: value,
           canCheckout: true,
-          isMutating: false,
         );
+        return Result.success(null);
+      case ResultFailure(:final failure):
+        return Result.failure(failure);
+    }
+  }
+
+  Future<Result<void, Failure>> deleteAddress(String addressId) async {
+    if (addressId.isEmpty) {
+      return Result.failure(
+        const NetworkFailure('Could not delete the delivery address.'),
+      );
+    }
+    state = state.copyWith(isMutating: true, clearError: true);
+    final result = await _delivery.deleteAddress(addressId);
+    switch (result) {
+      case Success():
+        final remaining =
+            state.addresses.where((a) => a.id != addressId).toList();
+        final wasSelected = state.address?.id == addressId;
+        state = state.copyWith(
+          addresses: remaining,
+          address: wasSelected ? null : state.address,
+          canCheckout: wasSelected ? false : state.canCheckout,
+          isMutating: false,
+          clearAddress: wasSelected,
+        );
+        unawaitedRefreshDelivery();
         return Result.success(null);
       case ResultFailure(:final failure):
         state = state.copyWith(isMutating: false, errorMessage: failure.message);
