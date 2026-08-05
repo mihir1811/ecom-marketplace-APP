@@ -596,3 +596,11 @@ final cartTotalsProvider = Provider<CartTotals>((ref) {
 final cartSummaryProvider = Provider<CartSummary>((ref) {
   return ref.watch(cartProvider.select((s) => s.summary));
 });
+
+final isProductInCartProvider = Provider.family<bool, String>((ref, productId) {
+  return ref.watch(
+    cartProvider.select(
+      (s) => s.items.any((e) => e.productId == productId),
+    ),
+  );
+});

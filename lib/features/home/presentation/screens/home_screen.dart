@@ -8,12 +8,14 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../buyer/presentation/widgets/buyer_drawer.dart';
 import '../../../cart/application/cart_provider.dart';
+import '../../application/home_search_provider.dart';
 import '../home_network_images.dart';
 import '../widgets/home_category_tile.dart';
 import '../widgets/home_hero.dart';
 import '../widgets/home_quick_search.dart';
-import '../../../buyer/presentation/widgets/buyer_drawer.dart';
+import '../widgets/home_search_results_list.dart';
 
 /// GemWorld marketplace landing — minimal, image-led, one-tap catalog access.
 class HomeScreen extends ConsumerWidget {
@@ -64,6 +66,8 @@ class HomeScreen extends ConsumerWidget {
     final isAuthenticated = ref.watch(
       authProvider.select((s) => s.isAuthenticated),
     );
+    final isSearching =
+        ref.watch(homeSearchQueryProvider.select((q) => q.trim().isNotEmpty));
 
     return AppScaffold(
       backgroundColor: AppColors.creamBg,
@@ -121,157 +125,174 @@ class HomeScreen extends ConsumerWidget {
           const SizedBox(width: AppSpacing.s8),
         ],
       ),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(
-            child: HomeHero(
-              imageUrl: HomeNetworkImages.hero,
-              onPrimary: _openDiamonds,
-              onSecondary: _openJewelry,
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s20)),
-          const SliverToBoxAdapter(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const ColoredBox(
+            color: AppColors.creamBg,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.s20),
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.s20,
+                AppSpacing.s8,
+                AppSpacing.s20,
+                AppSpacing.s12,
+              ),
               child: HomeQuickSearch(),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
-              child: Text(
-                'Shop',
-                style: AppTypography.headline.copyWith(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+          Expanded(
+            child: isSearching
+                ? const HomeSearchResultsList()
+                : _HomeBrowseBody(isAuthenticated: isAuthenticated),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s12)),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: AppSpacing.s12,
-                crossAxisSpacing: AppSpacing.s12,
-                childAspectRatio: 0.92,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final item = _categories[index];
-                  return HomeCategoryTile(
-                    key: ValueKey(item.route),
-                    title: item.title,
-                    subtitle: item.subtitle,
-                    imageUrl: item.imageUrl,
-                    onTap: () => context.push(item.route),
-                  );
-                },
-                childCount: _categories.length,
-              ),
-            ),
-          ),
-          if (!isAuthenticated) ...[
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
-                child: _SellerBanner(
-                  onTap: () => context.push(AppRouteNames.login),
-                ),
-              ),
-            ),
-          ],
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s20,
-                0,
-                AppSpacing.s20,
-                AppSpacing.s16,
-              ),
-              child: Text(
-                'Certified stones · Transparent sellers · Worldwide shipping',
-                textAlign: TextAlign.center,
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondaryLight,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Center(
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: AppSpacing.s8,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () => context.push(AppRouteNames.aboutUs),
-                    child: Text(
-                      'About GemWorld',
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.bronze,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '·',
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.textMutedLight,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () =>
-                        context.push(AppRouteNames.termsAndConditions),
-                    child: Text(
-                      'Terms & Conditions',
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.bronze,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '·',
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.textMutedLight,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => context.push(AppRouteNames.policies),
-                    child: Text(
-                      'Policies',
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.bronze,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s16)),
         ],
       ),
     );
   }
+}
 
-  static void _openDiamonds(BuildContext context) {
-    context.push(AppRouteNames.diamonds);
-  }
+class _HomeBrowseBody extends StatelessWidget {
+  const _HomeBrowseBody({required this.isAuthenticated});
 
-  static void _openJewelry(BuildContext context) {
-    context.push(AppRouteNames.jewelry);
+  final bool isAuthenticated;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: HomeHero(
+            imageUrl: HomeNetworkImages.hero,
+            onPrimary: (ctx) => ctx.push(AppRouteNames.diamonds),
+            onSecondary: (ctx) => ctx.push(AppRouteNames.jewelry),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
+            child: Text(
+              'Shop',
+              style: AppTypography.headline.copyWith(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s12)),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: AppSpacing.s12,
+              crossAxisSpacing: AppSpacing.s12,
+              childAspectRatio: 0.92,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final item = HomeScreen._categories[index];
+                return HomeCategoryTile(
+                  key: ValueKey(item.route),
+                  title: item.title,
+                  subtitle: item.subtitle,
+                  imageUrl: item.imageUrl,
+                  onTap: () => context.push(item.route),
+                );
+              },
+              childCount: HomeScreen._categories.length,
+            ),
+          ),
+        ),
+        if (!isAuthenticated) ...[
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
+              child: _SellerBanner(
+                onTap: () => context.push(AppRouteNames.login),
+              ),
+            ),
+          ),
+        ],
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s20,
+              0,
+              AppSpacing.s20,
+              AppSpacing.s16,
+            ),
+            child: Text(
+              'Certified stones · Transparent sellers · Worldwide shipping',
+              textAlign: TextAlign.center,
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textSecondaryLight,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: AppSpacing.s8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () => context.push(AppRouteNames.aboutUs),
+                  child: Text(
+                    'About GemWorld',
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.bronze,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Text(
+                  '·',
+                  style: AppTypography.label.copyWith(
+                    color: AppColors.textMutedLight,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () =>
+                      context.push(AppRouteNames.termsAndConditions),
+                  child: Text(
+                    'Terms & Conditions',
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.bronze,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Text(
+                  '·',
+                  style: AppTypography.label.copyWith(
+                    color: AppColors.textMutedLight,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.push(AppRouteNames.policies),
+                  child: Text(
+                    'Policies',
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.bronze,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s16)),
+      ],
+    );
   }
 }
 

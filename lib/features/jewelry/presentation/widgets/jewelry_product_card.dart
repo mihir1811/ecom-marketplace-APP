@@ -14,6 +14,8 @@ import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/application/wishlist_provider.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
+import '../../../product_detail/domain/adapters/jewelry_product_detail.dart';
+import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/jewelry.dart';
 import '../../../../core/utils/app_currency.dart';
 
@@ -41,6 +43,7 @@ class JewelryProductCard extends ConsumerWidget {
     final added = ref
         .read(wishlistProvider.notifier)
         .toggle(WishlistItem.fromJewelry(item));
+    if (added) rememberProductDetail(jewelryProductDetail(item));
     final messenger = ScaffoldMessenger.maybeOf(context);
     messenger?.hideCurrentSnackBar();
     messenger?.showSnackBar(
@@ -125,6 +128,8 @@ class JewelryProductCard extends ConsumerWidget {
                   right: AppSpacing.s4,
                   child: WishlistToggleButton(
                     item: WishlistItem.fromJewelry(item),
+                    onAdded: () =>
+                        rememberProductDetail(jewelryProductDetail(item)),
                     size: 18,
                   ),
                 ),
@@ -498,6 +503,7 @@ class JewelryProductListCard extends ConsumerWidget {
     final added = ref
         .read(wishlistProvider.notifier)
         .toggle(WishlistItem.fromJewelry(item));
+    if (added) rememberProductDetail(jewelryProductDetail(item));
     final messenger = ScaffoldMessenger.maybeOf(context);
     messenger?.hideCurrentSnackBar();
     messenger?.showSnackBar(

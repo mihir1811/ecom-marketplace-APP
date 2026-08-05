@@ -23,7 +23,7 @@ abstract final class JewelryListQueryMapper {
     final search = filters.searchQuery.trim();
     if (search.isNotEmpty) {
       query['search'] = search;
-      query['searchBy'] = 'productTitle,stockNumber';
+      query['searchBy'] = 'productTitle,stockNumber,variants.stockNumber';
     }
 
     final sortField = _sortField(sort);

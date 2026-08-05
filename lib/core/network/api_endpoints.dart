@@ -9,11 +9,17 @@ abstract final class ApiEndpoints {
   static const String authForgetPassword = '/auth/forget-password';
   static const String authResetPassword = '/auth/reset-password';
 
+  /// List + autocomplete (`search` / `searchBy` query params).
+  static const String diamond = '/diamond';
   static const String diamondSearch = '/diamond/search';
   static const String diamondFilters = '/diamond/filters';
   static String diamondById(String id) => '/diamond/$id';
+
+  static const String meleeDiamond = '/melee-diamond';
   static String meleeDiamondById(String id) => '/melee-diamond/$id';
 
+  /// List + autocomplete (`search` / `searchBy` query params).
+  static const String gemStone = '/gem-stone';
   static const String gemStoneSearch = '/gem-stone/search';
   static const String gemStoneFilters = '/gem-stone/filters';
   static String gemStoneById(String id) => '/gem-stone/$id';

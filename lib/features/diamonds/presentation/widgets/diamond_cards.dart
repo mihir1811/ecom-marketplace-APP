@@ -16,6 +16,7 @@ import '../../../comparison/application/comparison_provider.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
+import '../../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/diamond.dart';
 import '../../domain/models/diamond_display.dart';
@@ -92,6 +93,8 @@ class DiamondCardGrid extends ConsumerWidget {
                   right: AppSpacing.s4,
                   child: WishlistToggleButton(
                     item: WishlistItem.fromDiamond(diamond),
+                    onAdded: () =>
+                        rememberProductDetail(diamondProductDetail(diamond)),
                     size: 18,
                   ),
                 ),

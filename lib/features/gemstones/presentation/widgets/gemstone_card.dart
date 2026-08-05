@@ -17,6 +17,7 @@ import '../../../comparison/application/comparison_provider.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
+import '../../../product_detail/domain/adapters/gemstone_product_detail.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/gemstone.dart';
 
@@ -59,6 +60,9 @@ class GemstoneCardGrid extends ConsumerWidget {
                   right: AppSpacing.s4,
                   child: WishlistToggleButton(
                     item: WishlistItem.fromGemstone(gemstone),
+                    onAdded: () => rememberProductDetail(
+                      gemstoneProductDetail(gemstone),
+                    ),
                     size: 18,
                   ),
                 ),
@@ -231,6 +235,9 @@ class GemstoneCardList extends ConsumerWidget {
                   left: AppSpacing.s8,
                   child: WishlistToggleButton(
                     item: WishlistItem.fromGemstone(gemstone),
+                    onAdded: () => rememberProductDetail(
+                      gemstoneProductDetail(gemstone),
+                    ),
                     size: 18,
                   ),
                 ),

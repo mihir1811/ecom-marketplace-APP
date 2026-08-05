@@ -11,6 +11,8 @@ import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
+import '../../../product_detail/domain/adapters/bullion_product_detail.dart';
+import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/billion.dart';
 
 enum BullionCardLayout { grid, list }
@@ -72,6 +74,8 @@ class BullionCardGrid extends StatelessWidget {
                   right: AppSpacing.s4,
                   child: WishlistToggleButton(
                     item: WishlistItem.fromBullion(bullion),
+                    onAdded: () =>
+                        rememberProductDetail(bullionProductDetail(bullion)),
                     size: 18,
                   ),
                 ),
@@ -198,6 +202,8 @@ class BullionCardList extends StatelessWidget {
                   left: AppSpacing.s8,
                   child: WishlistToggleButton(
                     item: WishlistItem.fromBullion(bullion),
+                    onAdded: () =>
+                        rememberProductDetail(bullionProductDetail(bullion)),
                     size: 18,
                   ),
                 ),

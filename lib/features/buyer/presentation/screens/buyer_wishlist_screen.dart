@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/wishlist_provider.dart';
 import '../../domain/models/wishlist_item.dart';
 import '../widgets/buyer_layout.dart';
@@ -99,92 +100,111 @@ class _WishlistTile extends StatelessWidget {
         WishlistCategory.bullion => 'Bullion',
       };
 
+  void _openProduct(BuildContext context) {
+    if (openRememberedProductDetail(context, item.id)) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Open this product from the catalog to see its details.',
+        ),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+    return Material(
+      color: AppColors.warmWhite,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: () => _openProduct(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.warmBorder),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppColors.sandSurface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: item.imageAsset != null
-                ? Image.asset(
-                    item.imageAsset!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(
-                      _icon,
-                      color: AppColors.bronze,
-                    ),
-                  )
-                : item.imageUrl != null
-                    ? AppNetworkImage(
-                        url: item.imageUrl!,
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.s16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.warmBorder),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.sandSurface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: item.imageAsset != null
+                    ? Image.asset(
+                        item.imageAsset!,
                         fit: BoxFit.cover,
-                        error: Icon(
+                        errorBuilder: (_, __, ___) => Icon(
                           _icon,
                           color: AppColors.bronze,
                         ),
                       )
-                    : Icon(_icon, color: AppColors.bronze),
+                    : item.imageUrl != null
+                        ? AppNetworkImage(
+                            url: item.imageUrl!,
+                            fit: BoxFit.cover,
+                            error: Icon(
+                              _icon,
+                              color: AppColors.bronze,
+                            ),
+                          )
+                        : Icon(_icon, color: AppColors.bronze),
+              ),
+              const SizedBox(width: AppSpacing.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _categoryLabel,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textMutedLight,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      item.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.title.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      item.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textSecondaryLight,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      item.priceLabel,
+                      style: AppTypography.label.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'Remove',
+                onPressed: onRemove,
+                icon: const Icon(Icons.favorite, color: AppColors.error),
+              ),
+            ],
           ),
-          const SizedBox(width: AppSpacing.s12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _categoryLabel,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.title.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondaryLight,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  item.priceLabel,
-                  style: AppTypography.label.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            tooltip: 'Remove',
-            onPressed: onRemove,
-            icon: const Icon(Icons.favorite, color: AppColors.error),
-          ),
-        ],
+        ),
       ),
     );
   }

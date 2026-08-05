@@ -28,6 +28,23 @@ ProductDetail? restoreProductDetail(String segment, String productId) {
   return _productDetailCache[_productDetailCacheKey(segment, productId)];
 }
 
+/// Finds a previously viewed/wishlisted product by id across all segments.
+ProductDetail? findRememberedProductDetail(String productId) {
+  if (productId.isEmpty) return null;
+  for (final detail in _productDetailCache.values) {
+    if (detail.id == productId) return detail;
+  }
+  return null;
+}
+
+/// Opens a remembered product detail. Returns `false` when nothing is cached.
+bool openRememberedProductDetail(BuildContext context, String productId) {
+  final detail = findRememberedProductDetail(productId);
+  if (detail == null) return false;
+  openProductDetail(context, detail);
+  return true;
+}
+
 /// Single entry point to the shared product detail page. The resolved view
 /// model travels as route `extra` because the catalog is generated per session.
 void openProductDetail(BuildContext context, ProductDetail detail) {

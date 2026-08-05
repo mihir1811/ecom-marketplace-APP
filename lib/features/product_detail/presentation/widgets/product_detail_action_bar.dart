@@ -48,6 +48,7 @@ class ProductDetailActionBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final purchasable = detail.isPurchasable;
     final mutating = ref.watch(cartIsMutatingProvider);
+    final inCart = ref.watch(isProductInCartProvider(detail.id));
 
     return Container(
       decoration: const BoxDecoration(
@@ -58,30 +59,28 @@ class ProductDetailActionBar extends ConsumerWidget {
         horizontal: AppSpacing.s16,
         vertical: AppSpacing.s12,
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => context.push(AppRouteNames.buyerInquiryNew),
-              child: const Text('Make an offer'),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.s12),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: purchasable && !mutating
-                  ? () => _addToCart(context, ref)
-                  : null,
-              child: mutating
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(purchasable ? 'Add to cart' : 'Unavailable'),
-            ),
-          ),
-        ],
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: !purchasable || mutating
+              ? null
+              : inCart
+                  ? () => context.push(AppRouteNames.cart)
+                  : () => _addToCart(context, ref),
+          child: mutating
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(
+                  !purchasable
+                      ? 'Unavailable'
+                      : inCart
+                          ? 'View in cart'
+                          : 'Add to cart',
+                ),
+        ),
       ),
     );
   }

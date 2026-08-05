@@ -9,12 +9,16 @@ import '../../domain/models/wishlist_item.dart';
 class WishlistToggleButton extends ConsumerWidget {
   const WishlistToggleButton({
     required this.item,
+    this.onAdded,
     this.size = 18,
     this.padded = true,
     super.key,
   });
 
   final WishlistItem item;
+
+  /// Called after the item is newly added so callers can cache product detail.
+  final VoidCallback? onAdded;
   final double size;
   final bool padded;
 
@@ -29,6 +33,7 @@ class WishlistToggleButton extends ConsumerWidget {
         onTap: () {
           final added =
               ref.read(wishlistProvider.notifier).toggle(item);
+          if (added) onAdded?.call();
           final messenger = ScaffoldMessenger.maybeOf(context);
           messenger?.hideCurrentSnackBar();
           messenger?.showSnackBar(
