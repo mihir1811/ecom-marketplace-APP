@@ -1,31 +1,36 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/error/result.dart';
 import '../../../../core/router/account_nav.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../data/seller_inquiry_mock_data.dart';
+import '../../application/inquiry_provider.dart';
+import '../../data/mappers/inquiry_request_mapper.dart';
 import '../../domain/models/seller_inquiry.dart';
 import '../widgets/inquiry_form_fields.dart';
 import '../widgets/seller_layout.dart';
 
-class SellerInquiryFormScreen extends StatefulWidget {
+class SellerInquiryFormScreen extends ConsumerStatefulWidget {
   const SellerInquiryFormScreen({super.key, this.initialCategory});
 
   final InquiryCategory? initialCategory;
 
   @override
-  State<SellerInquiryFormScreen> createState() =>
+  ConsumerState<SellerInquiryFormScreen> createState() =>
       _SellerInquiryFormScreenState();
 }
 
-class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
+class _SellerInquiryFormScreenState
+    extends ConsumerState<SellerInquiryFormScreen> {
   InquiryCategory? _category;
   bool _dirty = false;
+  bool _submitting = false;
   final _ctrls = <String, TextEditingController>{};
   final _bools = <String, bool>{};
   DateTime? _urgency;
@@ -68,11 +73,25 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
   }
 
   Widget _referenceImageField() {
-    return InquiryImagePickerField(
-      label: 'Reference image',
-      helperText: 'Upload a photo of what you want (e.g. “I want like this”)',
-      images: _referenceImages,
-      onChanged: _setReferenceImages,
+    final imageKey =
+        _category?.imageFieldKey ?? InquiryCategory.diamond.imageFieldKey;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InquiryTextField(
+          label: imageKey,
+          controller: _c(imageKey == 'referenceImage' ? 'referenceImage' : 'imageUrl'),
+          hint: 'https://example.com/image.jpg',
+          onChanged: _markDirty,
+        ),
+        const SizedBox(height: 8),
+        InquiryImagePickerField(
+          label: 'Reference image (local preview)',
+          helperText: 'Upload a photo of what you want (optional local preview)',
+          images: _referenceImages,
+          onChanged: _setReferenceImages,
+        ),
+      ],
     );
   }
 
@@ -160,102 +179,56 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
     });
   }
 
-  void _submit() {
-    if (_category == null || !_dirty) return;
-    final path = GoRouterState.of(context).uri.path;
-    final sentBy = isBuyerPath(path)
-        ? InquirySenderRole.buyer
-        : InquirySenderRole.seller;
-    final id = '${kSellerInquiriesMock.length + 1}';
-    final now = DateTime.now();
-    String two(int v) => v.toString().padLeft(2, '0');
-    final label =
-        '${now.day} ${_month(now.month)} ${now.year}, ${two(now.hour)}:${two(now.minute)}';
-    final fields = <String, String>{};
+  Future<void> _submit() async {
+    if (_category == null || !_dirty || _submitting) return;
+
+    setState(() => _submitting = true);
+
+    final textFields = <String, String>{};
     for (final e in _ctrls.entries) {
-      final key = e.key.toLowerCase();
-      if (key.contains('imageurl') ||
-          key.contains('image_url') ||
-          key == 'referenceimage') {
-        continue;
-      }
-      if (e.value.text.trim().isNotEmpty) {
-        fields[e.key] = e.value.text.trim();
-      }
+      if (e.value.text.trim().isEmpty) continue;
+      textFields[e.key] = e.value.text.trim();
     }
-    for (final e in _bools.entries) {
-      fields[e.key] = e.value ? 'Yes' : 'No';
-    }
-    if (_urgency != null) {
-      fields['urgency'] =
-          '${two(_urgency!.month)}/${two(_urgency!.day)}/${_urgency!.year}';
-    }
-    kSellerInquiriesMock.insert(
-      0,
-      SellerInquiry(
-        id: id,
-        category: _category!,
-        sentBy: sentBy,
-        buyerName: sentBy == InquirySenderRole.buyer ? 'You' : 'Your store',
-        buyerEmail: sentBy == InquirySenderRole.buyer
-            ? 'you@example.com'
-            : 'seller@example.com',
-        userId: 'local-user',
-        summary: _summaryFor(_category!),
-        createdAtLabel: label,
-        updatedAtLabel: label,
-        createdAtLong:
-            '${_weekday(now.weekday)}, ${now.day} ${_month(now.month)} ${now.year} at ${two(now.hour)}:${two(now.minute)}',
-        fields: fields,
-        referenceImages: List<Uint8List>.from(_referenceImages),
-      ),
+
+    final validationError = InquiryRequestMapper.validateFormInput(
+      category: _category!,
+      textFields: textFields,
     );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${_category!.label} inquiry sent to admin',
-        ),
-      ),
-    );
-    context.go(inquiriesPathFor(path));
+    if (validationError != null) {
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(validationError)),
+      );
+      return;
+    }
+
+    final result = await ref.read(inquiryMutationProvider.notifier).create(
+          category: _category!,
+          textFields: textFields,
+          boolFields: Map<String, bool>.from(_bools),
+          urgency: _urgency,
+        );
+
+    if (!mounted) return;
+    setState(() => _submitting = false);
+
+    switch (result) {
+      case Success(value: final inquiry):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${_category!.label} inquiry sent to admin'),
+          ),
+        );
+        final path = GoRouterState.of(context).uri.path;
+        context.go(
+          inquiryDetailPathFor(path, _category!.name, inquiry.id),
+        );
+      case ResultFailure(failure: final failure):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+    }
   }
-
-  String _summaryFor(InquiryCategory c) => switch (c) {
-        InquiryCategory.diamond =>
-          '${_c('shape').text} · ${_c('caratMin').text}–${_c('caratMax').text} ct',
-        InquiryCategory.gemstone =>
-          '${_c('gemstoneType').text} · ${_c('caratMin').text}–${_c('caratMax').text} ct',
-        InquiryCategory.bullion =>
-          '${_c('metalType').text} · ${_c('shapeFormat').text}',
-        InquiryCategory.watch => '${_c('brand').text} · ${_c('model').text}',
-        InquiryCategory.jewelry =>
-          '${_c('jewelrySubCategory').text} · ${_c('metalType').text}',
-      };
-
-  String _month(int m) => const [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ][m - 1];
-
-  String _weekday(int d) => const [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday',
-      ][d - 1];
 
   @override
   void dispose() {
@@ -399,13 +372,24 @@ class _SellerInquiryFormScreenState extends State<SellerInquiryFormScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       FilledButton(
-                        onPressed: _dirty ? _submit : null,
+                        onPressed: _dirty && !_submitting ? _submit : null,
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(46),
                           backgroundColor: AppColors.info,
                           disabledBackgroundColor: AppColors.warmBorder,
                         ),
-                        child: Text('Submit ${_category!.label.toLowerCase()} inquiry'),
+                        child: _submitting
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                'Submit ${_category!.label.toLowerCase()} inquiry',
+                              ),
                       ),
                       const SizedBox(height: 8),
                       OutlinedButton(

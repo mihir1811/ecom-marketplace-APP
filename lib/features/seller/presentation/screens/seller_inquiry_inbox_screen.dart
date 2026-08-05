@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/account_nav.dart';
@@ -6,19 +7,20 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../data/seller_inquiry_mock_data.dart';
+import '../../application/inquiry_provider.dart';
 import '../../domain/models/seller_inquiry.dart';
 import '../widgets/seller_layout.dart';
 
-class SellerInquiryInboxScreen extends StatefulWidget {
+class SellerInquiryInboxScreen extends ConsumerStatefulWidget {
   const SellerInquiryInboxScreen({super.key});
 
   @override
-  State<SellerInquiryInboxScreen> createState() =>
+  ConsumerState<SellerInquiryInboxScreen> createState() =>
       _SellerInquiryInboxScreenState();
 }
 
-class _SellerInquiryInboxScreenState extends State<SellerInquiryInboxScreen> {
+class _SellerInquiryInboxScreenState
+    extends ConsumerState<SellerInquiryInboxScreen> {
   InquiryCategory _category = InquiryCategory.diamond;
 
   IconData _iconFor(InquiryCategory c) => switch (c) {
@@ -43,7 +45,7 @@ class _SellerInquiryInboxScreenState extends State<SellerInquiryInboxScreen> {
     final sentBy = isBuyerPath(path)
         ? InquirySenderRole.buyer
         : InquirySenderRole.seller;
-    final items = inquiriesForCategory(_category, sentBy: sentBy);
+    final listState = ref.watch(inquiryListProvider(_category));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -66,199 +68,241 @@ class _SellerInquiryInboxScreenState extends State<SellerInquiryInboxScreen> {
           ),
         ),
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.s16),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.s16),
-                decoration: BoxDecoration(
-                  color: AppColors.sandSurface,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Icon(
-                        Icons.inbox_outlined,
-                        size: 48,
-                        color: AppColors.textMutedLight.withValues(alpha: 0.3),
+          child: RefreshIndicator(
+            onRefresh: () =>
+                ref.read(inquiryListProvider(_category).notifier).refresh(),
+            child: ListView(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.s16),
+                  decoration: BoxDecoration(
+                    color: AppColors.sandSurface,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Icon(
+                          Icons.inbox_outlined,
+                          size: 48,
+                          color:
+                              AppColors.textMutedLight.withValues(alpha: 0.3),
+                        ),
                       ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.warmWhite,
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(color: AppColors.warmBorder),
-                            ),
-                            child: Text(
-                              sentBy == InquirySenderRole.buyer
-                                  ? 'Buyer · Sent to admin'
-                                  : 'Seller · Sent to admin',
-                              style: AppTypography.caption.copyWith(
-                                fontWeight: FontWeight.w600,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.warmWhite,
+                                borderRadius: BorderRadius.circular(999),
+                                border:
+                                    Border.all(color: AppColors.warmBorder),
+                              ),
+                              child: Text(
+                                sentBy == InquirySenderRole.buyer
+                                    ? 'Buyer · Sent to admin'
+                                    : 'Seller · Sent to admin',
+                                style: AppTypography.caption.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'My inquiries',
-                          style: AppTypography.headline.copyWith(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 22,
+                          const SizedBox(height: 10),
+                          Text(
+                            'My inquiries',
+                            style: AppTypography.headline.copyWith(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 22,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Inquiries you submit go directly to admin — not to '
-                          'other buyers or sellers. Open a row to see your '
-                          'submission and any admin reply.',
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.textSecondaryLight,
-                            height: 1.4,
+                          const SizedBox(height: 6),
+                          Text(
+                            'Inquiries you submit go directly to admin — not to '
+                            'other buyers or sellers. Open a row to see your '
+                            'submission and any admin reply.',
+                            style: AppTypography.body.copyWith(
+                              color: AppColors.textSecondaryLight,
+                              height: 1.4,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 14),
+                          const SizedBox(height: 14),
                           OutlinedButton(
-                          onPressed: () => context.go(
-                            inquiryNewPathFor(
-                              GoRouterState.of(context).uri.path,
+                            onPressed: () => context.go(
+                              inquiryNewPathFor(
+                                GoRouterState.of(context).uri.path,
+                              ),
                             ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(44),
-                            backgroundColor: AppColors.warmWhite,
-                          ),
-                          child: const Text('New inquiry'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Browse by type',
-                style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Switch category — each type loads its own list.',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondaryLight,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: () => setState(() {}),
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Refresh'),
-                ),
-              ),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final c in InquiryCategory.values)
-                    _CategoryChip(
-                      label: c.label,
-                      icon: _iconFor(c),
-                      selected: _category == c,
-                      accent: _accentFor(c),
-                      onTap: () => setState(() => _category = c),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.warmWhite,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.warmBorder),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _accentFor(_category).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        _iconFor(_category),
-                        color: _accentFor(_category),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _category.listTitle,
-                            style: AppTypography.label.copyWith(
-                              fontWeight: FontWeight.w700,
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(44),
+                              backgroundColor: AppColors.warmWhite,
                             ),
-                          ),
-                          Text(
-                            items.isEmpty
-                                ? 'Showing 0 of 0'
-                                : 'Showing 1–${items.length} of ${items.length}',
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.textMutedLight,
-                            ),
+                            child: const Text('New inquiry'),
                           ),
                         ],
                       ),
-                    ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Browse by type',
+                  style:
+                      AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Switch category — each type loads its own list.',
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondaryLight,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final c in InquiryCategory.values)
+                      _CategoryChip(
+                        label: c.label,
+                        icon: _iconFor(c),
+                        selected: _category == c,
+                        accent: _accentFor(c),
+                        onTap: () => setState(() => _category = c),
+                      ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              if (items.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Center(
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.warmWhite,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.warmBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: _accentFor(_category).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          _iconFor(_category),
+                          color: _accentFor(_category),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _category.listTitle,
+                              style: AppTypography.label.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              listState.isLoading
+                                  ? 'Loading…'
+                                  : listState.items.isEmpty
+                                      ? 'Showing 0 of 0'
+                                      : 'Showing 1–${listState.items.length} of ${listState.total}',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textMutedLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (listState.errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.3),
+                      ),
+                    ),
                     child: Text(
-                      'No ${_category.label.toLowerCase()} inquiries.',
+                      listState.errorMessage!,
                       style: AppTypography.body.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.error,
                       ),
                     ),
                   ),
-                )
-              else
-                for (final inquiry in items) ...[
-                  _InquiryCard(
-                    inquiry: inquiry,
-                    accent: _accentFor(inquiry.category),
-                    icon: _iconFor(inquiry.category),
-                    onView: () => context.go(
-                      inquiryDetailPathFor(
-                        GoRouterState.of(context).uri.path,
-                        inquiry.category.name,
-                        inquiry.id,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                 ],
-            ],
+                if (listState.isLoading && listState.items.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (listState.items.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Center(
+                      child: Text(
+                        'No ${_category.label.toLowerCase()} inquiries.',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.textMutedLight,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  for (final inquiry in listState.items) ...[
+                    _InquiryCard(
+                      inquiry: inquiry,
+                      accent: _accentFor(inquiry.category),
+                      icon: _iconFor(inquiry.category),
+                      onView: () => context.go(
+                        inquiryDetailPathFor(
+                          GoRouterState.of(context).uri.path,
+                          inquiry.category.name,
+                          inquiry.id,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                if (listState.hasMore) ...[
+                  const SizedBox(height: 4),
+                  OutlinedButton(
+                    onPressed: listState.isLoadingMore
+                        ? null
+                        : () => ref
+                            .read(inquiryListProvider(_category).notifier)
+                            .loadMore(),
+                    child: listState.isLoadingMore
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Load more'),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ],
@@ -345,7 +389,7 @@ class _InquiryCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                '#${inquiry.id}',
+                '#${inquiry.id.length > 8 ? inquiry.id.substring(0, 8) : inquiry.id}',
                 style: AppTypography.caption.copyWith(
                   color: AppColors.textMutedLight,
                   fontWeight: FontWeight.w600,

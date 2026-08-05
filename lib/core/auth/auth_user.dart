@@ -26,6 +26,8 @@ class AuthUser {
 
   bool get isSeller => role.toLowerCase() == 'seller';
 
+  bool get isAdmin => role.toLowerCase() == 'admin';
+
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
       id: (json['id'] as String?)?.trim() ?? '',

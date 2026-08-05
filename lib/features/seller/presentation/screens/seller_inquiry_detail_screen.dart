@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/error/failure.dart';
+import '../../../../core/error/result.dart';
 import '../../../../core/router/account_nav.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../data/seller_inquiry_mock_data.dart';
+import '../../application/inquiry_provider.dart';
 import '../../domain/models/seller_inquiry.dart';
 import '../widgets/inquiry_form_fields.dart';
 import '../widgets/inquiry_seller_reply.dart';
 import '../widgets/seller_layout.dart';
 
-class SellerInquiryDetailScreen extends StatelessWidget {
+class SellerInquiryDetailScreen extends ConsumerWidget {
   const SellerInquiryDetailScreen({
     required this.categoryName,
     required this.inquiryId,
@@ -21,6 +24,114 @@ class SellerInquiryDetailScreen extends StatelessWidget {
 
   final String categoryName;
   final String inquiryId;
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    InquiryCategory category,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete inquiry?'),
+        content: const Text(
+          'This will permanently remove your inquiry. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final result = await ref.read(inquiryMutationProvider.notifier).delete(
+          category: category,
+          id: inquiryId,
+        );
+
+    if (!context.mounted) return;
+    switch (result) {
+      case Success():
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Inquiry deleted')),
+        );
+        context.go(inquiriesPathFor(GoRouterState.of(context).uri.path));
+      case ResultFailure(failure: final failure):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final path = GoRouterState.of(context).uri.path;
+    final category = InquiryCategory.fromRouteName(categoryName);
+    if (category == null) {
+      return Center(
+        child: TextButton(
+          onPressed: () => context.go(inquiriesPathFor(path)),
+          child: const Text('Back to inquiries'),
+        ),
+      );
+    }
+
+    final inquiryAsync = ref.watch(
+      inquiryDetailProvider((category: category, id: inquiryId)),
+    );
+
+    return inquiryAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) {
+        final message = error is Failure
+            ? error.message
+            : 'Could not load inquiry.';
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(message, style: AppTypography.body),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => context.go(inquiriesPathFor(path)),
+                child: const Text('Back to inquiries'),
+              ),
+            ],
+          ),
+        );
+      },
+      data: (inquiry) => _InquiryDetailBody(
+        inquiry: inquiry,
+        path: path,
+        category: category,
+        onDelete: () => _confirmDelete(context, ref, category),
+      ),
+    );
+  }
+}
+
+class _InquiryDetailBody extends StatelessWidget {
+  const _InquiryDetailBody({
+    required this.inquiry,
+    required this.path,
+    required this.category,
+    required this.onDelete,
+  });
+
+  final SellerInquiry inquiry;
+  final String path;
+  final InquiryCategory category;
+  final VoidCallback onDelete;
 
   bool _isImageFieldKey(String key) {
     final lower = key.toLowerCase();
@@ -34,17 +145,6 @@ class SellerInquiryDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final path = GoRouterState.of(context).uri.path;
-    final inquiry = findSellerInquiry(inquiryId);
-    if (inquiry == null) {
-      return Center(
-        child: TextButton(
-          onPressed: () => context.go(inquiriesPathFor(path)),
-          child: const Text('Back to inquiries'),
-        ),
-      );
-    }
-
     final accent = switch (inquiry.category) {
       InquiryCategory.diamond => AppColors.info,
       InquiryCategory.gemstone => AppSwatches.inquiryGemstone,
@@ -253,6 +353,38 @@ class SellerInquiryDetailScreen extends StatelessWidget {
                         images: inquiry.referenceImages,
                       ),
                     ],
+                    if (inquiry.imageUrl != null &&
+                        inquiry.imageUrl!.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        'REFERENCE IMAGE',
+                        style: AppTypography.caption.copyWith(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          inquiry.imageUrl!,
+                          height: 180,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            height: 120,
+                            color: AppColors.sandSurface,
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Could not load image',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textMutedLight,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -328,6 +460,18 @@ class SellerInquiryDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              _Card(
+                child: OutlinedButton(
+                  onPressed: onDelete,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(44),
+                    foregroundColor: AppColors.error,
+                    side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
+                  ),
+                  child: const Text('Delete inquiry'),
                 ),
               ),
             ],

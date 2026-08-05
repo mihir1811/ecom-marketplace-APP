@@ -69,4 +69,25 @@ abstract final class ApiEndpoints {
 
   // Seller reviews (buyer rates a seller after a paid order)
   static const String sellerReviews = '/seller-reviews';
+
+  // Product inquiries (buyer + seller submit to admin)
+  static const String diamondInquiry = '/diamond-inquiry';
+  static const String diamondInquiryAll = '/diamond-inquiry/all';
+  static String diamondInquiryById(String id) => '/diamond-inquiry/$id';
+
+  static const String gemstoneInquiry = '/gemstone-inquiry';
+  static const String gemstoneInquiryAll = '/gemstone-inquiry/all';
+  static String gemstoneInquiryById(String id) => '/gemstone-inquiry/$id';
+
+  static const String bullionInquiry = '/bullion-inquiry';
+  static const String bullionInquiryAll = '/bullion-inquiry/all';
+  static String bullionInquiryById(String id) => '/bullion-inquiry/$id';
+
+  static const String watchInquiry = '/watch-inquiry';
+  static const String watchInquiryAll = '/watch-inquiry/all';
+  static String watchInquiryById(String id) => '/watch-inquiry/$id';
+
+  static const String jewelleryInquiry = '/jewellery-inquiry';
+  static const String jewelleryInquiryAll = '/jewellery-inquiry/all';
+  static String jewelleryInquiryById(String id) => '/jewellery-inquiry/$id';
 }

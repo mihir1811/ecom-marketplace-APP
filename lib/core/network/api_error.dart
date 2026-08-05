@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../error/failure.dart';
+import 'validation_message_formatter.dart';
 
 /// Maps Dio errors to user-safe [Failure]s, preferring server `message`.
 abstract final class ApiError {
@@ -14,25 +15,30 @@ abstract final class ApiError {
 
     if (status == 401) {
       return AuthFailure(
-        serverMessage ?? 'Your session has expired. Please sign in again.',
+        ValidationMessageFormatter.humanize(
+          serverMessage ?? 'Your session has expired. Please sign in again.',
+        ),
       );
     }
     if (status == 400 || status == 422) {
       return ValidationFailure(
-        serverMessage ?? 'Please check your details and try again.',
+        ValidationMessageFormatter.humanize(
+          serverMessage ?? 'Please check your details and try again.',
+        ),
       );
     }
     if (serverMessage != null && serverMessage.isNotEmpty) {
+      final friendly = ValidationMessageFormatter.humanize(serverMessage);
       if (status != null && status >= 500) {
-        return NetworkFailure(serverMessage);
+        return NetworkFailure(friendly);
       }
       if (status == 403) {
-        return AuthFailure(serverMessage);
+        return AuthFailure(friendly);
       }
       if (status == 404) {
-        return NetworkFailure(serverMessage);
+        return NetworkFailure(friendly);
       }
-      return ValidationFailure(serverMessage);
+      return ValidationFailure(friendly);
     }
     return NetworkFailure.fromDioException(e);
   }

@@ -10,6 +10,27 @@ enum InquiryCategory {
   const InquiryCategory(this.label, this.listTitle);
   final String label;
   final String listTitle;
+
+  /// API path segment, e.g. `diamond-inquiry`.
+  String get apiSegment => switch (this) {
+        InquiryCategory.diamond => 'diamond-inquiry',
+        InquiryCategory.gemstone => 'gemstone-inquiry',
+        InquiryCategory.bullion => 'bullion-inquiry',
+        InquiryCategory.watch => 'watch-inquiry',
+        InquiryCategory.jewelry => 'jewellery-inquiry',
+      };
+
+  /// Image field name on create/update (jewellery uses `referenceImage`).
+  String get imageFieldKey =>
+      this == InquiryCategory.jewelry ? 'referenceImage' : 'imageUrl';
+
+  static InquiryCategory? fromRouteName(String name) {
+    final lower = name.toLowerCase();
+    for (final c in InquiryCategory.values) {
+      if (c.name == lower) return c;
+    }
+    return null;
+  }
 }
 
 /// Who submitted the inquiry. All inquiries route to admin (not peer-to-peer).
@@ -29,6 +50,7 @@ class SellerInquiry {
     required this.fields,
     this.sentBy = InquirySenderRole.buyer,
     this.referenceImages = const [],
+    this.imageUrl,
     this.adminReply,
     this.adminReplyAt,
     this.adminReplyImages = const [],
@@ -50,6 +72,9 @@ class SellerInquiry {
 
   /// Sender-uploaded reference images ("I want something like this").
   final List<Uint8List> referenceImages;
+
+  /// Remote image URL from API (`imageUrl` or `referenceImage`).
+  final String? imageUrl;
 
   /// Admin response visible to the inquiry sender (markdown-lite plain text).
   String? adminReply;
