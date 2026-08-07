@@ -59,7 +59,7 @@ class AppRouteNames {
   static const String buyerMessages = '/buyer/messages';
   static const String buyerChatDetail = '/buyer/messages/:chatId';
   static String buyerChatDetailPath(String chatId) =>
-      '/buyer/messages/$chatId';
+      '/buyer/messages/${Uri.encodeComponent(chatId)}';
   static const String buyerSettings = '/buyer/settings';
 
   // Seller (dashboard workspace)
@@ -83,7 +83,8 @@ class AppRouteNames {
   static const String sellerAnalytics = '/seller/analytics';
   static const String sellerChat = '/seller/chat';
   static const String sellerChatDetail = '/seller/chat/:chatId';
-  static String sellerChatDetailPath(String chatId) => '/seller/chat/$chatId';
+  static String sellerChatDetailPath(String chatId) =>
+      '/seller/chat/${Uri.encodeComponent(chatId)}';
   static const String sellerHelpCenter = '/seller/help-center';
   static const String sellerPromotions = '/seller/promotions';
   static const String sellerProfile = '/seller/profile';

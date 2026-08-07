@@ -1,22 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../buyer/application/wishlist_provider.dart';
+import '../../../chat/presentation/open_product_seller_chat.dart';
 import '../../domain/models/product_detail.dart';
 
 /// Price block — the highest-priority number on the page.
-class ProductDetailPrice extends ConsumerWidget {
+class ProductDetailPrice extends ConsumerStatefulWidget {
   const ProductDetailPrice({required this.detail, super.key});
 
   final ProductDetail detail;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProductDetailPrice> createState() => _ProductDetailPriceState();
+}
+
+class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
+  bool _openingChat = false;
+
+  Future<void> _openChat() async {
+    if (_openingChat) return;
+    setState(() => _openingChat = true);
+    try {
+      await openProductSellerChat(
+        context,
+        ref,
+        productId: widget.detail.id,
+        apiProductType: widget.detail.apiProductType,
+      );
+    } finally {
+      if (mounted) setState(() => _openingChat = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = widget.detail;
     final price = detail.price;
     final unit = price.unitDisplay;
     final discount = price.discountPercent;
@@ -75,7 +97,8 @@ class ProductDetailPrice extends ConsumerWidget {
                 _ActionIcon(
                   icon: Icons.chat_bubble_outline,
                   tooltip: 'Chat with seller',
-                  onTap: () => context.push(AppRouteNames.buyerMessages),
+                  loading: _openingChat,
+                  onTap: _openChat,
                 ),
                 const SizedBox(width: AppSpacing.s8),
                 _ActionIcon(
@@ -124,19 +147,21 @@ class _ActionIcon extends StatelessWidget {
     required this.tooltip,
     required this.onTap,
     this.tint = AppColors.charcoal,
+    this.loading = false,
   });
 
   final IconData icon;
   final String tooltip;
   final VoidCallback onTap;
   final Color tint;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
       child: InkWell(
-        onTap: onTap,
+        onTap: loading ? null : onTap,
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         child: Container(
           width: 42,
@@ -146,7 +171,12 @@ class _ActionIcon extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSpacing.r8),
             border: Border.all(color: AppColors.warmBorder),
           ),
-          child: Icon(icon, size: 18, color: tint),
+          child: loading
+              ? const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(icon, size: 18, color: tint),
         ),
       ),
     );

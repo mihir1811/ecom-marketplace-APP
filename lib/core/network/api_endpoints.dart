@@ -90,4 +90,19 @@ abstract final class ApiEndpoints {
   static const String jewelleryInquiry = '/jewellery-inquiry';
   static const String jewelleryInquiryAll = '/jewellery-inquiry/all';
   static String jewelleryInquiryById(String id) => '/jewellery-inquiry/$id';
+
+  // Help center (buyer + seller)
+  static const String helpCenterQuestions = '/help-center/questions';
+  static const String helpCenterQuestionsMine = '/help-center/questions/mine';
+  static String helpCenterQuestionById(String id) =>
+      '/help-center/questions/$id';
+  static String helpCenterQuestionClose(String id) =>
+      '/help-center/questions/$id/close';
+
+  // Chat (buyer + seller) — send is Socket.IO, not REST POST
+  static const String chat = '/chat';
+  static const String chatProductContext = '/chat/product-context';
+  static const String chatRead = '/chat/read';
+  static const String chatUploadImage = '/chat/upload-image';
+  static String chatMessageById(String messageId) => '/chat/$messageId';
 }

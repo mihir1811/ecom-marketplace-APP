@@ -1,0 +1,280 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/auth/auth_providers.dart';
+import '../../../core/error/failure.dart';
+import '../../../core/error/result.dart';
+import '../data/repositories/chat_repository_impl.dart';
+import '../domain/models/chat_message.dart';
+import '../domain/models/chat_thread.dart';
+import '../domain/models/product_chat_context.dart';
+import '../domain/repositories/chat_repository.dart';
+
+class ChatInboxState {
+  const ChatInboxState({
+    this.threads = const [],
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  final List<ChatThread> threads;
+  final bool isLoading;
+  final String? errorMessage;
+
+  ChatInboxState copyWith({
+    List<ChatThread>? threads,
+    bool? isLoading,
+    String? errorMessage,
+    bool clearError = false,
+  }) {
+    return ChatInboxState(
+      threads: threads ?? this.threads,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    );
+  }
+}
+
+class ChatInboxNotifier extends Notifier<ChatInboxState> {
+  CancelToken? _cancelToken;
+  StreamSubscription<ChatMessage>? _socketSub;
+
+  @override
+  ChatInboxState build() {
+    ref.onDispose(() {
+      _cancelToken?.cancel();
+      _socketSub?.cancel();
+    });
+
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId != null && userId.isNotEmpty) {
+      Future.microtask(() async {
+        await ref.read(chatRepositoryProvider).connectSocket(userId: userId);
+        await refresh();
+      });
+      _socketSub?.cancel();
+      _socketSub = ref.read(chatRepositoryProvider).incomingMessages.listen((_) {
+        refresh();
+      });
+    }
+
+    return const ChatInboxState(isLoading: true);
+  }
+
+  ChatRepository get _repo => ref.read(chatRepositoryProvider);
+
+  Future<void> refresh() async {
+    _cancelToken?.cancel('refresh');
+    _cancelToken = CancelToken();
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final result = await _repo.listThreads(cancelToken: _cancelToken);
+    switch (result) {
+      case Success(value: final threads):
+        state = ChatInboxState(threads: threads);
+      case ResultFailure(failure: final failure):
+        if (failure is NetworkFailure && failure.isCancelled) return;
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
+  }
+}
+
+final chatInboxProvider =
+    NotifierProvider<ChatInboxNotifier, ChatInboxState>(ChatInboxNotifier.new);
+
+class ChatThreadArgs {
+  const ChatThreadArgs({
+    required this.threadId,
+    required this.productId,
+    required this.productTypeApi,
+    required this.peerUserId,
+  });
+
+  final String threadId;
+  final String productId;
+  final String productTypeApi;
+  final String peerUserId;
+}
+
+class ChatThreadState {
+  const ChatThreadState({
+    this.messages = const [],
+    this.context,
+    this.isLoading = false,
+    this.isSending = false,
+    this.errorMessage,
+    this.sendError,
+  });
+
+  final List<ChatMessage> messages;
+  final ProductChatContext? context;
+  final bool isLoading;
+  final bool isSending;
+  final String? errorMessage;
+  final String? sendError;
+
+  ChatThreadState copyWith({
+    List<ChatMessage>? messages,
+    ProductChatContext? context,
+    bool? isLoading,
+    bool? isSending,
+    String? errorMessage,
+    String? sendError,
+    bool clearError = false,
+    bool clearSendError = false,
+    bool clearContext = false,
+  }) {
+    return ChatThreadState(
+      messages: messages ?? this.messages,
+      context: clearContext ? null : (context ?? this.context),
+      isLoading: isLoading ?? this.isLoading,
+      isSending: isSending ?? this.isSending,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      sendError: clearSendError ? null : (sendError ?? this.sendError),
+    );
+  }
+}
+
+class ChatThreadNotifier extends FamilyNotifier<ChatThreadState, ChatThreadArgs> {
+  CancelToken? _cancelToken;
+  StreamSubscription<ChatMessage>? _socketSub;
+
+  @override
+  ChatThreadState build(ChatThreadArgs arg) {
+    ref.onDispose(() {
+      _cancelToken?.cancel();
+      _socketSub?.cancel();
+    });
+
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId != null && userId.isNotEmpty) {
+      Future.microtask(() async {
+        await ref.read(chatRepositoryProvider).connectSocket(userId: userId);
+        await refresh();
+      });
+      _socketSub?.cancel();
+      _socketSub =
+          ref.read(chatRepositoryProvider).incomingMessages.listen(_onIncoming);
+    }
+
+    return const ChatThreadState(isLoading: true);
+  }
+
+  ChatRepository get _repo => ref.read(chatRepositoryProvider);
+
+  bool _belongs(ChatMessage msg) {
+    final productOk = msg.productId == arg.productId;
+    final peerOk =
+        msg.fromId == arg.peerUserId || msg.toId == arg.peerUserId;
+    return productOk && peerOk;
+  }
+
+  void _onIncoming(ChatMessage msg) {
+    if (!_belongs(msg)) return;
+    final exists = state.messages.any((m) => m.id == msg.id);
+    if (exists) return;
+    final next = [...state.messages, msg]
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    state = state.copyWith(messages: next);
+    unawaited(_markUnread(next));
+  }
+
+  Future<void> refresh() async {
+    _cancelToken?.cancel('refresh');
+    _cancelToken = CancelToken();
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final type = ChatThread.decodeId(arg.threadId)?.productType;
+    final listFuture = _repo.listMessages(
+      productId: arg.productId,
+      productType: type,
+      limit: 100,
+      cancelToken: _cancelToken,
+    );
+    final contextFuture = type == null
+        ? null
+        : _repo.getProductContext(
+            productId: arg.productId,
+            productType: type,
+            cancelToken: _cancelToken,
+          );
+
+    final listResult = await listFuture;
+    ProductChatContext? context = state.context;
+    if (contextFuture != null) {
+      final ctxResult = await contextFuture;
+      if (ctxResult case Success(value: final value)) {
+        context = value;
+      }
+    }
+
+    switch (listResult) {
+      case Success(value: final page):
+        final filtered = page.items.where(_belongs).toList()
+          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        state = ChatThreadState(
+          messages: filtered,
+          context: context,
+        );
+        await _markUnread(filtered);
+      case ResultFailure(failure: final failure):
+        if (failure is NetworkFailure && failure.isCancelled) return;
+        state = state.copyWith(
+          isLoading: false,
+          context: context,
+          errorMessage: failure.message,
+        );
+    }
+  }
+
+  Future<void> _markUnread(List<ChatMessage> messages) async {
+    final unread = messages
+        .where((m) => !m.isMine && !m.isRead)
+        .map((m) => m.id)
+        .toList();
+    if (unread.isEmpty) return;
+    await _repo.markAsRead(messageIds: unread);
+  }
+
+  Future<Result<void, Failure>> sendText(String text) async {
+    final body = text.trim();
+    if (body.isEmpty) {
+      return Result.failure(const ValidationFailure('Message is empty.'));
+    }
+    final myId = ref.read(authProvider).user?.id;
+    if (myId == null || myId.isEmpty) {
+      return Result.failure(const AuthFailure('Please sign in again.'));
+    }
+
+    state = state.copyWith(isSending: true, clearSendError: true);
+    final type = ChatThread.decodeId(arg.threadId)?.productType;
+    final result = await _repo.sendMessage(
+      fromId: myId,
+      toId: arg.peerUserId,
+      message: body,
+      productId: arg.productId,
+      productType: type,
+    );
+
+    switch (result) {
+      case Success():
+        state = state.copyWith(isSending: false);
+        // Fallback refresh in case socket echo is delayed.
+        Future<void>.delayed(const Duration(milliseconds: 600), refresh);
+      case ResultFailure(failure: final failure):
+        state = state.copyWith(
+          isSending: false,
+          sendError: failure.message,
+        );
+    }
+    return result;
+  }
+}
+
+final chatThreadProvider = NotifierProvider.family<ChatThreadNotifier,
+    ChatThreadState, ChatThreadArgs>(ChatThreadNotifier.new);
