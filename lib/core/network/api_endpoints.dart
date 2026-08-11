@@ -106,6 +106,13 @@ abstract final class ApiEndpoints {
   static const String chatUploadImage = '/chat/upload-image';
   static String chatMessageById(String messageId) => '/chat/$messageId';
 
+  // Gem AI chat (inventory search + persisted turns)
+  static const String aiChat = '/ai-chat';
+  static const String aiChatUploadImage = '/ai-chat/upload-image';
+  static const String aiChatSessions = '/ai-chat/sessions';
+  static String aiChatSessionById(String sessionId) =>
+      '/ai-chat/sessions/$sessionId';
+
   // Refunds (buyer + seller)
   static const String refunds = '/refunds';
   static const String refundsMine = '/refunds/mine';

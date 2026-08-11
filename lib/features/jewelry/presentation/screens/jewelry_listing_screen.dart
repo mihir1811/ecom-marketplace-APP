@@ -12,6 +12,7 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
+import '../../../ai_chat/application/ai_chat_back_navigation.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
@@ -77,6 +78,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
     return CatalogScreenShell(
       title: title == 'All Accessories' ? 'Accessories' : title,
       onBack: () {
+        if (AiChatBackNavigation.handleListingBack(context, ref)) return;
         if (context.canPop()) {
           context.pop();
         } else {

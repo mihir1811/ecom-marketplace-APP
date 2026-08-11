@@ -625,6 +625,11 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     state = const DiamondFilterState();
   }
 
+  /// Replaces the full filter snapshot (e.g. Gem AI “See more”).
+  void replaceFilters(DiamondFilterState filters) {
+    state = filters;
+  }
+
   void clearCuts() {
     state = state.copyWith(selectedCuts: const [], selectedFinishPreset: []);
   }

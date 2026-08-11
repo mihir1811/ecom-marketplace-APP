@@ -12,6 +12,7 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
+import '../../../ai_chat/application/ai_chat_back_navigation.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/gemstone_list_provider.dart';
 import '../../domain/models/gemstone_sort_option.dart';
@@ -77,7 +78,14 @@ class _GemstoneListingsScreenState
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (AiChatBackNavigation.handleListingBack(context, ref)) return;
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRouteNames.home);
+            }
+          },
         ),
         title: Text(
           'Gemstone Results',

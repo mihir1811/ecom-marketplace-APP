@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
+import '../router/route_names.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
@@ -24,6 +25,7 @@ class CatalogSearchFilterShell extends StatelessWidget {
     required this.onPrimary,
     required this.onClear,
     this.clearLabel = 'CLEAR ALL',
+    this.onBack,
     super.key,
   });
 
@@ -37,6 +39,7 @@ class CatalogSearchFilterShell extends StatelessWidget {
   final VoidCallback onPrimary;
   final VoidCallback onClear;
   final String clearLabel;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +55,14 @@ class CatalogSearchFilterShell extends StatelessWidget {
           scrolledUnderElevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
+            onPressed: onBack ??
+                () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go(AppRouteNames.home);
+                  }
+                },
           ),
           title: Text(
             title,

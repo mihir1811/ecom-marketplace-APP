@@ -12,6 +12,9 @@ import '../../../../core/widgets/catalog_list_loading.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/diamond_list_provider.dart';
+import '../../application/diamond_search_provider.dart';
+import '../../../ai_chat/application/ai_chat_back_navigation.dart';
+import '../../../ai_chat/application/ai_pending_filters.dart';
 import '../widgets/diamond_cards.dart';
 import '../widgets/diamond_sorting_bottom_sheet.dart';
 
@@ -42,6 +45,20 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _applyPendingAiFilters());
+  }
+
+  void _applyPendingAiFilters() {
+    if (!mounted) return;
+    final pending = ref.read(aiPendingDiamondFiltersProvider);
+    if (pending == null) return;
+    final isLabRoute =
+        widget.searchRoute == AppRouteNames.labGrownDiamonds;
+    if (pending.isLabGrown != isLabRoute) return;
+
+    ref.read(diamondSearchProvider.notifier).replaceFilters(pending.filters);
+    ref.read(aiPendingDiamondFiltersProvider.notifier).state = null;
+    ref.invalidate(diamondListProvider);
   }
 
   @override
@@ -137,7 +154,14 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (AiChatBackNavigation.handleListingBack(context, ref)) return;
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRouteNames.home);
+            }
+          },
         ),
         title: Text(
           widget.title,

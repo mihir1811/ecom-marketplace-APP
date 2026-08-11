@@ -13,6 +13,7 @@ import '../../../../core/widgets/filters/catalog_expandable_advanced_filters.dar
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
 import '../../../../core/widgets/filters/catalog_search_add_field.dart';
+import '../../../ai_chat/application/ai_chat_back_navigation.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
@@ -171,6 +172,14 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       meleeFamily: widget.catalog.isLabGrown
           ? MeleeBgFamily.labGrown
           : MeleeBgFamily.natural,
+      onBack: () {
+        if (AiChatBackNavigation.handleListingBack(context, ref)) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go(AppRouteNames.home);
+        }
+      },
       stickyNav: CatalogSearchSectionNav<Section>(
         navKey: catalogNavKey,
         sections: sections,

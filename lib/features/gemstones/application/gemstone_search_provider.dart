@@ -223,6 +223,11 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
       lotType: 'Single',
     );
   }
+
+  /// Replaces the full filter snapshot (e.g. Gem AI “See more”).
+  void replaceFilters(GemstoneFilterState filters) {
+    state = filters;
+  }
 }
 
 /// Global provider for accessing and modifying the gemstone search criteria state.

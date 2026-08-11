@@ -13,6 +13,7 @@ import '../../../../core/widgets/showcase_select_card.dart';
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
 import '../../../../core/widgets/filters/catalog_search_add_field.dart';
+import '../../../ai_chat/application/ai_chat_back_navigation.dart';
 import '../widgets/gemstone_filter_category_basic.dart';
 import '../../../diamonds/presentation/widgets/filter_origin_dropdown.dart';
 import '../../application/gemstone_list_provider.dart';
@@ -123,6 +124,14 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
       title: 'GEMSTONE FINDER',
       isMelee: isMelee,
       meleeFamily: meleeFamily,
+      onBack: () {
+        if (AiChatBackNavigation.handleListingBack(context, ref)) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go(AppRouteNames.home);
+        }
+      },
       stickyNav: CatalogSearchSectionNav<GemstoneSection>(
         navKey: catalogNavKey,
         sections: sections,
