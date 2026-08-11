@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../product_share/presentation/widgets/product_share_sheet.dart';
+import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../domain/models/product_detail.dart';
 import '../widgets/product_detail_action_bar.dart';
 import '../widgets/product_detail_assurance.dart';
@@ -17,11 +19,7 @@ import '../widgets/product_detail_price.dart';
 import '../widgets/product_detail_specs.dart';
 
 /// One product detail screen for every marketplace segment.
-///
-/// The vertical order is fixed and priority driven: what it looks like, what it
-/// is, what it costs, the four attributes that set its value, whether it is
-/// certified and in stock, then the full specification, then the fine print.
-class ProductDetailScreen extends ConsumerWidget {
+class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({required this.detail, super.key});
 
   static const double _wideBreakpoint = 900;
@@ -30,7 +28,49 @@ class ProductDetailScreen extends ConsumerWidget {
   final ProductDetail detail;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProductDetailScreen> createState() =>
+      _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
+  bool _recordedView = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _recordRecentlyViewed());
+  }
+
+  void _recordRecentlyViewed() {
+    if (_recordedView || !mounted) return;
+    if (!ref.read(authProvider).isAuthenticated) return;
+    _recordedView = true;
+    recordRecentlyViewed(
+      ref,
+      productId: widget.detail.id,
+      productType: widget.detail.apiProductType,
+    );
+  }
+
+  List<Widget> _summaryBlocks(ProductDetail detail) {
+    return [
+      ProductDetailHeader(detail: detail),
+      const SizedBox(height: AppSpacing.s24),
+      ProductDetailPrice(detail: detail),
+      const SizedBox(height: AppSpacing.s24),
+      ProductDetailHighlights(highlights: detail.highlights),
+      const SizedBox(height: AppSpacing.s16),
+      ProductDetailAssurance(
+        certification: detail.certification,
+        availability: detail.availability,
+      ),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = widget.detail;
+
     return AppScaffold(
       backgroundColor: AppColors.creamBg,
       appBar: AppBar(
@@ -61,12 +101,15 @@ class ProductDetailScreen extends ConsumerWidget {
       bottomNavigationBar: ProductDetailActionBar(detail: detail),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= _wideBreakpoint;
+          final isWide =
+              constraints.maxWidth >= ProductDetailScreen._wideBreakpoint;
 
           return Align(
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+              constraints: const BoxConstraints(
+                maxWidth: ProductDetailScreen._maxContentWidth,
+              ),
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.s16,
@@ -88,7 +131,7 @@ class ProductDetailScreen extends ConsumerWidget {
                           flex: 6,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: _summaryBlocks(),
+                            children: _summaryBlocks(detail),
                           ),
                         ),
                       ],
@@ -96,7 +139,7 @@ class ProductDetailScreen extends ConsumerWidget {
                   else ...[
                     ProductDetailMedia(media: detail.media),
                     const SizedBox(height: AppSpacing.s24),
-                    ..._summaryBlocks(),
+                    ..._summaryBlocks(detail),
                   ],
                   const SizedBox(height: AppSpacing.s40),
                   for (final section in detail.orderedSpecs) ...[
@@ -121,20 +164,5 @@ class ProductDetailScreen extends ConsumerWidget {
         },
       ),
     );
-  }
-
-  List<Widget> _summaryBlocks() {
-    return [
-      ProductDetailHeader(detail: detail),
-      const SizedBox(height: AppSpacing.s24),
-      ProductDetailPrice(detail: detail),
-      const SizedBox(height: AppSpacing.s24),
-      ProductDetailHighlights(highlights: detail.highlights),
-      const SizedBox(height: AppSpacing.s16),
-      ProductDetailAssurance(
-        certification: detail.certification,
-        availability: detail.availability,
-      ),
-    ];
   }
 }

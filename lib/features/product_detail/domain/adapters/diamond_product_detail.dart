@@ -193,6 +193,8 @@ ProductDetail diamondProductDetail(Diamond d) {
             'diamonds and carry the same grading scales.'
         : 'Grades follow the issuing laboratory report. Verify the report '
             'number before payment.',
+    isMakeAnOfferAllowed: d.isMakeAnOfferAllowed,
+    minimumOfferPrice: d.minimumOfferPrice,
   );
 }
 

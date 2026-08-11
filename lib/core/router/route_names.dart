@@ -94,4 +94,5 @@ class AppRouteNames {
   static const String sellerHelpCenter = '/seller/help-center';
   static const String sellerPromotions = '/seller/promotions';
   static const String sellerProfile = '/seller/profile';
+  static const String sellerLoginHistory = '/seller/login-history';
 }

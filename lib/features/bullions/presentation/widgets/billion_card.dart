@@ -8,7 +8,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
-import '../../../../core/widgets/marketplace_product_card_shell.dart';
+import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../product_detail/domain/adapters/bullion_product_detail.dart';
@@ -57,7 +57,8 @@ class BullionCardGrid extends StatelessWidget {
     final title = _gridTitle(bullion);
     final specs = _gridSpecs(bullion);
 
-    return MarketplaceProductCardShell(
+    return RecentlyViewedCardShell(
+      productId: bullion.id,
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -183,7 +184,8 @@ class BullionCardList extends StatelessWidget {
     final detailLine = _listDetailLine(bullion);
     final specsLine = _listSpecsLine(bullion);
 
-    return MarketplaceProductCardShell(
+    return RecentlyViewedCardShell(
+      productId: bullion.id,
       onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

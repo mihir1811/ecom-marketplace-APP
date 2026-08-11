@@ -9,6 +9,7 @@ import '../data/repositories/bullions_repository_impl.dart';
 import '../domain/models/billion.dart';
 import '../domain/repositories/bullions_repository.dart';
 import 'bullions_filter_provider.dart';
+import '../../recently_viewed/application/recently_viewed_providers.dart';
 
 typedef BullionsListState = PaginatedListState<Bullion>;
 
@@ -37,6 +38,14 @@ class BullionsListNotifier extends PaginatedAsyncNotifier<Bullion> {
       token.cancel('bullions-list-reset');
     }
     _cancelToken = CancelToken();
+  }
+
+
+  @override
+  void onBeforePageLoad({required int page, required bool isFirstPage}) {
+    if (isFirstPage) {
+      ensureRecentlyViewedIdsLoaded(ref);
+    }
   }
 
   @override

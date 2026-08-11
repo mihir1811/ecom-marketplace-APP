@@ -49,6 +49,7 @@ class Diamond {
   final bool isOnAuction;
   final bool isSold;
   final bool isMakeAnOfferAllowed;
+  final double? minimumOfferPrice;
   final int? totalPcs;
   final double? caratPerPcs;
   final double? totalCaratWeight;
@@ -108,6 +109,7 @@ class Diamond {
     this.isOnAuction = false,
     this.isSold = false,
     this.isMakeAnOfferAllowed = false,
+    this.minimumOfferPrice,
     this.totalPcs,
     this.caratPerPcs,
     this.totalCaratWeight,

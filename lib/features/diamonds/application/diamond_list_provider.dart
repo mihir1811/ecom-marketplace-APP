@@ -11,6 +11,7 @@ import '../domain/models/diamond_catalog_type.dart';
 import '../domain/models/sorting_criteria.dart';
 import '../domain/repositories/diamond_repository.dart';
 import 'diamond_search_provider.dart';
+import '../../recently_viewed/application/recently_viewed_providers.dart';
 
 enum ViewMode { grid, list }
 
@@ -47,6 +48,14 @@ class DiamondListNotifier extends PaginatedAsyncNotifier<Diamond> {
       token.cancel('diamond-list-reset');
     }
     _cancelToken = CancelToken();
+  }
+
+
+  @override
+  void onBeforePageLoad({required int page, required bool isFirstPage}) {
+    if (isFirstPage) {
+      ensureRecentlyViewedIdsLoaded(ref);
+    }
   }
 
   @override

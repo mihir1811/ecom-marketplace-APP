@@ -10,7 +10,7 @@ import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../../core/widgets/catalog_content_sized_grid.dart';
-import '../../../../core/widgets/marketplace_product_card_shell.dart';
+import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../comparison/application/comparison_provider.dart';
@@ -40,7 +40,8 @@ class GemstoneCardGrid extends ConsumerWidget {
     final gradesLine = _gridGradesLine(gemstone);
     final metaLine = _gridMetaLine(gemstone);
 
-    return MarketplaceProductCardShell(
+    return RecentlyViewedCardShell(
+      productId: gemstone.id,
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -212,7 +213,8 @@ class GemstoneCardList extends ConsumerWidget {
     final detail = _listDetailLine(gemstone);
     final meta = _listMetaLine(gemstone);
 
-    return MarketplaceProductCardShell(
+    return RecentlyViewedCardShell(
+      productId: gemstone.id,
       onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

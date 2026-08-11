@@ -299,6 +299,8 @@ class ProductDetail {
     this.availability,
     this.shapeKey,
     this.note,
+    this.isMakeAnOfferAllowed = false,
+    this.minimumOfferPrice,
   });
 
   final String id;
@@ -327,6 +329,12 @@ class ProductDetail {
   /// Shape name forwarded to the cart, which renders a shape glyph.
   final String? shapeKey;
   final String? note;
+  final bool isMakeAnOfferAllowed;
+  final double? minimumOfferPrice;
+
+  bool get canMakeAnOffer =>
+      isMakeAnOfferAllowed &&
+      (apiProductType == 'diamond' || apiProductType == 'meleeDiamond');
 
   /// Sections in canonical group order with empty ones removed.
   List<ProductSpecSection> get orderedSpecs {

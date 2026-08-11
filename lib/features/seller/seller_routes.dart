@@ -15,6 +15,7 @@ import 'presentation/screens/seller_order_detail_screen.dart';
 import 'presentation/screens/seller_orders_screen.dart';
 import 'presentation/screens/seller_products_screen.dart';
 import 'presentation/screens/seller_product_edit_screen.dart';
+import 'presentation/screens/seller_login_history_screen.dart';
 import 'presentation/screens/seller_profile_screen.dart';
 import 'presentation/screens/seller_promotions_screen.dart';
 import 'presentation/widgets/seller_layout.dart';
@@ -103,6 +104,10 @@ final List<RouteBase> sellerRoutes = [
       GoRoute(
         path: AppRouteNames.sellerProfile,
         builder: (context, state) => const SellerProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerLoginHistory,
+        builder: (context, state) => const SellerLoginHistoryScreen(),
       ),
     ],
   ),

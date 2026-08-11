@@ -9,6 +9,7 @@ import '../data/repositories/watch_repository_impl.dart';
 import '../domain/models/watch.dart';
 import '../domain/repositories/watch_repository.dart';
 import 'watch_filter_provider.dart';
+import '../../recently_viewed/application/recently_viewed_providers.dart';
 
 typedef WatchListState = PaginatedListState<Watch>;
 
@@ -37,6 +38,14 @@ class WatchListNotifier extends PaginatedAsyncNotifier<Watch> {
       token.cancel('watch-list-reset');
     }
     _cancelToken = CancelToken();
+  }
+
+
+  @override
+  void onBeforePageLoad({required int page, required bool isFirstPage}) {
+    if (isFirstPage) {
+      ensureRecentlyViewedIdsLoaded(ref);
+    }
   }
 
   @override

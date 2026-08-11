@@ -126,4 +126,49 @@ abstract final class ApiEndpoints {
   static const String productShare = '/product-share';
   static String productShareEmail(String id) => '/product-share/$id/email';
   static String productShareByToken(String token) => '/product-share/$token';
+
+  // Product offer
+  static const String productOffer = '/product-offer';
+  static String productOfferMine(String productType, String productId) =>
+      '/product-offer/mine/$productType/$productId';
+  static const String productOfferSeller = '/product-offer/seller';
+  static String productOfferRespond(String id) => '/product-offer/$id/respond';
+
+  // Recently viewed
+  static const String recentlyViewed = '/recently-viewed';
+  static const String recentlyViewedIds = '/recently-viewed/ids';
+  static const String recentlyViewedClear = '/recently-viewed/clear';
+
+  // User bank account
+  static const String userBankAccount = '/user-bank-account';
+  static const String userBankAccountStatus = '/user-bank-account/status';
+
+  // Promotions
+  static const String promotionsDiscounts = '/promotions/discounts';
+  static String promotionsDiscountById(String id) =>
+      '/promotions/discounts/$id';
+  static const String promotionsPromoCodes = '/promotions/promo-codes';
+  static String promotionsPromoCodeById(String id) =>
+      '/promotions/promo-codes/$id';
+  static String promotionsPublic(String sellerId) =>
+      '/promotions/public/$sellerId';
+
+  // Login history
+  static const String loginHistory = '/login-history';
+  static const String loginHistoryActiveSeller =
+      '/login-history/active-seller';
+  static String loginHistoryBySession(String sessionId) =>
+      '/login-history/$sessionId';
+
+  // Constant category
+  static const String constantCategory = '/constant-category';
+  static String constantCategoryById(String id) => '/constant-category/$id';
+
+  // Jewellery category admin
+  static String jewelleryCategoryById(String id) =>
+      '/jewellery-categories/$id';
+  static String jewelleryCategorySubcategories(String categoryId) =>
+      '/jewellery-categories/$categoryId/subcategories';
+  static String jewellerySubcategoryById(String id) =>
+      '/jewellery-categories/subcategories/$id';
 }

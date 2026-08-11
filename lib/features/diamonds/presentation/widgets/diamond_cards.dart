@@ -9,7 +9,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_content_sized_grid.dart';
-import '../../../../core/widgets/marketplace_product_card_shell.dart';
+import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../comparison/application/comparison_provider.dart';
@@ -78,7 +78,8 @@ class DiamondCardGrid extends ConsumerWidget {
     final gradesLine = _gridGradesLine(diamond);
     final metaLine = _gridMetaLine(diamond);
 
-    return MarketplaceProductCardShell(
+    return RecentlyViewedCardShell(
+      productId: diamond.id,
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

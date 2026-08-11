@@ -8,7 +8,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/widgets/marketplace_product_card_shell.dart';
+import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../comparison/application/comparison_provider.dart';
@@ -41,7 +41,8 @@ class DiamondCardList extends ConsumerWidget {
     final detail = _listDetailLine(diamond);
     final meta = _listMetaLine(diamond);
 
-    return MarketplaceProductCardShell(
+    return RecentlyViewedCardShell(
+      productId: diamond.id,
       onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

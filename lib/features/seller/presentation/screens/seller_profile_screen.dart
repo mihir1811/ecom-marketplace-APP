@@ -10,6 +10,9 @@ import '../../../../core/auth/auth_user.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/error/result.dart';
+import '../../../user_bank_account/application/user_bank_account_providers.dart';
+import '../../../user_bank_account/domain/models/user_bank_account.dart';
 import '../widgets/seller_layout.dart';
 
 class SellerProfileScreen extends ConsumerStatefulWidget {
@@ -39,6 +42,14 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
   _PickedFile? _gstFile;
   _PickedFile? _panFile;
   bool _seededFromAuth = false;
+  bool _bankSeeded = false;
+
+  final _bankHolder = TextEditingController();
+  final _bankNumber = TextEditingController();
+  final _bankIfsc = TextEditingController();
+  final _bankName = TextEditingController();
+  final _bankUpi = TextEditingController();
+  BankAccountType _bankAccountType = BankAccountType.savings;
 
   @override
   void initState() {
@@ -118,7 +129,70 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
     _website.dispose();
     _gstNumber.dispose();
     _panNumber.dispose();
+    _bankHolder.dispose();
+    _bankNumber.dispose();
+    _bankIfsc.dispose();
+    _bankName.dispose();
+    _bankUpi.dispose();
     super.dispose();
+  }
+
+  void _seedBankFromAccount(UserBankAccount? account) {
+    if (_bankSeeded || account == null) return;
+    _bankSeeded = true;
+    _bankHolder.text = account.accountHolderName;
+    _bankNumber.text = account.accountNumber;
+    _bankIfsc.text = account.ifscCode;
+    _bankName.text = account.bankName;
+    _bankUpi.text = account.upiId ?? '';
+    _bankAccountType = account.accountType ?? BankAccountType.savings;
+  }
+
+  Future<void> _saveBankAccount() async {
+    final input = UserBankAccountInput(
+      accountHolderName: _bankHolder.text,
+      accountNumber: _bankNumber.text,
+      ifscCode: _bankIfsc.text,
+      bankName: _bankName.text,
+      accountType: _bankAccountType,
+      upiId: _bankUpi.text.trim().isEmpty ? null : _bankUpi.text.trim(),
+    );
+    final result =
+        await ref.read(userBankAccountProvider.notifier).save(input);
+    if (!mounted) return;
+    switch (result) {
+      case Success():
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bank account saved')),
+        );
+      case ResultFailure(:final failure):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+    }
+  }
+
+  Future<void> _deleteBankAccount() async {
+    final result = await ref.read(userBankAccountProvider.notifier).remove();
+    if (!mounted) return;
+    switch (result) {
+      case Success():
+        setState(() {
+          _bankSeeded = false;
+          _bankHolder.clear();
+          _bankNumber.clear();
+          _bankIfsc.clear();
+          _bankName.clear();
+          _bankUpi.clear();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bank account removed')),
+        );
+      case ResultFailure(:final failure):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+    }
   }
 
   InputDecoration _decoration(String hint) {
@@ -319,6 +393,8 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider.select((s) => s.user));
+    final bankState = ref.watch(userBankAccountProvider);
+    _seedBankFromAccount(bankState.account);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -348,6 +424,26 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
                 _SellerAccountCard(user: user),
                 const SizedBox(height: AppSpacing.s16),
               ],
+              _BankAccountSection(
+                holder: _bankHolder,
+                accountNumber: _bankNumber,
+                ifsc: _bankIfsc,
+                bankName: _bankName,
+                upi: _bankUpi,
+                accountType: _bankAccountType,
+                isLoading: bankState.isLoading,
+                isSaving: bankState.isSaving,
+                hasAccount: bankState.hasAccount,
+                onAccountTypeChanged: (v) =>
+                    setState(() => _bankAccountType = v),
+                onSave: _saveBankAccount,
+                onDelete: bankState.hasAccount ? _deleteBankAccount : null,
+                decoration: _decoration,
+                sectionHeader: _sectionHeader,
+                field: _field,
+                grid2: _grid2,
+              ),
+              const SizedBox(height: AppSpacing.s16),
               Container(
                 padding: const EdgeInsets.all(AppSpacing.s16),
                 decoration: BoxDecoration(
@@ -511,6 +607,159 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BankAccountSection extends StatelessWidget {
+  const _BankAccountSection({
+    required this.holder,
+    required this.accountNumber,
+    required this.ifsc,
+    required this.bankName,
+    required this.upi,
+    required this.accountType,
+    required this.isLoading,
+    required this.isSaving,
+    required this.hasAccount,
+    required this.onAccountTypeChanged,
+    required this.onSave,
+    required this.onDelete,
+    required this.decoration,
+    required this.sectionHeader,
+    required this.field,
+    required this.grid2,
+  });
+
+  final TextEditingController holder;
+  final TextEditingController accountNumber;
+  final TextEditingController ifsc;
+  final TextEditingController bankName;
+  final TextEditingController upi;
+  final BankAccountType accountType;
+  final bool isLoading;
+  final bool isSaving;
+  final bool hasAccount;
+  final ValueChanged<BankAccountType> onAccountTypeChanged;
+  final VoidCallback onSave;
+  final VoidCallback? onDelete;
+  final InputDecoration Function(String) decoration;
+  final Widget Function(String) sectionHeader;
+  final Widget Function({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+  }) field;
+  final Widget Function(Widget, Widget) grid2;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.s16),
+      decoration: BoxDecoration(
+        color: AppColors.warmWhite,
+        borderRadius: BorderRadius.circular(AppSpacing.r12),
+        border: Border.all(color: AppColors.warmBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          sectionHeader('Bank account'),
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else ...[
+            field(
+              label: 'Account holder name',
+              controller: holder,
+              hint: 'As per bank records',
+            ),
+            grid2(
+              field(
+                label: 'Account number',
+                controller: accountNumber,
+                hint: 'Account number',
+              ),
+              field(
+                label: 'IFSC code',
+                controller: ifsc,
+                hint: 'HDFC0001234',
+              ),
+            ),
+            field(
+              label: 'Bank name',
+              controller: bankName,
+              hint: 'Bank name',
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Account type',
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondaryLight,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<BankAccountType>(
+                    initialValue: accountType,
+                    decoration: decoration(''),
+                    items: BankAccountType.values
+                        .map(
+                          (t) => DropdownMenuItem(
+                            value: t,
+                            child: Text(t.label),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) onAccountTypeChanged(v);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            field(
+              label: 'UPI ID (optional)',
+              controller: upi,
+              hint: 'name@upi',
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton(
+                    onPressed: isSaving ? null : onSave,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.charcoal,
+                      minimumSize: const Size.fromHeight(46),
+                    ),
+                    child: isSaving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(hasAccount ? 'Update bank account' : 'Save bank account'),
+                  ),
+                ),
+                if (onDelete != null) ...[
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: isSaving ? null : onDelete,
+                    child: const Text('Remove'),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

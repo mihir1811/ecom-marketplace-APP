@@ -1,97 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../data/seller_orders_mock_data.dart';
-import '../../domain/models/seller_orders_models.dart';
-import '../widgets/seller_layout.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../product_offer/application/product_offer_providers.dart';
+import '../../../product_offer/data/mappers/product_offer_mapper.dart';
+import '../../../product_offer/domain/models/product_offer.dart';
+import '../widgets/seller_layout.dart';
 
-class SellerOffersScreen extends StatefulWidget {
+class SellerOffersScreen extends ConsumerStatefulWidget {
   const SellerOffersScreen({super.key});
 
   @override
-  State<SellerOffersScreen> createState() => _SellerOffersScreenState();
+  ConsumerState<SellerOffersScreen> createState() => _SellerOffersScreenState();
 }
 
-class _SellerOffersScreenState extends State<SellerOffersScreen> {
-  SellerOfferStatus? _filter;
-  late final List<SellerOffer> _offers;
+class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
+  ProductOfferStatus? _filter;
 
-  @override
-  void initState() {
-    super.initState();
-    _offers = List<SellerOffer>.from(kSellerOffersMock);
+  String? get _statusFilter => switch (_filter) {
+        ProductOfferStatus.pending => 'PENDING',
+        ProductOfferStatus.accepted => 'ACCEPTED',
+        ProductOfferStatus.rejected => 'REJECTED',
+        ProductOfferStatus.expired => 'EXPIRED',
+        null => null,
+      };
+
+  List<ProductOffer> _visible(List<ProductOffer> items) {
+    if (_filter == null) return items;
+    return items.where((o) => o.status == _filter).toList();
   }
 
-  List<SellerOffer> get _visible {
-    if (_filter == null) return _offers;
-    return _offers.where((o) => o.status == _filter).toList();
+  Future<void> _applyFilter(ProductOfferStatus? filter) async {
+    setState(() => _filter = filter);
+    await ref
+        .read(sellerOfferListProvider.notifier)
+        .refresh(statusFilter: _statusFilter);
   }
 
-  void _updateOffer(String id, SellerOffer Function(SellerOffer) transform) {
-    setState(() {
-      final i = _offers.indexWhere((o) => o.id == id);
-      if (i >= 0) _offers[i] = transform(_offers[i]);
-    });
-  }
-
-  Future<void> _counterOffer(SellerOffer offer) async {
-    final controller = TextEditingController(
-      text: offer.offerPrice.replaceAll(RegExp(r'[^0-9.]'), ''),
-    );
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Counter offer'),
-        content: TextField(
-          controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          autofocus: true,
-          decoration: InputDecoration(
-             labelText: 'Your price (${AppCurrency.code})',
-            prefixText: AppCurrency.symbol,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppSpacing.r8),
+  Future<void> _respond(ProductOffer offer, ProductOfferStatus status) async {
+    final result = await ref.read(sellerOfferListProvider.notifier).respond(
+          id: offer.id,
+          status: status,
+        );
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    switch (result) {
+      case Success():
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              status == ProductOfferStatus.accepted
+                  ? 'Offer accepted'
+                  : 'Offer rejected',
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.charcoal),
-            onPressed: () {
-              final raw = controller.text.trim();
-              if (raw.isEmpty) return;
-              Navigator.pop(context, raw);
-            },
-            child: const Text('Send counter'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (result == null || !mounted) return;
-    final formatted = result.startsWith(AppCurrency.symbol) ? result : AppCurrency.format(result);
-    _updateOffer(
-      offer.id,
-      (o) => o.copyWith(
-        status: SellerOfferStatus.countered,
-        counterPrice: formatted,
-      ),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Counter sent at $formatted')),
-    );
+        );
+      case ResultFailure(:final failure):
+        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final items = _visible;
+    final state = ref.watch(sellerOfferListProvider);
+    final items = _visible(state.items);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -112,6 +88,12 @@ class _SellerOffersScreenState extends State<SellerOffersScreen> {
                   ),
                 ),
               ),
+              if (state.isLoading)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
             ],
           ),
         ),
@@ -119,55 +101,27 @@ class _SellerOffersScreenState extends State<SellerOffersScreen> {
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.s16),
             children: [
+              if (state.errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    state.errorMessage!,
+                    style: AppTypography.caption.copyWith(color: AppColors.error),
+                  ),
+                ),
               Container(
                 padding: const EdgeInsets.all(AppSpacing.s16),
                 decoration: BoxDecoration(
                   color: AppColors.sandSurface,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Icon(
-                        Icons.local_offer_outlined,
-                        size: 56,
-                        color: AppColors.textMutedLight.withValues(alpha: 0.25),
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.warmWhite,
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: AppColors.warmBorder),
-                          ),
-                          child: Text(
-                            'Seller · Offers',
-                            style: AppTypography.caption.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Review buyer price offers on your listings. Accept, '
-                          'reject, or send a counter to keep the deal moving.',
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.textSecondaryLight,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                child: Text(
+                  'Review buyer price offers on your listings. Accept or reject '
+                  'to keep the deal moving.',
+                  style: AppTypography.body.copyWith(
+                    color: AppColors.textSecondaryLight,
+                    height: 1.4,
+                  ),
                 ),
               ),
               const SizedBox(height: 14),
@@ -178,61 +132,43 @@ class _SellerOffersScreenState extends State<SellerOffersScreen> {
                   _FilterChip(
                     label: 'All',
                     selected: _filter == null,
-                    onTap: () => setState(() => _filter = null),
+                    onTap: () => _applyFilter(null),
                   ),
                   _FilterChip(
                     label: 'Pending',
-                    selected: _filter == SellerOfferStatus.pending,
-                    onTap: () =>
-                        setState(() => _filter = SellerOfferStatus.pending),
+                    selected: _filter == ProductOfferStatus.pending,
+                    onTap: () => _applyFilter(ProductOfferStatus.pending),
                   ),
                   _FilterChip(
                     label: 'Accepted',
-                    selected: _filter == SellerOfferStatus.accepted,
-                    onTap: () =>
-                        setState(() => _filter = SellerOfferStatus.accepted),
-                  ),
-                  _FilterChip(
-                    label: 'Countered',
-                    selected: _filter == SellerOfferStatus.countered,
-                    onTap: () =>
-                        setState(() => _filter = SellerOfferStatus.countered),
+                    selected: _filter == ProductOfferStatus.accepted,
+                    onTap: () => _applyFilter(ProductOfferStatus.accepted),
                   ),
                   _FilterChip(
                     label: 'Rejected',
-                    selected: _filter == SellerOfferStatus.rejected,
-                    onTap: () =>
-                        setState(() => _filter = SellerOfferStatus.rejected),
+                    selected: _filter == ProductOfferStatus.rejected,
+                    onTap: () => _applyFilter(ProductOfferStatus.rejected),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              for (final offer in items) ...[
-                _OfferCard(
-                  offer: offer,
-                  onAccept: () {
-                    _updateOffer(
-                      offer.id,
-                      (o) => o.copyWith(status: SellerOfferStatus.accepted),
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Offer accepted')),
-                    );
-                  },
-                  onReject: () {
-                    _updateOffer(
-                      offer.id,
-                      (o) => o.copyWith(status: SellerOfferStatus.rejected),
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Offer rejected')),
-                    );
-                  },
-                  onCounter: () => _counterOffer(offer),
-                ),
-                const SizedBox(height: 12),
-              ],
-              if (items.isEmpty)
+              if (state.isLoading && items.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 40),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else
+                for (final offer in items) ...[
+                  _OfferCard(
+                    offer: offer,
+                    onAccept: () =>
+                        _respond(offer, ProductOfferStatus.accepted),
+                    onReject: () =>
+                        _respond(offer, ProductOfferStatus.rejected),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              if (!state.isLoading && items.isEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 40),
                   child: Center(
@@ -296,31 +232,25 @@ class _OfferCard extends StatelessWidget {
     required this.offer,
     required this.onAccept,
     required this.onReject,
-    required this.onCounter,
   });
 
-  final SellerOffer offer;
+  final ProductOffer offer;
   final VoidCallback onAccept;
   final VoidCallback onReject;
-  final VoidCallback onCounter;
-
-  String get _statusLabel => switch (offer.status) {
-        SellerOfferStatus.pending => 'Pending',
-        SellerOfferStatus.accepted => 'Accepted',
-        SellerOfferStatus.rejected => 'Rejected',
-        SellerOfferStatus.countered => 'Countered',
-      };
 
   Color get _statusColor => switch (offer.status) {
-        SellerOfferStatus.pending => AppColors.info,
-        SellerOfferStatus.accepted => AppColors.success,
-        SellerOfferStatus.rejected => AppColors.error,
-        SellerOfferStatus.countered => AppColors.bronzeDark,
+        ProductOfferStatus.pending => AppColors.info,
+        ProductOfferStatus.accepted => AppColors.success,
+        ProductOfferStatus.rejected => AppColors.error,
+        ProductOfferStatus.expired => AppColors.textMutedLight,
       };
 
   @override
   Widget build(BuildContext context) {
-    final isPending = offer.status == SellerOfferStatus.pending;
+    final isPending = offer.status.isPending;
+    final productLabel =
+        offer.productLabel ?? offer.productType;
+    final listPrice = offer.listPrice;
 
     return Material(
       color: AppColors.warmWhite,
@@ -335,7 +265,7 @@ class _OfferCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                _Pill(label: offer.category),
+                _Pill(label: offer.productType),
                 const SizedBox(width: 8),
                 Container(
                   padding:
@@ -345,7 +275,7 @@ class _OfferCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    _statusLabel,
+                    offer.status.label,
                     style: AppTypography.caption.copyWith(
                       color: _statusColor,
                       fontWeight: FontWeight.w700,
@@ -354,7 +284,7 @@ class _OfferCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  offer.createdAt,
+                  offer.createdAtLabel,
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textMutedLight,
                     fontSize: 11,
@@ -364,51 +294,50 @@ class _OfferCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              offer.productLabel,
+              productLabel,
               style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Stock ${offer.stockNumber}',
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
+            if (offer.stockNumber != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Stock ${offer.stockNumber}',
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textSecondaryLight,
+                ),
               ),
-            ),
+            ],
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: _PriceBlock(
-                    label: 'List price',
-                    value: offer.listPrice,
+                if (listPrice != null)
+                  Expanded(
+                    child: _PriceBlock(
+                      label: 'List price',
+                      value: AppCurrency.format(listPrice),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
+                if (listPrice != null) const SizedBox(width: 12),
                 Expanded(
                   child: _PriceBlock(
                     label: 'Buyer offer',
-                    value: offer.offerPrice,
+                    value: ProductOfferMapper.offerPriceLabel(offer.amount),
                     emphasize: true,
                   ),
                 ),
-                if (offer.counterPrice != null) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _PriceBlock(
-                      label: 'Your counter',
-                      value: offer.counterPrice!,
-                    ),
-                  ),
-                ],
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              '${offer.buyer} · ${offer.buyerEmail}',
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
+            if (offer.buyerName != null || offer.buyerEmail != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                [
+                  if (offer.buyerName != null) offer.buyerName!,
+                  if (offer.buyerEmail != null) offer.buyerEmail!,
+                ].join(' · '),
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textSecondaryLight,
+                ),
               ),
-            ),
+            ],
             if (offer.message != null) ...[
               const SizedBox(height: 8),
               Container(
@@ -440,17 +369,6 @@ class _OfferCard extends StatelessWidget {
                         minimumSize: const Size.fromHeight(44),
                       ),
                       child: const Text('Reject'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: onCounter,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.charcoal,
-                        minimumSize: const Size.fromHeight(44),
-                      ),
-                      child: const Text('Counter'),
                     ),
                   ),
                   const SizedBox(width: 8),

@@ -7,6 +7,7 @@ import '../domain/models/watch.dart';
 import '../domain/models/watch_filter_state.dart';
 import '../domain/repositories/watch_repository.dart';
 import 'brand_watch_filter_provider.dart';
+import '../../recently_viewed/application/recently_viewed_providers.dart';
 
 class BrandWatchListState {
   const BrandWatchListState({
@@ -68,6 +69,7 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
 
   Future<void> _loadFirstPage() async {
     if (_brandName.isEmpty) return;
+    ensureRecentlyViewedIdsLoaded(ref);
     _currentPage = 1;
     final filterState = ref.read(brandWatchFilterProvider);
     final repo = ref.read(watchRepositoryProvider);

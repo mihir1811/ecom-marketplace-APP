@@ -9,6 +9,7 @@ import '../data/repositories/jewelry_repository_impl.dart';
 import '../domain/models/jewelry.dart';
 import '../domain/repositories/jewelry_repository.dart';
 import 'jewelry_filter_provider.dart';
+import '../../recently_viewed/application/recently_viewed_providers.dart';
 
 typedef JewelryListState = PaginatedListState<Jewelry>;
 
@@ -33,6 +34,14 @@ class JewelryListNotifier extends PaginatedAsyncNotifier<Jewelry> {
       token.cancel('jewelry-list-reset');
     }
     _cancelToken = CancelToken();
+  }
+
+
+  @override
+  void onBeforePageLoad({required int page, required bool isFirstPage}) {
+    if (isFirstPage) {
+      ensureRecentlyViewedIdsLoaded(ref);
+    }
   }
 
   @override

@@ -10,6 +10,7 @@ import '../domain/models/gemstone.dart';
 import '../domain/models/gemstone_sort_option.dart';
 import '../domain/repositories/gemstone_repository.dart';
 import 'gemstone_search_provider.dart';
+import '../../recently_viewed/application/recently_viewed_providers.dart';
 
 enum GemstoneViewMode { grid, list }
 
@@ -46,6 +47,14 @@ class GemstoneListNotifier extends PaginatedAsyncNotifier<Gemstone> {
       token.cancel('gemstone-list-reset');
     }
     _cancelToken = CancelToken();
+  }
+
+
+  @override
+  void onBeforePageLoad({required int page, required bool isFirstPage}) {
+    if (isFirstPage) {
+      ensureRecentlyViewedIdsLoaded(ref);
+    }
   }
 
   @override

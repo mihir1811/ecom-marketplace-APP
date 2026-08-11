@@ -1,88 +1,103 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../widgets/seller_layout.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../promotions/application/promotions_providers.dart';
+import '../../../promotions/domain/models/promotion.dart';
+import '../widgets/seller_layout.dart';
 
 enum _PromoTab { discounts, promoCodes }
 
-enum _DiscountType { percentage, fixed }
-
-class _DiscountItem {
-  const _DiscountItem({
-    required this.name,
-    required this.description,
-    required this.type,
-    required this.value,
-    required this.startDate,
-    required this.endDate,
-  });
-
-  final String name;
-  final String description;
-  final _DiscountType type;
-  final String value;
-  final String startDate;
-  final String endDate;
-}
-
-class _PromoCodeItem {
-  const _PromoCodeItem({
-    required this.code,
-    required this.description,
-    required this.type,
-    required this.value,
-    required this.startDate,
-    required this.endDate,
-    this.maxUses,
-  });
-
-  final String code;
-  final String description;
-  final _DiscountType type;
-  final String value;
-  final String startDate;
-  final String endDate;
-  final String? maxUses;
-}
-
-class SellerPromotionsScreen extends StatefulWidget {
+class SellerPromotionsScreen extends ConsumerStatefulWidget {
   const SellerPromotionsScreen({super.key});
 
   @override
-  State<SellerPromotionsScreen> createState() => _SellerPromotionsScreenState();
+  ConsumerState<SellerPromotionsScreen> createState() =>
+      _SellerPromotionsScreenState();
 }
 
-class _SellerPromotionsScreenState extends State<SellerPromotionsScreen> {
+class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen> {
   _PromoTab _tab = _PromoTab.discounts;
-  final _discounts = <_DiscountItem>[];
-  final _promoCodes = <_PromoCodeItem>[];
 
   Future<void> _openAddDiscount() async {
-    final result = await showDialog<_DiscountItem>(
+    await showDialog<void>(
       context: context,
-      builder: (context) => const _AddDiscountDialog(),
+      builder: (context) => _AddDiscountDialog(
+        onSave: (input) async {
+          final result =
+              await ref.read(sellerPromotionsProvider.notifier).createDiscount(input);
+          if (!context.mounted) return;
+          switch (result) {
+            case Success():
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Discount created')),
+              );
+            case ResultFailure(:final failure):
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(failure.message)),
+              );
+          }
+        },
+      ),
     );
-    if (result != null) {
-      setState(() => _discounts.add(result));
-    }
   }
 
   Future<void> _openAddPromoCode() async {
-    final result = await showDialog<_PromoCodeItem>(
+    await showDialog<void>(
       context: context,
-      builder: (context) => const _AddPromoCodeDialog(),
+      builder: (context) => _AddPromoCodeDialog(
+        onSave: (input) async {
+          final result =
+              await ref.read(sellerPromotionsProvider.notifier).createPromoCode(input);
+          if (!context.mounted) return;
+          switch (result) {
+            case Success():
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Promo code created')),
+              );
+            case ResultFailure(:final failure):
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(failure.message)),
+              );
+          }
+        },
+      ),
     );
-    if (result != null) {
-      setState(() => _promoCodes.add(result));
+  }
+
+  Future<void> _deleteDiscount(String id) async {
+    final result =
+        await ref.read(sellerPromotionsProvider.notifier).deleteDiscount(id);
+    if (!mounted) return;
+    if (result case ResultFailure(:final failure)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(failure.message)),
+      );
+    }
+  }
+
+  Future<void> _deletePromoCode(String id) async {
+    final result =
+        await ref.read(sellerPromotionsProvider.notifier).deletePromoCode(id);
+    if (!mounted) return;
+    if (result case ResultFailure(:final failure)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(failure.message)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(sellerPromotionsProvider);
     final isDiscounts = _tab == _PromoTab.discounts;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -100,9 +115,25 @@ class _SellerPromotionsScreenState extends State<SellerPromotionsScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              if (state.isLoading || state.isMutating) ...[
+                const Spacer(),
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ],
             ],
           ),
         ),
+        if (state.errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              state.errorMessage!,
+              style: AppTypography.caption.copyWith(color: AppColors.error),
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: Row(
@@ -147,9 +178,11 @@ class _SellerPromotionsScreenState extends State<SellerPromotionsScreen> {
                             ),
                           ),
                           OutlinedButton(
-                            onPressed: isDiscounts
-                                ? _openAddDiscount
-                                : _openAddPromoCode,
+                            onPressed: state.isMutating
+                                ? null
+                                : isDiscounts
+                                    ? _openAddDiscount
+                                    : _openAddPromoCode,
                             child: Text(
                               isDiscounts ? 'Add Discount' : 'Add Promo Code',
                             ),
@@ -157,19 +190,30 @@ class _SellerPromotionsScreenState extends State<SellerPromotionsScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      if (isDiscounts)
-                        if (_discounts.isEmpty)
+                      if (state.isLoading)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      else if (isDiscounts)
+                        if (state.discounts.isEmpty)
                           const _EmptyState(label: 'No discounts found.')
                         else
-                          for (final d in _discounts) ...[
-                            _DiscountTile(item: d),
+                          for (final d in state.discounts) ...[
+                            _DiscountTile(
+                              item: d,
+                              onDelete: () => _deleteDiscount(d.id),
+                            ),
                             const SizedBox(height: 10),
                           ]
-                      else if (_promoCodes.isEmpty)
+                      else if (state.promoCodes.isEmpty)
                         const _EmptyState(label: 'No promo codes found.')
                       else
-                        for (final p in _promoCodes) ...[
-                          _PromoTile(item: p),
+                        for (final p in state.promoCodes) ...[
+                          _PromoTile(
+                            item: p,
+                            onDelete: () => _deletePromoCode(p.id),
+                          ),
                           const SizedBox(height: 10),
                         ],
                     ],
@@ -212,6 +256,9 @@ class _TabButton extends StatelessWidget {
     }
     return TextButton(
       onPressed: onTap,
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.charcoal,
+      ),
       child: Text(
         label,
         style: AppTypography.label.copyWith(
@@ -243,9 +290,10 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _DiscountTile extends StatelessWidget {
-  const _DiscountTile({required this.item});
+  const _DiscountTile({required this.item, required this.onDelete});
 
-  final _DiscountItem item;
+  final Discount item;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -256,14 +304,35 @@ class _DiscountTile extends StatelessWidget {
         color: AppColors.sandSurface,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(item.name, style: AppTypography.label.copyWith(fontWeight: FontWeight.w700)),
-          Text(item.description, style: AppTypography.caption.copyWith(color: AppColors.textSecondaryLight)),
-          Text(
-            '${item.type == _DiscountType.percentage ? '${item.value}%' : AppCurrency.format(item.value)} · ${item.startDate} → ${item.endDate}',
-            style: AppTypography.caption.copyWith(color: AppColors.textMutedLight),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  style: AppTypography.label
+                      .copyWith(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  item.description,
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.textSecondaryLight),
+                ),
+                Text(
+                  '${item.type == PromotionType.percentage ? '${item.value}%' : AppCurrency.format(item.value)} · ${item.startDateLabel} → ${item.endDateLabel}',
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.textMutedLight),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Delete',
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline, size: 20),
           ),
         ],
       ),
@@ -272,9 +341,10 @@ class _DiscountTile extends StatelessWidget {
 }
 
 class _PromoTile extends StatelessWidget {
-  const _PromoTile({required this.item});
+  const _PromoTile({required this.item, required this.onDelete});
 
-  final _PromoCodeItem item;
+  final PromoCode item;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -285,15 +355,36 @@ class _PromoTile extends StatelessWidget {
         color: AppColors.sandSurface,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(item.code, style: AppTypography.label.copyWith(fontWeight: FontWeight.w700)),
-          Text(item.description, style: AppTypography.caption.copyWith(color: AppColors.textSecondaryLight)),
-          Text(
-            '${item.type == _DiscountType.percentage ? '${item.value}%' : AppCurrency.format(item.value)}'
-            '${item.maxUses != null ? ' · Max ${item.maxUses}' : ''} · ${item.startDate} → ${item.endDate}',
-            style: AppTypography.caption.copyWith(color: AppColors.textMutedLight),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.code,
+                  style: AppTypography.label
+                      .copyWith(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  item.description,
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.textSecondaryLight),
+                ),
+                Text(
+                  '${item.type == PromotionType.percentage ? '${item.value}%' : AppCurrency.format(item.value)}'
+                  '${item.maxUses != null ? ' · Max ${item.maxUses}' : ''} · ${item.startDateLabel} → ${item.endDateLabel}',
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.textMutedLight),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Delete',
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline, size: 20),
           ),
         ],
       ),
@@ -301,8 +392,13 @@ class _PromoTile extends StatelessWidget {
   }
 }
 
+typedef _DiscountSave = Future<void> Function(DiscountInput input);
+typedef _PromoCodeSave = Future<void> Function(PromoCodeInput input);
+
 class _AddDiscountDialog extends StatefulWidget {
-  const _AddDiscountDialog();
+  const _AddDiscountDialog({required this.onSave});
+
+  final _DiscountSave onSave;
 
   @override
   State<_AddDiscountDialog> createState() => _AddDiscountDialogState();
@@ -312,9 +408,10 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _valueCtrl = TextEditingController(text: '10');
-  _DiscountType _type = _DiscountType.percentage;
+  PromotionType _type = PromotionType.percentage;
   DateTime? _start;
   DateTime? _end;
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -345,6 +442,27 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
     if (d == null) return 'mm/dd/yyyy';
     String two(int v) => v.toString().padLeft(2, '0');
     return '${two(d.month)}/${two(d.day)}/${d.year}';
+  }
+
+  Future<void> _save() async {
+    if (_nameCtrl.text.trim().isEmpty ||
+        _valueCtrl.text.trim().isEmpty ||
+        _start == null ||
+        _end == null) {
+      return;
+    }
+    setState(() => _saving = true);
+    await widget.onSave(
+      DiscountInput(
+        name: _nameCtrl.text.trim(),
+        description: _descCtrl.text.trim(),
+        type: _type,
+        value: num.tryParse(_valueCtrl.text.trim()) ?? 0,
+        startDate: _start!,
+        endDate: _end!,
+      ),
+    );
+    if (mounted) setState(() => _saving = false);
   }
 
   @override
@@ -393,15 +511,15 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                 ),
                 _LabeledField(
                   label: 'Discount Type',
-                  child: DropdownButtonFormField<_DiscountType>(
+                  child: DropdownButtonFormField<PromotionType>(
                     initialValue: _type,
                     items: const [
                       DropdownMenuItem(
-                        value: _DiscountType.percentage,
+                        value: PromotionType.percentage,
                         child: Text('Percentage (%)'),
                       ),
                       DropdownMenuItem(
-                        value: _DiscountType.fixed,
+                        value: PromotionType.fixedAmount,
                         child: Text('Fixed amount'),
                       ),
                     ],
@@ -428,7 +546,8 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                           onTap: () => _pickDate(isStart: true),
                           child: InputDecorator(
                             decoration: _inputDecoration('mm/dd/yyyy').copyWith(
-                              suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                              suffixIcon:
+                                  const Icon(Icons.calendar_today, size: 18),
                             ),
                             child: Text(_fmt(_start)),
                           ),
@@ -443,7 +562,8 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                           onTap: () => _pickDate(isStart: false),
                           child: InputDecorator(
                             decoration: _inputDecoration('mm/dd/yyyy').copyWith(
-                              suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                              suffixIcon:
+                                  const Icon(Icons.calendar_today, size: 18),
                             ),
                             child: Text(_fmt(_end)),
                           ),
@@ -454,29 +574,17 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton(
-                  onPressed: () {
-                    if (_nameCtrl.text.trim().isEmpty ||
-                        _valueCtrl.text.trim().isEmpty ||
-                        _start == null ||
-                        _end == null) {
-                      return;
-                    }
-                    Navigator.pop(
-                      context,
-                      _DiscountItem(
-                        name: _nameCtrl.text.trim(),
-                        description: _descCtrl.text.trim(),
-                        type: _type,
-                        value: _valueCtrl.text.trim(),
-                        startDate: _fmt(_start),
-                        endDate: _fmt(_end),
-                      ),
-                    );
-                  },
+                  onPressed: _saving ? null : _save,
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(44),
                   ),
-                  child: const Text('Save Discount'),
+                  child: _saving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save Discount'),
                 ),
               ],
             ),
@@ -488,7 +596,9 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
 }
 
 class _AddPromoCodeDialog extends StatefulWidget {
-  const _AddPromoCodeDialog();
+  const _AddPromoCodeDialog({required this.onSave});
+
+  final _PromoCodeSave onSave;
 
   @override
   State<_AddPromoCodeDialog> createState() => _AddPromoCodeDialogState();
@@ -499,9 +609,10 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
   final _descCtrl = TextEditingController();
   final _valueCtrl = TextEditingController(text: '20');
   final _maxUsesCtrl = TextEditingController(text: '100');
-  _DiscountType _type = _DiscountType.percentage;
+  PromotionType _type = PromotionType.percentage;
   DateTime? _start;
   DateTime? _end;
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -533,6 +644,28 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
     if (d == null) return 'mm/dd/yyyy';
     String two(int v) => v.toString().padLeft(2, '0');
     return '${two(d.month)}/${two(d.day)}/${d.year}';
+  }
+
+  Future<void> _save() async {
+    if (_codeCtrl.text.trim().isEmpty ||
+        _valueCtrl.text.trim().isEmpty ||
+        _start == null ||
+        _end == null) {
+      return;
+    }
+    setState(() => _saving = true);
+    await widget.onSave(
+      PromoCodeInput(
+        code: _codeCtrl.text.trim(),
+        description: _descCtrl.text.trim(),
+        type: _type,
+        value: num.tryParse(_valueCtrl.text.trim()) ?? 0,
+        startDate: _start!,
+        endDate: _end!,
+        maxUses: int.tryParse(_maxUsesCtrl.text.trim()),
+      ),
+    );
+    if (mounted) setState(() => _saving = false);
   }
 
   @override
@@ -581,15 +714,15 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                 ),
                 _LabeledField(
                   label: 'Discount Type',
-                  child: DropdownButtonFormField<_DiscountType>(
+                  child: DropdownButtonFormField<PromotionType>(
                     initialValue: _type,
                     items: const [
                       DropdownMenuItem(
-                        value: _DiscountType.percentage,
+                        value: PromotionType.percentage,
                         child: Text('Percentage (%)'),
                       ),
                       DropdownMenuItem(
-                        value: _DiscountType.fixed,
+                        value: PromotionType.fixedAmount,
                         child: Text('Fixed amount'),
                       ),
                     ],
@@ -624,7 +757,8 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                           onTap: () => _pickDate(isStart: true),
                           child: InputDecorator(
                             decoration: _inputDecoration('mm/dd/yyyy').copyWith(
-                              suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                              suffixIcon:
+                                  const Icon(Icons.calendar_today, size: 18),
                             ),
                             child: Text(_fmt(_start)),
                           ),
@@ -639,7 +773,8 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                           onTap: () => _pickDate(isStart: false),
                           child: InputDecorator(
                             decoration: _inputDecoration('mm/dd/yyyy').copyWith(
-                              suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                              suffixIcon:
+                                  const Icon(Icons.calendar_today, size: 18),
                             ),
                             child: Text(_fmt(_end)),
                           ),
@@ -650,32 +785,17 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton(
-                  onPressed: () {
-                    if (_codeCtrl.text.trim().isEmpty ||
-                        _valueCtrl.text.trim().isEmpty ||
-                        _start == null ||
-                        _end == null) {
-                      return;
-                    }
-                    Navigator.pop(
-                      context,
-                      _PromoCodeItem(
-                        code: _codeCtrl.text.trim(),
-                        description: _descCtrl.text.trim(),
-                        type: _type,
-                        value: _valueCtrl.text.trim(),
-                        maxUses: _maxUsesCtrl.text.trim().isEmpty
-                            ? null
-                            : _maxUsesCtrl.text.trim(),
-                        startDate: _fmt(_start),
-                        endDate: _fmt(_end),
-                      ),
-                    );
-                  },
+                  onPressed: _saving ? null : _save,
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(44),
                   ),
-                  child: const Text('Save Promo Code'),
+                  child: _saving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save Promo Code'),
                 ),
               ],
             ),

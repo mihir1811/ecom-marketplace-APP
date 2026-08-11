@@ -69,6 +69,11 @@ class SellerDrawer extends StatelessWidget {
         icon: Icons.card_giftcard_outlined,
       ),
       const _DrawerItem(
+        route: AppRouteNames.sellerLoginHistory,
+        label: 'Login history',
+        icon: Icons.devices_outlined,
+      ),
+      const _DrawerItem(
         route: AppRouteNames.sellerProfile,
         label: 'Profile',
         icon: Icons.person_outline,
