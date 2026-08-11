@@ -8,6 +8,7 @@ import '../../features/watches/watches_routes.dart';
 import '../../features/bullions/bullions_routes.dart';
 import '../../features/jewelry/jewelry_routes.dart';
 import '../../features/product_detail/product_detail_routes.dart';
+import '../../features/product_share/product_share_routes.dart';
 import '../../features/diamond_viewer/diamond_viewer_routes.dart';
 import '../../features/auth/auth_routes.dart';
 import '../../features/buyer/buyer_routes.dart';
@@ -36,6 +37,7 @@ final GoRouter appRouter = GoRouter(
     ...bullionsRoutes,
     ...jewelryRoutes,
     ...productDetailRoutes,
+    ...productShareRoutes,
     ...diamondViewerRoutes,
     ...comparisonRoutes,
     ...cartRoutes,

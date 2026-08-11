@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../domain/models/product_detail.dart';
 import '../widgets/product_detail_action_bar.dart';
 import '../widgets/product_detail_assurance.dart';
@@ -19,7 +21,7 @@ import '../widgets/product_detail_specs.dart';
 /// The vertical order is fixed and priority driven: what it looks like, what it
 /// is, what it costs, the four attributes that set its value, whether it is
 /// certified and in stock, then the full specification, then the fine print.
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends ConsumerWidget {
   const ProductDetailScreen({required this.detail, super.key});
 
   static const double _wideBreakpoint = 900;
@@ -28,7 +30,7 @@ class ProductDetailScreen extends StatelessWidget {
   final ProductDetail detail;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return AppScaffold(
       backgroundColor: AppColors.creamBg,
       appBar: AppBar(
@@ -42,6 +44,19 @@ class ProductDetailScreen extends StatelessWidget {
           detail.segment.label,
           style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Share',
+            icon: const Icon(Icons.share_outlined),
+            onPressed: () => showProductShareSheet(
+              context: context,
+              ref: ref,
+              productId: detail.id,
+              productType: detail.apiProductType,
+              productTitle: detail.title,
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: ProductDetailActionBar(detail: detail),
       body: LayoutBuilder(

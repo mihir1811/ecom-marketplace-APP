@@ -7,6 +7,28 @@ bool isValidEmail(String value) {
   return emailRegex.hasMatch(v);
 }
 
+/// Indian PAN format: 5 letters + 4 digits + 1 letter.
+bool isValidPan(String value) {
+  return RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]$')
+      .hasMatch(value.trim().toUpperCase());
+}
+
+/// Aadhaar: 12 digits.
+bool isValidAadhaar(String value) {
+  return RegExp(r'^\d{12}$').hasMatch(value.trim());
+}
+
+/// IFSC: 4 letters + 0 + 6 alphanumeric (e.g. HDFC0001234).
+bool isValidIfsc(String value) {
+  return RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$')
+      .hasMatch(value.trim().toUpperCase());
+}
+
+/// Bank account number: 8–20 digits.
+bool isValidBankAccountNumber(String value) {
+  return RegExp(r'^\d{8,20}$').hasMatch(value.trim());
+}
+
 class PasswordStrength {
   const PasswordStrength({
     required this.isStrong,
@@ -63,4 +85,3 @@ PasswordStrength evaluatePasswordStrength(String value) {
     message: 'Strong password.',
   );
 }
-

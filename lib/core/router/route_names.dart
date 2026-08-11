@@ -31,6 +31,11 @@ class AppRouteNames {
   static String productDetailPath(String segment, String productId) =>
       '/product/$segment/${Uri.encodeComponent(productId)}';
 
+  /// Public product share deep link (`GET /product-share/{token}`).
+  static const String productShare = '/share/:token';
+  static String productSharePath(String token) =>
+      '/share/${Uri.encodeComponent(token)}';
+
   /// Fullscreen interactive Vision360 / WebGL product viewer.
   static const String diamondViewer = '/viewer/360';
 
@@ -47,6 +52,7 @@ class AppRouteNames {
   static const String buyerOrderDetail = '/buyer/orders/:orderId';
   static String buyerOrderDetailPath(String orderId) =>
       '/buyer/orders/$orderId';
+  static const String buyerRefunds = '/buyer/refunds';
   static const String buyerInquiries = '/buyer/inquiries';
   static const String buyerInquiryNew = '/buyer/inquiries/new';
   static const String buyerInquiryDetail =

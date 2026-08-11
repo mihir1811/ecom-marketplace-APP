@@ -31,6 +31,9 @@ class AuthState {
   bool get isAuthenticated =>
       user != null && !user!.isBlocked && !user!.isDeleted;
 
+  /// Seller workspace (dashboard, listings, seller chat) is seller-only.
+  bool get isSeller => isAuthenticated && (user?.isSeller ?? false);
+
   AuthState copyWith({
     AuthUser? user,
     String? sellerId,

@@ -63,15 +63,17 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartCount = ref.watch(cartItemCountProvider);
-    final isAuthenticated = ref.watch(
-      authProvider.select((s) => s.isAuthenticated),
+    final auth = ref.watch(
+      authProvider.select(
+        (s) => (isAuthenticated: s.isAuthenticated, isSeller: s.isSeller),
+      ),
     );
     final isSearching =
         ref.watch(homeSearchQueryProvider.select((q) => q.trim().isNotEmpty));
 
     return AppScaffold(
       backgroundColor: AppColors.creamBg,
-      drawer: isAuthenticated ? const BuyerDrawer() : null,
+      drawer: auth.isAuthenticated ? const BuyerDrawer() : null,
       appBar: AppBar(
         backgroundColor: AppColors.creamBg,
         surfaceTintColor: Colors.transparent,
@@ -99,7 +101,7 @@ class HomeScreen extends ConsumerWidget {
               child: const Icon(Icons.shopping_bag_outlined),
             ),
           ),
-          if (isAuthenticated)
+          if (auth.isAuthenticated && auth.isSeller)
             TextButton.icon(
               onPressed: () => context.go(AppRouteNames.sellerDashboard),
               icon: const Icon(Icons.dashboard_outlined, size: 18),
@@ -111,7 +113,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             )
-          else
+          else if (!auth.isAuthenticated)
             TextButton(
               onPressed: () => context.push(AppRouteNames.login),
               child: Text(
@@ -121,6 +123,12 @@ class HomeScreen extends ConsumerWidget {
                   color: AppColors.charcoal,
                 ),
               ),
+            )
+          else
+            IconButton(
+              tooltip: 'Account',
+              onPressed: () => context.go(AppRouteNames.buyerProfile),
+              icon: const Icon(Icons.person_outline),
             ),
           const SizedBox(width: AppSpacing.s8),
         ],
@@ -143,7 +151,7 @@ class HomeScreen extends ConsumerWidget {
           Expanded(
             child: isSearching
                 ? const HomeSearchResultsList()
-                : _HomeBrowseBody(isAuthenticated: isAuthenticated),
+                : _HomeBrowseBody(isAuthenticated: auth.isAuthenticated),
           ),
         ],
       ),

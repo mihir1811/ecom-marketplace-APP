@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/error/result.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/app_currency.dart';
+import '../../../refunds/application/refund_providers.dart';
+import '../../../refunds/domain/models/refund_request.dart';
 import '../../data/seller_orders_mock_data.dart';
 import '../../domain/models/seller_orders_models.dart';
 import '../widgets/seller_layout.dart';
 
-class SellerOrdersScreen extends StatefulWidget {
+class SellerOrdersScreen extends ConsumerStatefulWidget {
   const SellerOrdersScreen({super.key});
 
   @override
-  State<SellerOrdersScreen> createState() => _SellerOrdersScreenState();
+  ConsumerState<SellerOrdersScreen> createState() => _SellerOrdersScreenState();
 }
 
-class _SellerOrdersScreenState extends State<SellerOrdersScreen>
+class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
@@ -35,6 +40,8 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen>
 
   @override
   Widget build(BuildContext context) {
+    final refundTotal = ref.watch(sellerRefundListProvider.select((s) => s.total));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -65,7 +72,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen>
           labelStyle: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
           tabs: [
             Tab(text: 'Orders (${kSellerOrdersMock.length})'),
-            Tab(text: 'Refunds (${kSellerRefundsMock.length})'),
+            Tab(text: 'Refunds ($refundTotal)'),
           ],
         ),
         Expanded(
@@ -328,78 +335,125 @@ class _MetaChip extends StatelessWidget {
   }
 }
 
-class _RefundsTab extends StatelessWidget {
+class _RefundsTab extends ConsumerWidget {
   const _RefundsTab();
 
   @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      children: [
-        Container(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(sellerRefundListProvider);
+
+    return RefreshIndicator(
+      onRefresh: () => ref.read(sellerRefundListProvider.notifier).refresh(),
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (n) {
+          if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
+            ref.read(sellerRefundListProvider.notifier).loadMore();
+          }
+          return false;
+        },
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(AppSpacing.s16),
-          decoration: BoxDecoration(
-            color: AppColors.sandSurface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.warmBorder),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Icon(
-                  Icons.replay,
-                  size: 56,
-                  color: AppColors.textMutedLight.withValues(alpha: 0.25),
-                ),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              decoration: BoxDecoration(
+                color: AppColors.sandSurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.warmBorder),
               ),
-              Text(
-                'Review buyer refund requests for your orders. Accept to '
-                'process a Razorpay refund, or reject with an optional note. '
-                'Refunds are only allowed before delivery.',
-                style: AppTypography.body.copyWith(
-                  color: AppColors.textSecondaryLight,
-                  height: 1.4,
-                ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Icon(
+                      Icons.replay,
+                      size: 56,
+                      color: AppColors.textMutedLight.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  Text(
+                    'Review buyer refund requests for your orders. Accept to '
+                    'process a Razorpay refund, or reject with an optional note. '
+                    'Refunds are only allowed before delivery.',
+                    style: AppTypography.body.copyWith(
+                      color: AppColors.textSecondaryLight,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
               ),
+            ),
+            const SizedBox(height: 16),
+            if (state.isLoading && state.items.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 48),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (state.errorMessage != null && state.items.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Column(
+                  children: [
+                    Text(state.errorMessage!, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: () =>
+                          ref.read(sellerRefundListProvider.notifier).refresh(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+            else if (state.items.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 48),
+                child: Center(
+                  child: Text(
+                    'No refund requests yet',
+                    style: AppTypography.body,
+                  ),
+                ),
+              )
+            else ...[
+              for (final refund in state.items) ...[
+                _RefundCard(refund: refund),
+                const SizedBox(height: 12),
+              ],
+              if (state.isLoadingMore)
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
             ],
-          ),
+          ],
         ),
-        const SizedBox(height: 16),
-        for (final refund in kSellerRefundsMock) ...[
-          _RefundCard(refund: refund),
-          const SizedBox(height: 12),
-        ],
-      ],
+      ),
     );
   }
 }
 
-class _RefundCard extends StatelessWidget {
+class _RefundCard extends ConsumerWidget {
   const _RefundCard({required this.refund});
 
-  final SellerRefund refund;
+  final RefundRequest refund;
 
   @override
-  Widget build(BuildContext context) {
-    final isAccepted = refund.status == SellerRefundStatus.accepted;
-    final isPending = refund.status == SellerRefundStatus.pending;
-    final statusColor = isPending
-        ? AppColors.bronze
-        : isAccepted
-            ? AppColors.success
-            : AppColors.error;
-    final statusIcon = isPending
-        ? Icons.schedule
-        : isAccepted
-            ? Icons.check_circle
-            : Icons.cancel_outlined;
-    final statusLabel = isPending
-        ? 'Pending'
-        : isAccepted
-            ? 'Accepted'
-            : 'Rejected';
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statusColor = switch (refund.status) {
+      RefundStatus.pending => AppColors.bronze,
+      RefundStatus.accepted => AppColors.success,
+      RefundStatus.rejected => AppColors.error,
+      RefundStatus.cancelled => AppColors.charcoalLight,
+    };
+    final statusIcon = switch (refund.status) {
+      RefundStatus.pending => Icons.schedule,
+      RefundStatus.accepted => Icons.check_circle,
+      RefundStatus.rejected => Icons.cancel_outlined,
+      RefundStatus.cancelled => Icons.block,
+    };
+    final mutating = ref.watch(refundMutationProvider).isLoading;
 
     return Container(
       decoration: BoxDecoration(
@@ -417,7 +471,7 @@ class _RefundCard extends StatelessWidget {
               Icon(statusIcon, color: statusColor, size: 20),
               const SizedBox(width: 8),
               Text(
-                statusLabel,
+                refund.status.label,
                 style: AppTypography.label.copyWith(
                   color: statusColor,
                   fontWeight: FontWeight.w700,
@@ -425,7 +479,7 @@ class _RefundCard extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                refund.amountLabel,
+                AppCurrency.usd(refund.amount),
                 style: AppTypography.title.copyWith(
                   fontWeight: FontWeight.w800,
                   fontSize: 20,
@@ -441,7 +495,7 @@ class _RefundCard extends StatelessWidget {
                 child: _InfoBlock(
                   label: 'Buyer',
                   child: Text(
-                    refund.buyer,
+                    refund.buyerLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.body.copyWith(
@@ -476,7 +530,7 @@ class _RefundCard extends StatelessWidget {
                 child: _InfoBlock(
                   label: 'Requested',
                   child: Text(
-                    refund.requestedAt,
+                    refund.createdAtLabel,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.caption.copyWith(
@@ -496,7 +550,7 @@ class _RefundCard extends StatelessWidget {
                 child: _InfoBlock(
                   label: 'Buyer reason',
                   child: Text(
-                    refund.buyerReason,
+                    refund.reason,
                     style: AppTypography.body.copyWith(
                       color: AppColors.textSecondaryLight,
                     ),
@@ -519,9 +573,124 @@ class _RefundCard extends StatelessWidget {
               ],
             ],
           ),
+          if (refund.canSellerDecide) ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: mutating
+                        ? null
+                        : () => _rejectRefund(context, ref, refund.id),
+                    child: const Text('Reject'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: mutating
+                        ? null
+                        : () => _acceptRefund(context, ref, refund.id),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.charcoal,
+                      foregroundColor: AppColors.warmWhite,
+                    ),
+                    child: const Text('Accept'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Future<void> _acceptRefund(
+    BuildContext context,
+    WidgetRef ref,
+    String id,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Accept refund?'),
+        content: const Text(
+          'This triggers a Razorpay refund for the seller portion.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Accept'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final result = await ref.read(refundMutationProvider.notifier).accept(id);
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    switch (result) {
+      case Success():
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Refund accepted')),
+        );
+      case ResultFailure(failure: final failure):
+        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+    }
+  }
+
+  Future<void> _rejectRefund(
+    BuildContext context,
+    WidgetRef ref,
+    String id,
+  ) async {
+    final noteController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reject refund'),
+        content: TextField(
+          controller: noteController,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            labelText: 'Note (optional)',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Reject'),
+          ),
+        ],
+      ),
+    );
+    final note = noteController.text.trim();
+    noteController.dispose();
+    if (confirmed != true || !context.mounted) return;
+    final result = await ref.read(refundMutationProvider.notifier).reject(
+          id,
+          sellerNote: note.isEmpty ? null : note,
+        );
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    switch (result) {
+      case Success():
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Refund rejected')),
+        );
+      case ResultFailure(failure: final failure):
+        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+    }
   }
 }
 

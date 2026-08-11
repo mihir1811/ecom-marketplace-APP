@@ -8,26 +8,25 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
-/// Buyer-side account drawer (home + buyer screens). Dashboard alone opens seller.
+/// Buyer-side account drawer (home + buyer screens).
 class BuyerDrawer extends ConsumerWidget {
   const BuyerDrawer({super.key});
 
-  static const items = <BuyerDrawerItem>[
+  static const _buyerItems = <BuyerDrawerItem>[
     BuyerDrawerItem(
       route: AppRouteNames.buyerProfile,
       label: 'My Profile',
       icon: Icons.person_outline,
     ),
     BuyerDrawerItem(
-      route: AppRouteNames.sellerDashboard,
-      label: 'Dashboard',
-      icon: Icons.dashboard_outlined,
-      isSellerEntry: true,
-    ),
-    BuyerDrawerItem(
       route: AppRouteNames.buyerOrders,
       label: 'Orders',
       icon: Icons.local_shipping_outlined,
+    ),
+    BuyerDrawerItem(
+      route: AppRouteNames.buyerRefunds,
+      label: 'Refunds',
+      icon: Icons.replay_outlined,
     ),
     BuyerDrawerItem(
       route: AppRouteNames.buyerInquiries,
@@ -53,6 +52,7 @@ class BuyerDrawer extends ConsumerWidget {
       route: AppRouteNames.buyerMessages,
       label: 'Messages',
       icon: Icons.chat_bubble_outline,
+      requiresSeller: true,
     ),
     BuyerDrawerItem(
       route: AppRouteNames.buyerSettings,
@@ -61,10 +61,27 @@ class BuyerDrawer extends ConsumerWidget {
     ),
   ];
 
+  static const _sellerDashboardItem = BuyerDrawerItem(
+    route: AppRouteNames.sellerDashboard,
+    label: 'Seller dashboard',
+    icon: Icons.dashboard_outlined,
+    isSellerEntry: true,
+    requiresSeller: true,
+  );
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authProvider).user;
+    final auth = ref.watch(
+      authProvider.select((s) => (user: s.user, isSeller: s.isSeller)),
+    );
     final currentPath = GoRouterState.of(context).uri.path;
+    final items = <BuyerDrawerItem>[
+      _buyerItems.first,
+      if (auth.isSeller) _sellerDashboardItem,
+      ..._buyerItems.skip(1).where(
+            (item) => !item.requiresSeller || auth.isSeller,
+          ),
+    ];
 
     return Drawer(
       width: 280,
@@ -81,7 +98,9 @@ class BuyerDrawer extends ConsumerWidget {
                     radius: 22,
                     backgroundColor: AppColors.charcoal,
                     child: Text(
-                      _initials(user?.fullName ?? user?.username ?? 'U'),
+                      _initials(
+                        auth.user?.fullName ?? auth.user?.username ?? 'U',
+                      ),
                       style: AppTypography.label.copyWith(
                         color: AppColors.warmWhite,
                         fontWeight: FontWeight.w700,
@@ -94,7 +113,7 @@ class BuyerDrawer extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user?.fullName ?? 'Account',
+                          auth.user?.fullName ?? 'Account',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: AppTypography.title.copyWith(
@@ -103,7 +122,7 @@ class BuyerDrawer extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          'Account',
+                          auth.isSeller ? 'Seller account' : 'Account',
                           style: AppTypography.caption.copyWith(
                             color: AppColors.textSecondaryLight,
                           ),
@@ -229,10 +248,12 @@ class BuyerDrawerItem {
     required this.label,
     required this.icon,
     this.isSellerEntry = false,
+    this.requiresSeller = false,
   });
 
   final String route;
   final String label;
   final IconData icon;
   final bool isSellerEntry;
+  final bool requiresSeller;
 }

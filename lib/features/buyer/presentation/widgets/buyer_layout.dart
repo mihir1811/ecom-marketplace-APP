@@ -46,6 +46,7 @@ class BuyerLayout extends ConsumerWidget {
     }
 
     final hasAppBar = title != null;
+    final isSeller = authState.isSeller;
 
     return AppScaffold(
       scaffoldKey: buyerScaffoldKey,
@@ -71,17 +72,18 @@ class BuyerLayout extends ConsumerWidget {
                   onPressed: () => context.go(AppRouteNames.home),
                   icon: const Icon(Icons.storefront_outlined),
                 ),
-                TextButton.icon(
-                  onPressed: () => context.go(AppRouteNames.sellerDashboard),
-                  icon: const Icon(Icons.dashboard_outlined, size: 18),
-                  label: Text(
-                    'Dashboard',
-                    style: AppTypography.label.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.charcoal,
+                if (isSeller)
+                  TextButton.icon(
+                    onPressed: () => context.go(AppRouteNames.sellerDashboard),
+                    icon: const Icon(Icons.dashboard_outlined, size: 18),
+                    label: Text(
+                      'Dashboard',
+                      style: AppTypography.label.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.charcoal,
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(width: 8),
               ],
             )

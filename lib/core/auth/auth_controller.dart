@@ -11,6 +11,7 @@ import 'auth_state.dart';
 import 'auth_token_store.dart';
 import 'auth_user.dart';
 import 'auth_validators.dart';
+import 'business_registration_data.dart';
 import 'jwt_utils.dart';
 
 /// Auth session controller: login, register/OTP, logout, password reset, cold start.
@@ -140,6 +141,9 @@ class AuthController extends Notifier<AuthState> {
     required String email,
     required String password,
     required bool acceptTerms,
+    RegistrationAccountType registrationType =
+        RegistrationAccountType.individual,
+    BusinessRegistrationData? business,
     XFile? profilePicture,
   }) async {
     _setLoading();
@@ -168,11 +172,22 @@ class AuthController extends Notifier<AuthState> {
       );
     }
 
+    if (registrationType == RegistrationAccountType.business) {
+      final businessError = _validateBusiness(business);
+      if (businessError != null) {
+        return _fail(businessError);
+      }
+    }
+
     final result = await _repo.register(
       name: name,
       userName: u,
       email: e,
       password: password,
+      registrationType: registrationType,
+      business: registrationType == RegistrationAccountType.business
+          ? business
+          : null,
       profilePicture: profilePicture,
     );
     return switch (result) {
@@ -186,6 +201,67 @@ class AuthController extends Notifier<AuthState> {
         }(),
       ResultFailure(:final failure) => _fail(failure.message),
     };
+  }
+
+  String? _validateBusiness(BusinessRegistrationData? business) {
+    if (business == null) {
+      return 'Business registration details are required.';
+    }
+    if (business.companyName.trim().isEmpty) {
+      return 'Company name is required.';
+    }
+    if (business.addressLine1.trim().isEmpty) {
+      return 'Address line 1 is required.';
+    }
+    if (business.addressLine2.trim().isEmpty) {
+      return 'Address line 2 is required.';
+    }
+    if (business.city.trim().isEmpty) {
+      return 'City is required.';
+    }
+    if (business.state.trim().isEmpty) {
+      return 'State is required.';
+    }
+    if (business.country.trim().isEmpty) {
+      return 'Country is required.';
+    }
+    if (business.zipCode.trim().isEmpty) {
+      return 'ZIP / postal code is required.';
+    }
+    if (business.phone1.trim().isEmpty) {
+      return 'Primary phone is required.';
+    }
+    if (business.phone2.trim().isEmpty) {
+      return 'Secondary phone is required.';
+    }
+    if (business.representativeName1.trim().isEmpty) {
+      return 'Primary representative name is required.';
+    }
+    if (business.representativeName2.trim().isEmpty) {
+      return 'Secondary representative name is required.';
+    }
+    if (!isValidPan(business.panCardNumber)) {
+      return 'Enter a valid PAN (e.g. ABCDE1234F).';
+    }
+    if (!isValidAadhaar(business.aadhaarNumber)) {
+      return 'Enter a valid 12-digit Aadhaar number.';
+    }
+    if (business.iecNumber.trim().isEmpty) {
+      return 'IEC number is required.';
+    }
+    if (business.accountHolderName.trim().isEmpty) {
+      return 'Account holder name is required.';
+    }
+    if (!isValidBankAccountNumber(business.accountNumber)) {
+      return 'Account number must be 8–20 digits.';
+    }
+    if (!isValidIfsc(business.ifscCode)) {
+      return 'Enter a valid IFSC code (e.g. HDFC0001234).';
+    }
+    if (business.bankName.trim().isEmpty) {
+      return 'Bank name is required.';
+    }
+    return null;
   }
 
   Future<bool> verifyOtp({

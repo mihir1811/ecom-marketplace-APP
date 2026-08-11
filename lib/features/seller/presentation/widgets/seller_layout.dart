@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import 'seller_drawer.dart';
 
@@ -21,7 +23,9 @@ void openSellerDrawer([BuildContext? context]) {
   }
 }
 
-/// Authenticated seller/user shell (drawer available on all seller routes).
+/// Authenticated seller shell (drawer available on all seller routes).
+///
+/// Non-sellers are redirected home — dashboard and seller chat stay seller-only.
 class SellerLayout extends ConsumerWidget {
   const SellerLayout({
     super.key,
@@ -38,6 +42,16 @@ class SellerLayout extends ConsumerWidget {
 
     if (!authState.isAuthenticated) {
       return const LoginScreen();
+    }
+
+    if (!authState.isSeller) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        context.go(AppRouteNames.home);
+      });
+      return const AppScaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     return AppScaffold(

@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../../core/auth/seller_only_gate.dart';
 import '../../core/router/route_names.dart';
 import '../seller/presentation/screens/seller_chat_detail_screen.dart';
 import '../seller/presentation/screens/seller_chat_list_screen.dart';
@@ -7,9 +8,10 @@ import '../seller/presentation/screens/seller_help_center_screen.dart';
 import '../seller/presentation/screens/seller_inquiry_detail_screen.dart';
 import '../seller/presentation/screens/seller_inquiry_form_screen.dart';
 import '../seller/presentation/screens/seller_inquiry_inbox_screen.dart';
-import '../seller/presentation/screens/seller_profile_screen.dart';
 import 'presentation/screens/buyer_order_detail_screen.dart';
 import 'presentation/screens/buyer_orders_screen.dart';
+import 'presentation/screens/buyer_profile_screen.dart';
+import 'presentation/screens/buyer_refunds_screen.dart';
 import 'presentation/screens/buyer_reviews_screen.dart';
 import 'presentation/screens/buyer_settings_screen.dart';
 import 'presentation/screens/buyer_wishlist_screen.dart';
@@ -19,9 +21,7 @@ import 'presentation/widgets/buyer_layout.dart';
 final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: AppRouteNames.buyerProfile,
-    builder: (context, state) => const BuyerLayout(
-      child: SellerProfileScreen(),
-    ),
+    builder: (context, state) => const BuyerProfileScreen(),
   ),
   GoRoute(
     path: AppRouteNames.buyerOrders,
@@ -32,6 +32,10 @@ final List<RouteBase> buyerRoutes = [
     builder: (context, state) => BuyerOrderDetailScreen(
       orderId: state.pathParameters['orderId']!,
     ),
+  ),
+  GoRoute(
+    path: AppRouteNames.buyerRefunds,
+    builder: (context, state) => const BuyerRefundsScreen(),
   ),
   GoRoute(
     path: AppRouteNames.buyerInquiries,
@@ -71,14 +75,20 @@ final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: AppRouteNames.buyerMessages,
     builder: (context, state) => const BuyerLayout(
-      child: SellerChatListScreen(),
+      child: SellerOnlyGate(
+        fallbackRoute: AppRouteNames.buyerProfile,
+        child: SellerChatListScreen(),
+      ),
     ),
   ),
   GoRoute(
     path: '/buyer/messages/:chatId',
     builder: (context, state) => BuyerLayout(
-      child: SellerChatDetailScreen(
-        chatId: state.pathParameters['chatId']!,
+      child: SellerOnlyGate(
+        fallbackRoute: AppRouteNames.buyerProfile,
+        child: SellerChatDetailScreen(
+          chatId: state.pathParameters['chatId']!,
+        ),
       ),
     ),
   ),

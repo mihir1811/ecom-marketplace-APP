@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/error/result.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -14,6 +15,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../payment/domain/models/payment_models.dart';
+import '../../../refunds/application/refund_providers.dart';
 import '../../application/buyer_orders_provider.dart';
 import '../widgets/buyer_layout.dart';
 import '../widgets/order_review_section.dart';
@@ -191,12 +193,167 @@ class BuyerOrderDetailScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             _Card(child: OrderTrackingSection(orderId: order.id)),
             const SizedBox(height: 12),
+            _Card(child: _OrderRefundSection(order: order)),
+            const SizedBox(height: 12),
             _Card(child: OrderReviewSection(order: order)),
             const SizedBox(height: 24),
           ],
         ),
       ),
     );
+  }
+}
+
+class _OrderRefundSection extends ConsumerWidget {
+  const _OrderRefundSection({required this.order});
+
+  final PaymentOrder order;
+
+  List<({String sellerId, String sellerName})> get _sellerTargets {
+    final seen = <String>{};
+    final targets = <({String sellerId, String sellerName})>[];
+    for (final seller in order.sellers) {
+      if (seller.id.isEmpty || !seen.add(seller.id)) continue;
+      targets.add((sellerId: seller.id, sellerName: seller.companyName));
+    }
+    for (final item in order.items) {
+      final id = item.sellerId;
+      if (id == null || id.isEmpty || !seen.add(id)) continue;
+      targets.add((
+        sellerId: id,
+        sellerName: item.sellerName?.trim().isNotEmpty == true
+            ? item.sellerName!
+            : 'Seller',
+      ));
+    }
+    return targets;
+  }
+
+  bool get _isPaid => order.status.toUpperCase() == 'PAID';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!_isPaid) {
+      return Text(
+        'Refunds are available after payment succeeds, and only before delivery.',
+        style: AppTypography.caption.copyWith(
+          color: AppColors.textMutedLight,
+        ),
+      );
+    }
+
+    final targets = _sellerTargets;
+    if (targets.isEmpty) {
+      return Text(
+        'Seller details are not available for a refund on this order yet.',
+        style: AppTypography.caption.copyWith(
+          color: AppColors.textMutedLight,
+        ),
+      );
+    }
+
+    final mutating = ref.watch(refundMutationProvider).isLoading;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Refunds',
+          style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Request a refund for a seller portion of this paid order. '
+          'Not allowed after delivery.',
+          style: AppTypography.caption.copyWith(
+            color: AppColors.textMutedLight,
+          ),
+        ),
+        const SizedBox(height: 12),
+        for (final target in targets) ...[
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: mutating
+                  ? null
+                  : () => _requestRefund(
+                        context,
+                        ref,
+                        sellerId: target.sellerId,
+                        sellerName: target.sellerName,
+                      ),
+              icon: const Icon(Icons.replay, size: 18),
+              label: Text('Request refund · ${target.sellerName}'),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        TextButton(
+          onPressed: () => context.go(AppRouteNames.buyerRefunds),
+          child: const Text('View my refund requests'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _requestRefund(
+    BuildContext context,
+    WidgetRef ref, {
+    required String sellerId,
+    required String sellerName,
+  }) async {
+    final reasonController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Refund · $sellerName'),
+        content: TextField(
+          controller: reasonController,
+          maxLines: 4,
+          maxLength: 2000,
+          decoration: const InputDecoration(
+            labelText: 'Reason',
+            hintText: 'Why are you requesting a refund?',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
+    final reason = reasonController.text.trim();
+    reasonController.dispose();
+    if (confirmed != true || !context.mounted) return;
+    if (reason.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a refund reason')),
+      );
+      return;
+    }
+
+    final result = await ref.read(refundMutationProvider.notifier).create(
+          orderId: order.id,
+          sellerId: sellerId,
+          reason: reason,
+        );
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    switch (result) {
+      case Success():
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Refund request submitted')),
+        );
+      case ResultFailure(failure: final failure):
+        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+    }
   }
 }
 

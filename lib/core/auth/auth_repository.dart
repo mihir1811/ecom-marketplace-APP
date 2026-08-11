@@ -10,6 +10,7 @@ import 'auth_api_error.dart';
 import 'auth_session.dart';
 import 'auth_token_store.dart';
 import 'auth_user.dart';
+import 'business_registration_data.dart';
 
 /// Contract for authentication API calls (§5–§11).
 abstract class AuthRepository {
@@ -24,6 +25,9 @@ abstract class AuthRepository {
     required String userName,
     required String email,
     required String password,
+    RegistrationAccountType registrationType =
+        RegistrationAccountType.individual,
+    BusinessRegistrationData? business,
     XFile? profilePicture,
   });
 
@@ -49,10 +53,12 @@ class RegisterPendingVerification {
   const RegisterPendingVerification({
     required this.email,
     required this.requiresVerification,
+    this.registrationType = RegistrationAccountType.individual,
   });
 
   final String email;
   final bool requiresVerification;
+  final RegistrationAccountType registrationType;
 }
 
 /// Result of resend-otp.
@@ -117,23 +123,72 @@ class AuthRepositoryImpl implements AuthRepository {
     required String userName,
     required String email,
     required String password,
+    RegistrationAccountType registrationType =
+        RegistrationAccountType.individual,
+    BusinessRegistrationData? business,
     XFile? profilePicture,
   }) async {
     try {
+      if (registrationType == RegistrationAccountType.business &&
+          business == null) {
+        return Result.failure(
+          AuthFailure('Business registration details are required.'),
+        );
+      }
+
       final map = <String, dynamic>{
         'name': name,
         'userName': userName,
         'email': email,
         'password': password,
+        'registrationType': registrationType.apiValue,
       };
+
+      if (business != null) {
+        map.addAll({
+          'companyName': business.companyName,
+          'addressLine1': business.addressLine1,
+          'addressLine2': business.addressLine2,
+          'city': business.city,
+          'state': business.state,
+          'country': business.country,
+          'zipCode': business.zipCode,
+          'sellerType': business.sellerType.apiValue,
+          'phone1': business.phone1,
+          'phone2': business.phone2,
+          'representativeName1': business.representativeName1,
+          'representativeName2': business.representativeName2,
+          'panCardNumber': business.panCardNumber,
+          'aadhaarNumber': business.aadhaarNumber,
+          'iecNumber': business.iecNumber,
+          'accountHolderName': business.accountHolderName,
+          'accountNumber': business.accountNumber,
+          'ifscCode': business.ifscCode,
+          'bankName': business.bankName,
+          'accountType': business.accountType.apiValue,
+        });
+        final gst = business.gstNumber?.trim();
+        if (gst != null && gst.isNotEmpty) {
+          map['gstNumber'] = gst;
+        }
+        final website = business.website?.trim();
+        if (website != null && website.isNotEmpty) {
+          map['website'] = website;
+        }
+        map['companyLogo'] = await _multipartFromXFile(
+          business.companyLogo,
+          fallbackName: 'company-logo.jpg',
+        );
+        map['panCard'] = await _multipartFromXFile(
+          business.panCard,
+          fallbackName: 'pan-card.jpg',
+        );
+      }
+
       if (profilePicture != null) {
-        final bytes = await profilePicture.readAsBytes();
-        final filename = profilePicture.name.isNotEmpty
-            ? profilePicture.name
-            : 'profile.jpg';
-        map['profilePicture'] = MultipartFile.fromBytes(
-          bytes,
-          filename: filename,
+        map['profilePicture'] = await _multipartFromXFile(
+          profilePicture,
+          fallbackName: 'profile.jpg',
         );
       }
       final form = FormData.fromMap(map);
@@ -151,10 +206,16 @@ class AuthRepositoryImpl implements AuthRepository {
               : email;
       final requires =
           payload['requiresVerification'] as bool? ?? true;
+      final typeRaw =
+          (payload['registrationType'] as String?)?.trim().toLowerCase();
+      final resolvedType = typeRaw == 'business'
+          ? RegistrationAccountType.business
+          : registrationType;
       return Result.success(
         RegisterPendingVerification(
           email: resolvedEmail,
           requiresVerification: requires,
+          registrationType: resolvedType,
         ),
       );
     } on DioException catch (e) {
@@ -162,6 +223,16 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (e) {
       return Result.failure(UnknownFailure(e.toString()));
     }
+  }
+
+  Future<MultipartFile> _multipartFromXFile(
+    XFile file, {
+    required String fallbackName,
+  }) async {
+    final bytes = await file.readAsBytes();
+    final filename =
+        file.name.trim().isNotEmpty ? file.name.trim() : fallbackName;
+    return MultipartFile.fromBytes(bytes, filename: filename);
   }
 
   @override

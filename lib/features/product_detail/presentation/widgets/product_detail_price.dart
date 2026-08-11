@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -43,6 +44,7 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
     final unit = price.unitDisplay;
     final discount = price.discountPercent;
     final wishlisted = ref.watch(isInWishlistProvider(detail.id));
+    final canChat = ref.watch(authProvider.select((s) => s.isSeller));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,13 +96,15 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _ActionIcon(
-                  icon: Icons.chat_bubble_outline,
-                  tooltip: 'Chat with seller',
-                  loading: _openingChat,
-                  onTap: _openChat,
-                ),
-                const SizedBox(width: AppSpacing.s8),
+                if (canChat) ...[
+                  _ActionIcon(
+                    icon: Icons.chat_bubble_outline,
+                    tooltip: 'Chat with seller',
+                    loading: _openingChat,
+                    onTap: _openChat,
+                  ),
+                  const SizedBox(width: AppSpacing.s8),
+                ],
                 _ActionIcon(
                   icon: wishlisted ? Icons.favorite : Icons.favorite_border,
                   tooltip:

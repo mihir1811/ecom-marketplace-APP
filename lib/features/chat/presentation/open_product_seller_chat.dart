@@ -10,6 +10,8 @@ import '../domain/models/chat_product_type.dart';
 import '../domain/models/chat_thread.dart';
 
 /// Opens (or starts) the product conversation with the listing seller.
+///
+/// Chat is seller-only; normal (buyer) accounts cannot start conversations.
 Future<void> openProductSellerChat(
   BuildContext context,
   WidgetRef ref, {
@@ -19,6 +21,11 @@ Future<void> openProductSellerChat(
   final auth = ref.read(authProvider);
   if (!auth.isAuthenticated) {
     await context.push(AppRouteNames.login);
+    return;
+  }
+
+  if (!auth.isSeller) {
+    _snack(context, 'Chat is available for seller accounts only.');
     return;
   }
 
@@ -53,10 +60,7 @@ Future<void> openProductSellerChat(
         peerUserId: sellerUserId,
       );
 
-      final path = auth.user?.isSeller == true
-          ? AppRouteNames.sellerChatDetailPath(threadId)
-          : AppRouteNames.buyerChatDetailPath(threadId);
-
+      final path = AppRouteNames.sellerChatDetailPath(threadId);
       await context.push(path);
     case ResultFailure(failure: final failure):
       _snack(context, failure.message);

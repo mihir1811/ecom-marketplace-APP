@@ -1,38 +1,59 @@
 import 'dart:typed_data';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/auth/auth_user.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../widgets/seller_layout.dart';
 
-class SellerProfileScreen extends StatefulWidget {
+class SellerProfileScreen extends ConsumerStatefulWidget {
   const SellerProfileScreen({super.key});
 
   @override
-  State<SellerProfileScreen> createState() => _SellerProfileScreenState();
+  ConsumerState<SellerProfileScreen> createState() =>
+      _SellerProfileScreenState();
 }
 
-class _SellerProfileScreenState extends State<SellerProfileScreen> {
-  final _companyName = TextEditingController(text: 'adsfdsa');
-  final _address1 = TextEditingController(text: 'asd');
-  final _address2 = TextEditingController(text: 'asdf');
-  final _city = TextEditingController(text: 'sdf');
-  final _state = TextEditingController(text: 'ds');
-  final _country = TextEditingController(text: 'fsdf');
-  final _zip = TextEditingController(text: 'asdfads');
-  final _phone = TextEditingController(text: '');
-  final _email = TextEditingController(text: '');
-  final _website = TextEditingController(text: '');
-  final _gstNumber = TextEditingController(text: '');
-  final _panNumber = TextEditingController(text: '');
+class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
+  final _companyName = TextEditingController();
+  final _address1 = TextEditingController();
+  final _address2 = TextEditingController();
+  final _city = TextEditingController();
+  final _state = TextEditingController();
+  final _country = TextEditingController();
+  final _zip = TextEditingController();
+  final _phone = TextEditingController();
+  final _email = TextEditingController();
+  final _website = TextEditingController();
+  final _gstNumber = TextEditingController();
+  final _panNumber = TextEditingController();
 
   _PickedFile? _bannerFile;
   _PickedFile? _logoFile;
   _PickedFile? _gstFile;
   _PickedFile? _panFile;
+  bool _seededFromAuth = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _seedFromAuth());
+  }
+
+  void _seedFromAuth() {
+    if (_seededFromAuth || !mounted) return;
+    final user = ref.read(authProvider).user;
+    if (user == null) return;
+    _seededFromAuth = true;
+    _email.text = user.email;
+    _phone.text = user.phone?.trim() ?? '';
+  }
 
   Future<void> _pickFile({
     required bool imageOnly,
@@ -297,6 +318,8 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(authProvider.select((s) => s.user));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -321,6 +344,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.s16),
             children: [
+              if (user != null) ...[
+                _SellerAccountCard(user: user),
+                const SizedBox(height: AppSpacing.s16),
+              ],
               Container(
                 padding: const EdgeInsets.all(AppSpacing.s16),
                 decoration: BoxDecoration(
@@ -484,6 +511,83 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SellerAccountCard extends StatelessWidget {
+  const _SellerAccountCard({required this.user});
+
+  final AuthUser user;
+
+  @override
+  Widget build(BuildContext context) {
+    final picture = user.profilePicture.trim();
+    final hasPicture = picture.isNotEmpty;
+    final name = user.fullName.trim().isNotEmpty
+        ? user.fullName
+        : (user.username.trim().isNotEmpty ? user.username : 'Seller');
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.s16),
+      decoration: BoxDecoration(
+        color: AppColors.warmWhite,
+        borderRadius: BorderRadius.circular(AppSpacing.r12),
+        border: Border.all(color: AppColors.warmBorder),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: AppColors.sandSurface,
+            backgroundImage:
+                hasPicture ? CachedNetworkImageProvider(picture) : null,
+            child: hasPicture
+                ? null
+                : Text(
+                    name.isNotEmpty ? name[0].toUpperCase() : 'S',
+                    style: AppTypography.title.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+          ),
+          const SizedBox(width: AppSpacing.s12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.title.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  user.email.trim().isEmpty ? '@${user.username}' : user.email,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondaryLight,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                Text(
+                  user.isVerified
+                      ? 'Verified seller account'
+                      : 'Seller account · pending verification',
+                  style: AppTypography.caption.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.charcoal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

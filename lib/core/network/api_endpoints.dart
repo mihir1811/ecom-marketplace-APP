@@ -105,4 +105,18 @@ abstract final class ApiEndpoints {
   static const String chatRead = '/chat/read';
   static const String chatUploadImage = '/chat/upload-image';
   static String chatMessageById(String messageId) => '/chat/$messageId';
+
+  // Refunds (buyer + seller)
+  static const String refunds = '/refunds';
+  static const String refundsMine = '/refunds/mine';
+  static const String refundsSeller = '/refunds/seller';
+  static String refundById(String id) => '/refunds/$id';
+  static String refundAccept(String id) => '/refunds/$id/accept';
+  static String refundReject(String id) => '/refunds/$id/reject';
+  static String refundCancel(String id) => '/refunds/$id/cancel';
+
+  // Product share
+  static const String productShare = '/product-share';
+  static String productShareEmail(String id) => '/product-share/$id/email';
+  static String productShareByToken(String token) => '/product-share/$token';
 }
