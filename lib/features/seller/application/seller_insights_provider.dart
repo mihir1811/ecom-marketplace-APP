@@ -37,7 +37,6 @@ class SellerDashboardState {
 class SellerDashboardNotifier
     extends FamilyNotifier<SellerDashboardState, SellerDashboardParams> {
   CancelToken? _cancelToken;
-  Timer? _poll;
 
   SellerInsightsRepository get _repo =>
       ref.read(sellerInsightsRepositoryProvider);
@@ -45,20 +44,16 @@ class SellerDashboardNotifier
   @override
   SellerDashboardState build(SellerDashboardParams arg) {
     ref.onDispose(() {
-      _poll?.cancel();
       _cancelToken?.cancel();
-    });
-    _poll = Timer.periodic(const Duration(seconds: 20), (_) {
-      refresh(silent: true);
     });
     Future.microtask(refresh);
     return const SellerDashboardState(isLoading: true);
   }
 
-  Future<void> refresh({bool silent = false}) async {
+  Future<void> refresh() async {
     _cancelToken?.cancel('refresh');
     _cancelToken = CancelToken();
-    if (!silent || state.snapshot == null) {
+    if (state.snapshot == null) {
       state = state.copyWith(isLoading: true, clearError: true);
     }
 
@@ -71,7 +66,6 @@ class SellerDashboardNotifier
         state = SellerDashboardState(snapshot: value);
       case ResultFailure(:final failure):
         if (failure is NetworkFailure && failure.isCancelled) return;
-        if (silent && state.snapshot != null) return;
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,

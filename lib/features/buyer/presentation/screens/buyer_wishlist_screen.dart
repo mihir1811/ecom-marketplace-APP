@@ -35,7 +35,7 @@ class BuyerWishlistScreen extends ConsumerWidget {
                       icon: Icons.favorite_border,
                       title: 'Your wishlist is empty',
                       message:
-                          'Tap the heart on diamonds, gemstones, jewelry, or watches to save them here.',
+                          'Tap the heart on diamonds, gemstones, jewelry, watches, or bullion to save them here.',
                     )
                   : ListView.separated(
                       padding: const EdgeInsets.all(AppSpacing.s16),
@@ -88,13 +88,7 @@ class _WishlistTile extends StatelessWidget {
         WishlistCategory.bullion => Icons.savings_outlined,
       };
 
-  String get _categoryLabel => switch (item.category) {
-        WishlistCategory.diamond => 'Diamond',
-        WishlistCategory.gemstone => 'Gemstone',
-        WishlistCategory.jewelry => 'Jewelry',
-        WishlistCategory.watch => 'Watch',
-        WishlistCategory.bullion => 'Bullion',
-      };
+  String get _categoryLabel => FavoriteProductType.label(item.productType);
 
   void _openProduct(BuildContext context) {
     if (openRememberedProductDetail(context, item.id)) return;
@@ -112,24 +106,25 @@ class _WishlistTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.warmWhite,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppSpacing.r20),
       child: InkWell(
         onTap: () => _openProduct(context),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppSpacing.r20),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.s16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppSpacing.r20),
             border: Border.all(color: AppColors.warmBorder),
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
                   color: AppColors.sandSurface,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppSpacing.r16),
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: item.imageAsset != null
@@ -159,42 +154,50 @@ class _WishlistTile extends StatelessWidget {
                   children: [
                     Text(
                       _categoryLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textMutedLight,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: AppSpacing.s4),
                     Text(
                       item.title,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.title.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      item.subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondaryLight,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item.priceLabel,
                       style: AppTypography.label.copyWith(
                         fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimaryLight,
                       ),
                     ),
+                    if (item.subtitle.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.s4),
+                      Text(
+                        item.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                    if (item.priceLabel.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.cardLineGap),
+                      Text(
+                        item.priceLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.label.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
               IconButton(
-                tooltip: 'Remove',
+                tooltip: 'Remove from wishlist',
                 onPressed: onRemove,
                 icon: const Icon(Icons.favorite, color: AppColors.error),
               ),

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/error/result.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_products_provider.dart';
 import '../../domain/models/seller_product.dart';
 import '../widgets/seller_layout.dart';
@@ -105,16 +107,26 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
   Future<void> _deleteProduct(SellerProduct product) async {
     final ok = await confirmDeleteSellerProduct(context, product);
     if (!ok || !mounted) return;
-    ref.read(sellerProductsCatalogProvider.notifier).deleteProduct(product.id);
+    final result = await ref
+        .read(sellerProductsCatalogProvider.notifier)
+        .persistDelete(product);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Deleted ${product.stockNumber}')),
-    );
+    switch (result) {
+      case Success():
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Deleted ${product.stockNumber}')),
+        );
+      case ResultFailure(:final failure):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final catalog = ref.watch(sellerProductsCatalogProvider);
+    final catalogState = ref.watch(sellerProductsCatalogProvider);
+    final catalog = catalogState.products;
     final state = ref.watch(sellerProductsControllerProvider);
     final ctrl = ref.read(sellerProductsControllerProvider.notifier);
     final filtered = filteredSellerProducts(catalog, state);
@@ -231,24 +243,50 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
         ),
         const SizedBox(height: AppSpacing.s8),
         Expanded(
-          child: state.viewMode == SellerProductsViewMode.grid
-              ? SellerProductDataTable(
-                  products: pageItems,
-                  columns: columns,
-                  selectedIds: state.selectedProductIds,
-                  onToggleSelection: ctrl.toggleProductSelection,
-                  onToggleSelectAll: (selected) =>
-                      ctrl.toggleSelectAllOnPage(pageItems, selected),
-                  onEdit: _editProduct,
-                  onDelete: _deleteProduct,
-                )
-              : SellerProductCardsView(
-                  products: pageItems,
-                  selectedIds: state.selectedProductIds,
-                  onToggleSelection: ctrl.toggleProductSelection,
-                  onEdit: _editProduct,
-                  onDelete: _deleteProduct,
-                ),
+          child: catalogState.isLoading && catalog.isEmpty
+              ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+              : catalogState.errorMessage != null && catalog.isEmpty
+                  ? CatalogErrorState(
+                      message: catalogState.errorMessage!,
+                      onRetry: () => ref
+                          .read(sellerProductsCatalogProvider.notifier)
+                          .refresh(),
+                    )
+                  : pageItems.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No products yet.',
+                            style: AppTypography.body.copyWith(
+                              color: AppColors.textMutedLight,
+                            ),
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: () => ref
+                              .read(sellerProductsCatalogProvider.notifier)
+                              .refresh(),
+                          child: state.viewMode == SellerProductsViewMode.grid
+                              ? SellerProductDataTable(
+                                  products: pageItems,
+                                  columns: columns,
+                                  selectedIds: state.selectedProductIds,
+                                  onToggleSelection: ctrl.toggleProductSelection,
+                                  onToggleSelectAll: (selected) => ctrl
+                                      .toggleSelectAllOnPage(
+                                    pageItems,
+                                    selected,
+                                  ),
+                                  onEdit: _editProduct,
+                                  onDelete: _deleteProduct,
+                                )
+                              : SellerProductCardsView(
+                                  products: pageItems,
+                                  selectedIds: state.selectedProductIds,
+                                  onToggleSelection: ctrl.toggleProductSelection,
+                                  onEdit: _editProduct,
+                                  onDelete: _deleteProduct,
+                                ),
+                        ),
         ),
         _PaginationBar(
           rowsPerPage: state.rowsPerPage,

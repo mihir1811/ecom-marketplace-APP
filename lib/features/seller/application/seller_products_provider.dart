@@ -1,6 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/seller_products_mock_data.dart';
+import '../../../core/auth/auth_providers.dart';
+import '../../../core/error/failure.dart';
+import '../../../core/error/result.dart';
+import '../data/repositories/seller_product_repository_impl.dart';
 import '../domain/models/seller_product.dart';
 import '../domain/models/seller_product_column.dart';
 
@@ -48,28 +52,115 @@ class SellerProductsState {
   }
 }
 
-final sellerProductsCatalogProvider =
-    NotifierProvider<SellerProductsCatalogNotifier, List<SellerProduct>>(
+class SellerProductsCatalogState {
+  const SellerProductsCatalogState({
+    this.products = const [],
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  final List<SellerProduct> products;
+  final bool isLoading;
+  final String? errorMessage;
+
+  SellerProductsCatalogState copyWith({
+    List<SellerProduct>? products,
+    bool? isLoading,
+    String? errorMessage,
+    bool clearError = false,
+  }) {
+    return SellerProductsCatalogState(
+      products: products ?? this.products,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    );
+  }
+}
+
+final sellerProductsCatalogProvider = NotifierProvider<
+    SellerProductsCatalogNotifier, SellerProductsCatalogState>(
   SellerProductsCatalogNotifier.new,
 );
 
-/// Mutable mock catalog so sellers can edit / soft-delete their own products.
-class SellerProductsCatalogNotifier extends Notifier<List<SellerProduct>> {
+/// Live seller catalog loaded from `/diamond` and `/melee-diamond`.
+class SellerProductsCatalogNotifier
+    extends Notifier<SellerProductsCatalogState> {
+  CancelToken? _cancelToken;
+
   @override
-  List<SellerProduct> build() => buildSellerProductsMockCatalog();
+  SellerProductsCatalogState build() {
+    ref.onDispose(() => _cancelToken?.cancel());
+    ref.watch(authProvider.select((s) => s.sellerId ?? s.user?.id));
+    Future.microtask(refresh);
+    return const SellerProductsCatalogState(isLoading: true);
+  }
+
+  Future<void> refresh() async {
+    final sellerId =
+        ref.read(authProvider).sellerId ?? ref.read(authProvider).user?.id;
+    if (sellerId == null || sellerId.isEmpty) {
+      state = const SellerProductsCatalogState(
+        errorMessage: 'Seller account not found. Please sign in again.',
+      );
+      return;
+    }
+
+    _cancelToken?.cancel('refresh');
+    _cancelToken = CancelToken();
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final result = await ref.read(sellerProductRepositoryProvider).listProducts(
+          sellerId: sellerId,
+          cancelToken: _cancelToken,
+        );
+    switch (result) {
+      case Success(:final value):
+        state = SellerProductsCatalogState(products: value);
+      case ResultFailure(:final failure):
+        if (failure is NetworkFailure && failure.isCancelled) return;
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
+  }
 
   void updateProduct(SellerProduct product) {
-    state = [
-      for (final p in state)
-        if (p.id == product.id) product else p,
-    ];
+    state = state.copyWith(
+      products: [
+        for (final p in state.products)
+          if (p.id == product.id) product else p,
+      ],
+    );
   }
 
   void deleteProduct(String id) {
-    state = [
-      for (final p in state)
-        if (p.id == id) p.copyWith(isDeleted: true) else p,
-    ];
+    state = state.copyWith(
+      products: [
+        for (final p in state.products)
+          if (p.id == id) p.copyWith(isDeleted: true) else p,
+      ],
+    );
+  }
+
+  Future<Result<void, Failure>> persistUpdate(SellerProduct product) async {
+    final result = await ref
+        .read(sellerProductRepositoryProvider)
+        .updateProduct(product);
+    if (result case Success()) {
+      updateProduct(product);
+    }
+    return result;
+  }
+
+  Future<Result<void, Failure>> persistDelete(SellerProduct product) async {
+    final result = await ref
+        .read(sellerProductRepositoryProvider)
+        .deleteProduct(product);
+    if (result case Success()) {
+      deleteProduct(product.id);
+    }
+    return result;
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -170,6 +171,7 @@ class _SellerProductEditScreenState
   late Map<String, TextEditingController> _controllers;
   SellerProduct? _product;
   bool _ready = false;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -178,7 +180,7 @@ class _SellerProductEditScreenState
   }
 
   void _load() {
-    final catalog = ref.read(sellerProductsCatalogProvider);
+    final catalog = ref.read(sellerProductsCatalogProvider).products;
     SellerProduct? found;
     for (final p in catalog) {
       if (p.id == widget.productId) {
@@ -208,8 +210,8 @@ class _SellerProductEditScreenState
     super.dispose();
   }
 
-  void _save() {
-    if (_product == null) return;
+  Future<void> _save() async {
+    if (_product == null || _saving) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final fields = Map<String, String?>.from(_product!.fields);
@@ -222,11 +224,25 @@ class _SellerProductEditScreenState
       stockNumber: stock,
       fields: fields,
     );
-    ref.read(sellerProductsCatalogProvider.notifier).updateProduct(updated);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Product updated')),
-    );
-    Navigator.of(context).pop(true);
+
+    setState(() => _saving = true);
+    final result = await ref
+        .read(sellerProductsCatalogProvider.notifier)
+        .persistUpdate(updated);
+    if (!mounted) return;
+    setState(() => _saving = false);
+
+    switch (result) {
+      case Success():
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product updated')),
+        );
+        Navigator.of(context).pop(true);
+      case ResultFailure(:final failure):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+    }
   }
 
   @override
@@ -242,8 +258,7 @@ class _SellerProductEditScreenState
         body: const Center(child: Text('Product not found')),
       );
     }
-    final muted =
-        AppColors.textMutedLight;
+    const muted = AppColors.textMutedLight;
 
     return AppScaffold(
       appBar: AppBar(
@@ -289,15 +304,24 @@ class _SellerProductEditScreenState
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
                 ),
-                onPressed: _save,
-                child: Text(
-                  'Save changes',
-                  style: AppTypography.label.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.warmWhite,
-                  ),
-                ),
+                onPressed: _saving ? null : _save,
+                child: _saving
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.warmWhite,
+                        ),
+                      )
+                    : Text(
+                        'Save changes',
+                        style: AppTypography.label.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.warmWhite,
+                        ),
+                      ),
               ),
             ),
           ],

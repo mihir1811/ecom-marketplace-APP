@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../domain/models/seller_product.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/utils/format_catalog_price.dart';
+import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_missing_image.dart';
+import '../../../../core/widgets/marketplace_product_card_shell.dart';
+import '../../domain/models/seller_product.dart';
 
 class SellerProductCardsView extends StatelessWidget {
   const SellerProductCardsView({
@@ -28,39 +32,61 @@ class SellerProductCardsView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final crossAxisCount = constraints.maxWidth >= 900 ? 3 : 2;
-        return GridView.builder(
+        final rowCount =
+            (products.length + crossAxisCount - 1) ~/ crossAxisCount;
+        return ListView.builder(
           padding: const EdgeInsets.all(AppSpacing.s16),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: AppSpacing.s16,
-            mainAxisSpacing: AppSpacing.s16,
-            // Fixed height avoids bottom RenderFlex overflow on narrow cards.
-            mainAxisExtent: 440,
-          ),
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            final p = products[index];
-            return _ProductCard(
-              product: p,
-              selected: selectedIds.contains(p.id),
-              onSelected: (v) => onToggleSelection(p.id, v),
-              onEdit: onEdit == null ? null : () => onEdit!(p),
-              onDelete: onDelete == null ? null : () => onDelete!(p),
+          addAutomaticKeepAlives: false,
+          itemCount: rowCount,
+          itemBuilder: (context, rowIndex) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: rowIndex == rowCount - 1 ? 0 : AppSpacing.s12,
+              ),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var col = 0; col < crossAxisCount; col++) ...[
+                      if (col > 0) const SizedBox(width: AppSpacing.s12),
+                      Expanded(
+                        child: _cell(rowIndex * crossAxisCount + col),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             );
           },
         );
       },
     );
   }
+
+  Widget _cell(int index) {
+    if (index >= products.length) return const SizedBox.shrink();
+    final p = products[index];
+    return RepaintBoundary(
+      child: _ProductCard(
+        key: ValueKey(p.id),
+        product: p,
+        selected: selectedIds.contains(p.id),
+        onSelected: (v) => onToggleSelection(p.id, v),
+        onEdit: onEdit == null ? null : () => onEdit!(p),
+        onDelete: onDelete == null ? null : () => onDelete!(p),
+      ),
+    );
+  }
 }
 
-class _ProductCard extends StatefulWidget {
+class _ProductCard extends StatelessWidget {
   const _ProductCard({
     required this.product,
     required this.selected,
     required this.onSelected,
     this.onEdit,
     this.onDelete,
+    super.key,
   });
 
   final SellerProduct product;
@@ -70,89 +96,46 @@ class _ProductCard extends StatefulWidget {
   final VoidCallback? onDelete;
 
   @override
-  State<_ProductCard> createState() => _ProductCardState();
-}
-
-class _ProductCardState extends State<_ProductCard> {
-  late final PageController _pageController;
-  int _page = 0;
-
-  static const _imageCount = 3;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final p = widget.product;
-    final shape = p.field('shape') ?? '—';
-    final carat = p.field('carat_weight') ?? '—';
-    final price = p.field('total_price') ?? '0.00';
-    final updated = p.field('updated_at') ?? '—';
-    final catalogLabel = p.isNatural ? 'Natural Diamond' : 'Melee Diamond';
+    const textColor = AppColors.textPrimaryLight;
+    const mutedColor = AppColors.textSecondaryLight;
+    final title = _gridTitle(product);
+    final gradesLine = _gridGradesLine(product);
+    final metaLine = _gridMetaLine(product);
+    final priceLabel = _priceLabel(product.field('total_price'));
 
-    return Material(
-      color: AppColors.warmWhite,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.warmBorder),
-      ),
-      clipBehavior: Clip.antiAlias,
+    return MarketplaceProductCardShell(
+      onTap: onEdit,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(
-            height: 168,
+          AspectRatio(
+            aspectRatio: 1.05,
             child: Stack(
-              fit: StackFit.expand,
               children: [
-                PageView.builder(
-                  controller: _pageController,
-                  itemCount: _imageCount,
-                  onPageChanged: (i) => setState(() => _page = i),
-                  itemBuilder: (context, index) {
-                    return Container(
-                      color: AppColors.sandSurface,
-                      child: const Center(
-                        child: Icon(
-                          Icons.diamond_outlined,
-                          size: 48,
-                          color: AppColors.textMutedLight,
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                Positioned.fill(child: _ProductThumb(product: product)),
                 Positioned(
-                  left: 8,
-                  top: 8,
+                  top: AppSpacing.s8,
+                  left: AppSpacing.s8,
                   child: Material(
                     color: AppColors.warmWhite,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(AppSpacing.r4),
                     child: SizedBox(
                       width: 28,
                       height: 28,
                       child: Checkbox(
-                        value: widget.selected,
+                        value: selected,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         visualDensity: VisualDensity.compact,
-                        onChanged: (v) => widget.onSelected(v ?? false),
+                        semanticLabel: 'Select ${product.stockNumber}',
+                        onChanged: (v) => onSelected(v ?? false),
                       ),
                     ),
                   ),
                 ),
                 Positioned(
-                  right: 4,
-                  top: 4,
+                  top: AppSpacing.s4,
+                  right: AppSpacing.s4,
                   child: PopupMenuButton<_CardAction>(
                     tooltip: 'Actions',
                     padding: EdgeInsets.zero,
@@ -161,7 +144,7 @@ class _ProductCardState extends State<_ProductCard> {
                       height: 32,
                       decoration: BoxDecoration(
                         color: AppColors.warmWhite.withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppSpacing.r8),
                       ),
                       child: const Icon(Icons.more_vert, size: 18),
                     ),
@@ -171,14 +154,14 @@ class _ProductCardState extends State<_ProductCard> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                'Quick view for ${widget.product.stockNumber}',
+                                'Quick view for ${product.stockNumber}',
                               ),
                             ),
                           );
                         case _CardAction.edit:
-                          widget.onEdit?.call();
+                          onEdit?.call();
                         case _CardAction.delete:
-                          widget.onDelete?.call();
+                          onDelete?.call();
                       }
                     },
                     itemBuilder: (context) => const [
@@ -207,201 +190,105 @@ class _ProductCardState extends State<_ProductCard> {
                     ],
                   ),
                 ),
-                if (_page > 0)
+                if (product.isOnAuction || product.isSold)
                   Positioned(
-                    left: 4,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: _NavChip(
-                        icon: Icons.chevron_left,
-                        onTap: () => _pageController.previousPage(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOut,
-                        ),
-                      ),
+                    bottom: AppSpacing.s8,
+                    left: AppSpacing.s8,
+                    right: AppSpacing.s8,
+                    child: Wrap(
+                      spacing: AppSpacing.s4,
+                      runSpacing: AppSpacing.s4,
+                      children: [
+                        if (product.isOnAuction)
+                          const _StatusBadge(
+                            label: 'ON AUCTION',
+                            color: AppColors.terracotta,
+                          ),
+                        if (product.isSold)
+                          const _StatusBadge(
+                            label: 'SOLD',
+                            color: AppColors.error,
+                          ),
+                      ],
                     ),
                   ),
-                if (_page < _imageCount - 1)
-                  Positioned(
-                    right: 4,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: _NavChip(
-                        icon: Icons.chevron_right,
-                        onTap: () => _pageController.nextPage(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOut,
-                        ),
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 10,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_imageCount, (i) {
-                      final active = i == _page;
-                      return Container(
-                        width: active ? 8 : 6,
-                        height: active ? 8 : 6,
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: active
-                              ? AppColors.charcoal
-                              : AppColors.textMutedLight,
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-                Positioned(
-                  right: 8,
-                  bottom: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: AppColors.warmWhite.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(
-                      Icons.collections_outlined,
-                      size: 16,
-                      color: AppColors.charcoal,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s12,
+                AppSpacing.s12,
+                AppSpacing.s12,
+                AppSpacing.s12,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '$shape ${carat}ct',
-                          style: AppTypography.label.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (p.isOnAuction)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppSwatches.sellerCardSurface,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            'ON AUCTION',
-                            style: AppTypography.caption.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.bronzeDark,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: [
-                      _TagChip(label: catalogLabel),
-                      _TagChip(label: shape),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
                   Text(
-                    AppCurrency.format(price),
-                    style: AppTypography.title.copyWith(
-                      color: AppColors.info,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 20,
+                    title,
+                    style: AppTypography.label.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      height: 1.3,
                     ),
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SpecTile(label: 'Shape', value: shape),
+                  if (gradesLine != null) ...[
+                    const SizedBox(height: AppSpacing.cardLineGap),
+                    Text(
+                      gradesLine,
+                      style: AppTypography.caption.copyWith(
+                        color: mutedColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35,
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _SpecTile(
-                          label: 'Color',
-                          value: p.field('color') ?? '—',
-                        ),
+                      maxLines: 2,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  if (metaLine != null) ...[
+                    const SizedBox(height: AppSpacing.cardLineGap),
+                    Text(
+                      metaLine,
+                      style: AppTypography.caption.copyWith(
+                        color: mutedColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SpecTile(
-                          label: 'Clarity',
-                          value: p.field('clarity') ?? '—',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _SpecTile(
-                          label: 'Cut',
-                          value: p.field('cut') ?? '—',
-                        ),
-                      ),
-                    ],
-                  ),
+                      maxLines: 2,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   const Spacer(),
+                  const SizedBox(height: AppSpacing.cardPriceGap),
                   Row(
                     children: [
                       Expanded(
                         child: Text(
-                          'Updated: $updated',
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textMutedLight,
-                            fontSize: 11,
-                          ),
+                          priceLabel,
+                          style: GoogleFonts.manrope(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ).copyWith(color: textColor),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (p.isSold)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: AppColors.error),
-                          ),
-                          child: Text(
-                            'SOLD',
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.error,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
+                      const Icon(
+                        Icons.arrow_forward,
+                        size: 16,
+                        color: AppColors.bronze,
+                      ),
                     ],
                   ),
                 ],
@@ -415,6 +302,61 @@ class _ProductCardState extends State<_ProductCard> {
 }
 
 enum _CardAction { quickView, edit, delete }
+
+class _ProductThumb extends StatelessWidget {
+  const _ProductThumb({required this.product});
+
+  final SellerProduct product;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = _firstImageUrl(product);
+    if (url != null) {
+      return ColoredBox(
+        color: AppColors.sandSurface,
+        child: AppNetworkImage(
+          url: url,
+          fit: BoxFit.contain,
+          memCacheWidth: 400,
+          error: const CatalogMissingImage(padding: AppSpacing.s24),
+        ),
+      );
+    }
+    return const CatalogMissingImage(padding: AppSpacing.s24);
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(AppSpacing.r4),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.s8,
+          vertical: AppSpacing.s4,
+        ),
+        child: Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            color: AppColors.warmWhite,
+            fontWeight: FontWeight.w700,
+            fontSize: 10,
+            height: 1.1,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _MenuRow extends StatelessWidget {
   const _MenuRow({
@@ -433,12 +375,16 @@ class _MenuRow extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 18, color: color),
-        const SizedBox(width: 10),
-        Text(
-          label,
-          style: AppTypography.caption.copyWith(
-            color: color,
-            fontWeight: FontWeight.w600,
+        const SizedBox(width: AppSpacing.s8),
+        Flexible(
+          child: Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -446,91 +392,79 @@ class _MenuRow extends StatelessWidget {
   }
 }
 
-class _NavChip extends StatelessWidget {
-  const _NavChip({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.warmWhite.withValues(alpha: 0.9),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Icon(icon, size: 20, color: AppColors.charcoal),
-        ),
-      ),
-    );
-  }
+String _gridTitle(SellerProduct product) {
+  final carat = _caratLabel(product.field('carat_weight'));
+  final shape = _optionalText(product.field('shape'));
+  if (carat != null && shape != null) return '$carat $shape';
+  if (carat != null) return carat;
+  if (shape != null) return shape;
+  return product.stockNumber;
 }
 
-class _TagChip extends StatelessWidget {
-  const _TagChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.sandSurface,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.warmBorder),
-      ),
-      child: Text(
-        label,
-        style: AppTypography.caption.copyWith(
-          fontSize: 11,
-          color: AppColors.textSecondaryLight,
-        ),
-      ),
-    );
-  }
+String? _gridGradesLine(SellerProduct product) {
+  final parts = <String>[
+    ?_optionalText(product.field('color')),
+    ?_optionalText(product.field('clarity')),
+    ?_optionalText(product.field('cut')),
+  ];
+  if (parts.isEmpty) return null;
+  return parts.join(' · ');
 }
 
-class _SpecTile extends StatelessWidget {
-  const _SpecTile({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.sandSurface,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              fontSize: 10,
-              color: AppColors.textMutedLight,
-            ),
-          ),
-          Text(
-            value,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppColors.charcoal,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
+String? _gridMetaLine(SellerProduct product) {
+  final parts = <String>[];
+  final ppc = _parseAmount(product.field('price_per_carat'));
+  if (ppc != null && ppc > 0) {
+    parts.add('${AppCurrency.format(formatCatalogPrice(ppc))}/ct');
   }
+  final dims = _optionalText(product.field('measurement'));
+  if (dims != null) parts.add(dims);
+  if (parts.isEmpty) {
+    parts.add(product.isNatural ? 'Natural Diamond' : 'Melee Diamond');
+  }
+  return parts.join(' · ');
+}
+
+String _priceLabel(String? raw) {
+  final amount = _parseAmount(raw);
+  if (amount == null) return '—';
+  return AppCurrency.format(formatCatalogPrice(amount));
+}
+
+String? _caratLabel(String? raw) {
+  final text = _optionalText(raw);
+  if (text == null) return null;
+  if (text.toLowerCase().endsWith('ct')) return text;
+  final amount = _parseAmount(text);
+  if (amount != null) return '${amount.toStringAsFixed(2)}ct';
+  return '${text}ct';
+}
+
+String? _firstImageUrl(SellerProduct product) {
+  const keys = ['image1', 'image2', 'image3', 'image4', 'image5', 'image6'];
+  for (final key in keys) {
+    final value = product.field(key)?.trim() ?? '';
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      return value;
+    }
+  }
+  return null;
+}
+
+double? _parseAmount(String? raw) {
+  if (raw == null) return null;
+  return double.tryParse(raw.trim().replaceAll(',', ''));
+}
+
+String? _optionalText(String? value) {
+  if (value == null) return null;
+  final t = value.trim();
+  if (t.isEmpty ||
+      t == '-' ||
+      t == '—' ||
+      t == '–' ||
+      t.toLowerCase() == 'n/a') {
+    return null;
+  }
+  return t;
 }
