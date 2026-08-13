@@ -361,6 +361,7 @@ class ProductDetail {
     return WishlistItem(
       id: id,
       category: wishlistCategory,
+      productType: apiProductType,
       title: title,
       subtitle: subtitle,
       priceLabel: price.display,

@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../models/payment_models.dart';
@@ -19,6 +21,7 @@ abstract class PaymentRepository {
     String? status,
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   });
 
   Future<Result<PaymentOrder, Failure>> getOrder(String orderId);

@@ -12,6 +12,13 @@
 .swiftpm/
 migrate_working_dir/
 
+# Private environment / dart-defines (keep .env.example committed)
+.env
+.env.local
+.env.*.local
+.env.example
+
+
 # IntelliJ related
 *.iml
 *.ipr

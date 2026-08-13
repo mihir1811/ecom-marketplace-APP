@@ -1,6 +1,11 @@
 /// Central API host configuration for catalog HTTP calls.
 abstract final class ApiConfig {
-  /// Override at build time: `--dart-define=API_BASE_URL=https://host/api/v1`
+  /// Override via `.env` / CI: `--dart-define-from-file=.env`
+  /// or `--dart-define=API_BASE_URL=https://host/api/v1`.
+  ///
+  /// Default is the shared API host (not localhost) so physical-device /
+  /// release builds work without dart-defines. Localhost only works on the
+  /// machine running the backend.
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://15.252.107.13:3000/api/v1',

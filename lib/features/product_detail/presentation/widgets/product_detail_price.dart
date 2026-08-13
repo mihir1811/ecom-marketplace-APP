@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../buyer/application/wishlist_provider.dart';
+import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../chat/presentation/open_product_seller_chat.dart';
 import '../../domain/models/product_detail.dart';
 
@@ -111,18 +112,12 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
                       wishlisted ? 'Remove from wishlist' : 'Save to wishlist',
                   tint: wishlisted ? AppColors.terracotta : AppColors.charcoal,
                   onTap: () {
-                    final added = ref
-                        .read(wishlistProvider.notifier)
-                        .toggle(detail.toWishlistItem());
-                    final messenger = ScaffoldMessenger.maybeOf(context);
-                    messenger?.hideCurrentSnackBar();
-                    messenger?.showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          added ? 'Saved to wishlist' : 'Removed from wishlist',
-                        ),
-                        duration: const Duration(seconds: 2),
-                      ),
+                    toggleWishlistItem(
+                      context,
+                      ref,
+                      detail.toWishlistItem(),
+                      addedMessage: 'Saved to wishlist',
+                      removedMessage: 'Removed from wishlist',
                     );
                   },
                 ),

@@ -1,45 +1,73 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../widgets/seller_layout.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/catalog_error_state.dart';
+import '../../application/seller_insights_provider.dart';
+import '../../domain/models/seller_insights.dart';
+import '../widgets/seller_layout.dart';
 
 /// Seller analytics screen: revenue trend, category mix, order status,
 /// top products, and engagement metrics.
-class SellerAnalyticsScreen extends StatefulWidget {
+class SellerAnalyticsScreen extends ConsumerStatefulWidget {
   const SellerAnalyticsScreen({super.key});
 
   @override
-  State<SellerAnalyticsScreen> createState() => _SellerAnalyticsScreenState();
+  ConsumerState<SellerAnalyticsScreen> createState() =>
+      _SellerAnalyticsScreenState();
 }
 
-enum _AnalyticsRange { last7, last30, last90, year }
-
-class _SellerAnalyticsScreenState extends State<SellerAnalyticsScreen> {
-  _AnalyticsRange _range = _AnalyticsRange.last30;
+class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
+  AnalyticsRange _range = AnalyticsRange.last30;
 
   static const _rangeLabels = {
-    _AnalyticsRange.last7: 'Last 7 days',
-    _AnalyticsRange.last30: 'Last 30 days',
-    _AnalyticsRange.last90: 'Last 90 days',
-    _AnalyticsRange.year: 'This year',
+    AnalyticsRange.last7: 'Last 7 days',
+    AnalyticsRange.last30: 'Last 30 days',
+    AnalyticsRange.last90: 'Last 90 days',
+    AnalyticsRange.year: 'This year',
   };
+
+  static const _kpiMeta = <String, (IconData, Color)>{
+    'Revenue': (Icons.attach_money_outlined, AppColors.bronze),
+    'Orders': (Icons.shopping_cart_outlined, AppColors.info),
+    'Avg. Order Value': (Icons.payments_outlined, AppColors.success),
+    'Units Sold': (Icons.inventory_2_outlined, AppColors.bronzeDark),
+  };
+
+  static const _engagementMeta = <String, (IconData, Color)>{
+    'Units Sold': (Icons.inventory_2_outlined, AppColors.bronzeDark),
+    'Refund Requests': (Icons.replay_outlined, AppColors.error),
+    'Paid Rate': (Icons.percent_outlined, AppColors.success),
+    'Unique Products': (Icons.category_outlined, AppColors.bronze),
+  };
+
+  static const _sliceColors = <Color>[
+    Color(0xFF5C7C9E),
+    AppColors.bronze,
+    Color(0xFF8E6C88),
+    AppColors.success,
+    AppColors.charcoal,
+    AppColors.info,
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final data = _AnalyticsData.forRange(_range);
+    final state = ref.watch(sellerAnalyticsProvider(_range));
+    final snapshot = state.snapshot;
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.s20),
-      child: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: RefreshIndicator(
+        onRefresh: () =>
+            ref.read(sellerAnalyticsProvider(_range).notifier).refresh(),
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: ListView(
             children: [
               Row(
                 children: [
@@ -75,75 +103,170 @@ class _SellerAnalyticsScreenState extends State<SellerAnalyticsScreen> {
                 labels: _rangeLabels,
                 onChanged: (v) => setState(() => _range = v),
               ),
-              const SizedBox(height: AppSpacing.s16),
-              _KpiGrid(kpis: data.kpis),
-              const SizedBox(height: AppSpacing.s16),
-              _AnalyticsCard(
-                title: 'Revenue Trend',
-                subtitle: 'Gross revenue over time',
-                child: _RevenueLineChart(
-                  values: data.revenueSeries,
-                  labels: data.revenueLabels,
+              if (state.errorMessage != null && snapshot == null) ...[
+                const SizedBox(height: AppSpacing.s16),
+                CatalogErrorState(
+                  message: state.errorMessage!,
+                  onRetry: () => ref
+                      .read(sellerAnalyticsProvider(_range).notifier)
+                      .refresh(),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.s16),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isWide = constraints.maxWidth >= 760;
-                  final catMix = _AnalyticsCard(
-                    title: 'Sales by Category',
-                    subtitle: 'Revenue share per catalog',
-                    child: _CategoryDonut(slices: data.categorySlices),
-                  );
-                  final orderStatus = _AnalyticsCard(
-                    title: 'Order Status',
-                    subtitle: 'Current pipeline breakdown',
-                    child: _OrderStatusBars(rows: data.orderStatus),
-                  );
-                  if (!isWide) {
-                    return Column(
+              ] else if (state.isLoading && snapshot == null) ...[
+                const SizedBox(height: 80),
+                const Center(child: CircularProgressIndicator()),
+              ] else if (snapshot != null) ...[
+                const SizedBox(height: AppSpacing.s16),
+                _KpiGrid(
+                  kpis: [
+                    for (final kpi in snapshot.kpis)
+                      _Kpi(
+                        title: kpi.title,
+                        value: kpi.value,
+                        delta: kpi.delta,
+                        deltaUp: kpi.deltaUp,
+                        icon: (_kpiMeta[kpi.title] ??
+                            (Icons.insights_outlined, AppColors.charcoal)).$1,
+                        color: (_kpiMeta[kpi.title] ??
+                            (Icons.insights_outlined, AppColors.charcoal)).$2,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                _AnalyticsCard(
+                  title: 'Revenue Trend',
+                  subtitle: 'Gross revenue over time',
+                  child: snapshot.revenueSeries.values.isEmpty
+                      ? Text(
+                          'No revenue in this period.',
+                          style: AppTypography.body.copyWith(
+                            color: AppColors.textMutedLight,
+                          ),
+                        )
+                      : _RevenueLineChart(
+                          values: snapshot.revenueSeries.values,
+                          labels: snapshot.revenueSeries.labels,
+                        ),
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth >= 760;
+                    final catMix = _AnalyticsCard(
+                      title: 'Sales by Category',
+                      subtitle: 'Revenue share per catalog',
+                      child: snapshot.categorySlices.isEmpty
+                          ? Text(
+                              'No category sales yet.',
+                              style: AppTypography.body.copyWith(
+                                color: AppColors.textMutedLight,
+                              ),
+                            )
+                          : _CategoryDonut(
+                              slices: [
+                                for (var i = 0;
+                                    i < snapshot.categorySlices.length;
+                                    i++)
+                                  _CategorySlice(
+                                    snapshot.categorySlices[i].label,
+                                    snapshot.categorySlices[i].value,
+                                    _sliceColors[i % _sliceColors.length],
+                                  ),
+                              ],
+                            ),
+                    );
+                    final orderStatus = _AnalyticsCard(
+                      title: 'Order Status',
+                      subtitle: 'Current pipeline breakdown',
+                      child: snapshot.orderStatus.isEmpty
+                          ? Text(
+                              'No orders in this period.',
+                              style: AppTypography.body.copyWith(
+                                color: AppColors.textMutedLight,
+                              ),
+                            )
+                          : _OrderStatusBars(
+                              rows: [
+                                for (var i = 0;
+                                    i < snapshot.orderStatus.length;
+                                    i++)
+                                  _StatusRow(
+                                    snapshot.orderStatus[i].label,
+                                    snapshot.orderStatus[i].count,
+                                    _statusColor(
+                                      snapshot.orderStatus[i].label,
+                                      i,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                    );
+                    if (!isWide) {
+                      return Column(
+                        children: [
+                          catMix,
+                          const SizedBox(height: AppSpacing.s16),
+                          orderStatus,
+                        ],
+                      );
+                    }
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        catMix,
-                        const SizedBox(height: AppSpacing.s16),
-                        orderStatus,
+                        Expanded(child: catMix),
+                        const SizedBox(width: AppSpacing.s16),
+                        Expanded(child: orderStatus),
                       ],
                     );
-                  }
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: catMix),
-                      const SizedBox(width: AppSpacing.s16),
-                      Expanded(child: orderStatus),
+                  },
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                _AnalyticsCard(
+                  title: 'Engagement Metrics',
+                  subtitle: 'Listing interest and catalog performance',
+                  child: _EngagementGrid(
+                    metrics: [
+                      for (final m in snapshot.engagement)
+                        _EngagementMetric(
+                          label: m.label,
+                          value: m.value,
+                          hint: m.hint,
+                          icon: (_engagementMeta[m.label] ??
+                                  (
+                                    Icons.insights_outlined,
+                                    AppColors.charcoal
+                                  ))
+                              .$1,
+                          color: (_engagementMeta[m.label] ??
+                                  (
+                                    Icons.insights_outlined,
+                                    AppColors.charcoal
+                                  ))
+                              .$2,
+                        ),
                     ],
-                  );
-                },
-              ),
-              const SizedBox(height: AppSpacing.s16),
-              // Top products — paused for now (not needed yet).
-              // _AnalyticsCard(
-              //   title: 'Top Products',
-              //   subtitle: 'Best sellers by revenue',
-              //   child: _TopProductsList(products: data.topProducts),
-              // ),
-              // const SizedBox(height: AppSpacing.s16),
-              _AnalyticsCard(
-                title: 'Engagement Metrics',
-                subtitle: 'Listing interest and catalog performance',
-                child: _EngagementGrid(metrics: data.engagement),
-              ),
-              const SizedBox(height: AppSpacing.s24),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s24),
+              ],
             ],
           ),
         ),
       ),
     );
   }
-}
 
-// ---------------------------------------------------------------------------
-// Mock analytics data (swap with repository data when backend is ready)
-// ---------------------------------------------------------------------------
+  Color _statusColor(String label, int index) {
+    final s = label.toUpperCase();
+    if (s.contains('DELIVER') || s.contains('PAID') || s.contains('SUCCESS')) {
+      return AppColors.success;
+    }
+    if (s.contains('SHIP')) return AppColors.info;
+    if (s.contains('PROCESS') || s.contains('PEND')) return AppColors.warning;
+    if (s.contains('CANCEL') || s.contains('FAIL')) return AppColors.error;
+    if (s.contains('REFUND')) return const Color(0xFF8E6C88);
+    return _sliceColors[index % _sliceColors.length];
+  }
+}
 
 class _Kpi {
   const _Kpi({
@@ -179,15 +302,6 @@ class _StatusRow {
   final Color color;
 }
 
-class _TopProduct {
-  const _TopProduct(this.name, this.category, this.revenue, this.units);
-
-  final String name;
-  final String category;
-  final double revenue;
-  final int units;
-}
-
 class _EngagementMetric {
   const _EngagementMetric({
     required this.label,
@@ -204,162 +318,6 @@ class _EngagementMetric {
   final Color color;
 }
 
-class _AnalyticsData {
-  const _AnalyticsData({
-    required this.kpis,
-    required this.revenueSeries,
-    required this.revenueLabels,
-    required this.categorySlices,
-    required this.orderStatus,
-    required this.topProducts,
-    required this.engagement,
-  });
-
-  final List<_Kpi> kpis;
-  final List<double> revenueSeries;
-  final List<String> revenueLabels;
-  final List<_CategorySlice> categorySlices;
-  final List<_StatusRow> orderStatus;
-  final List<_TopProduct> topProducts;
-  final List<_EngagementMetric> engagement;
-
-  static _AnalyticsData forRange(_AnalyticsRange range) {
-    final (series, labels, revenue, orders, aov, views) = switch (range) {
-      _AnalyticsRange.last7 => (
-          [820.0, 1240.0, 660.0, 1480.0, 990.0, 1720.0, 1310.0],
-          const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          '${AppCurrency.symbol}8,220',
-          '31',
-          '${AppCurrency.symbol}265',
-          '2,410',
-        ),
-      _AnalyticsRange.last30 => (
-          [3200.0, 4100.0, 3600.0, 5200.0, 4700.0, 6100.0, 5400.0, 6900.0],
-          const ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8'],
-          '${AppCurrency.symbol}39,200',
-          '142',
-          '${AppCurrency.symbol}276',
-          '11,860',
-        ),
-      _AnalyticsRange.last90 => (
-          [9800.0, 12400.0, 10900.0, 14800.0, 13200.0, 16400.0],
-          const ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-          '${AppCurrency.symbol}77,500',
-          '289',
-          '${AppCurrency.symbol}268',
-          '32,540',
-        ),
-      _AnalyticsRange.year => (
-          [
-            18200.0,
-            21400.0,
-            19800.0,
-            24600.0,
-            22900.0,
-            27400.0,
-            25100.0,
-          ],
-          const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-          '${AppCurrency.symbol}159,400',
-          '571',
-          '${AppCurrency.symbol}279',
-          '68,220',
-        ),
-    };
-
-    return _AnalyticsData(
-      kpis: [
-        _Kpi(
-          title: 'Revenue',
-          value: revenue,
-          delta: '+12.4%',
-          deltaUp: true,
-          icon: Icons.attach_money_outlined,
-          color: AppColors.bronze,
-        ),
-        _Kpi(
-          title: 'Orders',
-          value: orders,
-          delta: '+8.1%',
-          deltaUp: true,
-          icon: Icons.shopping_cart_outlined,
-          color: AppColors.info,
-        ),
-        _Kpi(
-          title: 'Avg. Order Value',
-          value: aov,
-          delta: '-2.3%',
-          deltaUp: false,
-          icon: Icons.payments_outlined,
-          color: AppColors.success,
-        ),
-        _Kpi(
-          title: 'Product Views',
-          value: views,
-          delta: '+18.9%',
-          deltaUp: true,
-          icon: Icons.visibility_outlined,
-          color: AppColors.bronzeDark,
-        ),
-      ],
-      revenueSeries: series,
-      revenueLabels: labels,
-      categorySlices: const [
-        _CategorySlice('Diamonds', 38, Color(0xFF5C7C9E)),
-        _CategorySlice('Watches', 24, AppColors.bronze),
-        _CategorySlice('Jewelry', 18, Color(0xFF8E6C88)),
-        _CategorySlice('Gemstones', 12, AppColors.success),
-        _CategorySlice('Bullions', 8, AppColors.charcoal),
-      ],
-      orderStatus: const [
-        _StatusRow('Delivered', 64, AppColors.success),
-        _StatusRow('Shipped', 22, AppColors.info),
-        _StatusRow('Processing', 31, AppColors.warning),
-        _StatusRow('Cancelled', 7, AppColors.error),
-        _StatusRow('Refunded', 4, Color(0xFF8E6C88)),
-      ],
-      topProducts: const [
-        _TopProduct('Rolex Submariner Date 41', 'Watches', 12800, 1),
-        _TopProduct('2.1ct Round Brilliant, VS1', 'Diamonds', 9400, 2),
-        _TopProduct('Burmese Ruby Ring 18K', 'Jewelry', 5200, 3),
-        _TopProduct('Ceylon Sapphire 3.4ct', 'Gemstones', 3800, 4),
-        _TopProduct('Omega Speedmaster Pro', 'Watches', 3400, 1),
-      ],
-      engagement: const [
-        _EngagementMetric(
-          label: 'Product Views',
-          value: '11.9k',
-          hint: 'Listing page opens',
-          icon: Icons.visibility_outlined,
-          color: AppColors.bronzeDark,
-        ),
-        _EngagementMetric(
-          label: 'Wishlist Saves',
-          value: '386',
-          hint: 'Buyers saved your listings',
-          icon: Icons.favorite_border,
-          color: AppColors.error,
-        ),
-        _EngagementMetric(
-          label: 'Conversion Rate',
-          value: '1.2%',
-          hint: 'Orders ÷ product views',
-          icon: Icons.percent_outlined,
-          color: AppColors.success,
-        ),
-        _EngagementMetric(
-          label: 'Active Listings',
-          value: '827',
-          hint: 'Products currently live',
-          icon: Icons.inventory_2_outlined,
-          color: AppColors.bronze,
-        ),
-      ],
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Building blocks
 // ---------------------------------------------------------------------------
 
@@ -370,9 +328,9 @@ class _RangeSelector extends StatelessWidget {
     required this.onChanged,
   });
 
-  final _AnalyticsRange value;
-  final Map<_AnalyticsRange, String> labels;
-  final ValueChanged<_AnalyticsRange> onChanged;
+  final AnalyticsRange value;
+  final Map<AnalyticsRange, String> labels;
+  final ValueChanged<AnalyticsRange> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -380,7 +338,7 @@ class _RangeSelector extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          for (final range in _AnalyticsRange.values) ...[
+          for (final range in AnalyticsRange.values) ...[
             ChoiceChip(
               label: Text(labels[range]!),
               selected: value == range,

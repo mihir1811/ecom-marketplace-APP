@@ -2,12 +2,17 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../widgets/seller_layout.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/catalog_error_state.dart';
+import '../../application/seller_insights_provider.dart';
+import '../../domain/models/seller_insights.dart';
+import '../widgets/seller_layout.dart';
 
 /// Seller dashboard screen shown after login.
 class SellerDashboardScreen extends ConsumerStatefulWidget {
@@ -24,214 +29,235 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
   DateTime? _customEnd;
   DashboardMetric _metric = DashboardMetric.totalSales;
 
-  static const _metrics = <_MetricData>[
-    _MetricData(
-      metric: DashboardMetric.totalSales,
-      title: 'Total Sales',
-      value: '${AppCurrency.symbol}0.06',
-      subtitle: 'Revenue from completed orders',
-      icon: Icons.attach_money_outlined,
-      iconColor: AppColors.bronze,
+  static const _metricIcons = <DashboardMetric, (IconData, Color)>{
+    DashboardMetric.totalSales: (Icons.attach_money_outlined, AppColors.bronze),
+    DashboardMetric.productsSold: (Icons.inventory_2_outlined, AppColors.success),
+    DashboardMetric.orders: (Icons.shopping_cart_outlined, AppColors.info),
+    DashboardMetric.inventoryValue: (
+      Icons.warehouse_outlined,
+      AppColors.bronzeDark,
     ),
-    _MetricData(
-      metric: DashboardMetric.productsSold,
-      title: 'Products Sold',
-      value: '4',
-      subtitle: '5 marked sold in inventory',
-      icon: Icons.inventory_2_outlined,
-      iconColor: AppColors.success,
-    ),
-    _MetricData(
-      metric: DashboardMetric.orders,
-      title: 'Orders',
-      value: '10',
-      subtitle: '4 delivered · 6 pending',
-      icon: Icons.shopping_cart_outlined,
-      iconColor: AppColors.info,
-    ),
-    _MetricData(
-      metric: DashboardMetric.inventoryValue,
-      title: 'Inventory Value',
-      value: '${AppCurrency.symbol}232,387',
-      subtitle: '827 active listings',
-      icon: Icons.warehouse_outlined,
-      iconColor: AppColors.bronzeDark,
-    ),
-  ];
+  };
+
+  SellerDashboardParams get _params => SellerDashboardParams(
+        range: _range,
+        metric: _metric,
+        customStart: _customStart,
+        customEnd: _customEnd,
+      );
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(sellerDashboardProvider(_params));
+    final snapshot = state.snapshot;
+
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.s20),
-      child: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: RefreshIndicator(
+        onRefresh: () =>
+            ref.read(sellerDashboardProvider(_params).notifier).refresh(),
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: ListView(
             children: [
               const _TopHeader(
                 subtitle:
                     'Welcome back! Here’s what’s happening with your business today.',
               ),
-              SizedBox(height: AppSpacing.s16),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isWide = constraints.maxWidth >= 900;
-                  final crossAxisCount = isWide ? 4 : 2;
-
-                  return GridView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: _metrics.length,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: AppSpacing.s16,
-                      mainAxisSpacing: AppSpacing.s16,
-                      childAspectRatio: isWide ? 1.55 : 1.35,
-                    ),
-                    itemBuilder: (context, index) {
-                      final data = _metrics[index];
-                      return _MetricCard(
-                        data: data,
-                        selected: _metric == data.metric,
-                        onTap: () {
-                          setState(() => _metric = data.metric);
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
-              SizedBox(height: AppSpacing.s16),
-              _CardSection(
-                title: _chartSectionTitle(_metric),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SalesRangeDropdown(
-                      value: _range,
-                      customStart: _customStart,
-                      customEnd: _customEnd,
-                      onChanged: (v) async {
-                        if (v == SalesRange.custom) {
-                          final picked = await _pickCustomDateRange(context);
-                          if (picked == null) return;
-                          setState(() {
-                            _range = SalesRange.custom;
-                            _customStart = picked.$1;
-                            _customEnd = picked.$2;
-                          });
-                          return;
-                        }
-                        setState(() {
-                          _range = v;
-                          _customStart = null;
-                          _customEnd = null;
-                        });
+              if (state.errorMessage != null && snapshot == null) ...[
+                SizedBox(height: AppSpacing.s16),
+                CatalogErrorState(
+                  message: state.errorMessage!,
+                  onRetry: () => ref
+                      .read(sellerDashboardProvider(_params).notifier)
+                      .refresh(),
+                ),
+              ] else if (state.isLoading && snapshot == null) ...[
+                const SizedBox(height: 80),
+                const Center(child: CircularProgressIndicator()),
+              ] else if (snapshot != null) ...[
+                SizedBox(height: AppSpacing.s16),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth >= 900;
+                    final crossAxisCount = isWide ? 4 : 2;
+                    return GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: snapshot.metrics.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: AppSpacing.s16,
+                        mainAxisSpacing: AppSpacing.s16,
+                        childAspectRatio: isWide ? 1.55 : 1.35,
+                      ),
+                      itemBuilder: (context, index) {
+                        final card = snapshot.metrics[index];
+                        final icon = _metricIcons[card.metric]!;
+                        return _MetricCard(
+                          data: _MetricData(
+                            metric: card.metric,
+                            title: card.title,
+                            value: card.value,
+                            subtitle: card.subtitle,
+                            icon: icon.$1,
+                            iconColor: icon.$2,
+                          ),
+                          selected: _metric == card.metric,
+                          onTap: () {
+                            setState(() => _metric = card.metric);
+                          },
+                        );
                       },
-                    ),
-                    if (_range == SalesRange.custom &&
-                        _customStart != null &&
-                        _customEnd != null) ...[
-                      SizedBox(height: AppSpacing.s8),
+                    );
+                  },
+                ),
+                SizedBox(height: AppSpacing.s16),
+                _CardSection(
+                  title: _chartSectionTitle(_metric),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SalesRangeDropdown(
+                        value: _range,
+                        customStart: _customStart,
+                        customEnd: _customEnd,
+                        onChanged: (v) async {
+                          if (v == SalesRange.custom) {
+                            final picked = await _pickCustomDateRange(context);
+                            if (picked == null) return;
+                            setState(() {
+                              _range = SalesRange.custom;
+                              _customStart = picked.$1;
+                              _customEnd = picked.$2;
+                            });
+                            return;
+                          }
+                          setState(() {
+                            _range = v;
+                            _customStart = null;
+                            _customEnd = null;
+                          });
+                        },
+                      ),
+                      if (_range == SalesRange.custom &&
+                          _customStart != null &&
+                          _customEnd != null) ...[
+                        SizedBox(height: AppSpacing.s8),
+                        Text(
+                          '${_fmtDate(_customStart!)} → ${_fmtDate(_customEnd!)}',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ],
+                      SizedBox(height: AppSpacing.s16),
+                      _DashboardBarChart(
+                        metric: _metric,
+                        values: snapshot.chart.values,
+                        labels: snapshot.chart.labels,
+                      ),
+                      SizedBox(height: AppSpacing.s12),
                       Text(
-                        '${_fmtDate(_customStart!)} → ${_fmtDate(_customEnd!)}',
+                        snapshot.chart.endDate != null
+                            ? 'To ${_fmtDate(snapshot.chart.endDate!)}'
+                            : '',
                         style: AppTypography.caption.copyWith(
                           color: AppColors.textSecondaryLight,
                         ),
                       ),
                     ],
-                    SizedBox(height: AppSpacing.s16),
-                    _DashboardBarChart(
-                      metric: _metric,
-                      range: _range,
-                    ),
-                    SizedBox(height: AppSpacing.s12),
-                    Text(
-                      _range == SalesRange.custom && _customEnd != null
-                          ? 'To ${_fmtDate(_customEnd!)}'
-                          : 'To 11/03/2026',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondaryLight,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: AppSpacing.s16),
-              _CardSection(
-                title: 'Recent Orders',
-                trailing: TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    'View All',
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.charcoal,
-                      decoration: TextDecoration.underline,
-                    ),
                   ),
                 ),
-                child: Column(
-                  children: [
-                    _OrderRow(
-                      orderId: '#OTB04666C',
-                      amount: '${AppCurrency.symbol}50.02',
-                      status: 'Paid',
-                      statusColor: AppColors.success,
+                SizedBox(height: AppSpacing.s16),
+                _CardSection(
+                  title: 'Recent Orders',
+                  trailing: TextButton(
+                    onPressed: () => context.go(AppRouteNames.sellerOrders),
+                    child: Text(
+                      'View All',
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.charcoal,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
-                    SizedBox(height: AppSpacing.s12),
-                    _OrderRow(
-                      orderId: '#YTT0D1183E',
-                      amount: '${AppCurrency.symbol}50.02',
-                      status: 'Paid',
-                      statusColor: AppColors.success,
-                    ),
-                    SizedBox(height: AppSpacing.s12),
-                    _OrderRow(
-                      orderId: '#F46338C4',
-                      amount: '${AppCurrency.symbol}264.10',
-                      status: 'Pending',
-                      statusColor: AppColors.warning,
-                    ),
-                  ],
+                  ),
+                  child: snapshot.recentOrders.isEmpty
+                      ? Text(
+                          'No orders yet.',
+                          style: AppTypography.body.copyWith(
+                            color: AppColors.textMutedLight,
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            for (var i = 0;
+                                i < snapshot.recentOrders.length;
+                                i++) ...[
+                              if (i > 0) SizedBox(height: AppSpacing.s12),
+                              _OrderRow(
+                                orderId: '#${snapshot.recentOrders[i].id}',
+                                amount: snapshot.recentOrders[i].amountLabel,
+                                status: snapshot.recentOrders[i].status,
+                                statusColor: _statusColor(
+                                  snapshot.recentOrders[i].status,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                 ),
-              ),
-              SizedBox(height: AppSpacing.s16),
-              _CardSection(
-                title: 'Product Upload Status',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    _UploadStatusRow(
-                      label: 'Successful',
-                      value: '0',
-                      icon: Icons.check_circle_outline,
-                      color: AppColors.success,
-                    ),
-                    SizedBox(height: 12),
-                    _UploadStatusRow(
-                      label: 'On Hold',
-                      value: '0',
-                      icon: Icons.pause_circle_outline,
-                      color: AppColors.warning,
-                    ),
-                    SizedBox(height: 12),
-                    _UploadStatusRow(
-                      label: 'Failed',
-                      value: '0',
-                      icon: Icons.cancel_outlined,
-                      color: AppColors.error,
-                    ),
-                  ],
+                SizedBox(height: AppSpacing.s16),
+                _CardSection(
+                  title: 'Product Upload Status',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _UploadStatusRow(
+                        label: 'Successful',
+                        value: '${snapshot.uploadStatus.successful}',
+                        icon: Icons.check_circle_outline,
+                        color: AppColors.success,
+                      ),
+                      const SizedBox(height: 12),
+                      _UploadStatusRow(
+                        label: 'On Hold',
+                        value: '${snapshot.uploadStatus.onHold}',
+                        icon: Icons.pause_circle_outline,
+                        color: AppColors.warning,
+                      ),
+                      const SizedBox(height: 12),
+                      _UploadStatusRow(
+                        label: 'Failed',
+                        value: '${snapshot.uploadStatus.failed}',
+                        icon: Icons.cancel_outlined,
+                        color: AppColors.error,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: AppSpacing.s12),
-              const _QuickActionsSection(),
+                SizedBox(height: AppSpacing.s12),
+                const _QuickActionsSection(),
+              ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  Color _statusColor(String status) {
+    final s = status.toUpperCase();
+    if (s.contains('PAID') ||
+        s.contains('DELIVER') ||
+        s.contains('SUCCESS') ||
+        s.contains('COMPLETE')) {
+      return AppColors.success;
+    }
+    if (s.contains('CANCEL') || s.contains('FAIL') || s.contains('REFUND')) {
+      return AppColors.error;
+    }
+    return AppColors.warning;
   }
 
   String _chartSectionTitle(DashboardMetric metric) {
@@ -405,10 +431,6 @@ class _CustomDateField extends StatelessWidget {
     );
   }
 }
-
-enum SalesRange { daily, weekly, monthly, quarterly, yearly, custom }
-
-enum DashboardMetric { totalSales, productsSold, orders, inventoryValue }
 
 class _MetricData {
   const _MetricData({
@@ -640,19 +662,21 @@ class _SalesRangeDropdown extends StatelessWidget {
 class _DashboardBarChart extends StatelessWidget {
   const _DashboardBarChart({
     required this.metric,
-    required this.range,
+    required this.values,
+    required this.labels,
   });
 
   final DashboardMetric metric;
-  final SalesRange range;
+  final List<double> values;
+  final List<String> labels;
 
   static const _chartHeight = 240.0;
 
   @override
   Widget build(BuildContext context) {
-    final values = _valuesFor(metric, range);
-    final xLabels = _xLabelsFor(range);
-    final maxY = _niceMax(values);
+    final series = values.isEmpty ? const <double>[0] : values;
+    final xLabels = labels.isEmpty ? const ['—'] : labels;
+    final maxY = _niceMax(series);
     final yTicks = _yTicks(maxY);
     final formatY = _yFormatter(metric);
 
@@ -700,14 +724,14 @@ class _DashboardBarChart extends StatelessWidget {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          for (var i = 0; i < values.length; i++)
+                          for (var i = 0; i < series.length; i++)
                             Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 4,
                                 ),
                                 child: _BarColumn(
-                                  value: values[i],
+                                  value: series[i],
                                   maxY: maxY,
                                   height: _chartHeight,
                                   color: _barColor(metric),
@@ -751,104 +775,6 @@ class _DashboardBarChart extends StatelessWidget {
       DashboardMetric.productsSold => AppColors.success,
       DashboardMetric.orders => AppColors.info,
       DashboardMetric.inventoryValue => AppColors.bronzeDark,
-    };
-  }
-
-  static List<double> _valuesFor(DashboardMetric metric, SalesRange range) {
-    final key = (metric, range);
-    const data = {
-      (DashboardMetric.totalSales, SalesRange.daily):
-          [0.01, 0.02, 0.0, 0.03, 0.01, 0.02, 0.01],
-      (DashboardMetric.totalSales, SalesRange.weekly):
-          [0.04, 0.02, 0.06, 0.03, 0.05, 0.04, 0.06],
-      (DashboardMetric.totalSales, SalesRange.monthly):
-          [0.03, 0.05, 0.04, 0.06, 0.05, 0.06, 0.06],
-      (DashboardMetric.totalSales, SalesRange.quarterly):
-          [0.02, 0.04, 0.05, 0.03, 0.06, 0.05, 0.06],
-      (DashboardMetric.totalSales, SalesRange.yearly):
-          [0.12, 0.18, 0.22, 0.19, 0.25, 0.28, 0.3],
-      (DashboardMetric.totalSales, SalesRange.custom):
-          [0.03, 0.05, 0.04, 0.06, 0.05, 0.06, 0.06],
-      (DashboardMetric.productsSold, SalesRange.daily):
-          [1.0, 0.0, 2.0, 1.0, 0.0, 1.0, 1.0],
-      (DashboardMetric.productsSold, SalesRange.weekly):
-          [2.0, 1.0, 3.0, 2.0, 4.0, 1.0, 2.0],
-      (DashboardMetric.productsSold, SalesRange.monthly):
-          [3.0, 2.0, 4.0, 3.0, 5.0, 2.0, 4.0],
-      (DashboardMetric.productsSold, SalesRange.quarterly):
-          [2.0, 3.0, 4.0, 3.0, 5.0, 4.0, 4.0],
-      (DashboardMetric.productsSold, SalesRange.yearly):
-          [8.0, 10.0, 12.0, 9.0, 14.0, 11.0, 15.0],
-      (DashboardMetric.productsSold, SalesRange.custom):
-          [3.0, 2.0, 4.0, 3.0, 5.0, 2.0, 4.0],
-      (DashboardMetric.orders, SalesRange.daily):
-          [2.0, 1.0, 3.0, 2.0, 1.0, 2.0, 1.0],
-      (DashboardMetric.orders, SalesRange.weekly):
-          [4.0, 2.0, 6.0, 3.0, 5.0, 4.0, 5.0],
-      (DashboardMetric.orders, SalesRange.monthly):
-          [6.0, 4.0, 8.0, 5.0, 10.0, 7.0, 9.0],
-      (DashboardMetric.orders, SalesRange.quarterly):
-          [5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 8.0],
-      (DashboardMetric.orders, SalesRange.yearly):
-          [20.0, 24.0, 28.0, 22.0, 30.0, 26.0, 32.0],
-      (DashboardMetric.orders, SalesRange.custom):
-          [6.0, 4.0, 8.0, 5.0, 10.0, 7.0, 9.0],
-      (DashboardMetric.inventoryValue, SalesRange.daily):
-          [220000.0, 225000.0, 228000.0, 230000.0, 231000.0, 232000.0, 232387.0],
-      (DashboardMetric.inventoryValue, SalesRange.weekly):
-          [210000.0, 215000.0, 220000.0, 225000.0, 228000.0, 230000.0, 232387.0],
-      (DashboardMetric.inventoryValue, SalesRange.monthly):
-          [190000.0, 200000.0, 210000.0, 218000.0, 225000.0, 229000.0, 232387.0],
-      (DashboardMetric.inventoryValue, SalesRange.quarterly):
-          [180000.0, 195000.0, 205000.0, 215000.0, 222000.0, 228000.0, 232387.0],
-      (DashboardMetric.inventoryValue, SalesRange.yearly):
-          [150000.0, 170000.0, 190000.0, 200000.0, 210000.0, 220000.0, 232387.0],
-      (DashboardMetric.inventoryValue, SalesRange.custom):
-          [190000.0, 200000.0, 210000.0, 218000.0, 225000.0, 229000.0, 232387.0],
-    };
-    return data[key] ?? const [1, 2, 3, 4, 5, 6, 7];
-  }
-
-  static List<String> _xLabelsFor(SalesRange range) {
-    return switch (range) {
-      SalesRange.daily => const [
-          'Mon',
-          'Tue',
-          'Wed',
-          'Thu',
-          'Fri',
-          'Sat',
-          'Sun',
-        ],
-      SalesRange.weekly => const ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7'],
-      SalesRange.monthly => const [
-          'Jan',
-          'Feb',
-          'Mar',
-          'Apr',
-          'May',
-          'Jun',
-          'Jul',
-        ],
-      SalesRange.quarterly => const ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7'],
-      SalesRange.yearly => const [
-          '2019',
-          '2020',
-          '2021',
-          '2022',
-          '2023',
-          '2024',
-          '2025',
-        ],
-      SalesRange.custom => const [
-          'D1',
-          'D2',
-          'D3',
-          'D4',
-          'D5',
-          'D6',
-          'D7',
-        ],
     };
   }
 
@@ -1081,7 +1007,13 @@ class _QuickActionsSection extends StatelessWidget {
           itemBuilder: (context, index) {
             final (icon, label) = _actions[index];
             return FilledButton(
-              onPressed: () {},
+              onPressed: () {
+                context.go(
+                  index == 0
+                      ? AppRouteNames.sellerOrders
+                      : AppRouteNames.sellerProducts,
+                );
+              },
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.bronze,
                 foregroundColor: AppColors.warmWhite,

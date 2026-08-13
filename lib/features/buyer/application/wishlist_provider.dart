@@ -1,43 +1,192 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_providers.dart';
+import '../../../core/error/failure.dart';
+import '../../../core/error/result.dart';
+import '../data/repositories/favorites_repository_impl.dart';
 import '../domain/models/wishlist_item.dart';
+import '../domain/repositories/favorites_repository.dart';
 
-class WishlistNotifier extends Notifier<List<WishlistItem>> {
+/// Local + remote wishlist snapshot for heart toggles and the wishlist screen.
+class WishlistUiState {
+  const WishlistUiState({
+    this.items = const [],
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  final List<WishlistItem> items;
+  final bool isLoading;
+  final String? errorMessage;
+
+  WishlistUiState copyWith({
+    List<WishlistItem>? items,
+    bool? isLoading,
+    String? errorMessage,
+    bool clearError = false,
+  }) {
+    return WishlistUiState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    );
+  }
+}
+
+class WishlistNotifier extends Notifier<WishlistUiState> {
+  static const _pageSize = 50;
+
+  FavoritesRepository get _repo => ref.read(favoritesRepositoryProvider);
+
   @override
-  List<WishlistItem> build() => const [];
+  WishlistUiState build() {
+    ref.listen(authProvider, (prev, next) {
+      if (next.isAuthenticated) {
+        refresh();
+      } else if (prev?.isAuthenticated == true && !next.isAuthenticated) {
+        state = const WishlistUiState();
+      }
+    });
+    Future.microtask(() {
+      if (ref.read(authProvider).isAuthenticated) {
+        refresh();
+      }
+    });
+    return const WishlistUiState(isLoading: true);
+  }
 
-  bool contains(String id) => state.any((e) => e.id == id);
+  bool contains(String id) => state.items.any((e) => e.id == id);
+
+  Future<void> refresh() async {
+    if (!ref.read(authProvider).isAuthenticated) {
+      state = const WishlistUiState();
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final all = <WishlistItem>[];
+    var page = 1;
+    var hasMore = true;
+
+    while (hasMore && page <= 20) {
+      final result = await _repo.list(page: page, limit: _pageSize);
+      switch (result) {
+        case Success(:final value):
+          all.addAll(value.items);
+          hasMore = value.hasMore;
+          page += 1;
+        case ResultFailure(:final failure):
+          if (failure is NetworkFailure && failure.isCancelled) return;
+          state = state.copyWith(
+            items: all,
+            isLoading: false,
+            errorMessage: failure.message,
+          );
+          return;
+      }
+    }
+
+    state = WishlistUiState(items: all);
+  }
 
   /// Adds [item] if missing; removes it if already wishlisted.
   /// Returns `true` when the item is now in the wishlist.
-  bool toggle(WishlistItem item) {
+  Future<bool> toggle(WishlistItem item) async {
     if (contains(item.id)) {
-      remove(item.id);
-      return false;
+      await remove(item.id, productType: item.productType);
+      return contains(item.id);
     }
-    add(item);
-    return true;
+    await add(item);
+    return contains(item.id);
   }
 
-  void add(WishlistItem item) {
+  Future<void> add(WishlistItem item) async {
     if (contains(item.id)) return;
-    state = [...state, item];
+    if (!ref.read(authProvider).isAuthenticated) return;
+
+    state = state.copyWith(
+      items: [...state.items, item],
+      clearError: true,
+    );
+    final result = await _repo.add(
+      productId: item.id,
+      productType: item.productType,
+    );
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          items: [
+            for (final existing in state.items)
+              if (existing.id == item.id)
+                WishlistItem(
+                  id: existing.id,
+                  category: existing.category,
+                  productType: existing.productType,
+                  title: existing.title,
+                  subtitle: existing.subtitle,
+                  priceLabel: existing.priceLabel,
+                  imageUrl: existing.imageUrl,
+                  imageAsset: existing.imageAsset,
+                  favoriteId: value.favoriteId,
+                )
+              else
+                existing,
+          ],
+        );
+      case ResultFailure(:final failure):
+        if (failure.message.toLowerCase().contains('already')) return;
+        state = state.copyWith(
+          items: state.items.where((e) => e.id != item.id).toList(),
+          errorMessage: failure.message,
+        );
+    }
   }
 
-  void remove(String id) {
-    state = state.where((e) => e.id != id).toList();
+  Future<void> remove(String id, {String? productType}) async {
+    WishlistItem? previous;
+    for (final item in state.items) {
+      if (item.id == id) {
+        previous = item;
+        break;
+      }
+    }
+    if (previous == null) return;
+
+    state = state.copyWith(
+      items: state.items.where((e) => e.id != id).toList(),
+      clearError: true,
+    );
+    if (!ref.read(authProvider).isAuthenticated) return;
+
+    final type = productType ?? previous.productType;
+    final result = await _repo.remove(productId: id, productType: type);
+    switch (result) {
+      case Success():
+        return;
+      case ResultFailure(:final failure):
+        final missing = failure.message.toLowerCase().contains('not found') ||
+            failure.message.toLowerCase().contains('not in favorites');
+        if (missing) return;
+        state = state.copyWith(
+          items: [...state.items, previous],
+          errorMessage: failure.message,
+        );
+    }
   }
 
-  void clear() => state = const [];
+  void clear() => state = const WishlistUiState();
 }
 
 final wishlistProvider =
-    NotifierProvider<WishlistNotifier, List<WishlistItem>>(WishlistNotifier.new);
+    NotifierProvider<WishlistNotifier, WishlistUiState>(WishlistNotifier.new);
 
 final isInWishlistProvider = Provider.family<bool, String>((ref, id) {
-  return ref.watch(wishlistProvider.select((items) => items.any((e) => e.id == id)));
+  return ref.watch(
+    wishlistProvider.select((s) => s.items.any((e) => e.id == id)),
+  );
 });
 
 final wishlistCountProvider = Provider<int>((ref) {
-  return ref.watch(wishlistProvider.select((items) => items.length));
+  return ref.watch(wishlistProvider.select((s) => s.items.length));
 });

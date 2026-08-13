@@ -108,6 +108,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
     String? status,
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
@@ -117,6 +118,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
           'page': page,
           'limit': limit,
         },
+        cancelToken: cancelToken,
       );
       final root = response.data ?? const <String, dynamic>{};
       return Result.success(PaymentMapper.ordersPageFromJson(root));

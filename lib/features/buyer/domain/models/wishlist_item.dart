@@ -9,9 +9,60 @@ import '../../../../core/utils/app_currency.dart';
 
 enum WishlistCategory { diamond, gemstone, jewelry, watch, bullion }
 
+/// Backend `productType` values for `/favorites`.
+abstract final class FavoriteProductType {
+  static const String diamond = 'diamond';
+  static const String gemstone = 'gemstone';
+  static const String meleeDiamond = 'meleeDiamond';
+  static const String jewellery = 'jewellery';
+  static const String watch = 'watch';
+  static const String bullion = 'bullion';
+
+  static String fromCategory(WishlistCategory category) => switch (category) {
+        WishlistCategory.diamond => diamond,
+        WishlistCategory.gemstone => gemstone,
+        WishlistCategory.jewelry => jewellery,
+        WishlistCategory.watch => watch,
+        WishlistCategory.bullion => bullion,
+      };
+
+  static WishlistCategory toCategory(String type) => switch (type) {
+        gemstone => WishlistCategory.gemstone,
+        jewellery => WishlistCategory.jewelry,
+        watch => WishlistCategory.watch,
+        bullion => WishlistCategory.bullion,
+        _ => WishlistCategory.diamond,
+      };
+
+  static String label(String type) => switch (type) {
+        diamond => 'Diamond',
+        meleeDiamond => 'Melee Diamond',
+        gemstone => 'Gemstone',
+        jewellery => 'Jewelry',
+        watch => 'Watch',
+        bullion => 'Bullion',
+        _ => type,
+      };
+}
+
+/// Paginated GET `/favorites/all` payload.
+class WishlistPage {
+  const WishlistPage({
+    required this.items,
+    required this.total,
+    required this.currentPage,
+    required this.hasMore,
+  });
+
+  final List<WishlistItem> items;
+  final int total;
+  final int currentPage;
+  final bool hasMore;
+}
+
 /// Snapshot of a catalog product saved to the buyer wishlist.
 class WishlistItem {
-  const WishlistItem({
+  WishlistItem({
     required this.id,
     required this.category,
     required this.title,
@@ -19,15 +70,19 @@ class WishlistItem {
     required this.priceLabel,
     this.imageUrl,
     this.imageAsset,
-  });
+    String? productType,
+    this.favoriteId,
+  }) : productType = productType ?? FavoriteProductType.fromCategory(category);
 
   final String id;
   final WishlistCategory category;
+  final String productType;
   final String title;
   final String subtitle;
   final String priceLabel;
   final String? imageUrl;
   final String? imageAsset;
+  final String? favoriteId;
 
   factory WishlistItem.fromDiamond(Diamond d) {
     final color = DiamondDisplay.gradeChip(d.color);

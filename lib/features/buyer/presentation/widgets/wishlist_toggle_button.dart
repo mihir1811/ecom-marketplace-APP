@@ -1,9 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../application/wishlist_provider.dart';
 import '../../domain/models/wishlist_item.dart';
+
+/// Adds/removes a catalog item via `/favorites`. Requires a signed-in session.
+Future<bool?> toggleWishlistItem(
+  BuildContext context,
+  WidgetRef ref,
+  WishlistItem item, {
+  VoidCallback? onAdded,
+  String addedMessage = 'Added to wishlist',
+  String removedMessage = 'Removed from wishlist',
+}) async {
+  if (!ref.read(authProvider).isAuthenticated) {
+    context.go(AppRouteNames.login);
+    return null;
+  }
+
+  final wasInList = ref.read(isInWishlistProvider(item.id));
+  final added = await ref.read(wishlistProvider.notifier).toggle(item);
+  if (added && !wasInList) onAdded?.call();
+  if (!context.mounted) return added;
+  final error = ref.read(wishlistProvider).errorMessage;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  messenger?.hideCurrentSnackBar();
+  messenger?.showSnackBar(
+    SnackBar(
+      content: Text(
+        error != null && error.isNotEmpty
+            ? error
+            : (added ? addedMessage : removedMessage),
+      ),
+      duration: const Duration(seconds: 1),
+    ),
+  );
+  return added;
+}
 
 /// Heart toggle that adds/removes a catalog item from the buyer wishlist.
 class WishlistToggleButton extends ConsumerWidget {
@@ -30,21 +67,7 @@ class WishlistToggleButton extends ConsumerWidget {
       color: Colors.transparent,
       child: InkWell(
         customBorder: const CircleBorder(),
-        onTap: () {
-          final added =
-              ref.read(wishlistProvider.notifier).toggle(item);
-          if (added) onAdded?.call();
-          final messenger = ScaffoldMessenger.maybeOf(context);
-          messenger?.hideCurrentSnackBar();
-          messenger?.showSnackBar(
-            SnackBar(
-              content: Text(
-                added ? 'Added to wishlist' : 'Removed from wishlist',
-              ),
-              duration: const Duration(seconds: 1),
-            ),
-          );
-        },
+        onTap: () => toggleWishlistItem(context, ref, item, onAdded: onAdded),
         child: Padding(
           padding: padded ? const EdgeInsets.all(6) : EdgeInsets.zero,
           child: Icon(

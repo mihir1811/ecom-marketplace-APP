@@ -35,22 +35,16 @@ class JewelryProductCard extends ConsumerWidget {
   final VoidCallback? onTap;
   final VoidCallback? onWishlist;
 
-  void _toggleWishlist(BuildContext context, WidgetRef ref) {
+  Future<void> _toggleWishlist(BuildContext context, WidgetRef ref) async {
     if (onWishlist != null) {
       onWishlist!();
       return;
     }
-    final added = ref
-        .read(wishlistProvider.notifier)
-        .toggle(WishlistItem.fromJewelry(item));
-    if (added) rememberProductDetail(jewelryProductDetail(item));
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    messenger?.hideCurrentSnackBar();
-    messenger?.showSnackBar(
-      SnackBar(
-        content: Text(added ? 'Added to wishlist' : 'Removed from wishlist'),
-        duration: const Duration(seconds: 1),
-      ),
+    await toggleWishlistItem(
+      context,
+      ref,
+      WishlistItem.fromJewelry(item),
+      onAdded: () => rememberProductDetail(jewelryProductDetail(item)),
     );
   }
 
@@ -496,22 +490,16 @@ class JewelryProductListCard extends ConsumerWidget {
     return item.name;
   }
 
-  void _toggleWishlist(BuildContext context, WidgetRef ref) {
+  Future<void> _toggleWishlist(BuildContext context, WidgetRef ref) async {
     if (onWishlist != null) {
       onWishlist!();
       return;
     }
-    final added = ref
-        .read(wishlistProvider.notifier)
-        .toggle(WishlistItem.fromJewelry(item));
-    if (added) rememberProductDetail(jewelryProductDetail(item));
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    messenger?.hideCurrentSnackBar();
-    messenger?.showSnackBar(
-      SnackBar(
-        content: Text(added ? 'Added to wishlist' : 'Removed from wishlist'),
-        duration: const Duration(seconds: 1),
-      ),
+    await toggleWishlistItem(
+      context,
+      ref,
+      WishlistItem.fromJewelry(item),
+      onAdded: () => rememberProductDetail(jewelryProductDetail(item)),
     );
   }
 

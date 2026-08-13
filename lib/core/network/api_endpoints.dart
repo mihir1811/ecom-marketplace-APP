@@ -134,6 +134,13 @@ abstract final class ApiEndpoints {
   static const String productOfferSeller = '/product-offer/seller';
   static String productOfferRespond(String id) => '/product-offer/$id/respond';
 
+  // Favorites (wishlist)
+  static const String favorites = '/favorites';
+  static const String favoritesAll = '/favorites/all';
+  static const String favoritesRemove = '/favorites/remove';
+  static String favoriteByProductId(String productId) =>
+      '/favorites/$productId';
+
   // Recently viewed
   static const String recentlyViewed = '/recently-viewed';
   static const String recentlyViewedIds = '/recently-viewed/ids';

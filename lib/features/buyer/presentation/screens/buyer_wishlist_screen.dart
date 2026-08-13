@@ -5,6 +5,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_empty_state.dart';
+import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/wishlist_provider.dart';
 import '../../domain/models/wishlist_item.dart';
@@ -15,62 +17,55 @@ class BuyerWishlistScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = ref.watch(wishlistProvider);
+    final wishlist = ref.watch(wishlistProvider);
+    final items = wishlist.items;
 
     return BuyerLayout(
       title: 'My Wishlist',
-      child: items.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.s24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.favorite_border,
-                      size: 48,
-                      color: AppColors.textMutedLight.withValues(alpha: 0.7),
+      child: wishlist.isLoading && items.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : wishlist.errorMessage != null && items.isEmpty
+              ? CatalogErrorState(
+                  message: wishlist.errorMessage!,
+                  onRetry: () =>
+                      ref.read(wishlistProvider.notifier).refresh(),
+                )
+              : items.isEmpty
+                  ? const CatalogEmptyState(
+                      icon: Icons.favorite_border,
+                      title: 'Your wishlist is empty',
+                      message:
+                          'Tap the heart on diamonds, gemstones, jewelry, or watches to save them here.',
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(AppSpacing.s16),
+                      itemCount: items.length,
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(height: AppSpacing.s12),
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return _WishlistTile(
+                          key: ValueKey(item.id),
+                          item: item,
+                          onRemove: () async {
+                            await ref
+                                .read(wishlistProvider.notifier)
+                                .remove(item.id, productType: item.productType);
+                            if (!context.mounted) return;
+                            final error =
+                                ref.read(wishlistProvider).errorMessage;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  error ?? 'Removed from wishlist',
+                                ),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
-                    const SizedBox(height: AppSpacing.s12),
-                    Text(
-                      'Your wishlist is empty',
-                      style: AppTypography.title.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s8),
-                    Text(
-                      'Tap the heart on diamonds, gemstones, jewelry, or watches to save them here.',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.textSecondaryLight,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.s16),
-              itemCount: items.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.s12),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return _WishlistTile(
-                  item: item,
-                  onRemove: () {
-                    ref.read(wishlistProvider.notifier).remove(item.id);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Removed from wishlist'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
     );
   }
 }
@@ -79,6 +74,7 @@ class _WishlistTile extends StatelessWidget {
   const _WishlistTile({
     required this.item,
     required this.onRemove,
+    super.key,
   });
 
   final WishlistItem item;
