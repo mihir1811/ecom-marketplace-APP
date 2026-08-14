@@ -24,7 +24,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  bool _rememberDevice = false;
   bool _obscurePassword = true;
   bool _didAutoRedirect = false;
 
@@ -137,31 +136,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                             SizedBox(height: AppSpacing.s12),
 
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _rememberDevice,
-                                  onChanged: authState.isLoading
-                                      ? null
-                                      : (v) {
-                                          setState(() {
-                                            _rememberDevice = v ?? false;
-                                          });
-                                        },
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Remember this device',
-                                    style: AppTypography.body.copyWith(
-                                      color: AppColors.textSecondaryLight,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            SizedBox(height: AppSpacing.s8),
-
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
@@ -213,8 +187,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                                   _usernameController.text,
                                               password:
                                                   _passwordController.text,
-                                              rememberDevice:
-                                                  _rememberDevice,
                                             );
                                       },
                                 style: FilledButton.styleFrom(

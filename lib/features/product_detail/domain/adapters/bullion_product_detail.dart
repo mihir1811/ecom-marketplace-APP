@@ -52,6 +52,7 @@ ProductDetail bullionProductDetail(Bullion b) {
       amountLabel: formatGroupedWhole(b.price),
       priceUsd: b.price,
       priceInr: usdToInr(b.price),
+      displayAmount: b.price,
       unitLabel: 'per gram',
       unitAmountLabel: perGram?.toStringAsFixed(2),
     ),

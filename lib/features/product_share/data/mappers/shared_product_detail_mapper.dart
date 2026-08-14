@@ -87,6 +87,7 @@ abstract final class SharedProductDetailMapper {
             amountLabel: 'Price on request',
             priceUsd: 0,
             priceInr: 0,
+            displayAmount: 0,
           );
 
     final media = ProductMedia(

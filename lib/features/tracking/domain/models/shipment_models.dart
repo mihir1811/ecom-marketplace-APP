@@ -7,6 +7,12 @@ abstract final class ShipmentStatuses {
   static const outForDelivery = 'OUT_FOR_DELIVERY';
   static const delivered = 'DELIVERED';
   static const cancelled = 'CANCELLED';
+
+  /// Refunds stop once the parcel reaches out-for-delivery or later.
+  static bool blocksBuyerRefund(String status) {
+    final normalized = status.trim().toUpperCase();
+    return normalized == outForDelivery || normalized == delivered;
+  }
 }
 
 /// Shipment summary for a paid order.

@@ -185,6 +185,9 @@ abstract final class ApiEndpoints {
   static String loginHistoryBySession(String sessionId) =>
       '/login-history/$sessionId';
 
+  // User profile (read-only)
+  static const String userProfile = '/user/profile';
+
   // Constant category
   static const String constantCategory = '/constant-category';
   static String constantCategoryById(String id) => '/constant-category/$id';

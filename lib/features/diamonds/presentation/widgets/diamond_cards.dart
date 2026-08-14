@@ -113,7 +113,7 @@ class DiamondCardGrid extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(AppSpacing.r4),
                       ),
                       child: Text(
-                        '-${diamond.discount!.round()}%',
+                        '-${formatDiscountPercent(diamond.discount!)}%',
                         style: AppTypography.caption.copyWith(
                           color: AppColors.warmWhite,
                           fontWeight: FontWeight.bold,

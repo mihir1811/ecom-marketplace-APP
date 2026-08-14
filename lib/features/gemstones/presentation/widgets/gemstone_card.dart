@@ -81,7 +81,7 @@ class GemstoneCardGrid extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(AppSpacing.r4),
                       ),
                       child: Text(
-                        '-${gemstone.discount!.round()}%',
+                        '-${formatDiscountPercent(gemstone.discount!)}%',
                         style: AppTypography.caption.copyWith(
                           color: AppColors.warmWhite,
                           fontWeight: FontWeight.bold,

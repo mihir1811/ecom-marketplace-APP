@@ -37,19 +37,11 @@ class AuthController extends Notifier<AuthState> {
     return const AuthState(isBootstrapping: true);
   }
 
-  /// Restores a remember-me session from storage by decoding JWT `exp` / claims.
+  /// Restores a persisted session from storage by decoding JWT `exp` / claims.
   Future<void> _bootstrap() async {
     try {
       final token = await _store.readAccessToken();
       if (token == null || token.isEmpty) {
-        state = const AuthState(isBootstrapping: false);
-        return;
-      }
-
-      final remember = await _store.readRememberDevice();
-      // Without remember-me, tokens are memory-only and must not survive relaunch.
-      if (!remember) {
-        await _store.clear();
         state = const AuthState(isBootstrapping: false);
         return;
       }
@@ -95,7 +87,6 @@ class AuthController extends Notifier<AuthState> {
   Future<bool> login({
     required String username,
     required String password,
-    required bool rememberDevice,
   }) async {
     _setLoading();
     _clearEphemeralFlags();
@@ -123,10 +114,11 @@ class AuthController extends Notifier<AuthState> {
       return false;
     }
 
+    // API `rememberDevice: true` issues a ~30-day session; always persist.
     final result = await _repo.login(
       userName: u,
       password: password,
-      rememberDevice: rememberDevice,
+      rememberDevice: true,
     );
     return switch (result) {
       Success(:final value) => _applySession(value),

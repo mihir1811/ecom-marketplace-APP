@@ -28,6 +28,32 @@ class AuthUser {
 
   bool get isAdmin => role.toLowerCase() == 'admin';
 
+  AuthUser copyWith({
+    String? fullName,
+    String? username,
+    String? email,
+    String? role,
+    String? profilePicture,
+    String? phone,
+    bool? isVerified,
+    bool? isBlocked,
+    bool? isDeleted,
+    bool clearPhone = false,
+  }) {
+    return AuthUser(
+      id: id,
+      fullName: fullName ?? this.fullName,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      role: role ?? this.role,
+      profilePicture: profilePicture ?? this.profilePicture,
+      phone: clearPhone ? null : (phone ?? this.phone),
+      isVerified: isVerified ?? this.isVerified,
+      isBlocked: isBlocked ?? this.isBlocked,
+      isDeleted: isDeleted ?? this.isDeleted,
+    );
+  }
+
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
       id: (json['id'] as String?)?.trim() ?? '',

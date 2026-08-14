@@ -71,15 +71,10 @@ class SecureAuthTokenStore implements AuthTokenStore {
     _cachedUserName =
         userName != null && userName.isNotEmpty ? userName : null;
     _cachedRole = role != null && role.isNotEmpty ? role : null;
-    _cachedRememberDevice = rememberDevice;
+    _cachedRememberDevice = true;
     _hydrated = true;
 
-    // Persist only when remember-me is on; short sessions stay in memory.
-    if (!rememberDevice) {
-      await _clearPersisted();
-      return;
-    }
-
+    // Always persist — API rememberDevice sessions last ~30 days.
     await _writePersisted(
       accessToken: accessToken,
       userId: userId,

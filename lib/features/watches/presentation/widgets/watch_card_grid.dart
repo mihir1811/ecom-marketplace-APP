@@ -75,7 +75,7 @@ class WatchCardGrid extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(AppSpacing.r4),
                       ),
                       child: Text(
-                        '-${watch.discount!.round()}%',
+                        '-${formatDiscountPercent(watch.discount!)}%',
                         style: AppTypography.caption.copyWith(
                           color: AppColors.warmWhite,
                           fontWeight: FontWeight.bold,

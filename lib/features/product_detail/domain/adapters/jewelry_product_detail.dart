@@ -30,7 +30,7 @@ ProductDetail jewelryProductDetail(Jewelry j) {
         ),
       if (j.discount != null && j.discount! > 0)
         ProductBadge(
-          '${j.discount!.round()}% off',
+          '${formatDiscountPercent(j.discount!)}% off',
           tone: ProductBadgeTone.caution,
         ),
     ],
@@ -50,7 +50,9 @@ ProductDetail jewelryProductDetail(Jewelry j) {
       amountLabel: formatInrPrice(j.price),
       priceUsd: inrToUsd(j.price),
       priceInr: j.price,
+      displayAmount: j.price,
       discountPercent: j.discount,
+      displayAmountIsListPrice: true,
     ),
     highlights: [
       ProductHighlight('Purity', j.metalPurity),

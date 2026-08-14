@@ -38,7 +38,7 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
       if (g.treatment.isNotEmpty) ProductBadge(g.treatment),
       if (g.discount != null && g.discount! > 0)
         ProductBadge(
-          '${g.discount!.round()}% below list',
+          '${formatDiscountPercent(g.discount!)}% below list',
           tone: ProductBadgeTone.caution,
         ),
     ],
@@ -66,6 +66,7 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
       amountLabel: formatGroupedWhole(g.price),
       priceUsd: g.price,
       priceInr: usdToInr(g.price),
+      displayAmount: g.price,
       unitLabel: 'per carat',
       unitAmountLabel:
           perCarat == null ? null : formatGroupedWhole(perCarat),

@@ -16,6 +16,8 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../payment/domain/models/payment_models.dart';
 import '../../../refunds/application/refund_providers.dart';
+import '../../../tracking/application/order_shipments_provider.dart';
+import '../../../tracking/domain/models/shipment_models.dart';
 import '../../application/buyer_orders_provider.dart';
 import '../widgets/buyer_layout.dart';
 import '../widgets/order_review_section.dart';
@@ -231,11 +233,58 @@ class _OrderRefundSection extends ConsumerWidget {
 
   bool get _isPaid => order.status.toUpperCase() == 'PAID';
 
+  bool _shipmentBlocksRefund(List<Shipment> shipments) {
+    return shipments.any(
+      (s) => ShipmentStatuses.blocksBuyerRefund(s.status),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!_isPaid) {
       return Text(
-        'Refunds are available after payment succeeds, and only before delivery.',
+        'Refunds are available after payment succeeds, and only before '
+        'out for delivery.',
+        style: AppTypography.caption.copyWith(
+          color: AppColors.textMutedLight,
+        ),
+      );
+    }
+
+    final shipmentsAsync = ref.watch(orderShipmentsProvider(order.id));
+    return shipmentsAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+      error: (_, __) => _buildRefundActions(
+        context,
+        ref,
+        refundBlocked: false,
+      ),
+      data: (shipments) => _buildRefundActions(
+        context,
+        ref,
+        refundBlocked: _shipmentBlocksRefund(shipments),
+      ),
+    );
+  }
+
+  Widget _buildRefundActions(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool refundBlocked,
+  }) {
+    if (refundBlocked) {
+      return Text(
+        'Refunds are no longer available once the order is out for delivery '
+        'or delivered.',
         style: AppTypography.caption.copyWith(
           color: AppColors.textMutedLight,
         ),
@@ -264,7 +313,7 @@ class _OrderRefundSection extends ConsumerWidget {
         const SizedBox(height: 6),
         Text(
           'Request a refund for a seller portion of this paid order. '
-          'Not allowed after delivery.',
+          'Not available after out for delivery.',
           style: AppTypography.caption.copyWith(
             color: AppColors.textMutedLight,
           ),

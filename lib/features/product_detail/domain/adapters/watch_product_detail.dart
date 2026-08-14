@@ -31,7 +31,7 @@ ProductDetail watchProductDetail(Watch w) {
       if (w.fullSetIncluded) const ProductBadge('Full set'),
       if (w.discount != null && w.discount! > 0)
         ProductBadge(
-          '${w.discount!.round()}% below list',
+          '${formatDiscountPercent(w.discount!)}% below list',
           tone: ProductBadgeTone.caution,
         ),
     ],
@@ -51,6 +51,7 @@ ProductDetail watchProductDetail(Watch w) {
       amountLabel: formatGroupedWhole(w.price),
       priceUsd: w.price,
       priceInr: usdToInr(w.price),
+      displayAmount: w.price,
       discountPercent: w.discount,
     ),
     highlights: [

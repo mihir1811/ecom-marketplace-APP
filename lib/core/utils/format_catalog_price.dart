@@ -22,6 +22,13 @@ String formatInrPrice(double price) => formatGroupedWhole(price);
 String formatDecimal(double value, {int fractionDigits = 2}) =>
     value.toStringAsFixed(fractionDigits);
 
+/// Discount % for badges/labels: truncate toward zero to 2 decimals.
+/// Examples: `3.16` → `3.16`, `3.1575` → `3.15`.
+String formatDiscountPercent(double value) {
+  final truncated = (value * 100).truncateToDouble() / 100;
+  return truncated.toStringAsFixed(2);
+}
+
 String _formatExact(double price, {required bool group}) {
   final fixed = price.toStringAsFixed(2);
   final negative = fixed.startsWith('-');

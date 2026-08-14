@@ -151,9 +151,11 @@ class ProductPrice {
     required this.amountLabel,
     required this.priceUsd,
     required this.priceInr,
+    required this.displayAmount,
     this.unitLabel,
     this.unitAmountLabel,
     this.discountPercent,
+    this.displayAmountIsListPrice = false,
   });
 
   final String currencySymbol;
@@ -161,16 +163,28 @@ class ProductPrice {
   final double priceUsd;
   final double priceInr;
 
+  /// Numeric value formatted into [amountLabel].
+  final double displayAmount;
+
   /// e.g. `per carat`, `per gram`.
   final String? unitLabel;
   final String? unitAmountLabel;
   final double? discountPercent;
+
+  /// When true, [displayAmount] is the list price and discount % reduces it.
+  /// When false (diamonds), [displayAmount] is already the net sale price.
+  final bool displayAmountIsListPrice;
 
   String get display => '$currencySymbol$amountLabel';
 
   String? get unitDisplay {
     if (unitAmountLabel == null || unitLabel == null) return null;
     return '$currencySymbol$unitAmountLabel $unitLabel';
+  }
+
+  bool get hasDiscount {
+    final d = discountPercent;
+    return d != null && d > 0 && d < 100 && displayAmount > 0;
   }
 }
 

@@ -1,99 +1,146 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_user.dart';
+import '../../../../core/error/failure.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../auth/application/user_profile_providers.dart';
+import '../../../auth/domain/models/user_profile.dart';
+import '../../../auth/presentation/widgets/profile_info_widgets.dart';
 import '../widgets/buyer_layout.dart';
 
-/// Individual / buyer account profile — shows logged-in basic account info.
+/// Individual / buyer account profile (read-only).
 class BuyerProfileScreen extends ConsumerWidget {
   const BuyerProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authProvider.select((s) => s.user));
+    final authUser = ref.watch(authProvider.select((s) => s.user));
+    final profileAsync = ref.watch(userProfileProvider);
 
     return BuyerLayout(
       title: 'My profile',
-      child: user == null
+      child: authUser == null
           ? const Center(child: Text('Sign in to view your profile.'))
-          : ListView(
-              padding: const EdgeInsets.all(AppSpacing.s16),
-              children: [
-                _ProfileHero(user: user),
-                const SizedBox(height: AppSpacing.s16),
-                _InfoCard(
-                  title: 'Account details',
-                  rows: [
-                    _InfoRow(
-                      icon: Icons.badge_outlined,
-                      label: 'Full name',
-                      value: _display(user.fullName),
-                    ),
-                    _InfoRow(
-                      icon: Icons.alternate_email,
-                      label: 'Username',
-                      value: _display(user.username),
-                    ),
-                    _InfoRow(
-                      icon: Icons.mail_outline,
-                      label: 'Email',
-                      value: _display(user.email),
-                    ),
-                    _InfoRow(
-                      icon: Icons.phone_outlined,
-                      label: 'Phone',
-                      value: _display(user.phone),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.s16),
-                _InfoCard(
-                  title: 'Account status',
-                  rows: [
-                     _InfoRow(
-                       icon: Icons.person_outline,
-                       label: 'Account type',
-                       value: user.isSeller
-                           ? 'Seller (business)'
-                           : 'Individual (buying only)',
-                     ),
-                    _InfoRow(
-                      icon: Icons.verified_outlined,
-                      label: 'Email verification',
-                      value: user.isVerified ? 'Verified' : 'Not verified',
-                    ),
-                    _InfoRow(
-                      icon: Icons.security_outlined,
-                      label: 'Role',
-                      value: _display(user.role),
-                    ),
-                  ],
-                ),
-              ],
+          : profileAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) {
+                final fallback = userProfileFromAuth(authUser);
+                return _BuyerProfileBody(
+                  profile: fallback,
+                  authUser: authUser,
+                  onRetry: () => ref.invalidate(userProfileProvider),
+                  loadError: e is Failure ? e.message : e.toString(),
+                );
+              },
+              data: (profile) => _BuyerProfileBody(
+                profile: profile,
+                authUser: authUser,
+              ),
             ),
     );
   }
+}
 
-  static String _display(String? value) {
-    final v = value?.trim() ?? '';
-    return v.isEmpty ? 'Not provided' : v;
+class _BuyerProfileBody extends StatelessWidget {
+  const _BuyerProfileBody({
+    required this.profile,
+    required this.authUser,
+    this.onRetry,
+    this.loadError,
+  });
+
+  final UserProfile profile;
+  final AuthUser authUser;
+  final VoidCallback? onRetry;
+  final String? loadError;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.s16),
+      children: [
+        _ProfileHero(user: authUser, profile: profile),
+        if (loadError != null) ...[
+          const SizedBox(height: AppSpacing.s12),
+          Text(
+            'Showing signed-in account details. Full profile could not load: '
+            '$loadError',
+            style: AppTypography.caption.copyWith(color: AppColors.error),
+          ),
+          if (onRetry != null)
+            TextButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+        const SizedBox(height: AppSpacing.s16),
+        ProfileInfoCard(
+          title: 'Personal details',
+          rows: [
+            ProfileInfoRow(
+              icon: Icons.badge_outlined,
+              label: 'Full name',
+              value: profileDisplay(profile.fullName),
+            ),
+            ProfileInfoRow(
+              icon: Icons.alternate_email,
+              label: 'Username',
+              value: profileDisplay(profile.username),
+            ),
+            ProfileInfoRow(
+              icon: Icons.mail_outline,
+              label: 'Email',
+              value: profileDisplay(profile.email),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        ProfileInfoCard(
+          title: 'Account status',
+          rows: [
+            ProfileInfoRow(
+              icon: Icons.person_outline,
+              label: 'Account type',
+              value: profile.isSeller
+                  ? 'Seller (business)'
+                  : 'Individual (buying only)',
+            ),
+            ProfileInfoRow(
+              icon: Icons.verified_outlined,
+              label: 'Email verification',
+              value: profile.isVerified ? 'Verified' : 'Not verified',
+            ),
+            ProfileInfoRow(
+              icon: Icons.security_outlined,
+              label: 'Role',
+              value: profileDisplay(profile.role),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
 
 class _ProfileHero extends StatelessWidget {
-  const _ProfileHero({required this.user});
+  const _ProfileHero({required this.user, required this.profile});
 
   final AuthUser user;
+  final UserProfile profile;
 
   @override
   Widget build(BuildContext context) {
-    final picture = user.profilePicture.trim();
+    final picture = profile.profilePicture.trim().isNotEmpty
+        ? profile.profilePicture.trim()
+        : user.profilePicture.trim();
     final hasPicture = picture.isNotEmpty;
+    final displayName = profile.fullName.trim().isNotEmpty
+        ? profile.fullName
+        : (profile.username.trim().isNotEmpty
+            ? profile.username
+            : 'Your account');
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s16),
@@ -107,15 +154,12 @@ class _ProfileHero extends StatelessWidget {
           CircleAvatar(
             radius: 36,
             backgroundColor: AppColors.sandSurface,
-            backgroundImage: hasPicture
-                ? CachedNetworkImageProvider(picture)
-                : null,
+            backgroundImage:
+                hasPicture ? CachedNetworkImageProvider(picture) : null,
             child: hasPicture
                 ? null
                 : Text(
-                    _initials(user.fullName.isNotEmpty
-                        ? user.fullName
-                        : user.username),
+                    _initials(displayName),
                     style: AppTypography.title.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppColors.charcoal,
@@ -128,11 +172,7 @@ class _ProfileHero extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user.fullName.trim().isEmpty
-                      ? (user.username.trim().isEmpty
-                          ? 'Your account'
-                          : user.username)
-                      : user.fullName,
+                  displayName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.headline.copyWith(
@@ -140,9 +180,9 @@ class _ProfileHero extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.s4),
-                if (user.email.trim().isNotEmpty)
+                if (profile.email.trim().isNotEmpty)
                   Text(
-                    user.email,
+                    profile.email,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.body.copyWith(
@@ -160,7 +200,7 @@ class _ProfileHero extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
                   child: Text(
-                    user.isSeller ? 'Seller' : 'Individual',
+                    profile.isSeller ? 'Seller' : 'Individual',
                     style: AppTypography.caption.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppColors.charcoal,
@@ -180,97 +220,5 @@ class _ProfileHero extends StatelessWidget {
     if (parts.isEmpty || parts.first.isEmpty) return 'U';
     if (parts.length == 1) return parts.first[0].toUpperCase();
     return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.title, required this.rows});
-
-  final String title;
-  final List<_InfoRow> rows;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      decoration: BoxDecoration(
-        color: AppColors.warmWhite,
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.only(bottom: AppSpacing.s12),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s12,
-              vertical: AppSpacing.s8,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.sandSurface,
-              borderRadius: BorderRadius.circular(AppSpacing.r8),
-            ),
-            child: Text(
-              title,
-              style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-              ),
-            ),
-          ),
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0) const Divider(height: 24),
-            rows[i],
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 20, color: AppColors.textSecondaryLight),
-        const SizedBox(width: AppSpacing.s12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: AppTypography.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimaryLight,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
   }
 }

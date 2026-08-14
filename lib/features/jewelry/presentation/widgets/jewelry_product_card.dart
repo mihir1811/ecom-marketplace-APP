@@ -142,7 +142,7 @@ class JewelryProductCard extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(AppSpacing.r4),
                       ),
                       child: Text(
-                        '-${item.discount!.round()}%',
+                        '-${formatDiscountPercent(item.discount!)}%',
                         style: AppTypography.caption.copyWith(
                           color: AppColors.warmWhite,
                           fontWeight: FontWeight.bold,
@@ -345,7 +345,7 @@ class JewelryProductCard extends ConsumerWidget {
                   if (item.discount != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      '${item.discount!.round()}% off · EMI available',
+                      '${formatDiscountPercent(item.discount!)}% off · EMI available',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.bronze,
                         fontSize: 11,

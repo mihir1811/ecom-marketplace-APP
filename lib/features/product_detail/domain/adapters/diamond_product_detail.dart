@@ -52,7 +52,7 @@ ProductDetail diamondProductDetail(Diamond d) {
         ProductBadge('$authority certified', tone: ProductBadgeTone.positive),
       if (d.discount != null && d.discount! > 0)
         ProductBadge(
-          '${d.discount!.round()}% below list',
+          '${formatDiscountPercent(d.discount!)}% below list',
           tone: ProductBadgeTone.caution,
         ),
       if (d.isOnAuction)
@@ -86,6 +86,7 @@ ProductDetail diamondProductDetail(Diamond d) {
       amountLabel: formatCatalogPrice(d.price),
       priceUsd: d.price,
       priceInr: usdToInr(d.price),
+      displayAmount: d.price,
       unitLabel: 'per carat',
       unitAmountLabel:
           perCarat == null ? null : formatCatalogPrice(perCarat),

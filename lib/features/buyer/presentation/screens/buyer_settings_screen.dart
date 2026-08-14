@@ -9,68 +9,16 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../widgets/buyer_layout.dart';
 
-class BuyerSettingsScreen extends ConsumerStatefulWidget {
+class BuyerSettingsScreen extends ConsumerWidget {
   const BuyerSettingsScreen({super.key});
 
   @override
-  ConsumerState<BuyerSettingsScreen> createState() =>
-      _BuyerSettingsScreenState();
-}
-
-class _BuyerSettingsScreenState extends ConsumerState<BuyerSettingsScreen> {
-  bool _orderAlerts = true;
-  bool _messageAlerts = true;
-  bool _marketingEmails = false;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return BuyerLayout(
       title: 'Settings',
       child: ListView(
         padding: const EdgeInsets.all(AppSpacing.s16),
         children: [
-          Text(
-            'Notifications',
-            style: AppTypography.label.copyWith(
-              color: AppColors.textMutedLight,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          _Card(
-            children: [
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Order updates'),
-                subtitle: const Text('Tracking and delivery alerts'),
-                value: _orderAlerts,
-                activeThumbColor: AppColors.warmWhite,
-                activeTrackColor: AppColors.charcoal,
-                onChanged: (v) => setState(() => _orderAlerts = v),
-              ),
-              const Divider(height: 1),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Messages'),
-                subtitle: const Text('Seller replies and chat'),
-                value: _messageAlerts,
-                activeThumbColor: AppColors.warmWhite,
-                activeTrackColor: AppColors.charcoal,
-                onChanged: (v) => setState(() => _messageAlerts = v),
-              ),
-              const Divider(height: 1),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Marketing emails'),
-                subtitle: const Text('Promotions and marketplace news'),
-                value: _marketingEmails,
-                activeThumbColor: AppColors.warmWhite,
-                activeTrackColor: AppColors.charcoal,
-                onChanged: (v) => setState(() => _marketingEmails = v),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.s24),
           Text(
             'Account',
             style: AppTypography.label.copyWith(
