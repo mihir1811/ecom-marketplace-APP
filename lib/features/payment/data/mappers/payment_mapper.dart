@@ -21,12 +21,19 @@ abstract final class PaymentMapper {
     return PaymentCheckoutSession(
       orderId: _str(json['orderId']) ?? '',
       razorpayOrderId: _str(json['razorpayOrderId']) ?? '',
-      amountPaise: _int(json['amount']) ?? 0,
+      amountPaise: _int(json['amount']) ??
+          _int(json['amountPaise']) ??
+          _int(json['amountDue']) ??
+          0,
       currency: _str(json['currency']) ?? 'INR',
       keyId: _str(json['keyId']) ?? '',
       amountUsd: _num(json['amountUsd']),
-      amountInr: _num(json['amountInr']),
+      amountInr: _num(json['amountInr']) ?? _num(json['amountDueInr']),
       exchangeRate: _num(json['exchangeRate']),
+      walletAppliedInr: _num(json['walletAppliedInr']) ??
+          _num(json['walletAmount']) ??
+          _num(json['walletDebited']),
+      status: _str(json['status']) ?? _str(json['orderStatus']),
       userName: _str(userMap['name']),
       userEmail: _str(userMap['email']),
       userPhone: _str(userMap['phone']) ?? _str(userMap['contact']),

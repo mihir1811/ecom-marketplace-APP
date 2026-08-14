@@ -7,12 +7,14 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../fees/application/fees_providers.dart';
+import '../../../fees/domain/models/fee_rule.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
 import '../../application/cart_provider.dart';
 import '../../domain/models/cart_order_estimate.dart';
 import 'cart_section_card.dart';
 
-/// Order summary card — merchandise from API, GST / fees computed on-device.
+/// Order summary card — merchandise from API, fees from `GET /fees` (+ fallbacks).
 class CartTotalsSection extends ConsumerWidget {
   const CartTotalsSection({super.key});
 
@@ -21,15 +23,36 @@ class CartTotalsSection extends ConsumerWidget {
     ref.watch(exchangeRateProvider);
     final totals = ref.watch(cartTotalsProvider);
     final summary = ref.watch(cartSummaryProvider);
+    final items = ref.watch(cartProvider.select((s) => s.items));
+    final fees = ref.watch(activeFeesProvider).valueOrNull ?? FeeRulesCatalog.empty;
     final wantVerification = ref.watch(
       paymentCheckoutProvider.select((s) => s.wantGemworldVerification),
     );
+
+    final lines = items
+        .map(
+          (item) => CartLineForFees(
+            productType: item.productType,
+            amountUsd: item.displayPriceUsd,
+          ),
+        )
+        .toList();
 
     final estimate = CartOrderEstimate.compute(
       merchandiseUsd: totals.discountedSubtotalUsd,
       exchangeRate: totals.exchangeRate,
       wantVerification: wantVerification,
+      fees: fees,
+      lines: lines,
     );
+
+    final gstLabel = estimate.gstRateLabel == null ||
+            estimate.gstRateLabel == 'mixed'
+        ? 'GST'
+        : 'GST (${estimate.gstRateLabel}%)';
+    final txLabel = estimate.transactionFeeRateLabel == null
+        ? 'Transaction fee'
+        : 'Transaction fee (${estimate.transactionFeeRateLabel}%)';
 
     return CartSectionCard(
       child: Column(
@@ -62,26 +85,22 @@ class CartTotalsSection extends ConsumerWidget {
           _subtotalRow(estimate),
           if (wantVerification && estimate.verificationUsd > 0)
             _inrRow(
-              'GemWorld verification (1%)',
+              'GemWorld verification',
               estimate.verificationInr,
               fallbackUsd: estimate.verificationUsd,
               hasRate: estimate.hasLiveRate,
             ),
           if (estimate.hasLiveRate) ...[
-            _inrRow(
-              'GST (${(CartFeeConfig.gstRate * 100).toStringAsFixed(0)}%)',
-              estimate.gstInr,
-              hasRate: true,
-            ),
-            _inrRow(
-              'Transaction fee (${(CartFeeConfig.transactionFeeRate * 100).toStringAsFixed(2)})',
-              estimate.transactionFeeInr,
-              hasRate: true,
-            ),
+            if (estimate.gstInr > 0)
+              _inrRow(gstLabel, estimate.gstInr, hasRate: true),
+            if (estimate.transactionFeeInr > 0)
+              _inrRow(txLabel, estimate.transactionFeeInr, hasRate: true),
             if (estimate.platformFeeInr > 0)
+              _inrRow('Platform fee', estimate.platformFeeInr, hasRate: true),
+            if (estimate.deliveryFeeInr > 0)
               _inrRow(
-                'Platform fee',
-                estimate.platformFeeInr,
+                'Delivery fee',
+                estimate.deliveryFeeInr,
                 hasRate: true,
               ),
           ],
@@ -192,10 +211,12 @@ class CartTotalsSection extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondaryLight,
+          Flexible(
+            child: Text(
+              label,
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textSecondaryLight,
+              ),
             ),
           ),
           Text(

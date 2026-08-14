@@ -19,6 +19,8 @@ import 'presentation/screens/seller_login_history_screen.dart';
 import 'presentation/screens/seller_profile_screen.dart';
 import 'presentation/screens/seller_promotions_screen.dart';
 import 'presentation/widgets/seller_layout.dart';
+import '../reference/presentation/screens/seller_references_screen.dart';
+import '../wallet/presentation/screens/seller_wallet_screen.dart';
 
 /// Modular routes for the authenticated seller workspace.
 ///
@@ -49,6 +51,10 @@ final List<RouteBase> sellerRoutes = [
       GoRoute(
         path: AppRouteNames.sellerOrders,
         builder: (context, state) => const SellerOrdersScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerWallet,
+        builder: (context, state) => const SellerWalletScreen(),
       ),
       GoRoute(
         path: '/seller/orders/:orderId',
@@ -96,6 +102,10 @@ final List<RouteBase> sellerRoutes = [
       GoRoute(
         path: AppRouteNames.sellerHelpCenter,
         builder: (context, state) => const SellerHelpCenterScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerReferences,
+        builder: (context, state) => const SellerReferencesScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerPromotions,

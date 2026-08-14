@@ -29,6 +29,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _referralEmailController = TextEditingController();
+  final _referralCodeController = TextEditingController();
   final _businessFields = BusinessRegistrationFieldsController();
   late final TapGestureRecognizer _termsTapRecognizer;
 
@@ -67,6 +69,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _referralEmailController.dispose();
+    _referralCodeController.dispose();
     _businessFields.dispose();
     super.dispose();
   }
@@ -87,13 +91,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       final logoError = _businessFields.missingCompanyLogoMessage();
       if (logoError != null) {
         ref.read(authProvider.notifier).setErrorMessage(logoError);
-        return false;
-      }
-    }
-    if (_isSeller && _sellerStep == 3) {
-      final panError = _businessFields.missingPanCardMessage();
-      if (panError != null) {
-        ref.read(authProvider.notifier).setErrorMessage(panError);
         return false;
       }
     }
@@ -154,6 +151,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           registrationType: _accountType,
           business: business,
           profilePicture: _profilePicture,
+          referralEmail: _referralEmailController.text,
+          referralCode: _referralCodeController.text,
         );
     if (!mounted || !registered) return;
     final pending = ref.read(authProvider).pendingVerificationEmail;
@@ -238,6 +237,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 usernameController: _usernameController,
                                 emailController: _emailController,
                                 passwordController: _passwordController,
+                                referralEmailController:
+                                    _referralEmailController,
+                                referralCodeController: _referralCodeController,
                                 obscurePassword: _obscurePassword,
                                 strength: _strength,
                                 profileImageLabel: _profileImageLabel,
@@ -388,6 +390,8 @@ class _BasicDetailsFields extends StatelessWidget {
     required this.usernameController,
     required this.emailController,
     required this.passwordController,
+    required this.referralEmailController,
+    required this.referralCodeController,
     required this.obscurePassword,
     required this.strength,
     required this.profileImageLabel,
@@ -401,6 +405,8 @@ class _BasicDetailsFields extends StatelessWidget {
   final TextEditingController usernameController;
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final TextEditingController referralEmailController;
+  final TextEditingController referralCodeController;
   final bool obscurePassword;
   final PasswordStrength strength;
   final String profileImageLabel;
@@ -521,6 +527,32 @@ class _BasicDetailsFields extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        TextFormField(
+          controller: referralEmailController,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            labelText: 'Referral email (optional)',
+            prefixIcon: Icon(Icons.mail_outline),
+          ),
+          validator: (value) {
+            final v = value?.trim() ?? '';
+            if (v.isEmpty) return null;
+            if (!isValidEmail(v)) return 'Enter a valid referral email';
+            return null;
+          },
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        TextFormField(
+          controller: referralCodeController,
+          textInputAction: TextInputAction.done,
+          textCapitalization: TextCapitalization.characters,
+          decoration: const InputDecoration(
+            labelText: 'Referral code (optional)',
+            prefixIcon: Icon(Icons.card_giftcard_outlined),
           ),
         ),
       ],

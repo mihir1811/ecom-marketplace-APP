@@ -76,11 +76,12 @@ class BusinessRegistrationData {
     required this.accountNumber,
     required this.ifscCode,
     required this.bankName,
-    required this.accountType,
     required this.companyLogo,
-    required this.panCard,
+    this.accountType,
+    this.bannerImage,
+    this.panCard,
     this.gstNumber,
-    this.website,
+    this.upiId,
   });
 
   final String companyName;
@@ -102,9 +103,10 @@ class BusinessRegistrationData {
   final String accountNumber;
   final String ifscCode;
   final String bankName;
-  final BankAccountType accountType;
   final XFile companyLogo;
-  final XFile panCard;
+  final BankAccountType? accountType;
+  final XFile? bannerImage;
+  final XFile? panCard;
   final String? gstNumber;
-  final String? website;
+  final String? upiId;
 }

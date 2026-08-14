@@ -94,7 +94,7 @@ class RazorpayCheckoutService {
       'amount': session.amountPaise,
       'currency': session.currency,
       'name': 'Gemstone',
-      'description': 'Order ${session.orderId}',
+      'description': session.description ?? 'Order ${session.orderId}',
       'order_id': session.razorpayOrderId,
       'prefill': {
         if (session.userName != null) 'name': session.userName,

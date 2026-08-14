@@ -61,6 +61,12 @@ abstract final class ApiEndpoints {
   static const String paymentOrders = '/payment/orders';
   static String paymentOrderById(String orderId) => '/payment/orders/$orderId';
 
+  // Wallet
+  static const String wallet = '/wallet';
+  static const String walletTransactions = '/wallet/transactions';
+  static const String walletTopUp = '/wallet/top-up';
+  static const String walletTopUpVerify = '/wallet/top-up/verify';
+
   // Tracking (buyer shipments for a paid order)
   static String trackingOrders(String orderId) => '/tracking/orders/$orderId';
   static String trackingShipment(String id) => '/tracking/shipments/$id';
@@ -121,6 +127,18 @@ abstract final class ApiEndpoints {
   static String refundAccept(String id) => '/refunds/$id/accept';
   static String refundReject(String id) => '/refunds/$id/reject';
   static String refundCancel(String id) => '/refunds/$id/cancel';
+
+  // Reference / referrals
+  static const String referenceMe = '/reference/me';
+  static const String referenceInbound = '/reference/inbound';
+  static const String referenceOutbound = '/reference/outbound';
+  static const String referencePurchases = '/reference/purchases';
+  static const String referenceRequest = '/reference/request';
+  static String referenceAccept(String id) => '/reference/$id/accept';
+  static String referenceReject(String id) => '/reference/$id/reject';
+
+  // Checkout fee rules
+  static const String fees = '/fees';
 
   // Product share
   static const String productShare = '/product-share';

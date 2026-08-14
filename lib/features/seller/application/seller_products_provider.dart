@@ -86,13 +86,18 @@ final sellerProductsCatalogProvider = NotifierProvider<
 class SellerProductsCatalogNotifier
     extends Notifier<SellerProductsCatalogState> {
   CancelToken? _cancelToken;
+  var _hasLoaded = false;
 
   @override
   SellerProductsCatalogState build() {
     ref.onDispose(() => _cancelToken?.cancel());
-    ref.watch(authProvider.select((s) => s.sellerId ?? s.user?.id));
-    Future.microtask(refresh);
     return const SellerProductsCatalogState(isLoading: true);
+  }
+
+  /// First visit only. Later visits keep the cached catalog.
+  Future<void> loadIfNeeded() async {
+    if (_hasLoaded) return;
+    await refresh();
   }
 
   Future<void> refresh() async {
@@ -105,6 +110,7 @@ class SellerProductsCatalogNotifier
       return;
     }
 
+    _hasLoaded = true;
     _cancelToken?.cancel('refresh');
     _cancelToken = CancelToken();
     state = state.copyWith(isLoading: true, clearError: true);

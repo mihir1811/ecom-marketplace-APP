@@ -9,36 +9,63 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
+import '../../../product_detail/application/catalog_product_detail_loader.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/cart_provider.dart';
 import '../../domain/models/cart_item.dart';
 
-class CartItemCard extends ConsumerWidget {
+class CartItemCard extends ConsumerStatefulWidget {
   const CartItemCard({required this.item, super.key});
 
   final CartItem item;
 
-  void _openProduct(BuildContext context) {
+  @override
+  ConsumerState<CartItemCard> createState() => _CartItemCardState();
+}
+
+class _CartItemCardState extends ConsumerState<CartItemCard> {
+  bool _opening = false;
+
+  Future<void> _openProduct() async {
+    if (_opening) return;
+    final item = widget.item;
+    if (item.productId.isEmpty) return;
+
     if (openRememberedProductDetail(context, item.productId)) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Open this product from the catalog to see its details.',
+
+    setState(() => _opening = true);
+    try {
+      final detail = await CatalogProductDetailLoader.load(
+        ref.read,
+        productType: item.productType,
+        productId: item.productId,
+      );
+      if (!mounted) return;
+      if (detail != null) {
+        openProductDetail(context, detail);
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not open this product right now.'),
+          duration: Duration(seconds: 2),
         ),
-        duration: Duration(seconds: 2),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) setState(() => _opening = false);
+    }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final item = widget.item;
     final mutating = ref.watch(cartIsMutatingProvider);
 
     return Material(
       color: AppColors.warmWhite,
       borderRadius: BorderRadius.circular(AppSpacing.r16),
       child: InkWell(
-        onTap: () => _openProduct(context),
+        onTap: _opening ? null : _openProduct,
         borderRadius: BorderRadius.circular(AppSpacing.r16),
         child: Container(
           decoration: BoxDecoration(
@@ -49,7 +76,31 @@ class CartItemCard extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Thumb(item: item),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  _Thumb(item: item),
+                  if (_opening)
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.charcoal.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(AppSpacing.r12),
+                      ),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.warmWhite,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
               const SizedBox(width: AppSpacing.s12),
               Expanded(
                 child: Column(
@@ -71,7 +122,7 @@ class CartItemCard extends ConsumerWidget {
                         ),
                         IconButton(
                           tooltip: 'Remove',
-                          onPressed: mutating
+                          onPressed: mutating || _opening
                               ? null
                               : () async {
                                   final result = await ref

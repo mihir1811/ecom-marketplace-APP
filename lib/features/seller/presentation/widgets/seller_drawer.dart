@@ -34,6 +34,11 @@ class SellerDrawer extends StatelessWidget {
         icon: Icons.shopping_bag_outlined,
       ),
       const _DrawerItem(
+        route: AppRouteNames.sellerWallet,
+        label: 'Wallet',
+        icon: Icons.account_balance_wallet_outlined,
+      ),
+      const _DrawerItem(
         route: AppRouteNames.sellerInquiries,
         label: 'Inquiries',
         icon: Icons.mail_outline,
@@ -62,6 +67,11 @@ class SellerDrawer extends StatelessWidget {
         route: AppRouteNames.sellerHelpCenter,
         label: 'Help center',
         icon: Icons.help_outline,
+      ),
+      const _DrawerItem(
+        route: AppRouteNames.sellerReferences,
+        label: 'References',
+        icon: Icons.diversity_3_outlined,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerPromotions,

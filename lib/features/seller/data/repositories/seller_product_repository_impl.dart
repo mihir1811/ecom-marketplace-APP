@@ -139,15 +139,17 @@ class SellerProductRepositoryImpl implements SellerProductRepository {
         products.add(product);
       }
 
+      if (list.isEmpty || list.length < limit) break;
+
       final currentPage = _asInt(meta['currentPage']) ?? page;
       final lastPage = _asInt(meta['lastPage']);
-      final hasMore = meta.containsKey('next')
-          ? meta['next'] != null
-          : (lastPage != null
-              ? currentPage < lastPage
-              : list.length >= limit);
+      final hasMore = lastPage != null
+          ? currentPage < lastPage
+          : (meta.containsKey('next') && meta['next'] != null);
       if (!hasMore) break;
-      page = currentPage + 1;
+      final nextPage = currentPage + 1;
+      if (nextPage <= page) break;
+      page = nextPage;
     }
 
     return products;

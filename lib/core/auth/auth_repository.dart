@@ -29,6 +29,8 @@ abstract class AuthRepository {
         RegistrationAccountType.individual,
     BusinessRegistrationData? business,
     XFile? profilePicture,
+    String? referralEmail,
+    String? referralCode,
   });
 
   Future<Result<AuthSession, Failure>> verifyOtp({
@@ -127,6 +129,8 @@ class AuthRepositoryImpl implements AuthRepository {
         RegistrationAccountType.individual,
     BusinessRegistrationData? business,
     XFile? profilePicture,
+    String? referralEmail,
+    String? referralCode,
   }) async {
     try {
       if (registrationType == RegistrationAccountType.business &&
@@ -143,6 +147,15 @@ class AuthRepositoryImpl implements AuthRepository {
         'password': password,
         'registrationType': registrationType.apiValue,
       };
+
+      final referralEmailValue = referralEmail?.trim();
+      if (referralEmailValue != null && referralEmailValue.isNotEmpty) {
+        map['referralEmail'] = referralEmailValue;
+      }
+      final referralCodeValue = referralCode?.trim();
+      if (referralCodeValue != null && referralCodeValue.isNotEmpty) {
+        map['referralCode'] = referralCodeValue;
+      }
 
       if (business != null) {
         map.addAll({
@@ -165,24 +178,37 @@ class AuthRepositoryImpl implements AuthRepository {
           'accountNumber': business.accountNumber,
           'ifscCode': business.ifscCode,
           'bankName': business.bankName,
-          'accountType': business.accountType.apiValue,
         });
+        final accountType = business.accountType;
+        if (accountType != null) {
+          map['accountType'] = accountType.apiValue;
+        }
         final gst = business.gstNumber?.trim();
         if (gst != null && gst.isNotEmpty) {
           map['gstNumber'] = gst;
         }
-        final website = business.website?.trim();
-        if (website != null && website.isNotEmpty) {
-          map['website'] = website;
+        final upi = business.upiId?.trim();
+        if (upi != null && upi.isNotEmpty) {
+          map['upiId'] = upi;
         }
         map['companyLogo'] = await _multipartFromXFile(
           business.companyLogo,
           fallbackName: 'company-logo.jpg',
         );
-        map['panCard'] = await _multipartFromXFile(
-          business.panCard,
-          fallbackName: 'pan-card.jpg',
-        );
+        final banner = business.bannerImage;
+        if (banner != null) {
+          map['bannerImage'] = await _multipartFromXFile(
+            banner,
+            fallbackName: 'banner.jpg',
+          );
+        }
+        final panCard = business.panCard;
+        if (panCard != null) {
+          map['panCard'] = await _multipartFromXFile(
+            panCard,
+            fallbackName: 'pan-card.jpg',
+          );
+        }
       }
 
       if (profilePicture != null) {

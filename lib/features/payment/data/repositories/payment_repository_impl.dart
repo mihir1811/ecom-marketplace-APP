@@ -44,11 +44,15 @@ class PaymentRepositoryImpl implements PaymentRepository {
   @override
   Future<Result<PaymentCheckoutSession, Failure>> createOrder({
     bool wantGemworldVerification = false,
+    bool useWallet = false,
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         ApiEndpoints.paymentCreateOrder,
-        data: {'wantGemworldVerification': wantGemworldVerification},
+        data: {
+          'wantGemworldVerification': wantGemworldVerification,
+          'useWallet': useWallet,
+        },
       );
       final root = response.data ?? const <String, dynamic>{};
       final data = root['data'];
@@ -58,8 +62,15 @@ class PaymentRepositoryImpl implements PaymentRepository {
         );
       }
       final session = PaymentMapper.checkoutSessionFromJson(data);
-      if (session.orderId.isEmpty ||
-          session.razorpayOrderId.isEmpty ||
+      if (session.orderId.isEmpty) {
+        return Result.failure(
+          const NetworkFailure('Payment order response was incomplete.'),
+        );
+      }
+      if (session.isFullyPaidByWallet) {
+        return Result.success(session);
+      }
+      if (session.razorpayOrderId.isEmpty ||
           session.keyId.isEmpty ||
           session.amountPaise <= 0) {
         return Result.failure(

@@ -15,7 +15,7 @@ class ExchangeRate {
   final DateTime? updatedAt;
 }
 
-/// Create-order payload used to open Razorpay Checkout.
+/// Create-order payload used to open Razorpay Checkout (or wallet-only pay).
 class PaymentCheckoutSession {
   const PaymentCheckoutSession({
     required this.orderId,
@@ -26,9 +26,12 @@ class PaymentCheckoutSession {
     this.amountUsd,
     this.amountInr,
     this.exchangeRate,
+    this.walletAppliedInr,
+    this.status,
     this.userName,
     this.userEmail,
     this.userPhone,
+    this.description,
   });
 
   final String orderId;
@@ -39,9 +42,27 @@ class PaymentCheckoutSession {
   final double? amountUsd;
   final double? amountInr;
   final double? exchangeRate;
+  final double? walletAppliedInr;
+  final String? status;
   final String? userName;
   final String? userEmail;
   final String? userPhone;
+  final String? description;
+
+  /// True when wallet covered the payable amount and Razorpay is not needed.
+  bool get isFullyPaidByWallet {
+    final paidStatus = status?.toUpperCase();
+    if (paidStatus == 'PAID' || paidStatus == 'CAPTURED') return true;
+    if (orderId.isEmpty) return false;
+    final applied = walletAppliedInr ?? 0;
+    final dueInr = amountInr ?? (amountPaise / 100);
+    if (applied > 0 && amountPaise <= 0) return true;
+    if (applied > 0 && dueInr <= 0) return true;
+    return amountPaise <= 0 &&
+        razorpayOrderId.isEmpty &&
+        keyId.isEmpty &&
+        applied > 0;
+  }
 }
 
 /// Razorpay success fields required by POST /payment/verify.

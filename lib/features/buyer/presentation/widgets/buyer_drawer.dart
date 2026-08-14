@@ -24,9 +24,19 @@ class BuyerDrawer extends ConsumerWidget {
       icon: Icons.local_shipping_outlined,
     ),
     BuyerDrawerItem(
+      route: AppRouteNames.buyerWallet,
+      label: 'Wallet',
+      icon: Icons.account_balance_wallet_outlined,
+    ),
+    BuyerDrawerItem(
       route: AppRouteNames.buyerRefunds,
       label: 'Refunds',
       icon: Icons.replay_outlined,
+    ),
+    BuyerDrawerItem(
+      route: AppRouteNames.buyerReferences,
+      label: 'References',
+      icon: Icons.diversity_3_outlined,
     ),
     BuyerDrawerItem(
       route: AppRouteNames.buyerInquiries,

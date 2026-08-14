@@ -49,10 +49,12 @@ class AppRouteNames {
   // Buyer (home drawer) — buyer paths; shared UI widgets may be reused
   static const String buyerProfile = '/buyer/profile';
   static const String buyerOrders = '/buyer/orders';
+  static const String buyerWallet = '/buyer/wallet';
   static const String buyerOrderDetail = '/buyer/orders/:orderId';
   static String buyerOrderDetailPath(String orderId) =>
       '/buyer/orders/$orderId';
   static const String buyerRefunds = '/buyer/refunds';
+  static const String buyerReferences = '/buyer/references';
   static const String buyerInquiries = '/buyer/inquiries';
   static const String buyerInquiryNew = '/buyer/inquiries/new';
   static const String buyerInquiryDetail =
@@ -75,6 +77,7 @@ class AppRouteNames {
   static String sellerProductEditPath(String productId) =>
       '/seller/products/$productId/edit';
   static const String sellerOrders = '/seller/orders';
+  static const String sellerWallet = '/seller/wallet';
   static const String sellerOrderDetail = '/seller/orders/:orderId';
   static String sellerOrderDetailPath(String orderId) =>
       '/seller/orders/$orderId';
@@ -92,6 +95,7 @@ class AppRouteNames {
   static String sellerChatDetailPath(String chatId) =>
       '/seller/chat/${Uri.encodeComponent(chatId)}';
   static const String sellerHelpCenter = '/seller/help-center';
+  static const String sellerReferences = '/seller/references';
   static const String sellerPromotions = '/seller/promotions';
   static const String sellerProfile = '/seller/profile';
   static const String sellerLoginHistory = '/seller/login-history';

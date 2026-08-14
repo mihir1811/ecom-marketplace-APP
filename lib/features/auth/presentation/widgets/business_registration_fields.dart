@@ -25,15 +25,16 @@ class BusinessRegistrationFieldsController {
   final aadhaarNumber = TextEditingController();
   final iecNumber = TextEditingController();
   final gstNumber = TextEditingController();
-  final website = TextEditingController();
+  final upiId = TextEditingController();
   final accountHolderName = TextEditingController();
   final accountNumber = TextEditingController();
   final ifscCode = TextEditingController();
   final bankName = TextEditingController();
 
   SellerType sellerType = SellerType.naturalDiamond;
-  BankAccountType accountType = BankAccountType.current;
+  BankAccountType accountType = BankAccountType.savings;
   XFile? companyLogo;
+  XFile? bannerImage;
   XFile? panCard;
 
   void dispose() {
@@ -52,18 +53,17 @@ class BusinessRegistrationFieldsController {
     aadhaarNumber.dispose();
     iecNumber.dispose();
     gstNumber.dispose();
-    website.dispose();
+    upiId.dispose();
     accountHolderName.dispose();
     accountNumber.dispose();
     ifscCode.dispose();
     bankName.dispose();
   }
 
-  /// Builds API payload when required files are present; otherwise `null`.
+  /// Builds API payload when required company logo is present; otherwise `null`.
   BusinessRegistrationData? toData() {
     final logo = companyLogo;
-    final pan = panCard;
-    if (logo == null || pan == null) return null;
+    if (logo == null) return null;
     return BusinessRegistrationData(
       companyName: companyName.text.trim(),
       addressLine1: addressLine1.text.trim(),
@@ -86,9 +86,10 @@ class BusinessRegistrationFieldsController {
       bankName: bankName.text.trim(),
       accountType: accountType,
       companyLogo: logo,
-      panCard: pan,
+      bannerImage: bannerImage,
+      panCard: panCard,
       gstNumber: gstNumber.text.trim().isEmpty ? null : gstNumber.text.trim(),
-      website: website.text.trim().isEmpty ? null : website.text.trim(),
+      upiId: upiId.text.trim().isEmpty ? null : upiId.text.trim(),
     );
   }
 
@@ -97,14 +98,7 @@ class BusinessRegistrationFieldsController {
     return null;
   }
 
-  String? missingPanCardMessage() {
-    if (panCard == null) return 'PAN card image is required.';
-    return null;
-  }
-
-  String? missingFilesMessage() {
-    return missingCompanyLogoMessage() ?? missingPanCardMessage();
-  }
+  String? missingFilesMessage() => missingCompanyLogoMessage();
 }
 
 /// Seller registration step titles (steps 2–5; step 1 is basic details).
@@ -140,6 +134,17 @@ class BusinessCompanyStep extends StatelessWidget {
     );
     if (file == null) return;
     controller.companyLogo = file;
+    onChanged();
+  }
+
+  Future<void> _pickBanner() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (file == null) return;
+    controller.bannerImage = file;
     onChanged();
   }
 
@@ -186,15 +191,11 @@ class BusinessCompanyStep extends StatelessWidget {
           onPressed: _pickLogo,
         ),
         const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: controller.website,
+        _FilePickButton(
+          label: controller.bannerImage?.name ?? 'Upload banner image (optional)',
+          icon: Icons.image_outlined,
           enabled: enabled,
-          keyboardType: TextInputType.url,
-          textInputAction: TextInputAction.done,
-          decoration: const InputDecoration(
-            labelText: 'Website (optional)',
-            prefixIcon: Icon(Icons.language_outlined),
-          ),
+          onPressed: _pickBanner,
         ),
       ],
     );
@@ -382,7 +383,7 @@ class BusinessContactsKycStep extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.s16),
         _FilePickButton(
-          label: controller.panCard?.name ?? 'Upload PAN card image *',
+          label: controller.panCard?.name ?? 'Upload PAN card image (optional)',
           icon: Icons.upload_file_outlined,
           enabled: enabled,
           onPressed: _pickPan,
@@ -512,7 +513,7 @@ class BusinessBankStep extends StatelessWidget {
         TextFormField(
           controller: controller.bankName,
           enabled: enabled,
-          textInputAction: TextInputAction.done,
+          textInputAction: TextInputAction.next,
           decoration: const InputDecoration(
             labelText: 'Bank name',
             prefixIcon: Icon(Icons.account_balance),
@@ -524,7 +525,7 @@ class BusinessBankStep extends StatelessWidget {
           key: ValueKey(controller.accountType),
           initialValue: controller.accountType,
           decoration: const InputDecoration(
-            labelText: 'Account type',
+            labelText: 'Account type (optional)',
             prefixIcon: Icon(Icons.savings_outlined),
           ),
           items: [
@@ -538,6 +539,16 @@ class BusinessBankStep extends StatelessWidget {
                   onChanged();
                 }
               : null,
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        TextFormField(
+          controller: controller.upiId,
+          enabled: enabled,
+          textInputAction: TextInputAction.done,
+          decoration: const InputDecoration(
+            labelText: 'UPI ID (optional)',
+            prefixIcon: Icon(Icons.alternate_email),
+          ),
         ),
       ],
     );

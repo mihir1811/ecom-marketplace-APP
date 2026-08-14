@@ -36,6 +36,10 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTabChanged);
+    Future.microtask(() {
+      if (!mounted) return;
+      ref.read(sellerProductsCatalogProvider.notifier).loadIfNeeded();
+    });
   }
 
   void _onTabChanged() {

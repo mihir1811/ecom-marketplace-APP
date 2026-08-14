@@ -16,6 +16,7 @@ import 'presentation/screens/buyer_reviews_screen.dart';
 import 'presentation/screens/buyer_settings_screen.dart';
 import 'presentation/screens/buyer_wishlist_screen.dart';
 import 'presentation/widgets/buyer_layout.dart';
+import '../reference/presentation/screens/buyer_references_screen.dart';
 
 /// Buyer account routes. Shared screens reuse seller widgets under `/buyer/...`.
 final List<RouteBase> buyerRoutes = [
@@ -36,6 +37,10 @@ final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: AppRouteNames.buyerRefunds,
     builder: (context, state) => const BuyerRefundsScreen(),
+  ),
+  GoRoute(
+    path: AppRouteNames.buyerReferences,
+    builder: (context, state) => const BuyerReferencesScreen(),
   ),
   GoRoute(
     path: AppRouteNames.buyerInquiries,

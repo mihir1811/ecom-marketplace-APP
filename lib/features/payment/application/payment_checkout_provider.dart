@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../../cart/application/cart_provider.dart';
+import '../../wallet/application/wallet_provider.dart';
 import '../data/repositories/payment_repository_impl.dart';
 import '../domain/models/payment_models.dart';
 import '../domain/repositories/payment_repository.dart';
@@ -38,12 +39,14 @@ class CheckoutState {
   const CheckoutState({
     this.phase = CheckoutPhase.idle,
     this.wantGemworldVerification = false,
+    this.useWallet = false,
     this.errorMessage,
     this.paidOrder,
   });
 
   final CheckoutPhase phase;
   final bool wantGemworldVerification;
+  final bool useWallet;
   final String? errorMessage;
   final PaymentOrder? paidOrder;
 
@@ -55,6 +58,7 @@ class CheckoutState {
   CheckoutState copyWith({
     CheckoutPhase? phase,
     bool? wantGemworldVerification,
+    bool? useWallet,
     String? errorMessage,
     PaymentOrder? paidOrder,
     bool clearError = false,
@@ -64,6 +68,7 @@ class CheckoutState {
       phase: phase ?? this.phase,
       wantGemworldVerification:
           wantGemworldVerification ?? this.wantGemworldVerification,
+      useWallet: useWallet ?? this.useWallet,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       paidOrder: clearOrder ? null : (paidOrder ?? this.paidOrder),
     );
@@ -94,7 +99,14 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     state = state.copyWith(wantGemworldVerification: value);
   }
 
-  Future<Result<PaymentOrder, Failure>> checkout() async {
+  void setUseWallet(bool value) {
+    if (state.isBusy) return;
+    state = state.copyWith(useWallet: value);
+  }
+
+  Future<Result<PaymentOrder, Failure>> checkout({
+    double? payableInr,
+  }) async {
     if (state.isBusy) {
       return Result.failure(
         const ValidationFailure('Payment is already in progress.'),
@@ -111,6 +123,27 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
           'Please add and select a delivery address before payment.',
         ),
       );
+    }
+
+    final useWallet = state.useWallet;
+    if (useWallet) {
+      final wallet = ref.read(walletProvider).valueOrNull;
+      final balance = wallet?.balance ?? 0;
+      final due = payableInr ?? 0;
+      if (due <= 0) {
+        return Result.failure(
+          const ValidationFailure(
+            'Waiting for the live total before wallet payment.',
+          ),
+        );
+      }
+      if (balance + 0.009 < due) {
+        return Result.failure(
+          const ValidationFailure(
+            'Insufficient wallet balance for this order.',
+          ),
+        );
+      }
     }
 
     state = state.copyWith(
@@ -131,6 +164,7 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
 
     final created = await _payments.createOrder(
       wantGemworldVerification: state.wantGemworldVerification,
+      useWallet: useWallet,
     );
     if (created is ResultFailure<PaymentCheckoutSession, Failure>) {
       state = state.copyWith(
@@ -142,6 +176,38 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
 
     final session =
         (created as Success<PaymentCheckoutSession, Failure>).value;
+
+    final walletSettled = session.isFullyPaidByWallet ||
+        (useWallet &&
+            session.orderId.isNotEmpty &&
+            session.amountPaise <= 0 &&
+            session.razorpayOrderId.isEmpty);
+
+    if (walletSettled) {
+      state = state.copyWith(phase: CheckoutPhase.verifying);
+      var order = PaymentOrder(
+        id: session.orderId,
+        status: session.status ?? 'PAID',
+        amount: session.amountInr ?? 0,
+        amountUsd: session.amountUsd ?? 0,
+        currency: session.currency,
+        createdAt: DateTime.now(),
+      );
+      final detailed = await _payments.getOrder(session.orderId);
+      if (detailed case Success(:final value)) {
+        order = value;
+      }
+      state = state.copyWith(
+        phase: CheckoutPhase.succeeded,
+        paidOrder: order,
+        clearError: true,
+      );
+      await Future.wait([
+        ref.read(cartProvider.notifier).refresh(),
+        ref.read(walletProvider.notifier).refresh(),
+      ]);
+      return Result.success(order);
+    }
 
     state = state.copyWith(phase: CheckoutPhase.awaitingPayment);
     late final Result<RazorpayPaymentSuccess, Failure> paid;
@@ -196,7 +262,10 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
       paidOrder: order,
       clearError: true,
     );
-    await ref.read(cartProvider.notifier).refresh();
+    await Future.wait([
+      ref.read(cartProvider.notifier).refresh(),
+      if (useWallet) ref.read(walletProvider.notifier).refresh(),
+    ]);
     return Result.success(order);
   }
 
@@ -204,6 +273,7 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     if (state.isBusy) return;
     state = CheckoutState(
       wantGemworldVerification: state.wantGemworldVerification,
+      useWallet: state.useWallet,
     );
   }
 }

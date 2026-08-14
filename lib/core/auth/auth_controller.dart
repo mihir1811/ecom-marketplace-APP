@@ -145,6 +145,8 @@ class AuthController extends Notifier<AuthState> {
         RegistrationAccountType.individual,
     BusinessRegistrationData? business,
     XFile? profilePicture,
+    String? referralEmail,
+    String? referralCode,
   }) async {
     _setLoading();
     _clearEphemeralFlags();
@@ -189,6 +191,8 @@ class AuthController extends Notifier<AuthState> {
           ? business
           : null,
       profilePicture: profilePicture,
+      referralEmail: referralEmail,
+      referralCode: referralCode,
     );
     return switch (result) {
       Success(:final value) => () {

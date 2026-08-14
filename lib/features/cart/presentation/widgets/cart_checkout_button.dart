@@ -9,13 +9,17 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../buyer/application/buyer_orders_provider.dart';
+import '../../../fees/application/fees_providers.dart';
+import '../../../fees/domain/models/fee_rule.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
 import '../../../payment/presentation/widgets/payment_success_dialog.dart';
+import '../../../wallet/application/wallet_provider.dart';
+import '../../../wallet/domain/models/wallet.dart';
 import '../../application/cart_provider.dart';
 import '../../domain/models/cart_order_estimate.dart';
 import 'delivery_address_sheet.dart';
 
-/// Checkout CTA — create-order → Razorpay → verify.
+/// Checkout CTA — create-order → Razorpay / wallet → verify.
 class CartCheckoutButton extends ConsumerWidget {
   const CartCheckoutButton({super.key});
 
@@ -33,8 +37,14 @@ class CartCheckoutButton extends ConsumerWidget {
     }
   }
 
-  Future<void> _pay(BuildContext context, WidgetRef ref) async {
-    final result = await ref.read(paymentCheckoutProvider.notifier).checkout();
+  Future<void> _pay(
+    BuildContext context,
+    WidgetRef ref, {
+    required double payableInr,
+  }) async {
+    final result = await ref
+        .read(paymentCheckoutProvider.notifier)
+        .checkout(payableInr: payableInr);
     if (!context.mounted) return;
     switch (result) {
       case Success(:final value):
@@ -56,14 +66,33 @@ class CartCheckoutButton extends ConsumerWidget {
     final mutating = ref.watch(cartIsMutatingProvider);
     final checkout = ref.watch(paymentCheckoutProvider);
     final totals = ref.watch(cartTotalsProvider);
+    final items = ref.watch(cartProvider.select((s) => s.items));
+    final fees =
+        ref.watch(activeFeesProvider).valueOrNull ?? FeeRulesCatalog.empty;
     ref.watch(exchangeRateProvider);
+    final walletAsync = ref.watch(walletProvider);
     final busy = mutating || checkout.isBusy;
 
     final estimate = CartOrderEstimate.compute(
       merchandiseUsd: totals.discountedSubtotalUsd,
       exchangeRate: totals.exchangeRate,
       wantVerification: checkout.wantGemworldVerification,
+      fees: fees,
+      lines: items
+          .map(
+            (item) => CartLineForFees(
+              productType: item.productType,
+              amountUsd: item.displayPriceUsd,
+            ),
+          )
+          .toList(),
     );
+
+    final wallet = walletAsync.valueOrNull;
+    final walletBalance = wallet?.balance ?? 0;
+    final canPayWithWallet =
+        estimate.hasLiveRate && walletBalance + 0.009 >= estimate.totalInr;
+    final useWallet = checkout.useWallet && canPayWithWallet;
 
     String label;
     if (!hasAddress) {
@@ -73,7 +102,9 @@ class CartCheckoutButton extends ConsumerWidget {
     } else if (checkout.phase == CheckoutPhase.awaitingPayment) {
       label = 'Complete payment…';
     } else if (checkout.phase == CheckoutPhase.verifying) {
-      label = 'Verifying payment…';
+      label = useWallet ? 'Paying with wallet…' : 'Verifying payment…';
+    } else if (useWallet) {
+      label = 'Pay with wallet';
     } else {
       label = 'Continue to checkout';
     }
@@ -111,6 +142,19 @@ class CartCheckoutButton extends ConsumerWidget {
                   .setWantGemworldVerification(v),
           activeThumbColor: AppColors.bronze,
         ),
+        const SizedBox(height: AppSpacing.s4),
+        _WalletPayOption(
+          busy: busy,
+          walletAsync: walletAsync,
+          walletBalance: walletBalance,
+          payableInr: estimate.totalInr,
+          hasLiveRate: estimate.hasLiveRate,
+          canPayWithWallet: canPayWithWallet,
+          useWallet: checkout.useWallet,
+          onChanged: (v) =>
+              ref.read(paymentCheckoutProvider.notifier).setUseWallet(v),
+          onRetryWallet: () => ref.read(walletProvider.notifier).refresh(),
+        ),
         const SizedBox(height: AppSpacing.s8),
         SizedBox(
           width: double.infinity,
@@ -129,7 +173,16 @@ class CartCheckoutButton extends ConsumerWidget {
                     if (!hasAddress) {
                       _addAddress(context, ref);
                     } else if (canCheckout) {
-                      _pay(context, ref);
+                      if (checkout.useWallet && !canPayWithWallet) {
+                        ref
+                            .read(paymentCheckoutProvider.notifier)
+                            .setUseWallet(false);
+                      }
+                      _pay(
+                        context,
+                        ref,
+                        payableInr: estimate.totalInr,
+                      );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -174,6 +227,83 @@ class CartCheckoutButton extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _WalletPayOption extends StatelessWidget {
+  const _WalletPayOption({
+    required this.busy,
+    required this.walletAsync,
+    required this.walletBalance,
+    required this.payableInr,
+    required this.hasLiveRate,
+    required this.canPayWithWallet,
+    required this.useWallet,
+    required this.onChanged,
+    required this.onRetryWallet,
+  });
+
+  final bool busy;
+  final AsyncValue<Wallet> walletAsync;
+  final double walletBalance;
+  final double payableInr;
+  final bool hasLiveRate;
+  final bool canPayWithWallet;
+  final bool useWallet;
+  final ValueChanged<bool> onChanged;
+  final VoidCallback onRetryWallet;
+
+  @override
+  Widget build(BuildContext context) {
+    final isLoading = walletAsync.isLoading && walletAsync.valueOrNull == null;
+    final hasError = walletAsync.hasError && walletAsync.valueOrNull == null;
+
+    String subtitle;
+    if (isLoading) {
+      subtitle = 'Loading wallet balance…';
+    } else if (hasError) {
+      subtitle = 'Could not load wallet. Tap to retry.';
+    } else if (!hasLiveRate) {
+      subtitle =
+          'Balance ${AppCurrency.inr(walletBalance)} · waiting for live total';
+    } else if (canPayWithWallet) {
+      subtitle =
+          'Balance ${AppCurrency.inr(walletBalance)} · covers ${AppCurrency.inr(payableInr)}';
+    } else {
+      subtitle =
+          'Balance ${AppCurrency.inr(walletBalance)} · need ${AppCurrency.inr(payableInr)}';
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: hasError && !busy ? onRetryWallet : null,
+        child: SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          secondary: Icon(
+            Icons.account_balance_wallet_outlined,
+            color: canPayWithWallet ? AppColors.bronze : AppColors.textMutedLight,
+          ),
+          title: Text(
+            'Pay with wallet',
+            style: AppTypography.label.copyWith(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: AppTypography.caption.copyWith(
+              color: canPayWithWallet
+                  ? AppColors.textSecondaryLight
+                  : AppColors.textMutedLight,
+            ),
+          ),
+          value: useWallet && canPayWithWallet,
+          onChanged: busy || !canPayWithWallet
+              ? null
+              : onChanged,
+          activeThumbColor: AppColors.bronze,
+        ),
+      ),
     );
   }
 }
