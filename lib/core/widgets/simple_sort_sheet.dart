@@ -16,6 +16,7 @@ Future<T?> showSimpleSortSheet<T>({
   return showModalBottomSheet<T>(
     context: context,
     showDragHandle: true,
+    useSafeArea: true,
     shape: shape,
     builder: (context) {
       return SafeArea(

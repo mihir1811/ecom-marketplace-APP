@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../../product_detail/application/catalog_product_detail_loader.dart';
 import '../../../product_detail/product_detail_navigation.dart';
@@ -250,18 +250,13 @@ class _Thumb extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-          ? CachedNetworkImage(
-              imageUrl: item.imageUrl!,
+          ? AppNetworkImage(
+              url: item.imageUrl!,
               fit: BoxFit.cover,
+              width: 72,
+              height: 72,
               memCacheWidth: 144,
-              placeholder: (_, __) => const Center(
-                child: SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-              errorWidget: (_, __, ___) => _fallback(),
+              error: _fallback(),
             )
           : _fallback(),
     );

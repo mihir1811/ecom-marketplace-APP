@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/account_access.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../application/seller_products_provider.dart';
 import '../../domain/models/seller_product.dart';
 
@@ -212,6 +214,7 @@ class _SellerProductEditScreenState
 
   Future<void> _save() async {
     if (_product == null || _saving) return;
+    if (!AccountAccess.guard(context, ref)) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final fields = Map<String, String?>.from(_product!.fields);
@@ -486,7 +489,7 @@ Future<bool> confirmDeleteSellerProduct(
   BuildContext context,
   SellerProduct product,
 ) async {
-  final result = await showDialog<bool>(
+  final result = await showAppDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
       title: const Text('Delete product?'),

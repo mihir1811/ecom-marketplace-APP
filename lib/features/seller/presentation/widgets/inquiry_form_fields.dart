@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_dialog.dart';
 
 InputDecoration inquiryInputDecoration([String? hint]) {
   return InputDecoration(
@@ -485,7 +486,7 @@ class InquiryImageGallery extends StatelessWidget {
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () {
-                  showDialog<void>(
+                  showAppDialog<void>(
                     context: context,
                     builder: (ctx) => Dialog(
                       insetPadding: const EdgeInsets.all(24),

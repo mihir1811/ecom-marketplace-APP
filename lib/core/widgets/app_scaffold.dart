@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../auth/auth_providers.dart';
+import '../auth/verification_pending_banner.dart';
 import 'keyboard_aware.dart';
 
 /// App-wide [Scaffold] that keeps the status/nav bars clear of content.
@@ -8,7 +11,7 @@ import 'keyboard_aware.dart';
 /// - Bottom inset is applied to [body] (or to [bottomNavigationBar] when set)
 ///   so sticky footers clear the system nav bar.
 /// - Nested [SafeArea]s remain safe (padding is consumed for descendants).
-class AppScaffold extends StatelessWidget {
+class AppScaffold extends ConsumerWidget {
   const AppScaffold({
     super.key,
     this.scaffoldKey,
@@ -53,11 +56,24 @@ class AppScaffold extends StatelessWidget {
   final bool safeRight;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final applyTop = safeTop ?? appBar == null;
     // When a bottomNavigationBar is present, only pad that bar — otherwise
     // body bottom padding would leave a gap above the bar.
     final bodySafeBottom = safeBottom && bottomNavigationBar == null;
+    final pending =
+        ref.watch(authProvider.select((s) => s.isVerificationPending));
+    final content = body == null
+        ? null
+        : pending
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const VerificationPendingBanner(),
+                  Expanded(child: body!),
+                ],
+              )
+            : body;
 
     return Scaffold(
       key: scaffoldKey,
@@ -80,14 +96,14 @@ class AppScaffold extends StatelessWidget {
       resizeToAvoidBottomInset: resizeToAvoidBottomInset ?? true,
       extendBody: extendBody,
       extendBodyBehindAppBar: extendBodyBehindAppBar,
-      body: body == null
+      body: content == null
           ? null
           : SafeArea(
               top: applyTop,
               bottom: bodySafeBottom,
               left: safeLeft,
               right: safeRight,
-              child: body!,
+              child: content,
             ),
     );
   }

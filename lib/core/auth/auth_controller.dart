@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,6 +14,7 @@ import 'auth_user.dart';
 import 'auth_validators.dart';
 import 'business_registration_data.dart';
 import 'jwt_utils.dart';
+import 'seller_account_snapshot.dart';
 
 /// Auth session controller: login, register/OTP, logout, password reset, cold start.
 class AuthController extends Notifier<AuthState> {
@@ -57,12 +59,18 @@ class AuthController extends Notifier<AuthState> {
       final cachedUserName = await _store.readUserName();
       final cachedRole = await _store.readRole();
       final cachedSellerId = await _store.readSellerId();
+      final cachedIsVerified = await _store.readIsVerified();
+      final cachedSellerAccount = _decodeSellerSnapshot(
+        await _store.readSellerAccountSnapshot(),
+      );
 
       final user = AuthUser.fromJwtClaims(
         claims,
         cachedUserId: cachedUserId,
         cachedUserName: cachedUserName,
         cachedRole: cachedRole,
+        cachedIsVerified: cachedIsVerified,
+        cachedSellerAccount: cachedSellerAccount,
       );
       if (user.id.isEmpty) {
         await _store.clear();
@@ -390,6 +398,39 @@ class AuthController extends Notifier<AuthState> {
     state = state.copyWith(pendingVerificationEmail: email.trim());
   }
 
+  /// Merges profile API fields into the signed-in session.
+  Future<void> applyAccountProfile({
+    String? fullName,
+    String? username,
+    String? email,
+    String? role,
+    String? profilePicture,
+    bool? isVerified,
+  }) async {
+    final user = state.user;
+    if (user == null) return;
+    final next = user.copyWith(
+      fullName: fullName,
+      username: username,
+      email: email,
+      role: role,
+      profilePicture: profilePicture,
+      isVerified: isVerified,
+    );
+    state = state.copyWith(user: next);
+    final token = await _store.readAccessToken();
+    if (token == null || token.isEmpty) return;
+    await _store.saveSession(
+      accessToken: token,
+      userId: next.id,
+      sellerId: state.sellerId,
+      userName: next.username,
+      role: next.role,
+      isVerified: next.isVerified,
+      rememberDevice: true,
+    );
+  }
+
   bool _applySession(
     AuthSession session, {
     bool clearPendingEmail = false,
@@ -455,5 +496,15 @@ class AuthController extends Notifier<AuthState> {
       passwordResetSuccess: false,
       errorMessage: null,
     );
+  }
+
+  SellerAccountSnapshot? _decodeSellerSnapshot(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      return SellerAccountSnapshot.tryParse(decoded);
+    } catch (_) {
+      return null;
+    }
   }
 }

@@ -3,8 +3,11 @@ import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import 'seller_drawer.dart';
 
@@ -51,6 +54,27 @@ class SellerLayout extends ConsumerWidget {
       });
       return const AppScaffold(
         body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final onOwnProfile = selectedRoute == AppRouteNames.sellerProfile ||
+        selectedRoute.startsWith('${AppRouteNames.sellerProfile}/');
+    if (authState.isVerificationPending && !onOwnProfile) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        context.go(AppRouteNames.home);
+      });
+      return AppScaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.s16),
+            child: Text(
+              AccountAccess.pendingMessage,
+              textAlign: TextAlign.center,
+              style: AppTypography.body,
+            ),
+          ),
+        ),
       );
     }
 

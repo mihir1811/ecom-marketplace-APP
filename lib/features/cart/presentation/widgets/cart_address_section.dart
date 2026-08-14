@@ -5,6 +5,7 @@ import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../application/cart_provider.dart';
 import '../../domain/models/delivery_address.dart';
 import 'cart_section_card.dart';
@@ -61,7 +62,7 @@ class CartAddressSection extends ConsumerWidget {
     final id = address.id;
     if (id == null || id.isEmpty) return;
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete address?'),

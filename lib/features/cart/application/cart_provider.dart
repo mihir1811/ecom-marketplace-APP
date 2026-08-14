@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/account_access.dart';
 import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
@@ -356,6 +357,10 @@ class CartNotifier extends Notifier<CartState> {
     int quantity = 1,
     Map<String, dynamic>? specifications,
   }) async {
+    final blocked = AccountAccess.blockReason(ref.read(authProvider));
+    if (blocked != null) {
+      return Result.failure(AuthFailure(blocked));
+    }
     state = state.copyWith(isMutating: true, clearError: true);
     final result = await _cart.addItem(
       productId: productId,

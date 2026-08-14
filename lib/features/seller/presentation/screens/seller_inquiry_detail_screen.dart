@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../application/inquiry_provider.dart';
 import '../../domain/models/seller_inquiry.dart';
 import '../widgets/inquiry_form_fields.dart';
@@ -30,7 +31,7 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     InquiryCategory category,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete inquiry?'),

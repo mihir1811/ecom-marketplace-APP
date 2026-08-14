@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_insights_provider.dart';
 import '../../domain/models/seller_insights.dart';
@@ -277,7 +278,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
     final firstDate = DateTime(2020);
     final lastDate = DateTime.now().add(const Duration(days: 365));
 
-    return showDialog<(DateTime, DateTime)>(
+    return showAppDialog<(DateTime, DateTime)>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(

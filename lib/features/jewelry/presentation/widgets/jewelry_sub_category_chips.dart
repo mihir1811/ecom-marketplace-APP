@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../application/jewellery_categories_provider.dart';
 import '../../application/jewelry_filter_provider.dart';
+import '../../domain/models/jewellery_category_admin.dart';
 import '../../domain/models/jewelry_filter_state.dart';
 
 /// Style sub-filters for the current parent category on the listing screen.
@@ -14,8 +16,17 @@ class JewelryCategoryChips extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filters = ref.watch(jewelryFilterProvider);
+    final live = ref.watch(jewelleryCategoriesProvider).valueOrNull;
+    final matched = live == null
+        ? null
+        : JewelleryCategoryMatch.find(live, filters.category);
     final parent = JewelryFilterState.parentCategoryOrDefault(filters.category);
-    final subs = JewelryFilterState.subCategoriesFor(parent);
+    final subs = matched == null
+        ? JewelryFilterState.subCategoriesFor(parent)
+        : [
+            for (final sub in matched.subcategories)
+              if (sub.isActive && sub.name.trim().isNotEmpty) sub.name,
+          ];
     final allLabel = JewelryFilterState.allSubCategoryLabel(parent);
     final selected = filters.subCategories;
     final chips = [allLabel, ...subs];

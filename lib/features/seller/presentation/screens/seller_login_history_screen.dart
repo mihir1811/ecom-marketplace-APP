@@ -5,6 +5,7 @@ import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../../auth/application/login_history_providers.dart';
 import '../../../auth/domain/models/login_session.dart';
 import '../widgets/seller_layout.dart';
@@ -17,7 +18,7 @@ class SellerLoginHistoryScreen extends ConsumerWidget {
     WidgetRef ref,
     String sessionId,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Revoke device?'),

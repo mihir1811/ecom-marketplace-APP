@@ -11,6 +11,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../auth/application/user_profile_providers.dart';
 import '../../../auth/domain/models/user_profile.dart';
 import '../../../auth/presentation/widgets/profile_info_widgets.dart';
+import '../../../auth/presentation/widgets/seller_business_profile_cards.dart';
 import '../../../user_bank_account/application/user_bank_account_providers.dart';
 import '../../../user_bank_account/domain/models/user_bank_account.dart';
 import '../widgets/seller_layout.dart';
@@ -136,133 +137,14 @@ class _SellerProfileBody extends StatelessWidget {
             ProfileInfoRow(
               icon: Icons.verified_outlined,
               label: 'Verification',
-              value: profile.isVerified ? 'Verified' : 'Pending verification',
+              value: profile.isVerified
+                  ? 'Verified'
+                  : 'Verification is pending',
             ),
           ],
         ),
         const SizedBox(height: AppSpacing.s16),
-        ProfileInfoCard(
-          title: 'Company',
-          rows: [
-            ProfileInfoRow(
-              icon: Icons.storefront_outlined,
-              label: 'Company name',
-              value: profileDisplay(profile.companyName),
-            ),
-            ProfileInfoRow(
-              icon: Icons.category_outlined,
-              label: 'Seller type',
-              value: profileDisplay(profile.sellerType),
-            ),
-            ProfileInfoRow(
-              icon: Icons.image_outlined,
-              label: 'Company logo',
-              value: profile.companyLogoUrl == null
-                  ? 'Not provided'
-                  : 'On file',
-            ),
-            ProfileInfoRow(
-              icon: Icons.panorama_outlined,
-              label: 'Storefront banner',
-              value: profile.bannerImageUrl == null
-                  ? 'Not provided'
-                  : 'On file',
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        ProfileInfoCard(
-          title: 'Business address',
-          rows: [
-            ProfileInfoRow(
-              icon: Icons.home_outlined,
-              label: 'Address line 1',
-              value: profileDisplay(profile.addressLine1),
-            ),
-            ProfileInfoRow(
-              icon: Icons.home_work_outlined,
-              label: 'Address line 2',
-              value: profileDisplay(profile.addressLine2),
-            ),
-            ProfileInfoRow(
-              icon: Icons.location_city_outlined,
-              label: 'City',
-              value: profileDisplay(profile.city),
-            ),
-            ProfileInfoRow(
-              icon: Icons.map_outlined,
-              label: 'State',
-              value: profileDisplay(profile.state),
-            ),
-            ProfileInfoRow(
-              icon: Icons.public_outlined,
-              label: 'Country',
-              value: profileDisplay(profile.country),
-            ),
-            ProfileInfoRow(
-              icon: Icons.markunread_mailbox_outlined,
-              label: 'ZIP / Postal code',
-              value: profileDisplay(profile.zipCode),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        ProfileInfoCard(
-          title: 'Business contacts',
-          rows: [
-            ProfileInfoRow(
-              icon: Icons.phone_outlined,
-              label: 'Business phone 1',
-              value: profileDisplay(profile.businessPhone1),
-            ),
-            ProfileInfoRow(
-              icon: Icons.phone_outlined,
-              label: 'Business phone 2',
-              value: profileDisplay(profile.businessPhone2),
-            ),
-            ProfileInfoRow(
-              icon: Icons.person_outline,
-              label: 'Representative 1',
-              value: profileDisplay(profile.representativeName1),
-            ),
-            ProfileInfoRow(
-              icon: Icons.person_outline,
-              label: 'Representative 2',
-              value: profileDisplay(profile.representativeName2),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        ProfileInfoCard(
-          title: 'Tax & KYC documents',
-          rows: [
-            ProfileInfoRow(
-              icon: Icons.credit_card_outlined,
-              label: 'PAN number',
-              value: profileDisplay(profile.panCardNumber),
-            ),
-            ProfileInfoRow(
-              icon: Icons.badge_outlined,
-              label: 'Aadhaar number',
-              value: profileDisplay(profile.aadhaarNumber),
-            ),
-            ProfileInfoRow(
-              icon: Icons.numbers_outlined,
-              label: 'IEC number',
-              value: profileDisplay(profile.iecNumber),
-            ),
-            ProfileInfoRow(
-              icon: Icons.receipt_long_outlined,
-              label: 'GST number',
-              value: profileDisplay(profile.gstNumber),
-            ),
-            ProfileInfoRow(
-              icon: Icons.upload_file_outlined,
-              label: 'PAN card document',
-              value: profile.panCardUrl == null ? 'Not provided' : 'On file',
-            ),
-          ],
-        ),
+        SellerBusinessProfileCards(profile: profile),
         const SizedBox(height: AppSpacing.s16),
         if (bankState.isLoading)
           Container(
@@ -391,7 +273,7 @@ class _SellerHero extends StatelessWidget {
                 Text(
                   profile.isVerified
                       ? 'Verified seller account'
-                      : 'Seller account · pending verification',
+                      : 'Verification is pending',
                   style: AppTypography.caption.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppColors.charcoal,

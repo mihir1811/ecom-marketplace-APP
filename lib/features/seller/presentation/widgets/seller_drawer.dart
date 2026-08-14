@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/auth/account_access.dart';
+import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
 /// Side drawer for seller workspace screens only.
-class SellerDrawer extends StatelessWidget {
+class SellerDrawer extends ConsumerWidget {
   const SellerDrawer({
     super.key,
     required this.selectedRoute,
@@ -16,52 +19,63 @@ class SellerDrawer extends StatelessWidget {
   final String selectedRoute;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pending =
+        ref.watch(authProvider.select((s) => s.isVerificationPending));
     final items = <_DrawerItem>[
       const _DrawerItem(
         route: AppRouteNames.sellerDashboard,
         label: 'Dashboard',
         icon: Icons.dashboard_outlined,
+        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerProducts,
         label: 'Products',
         icon: Icons.inventory_2_outlined,
+        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerOrders,
         label: 'Orders',
         icon: Icons.shopping_bag_outlined,
+        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerWallet,
         label: 'Wallet',
         icon: Icons.account_balance_wallet_outlined,
+        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerInquiries,
         label: 'Inquiries',
         icon: Icons.mail_outline,
+        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerOffers,
         label: 'Offers',
         icon: Icons.local_offer_outlined,
+        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerAuctions,
         label: 'Auctions',
         icon: Icons.gavel_outlined,
+        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerAnalytics,
         label: 'Analytics',
         icon: Icons.bar_chart_outlined,
+        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerChat,
         label: 'Chat',
         icon: Icons.chat_bubble_outline,
+        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerHelpCenter,
@@ -77,6 +91,7 @@ class SellerDrawer extends StatelessWidget {
         route: AppRouteNames.sellerPromotions,
         label: 'Promotions',
         icon: Icons.card_giftcard_outlined,
+        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerLoginHistory,
@@ -121,12 +136,22 @@ class SellerDrawer extends StatelessWidget {
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];
-                  final isSelected = selectedRoute == item.route ||
-                      selectedRoute.startsWith('${item.route}/');
+                  final isLocked = item.requiresVerified && pending;
+                  final isSelected = !isLocked &&
+                      (selectedRoute == item.route ||
+                          selectedRoute.startsWith('${item.route}/'));
+                  final iconColor = isLocked
+                      ? AppColors.textMutedLight
+                      : (isSelected
+                          ? AppColors.warmWhite
+                          : AppColors.charcoal);
                   return Material(
                     color: isSelected ? AppColors.charcoal : Colors.transparent,
                     child: InkWell(
                       onTap: () {
+                        if (isLocked && !AccountAccess.guard(context, ref)) {
+                          return;
+                        }
                         Navigator.of(context).maybePop();
                         context.go(item.route);
                       },
@@ -137,12 +162,7 @@ class SellerDrawer extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              item.icon,
-                              color: isSelected
-                                  ? AppColors.warmWhite
-                                  : AppColors.charcoal,
-                            ),
+                            Icon(item.icon, color: iconColor),
                             const SizedBox(width: AppSpacing.s16),
                             Expanded(
                               child: Text(
@@ -151,12 +171,16 @@ class SellerDrawer extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: isSelected
-                                      ? AppColors.warmWhite
-                                      : AppColors.charcoal,
+                                  color: iconColor,
                                 ),
                               ),
                             ),
+                            if (isLocked)
+                              const Icon(
+                                Icons.lock_outline,
+                                size: 16,
+                                color: AppColors.textMutedLight,
+                              ),
                           ],
                         ),
                       ),
@@ -191,9 +215,11 @@ class _DrawerItem {
     required this.route,
     required this.label,
     required this.icon,
+    this.requiresVerified = false,
   });
 
   final String route;
   final String label;
   final IconData icon;
+  final bool requiresVerified;
 }

@@ -5,6 +5,7 @@ import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../../help_center/application/help_center_provider.dart';
 import '../../../help_center/domain/models/help_question.dart';
 import '../widgets/seller_layout.dart';
@@ -68,7 +69,7 @@ class _SellerHelpCenterScreenState
   }
 
   Future<void> _closeQuestion(HelpQuestion question) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Close question?'),

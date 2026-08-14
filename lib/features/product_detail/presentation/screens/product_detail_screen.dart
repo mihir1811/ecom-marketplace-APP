@@ -70,6 +70,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final detail = widget.detail;
+    final isSeller = ref.watch(authProvider.select((s) => s.isSeller));
+    final visibleSpecs = detail.specsForViewer(isSeller: isSeller);
 
     return AppScaffold(
       backgroundColor: AppColors.creamBg,
@@ -142,7 +144,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ..._summaryBlocks(detail),
                   ],
                   const SizedBox(height: AppSpacing.s40),
-                  for (final section in detail.orderedSpecs) ...[
+                  for (final section in visibleSpecs) ...[
                     ProductDetailSpecSection(section: section),
                     const SizedBox(height: AppSpacing.s32),
                   ],

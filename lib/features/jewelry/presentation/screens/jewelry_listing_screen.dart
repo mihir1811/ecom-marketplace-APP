@@ -72,11 +72,15 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
   @override
   Widget build(BuildContext context) {
     final title = ref.watch(
-      jewelryFilterProvider.select((s) => s.category ?? 'Accessories'),
+      jewelryFilterProvider.select((s) => s.category ?? 'Jewelry'),
     );
+    final displayTitle = switch (title) {
+      'All Accessories' => 'Accessories',
+      _ => title,
+    };
 
     return CatalogScreenShell(
-      title: title == 'All Accessories' ? 'Accessories' : title,
+      title: displayTitle,
       onBack: () {
         if (AiChatBackNavigation.handleListingBack(context, ref)) return;
         if (context.canPop()) {

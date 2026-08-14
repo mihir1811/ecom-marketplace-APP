@@ -28,20 +28,10 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
         ApiEndpoints.userProfile,
         cancelToken: cancelToken,
       );
-      final root = response.data;
-      final data = root?['data'];
-      final map = data is Map<String, dynamic>
-          ? data
-          : (root is Map<String, dynamic> ? root : null);
-      if (map == null) {
+      final profile = UserProfileMapper.fromResponse(response.data);
+      if (profile == null) {
         return Result.failure(
-          NetworkFailure('Could not load profile details.'),
-        );
-      }
-      final profile = UserProfileMapper.fromJson(map);
-      if (profile.id.isEmpty && profile.email.isEmpty) {
-        return Result.failure(
-          NetworkFailure('Profile response was empty.'),
+          const NetworkFailure('Profile response was empty.'),
         );
       }
       return Result.success(profile);

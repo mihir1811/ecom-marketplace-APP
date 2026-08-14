@@ -11,6 +11,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../auth/application/user_profile_providers.dart';
 import '../../../auth/domain/models/user_profile.dart';
 import '../../../auth/presentation/widgets/profile_info_widgets.dart';
+import '../../../auth/presentation/widgets/seller_business_profile_cards.dart';
 import '../widgets/buyer_layout.dart';
 
 /// Individual / buyer account profile (read-only).
@@ -109,8 +110,8 @@ class _BuyerProfileBody extends StatelessWidget {
             ),
             ProfileInfoRow(
               icon: Icons.verified_outlined,
-              label: 'Email verification',
-              value: profile.isVerified ? 'Verified' : 'Not verified',
+              label: 'Account verification',
+              value: profile.isVerified ? 'Verified' : 'Verification is pending',
             ),
             ProfileInfoRow(
               icon: Icons.security_outlined,
@@ -119,6 +120,10 @@ class _BuyerProfileBody extends StatelessWidget {
             ),
           ],
         ),
+        if (profile.isSeller) ...[
+          const SizedBox(height: AppSpacing.s16),
+          SellerBusinessProfileCards(profile: profile),
+        ],
       ],
     );
   }

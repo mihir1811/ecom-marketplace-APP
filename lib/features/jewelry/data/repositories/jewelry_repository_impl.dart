@@ -5,9 +5,11 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/network/dio_provider.dart';
+import '../../domain/models/jewellery_category_admin.dart';
 import '../../domain/models/jewelry.dart';
 import '../../domain/models/jewelry_filter_state.dart';
 import '../../domain/repositories/jewelry_repository.dart';
+import '../mappers/jewellery_category_admin_mapper.dart';
 import '../mappers/jewelry_list_query_mapper.dart';
 import '../mappers/jewelry_mapper.dart';
 import '../models/jewelry_dto.dart';
@@ -116,7 +118,8 @@ class JewelryRepositoryImpl implements JewelryRepository {
     final categories = await _loadCategories(cancelToken: cancelToken);
     if (categories.isEmpty) return const [];
 
-    final apiCategoryName = hasCategory ? _mapUiCategoryToApi(category) : null;
+    final apiCategoryName =
+        hasCategory ? JewelleryCategoryMatch.apiNameForUi(category) : null;
     final scoped = apiCategoryName == null
         ? categories
         : categories
@@ -153,50 +156,35 @@ class JewelryRepositoryImpl implements JewelryRepository {
 
     final response = await _dio.get<Map<String, dynamic>>(
       ApiEndpoints.jewelleryCategories,
+      queryParameters: const {'page': 1, 'limit': 50},
       cancelToken: cancelToken,
     );
-    final root = response.data ?? const <String, dynamic>{};
-    final dataNode = root['data'];
-    final payload = dataNode is Map<String, dynamic>
-        ? dataNode
-        : const <String, dynamic>{};
-    final listJson = payload['data'];
-    final list = listJson is List ? listJson : const [];
+    final page = JewelleryCategoryAdminMapper.listPageFromJson(
+      response.data,
+      page: 1,
+      limit: 50,
+    );
 
-    final parsed = <_JewelryCategoryRef>[];
-    for (final item in list) {
-      if (item is! Map<String, dynamic>) continue;
-      final id = item['id']?.toString() ?? '';
-      final name = item['name']?.toString() ?? '';
-      if (id.isEmpty || name.isEmpty) continue;
-      final subsJson = item['subcategories'];
-      final subs = <_JewelrySubcategoryRef>[];
-      if (subsJson is List) {
-        for (final sub in subsJson) {
-          if (sub is! Map<String, dynamic>) continue;
-          final sid = sub['id']?.toString() ?? '';
-          final sname = sub['name']?.toString() ?? '';
-          if (sid.isEmpty || sname.isEmpty) continue;
-          if (sub['isActive'] == false) continue;
-          subs.add(_JewelrySubcategoryRef(id: sid, name: sname));
-        }
-      }
-      if (item['isActive'] == false) continue;
-      parsed.add(_JewelryCategoryRef(id: id, name: name, subcategories: subs));
-    }
+    final parsed = <_JewelryCategoryRef>[
+      for (final category in page.items)
+        if (category.isActive &&
+            category.id.isNotEmpty &&
+            category.name.trim().isNotEmpty)
+          _JewelryCategoryRef(
+            id: category.id,
+            name: category.name,
+            subcategories: [
+              for (final sub in category.subcategories)
+                if (sub.isActive &&
+                    sub.id.isNotEmpty &&
+                    sub.name.trim().isNotEmpty)
+                  _JewelrySubcategoryRef(id: sub.id, name: sub.name),
+            ],
+          ),
+    ];
 
     _categoriesCache = parsed;
     return parsed;
-  }
-
-  static String? _mapUiCategoryToApi(String ui) {
-    return switch (ui.trim()) {
-      'Rings' => 'Ring',
-      'Earrings' => 'Earring',
-      'Bracelets' => 'Bracelet',
-      'Necklaces' || 'Chains' => 'Necklace',
-      _ => null,
-    };
   }
 
   /// Matches UI chip labels like "Engagement" / "Drop Earrings" to API names.

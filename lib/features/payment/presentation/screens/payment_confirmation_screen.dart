@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +11,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../buyer/application/buyer_orders_provider.dart';
 import '../../../buyer/presentation/widgets/order_review_section.dart';
 import '../../application/payment_checkout_provider.dart';
@@ -211,9 +211,11 @@ class _ItemTile extends StatelessWidget {
             ),
             clipBehavior: Clip.antiAlias,
             child: item.image != null
-                ? CachedNetworkImage(
-                    imageUrl: item.image!,
+                ? AppNetworkImage(
+                    url: item.image!,
                     fit: BoxFit.cover,
+                    width: 56,
+                    height: 56,
                     memCacheWidth: 112,
                   )
                 : const Icon(Icons.diamond_outlined, color: AppColors.bronze),

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../../cart/application/cart_provider.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
 import '../../domain/models/product_detail.dart';
@@ -32,6 +34,7 @@ class ProductDetailActionBar extends ConsumerWidget {
       context.push(AppRouteNames.login);
       return;
     }
+    if (!AccountAccess.guard(context, ref)) return;
 
     final result = await ref.read(cartProvider.notifier).addProduct(
           productId: detail.id,
@@ -52,13 +55,14 @@ class ProductDetailActionBar extends ConsumerWidget {
       context.push(AppRouteNames.login);
       return;
     }
+    if (!AccountAccess.guard(context, ref)) return;
 
     final minHint = detail.minimumOfferPrice;
     final controller = TextEditingController(
       text: minHint != null ? minHint.toStringAsFixed(2) : '',
     );
     final messageCtrl = TextEditingController();
-    final submitted = await showDialog<bool>(
+    final submitted = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Make an offer'),

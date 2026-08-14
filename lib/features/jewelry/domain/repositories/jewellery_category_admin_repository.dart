@@ -5,6 +5,13 @@ import '../../../../core/error/result.dart';
 import '../models/jewellery_category_admin.dart';
 
 abstract class JewelleryCategoryAdminRepository {
+  Future<Result<JewelleryCategoryListPage, Failure>> list({
+    int page = 1,
+    int limit = 50,
+    String? search,
+    CancelToken? cancelToken,
+  });
+
   Future<Result<JewelleryCategoryAdmin, Failure>> getById(
     String id, {
     CancelToken? cancelToken,

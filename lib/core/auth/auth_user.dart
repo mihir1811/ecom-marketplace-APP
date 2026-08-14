@@ -1,3 +1,5 @@
+import 'seller_account_snapshot.dart';
+
 /// Authenticated user mapped from login / verify-otp API `data.user`.
 class AuthUser {
   const AuthUser({
@@ -11,6 +13,7 @@ class AuthUser {
     this.isVerified = true,
     this.isBlocked = false,
     this.isDeleted = false,
+    this.sellerAccount,
   });
 
   final String id;
@@ -23,6 +26,7 @@ class AuthUser {
   final bool isVerified;
   final bool isBlocked;
   final bool isDeleted;
+  final SellerAccountSnapshot? sellerAccount;
 
   bool get isSeller => role.toLowerCase() == 'seller';
 
@@ -38,6 +42,7 @@ class AuthUser {
     bool? isVerified,
     bool? isBlocked,
     bool? isDeleted,
+    SellerAccountSnapshot? sellerAccount,
     bool clearPhone = false,
   }) {
     return AuthUser(
@@ -51,21 +56,24 @@ class AuthUser {
       isVerified: isVerified ?? this.isVerified,
       isBlocked: isBlocked ?? this.isBlocked,
       isDeleted: isDeleted ?? this.isDeleted,
+      sellerAccount: sellerAccount ?? this.sellerAccount,
     );
   }
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
-      id: (json['id'] as String?)?.trim() ?? '',
-      fullName: (json['name'] as String?)?.trim() ?? '',
-      username: (json['userName'] as String?)?.trim() ?? '',
-      email: (json['email'] as String?)?.trim() ?? '',
-      role: (json['role'] as String?)?.trim() ?? '',
-      profilePicture: (json['profilePicture'] as String?)?.trim() ?? '',
-      phone: json['phone'] as String?,
-      isVerified: json['isVerified'] as bool? ?? true,
-      isBlocked: json['isBlocked'] as bool? ?? false,
-      isDeleted: json['isDeleted'] as bool? ?? false,
+      id: _str(json['id']) ?? _str(json['_id']) ?? _str(json['userId']) ?? '',
+      fullName: _str(json['name']) ?? _str(json['fullName']) ?? '',
+      username: _str(json['userName']) ?? _str(json['username']) ?? '',
+      email: _str(json['email']) ?? '',
+      role: _str(json['role']) ?? '',
+      profilePicture: _str(json['profilePicture']) ?? '',
+      phone: _str(json['phone']),
+      isVerified: parseAccountVerified(json),
+      isBlocked: json['isBlocked'] == true,
+      isDeleted: json['isDeleted'] == true,
+      sellerAccount: SellerAccountSnapshot.tryParse(json['sellerData']) ??
+          SellerAccountSnapshot.tryParse(json['seller']),
     );
   }
 
@@ -75,12 +83,14 @@ class AuthUser {
     String? cachedUserId,
     String? cachedUserName,
     String? cachedRole,
+    bool? cachedIsVerified,
+    SellerAccountSnapshot? cachedSellerAccount,
   }) {
     final id = _claimUserId(claims) ?? cachedUserId ?? '';
     final userName = _claimUserName(claims) ?? cachedUserName ?? '';
     final role = _claimRole(claims) ?? cachedRole ?? '';
-    final name = (claims['name'] as String?)?.trim();
-    final email = (claims['email'] as String?)?.trim() ?? '';
+    final name = _str(claims['name']);
+    final email = _str(claims['email']) ?? '';
 
     return AuthUser(
       id: id,
@@ -88,6 +98,15 @@ class AuthUser {
       username: userName,
       email: email,
       role: role,
+      isVerified: parseAccountVerified(
+        claims,
+        fallback: cachedIsVerified ?? true,
+      ),
+      sellerAccount: SellerAccountSnapshot.merge(
+        cachedSellerAccount,
+        SellerAccountSnapshot.tryParse(claims['sellerData']) ??
+            SellerAccountSnapshot.tryParse(claims['seller']),
+      ),
     );
   }
 
@@ -127,4 +146,78 @@ class AuthUser {
     if (role is String && role.trim().isNotEmpty) return role.trim();
     return null;
   }
+
+  static String? _str(Object? value) {
+    if (value == null) return null;
+    final s = value.toString().trim();
+    return s.isEmpty ? null : s;
+  }
+}
+
+/// Admin / account verification from login, profile, or JWT claims.
+///
+/// Login sets `user.isVerified` after email OTP. Admin KYC for sellers lives
+/// on `sellerData.isVerified` / JWT `seller.isVerified`.
+bool parseAccountVerified(
+  Map<String, dynamic> json, {
+  bool fallback = true,
+}) {
+  final seller = _asMap(json['sellerData']) ?? _asMap(json['seller']);
+  if (seller != null) {
+    return _readFlag(seller['isVerified']) ?? false;
+  }
+
+  final role = '${json['role'] ?? ''}'.trim().toLowerCase();
+  final registrationType =
+      '${json['registrationType'] ?? ''}'.trim().toLowerCase();
+  if (role == 'seller' || registrationType == 'business') {
+    return false;
+  }
+
+  final status =
+      '${json['verificationStatus'] ?? json['accountStatus'] ?? json['status'] ?? ''}'
+          .trim()
+          .toLowerCase();
+  if (status == 'pending' ||
+      status == 'unverified' ||
+      status == 'under_review' ||
+      status == 'under-review' ||
+      status == 'review') {
+    return false;
+  }
+
+  final approved = json['isApproved'];
+  if (approved is bool && !approved) return false;
+  if (approved is num && approved == 0) return false;
+
+  final verified = _readFlag(json['isVerified'] ?? json['verified']);
+  if (verified != null) return verified;
+
+  if (status == 'verified' || status == 'approved' || status == 'active') {
+    return true;
+  }
+  return fallback;
+}
+
+Map<String, dynamic>? _asMap(Object? value) {
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) {
+    return value.map((k, v) => MapEntry(k.toString(), v));
+  }
+  return null;
+}
+
+bool? _readFlag(Object? value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  if (value is String) {
+    final s = value.trim().toLowerCase();
+    if (s == 'true' || s == '1' || s == 'verified' || s == 'approved') {
+      return true;
+    }
+    if (s == 'false' || s == '0' || s == 'pending' || s == 'unverified') {
+      return false;
+    }
+  }
+  return null;
 }

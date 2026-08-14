@@ -22,6 +22,40 @@ class JewelleryCategoryAdminRepositoryImpl
   final Dio _dio;
 
   @override
+  Future<Result<JewelleryCategoryListPage, Failure>> list({
+    int page = 1,
+    int limit = 50,
+    String? search,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final safePage = page < 1 ? 1 : page;
+      final safeLimit = limit < 1 ? 50 : limit;
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiEndpoints.jewelleryCategories,
+        queryParameters: {
+          'page': safePage,
+          'limit': safeLimit,
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim(),
+        },
+        cancelToken: cancelToken,
+      );
+      return Result.success(
+        JewelleryCategoryAdminMapper.listPageFromJson(
+          response.data,
+          page: safePage,
+          limit: safeLimit,
+        ),
+      );
+    } on DioException catch (e) {
+      return Result.failure(ApiError.fromDio(e));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Result<JewelleryCategoryAdmin, Failure>> getById(
     String id, {
     CancelToken? cancelToken,

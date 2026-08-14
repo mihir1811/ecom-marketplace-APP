@@ -34,6 +34,13 @@ class AuthState {
   /// Seller workspace (dashboard, listings, seller chat) is seller-only.
   bool get isSeller => isAuthenticated && (user?.isSeller ?? false);
 
+  /// Signed-in but still waiting for admin verification.
+  bool get isVerificationPending =>
+      isAuthenticated && !(user?.isVerified ?? true);
+
+  /// Buying and selling require an admin-verified account.
+  bool get canTransact => isAuthenticated && (user?.isVerified ?? true);
+
   AuthState copyWith({
     AuthUser? user,
     String? sellerId,

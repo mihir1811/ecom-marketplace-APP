@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/account_access.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../../promotions/application/promotions_providers.dart';
 import '../../../promotions/domain/models/promotion.dart';
 import '../widgets/seller_layout.dart';
@@ -24,7 +26,8 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
   _PromoTab _tab = _PromoTab.discounts;
 
   Future<void> _openAddDiscount() async {
-    await showDialog<void>(
+    if (!AccountAccess.guard(context, ref)) return;
+    await showAppDialog<void>(
       context: context,
       builder: (context) => _AddDiscountDialog(
         onSave: (input) async {
@@ -48,7 +51,8 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
   }
 
   Future<void> _openAddPromoCode() async {
-    await showDialog<void>(
+    if (!AccountAccess.guard(context, ref)) return;
+    await showAppDialog<void>(
       context: context,
       builder: (context) => _AddPromoCodeDialog(
         onSave: (input) async {

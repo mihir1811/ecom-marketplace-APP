@@ -1,22 +1,33 @@
+import '../../../../core/auth/auth_user.dart';
+import '../../../../core/network/response_parser.dart';
 import '../../domain/models/user_profile.dart';
 
 abstract final class UserProfileMapper {
   static UserProfile fromJson(Map<String, dynamic> json) {
-    final user = _asMap(json['user']) ?? json;
-    final business = _asMap(json['business']) ??
-        _asMap(json['seller']) ??
-        _asMap(json['sellerProfile']) ??
-        _asMap(user['business']) ??
-        _asMap(user['seller']) ??
+    final user = ResponseParser.asMap(json['user']) ??
+        ResponseParser.asMap(json['profile']) ??
+        json;
+    final business = ResponseParser.asMap(json['business']) ??
+        ResponseParser.asMap(json['sellerData']) ??
+        ResponseParser.asMap(json['seller']) ??
+        ResponseParser.asMap(json['sellerProfile']) ??
+        ResponseParser.asMap(user['business']) ??
+        ResponseParser.asMap(user['sellerData']) ??
+        ResponseParser.asMap(user['seller']) ??
         const <String, dynamic>{};
-    final bank = _asMap(json['bankAccount']) ??
-        _asMap(json['bank']) ??
-        _asMap(business['bankAccount']) ??
-        _asMap(user['bankAccount']) ??
+    final bank = ResponseParser.asMap(json['bankAccount']) ??
+        ResponseParser.asMap(json['bank']) ??
+        ResponseParser.asMap(business['bankAccount']) ??
+        ResponseParser.asMap(user['bankAccount']) ??
         const <String, dynamic>{};
 
     return UserProfile(
-      id: _str(user['id']) ?? _str(json['id']) ?? '',
+      id: _str(user['id']) ??
+          _str(user['_id']) ??
+          _str(user['userId']) ??
+          _str(json['id']) ??
+          _str(json['_id']) ??
+          '',
       fullName: _str(user['name']) ??
           _str(user['fullName']) ??
           _str(json['name']) ??
@@ -30,9 +41,7 @@ abstract final class UserProfileMapper {
       profilePicture: _str(user['profilePicture']) ??
           _str(json['profilePicture']) ??
           '',
-      isVerified: user['isVerified'] as bool? ??
-          json['isVerified'] as bool? ??
-          true,
+      isVerified: parseAccountVerified(user) && parseAccountVerified(json),
       companyName: _str(business['companyName']),
       addressLine1: _str(business['addressLine1']),
       addressLine2: _str(business['addressLine2']),
@@ -63,12 +72,12 @@ abstract final class UserProfileMapper {
     );
   }
 
-  static Map<String, dynamic>? _asMap(Object? value) {
-    if (value is Map<String, dynamic>) return value;
-    if (value is Map) {
-      return value.map((k, v) => MapEntry(k.toString(), v));
-    }
-    return null;
+  static UserProfile? fromResponse(Map<String, dynamic>? root) {
+    final entity = ResponseParser.entity(root);
+    if (entity == null) return null;
+    final profile = fromJson(entity);
+    if (profile.id.isEmpty && profile.email.isEmpty) return null;
+    return profile;
   }
 
   static String? _str(Object? value) {

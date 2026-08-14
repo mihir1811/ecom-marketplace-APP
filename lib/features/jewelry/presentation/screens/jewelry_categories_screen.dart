@@ -1,72 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/error/failure.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_empty_state.dart';
+import '../../../../core/widgets/catalog_error_state.dart';
+import '../../application/jewellery_categories_provider.dart';
+import '../../domain/models/jewellery_category_admin.dart';
+import '../jewellery_category_images.dart';
 
-class JewelryMainCategory {
-  const JewelryMainCategory({
-    required this.title,
-    required this.filterValue,
-    required this.imageAsset,
-    required this.styleCount,
-  });
-
-  final String title;
-  final String filterValue;
-  final String imageAsset;
-  final int styleCount;
-}
-
-const jewelryMainCategories = [
-  JewelryMainCategory(
-    title: 'Accessories',
-    filterValue: 'All Accessories',
-    imageAsset: 'public/images/jewelryCategoryImages/set.webp',
-    styleCount: 8,
-  ),
-  JewelryMainCategory(
-    title: 'Bracelet',
-    filterValue: 'Bracelets',
-    imageAsset: 'public/images/jewelryCategoryImages/bracelet.webp',
-    styleCount: 5,
-  ),
-  JewelryMainCategory(
-    title: 'Chains',
-    filterValue: 'Chains',
-    imageAsset: 'public/images/jewelryCategoryImages/necklace.webp',
-    styleCount: 1,
-  ),
-  JewelryMainCategory(
-    title: 'Earrings',
-    filterValue: 'Earrings',
-    imageAsset: 'public/images/jewelryCategoryImages/earrings.webp',
-    styleCount: 4,
-  ),
-  JewelryMainCategory(
-    title: 'Necklace',
-    filterValue: 'Necklaces',
-    imageAsset: 'public/images/jewelryCategoryImages/necklace.webp',
-    styleCount: 4,
-  ),
-  JewelryMainCategory(
-    title: 'Ring',
-    filterValue: 'Rings',
-    imageAsset: 'public/images/jewelryCategoryImages/ring.webp',
-    styleCount: 6,
-  ),
-];
-
-/// Landing shown from Browse Collection — main category grid.
-class JewelryCategoriesScreen extends StatelessWidget {
+/// Landing shown from Browse Collection — main category grid from the API.
+class JewelryCategoriesScreen extends ConsumerWidget {
   const JewelryCategoriesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categories = ref.watch(jewelleryCategoriesProvider);
+
     return AppScaffold(
       backgroundColor: AppColors.creamBg,
       appBar: AppBar(
@@ -90,50 +47,70 @@ class JewelryCategoriesScreen extends StatelessWidget {
         ),
         actions: const [],
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s16,
-                AppSpacing.s8,
-                AppSpacing.s16,
-                AppSpacing.s16,
-              ),
-              child: Text(
-                'Shop by category',
-                style: AppTypography.title.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
+      body: categories.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+        error: (error, _) => CatalogErrorState(
+          message: error is Failure
+              ? error.message
+              : 'Could not load jewelry categories.',
+          onRetry: () => ref.invalidate(jewelleryCategoriesProvider),
+        ),
+        data: (items) {
+          if (items.isEmpty) {
+            return const CatalogEmptyState(
+              icon: Icons.diamond_outlined,
+              title: 'No categories yet',
+              message: 'Jewelry categories will appear here when available.',
+            );
+          }
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s16,
+                    AppSpacing.s8,
+                    AppSpacing.s16,
+                    AppSpacing.s16,
+                  ),
+                  child: Text(
+                    'Shop by category',
+                    style: AppTypography.title.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: AppSpacing.s12,
-                mainAxisSpacing: AppSpacing.s12,
-                childAspectRatio: 0.78,
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: AppSpacing.s12,
+                    mainAxisSpacing: AppSpacing.s12,
+                    childAspectRatio: 0.78,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final category = items[index];
+                      return _CategoryCard(
+                        category: category,
+                        onTap: () => context.push(
+                          '${AppRouteNames.jewelryListing}?category=${Uri.encodeComponent(category.name)}',
+                        ),
+                      );
+                    },
+                    childCount: items.length,
+                  ),
+                ),
               ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final category = jewelryMainCategories[index];
-                  return _CategoryCard(
-                    category: category,
-                    onTap: () => context.push(
-                      '${AppRouteNames.jewelryListing}?category=${Uri.encodeComponent(category.filterValue)}',
-                    ),
-                  );
-                },
-                childCount: jewelryMainCategories.length,
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
-        ],
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
+            ],
+          );
+        },
       ),
     );
   }
@@ -145,7 +122,7 @@ class _CategoryCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final JewelryMainCategory category;
+  final JewelleryCategoryAdmin category;
   final VoidCallback onTap;
 
   @override
@@ -153,6 +130,10 @@ class _CategoryCard extends StatelessWidget {
     final bg = AppColors.warmWhite;
     final border = AppColors.warmBorder;
     final muted = AppColors.textMutedLight;
+    final styleCount =
+        category.subcategories.where((s) => s.isActive).length;
+    final asset = JewelleryCategoryImages.assetFor(category.name);
+    final networkUrl = JewelleryCategoryImages.absoluteUrl(category.imageUrl);
 
     return GestureDetector(
       onTap: onTap,
@@ -168,18 +149,34 @@ class _CategoryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Image.asset(
-                category.imageAsset,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => ColoredBox(
-                  color: AppColors.sandSurface,
-                  child: const Icon(
-                    Icons.diamond_outlined,
-                    color: AppColors.bronze,
-                    size: 36,
-                  ),
-                ),
-              ),
+              child: networkUrl == null
+                  ? Image.asset(
+                      asset,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const ColoredBox(
+                        color: AppColors.sandSurface,
+                        child: Icon(
+                          Icons.diamond_outlined,
+                          color: AppColors.bronze,
+                          size: 36,
+                        ),
+                      ),
+                    )
+                  : AppNetworkImage(
+                      url: networkUrl,
+                      error: Image.asset(
+                        asset,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const ColoredBox(
+                          color: AppColors.sandSurface,
+                          child: Icon(
+                            Icons.diamond_outlined,
+                            color: AppColors.bronze,
+                            size: 36,
+                          ),
+                        ),
+                      ),
+                    ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -191,7 +188,9 @@ class _CategoryCard extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    category.title,
+                    category.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: AppTypography.label.copyWith(
                       fontWeight: FontWeight.w700,
@@ -200,7 +199,9 @@ class _CategoryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${category.styleCount} styles',
+                    '$styleCount ${styleCount == 1 ? 'style' : 'styles'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: AppTypography.caption.copyWith(
                       color: muted,

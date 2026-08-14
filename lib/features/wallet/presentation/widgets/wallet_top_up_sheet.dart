@@ -18,6 +18,7 @@ class WalletTopUpSheet extends ConsumerStatefulWidget {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: AppColors.warmWhite,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(

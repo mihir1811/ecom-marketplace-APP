@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/auth/account_access.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -42,6 +43,7 @@ class CartCheckoutButton extends ConsumerWidget {
     WidgetRef ref, {
     required double payableInr,
   }) async {
+    if (!AccountAccess.guard(context, ref)) return;
     final result = await ref
         .read(paymentCheckoutProvider.notifier)
         .checkout(payableInr: payableInr);

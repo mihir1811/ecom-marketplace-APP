@@ -11,6 +11,7 @@ abstract class AuthTokenStore {
     String? sellerId,
     String? userName,
     String? role,
+    bool? isVerified,
     required bool rememberDevice,
   });
 
@@ -19,6 +20,9 @@ abstract class AuthTokenStore {
   Future<String?> readSellerId();
   Future<String?> readUserName();
   Future<String?> readRole();
+  Future<bool?> readIsVerified();
+  Future<String?> readSellerAccountSnapshot();
+  Future<void> saveSellerAccountSnapshot(String? json);
   Future<bool> readRememberDevice();
   Future<void> clear();
 }
@@ -43,6 +47,8 @@ class SecureAuthTokenStore implements AuthTokenStore {
   static const _sellerId = 'gw.auth.sellerId';
   static const _userName = 'gw.auth.userName';
   static const _role = 'gw.auth.role';
+  static const _isVerified = 'gw.auth.isVerified';
+  static const _sellerSnapshot = 'gw.auth.sellerSnapshot';
   static const _rememberDevice = 'gw.auth.rememberDevice';
 
   final FlutterSecureStorage _storage;
@@ -52,6 +58,8 @@ class SecureAuthTokenStore implements AuthTokenStore {
   String? _cachedSellerId;
   String? _cachedUserName;
   String? _cachedRole;
+  bool? _cachedIsVerified;
+  String? _cachedSellerSnapshot;
   bool? _cachedRememberDevice;
   bool _hydrated = false;
 
@@ -62,6 +70,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
     String? sellerId,
     String? userName,
     String? role,
+    bool? isVerified,
     required bool rememberDevice,
   }) async {
     _cachedAccessToken = accessToken;
@@ -71,6 +80,9 @@ class SecureAuthTokenStore implements AuthTokenStore {
     _cachedUserName =
         userName != null && userName.isNotEmpty ? userName : null;
     _cachedRole = role != null && role.isNotEmpty ? role : null;
+    if (isVerified != null) {
+      _cachedIsVerified = isVerified;
+    }
     _cachedRememberDevice = true;
     _hydrated = true;
 
@@ -81,6 +93,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
       sellerId: _cachedSellerId,
       userName: _cachedUserName,
       role: _cachedRole,
+      isVerified: _cachedIsVerified,
       rememberDevice: true,
     );
   }
@@ -116,6 +129,26 @@ class SecureAuthTokenStore implements AuthTokenStore {
   }
 
   @override
+  Future<bool?> readIsVerified() async {
+    await _ensureHydrated();
+    return _cachedIsVerified;
+  }
+
+  @override
+  Future<String?> readSellerAccountSnapshot() async {
+    await _ensureHydrated();
+    return _cachedSellerSnapshot;
+  }
+
+  @override
+  Future<void> saveSellerAccountSnapshot(String? json) async {
+    await _ensureHydrated();
+    final value = json != null && json.trim().isNotEmpty ? json.trim() : null;
+    _cachedSellerSnapshot = value;
+    await _writeSellerSnapshot(value);
+  }
+
+  @override
   Future<bool> readRememberDevice() async {
     await _ensureHydrated();
     return _cachedRememberDevice ?? false;
@@ -128,6 +161,8 @@ class SecureAuthTokenStore implements AuthTokenStore {
     _cachedSellerId = null;
     _cachedUserName = null;
     _cachedRole = null;
+    _cachedIsVerified = null;
+    _cachedSellerSnapshot = null;
     _cachedRememberDevice = null;
     _hydrated = true;
     await _clearPersisted();
@@ -146,6 +181,11 @@ class SecureAuthTokenStore implements AuthTokenStore {
     _cachedSellerId = source[_sellerId];
     _cachedUserName = source[_userName];
     _cachedRole = source[_role];
+    final verifiedRaw = source[_isVerified];
+    _cachedIsVerified = verifiedRaw == null
+        ? null
+        : verifiedRaw == 'true';
+    _cachedSellerSnapshot = source[_sellerSnapshot];
     _cachedRememberDevice = source[_rememberDevice] == 'true';
   }
 
@@ -168,6 +208,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
     String? sellerId,
     String? userName,
     String? role,
+    bool? isVerified,
     required bool rememberDevice,
   }) async {
     if (kIsWeb) {
@@ -177,6 +218,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
         sellerId: sellerId,
         userName: userName,
         role: role,
+        isVerified: isVerified,
         rememberDevice: rememberDevice,
       );
       return;
@@ -199,6 +241,10 @@ class SecureAuthTokenStore implements AuthTokenStore {
           _storage.write(key: _role, value: role)
         else
           _storage.delete(key: _role),
+        if (isVerified != null)
+          _storage.write(key: _isVerified, value: isVerified.toString())
+        else
+          _storage.delete(key: _isVerified),
       ]);
     } catch (e, st) {
       assert(() {
@@ -212,6 +258,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
         sellerId: sellerId,
         userName: userName,
         role: role,
+        isVerified: isVerified,
         rememberDevice: rememberDevice,
       );
     }
@@ -223,6 +270,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
     String? sellerId,
     String? userName,
     String? role,
+    bool? isVerified,
     required bool rememberDevice,
   }) async {
     try {
@@ -245,11 +293,56 @@ class SecureAuthTokenStore implements AuthTokenStore {
       } else {
         await prefs.remove(_role);
       }
+      if (isVerified != null) {
+        await prefs.setString(_isVerified, isVerified.toString());
+      } else {
+        await prefs.remove(_isVerified);
+      }
     } catch (e, st) {
       assert(() {
         debugPrint('AuthTokenStore.prefs write failed: $e\n$st');
         return true;
       }());
+    }
+  }
+
+  Future<void> _writeSellerSnapshot(String? json) async {
+    if (kIsWeb) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        if (json == null) {
+          await prefs.remove(_sellerSnapshot);
+        } else {
+          await prefs.setString(_sellerSnapshot, json);
+        }
+      } catch (e, st) {
+        assert(() {
+          debugPrint('AuthTokenStore.sellerSnapshot prefs write failed: $e\n$st');
+          return true;
+        }());
+      }
+      return;
+    }
+
+    try {
+      if (json == null) {
+        await _storage.delete(key: _sellerSnapshot);
+      } else {
+        await _storage.write(key: _sellerSnapshot, value: json);
+      }
+    } catch (e, st) {
+      assert(() {
+        debugPrint('AuthTokenStore.sellerSnapshot secure write failed: $e\n$st');
+        return true;
+      }());
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        if (json == null) {
+          await prefs.remove(_sellerSnapshot);
+        } else {
+          await prefs.setString(_sellerSnapshot, json);
+        }
+      } catch (_) {}
     }
   }
 
@@ -262,6 +355,8 @@ class SecureAuthTokenStore implements AuthTokenStore {
         _storage.read(key: _sellerId),
         _storage.read(key: _userName),
         _storage.read(key: _role),
+        _storage.read(key: _isVerified),
+        _storage.read(key: _sellerSnapshot),
         _storage.read(key: _rememberDevice),
       ]);
       return {
@@ -270,7 +365,9 @@ class SecureAuthTokenStore implements AuthTokenStore {
         _sellerId: values[2],
         _userName: values[3],
         _role: values[4],
-        _rememberDevice: values[5],
+        _isVerified: values[5],
+        _sellerSnapshot: values[6],
+        _rememberDevice: values[7],
       };
     } catch (e, st) {
       assert(() {
@@ -290,6 +387,8 @@ class SecureAuthTokenStore implements AuthTokenStore {
         _sellerId: prefs.getString(_sellerId),
         _userName: prefs.getString(_userName),
         _role: prefs.getString(_role),
+        _isVerified: prefs.getString(_isVerified),
+        _sellerSnapshot: prefs.getString(_sellerSnapshot),
         _rememberDevice: prefs.getString(_rememberDevice),
       };
     } catch (e, st) {
@@ -320,6 +419,8 @@ class SecureAuthTokenStore implements AuthTokenStore {
         prefs.remove(_sellerId),
         prefs.remove(_userName),
         prefs.remove(_role),
+        prefs.remove(_isVerified),
+        prefs.remove(_sellerSnapshot),
         prefs.remove(_rememberDevice),
       ]);
     } catch (e, st) {

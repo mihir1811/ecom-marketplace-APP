@@ -120,7 +120,14 @@ class JewelryFilterState {
 
   static String parentCategoryOrDefault(String? category) {
     if (category == null || category.isEmpty) return 'All Accessories';
-    if (parentCategories.contains(category)) return category;
+    final mapped = switch (category.trim()) {
+      'Ring' => 'Rings',
+      'Earring' => 'Earrings',
+      'Bracelet' => 'Bracelets',
+      'Necklace' => 'Necklaces',
+      _ => category.trim(),
+    };
+    if (parentCategories.contains(mapped)) return mapped;
     return 'All Accessories';
   }
 

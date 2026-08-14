@@ -14,6 +14,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../../payment/domain/models/payment_models.dart';
 import '../../../refunds/application/refund_providers.dart';
 import '../../../tracking/application/order_shipments_provider.dart';
@@ -352,7 +353,7 @@ class _OrderRefundSection extends ConsumerWidget {
     required String sellerName,
   }) async {
     final reasonController = TextEditingController();
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Refund · $sellerName'),

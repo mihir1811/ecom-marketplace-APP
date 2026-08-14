@@ -9,6 +9,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../../refunds/application/refund_providers.dart';
 import '../../../refunds/domain/models/refund_request.dart';
 import '../../data/seller_orders_mock_data.dart';
@@ -611,7 +612,7 @@ class _RefundCard extends ConsumerWidget {
     WidgetRef ref,
     String id,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Accept refund?'),
@@ -650,7 +651,7 @@ class _RefundCard extends ConsumerWidget {
     String id,
   ) async {
     final noteController = TextEditingController();
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Reject refund'),

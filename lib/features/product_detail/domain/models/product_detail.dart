@@ -358,6 +358,25 @@ class ProductDetail {
     return populated;
   }
 
+  /// Specs shown to the current viewer.
+  ///
+  /// Seller identity / contact rows are seller-account-only — individual
+  /// (buyer) accounts never see them, even when verified.
+  List<ProductSpecSection> specsForViewer({required bool isSeller}) {
+    if (isSeller) return orderedSpecs;
+    return orderedSpecs
+        .map(
+          (section) => ProductSpecSection(
+            section.group,
+            section.specs
+                .where((spec) => !_isSellerRestrictedSpec(spec.label))
+                .toList(growable: false),
+          ),
+        )
+        .where((section) => section.specs.isNotEmpty)
+        .toList(growable: false);
+  }
+
   bool get isPurchasable =>
       availability?.tone != ProductStockTone.unavailable;
 
@@ -383,5 +402,14 @@ class ProductDetail {
       imageAsset: media.firstAssetPath,
     );
   }
+}
 
+bool _isSellerRestrictedSpec(String label) {
+  final normalized = label.trim().toLowerCase();
+  return normalized == 'seller' ||
+      normalized.startsWith('seller ') ||
+      normalized == 'company name' ||
+      normalized == 'seller company' ||
+      normalized == 'contact' ||
+      normalized == 'seller contact';
 }

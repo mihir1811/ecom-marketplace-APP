@@ -5,6 +5,7 @@ import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../domain/models/payment_models.dart';
 import '../../../seller/application/seller_reviews_provider.dart';
 import '../../../seller/domain/models/seller_review.dart';
@@ -15,7 +16,7 @@ Future<bool> showPaymentSuccessDialog(
   BuildContext context, {
   required PaymentOrder order,
 }) async {
-  final result = await showDialog<bool>(
+  final result = await showAppDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => PaymentSuccessDialog(order: order),

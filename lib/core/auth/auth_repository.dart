@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -371,14 +373,19 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  Future<void> _persist(AuthSession session) {
-    return _tokenStore.saveSession(
+  Future<void> _persist(AuthSession session) async {
+    await _tokenStore.saveSession(
       accessToken: session.accessToken,
       userId: session.user.id,
       sellerId: session.sellerId,
       userName: session.user.username,
       role: session.user.role,
+      isVerified: session.user.isVerified,
       rememberDevice: session.rememberDevice,
+    );
+    final snap = session.user.sellerAccount;
+    await _tokenStore.saveSellerAccountSnapshot(
+      snap == null || !snap.hasAnyField ? null : jsonEncode(snap.toJson()),
     );
   }
 
