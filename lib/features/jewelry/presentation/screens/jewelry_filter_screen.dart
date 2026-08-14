@@ -338,6 +338,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                         ),
                         child: TextField(
                           onChanged: (v) => setState(() => _stoneSearch = v),
+                          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                           decoration: InputDecoration(
                             hintText: 'Search...',
                             prefixIcon: const Icon(Icons.search, size: 20),

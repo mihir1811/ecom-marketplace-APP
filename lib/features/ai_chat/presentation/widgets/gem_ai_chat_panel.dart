@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/keyboard_aware.dart';
 import '../../application/ai_chat_providers.dart';
 import '../../domain/models/ai_chat_language.dart';
 import '../../domain/models/ai_chat_message.dart';
@@ -72,16 +73,24 @@ class _GemAiChatPanelState extends ConsumerState<GemAiChatPanel> {
 
     final size = MediaQuery.sizeOf(context);
     final padding = MediaQuery.paddingOf(context);
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
     final panelWidth = size.width < 520 ? size.width - 24.0 : 400.0;
-    final bottomGap = padding.bottom + 88;
-    final panelHeight = (size.height - bottomGap - padding.top - 24)
-        .clamp(280.0, size.height * 0.78);
+    final bottomGap = AppKeyboard.overlayBottomGap(
+      keyboardInset: keyboard,
+      safeBottom: padding.bottom,
+    );
+    final panelHeight = (size.height - bottomGap - padding.top - 24).clamp(
+      200.0,
+      size.height * 0.78,
+    );
 
     return Material(
       type: MaterialType.transparency,
       child: Align(
         alignment: Alignment.bottomRight,
-        child: Padding(
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
           padding: EdgeInsets.fromLTRB(
             AppSpacing.s16,
             AppSpacing.s16,
@@ -242,7 +251,9 @@ class _Header extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.bronze.withValues(alpha: 0.25),
-              border: Border.all(color: AppColors.bronzeLight.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: AppColors.bronzeLight.withValues(alpha: 0.5),
+              ),
             ),
             child: const Icon(
               Icons.auto_awesome_rounded,
@@ -284,7 +295,10 @@ class _Header extends StatelessWidget {
           ),
           IconButton(
             onPressed: onNewChat,
-            icon: const Icon(Icons.add_comment_outlined, color: AppColors.warmWhite),
+            icon: const Icon(
+              Icons.add_comment_outlined,
+              color: AppColors.warmWhite,
+            ),
           ),
           IconButton(
             onPressed: onClose,
@@ -354,10 +368,7 @@ class _LanguageDropdownButton extends StatelessWidget {
 }
 
 class _LanguageMenuPanel extends StatelessWidget {
-  const _LanguageMenuPanel({
-    required this.language,
-    required this.onSelect,
-  });
+  const _LanguageMenuPanel({required this.language, required this.onSelect});
 
   final AiChatLanguage language;
   final ValueChanged<AiChatLanguage> onSelect;
@@ -376,8 +387,7 @@ class _LanguageMenuPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var i = 0; i < AiChatLanguage.values.length; i++) ...[
-              if (i > 0)
-                const Divider(height: 1, color: AppColors.warmBorder),
+              if (i > 0) const Divider(height: 1, color: AppColors.warmBorder),
               _LanguageMenuItem(
                 language: AiChatLanguage.values[i],
                 selected: AiChatLanguage.values[i] == language,
@@ -611,8 +621,9 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.s16),
       child: Column(
-        crossAxisAlignment:
-            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.stretch,
+        crossAxisAlignment: isUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.stretch,
         children: [
           Align(
             alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -629,10 +640,12 @@ class _MessageBubble extends StatelessWidget {
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(AppSpacing.r16),
                     topRight: const Radius.circular(AppSpacing.r16),
-                    bottomLeft:
-                        Radius.circular(isUser ? AppSpacing.r16 : AppSpacing.r4),
-                    bottomRight:
-                        Radius.circular(isUser ? AppSpacing.r4 : AppSpacing.r16),
+                    bottomLeft: Radius.circular(
+                      isUser ? AppSpacing.r16 : AppSpacing.r4,
+                    ),
+                    bottomRight: Radius.circular(
+                      isUser ? AppSpacing.r4 : AppSpacing.r16,
+                    ),
                   ),
                 ),
                 child: Column(
@@ -729,9 +742,9 @@ class _HistoryView extends StatelessWidget {
                         loading
                             ? 'Loading sessions…'
                             : sessions.isEmpty
-                                ? 'No conversations yet'
-                                : '${sessions.length} conversation'
-                                    '${sessions.length == 1 ? '' : 's'}',
+                            ? 'No conversations yet'
+                            : '${sessions.length} conversation'
+                                  '${sessions.length == 1 ? '' : 's'}',
                         style: AppTypography.caption.copyWith(
                           color: AppColors.textSecondaryLight,
                         ),
@@ -746,60 +759,60 @@ class _HistoryView extends StatelessWidget {
             child: loading
                 ? const Center(child: CircularProgressIndicator())
                 : sessions.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.s32),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 64,
-                                height: 64,
-                                decoration: BoxDecoration(
-                                  color: AppColors.bronze.withValues(alpha: 0.12),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.forum_outlined,
-                                  color: AppColors.bronze,
-                                  size: 28,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.s16),
-                              Text(
-                                'No saved chats',
-                                style: AppTypography.title.copyWith(fontSize: 15),
-                              ),
-                              const SizedBox(height: AppSpacing.s8),
-                              Text(
-                                'Start a conversation and it will appear here for quick reopen.',
-                                textAlign: TextAlign.center,
-                                style: AppTypography.body.copyWith(
-                                  color: AppColors.textSecondaryLight,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.s32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              color: AppColors.bronze.withValues(alpha: 0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.forum_outlined,
+                              color: AppColors.bronze,
+                              size: 28,
+                            ),
                           ),
-                        ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.s16,
-                          AppSpacing.s4,
-                          AppSpacing.s16,
-                          AppSpacing.s24,
-                        ),
-                        itemCount: sessions.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: AppSpacing.s12),
-                        itemBuilder: (context, index) {
-                          return _HistorySessionCard(
-                            session: sessions[index],
-                            onOpen: onOpen,
-                          );
-                        },
+                          const SizedBox(height: AppSpacing.s16),
+                          Text(
+                            'No saved chats',
+                            style: AppTypography.title.copyWith(fontSize: 15),
+                          ),
+                          const SizedBox(height: AppSpacing.s8),
+                          Text(
+                            'Start a conversation and it will appear here for quick reopen.',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.body.copyWith(
+                              color: AppColors.textSecondaryLight,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.s16,
+                      AppSpacing.s4,
+                      AppSpacing.s16,
+                      AppSpacing.s24,
+                    ),
+                    itemCount: sessions.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: AppSpacing.s12),
+                    itemBuilder: (context, index) {
+                      return _HistorySessionCard(
+                        session: sessions[index],
+                        onOpen: onOpen,
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -808,17 +821,16 @@ class _HistoryView extends StatelessWidget {
 }
 
 class _HistorySessionCard extends StatelessWidget {
-  const _HistorySessionCard({
-    required this.session,
-    required this.onOpen,
-  });
+  const _HistorySessionCard({required this.session, required this.onOpen});
 
   final AiChatSessionSummary session;
   final ValueChanged<String> onOpen;
 
   @override
   Widget build(BuildContext context) {
-    final title = session.title.trim().isEmpty ? 'Untitled chat' : session.title;
+    final title = session.title.trim().isEmpty
+        ? 'Untitled chat'
+        : session.title;
     final preview = session.preview.trim().isEmpty
         ? 'No message preview'
         : session.preview.trim();
@@ -857,8 +869,9 @@ class _HistorySessionCard extends StatelessWidget {
                             height: 34,
                             decoration: BoxDecoration(
                               color: AppColors.sandSurface,
-                              borderRadius:
-                                  BorderRadius.circular(AppSpacing.r12),
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.r12,
+                              ),
                             ),
                             child: const Icon(
                               Icons.chat_bubble_outline_rounded,
@@ -885,9 +898,12 @@ class _HistorySessionCard extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.charcoal.withValues(alpha: 0.08),
-                                borderRadius:
-                                    BorderRadius.circular(AppSpacing.r20),
+                                color: AppColors.charcoal.withValues(
+                                  alpha: 0.08,
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.r20,
+                                ),
                               ),
                               child: Text(
                                 '${session.messageCount} msg'
@@ -919,8 +935,9 @@ class _HistorySessionCard extends StatelessWidget {
                             Icon(
                               Icons.schedule_rounded,
                               size: 13,
-                              color: AppColors.textSecondaryLight
-                                  .withValues(alpha: 0.8),
+                              color: AppColors.textSecondaryLight.withValues(
+                                alpha: 0.8,
+                              ),
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -934,8 +951,9 @@ class _HistorySessionCard extends StatelessWidget {
                             Icon(
                               Icons.chevron_right_rounded,
                               size: 18,
-                              color: AppColors.textSecondaryLight
-                                  .withValues(alpha: 0.7),
+                              color: AppColors.textSecondaryLight.withValues(
+                                alpha: 0.7,
+                              ),
                             ),
                           ],
                         ),
@@ -1011,7 +1029,11 @@ class _Composer extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: AppSpacing.s8),
                 child: Row(
                   children: [
-                    const Icon(Icons.image_outlined, size: 16, color: AppColors.bronze),
+                    const Icon(
+                      Icons.image_outlined,
+                      size: 16,
+                      color: AppColors.bronze,
+                    ),
                     const SizedBox(width: AppSpacing.s8),
                     Expanded(
                       child: Text(
@@ -1047,6 +1069,7 @@ class _Composer extends StatelessWidget {
                     minLines: 1,
                     maxLines: 4,
                     textInputAction: TextInputAction.send,
+                    scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                     onSubmitted: (_) {
                       if (enabled) onSend();
                     },
@@ -1064,11 +1087,15 @@ class _Composer extends StatelessWidget {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSpacing.r20),
-                        borderSide: const BorderSide(color: AppColors.warmBorder),
+                        borderSide: const BorderSide(
+                          color: AppColors.warmBorder,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSpacing.r20),
-                        borderSide: const BorderSide(color: AppColors.warmBorder),
+                        borderSide: const BorderSide(
+                          color: AppColors.warmBorder,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSpacing.r20),

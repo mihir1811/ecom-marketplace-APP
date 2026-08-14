@@ -173,13 +173,17 @@ class CartNotifier extends Notifier<CartState> {
 
     ref.listen(authProvider, (prev, next) {
       if (next.isAuthenticated) {
+        // Prefer light only when coming from signed-out; avoid stacking a
+        // second fetch if a full/merchandise load is already running.
         refresh(mode: CartLoadMode.light);
       } else if (prev?.isAuthenticated == true && !next.isAuthenticated) {
         state = const CartState();
       }
     });
 
-    Future.microtask(() {
+    // Defer light bootstrap one event-loop turn so CartScreen's full refresh
+    // microtask (scheduled in initState) can claim in-flight first.
+    Future(() {
       if (ref.read(authProvider).isAuthenticated) {
         refresh(mode: CartLoadMode.light);
       }
@@ -189,6 +193,7 @@ class CartNotifier extends Notifier<CartState> {
   }
 
   /// Loads cart data. Concurrent identical/weaker loads join the in-flight one.
+  /// A stronger mode cancels a weaker in-flight load and replaces it.
   Future<void> refresh({
     CartLoadMode mode = CartLoadMode.full,
     bool force = false,
@@ -198,14 +203,21 @@ class CartNotifier extends Notifier<CartState> {
       return;
     }
 
-    if (!force &&
-        _inFlight != null &&
-        _inFlightMode != null &&
-        !_isStrongerMode(mode, _inFlightMode!)) {
-      return _inFlight!;
+    if (_inFlight != null && _inFlightMode != null) {
+      final inFlight = _inFlight!;
+      final inFlightMode = _inFlightMode!;
+
+      // Same or weaker → share the existing request (no second network round).
+      if (!force && !_isStrongerMode(mode, inFlightMode)) {
+        return inFlight;
+      }
+
+      // Stronger (or forced) → cancel weaker work and start fresh below.
+      if (_isStrongerMode(mode, inFlightMode) || force) {
+        _loadToken?.cancel('cart-load-upgrade');
+      }
     }
 
-    _loadToken?.cancel();
     final token = CancelToken();
     _loadToken = token;
 

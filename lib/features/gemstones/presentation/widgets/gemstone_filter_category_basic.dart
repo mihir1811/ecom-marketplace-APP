@@ -166,6 +166,7 @@ class _GemstoneFilterCategoryBasicState
                   ),
                   child: TextField(
                     onChanged: (val) => setState(() => _typeSearchQuery = val),
+                    scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                     decoration: InputDecoration(
                       hintText: 'Search gemstone types...',
                       hintStyle: AppTypography.caption.copyWith(

@@ -206,9 +206,10 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           _handleMinSubmitted(_minController.text);
                         }
                       },
-                      child: TextField(
-                        controller: _minController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        child: TextField(
+                          controller: _minController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                         style: AppTypography.body.copyWith(fontSize: 14),
                         decoration: InputDecoration(
                           hintText: _formatValue(widget.minLimit),
@@ -266,9 +267,10 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           _handleMaxSubmitted(_maxController.text);
                         }
                       },
-                      child: TextField(
-                        controller: _maxController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        child: TextField(
+                          controller: _maxController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                         style: AppTypography.body.copyWith(fontSize: 14),
                         decoration: InputDecoration(
                           hintText: _formatValue(widget.maxLimit),

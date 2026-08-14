@@ -92,7 +92,9 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
               padding: EdgeInsets.only(
                 left: AppSpacing.s16,
                 right: AppSpacing.s16,
-                bottom: MediaQuery.paddingOf(context).bottom + AppSpacing.s16,
+                bottom: MediaQuery.viewInsetsOf(context).bottom +
+                    MediaQuery.paddingOf(context).bottom +
+                    AppSpacing.s16,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

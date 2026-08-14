@@ -171,6 +171,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                       child: TextFormField(
                         controller: _minController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                         style: AppTypography.caption,
                         decoration: InputDecoration(
                           hintText: widget.minLimit.toStringAsFixed(1),
@@ -207,6 +208,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                       child: TextFormField(
                         controller: _maxController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                         style: AppTypography.caption,
                         decoration: InputDecoration(
                           hintText: widget.maxLimit.toStringAsFixed(1),

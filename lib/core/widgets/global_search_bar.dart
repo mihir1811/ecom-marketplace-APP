@@ -16,9 +16,7 @@ class GlobalSearchBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.warmWhite,
           borderRadius: BorderRadius.circular(AppSpacing.r20),
-          border: Border.all(
-            color: AppColors.warmBorder,
-          ),
+          border: Border.all(color: AppColors.warmBorder),
         ),
         child: TextField(
           decoration: InputDecoration(
@@ -35,7 +33,10 @@ class GlobalSearchBar extends StatelessWidget {
               vertical: AppSpacing.s8,
             ),
             prefixIcon: Padding(
-              padding: const EdgeInsets.only(left: AppSpacing.s12, right: AppSpacing.s8),
+              padding: const EdgeInsets.only(
+                left: AppSpacing.s12,
+                right: AppSpacing.s8,
+              ),
               child: Icon(
                 Icons.search,
                 color: AppColors.textMutedLight,
@@ -49,6 +50,7 @@ class GlobalSearchBar extends StatelessWidget {
           ),
           style: AppTypography.body.copyWith(color: textColor),
           textInputAction: TextInputAction.search,
+          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
           onSubmitted: (value) {},
         ),
       ),

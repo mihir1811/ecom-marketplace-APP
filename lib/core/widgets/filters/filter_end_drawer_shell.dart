@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import '../keyboard_aware.dart';
 
 /// Shared end-drawer chrome: width, header (Reset/Clear), sticky SHOW RESULTS.
 class FilterEndDrawerShell extends StatelessWidget {
@@ -33,84 +34,84 @@ class FilterEndDrawerShell extends StatelessWidget {
     return Drawer(
       width: drawerWidthFor(context),
       backgroundColor: AppColors.warmWhite,
-      child: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s20,
-                AppSpacing.s12,
-                AppSpacing.s8,
-                AppSpacing.s12,
+      child: AppKeyboardInset(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s20,
+                  AppSpacing.s12,
+                  AppSpacing.s8,
+                  AppSpacing.s12,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: AppTypography.title.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: onReset,
+                      child: Text(
+                        resetLabel,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.bronze,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Close',
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
+              const Divider(height: 1),
+              Expanded(child: body),
+              Container(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s16,
+                  AppSpacing.s12,
+                  AppSpacing.s16,
+                  AppSpacing.s16,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.warmWhite,
+                  border: Border(top: BorderSide(color: AppColors.warmBorder)),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.charcoal,
+                      foregroundColor: AppColors.warmWhite,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.r8),
+                      ),
+                    ),
+                    onPressed: onShowResults,
                     child: Text(
-                      title,
-                      style: AppTypography.title.copyWith(
+                      showResultsLabel,
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.warmWhite,
                         fontWeight: FontWeight.w700,
-                        fontSize: 20,
+                        letterSpacing: 0.6,
                       ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: onReset,
-                    child: Text(
-                      resetLabel,
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.bronze,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Close',
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(child: body),
-            Container(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s16,
-                AppSpacing.s12,
-                AppSpacing.s16,
-                AppSpacing.s16,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.warmWhite,
-                border: Border(
-                  top: BorderSide(color: AppColors.warmBorder),
-                ),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.charcoal,
-                    foregroundColor: AppColors.warmWhite,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    ),
-                  ),
-                  onPressed: onShowResults,
-                  child: Text(
-                    showResultsLabel,
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.warmWhite,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.6,
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

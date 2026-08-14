@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'keyboard_aware.dart';
+
 /// App-wide [Scaffold] that keeps the status/nav bars clear of content.
 ///
 /// - When an [appBar] is present, top inset is left to the app bar.
@@ -62,8 +64,8 @@ class AppScaffold extends StatelessWidget {
       appBar: appBar,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
-      drawer: drawer,
-      endDrawer: endDrawer,
+      drawer: drawer == null ? null : AppKeyboardInset(child: drawer!),
+      endDrawer: endDrawer == null ? null : AppKeyboardInset(child: endDrawer!),
       endDrawerEnableOpenDragGesture: endDrawerEnableOpenDragGesture,
       bottomNavigationBar: bottomNavigationBar == null
           ? null
@@ -75,7 +77,7 @@ class AppScaffold extends StatelessWidget {
               child: bottomNavigationBar!,
             ),
       backgroundColor: backgroundColor,
-      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset ?? true,
       extendBody: extendBody,
       extendBodyBehindAppBar: extendBodyBehindAppBar,
       body: body == null

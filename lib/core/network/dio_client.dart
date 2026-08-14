@@ -34,11 +34,23 @@ abstract final class DioClient {
     }
 
     if (kDebugMode) {
+      // One line per call (LogInterceptor prints request + response = looks 2x).
       dio.interceptors.add(
-        LogInterceptor(
-          requestBody: false,
-          responseBody: false,
-          error: true,
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            debugPrint('→ ${options.method} ${options.uri}');
+            handler.next(options);
+          },
+          onError: (err, handler) {
+            final cancelled = CancelToken.isCancel(err);
+            if (!cancelled) {
+              debugPrint(
+                '✖ ${err.requestOptions.method} ${err.requestOptions.uri} '
+                '(${err.response?.statusCode ?? err.type.name})',
+              );
+            }
+            handler.next(err);
+          },
         ),
       );
     }

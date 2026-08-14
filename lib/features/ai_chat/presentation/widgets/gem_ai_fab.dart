@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -54,8 +56,7 @@ class _GemAiFabState extends State<GemAiFab>
         animation: _pulse,
         builder: (context, child) {
           final t = Curves.easeInOut.transform(_pulse.value);
-          final scale =
-              (_dragging || widget.isOpen) ? 1.0 : 1.0 + 0.03 * t;
+          final scale = (_dragging || widget.isOpen) ? 1.0 : 1.0 + 0.03 * t;
           final glow = widget.isOpen ? 8.0 : 12.0 + 10.0 * t;
           return Transform.scale(
             scale: scale,
@@ -203,6 +204,13 @@ class GemAiDraggableFabHost extends StatelessWidget {
   final ValueChanged<Offset> onOffsetChanged;
   final void Function(Offset delta) onDragDelta;
 
+  static EdgeInsets barrierInsets(MediaQueryData media) {
+    final padding = media.padding;
+    return padding.copyWith(
+      bottom: math.max(padding.bottom, media.viewInsets.bottom),
+    );
+  }
+
   static Offset defaultOffset(Size screen, EdgeInsets padding) {
     const margin = 20.0;
     return Offset(
@@ -211,11 +219,7 @@ class GemAiDraggableFabHost extends StatelessWidget {
     );
   }
 
-  static Offset clampToScreen(
-    Offset raw,
-    Size screen,
-    EdgeInsets padding,
-  ) {
+  static Offset clampToScreen(Offset raw, Size screen, EdgeInsets padding) {
     final minX = padding.left + 8;
     final minY = padding.top + 8;
     final maxX = screen.width - padding.right - GemAiFab.size - 8;
@@ -230,7 +234,7 @@ class GemAiDraggableFabHost extends StatelessWidget {
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
     final screen = media.size;
-    final padding = media.padding;
+    final padding = barrierInsets(media);
     final resolved = clampToScreen(
       offset ?? defaultOffset(screen, padding),
       screen,

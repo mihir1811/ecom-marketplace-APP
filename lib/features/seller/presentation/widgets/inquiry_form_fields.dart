@@ -124,6 +124,7 @@ class InquiryTextField extends StatelessWidget {
         controller: controller,
         maxLines: maxLines,
         onChanged: onChanged,
+        scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
         decoration: inquiryInputDecoration(placeholder),
       ),
     );

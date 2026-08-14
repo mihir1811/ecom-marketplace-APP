@@ -23,11 +23,7 @@ import 'diamond_svg_data.dart';
 
 /// Horizontal list card matching [WatchCardList] layout with diamond data.
 class DiamondCardList extends ConsumerWidget {
-  const DiamondCardList({
-    required this.diamond,
-    super.key,
-    this.onTap,
-  });
+  const DiamondCardList({required this.diamond, super.key, this.onTap});
 
   final Diamond diamond;
   final VoidCallback? onTap;
@@ -53,9 +49,7 @@ class DiamondCardList extends ConsumerWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Positioned.fill(
-                  child: _DiamondListThumb(diamond: diamond),
-                ),
+                Positioned.fill(child: _DiamondListThumb(diamond: diamond)),
                 Positioned(
                   bottom: AppSpacing.s8,
                   left: AppSpacing.s8,
@@ -83,49 +77,36 @@ class DiamondCardList extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s16,
-                AppSpacing.s16,
-                AppSpacing.s16,
-                AppSpacing.s16,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: AppTypography.label.copyWith(
-                      color: textColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      height: 1.3,
+            child: SizedBox(
+              height: 140,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s16,
+                  AppSpacing.s16,
+                  AppSpacing.s16,
+                  AppSpacing.s16,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.label.copyWith(
+                        color: textColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: AppSpacing.cardLineGap),
-                  Text(
-                    detail,
-                    style: AppTypography.caption.copyWith(
-                      color: secondaryColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      height: 1.35,
-                    ),
-                    maxLines: 2,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (meta != null) ...[
                     const SizedBox(height: AppSpacing.cardLineGap),
                     Text(
-                      meta,
+                      detail,
                       style: AppTypography.caption.copyWith(
                         color: secondaryColor,
-                        fontSize: 11,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                         height: 1.35,
                       ),
@@ -133,32 +114,47 @@ class DiamondCardList extends ConsumerWidget {
                       softWrap: true,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                  const SizedBox(height: AppSpacing.cardPriceGap),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          AppCurrency.format(
-                            formatCatalogPrice(diamond.price),
-                          ),
-                          style: GoogleFonts.manrope(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ).copyWith(color: textColor),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                    if (meta != null) ...[
+                      const SizedBox(height: AppSpacing.cardLineGap),
+                      Text(
+                        meta,
+                        style: AppTypography.caption.copyWith(
+                          color: secondaryColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          height: 1.35,
                         ),
-                      ),
-                      const Icon(
-                        Icons.arrow_forward,
-                        size: 18,
-                        color: AppColors.bronze,
+                        maxLines: 2,
+                        softWrap: true,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                  ),
-                ],
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            AppCurrency.format(
+                              formatCatalogPrice(diamond.price),
+                            ),
+                            style: GoogleFonts.manrope(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                            ).copyWith(color: textColor),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 18,
+                          color: AppColors.bronze,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -201,11 +197,7 @@ class _ShapeFallback extends StatelessWidget {
     return ColoredBox(
       color: AppColors.sandSurface,
       child: Center(
-        child: renderShapeSvg(
-          shape,
-          size: size,
-          color: AppColors.bronze,
-        ),
+        child: renderShapeSvg(shape, size: size, color: AppColors.bronze),
       ),
     );
   }

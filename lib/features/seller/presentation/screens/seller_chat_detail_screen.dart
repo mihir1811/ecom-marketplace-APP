@@ -476,6 +476,7 @@ class _Composer extends StatelessWidget {
                       minLines: 1,
                       maxLines: 4,
                       textInputAction: TextInputAction.send,
+                      scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                       onSubmitted: (_) => onSend(),
                       decoration: InputDecoration(
                         hintText: 'Write a message',

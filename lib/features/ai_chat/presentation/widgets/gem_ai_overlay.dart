@@ -42,16 +42,14 @@ class _GemAiOverlayState extends ConsumerState<GemAiOverlay>
       curve: Curves.easeOutCubic,
       reverseCurve: Curves.easeInCubic,
     );
-    _slide = Tween<Offset>(
-      begin: const Offset(0.06, 0.14),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _anim,
-        curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeInCubic,
-      ),
-    );
+    _slide = Tween<Offset>(begin: const Offset(0.06, 0.14), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _anim,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          ),
+        );
     _scale = Tween<double>(begin: 0.94, end: 1).animate(
       CurvedAnimation(
         parent: _anim,
@@ -200,16 +198,15 @@ class _GemAiOverlayState extends ConsumerState<GemAiOverlay>
             onOffsetChanged: (next) => setState(() => _fabOffset = next),
             onDragDelta: (delta) {
               final media = MediaQuery.of(context);
-              final current = _fabOffset ??
-                  GemAiDraggableFabHost.defaultOffset(
-                    media.size,
-                    media.padding,
-                  );
+              final padding = GemAiDraggableFabHost.barrierInsets(media);
+              final current =
+                  _fabOffset ??
+                  GemAiDraggableFabHost.defaultOffset(media.size, padding);
               setState(() {
                 _fabOffset = GemAiDraggableFabHost.clampToScreen(
                   current + delta,
                   media.size,
-                  media.padding,
+                  padding,
                 );
               });
             },

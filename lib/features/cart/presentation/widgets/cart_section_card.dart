@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 
-/// Shared card chrome for cart address / promo blocks.
+/// Shared card chrome for cart address / promo / totals blocks.
+///
+/// Uses [Material] (not a colored [DecoratedBox]) so nested [ListTile]s can
+/// paint ink/selection on this ancestor without Flutter's visibility assert.
 class CartSectionCard extends StatelessWidget {
   const CartSectionCard({required this.child, super.key});
 
@@ -11,15 +14,17 @@ class CartSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+    return Material(
+      color: AppColors.warmWhite,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.r16),
-        border: Border.all(color: AppColors.warmBorder),
+        side: const BorderSide(color: AppColors.warmBorder),
       ),
-      child: child,
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.s16),
+        child: child,
+      ),
     );
   }
 }

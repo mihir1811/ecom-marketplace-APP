@@ -482,6 +482,7 @@ class _NumberField extends StatelessWidget {
           controller: controller,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: onChanged,
+          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
           decoration: InputDecoration(
             isDense: true,
             hintText: hintText,

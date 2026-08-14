@@ -25,7 +25,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Microtask (not post-frame): runs before CartNotifier's light bootstrap
+    // microtask joins this full load — avoids cancel+retry of the same APIs.
+    Future.microtask(() {
       if (!mounted) return;
       ref.read(cartProvider.notifier).refresh(mode: CartLoadMode.full);
     });
