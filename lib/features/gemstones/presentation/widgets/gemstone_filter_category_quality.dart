@@ -47,7 +47,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
             const FilterSectionHeader(title: 'Color'),
             const SizedBox(height: AppSpacing.s8),
             SizedBox(
-              height: 80,
+              height: 96,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: colors.length,

@@ -101,19 +101,18 @@ class HomeScreen extends ConsumerWidget {
               child: const Icon(Icons.shopping_bag_outlined),
             ),
           ),
-          if (auth.isAuthenticated && auth.isSeller)
-            TextButton.icon(
-              onPressed: () => context.go(AppRouteNames.sellerDashboard),
-              icon: const Icon(Icons.dashboard_outlined, size: 18),
-              label: Text(
-                'Dashboard',
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.charcoal,
-                ),
-              ),
-            )
-          else if (!auth.isAuthenticated)
+          if (auth.isAuthenticated && auth.isSeller) ...[
+            IconButton(
+              tooltip: 'Wallet',
+              onPressed: () => context.push(AppRouteNames.buyerWallet),
+              icon: const Icon(Icons.account_balance_wallet_outlined),
+            ),
+            IconButton(
+              tooltip: 'Messages',
+              onPressed: () => context.push(AppRouteNames.buyerMessages),
+              icon: const Icon(Icons.chat_bubble_outline),
+            ),
+          ] else if (!auth.isAuthenticated)
             TextButton(
               onPressed: () => context.push(AppRouteNames.login),
               child: Text(
@@ -151,7 +150,10 @@ class HomeScreen extends ConsumerWidget {
           Expanded(
             child: isSearching
                 ? const HomeSearchResultsList()
-                : _HomeBrowseBody(isAuthenticated: auth.isAuthenticated),
+                : _HomeBrowseBody(
+                    isAuthenticated: auth.isAuthenticated,
+                    isSeller: auth.isSeller,
+                  ),
           ),
         ],
       ),
@@ -159,13 +161,17 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _HomeBrowseBody extends StatelessWidget {
-  const _HomeBrowseBody({required this.isAuthenticated});
+class _HomeBrowseBody extends ConsumerWidget {
+  const _HomeBrowseBody({
+    required this.isAuthenticated,
+    required this.isSeller,
+  });
 
   final bool isAuthenticated;
+  final bool isSeller;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
@@ -214,13 +220,14 @@ class _HomeBrowseBody extends StatelessWidget {
             ),
           ),
         ),
-        if (!isAuthenticated) ...[
+        if (!isSeller) ...[
           const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
               child: _SellerBanner(
-                onTap: () => context.push(AppRouteNames.login),
+                isAuthenticatedIndividual: isAuthenticated,
+                onTap: () => _onSellTap(context, ref),
               ),
             ),
           ),
@@ -302,6 +309,39 @@ class _HomeBrowseBody extends StatelessWidget {
       ],
     );
   }
+
+  Future<void> _onSellTap(BuildContext context, WidgetRef ref) async {
+    if (!isAuthenticated) {
+      context.push('${AppRouteNames.register}?type=business');
+      return;
+    }
+
+    final goRegister = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Separate seller account required'),
+        content: const Text(
+          'Individual accounts cannot sell products. Create a new business '
+          'account with a different email to list and sell on GemWorld. '
+          'You will be signed out of this individual account first.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Not now'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Create seller account'),
+          ),
+        ],
+      ),
+    );
+    if (goRegister != true || !context.mounted) return;
+    await ref.read(authProvider.notifier).logout();
+    if (!context.mounted) return;
+    context.go('${AppRouteNames.register}?type=business');
+  }
 }
 
 class _HomeCategory {
@@ -319,9 +359,13 @@ class _HomeCategory {
 }
 
 class _SellerBanner extends StatelessWidget {
-  const _SellerBanner({required this.onTap});
+  const _SellerBanner({
+    required this.onTap,
+    required this.isAuthenticatedIndividual,
+  });
 
   final VoidCallback onTap;
+  final bool isAuthenticatedIndividual;
 
   @override
   Widget build(BuildContext context) {
@@ -351,7 +395,9 @@ class _SellerBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.s4),
                     Text(
-                      'Sign in to list diamonds, gems, and jewelry.',
+                      isAuthenticatedIndividual
+                          ? 'Selling needs a separate business account — not this individual login.'
+                          : 'Register a business account to list diamonds, gems, and jewelry.',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.bronzeLight,
                       ),

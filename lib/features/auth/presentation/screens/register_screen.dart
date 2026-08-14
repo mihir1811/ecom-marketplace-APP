@@ -17,7 +17,12 @@ import '../widgets/business_registration_fields.dart';
 
 /// Registration screen matching the provided UI reference.
 class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({super.key});
+  const RegisterScreen({
+    this.initialAccountType = RegistrationAccountType.individual,
+    super.key,
+  });
+
+  final RegistrationAccountType initialAccountType;
 
   @override
   ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
@@ -34,7 +39,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _businessFields = BusinessRegistrationFieldsController();
   late final TapGestureRecognizer _termsTapRecognizer;
 
-  RegistrationAccountType _accountType = RegistrationAccountType.individual;
+  late RegistrationAccountType _accountType = widget.initialAccountType;
   int _sellerStep = 0;
   bool _obscurePassword = true;
   bool _acceptTerms = false;
@@ -211,7 +216,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                       const SizedBox(height: AppSpacing.s16),
                       Text(
-                        'Choose how you want to join',
+                        'Account types are separate — individual buyers cannot sell on the same account.',
                         style: AppTypography.body.copyWith(
                           color: AppColors.textSecondaryLight,
                         ),
@@ -712,7 +717,8 @@ class _AccountTypeSelector extends StatelessWidget {
             enabled: enabled,
             icon: Icons.person_outline,
             title: 'For Individual',
-            subtitle: 'Buy and browse as a personal account',
+            subtitle:
+                'Buy and browse only — create a separate business account later to sell',
             onTap: () => onChanged(RegistrationAccountType.individual),
           ),
         ),
@@ -723,7 +729,8 @@ class _AccountTypeSelector extends StatelessWidget {
             enabled: enabled,
             icon: Icons.storefront_outlined,
             title: 'For Businesses',
-            subtitle: 'Business account to list and sell products',
+            subtitle:
+                'Dedicated seller account — cannot share an individual login',
             onTap: () => onChanged(RegistrationAccountType.business),
           ),
         ),

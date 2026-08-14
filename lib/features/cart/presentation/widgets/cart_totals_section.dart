@@ -7,11 +7,11 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
-import '../../../fees/application/fees_providers.dart';
-import '../../../fees/domain/models/fee_rule.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
 import '../../application/cart_provider.dart';
+import '../../application/fees_providers.dart';
 import '../../domain/models/cart_order_estimate.dart';
+import '../../domain/models/fee_rule.dart';
 import 'cart_section_card.dart';
 
 /// Order summary card — merchandise from API, fees from `GET /fees` (+ fallbacks).
@@ -24,12 +24,14 @@ class CartTotalsSection extends ConsumerWidget {
     final totals = ref.watch(cartTotalsProvider);
     final summary = ref.watch(cartSummaryProvider);
     final items = ref.watch(cartProvider.select((s) => s.items));
+    final availableItems = items.where((i) => i.isAvailable).toList();
+    final merchandiseUsd = ref.watch(cartAvailableMerchandiseUsdProvider);
     final fees = ref.watch(activeFeesProvider).valueOrNull ?? FeeRulesCatalog.empty;
     final wantVerification = ref.watch(
       paymentCheckoutProvider.select((s) => s.wantGemworldVerification),
     );
 
-    final lines = items
+    final lines = availableItems
         .map(
           (item) => CartLineForFees(
             productType: item.productType,
@@ -39,12 +41,22 @@ class CartTotalsSection extends ConsumerWidget {
         .toList();
 
     final estimate = CartOrderEstimate.compute(
-      merchandiseUsd: totals.discountedSubtotalUsd,
+      merchandiseUsd: merchandiseUsd,
       exchangeRate: totals.exchangeRate,
       wantVerification: wantVerification,
       fees: fees,
       lines: lines,
     );
+
+    final unavailableCount = items.length - availableItems.length;
+    final availableSubtotalUsd = availableItems.fold<double>(
+      0,
+      (sum, e) => sum + e.displayPriceUsd,
+    );
+    // Prefer API subtotal when it already matches available merchandise.
+    final showItemsSubtotal = totals.subtotalUsd > merchandiseUsd &&
+        totals.totalDiscountUsd > 0 &&
+        unavailableCount == 0;
 
     final gstLabel = estimate.gstRateLabel == null ||
             estimate.gstRateLabel == 'mixed'
@@ -67,8 +79,17 @@ class CartTotalsSection extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.s16),
-          if (totals.subtotalUsd > totals.discountedSubtotalUsd &&
-              totals.totalDiscountUsd > 0) ...[
+          if (unavailableCount > 0) ...[
+            Text(
+              '$unavailableCount unavailable item${unavailableCount == 1 ? '' : 's'} excluded from total',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s12),
+          ],
+          if (showItemsSubtotal) ...[
             _usdOnlyRow('Items subtotal', totals.subtotalUsd),
             if (totals.automaticDiscountUsd > 0)
               _usdOnlyRow(
@@ -81,6 +102,9 @@ class CartTotalsSection extends ConsumerWidget {
                 totals.promoDiscountUsd <= 0 &&
                 totals.automaticDiscountUsd <= 0)
               _usdOnlyRow('Discount', -totals.totalDiscountUsd),
+          ] else if (unavailableCount > 0 &&
+              availableSubtotalUsd > merchandiseUsd) ...[
+            _usdOnlyRow('Items subtotal', availableSubtotalUsd),
           ],
           _subtotalRow(estimate),
           if (wantVerification && estimate.verificationUsd > 0)

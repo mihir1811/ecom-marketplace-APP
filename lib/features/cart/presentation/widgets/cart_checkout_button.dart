@@ -9,9 +9,9 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../buyer/application/buyer_orders_provider.dart';
-import '../../../fees/application/fees_providers.dart';
-import '../../../fees/domain/models/fee_rule.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
+import '../../application/fees_providers.dart';
+import '../../domain/models/fee_rule.dart';
 import '../../../payment/presentation/widgets/payment_success_dialog.dart';
 import '../../../wallet/application/wallet_provider.dart';
 import '../../../wallet/domain/models/wallet.dart';
@@ -63,9 +63,11 @@ class CartCheckoutButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hasAddress = ref.watch(cartHasAddressProvider);
     final canCheckout = ref.watch(cartCanCheckoutProvider);
+    final hasUnavailable = ref.watch(cartHasUnavailableItemsProvider);
     final mutating = ref.watch(cartIsMutatingProvider);
     final checkout = ref.watch(paymentCheckoutProvider);
     final totals = ref.watch(cartTotalsProvider);
+    final merchandiseUsd = ref.watch(cartAvailableMerchandiseUsdProvider);
     final items = ref.watch(cartProvider.select((s) => s.items));
     final fees =
         ref.watch(activeFeesProvider).valueOrNull ?? FeeRulesCatalog.empty;
@@ -74,18 +76,18 @@ class CartCheckoutButton extends ConsumerWidget {
     final busy = mutating || checkout.isBusy;
 
     final estimate = CartOrderEstimate.compute(
-      merchandiseUsd: totals.discountedSubtotalUsd,
+      merchandiseUsd: merchandiseUsd,
       exchangeRate: totals.exchangeRate,
       wantVerification: checkout.wantGemworldVerification,
       fees: fees,
-      lines: items
-          .map(
-            (item) => CartLineForFees(
+      lines: [
+        for (final item in items)
+          if (item.isAvailable)
+            CartLineForFees(
               productType: item.productType,
               amountUsd: item.displayPriceUsd,
             ),
-          )
-          .toList(),
+      ],
     );
 
     final wallet = walletAsync.valueOrNull;
@@ -93,10 +95,13 @@ class CartCheckoutButton extends ConsumerWidget {
     final canPayWithWallet =
         estimate.hasLiveRate && walletBalance + 0.009 >= estimate.totalInr;
     final useWallet = checkout.useWallet && canPayWithWallet;
+    final verificationOn = checkout.wantGemworldVerification;
 
     String label;
     if (!hasAddress) {
       label = 'Add delivery address';
+    } else if (hasUnavailable) {
+      label = 'Remove unavailable items';
     } else if (checkout.phase == CheckoutPhase.creatingOrder) {
       label = 'Creating order…';
     } else if (checkout.phase == CheckoutPhase.awaitingPayment) {
@@ -112,6 +117,8 @@ class CartCheckoutButton extends ConsumerWidget {
     String? subtitle;
     if (!hasAddress) {
       subtitle = 'Required before payment';
+    } else if (hasUnavailable) {
+      subtitle = 'Unavailable items are excluded from the total';
     } else if (!busy && estimate.hasLiveRate) {
       subtitle =
           '${AppCurrency.usd(estimate.totalUsd)} USD · ${estimate.liveRateLabel}';
@@ -122,25 +129,34 @@ class CartCheckoutButton extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SwitchListTile.adaptive(
-          contentPadding: EdgeInsets.zero,
-          title: Text(
-            'GemWorld verification',
-            style: AppTypography.label.copyWith(fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(
-            'Adds 1% verification commission to the total',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+        Material(
+          color: AppColors.warmWhite,
+          child: SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              'GemWorld verification',
+              style: AppTypography.label.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimaryLight,
+              ),
             ),
+            subtitle: Text(
+              'Adds 1% verification commission to the total',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textSecondaryLight,
+              ),
+            ),
+            value: verificationOn,
+            onChanged: busy
+                ? null
+                : (v) => ref
+                    .read(paymentCheckoutProvider.notifier)
+                    .setWantGemworldVerification(v),
+            activeThumbColor: AppColors.warmWhite,
+            activeTrackColor: AppColors.bronze,
+            inactiveThumbColor: AppColors.charcoalLight,
+            inactiveTrackColor: AppColors.warmBorder,
           ),
-          value: checkout.wantGemworldVerification,
-          onChanged: busy
-              ? null
-              : (v) => ref
-                  .read(paymentCheckoutProvider.notifier)
-                  .setWantGemworldVerification(v),
-          activeThumbColor: AppColors.bronze,
         ),
         const SizedBox(height: AppSpacing.s4),
         _WalletPayOption(
@@ -172,6 +188,14 @@ class CartCheckoutButton extends ConsumerWidget {
                 : () {
                     if (!hasAddress) {
                       _addAddress(context, ref);
+                    } else if (hasUnavailable) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Remove unavailable items before checkout.',
+                          ),
+                        ),
+                      );
                     } else if (canCheckout) {
                       if (checkout.useWallet && !canPayWithWallet) {
                         ref
@@ -258,6 +282,8 @@ class _WalletPayOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLoading = walletAsync.isLoading && walletAsync.valueOrNull == null;
     final hasError = walletAsync.hasError && walletAsync.valueOrNull == null;
+    final enabled = !busy && canPayWithWallet;
+    final switchedOn = useWallet && canPayWithWallet;
 
     String subtitle;
     if (isLoading) {
@@ -275,34 +301,42 @@ class _WalletPayOption extends StatelessWidget {
           'Balance ${AppCurrency.inr(walletBalance)} · need ${AppCurrency.inr(payableInr)}';
     }
 
+    final titleColor =
+        enabled ? AppColors.textPrimaryLight : AppColors.textMutedLight;
+    final subtitleColor =
+        enabled ? AppColors.textSecondaryLight : AppColors.textMutedLight;
+
     return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: hasError && !busy ? onRetryWallet : null,
-        child: SwitchListTile.adaptive(
-          contentPadding: EdgeInsets.zero,
-          secondary: Icon(
-            Icons.account_balance_wallet_outlined,
-            color: canPayWithWallet ? AppColors.bronze : AppColors.textMutedLight,
-          ),
-          title: Text(
-            'Pay with wallet',
-            style: AppTypography.label.copyWith(fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(
-            subtitle,
-            style: AppTypography.caption.copyWith(
-              color: canPayWithWallet
-                  ? AppColors.textSecondaryLight
-                  : AppColors.textMutedLight,
-            ),
-          ),
-          value: useWallet && canPayWithWallet,
-          onChanged: busy || !canPayWithWallet
-              ? null
-              : onChanged,
-          activeThumbColor: AppColors.bronze,
+      color: AppColors.warmWhite,
+      child: SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        secondary: Icon(
+          Icons.account_balance_wallet_outlined,
+          color: enabled ? AppColors.bronze : AppColors.textMutedLight,
         ),
+        title: Text(
+          'Pay with wallet',
+          style: AppTypography.label.copyWith(
+            fontWeight: FontWeight.w600,
+            color: titleColor,
+          ),
+        ),
+        subtitle: GestureDetector(
+          onTap: hasError && !busy ? onRetryWallet : null,
+          child: Text(
+            subtitle,
+            style: AppTypography.caption.copyWith(color: subtitleColor),
+          ),
+        ),
+        value: switchedOn,
+        onChanged: enabled ? onChanged : null,
+        activeThumbColor: AppColors.warmWhite,
+        activeTrackColor: AppColors.bronze,
+        inactiveThumbColor:
+            enabled ? AppColors.charcoalLight : AppColors.textMutedLight,
+        inactiveTrackColor: enabled
+            ? AppColors.warmBorder
+            : AppColors.sandSurface,
       ),
     );
   }

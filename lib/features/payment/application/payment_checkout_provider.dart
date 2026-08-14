@@ -117,6 +117,13 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     if (cart.isEmpty) {
       return Result.failure(const ValidationFailure('Your cart is empty.'));
     }
+    if (cart.items.any((e) => !e.isAvailable)) {
+      return Result.failure(
+        const ValidationFailure(
+          'Remove unavailable items before payment.',
+        ),
+      );
+    }
     if (!cart.canCheckout || cart.address == null) {
       return Result.failure(
         const ValidationFailure(

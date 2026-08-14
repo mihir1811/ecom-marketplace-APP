@@ -55,11 +55,13 @@ class BuyerProfileScreen extends ConsumerWidget {
                 _InfoCard(
                   title: 'Account status',
                   rows: [
-                    _InfoRow(
-                      icon: Icons.person_outline,
-                      label: 'Account type',
-                      value: user.isSeller ? 'Seller (business)' : 'Individual',
-                    ),
+                     _InfoRow(
+                       icon: Icons.person_outline,
+                       label: 'Account type',
+                       value: user.isSeller
+                           ? 'Seller (business)'
+                           : 'Individual (buying only)',
+                     ),
                     _InfoRow(
                       icon: Icons.verified_outlined,
                       label: 'Email verification',

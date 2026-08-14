@@ -15,6 +15,8 @@ class CartItem {
     this.seller,
     this.sellerId,
     this.quantityEditable = false,
+    this.isAvailable = true,
+    this.availabilityLabel,
   });
 
   /// Cart row id — use as `cartId` for update/remove.
@@ -35,6 +37,12 @@ class CartItem {
   /// False for unique SKUs that reject quantity changes.
   final bool quantityEditable;
 
+  /// False when the product is sold / delisted and must not count toward totals.
+  final bool isAvailable;
+
+  /// Short UI label when [isAvailable] is false (e.g. `Sold`, `Unavailable`).
+  final String? availabilityLabel;
+
   String get id => cartId;
 
   double get displayPriceUsd => lineTotalUsd ?? priceUsd;
@@ -44,6 +52,8 @@ class CartItem {
     double? unitPriceUsd,
     double? lineTotalUsd,
     double? priceUsd,
+    bool? isAvailable,
+    String? availabilityLabel,
   }) {
     return CartItem(
       cartId: cartId,
@@ -60,6 +70,8 @@ class CartItem {
       seller: seller,
       sellerId: sellerId,
       quantityEditable: quantityEditable,
+      isAvailable: isAvailable ?? this.isAvailable,
+      availabilityLabel: availabilityLabel ?? this.availabilityLabel,
     );
   }
 }

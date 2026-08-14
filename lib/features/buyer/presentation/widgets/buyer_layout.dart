@@ -72,18 +72,18 @@ class BuyerLayout extends ConsumerWidget {
                   onPressed: () => context.go(AppRouteNames.home),
                   icon: const Icon(Icons.storefront_outlined),
                 ),
-                if (isSeller)
-                  TextButton.icon(
-                    onPressed: () => context.go(AppRouteNames.sellerDashboard),
-                    icon: const Icon(Icons.dashboard_outlined, size: 18),
-                    label: Text(
-                      'Dashboard',
-                      style: AppTypography.label.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.charcoal,
-                      ),
-                    ),
+                if (isSeller) ...[
+                  IconButton(
+                    tooltip: 'Wallet',
+                    onPressed: () => context.push(AppRouteNames.buyerWallet),
+                    icon: const Icon(Icons.account_balance_wallet_outlined),
                   ),
+                  IconButton(
+                    tooltip: 'Messages',
+                    onPressed: () => context.push(AppRouteNames.buyerMessages),
+                    icon: const Icon(Icons.chat_bubble_outline),
+                  ),
+                ],
                 const SizedBox(width: 8),
               ],
             )

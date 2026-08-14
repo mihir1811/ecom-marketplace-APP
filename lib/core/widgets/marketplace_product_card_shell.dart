@@ -31,9 +31,7 @@ class MarketplaceProductCardShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(borderRadius);
-    final resolvedBorder = isRecentlyViewed
-        ? AppColors.bronze
-        : (borderColor ?? AppColors.warmBorder);
+    final resolvedBorder = borderColor ?? AppColors.warmBorder;
     final resolvedBg = isRecentlyViewed
         ? const Color(0xFFFBF7F2)
         : (backgroundColor ?? AppColors.warmWhite);
@@ -48,8 +46,7 @@ class MarketplaceProductCardShell extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: radius,
           side: BorderSide(
-            color: resolvedBorder,
-            width: isRecentlyViewed ? 1.5 : 1,
+            color: isRecentlyViewed ? Colors.transparent : resolvedBorder,
           ),
         ),
         clipBehavior: clipBehavior,

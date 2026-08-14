@@ -171,19 +171,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
         ),
       ),
       const SizedBox(height: AppSpacing.s20),
-      FilterRangeSlider(
-        title: 'Carat / Pcs',
-        minLimit: widget.caratLimits.$1,
-        maxLimit: widget.caratLimits.$2,
-        currentMin: widget.caratPerPcsMin,
-        currentMax: widget.caratPerPcsMax,
-        unitSuffix: 'ct',
-        onChanged: widget.onCaratPerPcsChanged,
-        onClear: () => widget.onCaratPerPcsChanged(
-          widget.caratLimits.$1,
-          widget.caratLimits.$2,
-        ),
-      ),
+      _caratPerPcsSlider(),
       const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
         title: 'Price / Pcs',
@@ -217,6 +205,22 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
     ];
   }
 
+  Widget _caratPerPcsSlider() {
+    return FilterRangeSlider(
+      title: 'Carat / Pcs',
+      minLimit: widget.caratLimits.$1,
+      maxLimit: widget.caratLimits.$2,
+      currentMin: widget.caratPerPcsMin,
+      currentMax: widget.caratPerPcsMax,
+      unitSuffix: 'ct',
+      onChanged: widget.onCaratPerPcsChanged,
+      onClear: () => widget.onCaratPerPcsChanged(
+        widget.caratLimits.$1,
+        widget.caratLimits.$2,
+      ),
+    );
+  }
+
   List<Widget> _buildCaratFilters() {
     return [
       FilterRangeSlider(
@@ -233,6 +237,8 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
           widget.totalPriceLimits.$2,
         ),
       ),
+      const SizedBox(height: AppSpacing.s20),
+      _caratPerPcsSlider(),
       const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
         title: 'Price / Carat',

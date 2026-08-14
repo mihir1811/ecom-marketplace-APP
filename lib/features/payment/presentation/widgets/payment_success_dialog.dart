@@ -6,9 +6,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/payment_models.dart';
-import '../../../seller_reviews/application/seller_reviews_provider.dart';
-import '../../../seller_reviews/domain/models/seller_review.dart';
-import '../../../seller_reviews/presentation/widgets/seller_review_form.dart';
+import '../../../seller/application/seller_reviews_provider.dart';
+import '../../../seller/domain/models/seller_review.dart';
+import '../../../seller/presentation/widgets/seller_review_form.dart';
 
 /// Returns `true` if the user chose to continue (submit or skip).
 Future<bool> showPaymentSuccessDialog(

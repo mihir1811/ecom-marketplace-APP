@@ -142,8 +142,22 @@ class CartState {
   }
 }
 
+/// How much cart data to fetch in one load.
+enum CartLoadMode {
+  /// Badge / home: `GET /cart/summary` only.
+  light,
+
+  /// After add/remove/qty: cart rows + pricing (no delivery).
+  merchandise,
+
+  /// Cart screen: merchandise + delivery selection/addresses.
+  full,
+}
+
 class CartNotifier extends Notifier<CartState> {
   CancelToken? _loadToken;
+  Future<void>? _inFlight;
+  CartLoadMode? _inFlightMode;
 
   CartRepository get _cart => ref.read(cartRepositoryProvider);
   DeliveryRepository get _delivery => ref.read(deliveryRepositoryProvider);
@@ -153,11 +167,13 @@ class CartNotifier extends Notifier<CartState> {
     ref.onDispose(() {
       _loadToken?.cancel();
       _loadToken = null;
+      _inFlight = null;
+      _inFlightMode = null;
     });
 
     ref.listen(authProvider, (prev, next) {
       if (next.isAuthenticated) {
-        refresh();
+        refresh(mode: CartLoadMode.light);
       } else if (prev?.isAuthenticated == true && !next.isAuthenticated) {
         state = const CartState();
       }
@@ -165,83 +181,132 @@ class CartNotifier extends Notifier<CartState> {
 
     Future.microtask(() {
       if (ref.read(authProvider).isAuthenticated) {
-        refresh();
+        refresh(mode: CartLoadMode.light);
       }
     });
 
     return const CartState(isLoading: true);
   }
 
-  Future<void> refresh() async {
+  /// Loads cart data. Concurrent identical/weaker loads join the in-flight one.
+  Future<void> refresh({
+    CartLoadMode mode = CartLoadMode.full,
+    bool force = false,
+  }) async {
     if (!ref.read(authProvider).isAuthenticated) {
       state = const CartState();
       return;
+    }
+
+    if (!force &&
+        _inFlight != null &&
+        _inFlightMode != null &&
+        !_isStrongerMode(mode, _inFlightMode!)) {
+      return _inFlight!;
     }
 
     _loadToken?.cancel();
     final token = CancelToken();
     _loadToken = token;
 
+    final run = _load(mode: mode, token: token);
+    _inFlight = run;
+    _inFlightMode = mode;
+    try {
+      await run;
+    } finally {
+      if (identical(_inFlight, run)) {
+        _inFlight = null;
+        _inFlightMode = null;
+      }
+    }
+  }
+
+  bool _isStrongerMode(CartLoadMode requested, CartLoadMode inFlight) {
+    return requested.index > inFlight.index;
+  }
+
+  Future<void> _load({
+    required CartLoadMode mode,
+    required CancelToken token,
+  }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
-    final results = await Future.wait([
-      _cart.getCart(cancelToken: token),
-      _cart.getSummary(cancelToken: token),
-      _delivery.getCartDelivery(cancelToken: token),
-      _delivery.listAddresses(cancelToken: token),
-    ]);
-
-    if (token.isCancelled) return;
-
-    final cartResult = results[0] as Result<List<CartItem>, Failure>;
-    final summaryResult = results[1] as Result<CartSummary, Failure>;
-    final deliveryResult = results[2] as Result<CartDeliveryState, Failure>;
-    final addressesResult = results[3] as Result<List<DeliveryAddress>, Failure>;
-
     Failure? firstFailure;
-    var items = <CartItem>[];
-    var summary = CartSummary.empty;
-    DeliveryAddress? address;
-    var addresses = <DeliveryAddress>[];
-    var canCheckout = false;
+    var items = state.items;
+    var summary = state.summary;
+    var address = state.address;
+    var addresses = state.addresses;
+    var canCheckout = state.canCheckout;
 
-    switch (cartResult) {
-      case Success(:final value):
-        items = value;
-      case ResultFailure(:final failure):
-        if (failure is NetworkFailure && failure.isCancelled) return;
-        firstFailure = failure;
-    }
+    if (mode == CartLoadMode.light) {
+      final summaryResult = await _cart.getSummary(cancelToken: token);
+      if (token.isCancelled) return;
+      switch (summaryResult) {
+        case Success(:final value):
+          summary = value;
+          items = CartMapper.itemsFromSummary(value);
+        case ResultFailure(:final failure):
+          if (failure is NetworkFailure && failure.isCancelled) return;
+          firstFailure = failure;
+      }
+    } else {
+      final cartFuture = _cart.getCart(cancelToken: token);
+      final summaryFuture = _cart.getSummary(cancelToken: token);
+      final deliveryFuture = mode == CartLoadMode.full
+          ? _delivery.getCartDelivery(cancelToken: token)
+          : null;
 
-    switch (summaryResult) {
-      case Success(:final value):
-        summary = value;
-      case ResultFailure(:final failure):
-        if (failure is NetworkFailure && failure.isCancelled) return;
-        firstFailure ??= failure;
-    }
+      final cartResult = await cartFuture;
+      final summaryResult = await summaryFuture;
+      if (token.isCancelled) return;
 
-    switch (deliveryResult) {
-      case Success(:final value):
-        address = value.selectedAddress;
-        addresses = value.addresses;
-        canCheckout = value.canCheckout;
-      case ResultFailure(:final failure):
-        if (failure is NetworkFailure && failure.isCancelled) return;
-        // Delivery is optional for cart browsing; keep cart items.
-        firstFailure ??= failure;
-    }
+      switch (cartResult) {
+        case Success(:final value):
+          items = value;
+        case ResultFailure(:final failure):
+          if (failure is NetworkFailure && failure.isCancelled) return;
+          firstFailure = failure;
+      }
 
-    switch (addressesResult) {
-      case Success(:final value):
-        if (value.isNotEmpty) {
-          addresses = _mergeAddresses(value, addresses);
+      switch (summaryResult) {
+        case Success(:final value):
+          summary = value;
+        case ResultFailure(:final failure):
+          if (failure is NetworkFailure && failure.isCancelled) return;
+          firstFailure ??= failure;
+      }
+
+      if (deliveryFuture != null) {
+        final deliveryResult = await deliveryFuture;
+        if (token.isCancelled) return;
+        switch (deliveryResult) {
+          case Success(:final value):
+            address = value.selectedAddress;
+            addresses = value.addresses;
+            canCheckout = value.canCheckout;
+          case ResultFailure(:final failure):
+            if (failure is NetworkFailure && failure.isCancelled) return;
+            firstFailure ??= failure;
         }
-      case ResultFailure(:final failure):
-        if (failure is NetworkFailure && failure.isCancelled) return;
+
+        // Address book is already on delivery-options/cart; fetch list only
+        // when that payload omitted saved addresses.
+        if (addresses.isEmpty) {
+          final listed = await _delivery.listAddresses(cancelToken: token);
+          if (token.isCancelled) return;
+          if (listed case Success(:final value)) {
+            if (value.isNotEmpty) {
+              addresses = _mergeAddresses(value, addresses);
+            }
+          }
+        }
+      }
+
+      items = CartMapper.mergeCartAndSummary(items, summary);
     }
 
-    if (firstFailure != null && items.isEmpty) {
+    if (firstFailure != null && items.isEmpty && summary.isEmpty) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: firstFailure.message,
@@ -250,7 +315,7 @@ class CartNotifier extends Notifier<CartState> {
     }
 
     state = CartState(
-      items: CartMapper.mergeSummaryPrices(items, summary),
+      items: items,
       summary: summary,
       address: address,
       addresses: addresses,
@@ -288,7 +353,7 @@ class CartNotifier extends Notifier<CartState> {
     );
     switch (result) {
       case Success():
-        await refresh();
+        await refresh(mode: CartLoadMode.merchandise, force: true);
         state = state.copyWith(isMutating: false);
         return Result.success(null);
       case ResultFailure(:final failure):
@@ -302,7 +367,7 @@ class CartNotifier extends Notifier<CartState> {
     final result = await _cart.removeItem(cartId: cartId);
     switch (result) {
       case Success():
-        await refresh();
+        await refresh(mode: CartLoadMode.merchandise, force: true);
         state = state.copyWith(isMutating: false);
         return Result.success(null);
       case ResultFailure(:final failure):
@@ -322,7 +387,7 @@ class CartNotifier extends Notifier<CartState> {
     );
     switch (result) {
       case Success():
-        await refresh();
+        await refresh(mode: CartLoadMode.merchandise, force: true);
         state = state.copyWith(isMutating: false);
         return Result.success(null);
       case ResultFailure(:final failure):
@@ -510,12 +575,7 @@ class CartNotifier extends Notifier<CartState> {
 
   void unawaitedRefreshDelivery() {
     Future(() async {
-      final results = await Future.wait([
-        _delivery.getCartDelivery(),
-        _delivery.listAddresses(),
-      ]);
-      final delivery = results[0] as Result<CartDeliveryState, Failure>;
-      final listed = results[1] as Result<List<DeliveryAddress>, Failure>;
+      final delivery = await _delivery.getCartDelivery();
 
       var addresses = state.addresses;
       DeliveryAddress? selected = state.address;
@@ -528,9 +588,13 @@ class CartNotifier extends Notifier<CartState> {
         }
         canCheckout = value.canCheckout || selected != null;
       }
-      if (listed case Success(:final value)) {
-        if (value.isNotEmpty) {
-          addresses = _mergeAddresses(value, addresses);
+
+      if (addresses.isEmpty) {
+        final listed = await _delivery.listAddresses();
+        if (listed case Success(:final value)) {
+          if (value.isNotEmpty) {
+            addresses = _mergeAddresses(value, addresses);
+          }
         }
       }
 
@@ -582,7 +646,34 @@ final cartHasAddressProvider = Provider<bool>((ref) {
 });
 
 final cartCanCheckoutProvider = Provider<bool>((ref) {
-  return ref.watch(cartProvider.select((s) => s.canCheckout && !s.isEmpty));
+  return ref.watch(
+    cartProvider.select(
+      (s) =>
+          s.canCheckout &&
+          s.items.any((e) => e.isAvailable) &&
+          s.items.every((e) => e.isAvailable),
+    ),
+  );
+});
+
+/// Merchandise USD for purchasable lines only (unavailable items excluded).
+final cartAvailableMerchandiseUsdProvider = Provider<double>((ref) {
+  final items = ref.watch(cartItemsProvider);
+  final totals = ref.watch(cartTotalsProvider);
+  final unavailableUsd = items
+      .where((e) => !e.isAvailable)
+      .fold<double>(0, (sum, e) => sum + e.displayPriceUsd);
+  final adjusted = totals.discountedSubtotalUsd - unavailableUsd;
+  if (adjusted > 0) return adjusted;
+  return items
+      .where((e) => e.isAvailable)
+      .fold<double>(0, (sum, e) => sum + e.displayPriceUsd);
+});
+
+final cartHasUnavailableItemsProvider = Provider<bool>((ref) {
+  return ref.watch(
+    cartProvider.select((s) => s.items.any((e) => !e.isAvailable)),
+  );
 });
 
 final cartPromoProvider = Provider<({String? code, bool applied})>((ref) {

@@ -5,8 +5,8 @@ import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../login_history/application/login_history_providers.dart';
-import '../../../login_history/domain/models/login_session.dart';
+import '../../../auth/application/login_history_providers.dart';
+import '../../../auth/domain/models/login_session.dart';
 import '../widgets/seller_layout.dart';
 
 class SellerLoginHistoryScreen extends ConsumerWidget {

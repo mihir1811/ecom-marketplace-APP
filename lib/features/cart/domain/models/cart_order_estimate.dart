@@ -1,4 +1,4 @@
-import '../../../fees/domain/models/fee_rule.dart';
+import 'fee_rule.dart';
 
 /// Fallback fee rules when `GET /fees` is unavailable.
 abstract final class CartFeeConfig {

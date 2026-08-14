@@ -8,6 +8,7 @@ import 'package:gemstone/core/widgets/filters/filter_group_card.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
+import 'fancy_color_gem_painter.dart';
 
 class ColorTabsSelector extends ConsumerStatefulWidget {
   const ColorTabsSelector({super.key});
@@ -251,7 +252,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
             const SizedBox(height: AppSpacing.s8),
 
             SizedBox(
-              height: 80,
+              height: 96,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: fancyColors.length,
@@ -416,7 +417,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
   }
 }
 
-/// Diamond-shaped (rotated square) color swatch tile with a label below.
+/// Cut-shaped fancy-color swatch with a faded reflection and label.
 /// Shared by the diamond fancy-color selector and the gemstone color grid.
 class FancyColorDiamondButton extends StatelessWidget {
   const FancyColorDiamondButton({
@@ -430,101 +431,122 @@ class FancyColorDiamondButton extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
+  static const _gemSize = 36.0;
+
   Color _getFancyHue(String name) {
     return switch (name.toLowerCase()) {
-      'yellow' => Colors.yellow.shade600,
-      'orange' => Colors.orange.shade600,
-      'blue' => Colors.blue.shade600,
-      'red' => Colors.red.shade600,
-      'pink' => Colors.pink.shade300,
-      'green' => Colors.green.shade500,
+      'yellow' => const Color(0xFFF5C518),
+      'orange' => const Color(0xFFF97316),
+      'blue' => const Color(0xFF2563EB),
+      'red' => const Color(0xFFDC2626),
+      'pink' => const Color(0xFFF472B6),
+      'green' => const Color(0xFF16A34A),
       'olive' => const Color(0xFF808000),
-      'brown' => Colors.brown.shade500,
-      'purple' => Colors.purple.shade600,
-      'violet' => const Color(0xFF7F00FF),
-      'grey' => Colors.grey.shade500,
-      'black' => Colors.black87,
-      'white' => Colors.white,
-      'teal' => Colors.teal.shade500,
-      _ => Colors.transparent,
+      'brown' => const Color(0xFF8B5E3C),
+      'purple' => const Color(0xFF9333EA),
+      'violet' => const Color(0xFF6D28D9),
+      'grey' || 'gray' => const Color(0xFF9CA3AF),
+      'black' => const Color(0xFF1F2937),
+      'white' => const Color(0xFFF3F4F6),
+      'teal' => const Color(0xFF14B8A6),
+      _ => const Color(0xFF9CA3AF),
+    };
+  }
+
+  FancyGemCut _cutFor(String name) {
+    return switch (name.toLowerCase()) {
+      'yellow' || 'red' || 'grey' || 'gray' || 'other' || 'multi' =>
+        FancyGemCut.emerald,
+      'orange' || 'blue' || 'brown' || 'teal' || 'bi' => FancyGemCut.oval,
+      'pink' || 'violet' => FancyGemCut.heart,
+      'green' || 'black' || 'white' => FancyGemCut.princess,
+      'olive' || 'purple' => FancyGemCut.cushion,
+      _ => FancyGemCut.emerald,
     };
   }
 
   @override
   Widget build(BuildContext context) {
     final lower = colorName.toLowerCase();
-    final isOther = lower == 'other';
-    final isMulti = lower == 'multi';
-    // Bi-color stones show a two-tone split swatch.
+    final isRainbow = lower == 'other' || lower == 'multi';
     final isBi = lower == 'bi';
     final hue = _getFancyHue(colorName);
-    final useSpecialSwatch = isOther || isMulti || isBi;
+    final fillColors = isBi
+        ? const [Color(0xFF2563EB), Color(0xFFFACC15)]
+        : [hue];
+    final painter = FancyColorGemPainter(
+      cut: _cutFor(colorName),
+      fillColors: fillColors,
+      isSelected: isSelected,
+      rainbow: isRainbow,
+      splitTone: isBi,
+    );
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          SizedBox(
-            width: 44,
-            height: 44,
-            child: Center(
-              child: Transform.rotate(
-                angle: 0.785398,
-                child: Container(
-                  width: 26,
-                  height: 26,
-                  decoration: BoxDecoration(
-                    color: useSpecialSwatch ? null : hue,
-                    gradient: isOther || isMulti
-                        ? LinearGradient(
-                            colors: isMulti
-                                ? const [
-                                    Color(0xFFEF4444),
-                                    Color(0xFFFACC15),
-                                    Color(0xFF22C55E),
-                                    Color(0xFF2563EB),
-                                  ]
-                                : [
-                                    Colors.grey.shade400,
-                                    Colors.grey.shade600,
-                                  ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : isBi
-                            ? const LinearGradient(
-                                colors: [
-                                  Color(0xFF2563EB),
-                                  Color(0xFF2563EB),
-                                  Color(0xFFFACC15),
-                                  Color(0xFFFACC15),
-                                ],
-                                stops: [0.0, 0.5, 0.5, 1.0],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
-                            : null,
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.bronze
-                          : Colors.grey.shade400,
-                      width: isSelected ? 2.5 : 1.0,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: colorName,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 48,
+              height: 52,
+              child: Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  CustomPaint(
+                    size: const Size(_gemSize, _gemSize),
+                    painter: painter,
+                  ),
+                  Positioned(
+                    top: 30,
+                    child: IgnorePointer(
+                      child: ClipRect(
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          heightFactor: 0.42,
+                          child: Opacity(
+                            opacity: 0.28,
+                            child: ShaderMask(
+                              blendMode: BlendMode.dstIn,
+                              shaderCallback: (bounds) => const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Colors.white, Colors.transparent],
+                              ).createShader(bounds),
+                              child: Transform.flip(
+                                flipY: true,
+                                child: CustomPaint(
+                                  size: const Size(_gemSize, _gemSize),
+                                  painter: painter,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          Text(
-            colorName,
-            style: AppTypography.caption.copyWith(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? AppColors.bronze : null,
+            const SizedBox(height: AppSpacing.s8),
+            Text(
+              colorName,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.caption.copyWith(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? AppColors.bronze : null,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

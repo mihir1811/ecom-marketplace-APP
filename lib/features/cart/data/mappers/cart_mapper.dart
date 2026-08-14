@@ -21,6 +21,8 @@ abstract final class CartMapper {
         _str(productMap['image']) ??
         _firstImage(productMap);
 
+    final availability = _productAvailability(json, productMap);
+
     return CartItem(
       cartId: _str(json['id']) ?? '',
       productId: _str(json['productId']) ?? _str(productMap['id']) ?? '',
@@ -34,6 +36,8 @@ abstract final class CartMapper {
       seller: _str(json['seller']) ?? _str(productMap['sellerName']),
       sellerId: _str(json['sellerId']),
       quantityEditable: false,
+      isAvailable: availability.isAvailable,
+      availabilityLabel: availability.label,
     );
   }
 
@@ -160,6 +164,29 @@ abstract final class CartMapper {
     );
   }
 
+  /// Builds cart rows from summary lines (used for badge / light refresh).
+  static List<CartItem> itemsFromSummary(CartSummary summary) {
+    return [
+      for (final line in summary.items)
+        if (line.cartId.isNotEmpty)
+          CartItem(
+            cartId: line.cartId,
+            productId: line.productId,
+            productType: line.productType,
+            title: (line.name != null && line.name!.isNotEmpty)
+                ? line.name!
+                : 'Product',
+            category: CartProductType.label(line.productType),
+            quantity: line.quantity,
+            priceUsd: line.lineTotal,
+            unitPriceUsd: line.unitPrice,
+            lineTotalUsd: line.lineTotal,
+            imageUrl: line.image,
+            sellerId: line.sellerId,
+          ),
+    ];
+  }
+
   /// Merges summary line pricing onto hydrated cart rows.
   static List<CartItem> mergeSummaryPrices(
     List<CartItem> items,
@@ -181,6 +208,15 @@ abstract final class CartMapper {
         else
           item,
     ];
+  }
+
+  /// Prefer hydrated `/cart` rows; fall back to summary lines when cart is empty.
+  static List<CartItem> mergeCartAndSummary(
+    List<CartItem> cartItems,
+    CartSummary summary,
+  ) {
+    if (cartItems.isEmpty) return itemsFromSummary(summary);
+    return mergeSummaryPrices(cartItems, summary);
   }
 
   static String? _str(Object? v) {
@@ -212,5 +248,54 @@ abstract final class CartMapper {
       return _str(images.first);
     }
     return null;
+  }
+
+  /// Resolves purchasability from cart row + nested product fields.
+  static ({bool isAvailable, String? label}) _productAvailability(
+    Map<String, dynamic> row,
+    Map<String, dynamic> product,
+  ) {
+    if (row['isSold'] == true || product['isSold'] == true) {
+      return (isAvailable: false, label: 'Sold');
+    }
+    if (row['isAvailable'] == false || product['isAvailable'] == false) {
+      return (isAvailable: false, label: 'Unavailable');
+    }
+
+    final status = (_str(row['status']) ??
+            _str(product['status']) ??
+            _str(product['productStatus']) ??
+            '')
+        .toLowerCase();
+    if (status == 'sold' ||
+        status == 'unavailable' ||
+        status == 'deleted' ||
+        status == 'inactive') {
+      return (
+        isAvailable: false,
+        label: status == 'sold' ? 'Sold' : 'Unavailable',
+      );
+    }
+
+    final raw = (_str(row['available']) ??
+            _str(row['availability']) ??
+            _str(product['available']) ??
+            _str(product['availability']) ??
+            '')
+        .toLowerCase();
+
+    return switch (raw) {
+      'no' ||
+      'sold' ||
+      'unavailable' ||
+      'false' ||
+      '0' ||
+      'n/a' ||
+      'na' ||
+      'out of stock' ||
+      'outofstock' =>
+        (isAvailable: false, label: raw == 'sold' ? 'Sold' : 'Unavailable'),
+      _ => (isAvailable: true, label: null),
+    };
   }
 }

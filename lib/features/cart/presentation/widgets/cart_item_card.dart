@@ -60,124 +60,173 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
   Widget build(BuildContext context) {
     final item = widget.item;
     final mutating = ref.watch(cartIsMutatingProvider);
+    final available = item.isAvailable;
+    final muted = AppColors.textMutedLight;
 
-    return Material(
-      color: AppColors.warmWhite,
-      borderRadius: BorderRadius.circular(AppSpacing.r16),
-      child: InkWell(
-        onTap: _opening ? null : _openProduct,
+    return Opacity(
+      opacity: available ? 1 : 0.72,
+      child: Material(
+        color: AppColors.warmWhite,
         borderRadius: BorderRadius.circular(AppSpacing.r16),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.r16),
-            border: Border.all(color: AppColors.warmBorder),
-          ),
-          padding: const EdgeInsets.all(AppSpacing.s12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  _Thumb(item: item),
-                  if (_opening)
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        color: AppColors.charcoal.withValues(alpha: 0.35),
-                        borderRadius: BorderRadius.circular(AppSpacing.r12),
-                      ),
-                      child: const Center(
-                        child: SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.warmWhite,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+        child: InkWell(
+          onTap: _opening ? null : _openProduct,
+          borderRadius: BorderRadius.circular(AppSpacing.r16),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppSpacing.r16),
+              border: Border.all(
+                color: available ? AppColors.warmBorder : AppColors.error.withValues(alpha: 0.35),
               ),
-              const SizedBox(width: AppSpacing.s12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+            padding: const EdgeInsets.all(AppSpacing.s12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.title,
-                            style: AppTypography.label.copyWith(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
+                    _Thumb(item: item),
+                    if (!available)
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: AppColors.charcoal.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.circular(AppSpacing.r12),
+                          ),
+                          child: Center(
+                            child: Text(
+                              item.availabilityLabel ?? 'Unavailable',
+                              textAlign: TextAlign.center,
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.warmWhite,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                              ),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        IconButton(
-                          tooltip: 'Remove',
-                          onPressed: mutating || _opening
-                              ? null
-                              : () async {
-                                  final result = await ref
-                                      .read(cartProvider.notifier)
-                                      .removeItem(item.cartId);
-                                  if (!context.mounted) return;
-                                  if (result
-                                      case ResultFailure(:final failure)) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(failure.message),
-                                      ),
-                                    );
-                                  }
-                                },
-                          icon: const Icon(Icons.delete_outline, size: 20),
-                          color: AppColors.textMutedLight,
-                          visualDensity: VisualDensity.compact,
+                      ),
+                    if (_opening)
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: AppColors.charcoal.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(AppSpacing.r12),
                         ),
-                      ],
-                    ),
-                    if (item.seller != null && item.seller!.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.s4),
-                      Text(
-                        item.seller!,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.textMutedLight,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.s8),
-                    Text(
-                      AppCurrency.format(
-                        item.displayPriceUsd.toStringAsFixed(2),
-                      ),
-                      style: GoogleFonts.manrope(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (item.quantity > 1) ...[
-                      const SizedBox(height: AppSpacing.s4),
-                      Text(
-                        'Qty ${item.quantity}',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.textSecondaryLight,
+                        child: const Center(
+                          child: SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.warmWhite,
+                            ),
+                          ),
                         ),
                       ),
-                    ],
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(width: AppSpacing.s12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.title,
+                              style: AppTypography.label.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: available
+                                    ? AppColors.textPrimaryLight
+                                    : muted,
+                                decoration: available
+                                    ? null
+                                    : TextDecoration.lineThrough,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Remove',
+                            onPressed: mutating || _opening
+                                ? null
+                                : () async {
+                                    final result = await ref
+                                        .read(cartProvider.notifier)
+                                        .removeItem(item.cartId);
+                                    if (!context.mounted) return;
+                                    if (result
+                                        case ResultFailure(:final failure)) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(failure.message),
+                                        ),
+                                      );
+                                    }
+                                  },
+                            icon: const Icon(Icons.delete_outline, size: 20),
+                            color: AppColors.textMutedLight,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ],
+                      ),
+                      if (!available) ...[
+                        const SizedBox(height: AppSpacing.s4),
+                        Text(
+                          item.availabilityLabel ?? 'Unavailable',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                      if (item.seller != null && item.seller!.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.s4),
+                        Text(
+                          item.seller!,
+                          style: AppTypography.caption.copyWith(
+                            color: muted,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.s8),
+                      Text(
+                        AppCurrency.format(
+                          item.displayPriceUsd.toStringAsFixed(2),
+                        ),
+                        style: GoogleFonts.manrope(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: available
+                              ? AppColors.textPrimaryLight
+                              : muted,
+                          decoration: available
+                              ? null
+                              : TextDecoration.lineThrough,
+                        ),
+                      ),
+                      if (item.quantity > 1) ...[
+                        const SizedBox(height: AppSpacing.s4),
+                        Text(
+                          'Qty ${item.quantity}',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

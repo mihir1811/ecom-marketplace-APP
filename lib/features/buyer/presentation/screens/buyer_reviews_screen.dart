@@ -7,8 +7,8 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../seller_reviews/application/seller_reviews_provider.dart';
-import '../../../seller_reviews/domain/models/seller_review.dart';
+import '../../../seller/application/seller_reviews_provider.dart';
+import '../../../seller/domain/models/seller_review.dart';
 import '../widgets/buyer_layout.dart';
 
 class BuyerReviewsScreen extends ConsumerWidget {

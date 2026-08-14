@@ -13,12 +13,26 @@ import '../widgets/cart_items_section.dart';
 import '../widgets/cart_promo_section.dart';
 import '../widgets/cart_totals_section.dart';
 
-/// Buyer cart — live API; sections watch their own cart slices.
-class CartScreen extends ConsumerWidget {
+/// Buyer cart — loads full cart+delivery once on open; sections watch slices.
+class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends ConsumerState<CartScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(cartProvider.notifier).refresh(mode: CartLoadMode.full);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isLoading = ref.watch(cartIsLoadingProvider);
     final isEmpty = ref.watch(cartIsEmptyProvider);
     final error = ref.watch(cartErrorProvider);
@@ -31,7 +45,9 @@ class CartScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh',
-            onPressed: () => ref.read(cartProvider.notifier).refresh(),
+            onPressed: () => ref
+                .read(cartProvider.notifier)
+                .refresh(mode: CartLoadMode.full, force: true),
           ),
           IconButton(
             icon: const Icon(Icons.close),
@@ -44,7 +60,9 @@ class CartScreen extends ConsumerWidget {
           : error != null && isEmpty
               ? _CartErrorState(
                   message: error,
-                  onRetry: () => ref.read(cartProvider.notifier).refresh(),
+                  onRetry: () => ref
+                      .read(cartProvider.notifier)
+                      .refresh(mode: CartLoadMode.full, force: true),
                 )
               : isEmpty
                   ? const _CartEmptyState()
