@@ -62,7 +62,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final borderColor = AppColors.warmBorder;
+    const borderColor = AppColors.warmBorder;
 
     final totalShapes = kAllShapes.length;
     final totalRows = (totalShapes / _shapeGridColumns).ceil();
@@ -522,7 +522,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                           const Spacer(),
                                           Text(
                                             hex,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 12,
                                               color: Colors.black45,
                                             ),
@@ -632,7 +632,7 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final borderColor = AppColors.warmBorder;
+    const borderColor = AppColors.warmBorder;
 
     return FilterGroupCard(
       child: Column(
@@ -704,7 +704,7 @@ class FinishPresetsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final borderColor = AppColors.warmBorder;
+    const borderColor = AppColors.warmBorder;
     final presets = ['3X', 'EX-', 'VG+', 'VG-'];
 
     final content = Column(
@@ -724,7 +724,7 @@ class FinishPresetsSection extends ConsumerWidget {
                 triggerMode: TooltipTriggerMode.tap,
                 preferBelow: false,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.9),
+                  color: Colors.black.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 textStyle: const TextStyle(color: Colors.white, fontSize: 13),
@@ -802,7 +802,7 @@ class FilterSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = AppColors.warmBorder;
+    const borderColor = AppColors.warmBorder;
 
     return MeleeTintExtentAnchor(
       child: Container(
@@ -876,7 +876,7 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final borderColor = AppColors.warmBorder;
+    const borderColor = AppColors.warmBorder;
 
     const sieves = SieveSize.defaultSieves;
     final selectedSet = state.selectedSieveIndices.toSet();
@@ -918,7 +918,7 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
               ),
               child: Column(
                 children: [
-                  _SieveTableHeader(borderColor: borderColor),
+                  const _SieveTableHeader(borderColor: borderColor),
                   Expanded(
                     child: Scrollbar(
                       child: ListView.builder(

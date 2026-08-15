@@ -82,14 +82,14 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                         eyebrow: 'VERIFY EMAIL',
                         subtitle: 'Enter the code we sent you',
                       ),
-                      SizedBox(height: AppSpacing.s24),
+                      const SizedBox(height: AppSpacing.s24),
                       Text(
                         'Verify OTP',
                         style: AppTypography.display.copyWith(
                           color: AppColors.textPrimaryLight,
                         ),
                       ),
-                      SizedBox(height: AppSpacing.s12),
+                      const SizedBox(height: AppSpacing.s12),
                       Text(
                         email.isEmpty
                             ? 'Enter the 6-digit code from your email.'
@@ -98,7 +98,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                           color: AppColors.textSecondaryLight,
                         ),
                       ),
-                      SizedBox(height: AppSpacing.s24),
+                      const SizedBox(height: AppSpacing.s24),
                       Form(
                         key: _formKey,
                         child: Column(
@@ -125,7 +125,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                               },
                             ),
                             if (authState.errorMessage != null) ...[
-                              SizedBox(height: AppSpacing.s16),
+                              const SizedBox(height: AppSpacing.s16),
                               Text(
                                 authState.errorMessage!,
                                 style: AppTypography.caption.copyWith(
@@ -133,7 +133,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                 ),
                               ),
                             ],
-                            SizedBox(height: AppSpacing.s16),
+                            const SizedBox(height: AppSpacing.s16),
                             SizedBox(
                               width: double.infinity,
                               child: FilledButton(
@@ -183,7 +183,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                       ),
                               ),
                             ),
-                            SizedBox(height: AppSpacing.s16),
+                            const SizedBox(height: AppSpacing.s16),
                             TextButton(
                               onPressed: authState.isLoading ||
                                       _resendBusy ||
@@ -191,14 +191,15 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                   ? null
                                   : () async {
                                       setState(() => _resendBusy = true);
+                                      final messenger =
+                                          ScaffoldMessenger.of(context);
                                       final ok = await ref
                                           .read(authProvider.notifier)
                                           .resendOtp(email: email);
                                       if (!mounted) return;
                                       setState(() => _resendBusy = false);
                                       if (ok) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                        messenger.showSnackBar(
                                           const SnackBar(
                                             content: Text(
                                               'OTP sent. Check your email.',
@@ -215,7 +216,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                 ),
                               ),
                             ),
-                            SizedBox(height: AppSpacing.s24),
+                            const SizedBox(height: AppSpacing.s24),
                             Center(
                               child: TextButton(
                                 onPressed: authState.isLoading

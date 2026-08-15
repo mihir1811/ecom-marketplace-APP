@@ -71,14 +71,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         eyebrow: 'WELCOME BACK',
                         subtitle: 'Sign in to GemWorld',
                       ),
-                      SizedBox(height: AppSpacing.s24),
+                      const SizedBox(height: AppSpacing.s24),
                       Text(
                         'Login',
                         style: AppTypography.display.copyWith(
                           color: AppColors.textPrimaryLight,
                         ),
                       ),
-                      SizedBox(height: AppSpacing.s24),
+                      const SizedBox(height: AppSpacing.s24),
 
                       Form(
                         key: _formKey,
@@ -101,7 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 return null;
                               },
                             ),
-                            SizedBox(height: AppSpacing.s16),
+                            const SizedBox(height: AppSpacing.s16),
                             TextFormField(
                               controller: _passwordController,
                               obscureText: _obscurePassword,
@@ -134,7 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 return null;
                               },
                             ),
-                            SizedBox(height: AppSpacing.s12),
+                            const SizedBox(height: AppSpacing.s12),
 
                             Align(
                               alignment: Alignment.centerRight,
@@ -155,7 +155,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
 
                             if (authState.errorMessage != null) ...[
-                              SizedBox(height: AppSpacing.s16),
+                              const SizedBox(height: AppSpacing.s16),
                               Text(
                                 authState.errorMessage!,
                                 style: AppTypography.caption.copyWith(
@@ -164,7 +164,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ],
 
-                            SizedBox(height: AppSpacing.s16),
+                            const SizedBox(height: AppSpacing.s16),
 
                             SizedBox(
                               width: double.infinity,
@@ -219,7 +219,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
 
-                            SizedBox(height: AppSpacing.s24),
+                            const SizedBox(height: AppSpacing.s24),
 
                             Center(
                               child: TextButton(

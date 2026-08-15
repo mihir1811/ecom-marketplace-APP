@@ -61,7 +61,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
     final item = widget.item;
     final mutating = ref.watch(cartIsMutatingProvider);
     final available = item.isAvailable;
-    final muted = AppColors.textMutedLight;
+    const muted = AppColors.textMutedLight;
 
     return Opacity(
       opacity: available ? 1 : 0.72,

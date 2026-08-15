@@ -50,10 +50,10 @@ class JewelryProductCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bg = AppColors.warmWhite;
-    final border = AppColors.warmBorder;
-    final text = AppColors.textPrimaryLight;
-    final muted = AppColors.textSecondaryLight;
+    const bg = AppColors.warmWhite;
+    const border = AppColors.warmBorder;
+    const text = AppColors.textPrimaryLight;
+    const muted = AppColors.textSecondaryLight;
     final variants = item.colorVariants.take(4).toList();
     final extra = item.colorVariants.length - variants.length;
     final wishlisted = ref.watch(isInWishlistProvider(item.id));
@@ -505,10 +505,10 @@ class JewelryProductListCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bg = AppColors.warmWhite;
-    final border = AppColors.warmBorder;
-    final text = AppColors.textPrimaryLight;
-    final secondary = AppColors.textSecondaryLight;
+    const bg = AppColors.warmWhite;
+    const border = AppColors.warmBorder;
+    const text = AppColors.textPrimaryLight;
+    const secondary = AppColors.textSecondaryLight;
     final variants = item.colorVariants.take(3).toList();
     final purityLabel = item.metalPurity.replaceAll(' ', '').toLowerCase();
     final wishlisted = ref.watch(isInWishlistProvider(item.id));
@@ -753,7 +753,7 @@ class _StoneCountBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = AppColors.textSecondaryLight;
+    const muted = AppColors.textSecondaryLight;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -798,7 +798,7 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = AppColors.textSecondaryLight;
+    const muted = AppColors.textSecondaryLight;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSpacing.r8),

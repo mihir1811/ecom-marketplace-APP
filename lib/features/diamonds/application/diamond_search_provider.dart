@@ -230,7 +230,7 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
   }
 
   void toggleStandardColor(String color) {
-    final allColors = DiamondFilterState.colors;
+    const allColors = DiamondFilterState.colors;
     final current = List<String>.from(state.selectedStandardColors);
     final targetIndex = allColors.indexOf(color);
 
@@ -306,7 +306,7 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
   }
 
   void toggleClarityGradeGroup(String grade) {
-    final allClarities = DiamondFilterState.clarities;
+    const allClarities = DiamondFilterState.clarities;
     final current = List<String>.from(state.selectedClarityGrades);
     final targetIndex = allClarities.indexOf(grade);
 
@@ -499,7 +499,7 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
   }
 
   void toggleSieveSize(int index) {
-    final allSieves = SieveSize.defaultSieves;
+    const allSieves = SieveSize.defaultSieves;
     final current = List<int>.from(state.selectedSieveIndices);
 
     if (current.isEmpty) {
@@ -665,7 +665,7 @@ final diamondSearchProvider = NotifierProvider<DiamondSearchNotifier, DiamondFil
 /// overrides [diamondSearchProvider], e.g. the lab-grown shell.
 final matchingCountProvider = Provider<int>(computeMatchingCount);
 
-int computeMatchingCount(ProviderRef<int> ref) {
+int computeMatchingCount(Ref ref) {
   final state = ref.watch(diamondSearchProvider);
   final catalog = ref.watch(diamondCatalogTypeProvider);
   final baseCount = catalog.isLabGrown ? 86420 : 120450;

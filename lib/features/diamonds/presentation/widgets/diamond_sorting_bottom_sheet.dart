@@ -86,7 +86,6 @@ class _DiamondSortingBottomSheetState
 
   void _reorder(int oldIndex, int newIndex) {
     setState(() {
-      if (newIndex > oldIndex) newIndex--;
       final item = _tempSelected.removeAt(oldIndex);
       _tempSelected.insert(newIndex, item);
       _recalculatePriorities();
@@ -114,12 +113,12 @@ class _DiamondSortingBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = AppColors.warmWhite;
-    final textColor =
+    const bgColor = AppColors.warmWhite;
+    const textColor =
         AppColors.textPrimaryLight;
-    final mutedColor =
+    const mutedColor =
         AppColors.textSecondaryLight;
-    final borderColor =
+    const borderColor =
         AppColors.warmBorder;
 
     return DraggableScrollableSheet(
@@ -174,7 +173,7 @@ class _DiamondSortingBottomSheetState
         width: 40,
         height: 4,
         decoration: BoxDecoration(
-          color: AppColors.textMutedLight.withOpacity(0.3),
+          color: AppColors.textMutedLight.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(2),
         ),
       ),
@@ -205,7 +204,7 @@ class _DiamondSortingBottomSheetState
               padding: const EdgeInsets.all(AppSpacing.s8),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: mutedColor.withOpacity(0.1),
+                color: mutedColor.withValues(alpha: 0.1),
               ),
               child: Icon(
                 Icons.close,
@@ -251,7 +250,7 @@ class _DiamondSortingBottomSheetState
       padding: const EdgeInsets.all(AppSpacing.s24),
       decoration: BoxDecoration(
         border: Border.all(
-          color: AppColors.textMutedLight.withOpacity(0.2),
+          color: AppColors.textMutedLight.withValues(alpha: 0.2),
         ),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
       ),
@@ -260,7 +259,7 @@ class _DiamondSortingBottomSheetState
           Icon(
             Icons.sort,
             size: 32,
-            color: mutedColor.withOpacity(0.4),
+            color: mutedColor.withValues(alpha: 0.4),
           ),
           const SizedBox(height: AppSpacing.s8),
           Text(
@@ -283,7 +282,7 @@ class _DiamondSortingBottomSheetState
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _tempSelected.length,
-      onReorder: _reorder,
+      onReorderItem: _reorder,
       proxyDecorator: (child, index, animation) {
         return AnimatedBuilder(
           animation: animation,
@@ -330,7 +329,7 @@ class _DiamondSortingBottomSheetState
         border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -360,7 +359,7 @@ class _DiamondSortingBottomSheetState
               child: Container(
                 padding: const EdgeInsets.all(AppSpacing.s4),
                 decoration: BoxDecoration(
-                  color: AppColors.bronze.withOpacity(0.1),
+                  color: AppColors.bronze.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppSpacing.r4),
                 ),
                 child: Icon(
@@ -405,7 +404,7 @@ class _DiamondSortingBottomSheetState
                 padding: const EdgeInsets.all(AppSpacing.s4),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.terracotta.withOpacity(0.1),
+                  color: AppColors.terracotta.withValues(alpha: 0.1),
                 ),
                 child: const Icon(
                   Icons.close,
@@ -473,7 +472,7 @@ class _DiamondSortingBottomSheetState
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppSpacing.r8),
-          border: Border.all(color: borderColor.withOpacity(0.5)),
+          border: Border.all(color: borderColor.withValues(alpha: 0.5)),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -519,7 +518,7 @@ class _DiamondSortingBottomSheetState
         color: Theme.of(context).colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: AppColors.textMutedLight.withOpacity(0.15),
+            color: AppColors.textMutedLight.withValues(alpha: 0.15),
           ),
         ),
       ),

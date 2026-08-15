@@ -104,12 +104,12 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       if (session == null) {
         return Result.failure(
-          AuthFailure('Unexpected login response. Please try again.'),
+          const AuthFailure('Unexpected login response. Please try again.'),
         );
       }
       if (session.user.isBlocked || session.user.isDeleted) {
         return Result.failure(
-          AuthFailure('This account is not available. Contact support.'),
+          const AuthFailure('This account is not available. Contact support.'),
         );
       }
       await _persist(session);
@@ -138,7 +138,7 @@ class AuthRepositoryImpl implements AuthRepository {
       if (registrationType == RegistrationAccountType.business &&
           business == null) {
         return Result.failure(
-          AuthFailure('Business registration details are required.'),
+          const AuthFailure('Business registration details are required.'),
         );
       }
 
@@ -276,7 +276,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final session = _parseSession(response.data, rememberDevice: true);
       if (session == null) {
         return Result.failure(
-          AuthFailure('Unexpected verification response. Please try again.'),
+          const AuthFailure('Unexpected verification response. Please try again.'),
         );
       }
       await _persist(session);

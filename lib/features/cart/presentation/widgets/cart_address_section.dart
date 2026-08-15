@@ -118,7 +118,7 @@ class CartAddressSection extends ConsumerWidget {
     final address = ref.watch(cartAddressProvider);
     final addresses = ref.watch(cartAddressesProvider);
     final mutating = ref.watch(cartIsMutatingProvider);
-    final muted = AppColors.textMutedLight;
+    const muted = AppColors.textMutedLight;
 
     // Prefer full list; ensure selected address is visible even if list lagged.
     final list = <DeliveryAddress>[

@@ -241,7 +241,7 @@ class _WatchBrandsDirectorySheetState
   @override
   Widget build(BuildContext context) {
     final selected = ref.watch(watchFilterProvider.select((s) => s.brands));
-    final muted = AppColors.textMutedLight;
+    const muted = AppColors.textMutedLight;
 
     final filtered = _query.isEmpty
         ? watchBrandCategories
@@ -324,7 +324,7 @@ class _WatchBrandsDirectorySheetState
                         decoration: InputDecoration(
                           isDense: true,
                           hintText: 'Search brands...',
-                          prefixIcon: Icon(
+                          prefixIcon: const Icon(
                             Icons.search,
                             color: muted,
                             size: 20,
@@ -339,7 +339,7 @@ class _WatchBrandsDirectorySheetState
                                     _searchController.clear();
                                     setState(() => _query = '');
                                   },
-                                  icon: Icon(
+                                  icon: const Icon(
                                     Icons.clear,
                                     color: muted,
                                     size: 18,

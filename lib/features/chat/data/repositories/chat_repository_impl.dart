@@ -122,7 +122,7 @@ class ChatRepositoryImpl implements ChatRepository {
       );
       final data = response.data?['data'];
       if (data is! Map) {
-        return Result.failure(ValidationFailure('Product context not found.'));
+        return Result.failure(const ValidationFailure('Product context not found.'));
       }
       return Result.success(
         ChatMapper.contextFromJson(Map<String, dynamic>.from(data)),
@@ -203,7 +203,7 @@ class ChatRepositoryImpl implements ChatRepository {
       final data = response.data?['data'];
       final url = data is Map ? data['url']?.toString() : null;
       if (url == null || url.isEmpty) {
-        return Result.failure(UnknownFailure('Unexpected upload response.'));
+        return Result.failure(const UnknownFailure('Unexpected upload response.'));
       }
       return Result.success(url);
     } on DioException catch (e) {

@@ -314,8 +314,8 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
     required String maxLabel,
     required VoidCallback onChanged,
   }) {
-    final muted = AppColors.textMutedLight;
-    final placeholders = BullionsFilterState.rangePlaceholders;
+    const muted = AppColors.textMutedLight;
+    const placeholders = BullionsFilterState.rangePlaceholders;
     final minHint = placeholders[minKey] ?? '0';
     final maxHint = placeholders[maxKey] ?? '0';
 

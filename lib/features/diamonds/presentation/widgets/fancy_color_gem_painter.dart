@@ -52,7 +52,7 @@ class FancyColorGemPainter extends CustomPainter {
   Shader _fillShader(Rect rect) {
     if (rainbow) {
       return const SweepGradient(
-        colors: const [
+        colors: [
           Color(0xFFEF4444),
           Color(0xFFFACC15),
           Color(0xFF22C55E),

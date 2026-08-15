@@ -71,7 +71,7 @@ class _GemstoneListingsScreenState
   Widget build(BuildContext context) {
     final stateAsync = ref.watch(gemstoneListProvider);
     final viewMode = ref.watch(gemstoneViewModeProvider);
-    final muted =
+    const muted =
         AppColors.textSecondaryLight;
 
     return AppScaffold(

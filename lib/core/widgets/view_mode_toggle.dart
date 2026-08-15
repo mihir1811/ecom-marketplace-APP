@@ -59,7 +59,7 @@ class ViewModeToggle extends StatelessWidget {
       );
     }
 
-    final border = AppColors.warmBorder;
+    const border = AppColors.warmBorder;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppSpacing.r8),

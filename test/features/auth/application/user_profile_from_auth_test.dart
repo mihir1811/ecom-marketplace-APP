@@ -47,14 +47,14 @@ void main() {
       role: 'seller',
       isVerified: true,
     );
-    final user = AuthUser(
+    const user = AuthUser(
       id: 'u1',
       fullName: 'harshil',
       username: 'harshil123',
       email: 'h@x.com',
       role: 'seller',
       isVerified: false,
-      sellerAccount: const SellerAccountSnapshot(
+      sellerAccount: SellerAccountSnapshot(
         companyName: 'temp',
         addressLine1: '12 Market St',
       ),

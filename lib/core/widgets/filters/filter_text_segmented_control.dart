@@ -20,7 +20,7 @@ class FilterTextSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = AppColors.warmBorder;
+    const borderColor = AppColors.warmBorder;
 
     return MeleeTintExtentAnchor(
       child: Container(

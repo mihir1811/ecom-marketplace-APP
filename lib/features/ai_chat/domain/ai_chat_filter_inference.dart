@@ -327,7 +327,7 @@ abstract final class AiChatFilterInference {
       weights.sort();
       final min = weights.first;
       final max = weights.last;
-      final pad = 0.05;
+      const pad = 0.05;
       return ((min - pad).clamp(0.0, 100.0), (max + pad).clamp(0.0, 100.0));
     }
 

@@ -27,7 +27,7 @@ class FilterSectionHeader extends StatelessWidget {
             triggerMode: TooltipTriggerMode.tap,
             preferBelow: false,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.9),
+              color: Colors.black.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(6),
             ),
             textStyle: const TextStyle(color: Colors.white, fontSize: 13),

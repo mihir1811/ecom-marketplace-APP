@@ -502,7 +502,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
               AppSpacing.s16,
               AppSpacing.s16,
             ),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.warmWhite,
               border: Border(
                 top: BorderSide(

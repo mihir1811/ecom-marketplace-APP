@@ -9,29 +9,29 @@ void main() {
     
     // Layer 3 Error Boundary - Degrades gracefully in production rather than showing the red screen
     ErrorWidget.builder = (FlutterErrorDetails details) {
-      return Scaffold(
+      return const Scaffold(
         body: SafeArea(
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: EdgeInsets.all(24.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.error_outline,
                     color: Color(0xFFDC2626),
                     size: 48,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     'Something went wrong.',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8),
+                  Text(
                     'An unexpected error occurred. Please reload or restart the application.',
                     textAlign: TextAlign.center,
                     style: TextStyle(

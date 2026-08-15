@@ -225,13 +225,13 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                               color: AppColors.warmBorder,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                               color: AppColors.warmBorder,
                             ),
                           ),
@@ -286,13 +286,13 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                               color: AppColors.warmBorder,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                               color: AppColors.warmBorder,
                             ),
                           ),

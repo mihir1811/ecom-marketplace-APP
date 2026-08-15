@@ -71,14 +71,14 @@ class _ForgotPasswordScreenState
                           color: AppColors.textPrimaryLight,
                         ),
                       ),
-                      SizedBox(height: AppSpacing.s12),
+                      const SizedBox(height: AppSpacing.s12),
                       Text(
                         'Enter your registered email and we will send you a reset link.',
                         style: AppTypography.body.copyWith(
                           color: AppColors.textSecondaryLight,
                         ),
                       ),
-                      SizedBox(height: AppSpacing.s24),
+                      const SizedBox(height: AppSpacing.s24),
 
                       Form(
                         key: _formKey,
@@ -102,7 +102,7 @@ class _ForgotPasswordScreenState
                               },
                             ),
 
-                            SizedBox(height: AppSpacing.s16),
+                            const SizedBox(height: AppSpacing.s16),
 
                             SizedBox(
                               width: double.infinity,
@@ -150,7 +150,7 @@ class _ForgotPasswordScreenState
                               ),
                             ),
 
-                            SizedBox(height: AppSpacing.s12),
+                            const SizedBox(height: AppSpacing.s12),
 
                             if (authState.errorMessage != null) ...[
                               Text(
@@ -162,7 +162,7 @@ class _ForgotPasswordScreenState
                             ],
 
                             if (authState.resetLinkSent) ...[
-                              SizedBox(height: AppSpacing.s16),
+                              const SizedBox(height: AppSpacing.s16),
                               Text(
                                 'Reset link sent. Please check your email.',
                                 style: AppTypography.caption.copyWith(
@@ -174,7 +174,7 @@ class _ForgotPasswordScreenState
                         ),
                       ),
 
-                      SizedBox(height: AppSpacing.s24),
+                      const SizedBox(height: AppSpacing.s24),
 
                       Center(
                         child: TextButton(

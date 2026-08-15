@@ -83,7 +83,7 @@ class FilterEndDrawerShell extends StatelessWidget {
                   AppSpacing.s16,
                   AppSpacing.s16,
                 ),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.warmWhite,
                   border: Border(top: BorderSide(color: AppColors.warmBorder)),
                 ),

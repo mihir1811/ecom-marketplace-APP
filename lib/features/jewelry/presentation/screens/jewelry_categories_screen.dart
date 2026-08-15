@@ -127,9 +127,9 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = AppColors.warmWhite;
-    final border = AppColors.warmBorder;
-    final muted = AppColors.textMutedLight;
+    const bg = AppColors.warmWhite;
+    const border = AppColors.warmBorder;
+    const muted = AppColors.textMutedLight;
     final styleCount =
         category.subcategories.where((s) => s.isActive).length;
     final asset = JewelleryCategoryImages.assetFor(category.name);

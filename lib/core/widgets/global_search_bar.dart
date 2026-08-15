@@ -8,7 +8,7 @@ class GlobalSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = AppColors.textPrimaryLight;
+    const textColor = AppColors.textPrimaryLight;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
@@ -32,8 +32,8 @@ class GlobalSearchBar extends StatelessWidget {
               horizontal: AppSpacing.s12,
               vertical: AppSpacing.s8,
             ),
-            prefixIcon: Padding(
-              padding: const EdgeInsets.only(
+            prefixIcon: const Padding(
+              padding: EdgeInsets.only(
                 left: AppSpacing.s12,
                 right: AppSpacing.s8,
               ),

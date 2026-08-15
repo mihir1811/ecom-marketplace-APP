@@ -45,7 +45,7 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
+            child: const Text(
               'Delete',
               style: TextStyle(color: AppColors.error),
             ),

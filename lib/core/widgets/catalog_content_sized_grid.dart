@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../theme/app_spacing.dart';
 
@@ -37,8 +38,8 @@ class CatalogContentSizedGrid extends StatelessWidget {
     final total = rowCount + (isLoadingMore ? 1 : 0);
 
     return ListView.builder(
+      scrollCacheExtent: const ScrollCacheExtent.pixels(600),
       controller: controller,
-      cacheExtent: 600,
       addAutomaticKeepAlives: false,
       padding: padding,
       itemCount: total,

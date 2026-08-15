@@ -214,7 +214,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.sort, size: 14, color: mutedColor),
+                          const Icon(Icons.sort, size: 14, color: mutedColor),
                           const SizedBox(width: AppSpacing.s4),
                           Text(
                             'Sort',

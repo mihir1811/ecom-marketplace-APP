@@ -38,8 +38,8 @@ class CatalogListLoading extends StatelessWidget {
   }
 
   Widget _buildShimmerCard() {
-    final base = AppColors.sandSurface;
-    final highlight = AppColors.warmWhite;
+    const base = AppColors.sandSurface;
+    const highlight = AppColors.warmWhite;
 
     return Container(
       decoration: BoxDecoration(
@@ -107,8 +107,8 @@ class CatalogListLoading extends StatelessWidget {
   }
 
   Widget _buildShimmerRow() {
-    final base = AppColors.sandSurface;
-    final highlight = AppColors.warmWhite;
+    const base = AppColors.sandSurface;
+    const highlight = AppColors.warmWhite;
 
     return Container(
       height: 100,
@@ -121,9 +121,9 @@ class CatalogListLoading extends StatelessWidget {
           Container(
             width: 100,
             height: 100,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: highlight,
-              borderRadius: const BorderRadius.horizontal(
+              borderRadius: BorderRadius.horizontal(
                 left: Radius.circular(AppSpacing.r12),
               ),
             ),

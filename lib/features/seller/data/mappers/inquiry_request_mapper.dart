@@ -142,7 +142,7 @@ abstract final class InquiryRequestMapper {
           'heightMax',
         ])
           _DefaultSpec(key, 0),
-        _DefaultSpec('quantity', 1),
+        const _DefaultSpec('quantity', 1),
       ],
       InquiryCategory.gemstone => [
         for (final key in [
@@ -174,7 +174,7 @@ abstract final class InquiryRequestMapper {
           'heightMax',
         ])
           _DefaultSpec(key, 0),
-        _DefaultSpec('quantity', 1),
+        const _DefaultSpec('quantity', 1),
       ],
       InquiryCategory.bullion => [
         for (final key in [
@@ -203,7 +203,7 @@ abstract final class InquiryRequestMapper {
           'heightMax',
         ])
           _DefaultSpec(key, 0),
-        _DefaultSpec('quantity', 1),
+        const _DefaultSpec('quantity', 1),
       ],
       InquiryCategory.watch => [
         for (final key in [
@@ -272,7 +272,7 @@ abstract final class InquiryRequestMapper {
           'totalPriceMax',
         ])
           _DefaultSpec(key, 0),
-        _DefaultSpec('quantity', 1),
+        const _DefaultSpec('quantity', 1),
       ],
     };
   }

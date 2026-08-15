@@ -29,12 +29,12 @@ class AuthBrandHeader extends StatelessWidget {
             border: Border.all(color: AppColors.warmBorder, width: 1),
           ),
           alignment: Alignment.center,
-          child: Icon(
+          child: const Icon(
             Icons.diamond_outlined,
             color: AppColors.charcoal,
           ),
         ),
-        SizedBox(width: AppSpacing.s16),
+        const SizedBox(width: AppSpacing.s16),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -46,7 +46,7 @@ class AuthBrandHeader extends StatelessWidget {
                 letterSpacing: 0.3,
               ),
             ),
-            SizedBox(height: AppSpacing.s8),
+            const SizedBox(height: AppSpacing.s8),
             Text(
               subtitle,
               style: AppTypography.body.copyWith(

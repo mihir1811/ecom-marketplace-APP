@@ -51,8 +51,8 @@ class BullionCardGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = AppColors.textPrimaryLight;
-    final mutedColor = AppColors.textSecondaryLight;
+    const textColor = AppColors.textPrimaryLight;
+    const mutedColor = AppColors.textSecondaryLight;
     final metalLabel = _metalLabel(bullion.metal);
     final title = _gridTitle(bullion);
     final specs = _gridSpecs(bullion);
@@ -178,8 +178,8 @@ class BullionCardList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = AppColors.textPrimaryLight;
-    final secondaryColor = AppColors.textSecondaryLight;
+    const textColor = AppColors.textPrimaryLight;
+    const secondaryColor = AppColors.textSecondaryLight;
     final metalLabel = _metalLabel(bullion.metal);
     final detailLine = _listDetailLine(bullion);
     final specsLine = _listSpecsLine(bullion);

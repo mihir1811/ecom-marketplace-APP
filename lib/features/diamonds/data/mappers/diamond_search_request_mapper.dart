@@ -11,8 +11,6 @@ abstract final class DiamondSearchRequestMapper {
   static const _defaultMaxPpc = 200000.0;
   static const _defaultMinCarat = 0.0;
   static const _defaultMaxCarat = 100.0;
-  static const _defaultMinRatio = 0.5;
-  static const _defaultMaxRatio = 5.0;
   static const _defaultMinTable = 0.0;
   static const _defaultMaxTable = 100.0;
   static const _defaultMinDepth = 0.0;
@@ -368,7 +366,7 @@ abstract final class DiamondSearchRequestMapper {
   static bool _nearlyEqual(double a, double b) => (a - b).abs() <= 1e-6;
 
   static List<String> _colorsFromIndexRange(int minIndex, int maxIndex) {
-    final colors = DiamondFilterState.colors;
+    const colors = DiamondFilterState.colors;
     if (minIndex <= 0 && maxIndex >= colors.length - 1) return const [];
     final start = minIndex.clamp(0, colors.length - 1);
     final end = maxIndex.clamp(0, colors.length - 1);
@@ -377,7 +375,7 @@ abstract final class DiamondSearchRequestMapper {
   }
 
   static List<String> _claritiesFromIndexRange(int minIndex, int maxIndex) {
-    final clarities = DiamondFilterState.clarities;
+    const clarities = DiamondFilterState.clarities;
     // Full clarity span (incl. I3) means "no filter".
     if (minIndex <= 0 && maxIndex >= clarities.length - 1) return const [];
     final start = minIndex.clamp(0, clarities.length - 1);

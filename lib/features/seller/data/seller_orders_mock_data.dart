@@ -2,14 +2,14 @@ import '../domain/models/seller_orders_models.dart';
 import '../../../core/utils/app_currency.dart';
 
 final kSellerOrdersMock = <SellerOrder>[
-  SellerOrder(
+  const SellerOrder(
     id: '274A3B76',
     status: 'Out For Delivery',
     carrier: 'fvg',
     location: 'ghv',
     trackingNumber: 'fbg456y',
     updatedAt: '21/07/2026, 16:39:04',
-    timeline: const [
+    timeline: [
       SellerOrderTimelineEntry(
         title: 'Out For Delivery · ghv',
         subtitle: 'fb',
@@ -22,14 +22,14 @@ final kSellerOrdersMock = <SellerOrder>[
       ),
     ],
   ),
-  SellerOrder(
+  const SellerOrder(
     id: '9D38AA35',
     status: 'Processing',
     carrier: 'BlueDart',
     location: 'Mumbai',
     trackingNumber: 'BD99821',
     updatedAt: '20/07/2026, 11:12:00',
-    timeline: const [
+    timeline: [
       SellerOrderTimelineEntry(
         title: 'Processing',
         subtitle: 'Order confirmed · awaiting pack',
@@ -37,14 +37,14 @@ final kSellerOrdersMock = <SellerOrder>[
       ),
     ],
   ),
-  SellerOrder(
+  const SellerOrder(
     id: 'A11C90EF',
     status: 'Delivered',
     carrier: 'Delhivery',
     location: 'Pune',
     trackingNumber: 'DL44210',
     updatedAt: '18/07/2026, 09:05:22',
-    timeline: const [
+    timeline: [
       SellerOrderTimelineEntry(
         title: 'Delivered · Pune',
         subtitle: 'Signed by recipient',
@@ -89,7 +89,7 @@ final kSellerRefundsMock = <SellerRefund>[
 ];
 
 final kSellerAuctionsMock = <SellerAuction>[
-  SellerAuction(
+  const SellerAuction(
     id: '9',
     productLabel: 'mt507-74',
     category: 'Diamond',
@@ -98,7 +98,7 @@ final kSellerAuctionsMock = <SellerAuction>[
     currentBid: '${AppCurrency.symbol}460',
     startsAt: '09/07/2026, 10:43:00',
     endsAt: '09/07/2026, 10:47:43',
-    bids: const [
+    bids: [
       SellerAuctionBid(
         amount: '${AppCurrency.symbol}460',
         bidder: 'tttt',
@@ -126,7 +126,7 @@ final kSellerAuctionsMock = <SellerAuction>[
       ),
     ],
   ),
-  SellerAuction(
+  const SellerAuction(
     id: '12',
     productLabel: 'th555-22',
     category: 'Diamond',
@@ -135,7 +135,7 @@ final kSellerAuctionsMock = <SellerAuction>[
     currentBid: '${AppCurrency.symbol}275',
     startsAt: '21/07/2026, 09:00:00',
     endsAt: '22/07/2026, 09:00:00',
-    bids: const [
+    bids: [
       SellerAuctionBid(
         amount: '${AppCurrency.symbol}275',
         bidder: 'alex',
@@ -151,7 +151,7 @@ final kSellerAuctionsMock = <SellerAuction>[
       ),
     ],
   ),
-  SellerAuction(
+  const SellerAuction(
     id: '15',
     productLabel: 'lk512-18',
     category: 'Diamond',
@@ -160,7 +160,7 @@ final kSellerAuctionsMock = <SellerAuction>[
     currentBid: '${AppCurrency.symbol}150',
     startsAt: '25/07/2026, 10:00:00',
     endsAt: '26/07/2026, 10:00:00',
-    bids: const [],
+    bids: [],
   ),
 ];
 

@@ -86,7 +86,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
         return Consumer(
           builder: (context, ref, _) {
             final filters = ref.watch(brandWatchFilterProvider);
-            final muted = AppColors.textMutedLight;
+            const muted = AppColors.textMutedLight;
             final n = ref.read(brandWatchFilterProvider.notifier);
 
             return Padding(
@@ -222,7 +222,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
     final filters = ref.watch(brandWatchFilterProvider);
     final listAsync = ref.watch(brandWatchListProvider);
     final listState = listAsync.valueOrNull;
-    final muted =
+    const muted =
         AppColors.textMutedLight;
     final logo = WatchBrandAssets.logoPath(widget.brandName);
 
@@ -328,7 +328,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.tune,
                                 size: 22,
                                 color: AppColors.textPrimaryLight,
@@ -484,7 +484,7 @@ class _PriceInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = AppColors.warmBorder;
+    const borderColor = AppColors.warmBorder;
 
     return SizedBox(
       height: 40,
@@ -511,11 +511,11 @@ class _PriceInput extends StatelessWidget {
               AppColors.warmWhite,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppSpacing.r8),
-            borderSide: BorderSide(color: borderColor),
+            borderSide: const BorderSide(color: borderColor),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppSpacing.r8),
-            borderSide: BorderSide(color: borderColor),
+            borderSide: const BorderSide(color: borderColor),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppSpacing.r8),

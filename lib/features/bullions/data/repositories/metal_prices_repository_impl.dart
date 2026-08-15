@@ -57,33 +57,29 @@ class MetalPricesRepositoryImpl implements MetalPricesRepository {
 
   @override
   Future<Result<List<MetalSpotPrice>, Failure>> fetchSpotPrices() async {
-    // Metal prices (AURUM) — disabled while ticker UI is commented out.
-    // Uncomment the body below to re-enable network + 2h cache.
-    return Result.success(const <MetalSpotPrice>[]);
+    try {
+      final cached = await _readCacheIfFresh();
+      if (cached != null && cached.isNotEmpty) {
+        return Result.success(cached);
+      }
 
-    // try {
-    //   final cached = await _readCacheIfFresh();
-    //   if (cached != null && cached.isNotEmpty) {
-    //     return Result.success(cached);
-    //   }
-    //
-    //   final network = await _fetchFromNetwork();
-    //   switch (network) {
-    //     case Success(value: final prices):
-    //       try {
-    //         await _writeCache(prices);
-    //       } catch (_) {}
-    //       return Result.success(prices);
-    //     case ResultFailure(failure: final failure):
-    //       final stale = await _readCacheIgnoringTtl();
-    //       if (stale != null && stale.isNotEmpty) {
-    //         return Result.success(stale);
-    //       }
-    //       return Result.failure(failure);
-    //   }
-    // } catch (e) {
-    //   return Result.failure(UnknownFailure(e.toString()));
-    // }
+      final network = await _fetchFromNetwork();
+      switch (network) {
+        case Success(value: final prices):
+          try {
+            await _writeCache(prices);
+          } catch (_) {}
+          return Result.success(prices);
+        case ResultFailure(failure: final failure):
+          final stale = await _readCacheIgnoringTtl();
+          if (stale != null && stale.isNotEmpty) {
+            return Result.success(stale);
+          }
+          return Result.failure(failure);
+      }
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
   }
 
   Future<Result<List<MetalSpotPrice>, Failure>> _fetchFromNetwork() async {

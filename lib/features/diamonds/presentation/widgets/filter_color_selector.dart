@@ -25,7 +25,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
     if (isSelected) {
       return AppColors.charcoal;
     }
-    final allLetters = DiamondFilterState.colors;
+    const allLetters = DiamondFilterState.colors;
     final idx = allLetters.indexOf(letter);
     final fraction = idx / (allLetters.length - 1);
 
@@ -90,8 +90,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
       isLabCatalog: isLabCatalog,
       useMeleeFilters: useMeleeFilters,
     );
-    final activeTabColor = AppColors.warmWhite;
-    final borderColor = AppColors.warmBorder;
+    const activeTabColor = AppColors.warmWhite;
+    const borderColor = AppColors.warmBorder;
 
     const chunks = [
       ['D', 'E', 'F'],

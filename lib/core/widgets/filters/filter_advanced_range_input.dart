@@ -139,7 +139,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               triggerMode: TooltipTriggerMode.tap,
               preferBelow: false,
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.9),
+                color: Colors.black.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(6),
               ),
               textStyle: const TextStyle(color: Colors.white, fontSize: 13),
@@ -158,7 +158,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Minimum', style: TextStyle(fontSize: 11, color: Colors.black54)),
+                  const Text('Minimum', style: TextStyle(fontSize: 11, color: Colors.black54)),
                   const SizedBox(height: 2),
                   SizedBox(
                     height: 38,
@@ -195,7 +195,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Maximum', style: TextStyle(fontSize: 11, color: Colors.black54)),
+                  const Text('Maximum', style: TextStyle(fontSize: 11, color: Colors.black54)),
                   const SizedBox(height: 2),
                   SizedBox(
                     height: 38,

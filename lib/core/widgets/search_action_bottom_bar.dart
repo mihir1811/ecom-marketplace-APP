@@ -30,7 +30,7 @@ class SearchActionBottomBar extends StatelessWidget {
         return Container(
           decoration: BoxDecoration(
             color: color,
-            border: Border(
+            border: const Border(
               top: BorderSide(color: AppColors.warmBorder),
             ),
             boxShadow: AppShadows.modalLight,

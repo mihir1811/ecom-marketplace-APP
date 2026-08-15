@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/jewellery_category_admin_repository_impl.dart';
 import '../domain/models/jewellery_category_admin.dart';

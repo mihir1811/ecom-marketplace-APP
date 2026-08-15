@@ -33,7 +33,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gemstoneSearchProvider);
     final notifier = ref.read(gemstoneSearchProvider.notifier);
-    final borderColor = AppColors.warmBorder;
+    const borderColor = AppColors.warmBorder;
     final isMelee = state.lotType == 'Melee';
     final colors = GemstoneFilterState.colorsForDisplay(isMelee: isMelee);
 

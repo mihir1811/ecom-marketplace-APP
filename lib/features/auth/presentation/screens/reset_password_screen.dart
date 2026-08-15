@@ -73,7 +73,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           color: AppColors.textPrimaryLight,
                         ),
                       ),
-                      SizedBox(height: AppSpacing.s12),
+                      const SizedBox(height: AppSpacing.s12),
                       Text(
                         token.isEmpty
                             ? 'This reset link is missing a token. Open the link from your email again.'
@@ -82,7 +82,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           color: AppColors.textSecondaryLight,
                         ),
                       ),
-                      SizedBox(height: AppSpacing.s24),
+                      const SizedBox(height: AppSpacing.s24),
                       if (authState.passwordResetSuccess) ...[
                         Text(
                           'Password reset successfully. You can sign in now.',
@@ -90,7 +90,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             color: AppColors.success,
                           ),
                         ),
-                        SizedBox(height: AppSpacing.s16),
+                        const SizedBox(height: AppSpacing.s16),
                         SizedBox(
                           width: double.infinity,
                           child: FilledButton(
@@ -153,7 +153,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                   return null;
                                 },
                               ),
-                              SizedBox(height: AppSpacing.s8),
+                              const SizedBox(height: AppSpacing.s8),
                               Text(
                                 _strength.message,
                                 style: AppTypography.caption.copyWith(
@@ -162,7 +162,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                       : AppColors.textSecondaryLight,
                                 ),
                               ),
-                              SizedBox(height: AppSpacing.s16),
+                              const SizedBox(height: AppSpacing.s16),
                               TextFormField(
                                 controller: _confirmController,
                                 obscureText: _obscureConfirm,
@@ -194,7 +194,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                 },
                               ),
                               if (authState.errorMessage != null) ...[
-                                SizedBox(height: AppSpacing.s16),
+                                const SizedBox(height: AppSpacing.s16),
                                 Text(
                                   authState.errorMessage!,
                                   style: AppTypography.caption.copyWith(
@@ -202,7 +202,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                   ),
                                 ),
                               ],
-                              SizedBox(height: AppSpacing.s16),
+                              const SizedBox(height: AppSpacing.s16),
                               SizedBox(
                                 width: double.infinity,
                                 child: FilledButton(
@@ -252,7 +252,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             ],
                           ),
                         ),
-                      SizedBox(height: AppSpacing.s24),
+                      const SizedBox(height: AppSpacing.s24),
                       Center(
                         child: TextButton(
                           onPressed: authState.isLoading

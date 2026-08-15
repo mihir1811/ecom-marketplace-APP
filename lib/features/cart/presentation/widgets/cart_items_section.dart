@@ -15,7 +15,7 @@ class CartItemsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final items = ref.watch(cartItemsProvider);
     final count = items.length;
-    final muted = AppColors.textMutedLight;
+    const muted = AppColors.textMutedLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

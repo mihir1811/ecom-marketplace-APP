@@ -186,7 +186,7 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
 
   @override
   Widget build(BuildContext context) {
-    final baseBg =
+    const baseBg =
         AppColors.creamBg;
 
     return NotificationListener<Notification>(
@@ -218,7 +218,7 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
                 key: _stackKey,
                 fit: StackFit.expand,
                 children: [
-                  ColoredBox(color: baseBg),
+                  const ColoredBox(color: baseBg),
                   Positioned(
                     top: 0,
                     left: 0,

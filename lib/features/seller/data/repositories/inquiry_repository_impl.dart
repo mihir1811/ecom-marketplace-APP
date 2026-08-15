@@ -96,7 +96,7 @@ class InquiryRepositoryImpl implements InquiryRepository {
       final data = root['data'];
       if (data is! Map<String, dynamic>) {
         return Result.failure(
-          ValidationFailure('Inquiry not found.'),
+          const ValidationFailure('Inquiry not found.'),
         );
       }
       return Result.success(InquiryMapper.fromJson(data, category: category));
@@ -123,7 +123,7 @@ class InquiryRepositoryImpl implements InquiryRepository {
       final data = root['data'];
       if (data is! Map<String, dynamic>) {
         return Result.failure(
-          UnknownFailure('Unexpected create response.'),
+          const UnknownFailure('Unexpected create response.'),
         );
       }
       return Result.success(InquiryMapper.fromJson(data, category: category));
@@ -151,7 +151,7 @@ class InquiryRepositoryImpl implements InquiryRepository {
       final data = root['data'];
       if (data is! Map<String, dynamic>) {
         return Result.failure(
-          UnknownFailure('Unexpected update response.'),
+          const UnknownFailure('Unexpected update response.'),
         );
       }
       return Result.success(InquiryMapper.fromJson(data, category: category));

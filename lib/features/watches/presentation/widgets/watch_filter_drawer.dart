@@ -67,7 +67,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
       .toList(growable: false);
 
   List<String> _modelOptions(WatchFilterState draft) {
-    final byBrand = WatchCatalogBrands.modelsByBrand;
+    const byBrand = WatchCatalogBrands.modelsByBrand;
     if (draft.brands.isEmpty) {
       return byBrand.values.expand((m) => m).toSet().toList()..sort();
     }

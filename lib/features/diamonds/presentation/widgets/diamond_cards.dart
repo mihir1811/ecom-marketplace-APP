@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -323,8 +324,8 @@ class DiamondListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      scrollCacheExtent: const ScrollCacheExtent.pixels(600),
       controller: scrollController,
-      cacheExtent: 600,
       addAutomaticKeepAlives: false,
       padding: const EdgeInsets.only(
         left: AppSpacing.s16,
@@ -340,7 +341,7 @@ class DiamondListView extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(

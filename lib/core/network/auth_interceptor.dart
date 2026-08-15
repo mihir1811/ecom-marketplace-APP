@@ -11,8 +11,8 @@ import '../auth/jwt_utils.dart';
 /// `OperationError` from flutter_secure_storage).
 class AuthInterceptor extends QueuedInterceptor {
   AuthInterceptor({
-    required AuthTokenStore this._tokenStore,
-    void Function()? this._onUnauthorized,
+    required this._tokenStore,
+    this._onUnauthorized,
   });
 
   final AuthTokenStore _tokenStore;

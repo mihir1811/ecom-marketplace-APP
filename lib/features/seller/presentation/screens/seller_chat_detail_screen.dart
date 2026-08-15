@@ -127,7 +127,7 @@ class _SellerChatDetailScreenState
       );
     }
     if (state.messages.isEmpty) {
-      return CatalogEmptyState(
+      return const CatalogEmptyState(
         icon: Icons.chat_bubble_outline_rounded,
         title: 'Start the conversation',
         message: 'Keep it short — ask about availability, specs, or shipping.',
@@ -257,7 +257,7 @@ class _ProductStrip extends StatelessWidget {
               width: 44,
               height: 44,
               child: image == null || image.isEmpty
-                  ? ColoredBox(
+                  ? const ColoredBox(
                       color: AppColors.warmBorder,
                       child: Icon(
                         Icons.diamond_outlined,
@@ -268,7 +268,7 @@ class _ProductStrip extends StatelessWidget {
                   : CachedNetworkImage(
                       imageUrl: image,
                       fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => ColoredBox(
+                      errorWidget: (_, __, ___) => const ColoredBox(
                         color: AppColors.warmBorder,
                         child: Icon(
                           Icons.image_not_supported_outlined,

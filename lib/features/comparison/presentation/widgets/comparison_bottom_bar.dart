@@ -27,7 +27,7 @@ class ComparisonBottomBar extends ConsumerWidget {
         top: false,
         child: Container(
           decoration: BoxDecoration(
-            border: Border(
+            border: const Border(
               top: BorderSide(
                 color: AppColors.warmBorder,
               ),

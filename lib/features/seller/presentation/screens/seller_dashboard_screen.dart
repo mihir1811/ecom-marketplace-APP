@@ -66,7 +66,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                     'Welcome back! Here’s what’s happening with your business today.',
               ),
               if (state.errorMessage != null && snapshot == null) ...[
-                SizedBox(height: AppSpacing.s16),
+                const SizedBox(height: AppSpacing.s16),
                 CatalogErrorState(
                   message: state.errorMessage!,
                   onRetry: () => ref
@@ -77,7 +77,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                 const SizedBox(height: 80),
                 const Center(child: CircularProgressIndicator()),
               ] else if (snapshot != null) ...[
-                SizedBox(height: AppSpacing.s16),
+                const SizedBox(height: AppSpacing.s16),
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final isWide = constraints.maxWidth >= 900;
@@ -113,7 +113,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                     );
                   },
                 ),
-                SizedBox(height: AppSpacing.s16),
+                const SizedBox(height: AppSpacing.s16),
                 _CardSection(
                   title: _chartSectionTitle(_metric),
                   child: Column(
@@ -144,7 +144,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                       if (_range == SalesRange.custom &&
                           _customStart != null &&
                           _customEnd != null) ...[
-                        SizedBox(height: AppSpacing.s8),
+                        const SizedBox(height: AppSpacing.s8),
                         Text(
                           '${_fmtDate(_customStart!)} → ${_fmtDate(_customEnd!)}',
                           style: AppTypography.caption.copyWith(
@@ -152,13 +152,13 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                           ),
                         ),
                       ],
-                      SizedBox(height: AppSpacing.s16),
+                      const SizedBox(height: AppSpacing.s16),
                       _DashboardBarChart(
                         metric: _metric,
                         values: snapshot.chart.values,
                         labels: snapshot.chart.labels,
                       ),
-                      SizedBox(height: AppSpacing.s12),
+                      const SizedBox(height: AppSpacing.s12),
                       Text(
                         snapshot.chart.endDate != null
                             ? 'To ${_fmtDate(snapshot.chart.endDate!)}'
@@ -170,7 +170,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: AppSpacing.s16),
+                const SizedBox(height: AppSpacing.s16),
                 _CardSection(
                   title: 'Recent Orders',
                   trailing: TextButton(
@@ -195,7 +195,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                             for (var i = 0;
                                 i < snapshot.recentOrders.length;
                                 i++) ...[
-                              if (i > 0) SizedBox(height: AppSpacing.s12),
+                              if (i > 0) const SizedBox(height: AppSpacing.s12),
                               _OrderRow(
                                 orderId: '#${snapshot.recentOrders[i].id}',
                                 amount: snapshot.recentOrders[i].amountLabel,
@@ -208,7 +208,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                           ],
                         ),
                 ),
-                SizedBox(height: AppSpacing.s16),
+                const SizedBox(height: AppSpacing.s16),
                 _CardSection(
                   title: 'Product Upload Status',
                   child: Column(
@@ -237,7 +237,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: AppSpacing.s12),
+                const SizedBox(height: AppSpacing.s12),
                 const _QuickActionsSection(),
               ],
             ],
@@ -505,7 +505,7 @@ class _MetricCard extends StatelessWidget {
                   color: AppColors.charcoal,
                 ),
               ),
-              SizedBox(height: AppSpacing.s8),
+              const SizedBox(height: AppSpacing.s8),
               Text(
                 data.subtitle,
                 style: AppTypography.caption.copyWith(
@@ -553,7 +553,7 @@ class _TopHeader extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: AppSpacing.s8),
+        const SizedBox(height: AppSpacing.s8),
         Text(
           subtitle,
           style: AppTypography.body.copyWith(
@@ -598,7 +598,7 @@ class _CardSection extends StatelessWidget {
                 if (trailing != null) trailing!,
               ],
             ),
-            SizedBox(height: AppSpacing.s12),
+            const SizedBox(height: AppSpacing.s12),
             child,
           ],
         ),
@@ -704,7 +704,7 @@ class _DashboardBarChart extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(width: AppSpacing.s8),
+          const SizedBox(width: AppSpacing.s8),
           Expanded(
             child: Column(
               children: [
@@ -719,7 +719,7 @@ class _DashboardBarChart extends StatelessWidget {
                           top: _chartHeight * (1 - yTicks[i] / maxY),
                           child: Container(
                             height: 1,
-                            color: AppColors.warmBorder.withOpacity(0.6),
+                            color: AppColors.warmBorder.withValues(alpha: 0.6),
                           ),
                         ),
                       Row(
@@ -744,7 +744,7 @@ class _DashboardBarChart extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: AppSpacing.s8),
+                const SizedBox(height: AppSpacing.s8),
                 Row(
                   children: [
                     for (final label in xLabels)
@@ -888,7 +888,7 @@ class _OrderRow extends StatelessWidget {
               ),
               child: const Icon(Icons.receipt_long_outlined),
             ),
-            SizedBox(width: AppSpacing.s16),
+            const SizedBox(width: AppSpacing.s16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -900,14 +900,14 @@ class _OrderRow extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.s12,
                       vertical: AppSpacing.s8,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.12),
+                      color: statusColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
                     ),
                     child: Text(
@@ -953,7 +953,7 @@ class _UploadStatusRow extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 20, color: color),
-        SizedBox(width: AppSpacing.s12),
+        const SizedBox(width: AppSpacing.s12),
         Expanded(
           child: Text(
             label,
@@ -999,7 +999,7 @@ class _QuickActionsSection extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        SizedBox(height: AppSpacing.s12),
+        const SizedBox(height: AppSpacing.s12),
         GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
@@ -1031,7 +1031,7 @@ class _QuickActionsSection extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(icon, size: 18),
-                  SizedBox(width: AppSpacing.s8),
+                  const SizedBox(width: AppSpacing.s8),
                   Flexible(
                     child: Text(
                       label,

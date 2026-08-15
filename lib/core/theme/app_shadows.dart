@@ -9,12 +9,12 @@ class AppShadows {
   // Soft premium card shadow (subtle blur, low opacity)
   static final List<BoxShadow> cardLight = [
     BoxShadow(
-      color: const Color(0xFF111827).withOpacity(0.04),
+      color: const Color(0xFF111827).withValues(alpha: 0.04),
       blurRadius: 10,
       offset: const Offset(0, 4),
     ),
     BoxShadow(
-      color: const Color(0xFF111827).withOpacity(0.02),
+      color: const Color(0xFF111827).withValues(alpha: 0.02),
       blurRadius: 4,
       offset: const Offset(0, 1),
     ),
@@ -23,7 +23,7 @@ class AppShadows {
   // Elevated modal/dialog shadow
   static final List<BoxShadow> modalLight = [
     BoxShadow(
-      color: const Color(0xFF111827).withOpacity(0.08),
+      color: const Color(0xFF111827).withValues(alpha: 0.08),
       blurRadius: 24,
       offset: const Offset(0, 8),
     ),

@@ -32,9 +32,9 @@ class WatchCardGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final textColor =
+    const textColor =
         AppColors.textPrimaryLight;
-    final mutedColor =
+    const mutedColor =
         AppColors.textSecondaryLight;
     final inCompare = ref.watch(isInComparisonProvider(watch.id));
 
@@ -191,9 +191,9 @@ class WatchCardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final textColor =
+    const textColor =
         AppColors.textPrimaryLight;
-    final secondaryColor =
+    const secondaryColor =
         AppColors.textSecondaryLight;
     final inCompare = ref.watch(isInComparisonProvider(watch.id));
 

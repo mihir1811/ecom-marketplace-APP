@@ -252,7 +252,7 @@ class _BullionsSearchBar extends ConsumerWidget {
     final activeFilterCount = ref.watch(
       bullionsFilterProvider.select((s) => s.activeCount),
     );
-    final muted = AppColors.textMutedLight;
+    const muted = AppColors.textMutedLight;
 
     return ListingSearchFilterBar(
       controller: searchController,
