@@ -136,6 +136,13 @@ mixin CatalogSearchScrollMixin<T extends StatefulWidget> on State<T> {
   GlobalKey get catalogNavKey;
   double get catalogNavHeight => 52;
 
+  /// True after a tab tap until the user scrolls by hand.
+  /// Prevents short trailing sections (MEAS/ADV) from snapping the tab back.
+  bool _catalogSpyLocked = false;
+  bool _catalogProgrammaticScroll = false;
+
+  bool get catalogSpyLocked => _catalogSpyLocked;
+
   double catalogNavBottom() {
     final navCtx = catalogNavKey.currentContext;
     if (navCtx == null) return catalogNavHeight;
@@ -149,33 +156,72 @@ mixin CatalogSearchScrollMixin<T extends StatefulWidget> on State<T> {
   ) {
     final navBottom = catalogNavBottom();
     S? found;
+    S? lastVisible;
     for (final entry in sections) {
       final ctx = entry.$1.currentContext;
       if (ctx == null) continue;
       final box = ctx.findRenderObject() as RenderBox?;
       if (box == null) continue;
-      final pos = box.localToGlobal(Offset.zero);
-      if (pos.dy <= navBottom + 4) {
+      final top = box.localToGlobal(Offset.zero).dy;
+      final bottom = top + box.size.height;
+      if (bottom > navBottom) lastVisible = entry.$2;
+      if (top <= navBottom + 4) {
         found = entry.$2;
       } else {
         break;
       }
     }
+    if (catalogScrollController.hasClients) {
+      final position = catalogScrollController.position;
+      if (position.maxScrollExtent > 0 &&
+          position.pixels >= position.maxScrollExtent - 2 &&
+          lastVisible != null) {
+        return lastVisible;
+      }
+    }
     return found;
   }
 
+  /// Unlocks scroll-spy when the user drags or wheels the list.
+  bool catalogHandleScrollNotification(ScrollNotification notification) {
+    final userDrag = (notification is ScrollStartNotification &&
+            notification.dragDetails != null) ||
+        (notification is ScrollUpdateNotification &&
+            notification.dragDetails != null);
+    if (userDrag) {
+      _catalogProgrammaticScroll = false;
+      _catalogSpyLocked = false;
+      return false;
+    }
+    if (_catalogSpyLocked &&
+        !_catalogProgrammaticScroll &&
+        notification is ScrollUpdateNotification &&
+        notification.scrollDelta != null &&
+        notification.scrollDelta != 0) {
+      _catalogSpyLocked = false;
+    }
+    return false;
+  }
+
   void catalogScrollToSection(GlobalKey key) {
+    _catalogSpyLocked = true;
     final ctx = key.currentContext;
     if (ctx == null) return;
     final box = ctx.findRenderObject() as RenderBox?;
     if (box == null || !box.attached) return;
+    if (!catalogScrollController.hasClients) return;
     final pos = box.localToGlobal(Offset.zero);
     final navBottom = catalogNavBottom();
     final target = catalogScrollController.offset + pos.dy - navBottom;
-    catalogScrollController.animateTo(
-      target.clamp(0.0, catalogScrollController.position.maxScrollExtent),
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    _catalogProgrammaticScroll = true;
+    catalogScrollController
+        .animateTo(
+          target.clamp(0.0, catalogScrollController.position.maxScrollExtent),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        )
+        .whenComplete(() {
+          _catalogProgrammaticScroll = false;
+        });
   }
 }

@@ -195,7 +195,7 @@ abstract final class DiamondMapper {
       dto.image5,
       dto.image6,
     ]) {
-      final cleaned = _clean(url);
+      final cleaned = ViewerUrlResolver.normalizeImageUrl(_clean(url));
       if (cleaned == null) continue;
       if (!seen.add(cleaned)) continue;
       out.add(cleaned);

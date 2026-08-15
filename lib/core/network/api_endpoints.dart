@@ -10,6 +10,10 @@ abstract final class ApiEndpoints {
   static const String authResetPassword = '/auth/reset-password';
 
   /// List + autocomplete (`search` / `searchBy` query params).
+  static const String diamondProjects = '/diamond-projects';
+  static String diamondProjectById(String id) => '/diamond-projects/$id';
+  static const String diamondProjectsAdmin = '/diamond-projects/admin/all';
+
   static const String diamond = '/diamond';
   static const String diamondSearch = '/diamond/search';
   static const String diamondFilters = '/diamond/filters';

@@ -15,6 +15,7 @@ import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../../ai_chat/application/ai_chat_back_navigation.dart';
 import '../../../ai_chat/application/ai_pending_filters.dart';
+import '../../../diamond_projects/presentation/widgets/diamond_project_listing_actions.dart';
 import '../widgets/diamond_cards.dart';
 import '../widgets/diamond_sorting_bottom_sheet.dart';
 
@@ -241,6 +242,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                 ],
               ),
             ),
+            const DiamondProjectListingActions(),
             const Divider(height: 0),
             Expanded(
               child: stateAsync.when(

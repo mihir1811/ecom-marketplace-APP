@@ -62,18 +62,27 @@ class WishlistToggleButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wishlisted = ref.watch(isInWishlistProvider(item.id));
+    final box = padded ? 32.0 : size + 8;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: () => toggleWishlistItem(context, ref, item, onAdded: onAdded),
-        child: Padding(
-          padding: padded ? const EdgeInsets.all(6) : EdgeInsets.zero,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => toggleWishlistItem(context, ref, item, onAdded: onAdded),
+      child: Semantics(
+        button: true,
+        label: wishlisted ? 'Remove from wishlist' : 'Add to wishlist',
+        child: Container(
+          width: box,
+          height: box,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.warmWhite,
+            border: Border.all(color: AppColors.warmBorder),
+          ),
           child: Icon(
             wishlisted ? Icons.favorite : Icons.favorite_border,
             size: size,
-            color: wishlisted ? AppColors.error : AppColors.textMutedLight,
+            color: wishlisted ? AppColors.error : AppColors.charcoal,
           ),
         ),
       ),

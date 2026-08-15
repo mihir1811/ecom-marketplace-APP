@@ -26,6 +26,7 @@ class CatalogSearchFilterShell extends StatelessWidget {
     required this.onClear,
     this.clearLabel = 'CLEAR ALL',
     this.onBack,
+    this.onScrollNotification,
     super.key,
   });
 
@@ -40,6 +41,7 @@ class CatalogSearchFilterShell extends StatelessWidget {
   final VoidCallback onClear;
   final String clearLabel;
   final VoidCallback? onBack;
+  final bool Function(ScrollNotification notification)? onScrollNotification;
 
   @override
   Widget build(BuildContext context) {
@@ -85,16 +87,19 @@ class CatalogSearchFilterShell extends StatelessWidget {
                       children: [
                         stickyNav,
                         Expanded(
-                          child: SingleChildScrollView(
-                            controller: scrollController,
-                            padding: const EdgeInsets.only(
-                              left: AppSpacing.s16,
-                              right: AppSpacing.s16,
-                              bottom: 120,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: bodyChildren,
+                          child: NotificationListener<ScrollNotification>(
+                            onNotification: onScrollNotification ?? (_) => false,
+                            child: SingleChildScrollView(
+                              controller: scrollController,
+                              padding: const EdgeInsets.only(
+                                left: AppSpacing.s16,
+                                right: AppSpacing.s16,
+                                bottom: 120,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: bodyChildren,
+                              ),
                             ),
                           ),
                         ),

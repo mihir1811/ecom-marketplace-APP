@@ -12,6 +12,9 @@ abstract final class AccountAccess {
 
   static const signInMessage = 'Please sign in to continue.';
 
+  /// Cart, checkout, seller workspace, and other buy/sell chrome.
+  static bool showProtected(AuthState state) => !state.isVerificationPending;
+
   static String? blockReason(AuthState state) {
     if (!state.isAuthenticated) return signInMessage;
     if (state.isVerificationPending) return pendingMessage;

@@ -70,8 +70,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final detail = widget.detail;
-    final isSeller = ref.watch(authProvider.select((s) => s.isSeller));
-    final visibleSpecs = detail.specsForViewer(isSeller: isSeller);
+    final auth = ref.watch(
+      authProvider.select(
+        (s) => (isSeller: s.isSeller, showProtected: !s.isVerificationPending),
+      ),
+    );
+    final visibleSpecs = detail.specsForViewer(isSeller: auth.isSeller);
 
     return AppScaffold(
       backgroundColor: AppColors.creamBg,
@@ -100,7 +104,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: ProductDetailActionBar(detail: detail),
+      bottomNavigationBar: auth.showProtected
+          ? ProductDetailActionBar(detail: detail)
+          : null,
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide =

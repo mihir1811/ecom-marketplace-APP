@@ -978,8 +978,13 @@ class _QuickActionsSection extends StatelessWidget {
   const _QuickActionsSection();
 
   static const _actions = [
-    (Icons.receipt_long_outlined, 'View Orders'),
-    (Icons.inventory_2_outlined, 'Products'),
+    (Icons.receipt_long_outlined, 'View Orders', AppRouteNames.sellerOrders),
+    (Icons.inventory_2_outlined, 'Products', AppRouteNames.sellerProducts),
+    (
+      Icons.analytics_outlined,
+      'Diamond projects',
+      AppRouteNames.savedDiamondProjects,
+    ),
   ];
 
   @override
@@ -1006,14 +1011,10 @@ class _QuickActionsSection extends StatelessWidget {
             childAspectRatio: 3.2,
           ),
           itemBuilder: (context, index) {
-            final (icon, label) = _actions[index];
+            final (icon, label, route) = _actions[index];
             return FilledButton(
               onPressed: () {
-                context.go(
-                  index == 0
-                      ? AppRouteNames.sellerOrders
-                      : AppRouteNames.sellerProducts,
-                );
+                context.go(route);
               },
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.bronze,

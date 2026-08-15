@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth/seller_only_gate.dart';
+import '../../core/auth/verified_account_gate.dart';
 import '../../core/router/route_names.dart';
 import '../seller/presentation/screens/seller_chat_detail_screen.dart';
 import '../seller/presentation/screens/seller_chat_list_screen.dart';
@@ -26,17 +27,23 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerOrders,
-    builder: (context, state) => const BuyerOrdersScreen(),
+    builder: (context, state) => const VerifiedAccountGate(
+      child: BuyerOrdersScreen(),
+    ),
   ),
   GoRoute(
     path: '/buyer/orders/:orderId',
-    builder: (context, state) => BuyerOrderDetailScreen(
-      orderId: state.pathParameters['orderId']!,
+    builder: (context, state) => VerifiedAccountGate(
+      child: BuyerOrderDetailScreen(
+        orderId: state.pathParameters['orderId']!,
+      ),
     ),
   ),
   GoRoute(
     path: AppRouteNames.buyerRefunds,
-    builder: (context, state) => const BuyerRefundsScreen(),
+    builder: (context, state) => const VerifiedAccountGate(
+      child: BuyerRefundsScreen(),
+    ),
   ),
   GoRoute(
     path: AppRouteNames.buyerReferences,
@@ -80,19 +87,25 @@ final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: AppRouteNames.buyerMessages,
     builder: (context, state) => const BuyerLayout(
-      child: SellerOnlyGate(
+      child: VerifiedAccountGate(
         fallbackRoute: AppRouteNames.buyerProfile,
-        child: SellerChatListScreen(),
+        child: SellerOnlyGate(
+          fallbackRoute: AppRouteNames.buyerProfile,
+          child: SellerChatListScreen(),
+        ),
       ),
     ),
   ),
   GoRoute(
     path: '/buyer/messages/:chatId',
     builder: (context, state) => BuyerLayout(
-      child: SellerOnlyGate(
+      child: VerifiedAccountGate(
         fallbackRoute: AppRouteNames.buyerProfile,
-        child: SellerChatDetailScreen(
-          chatId: state.pathParameters['chatId']!,
+        child: SellerOnlyGate(
+          fallbackRoute: AppRouteNames.buyerProfile,
+          child: SellerChatDetailScreen(
+            chatId: state.pathParameters['chatId']!,
+          ),
         ),
       ),
     ),

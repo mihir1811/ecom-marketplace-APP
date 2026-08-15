@@ -22,16 +22,19 @@ class BuyerDrawer extends ConsumerWidget {
       route: AppRouteNames.buyerOrders,
       label: 'Orders',
       icon: Icons.local_shipping_outlined,
+      requiresVerified: true,
     ),
     BuyerDrawerItem(
       route: AppRouteNames.buyerWallet,
       label: 'Wallet',
       icon: Icons.account_balance_wallet_outlined,
+      requiresVerified: true,
     ),
     BuyerDrawerItem(
       route: AppRouteNames.buyerRefunds,
       label: 'Refunds',
       icon: Icons.replay_outlined,
+      requiresVerified: true,
     ),
     BuyerDrawerItem(
       route: AppRouteNames.buyerReferences,
@@ -63,6 +66,7 @@ class BuyerDrawer extends ConsumerWidget {
       label: 'Messages',
       icon: Icons.chat_bubble_outline,
       requiresSeller: true,
+      requiresVerified: true,
     ),
     BuyerDrawerItem(
       route: AppRouteNames.buyerSettings,
@@ -77,20 +81,29 @@ class BuyerDrawer extends ConsumerWidget {
     icon: Icons.dashboard_outlined,
     isSellerEntry: true,
     requiresSeller: true,
+    requiresVerified: true,
   );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(
-      authProvider.select((s) => (user: s.user, isSeller: s.isSeller)),
+      authProvider.select(
+        (s) => (
+          user: s.user,
+          isSeller: s.isSeller,
+          showProtected: !s.isVerificationPending,
+        ),
+      ),
     );
     final currentPath = GoRouterState.of(context).uri.path;
     final items = <BuyerDrawerItem>[
       _buyerItems.first,
-      if (auth.isSeller) _sellerDashboardItem,
-      ..._buyerItems.skip(1).where(
-            (item) => !item.requiresSeller || auth.isSeller,
-          ),
+      if (auth.isSeller && auth.showProtected) _sellerDashboardItem,
+      ..._buyerItems.skip(1).where((item) {
+        if (item.requiresSeller && !auth.isSeller) return false;
+        if (item.requiresVerified && !auth.showProtected) return false;
+        return true;
+      }),
     ];
 
     return Drawer(
@@ -259,6 +272,7 @@ class BuyerDrawerItem {
     required this.icon,
     this.isSellerEntry = false,
     this.requiresSeller = false,
+    this.requiresVerified = false,
   });
 
   final String route;
@@ -266,4 +280,5 @@ class BuyerDrawerItem {
   final IconData icon;
   final bool isSellerEntry;
   final bool requiresSeller;
+  final bool requiresVerified;
 }

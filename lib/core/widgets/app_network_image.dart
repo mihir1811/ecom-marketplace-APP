@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../utils/cdn_image_url.dart';
 
 /// Shared network image with shimmer-style placeholder and graceful fallback.
 ///
@@ -32,8 +33,21 @@ class AppNetworkImage extends StatelessWidget {
   /// Shown on load failure (bad URL, 4xx/5xx, etc.).
   final Widget? error;
 
-  bool get _supportsNetworkLoading {
-    final uri = Uri.tryParse(url);
+  @override
+  Widget build(BuildContext context) {
+    final resolvedUrl = CdnImageUrl.normalize(url) ?? url;
+    if (!_supportsNetworkLoading(resolvedUrl)) {
+      return error ?? _fallback();
+    }
+
+    final image = kIsWeb ? _webImage(resolvedUrl) : _nativeImage(resolvedUrl);
+
+    if (borderRadius == null) return image;
+    return ClipRRect(borderRadius: borderRadius!, child: image);
+  }
+
+  bool _supportsNetworkLoading(String imageUrl) {
+    final uri = Uri.tryParse(imageUrl);
     if (uri == null) return false;
     if (!uri.hasScheme) return true;
     if (!kIsWeb) return true;
@@ -44,20 +58,8 @@ class AppNetworkImage extends StatelessWidget {
     };
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (!_supportsNetworkLoading) {
-      return error ?? _fallback();
-    }
-
-    final image = kIsWeb ? _webImage() : _nativeImage();
-
-    if (borderRadius == null) return image;
-    return ClipRRect(borderRadius: borderRadius!, child: image);
-  }
-
   /// HTML `<img>` path — avoids browser CORS blocks on cross-origin CDNs.
-  Widget _webImage() {
+  Widget _webImage(String imageUrl) {
     // HTML images can report unbounded intrinsics; expand into parent bounds.
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -66,7 +68,7 @@ class AppNetworkImage extends StatelessWidget {
         final h = height ??
             (constraints.maxHeight.isFinite ? constraints.maxHeight : null);
         final image = Image.network(
-          url,
+          imageUrl,
           fit: fit,
           width: w,
           height: h,
@@ -88,9 +90,9 @@ class AppNetworkImage extends StatelessWidget {
     );
   }
 
-  Widget _nativeImage() {
+  Widget _nativeImage(String imageUrl) {
     return CachedNetworkImage(
-      imageUrl: url,
+      imageUrl: imageUrl,
       fit: fit,
       width: width,
       height: height,

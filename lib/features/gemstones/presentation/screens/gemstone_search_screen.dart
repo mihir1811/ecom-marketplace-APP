@@ -78,6 +78,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
   }
 
   void _onScroll() {
+    if (catalogSpyLocked) return;
     final active = catalogActiveSectionFromScroll([
           (_basicKey, GemstoneSection.basic),
           (_prefKey, GemstoneSection.preferences),
@@ -132,6 +133,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
           context.go(AppRouteNames.home);
         }
       },
+      onScrollNotification: catalogHandleScrollNotification,
       stickyNav: CatalogSearchSectionNav<GemstoneSection>(
         navKey: catalogNavKey,
         sections: sections,

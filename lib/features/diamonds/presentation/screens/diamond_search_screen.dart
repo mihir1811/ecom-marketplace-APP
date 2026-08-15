@@ -77,6 +77,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   }
 
   void _onScroll() {
+    if (catalogSpyLocked) return;
     final filterState = ref.read(diamondSearchProvider);
     final useMeleeFilters = _usesMeleeFilters(filterState);
     final active = catalogActiveSectionFromScroll([
@@ -180,6 +181,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           context.go(AppRouteNames.home);
         }
       },
+      onScrollNotification: catalogHandleScrollNotification,
       stickyNav: CatalogSearchSectionNav<Section>(
         navKey: catalogNavKey,
         sections: sections,

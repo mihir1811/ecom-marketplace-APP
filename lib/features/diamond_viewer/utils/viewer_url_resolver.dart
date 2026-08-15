@@ -1,3 +1,5 @@
+import '../../../core/utils/cdn_image_url.dart';
+
 /// Normalizes API `videoURL` values into a loadable 360 viewer URL.
 abstract final class ViewerUrlResolver {
   static const String s3Base =
@@ -69,16 +71,38 @@ abstract final class ViewerUrlResolver {
     return null;
   }
 
-  /// Listing/gallery still when API only returns `videoURL` (workshop view).
+  /// Listing/gallery photo URL — see [CdnImageUrl.normalize].
+  static String? normalizeImageUrl(String? raw) => CdnImageUrl.normalize(raw);
+
+  /// Listing/gallery still when API only returns `videoURL`.
   static String? stillUrlFromViewer(String? viewerUrl) {
     final resolved = resolve(viewerUrl);
     if (resolved == null) return null;
     final uri = Uri.tryParse(resolved);
     if (uri == null) return null;
     final host = uri.host.toLowerCase();
-    if (host != 'workshop.360view.link') return null;
     final segments =
         uri.pathSegments.where((s) => s.trim().isNotEmpty).toList();
+
+    // diamondshow S3 viewer HTML lives at `/{id}` — still is `/StillImage/{id}.jpg`.
+    if (host == CdnImageUrl.diamondshowS3Host) {
+      if (segments.length == 1) {
+        final id = segments.first.trim();
+        if (id.isNotEmpty && !_looksLikeFileName(id)) {
+          return '$s3Base/StillImage/$id.jpg';
+        }
+      }
+      if (segments.length >= 2 &&
+          segments.first.toLowerCase() == 'stillimage') {
+        final file = segments[1].trim();
+        if (file.isNotEmpty) {
+          return CdnImageUrl.normalize('$s3Base/StillImage/$file');
+        }
+      }
+      return null;
+    }
+
+    if (host != 'workshop.360view.link') return null;
     // /view/{id}
     final viewIdx = segments.indexWhere((s) => s.toLowerCase() == 'view');
     final id = viewIdx >= 0 && viewIdx + 1 < segments.length

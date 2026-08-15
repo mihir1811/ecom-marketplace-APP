@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -103,7 +102,7 @@ class SellerDrawer extends ConsumerWidget {
         label: 'Profile',
         icon: Icons.person_outline,
       ),
-    ];
+    ].where((item) => !pending || !item.requiresVerified).toList();
 
     return Drawer(
       width: 280,
@@ -136,22 +135,14 @@ class SellerDrawer extends ConsumerWidget {
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];
-                  final isLocked = item.requiresVerified && pending;
-                  final isSelected = !isLocked &&
-                      (selectedRoute == item.route ||
-                          selectedRoute.startsWith('${item.route}/'));
-                  final iconColor = isLocked
-                      ? AppColors.textMutedLight
-                      : (isSelected
-                          ? AppColors.warmWhite
-                          : AppColors.charcoal);
+                  final isSelected = selectedRoute == item.route ||
+                      selectedRoute.startsWith('${item.route}/');
+                  final iconColor =
+                      isSelected ? AppColors.warmWhite : AppColors.charcoal;
                   return Material(
                     color: isSelected ? AppColors.charcoal : Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        if (isLocked && !AccountAccess.guard(context, ref)) {
-                          return;
-                        }
                         Navigator.of(context).maybePop();
                         context.go(item.route);
                       },
@@ -175,12 +166,6 @@ class SellerDrawer extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                            if (isLocked)
-                              const Icon(
-                                Icons.lock_outline,
-                                size: 16,
-                                color: AppColors.textMutedLight,
-                              ),
                           ],
                         ),
                       ),

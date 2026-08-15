@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/auth/verified_only.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -65,7 +66,11 @@ class HomeScreen extends ConsumerWidget {
     final cartCount = ref.watch(cartItemCountProvider);
     final auth = ref.watch(
       authProvider.select(
-        (s) => (isAuthenticated: s.isAuthenticated, isSeller: s.isSeller),
+        (s) => (
+          isAuthenticated: s.isAuthenticated,
+          isSeller: s.isSeller,
+          canTransact: s.canTransact,
+        ),
       ),
     );
     final isSearching =
@@ -91,17 +96,19 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () => context.push(AppRouteNames.comparison),
             icon: const Icon(Icons.compare_arrows_rounded),
           ),
-          IconButton(
-            tooltip: 'Cart',
-            onPressed: () => context.push(AppRouteNames.cart),
-            icon: Badge(
-              isLabelVisible: cartCount > 0,
-              label: Text('$cartCount'),
-              backgroundColor: AppColors.bronze,
-              child: const Icon(Icons.shopping_bag_outlined),
+          VerifiedOnly(
+            child: IconButton(
+              tooltip: 'Cart',
+              onPressed: () => context.push(AppRouteNames.cart),
+              icon: Badge(
+                isLabelVisible: cartCount > 0,
+                label: Text('$cartCount'),
+                backgroundColor: AppColors.bronze,
+                child: const Icon(Icons.shopping_bag_outlined),
+              ),
             ),
           ),
-          if (auth.isAuthenticated && auth.isSeller) ...[
+          if (auth.isAuthenticated && auth.isSeller && auth.canTransact) ...[
             IconButton(
               tooltip: 'Wallet',
               onPressed: () => context.push(AppRouteNames.buyerWallet),

@@ -3,6 +3,7 @@ import 'navigator_keys.dart';
 import 'route_names.dart';
 import '../../features/home/home_routes.dart';
 import '../../features/diamonds/diamonds_routes.dart';
+import '../../features/diamond_projects/diamond_projects_routes.dart';
 import '../../features/gemstones/gemstones_routes.dart';
 import '../../features/watches/watches_routes.dart';
 import '../../features/bullions/bullions_routes.dart';
@@ -33,6 +34,7 @@ final GoRouter appRouter = GoRouter(
     ...buyerRoutes,
     ...sellerRoutes,
     ...diamondsRoutes,
+    ...diamondProjectsRoutes,
     ...gemstonesRoutes,
     ...watchesRoutes,
     ...bullionsRoutes,

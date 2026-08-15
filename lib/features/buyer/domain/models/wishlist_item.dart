@@ -90,6 +90,9 @@ class WishlistItem {
     return WishlistItem(
       id: d.id,
       category: WishlistCategory.diamond,
+      productType: d.isMelee
+          ? FavoriteProductType.meleeDiamond
+          : FavoriteProductType.diamond,
       title: '${d.carat}ct ${DiamondDisplay.shape(d.shape)}',
       subtitle:
           '${d.isLabGrown ? 'Lab Grown' : 'Natural'} · $color $clarity',

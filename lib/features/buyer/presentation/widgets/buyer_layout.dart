@@ -46,7 +46,7 @@ class BuyerLayout extends ConsumerWidget {
     }
 
     final hasAppBar = title != null;
-    final isSeller = authState.isSeller;
+    final showSellerTools = authState.isSeller && authState.canTransact;
 
     return AppScaffold(
       scaffoldKey: buyerScaffoldKey,
@@ -72,7 +72,7 @@ class BuyerLayout extends ConsumerWidget {
                   onPressed: () => context.go(AppRouteNames.home),
                   icon: const Icon(Icons.storefront_outlined),
                 ),
-                if (isSeller) ...[
+                if (showSellerTools) ...[
                   IconButton(
                     tooltip: 'Wallet',
                     onPressed: () => context.push(AppRouteNames.buyerWallet),
