@@ -12,51 +12,12 @@ import '../../../../core/utils/app_currency.dart';
 import '../../application/reference_providers.dart';
 import '../../domain/models/reference_models.dart';
 
-/// Shared buyer/seller hub for referral code, request, inbound/outbound.
-class ReferenceHubScreen extends ConsumerStatefulWidget {
+/// Shared buyer/seller hub for referral code, inbound/outbound, and purchases.
+class ReferenceHubScreen extends ConsumerWidget {
   const ReferenceHubScreen({super.key});
 
   @override
-  ConsumerState<ReferenceHubScreen> createState() => _ReferenceHubScreenState();
-}
-
-class _ReferenceHubScreenState extends ConsumerState<ReferenceHubScreen> {
-  final _emailOrCodeCtrl = TextEditingController();
-  var _submitting = false;
-
-  @override
-  void dispose() {
-    _emailOrCodeCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submitRequest() async {
-    final value = _emailOrCodeCtrl.text.trim();
-    if (value.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter an email or referral code')),
-      );
-      return;
-    }
-    setState(() => _submitting = true);
-    final result =
-        await ref.read(referenceHubProvider.notifier).request(value);
-    if (!mounted) return;
-    setState(() => _submitting = false);
-    final messenger = ScaffoldMessenger.of(context);
-    switch (result) {
-      case Success():
-        _emailOrCodeCtrl.clear();
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Reference request sent')),
-        );
-      case ResultFailure(failure: final failure):
-        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(referenceHubProvider);
     final profile = state.profile;
 
@@ -100,13 +61,6 @@ class _ReferenceHubScreenState extends ConsumerState<ReferenceHubScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                     children: [
                       if (profile != null) _ProfileCard(profile: profile),
-                      const SizedBox(height: 16),
-                      _RequestCard(
-                        controller: _emailOrCodeCtrl,
-                        submitting: _submitting,
-                        onSubmit: _submitRequest,
-                        hasActiveOutbound: profile?.activeOutbound != null,
-                      ),
                       const SizedBox(height: 16),
                       _SectionTitle(
                         'Inbound',
@@ -218,60 +172,6 @@ class _ProfileCard extends StatelessWidget {
                 value: AppCurrency.usd(profile.totalCommissionEarned),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RequestCard extends StatelessWidget {
-  const _RequestCard({
-    required this.controller,
-    required this.submitting,
-    required this.onSubmit,
-    required this.hasActiveOutbound,
-  });
-
-  final TextEditingController controller;
-  final bool submitting;
-  final VoidCallback onSubmit;
-  final bool hasActiveOutbound;
-
-  @override
-  Widget build(BuildContext context) {
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Request a reference',
-            style: AppTypography.label.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            hasActiveOutbound
-                ? 'You already have a pending outbound request.'
-                : 'Enter a referrer email or their referral code.',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondaryLight,
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: controller,
-            enabled: !submitting && !hasActiveOutbound,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => onSubmit(),
-            decoration: const InputDecoration(
-              labelText: 'Email or referral code',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          FilledButton(
-            onPressed: submitting || hasActiveOutbound ? null : onSubmit,
-            child: Text(submitting ? 'Sending…' : 'Send request'),
           ),
         ],
       ),

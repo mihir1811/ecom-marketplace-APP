@@ -25,6 +25,8 @@ abstract final class ProductShareUrls {
       return '${base.origin}/#$path';
     }
 
+    // Native / unknown host: keep a path recipients can open once the web
+    // app is deployed; prefer setting WEB_APP_ORIGIN for production shares.
     return path;
   }
 
@@ -36,5 +38,30 @@ abstract final class ProductShareUrls {
     final fromToken = forToken(token);
     if (fromToken.isNotEmpty) return fromToken;
     return apiShareUrl?.trim() ?? '';
+  }
+
+  /// Extracts a share token from API path URLs or in-app hash URLs.
+  static String tokenFromShareUrl(String shareUrl) {
+    final uri = Uri.tryParse(shareUrl.trim());
+    if (uri == null) return '';
+
+    final fragment = uri.fragment.trim();
+    if (fragment.isNotEmpty) {
+      final fragPath = fragment.startsWith('/') ? fragment : '/$fragment';
+      final fragUri = Uri.tryParse(fragPath);
+      final fromFrag = _tokenFromPathSegments(fragUri?.pathSegments ?? const []);
+      if (fromFrag.isNotEmpty) return fromFrag;
+    }
+
+    return _tokenFromPathSegments(uri.pathSegments);
+  }
+
+  static String _tokenFromPathSegments(List<String> segments) {
+    if (segments.isEmpty) return '';
+    final idx = segments.lastIndexOf('share');
+    if (idx >= 0 && idx + 1 < segments.length) {
+      return Uri.decodeComponent(segments[idx + 1]);
+    }
+    return Uri.decodeComponent(segments.last);
   }
 }

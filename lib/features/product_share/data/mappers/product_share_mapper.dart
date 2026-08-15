@@ -24,7 +24,7 @@ abstract final class ProductShareMapper {
 
   static ProductShareEmailResult emailFromJson(Map<String, dynamic> json) {
     final shareUrl = json['shareUrl']?.toString() ?? '';
-    final token = _tokenFromShareUrl(shareUrl);
+    final token = ProductShareUrls.tokenFromShareUrl(shareUrl);
     return ProductShareEmailResult(
       id: json['id']?.toString() ?? '',
       shareUrl: token.isEmpty
@@ -53,18 +53,6 @@ abstract final class ProductShareMapper {
           ? Map<String, dynamic>.from(product)
           : const {},
     );
-  }
-
-  static String _tokenFromShareUrl(String shareUrl) {
-    final uri = Uri.tryParse(shareUrl);
-    if (uri == null) return '';
-    final segments = uri.pathSegments;
-    if (segments.isEmpty) return '';
-    final idx = segments.lastIndexOf('share');
-    if (idx >= 0 && idx + 1 < segments.length) {
-      return Uri.decodeComponent(segments[idx + 1]);
-    }
-    return Uri.decodeComponent(segments.last);
   }
 
   static int? _asInt(Object? value) {

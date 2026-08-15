@@ -58,7 +58,9 @@ class AuthInterceptor extends QueuedInterceptor {
           path.contains('/auth/verify-otp') ||
           path.contains('/auth/resend-otp') ||
           path.contains('/auth/forget-password') ||
-          path.contains('/auth/reset-password');
+          path.contains('/auth/reset-password') ||
+          // Public share lookup — never treat as a session expiry.
+          path.contains('/product-share/');
       if (!isAuthPublic) {
         try {
           await _tokenStore.clear();

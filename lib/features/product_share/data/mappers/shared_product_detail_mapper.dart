@@ -53,11 +53,37 @@ abstract final class SharedProductDetailMapper {
     }
 
     if (detail == null) return null;
+    final named = withProductName(detail, payload.productName);
     return applyShareVisibility(
-      detail,
+      named,
       includePrice: payload.includePrice,
       includeImages: payload.includeImages,
       includeVideos: payload.includeVideos,
+    );
+  }
+
+  static ProductDetail withProductName(ProductDetail detail, String? name) {
+    final trimmed = name?.trim() ?? '';
+    if (trimmed.isEmpty) return detail;
+    return ProductDetail(
+      id: detail.id,
+      segment: detail.segment,
+      apiProductType: detail.apiProductType,
+      title: trimmed,
+      subtitle: detail.subtitle,
+      referenceLabel: detail.referenceLabel,
+      referenceValue: detail.referenceValue,
+      media: detail.media,
+      price: detail.price,
+      highlights: detail.highlights,
+      specSections: detail.specSections,
+      badges: detail.badges,
+      certification: detail.certification,
+      availability: detail.availability,
+      shapeKey: detail.shapeKey,
+      note: detail.note,
+      isMakeAnOfferAllowed: detail.isMakeAnOfferAllowed,
+      minimumOfferPrice: detail.minimumOfferPrice,
     );
   }
 
@@ -121,6 +147,8 @@ abstract final class SharedProductDetailMapper {
       availability: detail.availability,
       shapeKey: detail.shapeKey,
       note: detail.note,
+      isMakeAnOfferAllowed: detail.isMakeAnOfferAllowed,
+      minimumOfferPrice: detail.minimumOfferPrice,
     );
   }
 }
