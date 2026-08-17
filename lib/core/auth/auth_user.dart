@@ -73,7 +73,8 @@ class AuthUser {
       isBlocked: json['isBlocked'] == true,
       isDeleted: json['isDeleted'] == true,
       sellerAccount: SellerAccountSnapshot.tryParse(json['sellerData']) ??
-          SellerAccountSnapshot.tryParse(json['seller']),
+          SellerAccountSnapshot.tryParse(json['seller']) ??
+          SellerAccountSnapshot.tryParse(json['business']),
     );
   }
 

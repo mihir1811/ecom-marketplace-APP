@@ -194,7 +194,20 @@ class SecureAuthTokenStore implements AuthTokenStore {
     Map<String, String?>? prefs,
   ) {
     final secureToken = secure[_accessToken];
-    if (secureToken != null && secureToken.isNotEmpty) return secure;
+    if (secureToken != null && secureToken.isNotEmpty) {
+      if (prefs == null) return secure;
+      // Prefer secure session keys, but fill blanks from prefs (seller snapshot
+      // may land in prefs when Keychain rejects a large value).
+      return {
+        for (final key in {
+          ...secure.keys,
+          ...prefs.keys,
+        })
+          key: (secure[key] != null && secure[key]!.isNotEmpty)
+              ? secure[key]
+              : prefs[key],
+      };
+    }
     if (prefs != null) {
       final prefsToken = prefs[_accessToken];
       if (prefsToken != null && prefsToken.isNotEmpty) return prefs;
@@ -335,15 +348,17 @@ class SecureAuthTokenStore implements AuthTokenStore {
         debugPrint('AuthTokenStore.sellerSnapshot secure write failed: $e\n$st');
         return true;
       }());
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        if (json == null) {
-          await prefs.remove(_sellerSnapshot);
-        } else {
-          await prefs.setString(_sellerSnapshot, json);
-        }
-      } catch (_) {}
     }
+    // Always mirror to prefs so native cold-start can recover if secure
+    // storage drops or rejects the snapshot.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (json == null) {
+        await prefs.remove(_sellerSnapshot);
+      } else {
+        await prefs.setString(_sellerSnapshot, json);
+      }
+    } catch (_) {}
   }
 
   Future<Map<String, String?>> _readSecureMap() async {

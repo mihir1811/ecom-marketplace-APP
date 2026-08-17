@@ -20,11 +20,13 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
   const SellerInquiryDetailScreen({
     required this.categoryName,
     required this.inquiryId,
+    this.showHeader = true,
     super.key,
   });
 
   final String categoryName;
   final String inquiryId;
+  final bool showHeader;
 
   Future<void> _confirmDelete(
     BuildContext context,
@@ -115,6 +117,7 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
         inquiry: inquiry,
         path: path,
         category: category,
+        showHeader: showHeader,
         onDelete: () => _confirmDelete(context, ref, category),
       ),
     );
@@ -126,12 +129,14 @@ class _InquiryDetailBody extends StatelessWidget {
     required this.inquiry,
     required this.path,
     required this.category,
+    required this.showHeader,
     required this.onDelete,
   });
 
   final SellerInquiry inquiry;
   final String path;
   final InquiryCategory category;
+  final bool showHeader;
   final VoidCallback onDelete;
 
   bool _isImageFieldKey(String key) {
@@ -168,22 +173,32 @@ class _InquiryDetailBody extends StatelessWidget {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(4, 8, 8, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-              ),
-              TextButton.icon(
-                onPressed: () => context.go(inquiriesPathFor(path)),
-                icon: const Icon(Icons.arrow_back, size: 18),
-                label: const Text('All inquiries'),
-              ),
-            ],
+        if (showHeader)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 8, 8, 0),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () => openSellerDrawer(context),
+                  icon: const Icon(Icons.menu),
+                ),
+                TextButton.icon(
+                  onPressed: () => context.go(inquiriesPathFor(path)),
+                  icon: const Icon(Icons.arrow_back, size: 18),
+                  label: const Text('All inquiries'),
+                ),
+              ],
+            ),
+          )
+        else
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => context.go(inquiriesPathFor(path)),
+              icon: const Icon(Icons.arrow_back, size: 18),
+              label: const Text('All inquiries'),
+            ),
           ),
-        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.s16),

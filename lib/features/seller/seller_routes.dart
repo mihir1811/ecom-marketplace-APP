@@ -64,7 +64,8 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerInquiries,
-        builder: (context, state) => const SellerInquiryInboxScreen(),
+        builder: (context, state) =>
+            const SellerInquiryInboxScreen(showHeader: false),
       ),
       GoRoute(
         path: AppRouteNames.sellerInquiryNew,
@@ -101,7 +102,8 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerHelpCenter,
-        builder: (context, state) => const SellerHelpCenterScreen(),
+        builder: (context, state) =>
+            const SellerHelpCenterScreen(showHeader: false),
       ),
       GoRoute(
         path: AppRouteNames.sellerReferences,

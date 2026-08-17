@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/auth_providers.dart';
 import '../../../core/auth/auth_user.dart';
+import '../../../core/auth/seller_account_snapshot.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/user_profile_repository_impl.dart';
@@ -47,6 +48,7 @@ class UserProfileNotifier extends AutoDisposeAsyncNotifier<UserProfile> {
                 ? null
                 : profile.profilePicture,
             isVerified: profile.isVerified,
+            sellerAccount: sellerAccountFromProfile(profile),
           );
     });
   }
@@ -138,4 +140,29 @@ String? _prefer(String? a, String? b) {
   if (a != null && a.trim().isNotEmpty) return a;
   if (b != null && b.trim().isNotEmpty) return b;
   return null;
+}
+
+SellerAccountSnapshot? sellerAccountFromProfile(UserProfile profile) {
+  final snap = SellerAccountSnapshot(
+    companyName: profile.companyName,
+    sellerType: profile.sellerType,
+    addressLine1: profile.addressLine1,
+    addressLine2: profile.addressLine2,
+    city: profile.city,
+    state: profile.state,
+    country: profile.country,
+    zipCode: profile.zipCode,
+    businessPhone1: profile.businessPhone1,
+    businessPhone2: profile.businessPhone2,
+    representativeName1: profile.representativeName1,
+    representativeName2: profile.representativeName2,
+    panCardNumber: profile.panCardNumber,
+    aadhaarNumber: profile.aadhaarNumber,
+    iecNumber: profile.iecNumber,
+    gstNumber: profile.gstNumber,
+    companyLogoUrl: profile.companyLogoUrl,
+    bannerImageUrl: profile.bannerImageUrl,
+    panCardUrl: profile.panCardUrl,
+  );
+  return snap.hasAnyField ? snap : null;
 }

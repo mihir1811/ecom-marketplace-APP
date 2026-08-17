@@ -42,22 +42,37 @@ abstract final class UserProfileMapper {
           _str(json['profilePicture']) ??
           '',
       isVerified: parseAccountVerified(user) && parseAccountVerified(json),
-      companyName: _str(business['companyName']),
-      addressLine1: _str(business['addressLine1']),
+      companyName: _str(business['companyName']) ?? _str(user['companyName']),
+      addressLine1:
+          _str(business['addressLine1']) ?? _str(user['addressLine1']),
       addressLine2: _str(business['addressLine2']),
       city: _str(business['city']),
       state: _str(business['state']),
       country: _str(business['country']),
       zipCode: _str(business['zipCode']) ?? _str(business['zip']),
       sellerType: _str(business['sellerType']),
-      businessPhone1: _str(business['phone1']) ?? _str(business['phone']),
-      businessPhone2: _str(business['phone2']),
-      representativeName1: _str(business['representativeName1']),
-      representativeName2: _str(business['representativeName2']),
-      panCardNumber: _str(business['panCardNumber']) ?? _str(business['pan']),
-      aadhaarNumber: _str(business['aadhaarNumber']),
-      iecNumber: _str(business['iecNumber']),
-      gstNumber: _str(business['gstNumber']) ?? _str(business['gstin']),
+      businessPhone1: _str(business['phone1']) ??
+          _str(business['phone']) ??
+          _str(user['phone1']) ??
+          _str(json['phone1']),
+      businessPhone2: _str(business['phone2']) ??
+          _str(user['phone2']) ??
+          _str(json['phone2']),
+      representativeName1: _str(business['representativeName1']) ??
+          _str(user['representativeName1']),
+      representativeName2: _str(business['representativeName2']) ??
+          _str(user['representativeName2']),
+      panCardNumber: _str(business['panCardNumber']) ??
+          _str(business['pan']) ??
+          _str(user['panCardNumber']) ??
+          _str(user['pan']),
+      aadhaarNumber: _str(business['aadhaarNumber']) ??
+          _str(user['aadhaarNumber']),
+      iecNumber: _str(business['iecNumber']) ?? _str(user['iecNumber']),
+      gstNumber: _str(business['gstNumber']) ??
+          _str(business['gstin']) ??
+          _str(user['gstNumber']) ??
+          _str(user['gstin']),
       companyLogoUrl: _str(business['companyLogo']) ??
           _str(business['companyLogoUrl']),
       bannerImageUrl: _str(business['bannerImage']) ??

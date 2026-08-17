@@ -50,7 +50,6 @@ class SellerDrawer extends ConsumerWidget {
         route: AppRouteNames.sellerInquiries,
         label: 'Inquiries',
         icon: Icons.mail_outline,
-        requiresVerified: true,
       ),
       const _DrawerItem(
         route: AppRouteNames.sellerOffers,

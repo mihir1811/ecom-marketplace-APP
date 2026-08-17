@@ -13,6 +13,7 @@ import 'auth_session.dart';
 import 'auth_token_store.dart';
 import 'auth_user.dart';
 import 'business_registration_data.dart';
+import 'seller_account_snapshot.dart';
 
 /// Contract for authentication API calls (§5–§11).
 abstract class AuthRepository {
@@ -394,21 +395,39 @@ class AuthRepositoryImpl implements AuthRepository {
     required bool rememberDevice,
   }) {
     if (root == null) return null;
-    final data = root['data'];
-    if (data is! Map<String, dynamic>) return null;
-    final userJson = data['user'];
-    if (userJson is! Map<String, dynamic>) return null;
+    final dataRaw = root['data'];
+    final data = dataRaw is Map<String, dynamic>
+        ? dataRaw
+        : dataRaw is Map
+            ? Map<String, dynamic>.from(dataRaw)
+            : null;
+    if (data == null) return null;
+    final userRaw = data['user'];
+    final userJson = userRaw is Map<String, dynamic>
+        ? userRaw
+        : userRaw is Map
+            ? Map<String, dynamic>.from(userRaw)
+            : null;
+    if (userJson == null) return null;
     final token = (data['accessToken'] as String?)?.trim() ?? '';
     if (token.isEmpty) return null;
     final user = AuthUser.fromJson(userJson);
     if (user.id.isEmpty) return null;
+    final mergedAccount = SellerAccountSnapshot.merge(
+      user.sellerAccount,
+      SellerAccountSnapshot.tryParse(data['sellerData']) ??
+          SellerAccountSnapshot.tryParse(data['seller']) ??
+          SellerAccountSnapshot.tryParse(data['business']),
+    );
     final sellerRaw = data['sellerId'];
     final sellerId = sellerRaw is String && sellerRaw.trim().isNotEmpty
         ? sellerRaw.trim()
         : null;
     return AuthSession(
       accessToken: token,
-      user: user,
+      user: mergedAccount == null
+          ? user
+          : user.copyWith(sellerAccount: mergedAccount),
       sellerId: sellerId,
       rememberDevice: rememberDevice,
     );

@@ -17,6 +17,7 @@ import '../../../ai_chat/application/ai_chat_back_navigation.dart';
 import '../../../ai_chat/application/ai_pending_filters.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_project_listing_actions.dart';
 import '../widgets/diamond_cards.dart';
+import '../widgets/diamond_listing_stats_bar.dart';
 import '../widgets/diamond_sorting_bottom_sheet.dart';
 
 class DiamondListingsScreen extends ConsumerStatefulWidget {
@@ -183,6 +184,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
       body: ComparisonTrayHost(
         child: Column(
           children: [
+            const DiamondListingStatsBar(),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.s16,

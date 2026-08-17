@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
@@ -59,7 +60,13 @@ class SellerLayout extends ConsumerWidget {
 
     final onOwnProfile = selectedRoute == AppRouteNames.sellerProfile ||
         selectedRoute.startsWith('${AppRouteNames.sellerProfile}/');
-    if (authState.isVerificationPending && !onOwnProfile) {
+    final allowedWhenPending = onOwnProfile ||
+        selectedRoute == AppRouteNames.sellerHelpCenter ||
+        selectedRoute == AppRouteNames.sellerReferences ||
+        selectedRoute == AppRouteNames.sellerLoginHistory ||
+        selectedRoute == AppRouteNames.sellerInquiries ||
+        selectedRoute.startsWith('${AppRouteNames.sellerInquiries}/');
+    if (authState.isVerificationPending && !allowedWhenPending) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
         context.go(AppRouteNames.home);
@@ -78,10 +85,34 @@ class SellerLayout extends ConsumerWidget {
       );
     }
 
+    final shellTitle = _shellTitleFor(selectedRoute);
+
     return AppScaffold(
       scaffoldKey: sellerScaffoldKey,
       drawer: SellerDrawer(selectedRoute: selectedRoute),
+      appBar: shellTitle == null
+          ? null
+          : AppBar(
+              backgroundColor: AppColors.creamBg,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                tooltip: 'Menu',
+                icon: const Icon(Icons.menu),
+                onPressed: () => openSellerDrawer(context),
+              ),
+              title: Text(
+                shellTitle,
+                style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ),
       body: child,
     );
+  }
+
+  static String? _shellTitleFor(String route) {
+    if (route == AppRouteNames.sellerHelpCenter) return 'Help center';
+    if (route == AppRouteNames.sellerInquiries) return 'Inquiries';
+    return null;
   }
 }

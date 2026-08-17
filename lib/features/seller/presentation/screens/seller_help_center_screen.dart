@@ -11,7 +11,10 @@ import '../../../help_center/domain/models/help_question.dart';
 import '../widgets/seller_layout.dart';
 
 class SellerHelpCenterScreen extends ConsumerStatefulWidget {
-  const SellerHelpCenterScreen({super.key});
+  const SellerHelpCenterScreen({super.key, this.showHeader = true});
+
+  /// When false, the parent shell already provides the title/menu app bar.
+  final bool showHeader;
 
   @override
   ConsumerState<SellerHelpCenterScreen> createState() =>
@@ -127,23 +130,24 @@ class _SellerHelpCenterScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-              ),
-              Text(
-                'Help center',
-                style: AppTypography.headline.copyWith(
-                  fontWeight: FontWeight.w700,
+        if (widget.showHeader)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () => openSellerDrawer(context),
+                  icon: const Icon(Icons.menu),
                 ),
-              ),
-            ],
+                Text(
+                  'Help center',
+                  style: AppTypography.headline.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () =>

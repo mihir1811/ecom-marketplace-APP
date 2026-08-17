@@ -24,11 +24,17 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     CancelToken? cancelToken,
   }) async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>(
+      final response = await _dio.get(
         ApiEndpoints.userProfile,
         cancelToken: cancelToken,
       );
-      final profile = UserProfileMapper.fromResponse(response.data);
+      final raw = response.data;
+      final root = raw is Map<String, dynamic>
+          ? raw
+          : raw is Map
+              ? Map<String, dynamic>.from(raw)
+              : null;
+      final profile = UserProfileMapper.fromResponse(root);
       if (profile == null) {
         return Result.failure(
           const NetworkFailure('Profile response was empty.'),

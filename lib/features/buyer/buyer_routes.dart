@@ -52,28 +52,33 @@ final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: AppRouteNames.buyerInquiries,
     builder: (context, state) => const BuyerLayout(
-      child: SellerInquiryInboxScreen(),
+      title: 'Inquiries',
+      child: SellerInquiryInboxScreen(showHeader: false),
     ),
   ),
   GoRoute(
     path: AppRouteNames.buyerInquiryNew,
     builder: (context, state) => const BuyerLayout(
-      child: SellerInquiryFormScreen(),
+      title: 'New inquiry',
+      child: SellerInquiryFormScreen(showHeader: false),
     ),
   ),
   GoRoute(
     path: '/buyer/inquiries/:category/:inquiryId',
     builder: (context, state) => BuyerLayout(
+      title: 'Inquiry',
       child: SellerInquiryDetailScreen(
         categoryName: state.pathParameters['category']!,
         inquiryId: state.pathParameters['inquiryId']!,
+        showHeader: false,
       ),
     ),
   ),
   GoRoute(
     path: AppRouteNames.buyerHelpCenter,
     builder: (context, state) => const BuyerLayout(
-      child: SellerHelpCenterScreen(),
+      title: 'Help center',
+      child: SellerHelpCenterScreen(showHeader: false),
     ),
   ),
   GoRoute(

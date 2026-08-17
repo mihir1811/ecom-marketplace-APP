@@ -406,9 +406,14 @@ class AuthController extends Notifier<AuthState> {
     String? role,
     String? profilePicture,
     bool? isVerified,
+    SellerAccountSnapshot? sellerAccount,
   }) async {
     final user = state.user;
     if (user == null) return;
+    final nextAccount = SellerAccountSnapshot.merge(
+      sellerAccount,
+      user.sellerAccount,
+    );
     final next = user.copyWith(
       fullName: fullName,
       username: username,
@@ -416,6 +421,7 @@ class AuthController extends Notifier<AuthState> {
       role: role,
       profilePicture: profilePicture,
       isVerified: isVerified,
+      sellerAccount: nextAccount,
     );
     state = state.copyWith(user: next);
     final token = await _store.readAccessToken();
@@ -428,6 +434,10 @@ class AuthController extends Notifier<AuthState> {
       role: next.role,
       isVerified: next.isVerified,
       rememberDevice: true,
+    );
+    final snap = next.sellerAccount;
+    await _store.saveSellerAccountSnapshot(
+      snap == null || !snap.hasAnyField ? null : jsonEncode(snap.toJson()),
     );
   }
 

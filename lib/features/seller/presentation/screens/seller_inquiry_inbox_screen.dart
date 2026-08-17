@@ -12,7 +12,10 @@ import '../../domain/models/seller_inquiry.dart';
 import '../widgets/seller_layout.dart';
 
 class SellerInquiryInboxScreen extends ConsumerStatefulWidget {
-  const SellerInquiryInboxScreen({super.key});
+  const SellerInquiryInboxScreen({super.key, this.showHeader = true});
+
+  /// When false, the parent shell already provides the title/menu app bar.
+  final bool showHeader;
 
   @override
   ConsumerState<SellerInquiryInboxScreen> createState() =>
@@ -50,23 +53,24 @@ class _SellerInquiryInboxScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-              ),
-              Text(
-                'Inquiries',
-                style: AppTypography.headline.copyWith(
-                  fontWeight: FontWeight.w700,
+        if (widget.showHeader)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () => openSellerDrawer(context),
+                  icon: const Icon(Icons.menu),
                 ),
-              ),
-            ],
+                Text(
+                  'Inquiries',
+                  style: AppTypography.headline.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () =>

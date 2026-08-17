@@ -58,8 +58,8 @@ class DiamondProjectListingActions extends ConsumerWidget {
             icon: const Icon(Icons.analytics_outlined, size: 16),
             label: Text(
               loadedCount == 0
-                  ? 'Select current page'
-                  : 'Select current page ($loadedCount)',
+                  ? 'Select page'
+                  : 'Select page ($loadedCount)',
               overflow: TextOverflow.ellipsis,
             ),
             style: FilledButton.styleFrom(
@@ -72,7 +72,7 @@ class DiamondProjectListingActions extends ConsumerWidget {
           OutlinedButton.icon(
             onPressed: () => context.push(AppRouteNames.savedDiamondProjects),
             icon: const Icon(Icons.folder_outlined, size: 16),
-            label: const Text('Saved Statistics'),
+            label: const Text('Saved stats'),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.charcoal,
               visualDensity: VisualDensity.compact,

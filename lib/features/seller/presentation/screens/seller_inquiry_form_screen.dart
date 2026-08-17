@@ -17,9 +17,16 @@ import '../widgets/inquiry_form_fields.dart';
 import '../widgets/seller_layout.dart';
 
 class SellerInquiryFormScreen extends ConsumerStatefulWidget {
-  const SellerInquiryFormScreen({super.key, this.initialCategory});
+  const SellerInquiryFormScreen({
+    super.key,
+    this.initialCategory,
+    this.showHeader = true,
+  });
 
   final InquiryCategory? initialCategory;
+
+  /// When false, the parent shell already provides the title/menu app bar.
+  final bool showHeader;
 
   @override
   ConsumerState<SellerInquiryFormScreen> createState() =>
@@ -258,31 +265,42 @@ class _SellerInquiryFormScreenState
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(4, 8, 8, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-              ),
-              IconButton(
-                onPressed: () => context.go(
-                  inquiriesPathFor(GoRouterState.of(context).uri.path),
+        if (widget.showHeader)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 8, 8, 0),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () => openSellerDrawer(context),
+                  icon: const Icon(Icons.menu),
                 ),
-                icon: const Icon(Icons.arrow_back),
-              ),
-              Expanded(
-                child: Text(
-                  'Product inquiry',
-                  style: AppTypography.title.copyWith(
-                    fontWeight: FontWeight.w700,
+                IconButton(
+                  onPressed: () => context.go(
+                    inquiriesPathFor(GoRouterState.of(context).uri.path),
+                  ),
+                  icon: const Icon(Icons.arrow_back),
+                ),
+                Expanded(
+                  child: Text(
+                    'Product inquiry',
+                    style: AppTypography.title.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
+              ],
+            ),
+          )
+        else
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              onPressed: () => context.go(
+                inquiriesPathFor(GoRouterState.of(context).uri.path),
               ),
-            ],
+              icon: const Icon(Icons.arrow_back),
+            ),
           ),
-        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.s16),

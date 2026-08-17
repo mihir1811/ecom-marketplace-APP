@@ -83,53 +83,53 @@ class SellerBusinessProfileCards extends StatelessWidget {
           rows: [
             ProfileInfoRow(
               icon: Icons.phone_outlined,
-              label: 'Business phone 1',
+              label: 'Phone 1',
               value: profileDisplay(profile.businessPhone1),
             ),
             ProfileInfoRow(
               icon: Icons.phone_outlined,
-              label: 'Business phone 2',
+              label: 'Phone 2',
               value: profileDisplay(profile.businessPhone2),
             ),
             ProfileInfoRow(
               icon: Icons.person_outline,
-              label: 'Representative 1',
+              label: 'Rep 1',
               value: profileDisplay(profile.representativeName1),
             ),
             ProfileInfoRow(
               icon: Icons.person_outline,
-              label: 'Representative 2',
+              label: 'Rep 2',
               value: profileDisplay(profile.representativeName2),
             ),
           ],
         ),
         const SizedBox(height: AppSpacing.s16),
         ProfileInfoCard(
-          title: 'Tax & KYC documents',
+          title: 'Tax & KYC',
           rows: [
             ProfileInfoRow(
               icon: Icons.credit_card_outlined,
-              label: 'PAN number',
+              label: 'PAN',
               value: profileDisplay(profile.panCardNumber),
             ),
             ProfileInfoRow(
               icon: Icons.badge_outlined,
-              label: 'Aadhaar number',
+              label: 'Aadhaar',
               value: profileDisplay(profile.aadhaarNumber),
             ),
             ProfileInfoRow(
               icon: Icons.numbers_outlined,
-              label: 'IEC number',
+              label: 'IEC',
               value: profileDisplay(profile.iecNumber),
             ),
             ProfileInfoRow(
               icon: Icons.receipt_long_outlined,
-              label: 'GST number',
+              label: 'GST',
               value: profileDisplay(profile.gstNumber),
             ),
             ProfileInfoRow(
               icon: Icons.upload_file_outlined,
-              label: 'PAN card document',
+              label: 'PAN doc',
               value: profile.panCardUrl == null ? 'Not provided' : 'On file',
             ),
           ],

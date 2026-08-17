@@ -33,9 +33,8 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.s12),
-            Wrap(
-              spacing: AppSpacing.s24,
-              runSpacing: AppSpacing.s12,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _Stat(
                   label: 'MEAN (AVG)',
