@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
-import '../theme/app_typography.dart';
 
 /// Shared chrome for marketplace product cards (surface, border, radius, shadow).
 class MarketplaceProductCardShell extends StatelessWidget {
@@ -53,37 +52,7 @@ class MarketplaceProductCardShell extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: radius,
-          child: Stack(
-            children: [
-              child,
-              if (isRecentlyViewed)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColors.bronze,
-                      borderRadius: BorderRadius.circular(AppSpacing.r4),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      child: Text(
-                        'Viewed',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.warmWhite,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 10,
-                          height: 1.1,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+          child: child,
         ),
       ),
     );

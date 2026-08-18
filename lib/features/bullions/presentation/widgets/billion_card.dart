@@ -8,6 +8,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
+import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
@@ -80,6 +81,7 @@ class BullionCardGrid extends StatelessWidget {
                     size: 18,
                   ),
                 ),
+                RecentlyViewedImageBadge(productId: bullion.id),
               ],
             ),
           ),
@@ -202,11 +204,21 @@ class BullionCardList extends StatelessWidget {
                 Positioned(
                   bottom: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: WishlistToggleButton(
-                    item: WishlistItem.fromBullion(bullion),
-                    onAdded: () =>
-                        rememberProductDetail(bullionProductDetail(bullion)),
-                    size: 18,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      RecentlyViewedBadge(
+                        productId: bullion.id,
+                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
+                      ),
+                      WishlistToggleButton(
+                        item: WishlistItem.fromBullion(bullion),
+                        onAdded: () =>
+                            rememberProductDetail(bullionProductDetail(bullion)),
+                        size: 18,
+                      ),
+                    ],
                   ),
                 ),
               ],

@@ -10,6 +10,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_content_sized_grid.dart';
+import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
@@ -135,6 +136,7 @@ class DiamondCardGrid extends ConsumerWidget {
                     ),
                   ),
                 ),
+                RecentlyViewedImageBadge(productId: diamond.id),
               ],
             ),
           ),

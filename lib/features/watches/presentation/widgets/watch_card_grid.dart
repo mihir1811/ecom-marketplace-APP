@@ -8,6 +8,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
+import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
@@ -96,6 +97,7 @@ class WatchCardGrid extends ConsumerWidget {
                     ),
                   ),
                 ),
+                RecentlyViewedImageBadge(productId: watch.id),
               ],
             ),
           ),
@@ -215,11 +217,21 @@ class WatchCardList extends ConsumerWidget {
                 Positioned(
                   bottom: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: WishlistToggleButton(
-                    item: WishlistItem.fromWatch(watch),
-                    onAdded: () =>
-                        rememberProductDetail(watchProductDetail(watch)),
-                    size: 18,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      RecentlyViewedBadge(
+                        productId: watch.id,
+                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
+                      ),
+                      WishlistToggleButton(
+                        item: WishlistItem.fromWatch(watch),
+                        onAdded: () =>
+                            rememberProductDetail(watchProductDetail(watch)),
+                        size: 18,
+                      ),
+                    ],
                   ),
                 ),
                 Positioned(

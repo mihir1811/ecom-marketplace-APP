@@ -10,6 +10,7 @@ import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
+import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/application/wishlist_provider.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
@@ -151,6 +152,7 @@ class JewelryProductCard extends ConsumerWidget {
                       ),
                     ),
                   ),
+                RecentlyViewedImageBadge(productId: item.id),
               ],
             ),
           ),
@@ -566,6 +568,7 @@ class JewelryProductListCard extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  RecentlyViewedImageBadge(productId: item.id),
                 ],
               ),
             ),
