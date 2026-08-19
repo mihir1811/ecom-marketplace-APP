@@ -74,7 +74,7 @@ class DiamondProjectListingActions extends ConsumerWidget {
             icon: const Icon(Icons.folder_outlined, size: 16),
             label: const Text('Saved stats'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.charcoal,
+              foregroundColor: AppColors.textPrimary(context),
               visualDensity: VisualDensity.compact,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
@@ -102,7 +102,7 @@ class DiamondProjectListingHint extends StatelessWidget {
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: AppTypography.caption.copyWith(
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
         ),
       ),
     );

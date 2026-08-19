@@ -14,7 +14,7 @@ class JewelryActiveFilterChips extends ConsumerWidget {
     final filters = ref.watch(jewelryFilterProvider);
     final labels = filters.summaryLabels;
     if (labels.isEmpty) return const SizedBox.shrink();
-    const border = AppColors.warmBorder;
+    final border = AppColors.border(context);
 
     return SizedBox(
       height: 40,
@@ -48,7 +48,7 @@ class JewelryActiveFilterChips extends ConsumerWidget {
           return Container(
             padding: const EdgeInsets.only(left: 12, right: 6),
             decoration: BoxDecoration(
-              color: AppColors.warmWhite,
+              color: AppColors.card(context),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: border),
             ),

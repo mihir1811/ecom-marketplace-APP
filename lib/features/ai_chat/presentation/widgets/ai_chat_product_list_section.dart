@@ -48,7 +48,7 @@ class AiChatProductListSection extends ConsumerWidget {
               Text(
                 'Matches',
                 style: AppTypography.label.copyWith(
-                  color: AppColors.textPrimaryLight,
+                  color: AppColors.textPrimary(context),
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -56,7 +56,7 @@ class AiChatProductListSection extends ConsumerWidget {
               Text(
                 '${totalFound ?? products.length}',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: AppColors.textSecondary(context),
                 ),
               ),
             ],
@@ -88,8 +88,8 @@ class AiChatProductListSection extends ConsumerWidget {
               beforeNavigate: onBeforeOpen,
             ),
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.charcoal,
-              side: const BorderSide(color: AppColors.warmBorder),
+              foregroundColor: AppColors.textPrimary(context),
+              side: BorderSide(color: AppColors.border(context)),
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.s16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppSpacing.r12),
@@ -98,8 +98,9 @@ class AiChatProductListSection extends ConsumerWidget {
             child: Text(
               'See more in listings',
               style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+                  color: AppColors.textPrimary(context),
+                  fontWeight: FontWeight.w700,
+                ),
             ),
           ),
         ),

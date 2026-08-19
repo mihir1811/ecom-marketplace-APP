@@ -61,12 +61,12 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
     final item = widget.item;
     final mutating = ref.watch(cartIsMutatingProvider);
     final available = item.isAvailable;
-    const muted = AppColors.textMutedLight;
+    final muted = AppColors.textMuted(context);
 
     return Opacity(
       opacity: available ? 1 : 0.72,
       child: Material(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r16),
         child: InkWell(
           onTap: _opening ? null : _openProduct,
@@ -75,7 +75,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppSpacing.r16),
               border: Border.all(
-                color: available ? AppColors.warmBorder : AppColors.error.withValues(alpha: 0.35),
+                color: available ? AppColors.border(context) : AppColors.error.withValues(alpha: 0.35),
               ),
             ),
             padding: const EdgeInsets.all(AppSpacing.s12),
@@ -142,7 +142,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,
                                 color: available
-                                    ? AppColors.textPrimaryLight
+                                    ? AppColors.textPrimary(context)
                                     : muted,
                                 decoration: available
                                     ? null
@@ -171,8 +171,8 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                     }
                                   },
                             icon: const Icon(Icons.delete_outline, size: 20),
-                            color: AppColors.textMutedLight,
-                            visualDensity: VisualDensity.compact,
+                          color: AppColors.textMuted(context),
+                          visualDensity: VisualDensity.compact,
                           ),
                         ],
                       ),
@@ -206,7 +206,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: available
-                              ? AppColors.textPrimaryLight
+                              ? AppColors.textPrimary(context)
                               : muted,
                           decoration: available
                               ? null
@@ -218,7 +218,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                         Text(
                           'Qty ${item.quantity}',
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.textSecondaryLight,
+                            color: AppColors.textSecondary(context),
                           ),
                         ),
                       ],
@@ -245,7 +245,7 @@ class _Thumb extends StatelessWidget {
       width: 72,
       height: 72,
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
       ),
       clipBehavior: Clip.antiAlias,

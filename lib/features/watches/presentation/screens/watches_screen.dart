@@ -11,6 +11,7 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../application/watch_filter_provider.dart';
 import '../../application/watch_list_provider.dart';
 import '../../domain/models/watch_filter_state.dart';
@@ -62,49 +63,49 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CatalogScreenShell(
-      scaffoldKey: _scaffoldKey,
-      endDrawer: const WatchFilterDrawer(),
-      title: 'Luxury Watches',
-      onBack: () {
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go('/');
-        }
-      },
-      child: ComparisonTrayHost(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: AppSpacing.s8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-              child: _WatchSearchBar(
-                searchController: _searchController,
-                onOpenFilters: _openFilters,
+    return DarkThemeScope(
+      child: CatalogScreenShell(
+        scaffoldKey: _scaffoldKey,
+        endDrawer: const WatchFilterDrawer(),
+        title: 'Luxury Watches',
+        onBack: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/');
+          }
+        },
+        child: ComparisonTrayHost(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: AppSpacing.s8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+                child: _WatchSearchBar(
+                  searchController: _searchController,
+                  onOpenFilters: _openFilters,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.s12),
-            Expanded(
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.only(bottom: AppSpacing.s12),
-                      child: WatchCategoryChips(),
+              const SizedBox(height: AppSpacing.s12),
+              Expanded(
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: AppSpacing.s12),
+                        child: WatchCategoryChips(),
+                      ),
                     ),
-                  ),
-                  const SliverToBoxAdapter(child: WatchBrandCarousel()),
-                  const SliverToBoxAdapter(child: _WatchHeaderRow()),
-                  _WatchResultsSliver(
-                    searchController: _searchController,
-                  ),
-                ],
+                    const SliverToBoxAdapter(child: WatchBrandCarousel()),
+                    const SliverToBoxAdapter(child: _WatchHeaderRow()),
+                    _WatchResultsSliver(searchController: _searchController),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -129,10 +130,11 @@ class _WatchSearchBar extends ConsumerWidget {
     return ListingSearchFilterBar(
       controller: searchController,
       hintText: 'Search for luxury watches...',
-      mutedColor: AppColors.textMutedLight,
+      mutedColor: AppColors.textMuted(context),
       activeFilterCount: activeFilterCount,
       onFilterTap: onOpenFilters,
-      onChanged: (v) => ref.read(watchFilterProvider.notifier).setSearchQuery(v),
+      onChanged: (v) =>
+          ref.read(watchFilterProvider.notifier).setSearchQuery(v),
       onSubmitted: (v) =>
           ref.read(watchFilterProvider.notifier).setSearchQuery(v),
     );
@@ -173,27 +175,29 @@ class _WatchHeaderRow extends ConsumerWidget {
               children: [
                 Flexible(
                   child: TextButton.icon(
-                    onPressed: () => showSimpleSortSheet<WatchSortOption>(
-                      context: context,
-                      options: WatchSortOption.values,
-                      labelOf: (o) => o.label,
-                      current: ref.read(watchSortProvider),
-                    ).then((selected) {
-                      if (selected != null) {
-                        ref.read(watchSortProvider.notifier).state = selected;
-                      }
-                    }),
+                    onPressed: () =>
+                        showSimpleSortSheet<WatchSortOption>(
+                          context: context,
+                          options: WatchSortOption.values,
+                          labelOf: (o) => o.label,
+                          current: ref.read(watchSortProvider),
+                        ).then((selected) {
+                          if (selected != null) {
+                            ref.read(watchSortProvider.notifier).state =
+                                selected;
+                          }
+                        }),
                     icon: const Icon(Icons.sort, size: 18),
                     label: Text(
                       'Sort by: $sortLabel',
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.caption.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimaryLight,
+                        color: AppColors.textPrimary(context),
                       ),
                     ),
                     style: TextButton.styleFrom(
-                      foregroundColor: AppColors.textPrimaryLight,
+                      foregroundColor: AppColors.textPrimary(context),
                       padding: EdgeInsets.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
@@ -202,12 +206,10 @@ class _WatchHeaderRow extends ConsumerWidget {
                 ),
                 ViewModeToggle(
                   isGrid: isGrid,
-                  onGrid: () =>
-                      ref.read(watchViewModeProvider.notifier).state =
-                          WatchViewMode.grid,
-                  onList: () =>
-                      ref.read(watchViewModeProvider.notifier).state =
-                          WatchViewMode.list,
+                  onGrid: () => ref.read(watchViewModeProvider.notifier).state =
+                      WatchViewMode.grid,
+                  onList: () => ref.read(watchViewModeProvider.notifier).state =
+                      WatchViewMode.list,
                 ),
               ],
             ),
@@ -224,7 +226,7 @@ class _WatchHeaderRow extends ConsumerWidget {
               child: Text(
                 countLabel,
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
               ),
             ),
@@ -236,9 +238,7 @@ class _WatchHeaderRow extends ConsumerWidget {
 }
 
 class _WatchResultsSliver extends ConsumerWidget {
-  const _WatchResultsSliver({
-    required this.searchController,
-  });
+  const _WatchResultsSliver({required this.searchController});
 
   final TextEditingController searchController;
 
@@ -251,9 +251,7 @@ class _WatchResultsSliver extends ConsumerWidget {
 
     if (listState == null || listState.isInitialLoading) {
       return const SliverFillRemaining(
-        child: Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
 
@@ -293,11 +291,8 @@ class _WatchResultsSliver extends ConsumerWidget {
             watches: listState.watches,
             isLoadingMore: listState.isLoadingMore,
           ),
-        const SliverToBoxAdapter(
-          child: SizedBox(height: AppSpacing.s24),
-        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
       ],
     );
   }
 }
-

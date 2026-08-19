@@ -8,8 +8,8 @@ class FilterChipWidget extends StatelessWidget {
     required this.label,
     required this.isSelected,
     required this.onTap,
-    this.selectedColor = AppColors.charcoal,
-    this.selectedTextColor = AppColors.warmWhite,
+    this.selectedColor,
+    this.selectedTextColor,
     this.unselectedTextColor,
     this.unselectedBgColor,
     this.borderColor,
@@ -22,8 +22,8 @@ class FilterChipWidget extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
-  final Color selectedColor;
-  final Color selectedTextColor;
+  final Color? selectedColor;
+  final Color? selectedTextColor;
   final Color? unselectedTextColor;
   final Color? unselectedBgColor;
   final Color? borderColor;
@@ -36,12 +36,12 @@ class FilterChipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defaultUnselectedBg = unselectedBgColor ??
-        (AppColors.warmWhite);
-    final defaultBorder = borderColor ??
-        (AppColors.warmBorder);
-    final defaultUnselectedText = unselectedTextColor ??
-        (AppColors.textPrimaryLight);
+    final fill = selectedColor ?? AppColors.selectedFill(context);
+    final onFill = selectedTextColor ?? AppColors.onSelected(context);
+    final defaultUnselectedBg = unselectedBgColor ?? AppColors.card(context);
+    final defaultBorder = borderColor ?? AppColors.border(context);
+    final defaultUnselectedText =
+        unselectedTextColor ?? AppColors.textPrimary(context);
 
     return GestureDetector(
       onTap: onTap,
@@ -50,10 +50,10 @@ class FilterChipWidget extends StatelessWidget {
         padding: padding ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         alignment: centerLabel ? Alignment.center : null,
         decoration: BoxDecoration(
-          color: isSelected ? selectedColor : defaultUnselectedBg,
+          color: isSelected ? fill : defaultUnselectedBg,
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: isSelected ? selectedColor : defaultBorder,
+            color: isSelected ? fill : defaultBorder,
             width: isSelected ? 1.5 : 1.0,
           ),
         ),
@@ -62,7 +62,7 @@ class FilterChipWidget extends StatelessWidget {
           style: textStyle ??
               AppTypography.caption.copyWith(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? selectedTextColor : defaultUnselectedText,
+                color: isSelected ? onFill : defaultUnselectedText,
               ),
         ),
       ),

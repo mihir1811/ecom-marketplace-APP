@@ -50,11 +50,8 @@ abstract final class GemstoneSearchRequestMapper {
       body['fluorescence_colors'] = [fluoColor.trim()];
     }
 
-    final company = filters.companyName.trim();
-    if (company.isNotEmpty) body['companies'] = [company];
-
-    final location = filters.vendorLocation.trim();
-    if (location.isNotEmpty) body['locations'] = [location];
+    _putStringList(body, 'companies', filters.companyNames);
+    _putStringList(body, 'locations', filters.vendorLocations);
 
     if (isMelee) {
       _putRange(

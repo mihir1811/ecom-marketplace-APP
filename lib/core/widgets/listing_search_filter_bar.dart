@@ -26,7 +26,7 @@ class ListingSearchFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = mutedColor ?? AppColors.textMutedLight;
+    final muted = mutedColor ?? AppColors.textMuted(context);
 
     return Row(
       children: [
@@ -34,9 +34,9 @@ class ListingSearchFilterBar extends StatelessWidget {
           child: Container(
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.warmWhite,
+              color: AppColors.field(context),
               borderRadius: BorderRadius.circular(AppSpacing.r12),
-              border: Border.all(color: AppColors.warmBorder),
+              border: Border.all(color: AppColors.border(context)),
             ),
             child: TextField(
               controller: controller,

@@ -27,15 +27,15 @@ class ProductDetailAssurance extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r20),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Column(
         children: [
           if (cert != null) _CertificationRow(certification: cert),
           if (cert != null && stock != null)
-            const Divider(height: 1, color: AppColors.warmBorder),
+            Divider(height: 1, color: AppColors.border(context)),
           if (stock != null) _AvailabilityRow(availability: stock),
         ],
       ),
@@ -73,7 +73,7 @@ class _CertificationRow extends StatelessWidget {
                     Text(
                       certification.authority,
                       style: AppTypography.label.copyWith(
-                        color: AppColors.textPrimaryLight,
+                        color: AppColors.textPrimary(context),
                         fontWeight: FontWeight.w700,
                       ),
                       maxLines: 1,
@@ -84,7 +84,7 @@ class _CertificationRow extends StatelessWidget {
                       Text(
                         '${certification.referenceLabel ?? 'Reference'} · $reference',
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -98,7 +98,7 @@ class _CertificationRow extends StatelessWidget {
                   tooltip: 'Copy reference',
                   visualDensity: VisualDensity.compact,
                   iconSize: 16,
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: reference));
                     final messenger = ScaffoldMessenger.maybeOf(context);
@@ -126,8 +126,8 @@ class _CertificationRow extends StatelessWidget {
                 icon: const Icon(Icons.open_in_new, size: 16),
                 label: const Text('View certification'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.charcoal,
-                  side: const BorderSide(color: AppColors.warmBorder),
+                  foregroundColor: AppColors.textPrimary(context),
+                  side: BorderSide(color: AppColors.border(context)),
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.s16,
                     vertical: AppSpacing.s12,
@@ -170,7 +170,7 @@ class _AvailabilityRow extends StatelessWidget {
             child: Text(
               availability.label,
               style: AppTypography.label.copyWith(
-                color: AppColors.textPrimaryLight,
+                color: AppColors.textPrimary(context),
                 fontWeight: FontWeight.w600,
               ),
               maxLines: 1,
@@ -181,7 +181,7 @@ class _AvailabilityRow extends StatelessWidget {
             Text(
               availability.detail!,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
                 fontWeight: FontWeight.w600,
               ),
             ),

@@ -20,7 +20,7 @@ class ProductDetailHeader extends StatelessWidget {
         Text(
           detail.title,
           style: AppTypography.headline.copyWith(
-            color: AppColors.textPrimaryLight,
+            color: AppColors.textPrimary(context),
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -28,7 +28,7 @@ class ProductDetailHeader extends StatelessWidget {
         Text(
           detail.subtitle,
           style: AppTypography.body.copyWith(
-            color: AppColors.textSecondaryLight,
+            color: AppColors.textSecondary(context),
             fontSize: 14,
           ),
         ),
@@ -61,7 +61,7 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (background, foreground) = switch (badge.tone) {
       ProductBadgeTone.accent => (
-          AppColors.charcoal,
+          AppColors.isDark(context) ? AppColors.slateBorder : AppColors.charcoal,
           AppColors.warmWhite,
         ),
       ProductBadgeTone.positive => (
@@ -73,8 +73,8 @@ class _Badge extends StatelessWidget {
           AppColors.terracotta,
         ),
       ProductBadgeTone.neutral => (
-          AppColors.sandSurface,
-          AppColors.textSecondaryLight,
+          AppColors.surface(context),
+          AppColors.textSecondary(context),
         ),
     };
 
@@ -112,7 +112,7 @@ class _Reference extends StatelessWidget {
         Text(
           '${label.toUpperCase()}  ',
           style: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
             fontSize: 10,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
@@ -122,7 +122,7 @@ class _Reference extends StatelessWidget {
           child: Text(
             value,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
               fontWeight: FontWeight.w600,
               letterSpacing: 0.4,
             ),
@@ -136,7 +136,7 @@ class _Reference extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.s8),
           constraints: const BoxConstraints(),
           iconSize: 14,
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
           onPressed: () {
             Clipboard.setData(ClipboardData(text: value));
             final messenger = ScaffoldMessenger.maybeOf(context);

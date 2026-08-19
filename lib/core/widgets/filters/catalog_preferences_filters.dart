@@ -36,7 +36,7 @@ class CatalogPreferencesFilters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
     final showRough = roughSourceOptions != null && onRoughSourceChanged != null;
     final showRating =
         minSellerRating != null && onSellerRatingChanged != null;

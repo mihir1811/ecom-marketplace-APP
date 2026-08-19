@@ -15,7 +15,7 @@ class DiamondFilterChips extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filters = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    const mutedColor = AppColors.textSecondaryLight;
+    final mutedColor = AppColors.textSecondary(context);
 
     final chips = <_FilterChipData>[];
 
@@ -111,6 +111,24 @@ class DiamondFilterChips extends ConsumerWidget {
     for (final lab in filters.selectedLabs) {
       chips.add(
         _FilterChipData(label: lab, onRemove: () => notifier.toggleLab(lab)),
+      );
+    }
+
+    for (final company in filters.companyNames) {
+      chips.add(
+        _FilterChipData(
+          label: company,
+          onRemove: () => notifier.removeCompanyName(company),
+        ),
+      );
+    }
+
+    for (final location in filters.vendorLocations) {
+      chips.add(
+        _FilterChipData(
+          label: location,
+          onRemove: () => notifier.removeVendorLocation(location),
+        ),
       );
     }
 

@@ -108,163 +108,162 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
         Navigator.of(context).maybePop();
       },
       body: ListView(
-                padding: const EdgeInsets.only(bottom: AppSpacing.s24),
-                children: [
-                  _section(
-                    'shape',
-                    'Shape',
-                    _chipGrid(
-                      BullionsFilterState.shapeOptions,
-                      draft.shapes,
-                      notifier.toggleShape,
-                    ),
-                  ),
-                  _section(
-                    'price',
-                    'Price Range',
-                    _rangeInputs(
-                      label: 'Current Range',
-                      minKey: 'priceMin',
-                      maxKey: 'priceMax',
-                      minLabel: 'Min (\$)',
-                      maxLabel: 'Max (\$)',
-                      onChanged: () => notifier.setPriceRange(
-                        min: _parse('priceMin'),
-                        max: _parse('priceMax'),
-                      ),
-                    ),
-                  ),
-                  _section(
-                    'weight',
-                    'Weight',
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.s20,
-                            ),
-                            child: Wrap(
-                              alignment: WrapAlignment.start,
-                              crossAxisAlignment: WrapCrossAlignment.start,
-                              spacing: AppSpacing.s8,
-                              runSpacing: AppSpacing.s8,
-                              children: [
-                                for (final item
-                                    in BullionsFilterState.weightChipOptions)
-                                  _MiniChip(
-                                    label: item,
-                                    selected: draft.weightChips.contains(item),
-                                    onTap: () =>
-                                        notifier.toggleWeightChip(item),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.s12),
-                        _rangeInputs(
-                          label: 'Current Range',
-                          minKey: 'weightMin',
-                          maxKey: 'weightMax',
-                          minLabel: 'Min',
-                          maxLabel: 'Max',
-                          onChanged: () => notifier.setWeightRange(
-                            min: _parse('weightMin'),
-                            max: _parse('weightMax'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  _section(
-                    'quantity',
-                    'Quantity',
-                    _rangeInputs(
-                      label: 'Current Range',
-                      minKey: 'quantityMin',
-                      maxKey: 'quantityMax',
-                      minLabel: 'Min',
-                      maxLabel: 'Max',
-                      onChanged: () => notifier.setQuantityRange(
-                        min: _parse('quantityMin'),
-                        max: _parse('quantityMax'),
-                      ),
-                    ),
-                  ),
-                  _section(
-                    'condition',
-                    'Condition',
-                    _chipGrid(
-                      BullionsFilterState.conditionOptions,
-                      draft.conditions,
-                      notifier.toggleCondition,
-                    ),
-                  ),
-                  _section(
-                    'certification',
-                    'Certification',
-                    _chipGrid(
-                      BullionsFilterState.certificationOptions,
-                      draft.certifications,
-                      notifier.toggleCertification,
-                    ),
-                  ),
-                  _section(
-                    'mint',
-                    'Mint Mark',
-                    _chipGrid(
-                      BullionsFilterState.mintMarkOptions,
-                      draft.mintMarks,
-                      notifier.toggleMintMark,
-                    ),
-                  ),
-                  _section(
-                    'dimensions',
-                    'Dimensions',
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _rangeInputs(
-                          label: 'Length',
-                          minKey: 'lengthMin',
-                          maxKey: 'lengthMax',
-                          minLabel: 'Min',
-                          maxLabel: 'Max',
-                          onChanged: () => notifier.setLengthRange(
-                            min: _parse('lengthMin'),
-                            max: _parse('lengthMax'),
-                          ),
-                        ),
-                        _rangeInputs(
-                          label: 'Width',
-                          minKey: 'widthMin',
-                          maxKey: 'widthMax',
-                          minLabel: 'Min',
-                          maxLabel: 'Max',
-                          onChanged: () => notifier.setWidthRange(
-                            min: _parse('widthMin'),
-                            max: _parse('widthMax'),
-                          ),
-                        ),
-                        _rangeInputs(
-                          label: 'Height',
-                          minKey: 'heightMin',
-                          maxKey: 'heightMax',
-                          minLabel: 'Min',
-                          maxLabel: 'Max',
-                          onChanged: () => notifier.setHeightRange(
-                            min: _parse('heightMin'),
-                            max: _parse('heightMax'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+        padding: const EdgeInsets.only(bottom: AppSpacing.s24),
+        children: [
+          _section(
+            'shape',
+            'Shape',
+            _chipGrid(
+              BullionsFilterState.shapeOptions,
+              draft.shapes,
+              notifier.toggleShape,
+            ),
+          ),
+          _section(
+            'price',
+            'Price Range',
+            _rangeInputs(
+              label: 'Current Range',
+              minKey: 'priceMin',
+              maxKey: 'priceMax',
+              minLabel: 'Min (\$)',
+              maxLabel: 'Max (\$)',
+              onChanged: () => notifier.setPriceRange(
+                min: _parse('priceMin'),
+                max: _parse('priceMax'),
               ),
+            ),
+          ),
+          _section(
+            'weight',
+            'Weight',
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s20,
+                    ),
+                    child: Wrap(
+                      alignment: WrapAlignment.start,
+                      crossAxisAlignment: WrapCrossAlignment.start,
+                      spacing: AppSpacing.s8,
+                      runSpacing: AppSpacing.s8,
+                      children: [
+                        for (final item
+                            in BullionsFilterState.weightChipOptions)
+                          _MiniChip(
+                            label: item,
+                            selected: draft.weightChips.contains(item),
+                            onTap: () => notifier.toggleWeightChip(item),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                _rangeInputs(
+                  label: 'Current Range',
+                  minKey: 'weightMin',
+                  maxKey: 'weightMax',
+                  minLabel: 'Min',
+                  maxLabel: 'Max',
+                  onChanged: () => notifier.setWeightRange(
+                    min: _parse('weightMin'),
+                    max: _parse('weightMax'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _section(
+            'quantity',
+            'Quantity',
+            _rangeInputs(
+              label: 'Current Range',
+              minKey: 'quantityMin',
+              maxKey: 'quantityMax',
+              minLabel: 'Min',
+              maxLabel: 'Max',
+              onChanged: () => notifier.setQuantityRange(
+                min: _parse('quantityMin'),
+                max: _parse('quantityMax'),
+              ),
+            ),
+          ),
+          _section(
+            'condition',
+            'Condition',
+            _chipGrid(
+              BullionsFilterState.conditionOptions,
+              draft.conditions,
+              notifier.toggleCondition,
+            ),
+          ),
+          _section(
+            'certification',
+            'Certification',
+            _chipGrid(
+              BullionsFilterState.certificationOptions,
+              draft.certifications,
+              notifier.toggleCertification,
+            ),
+          ),
+          _section(
+            'mint',
+            'Mint Mark',
+            _chipGrid(
+              BullionsFilterState.mintMarkOptions,
+              draft.mintMarks,
+              notifier.toggleMintMark,
+            ),
+          ),
+          _section(
+            'dimensions',
+            'Dimensions',
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _rangeInputs(
+                  label: 'Length',
+                  minKey: 'lengthMin',
+                  maxKey: 'lengthMax',
+                  minLabel: 'Min',
+                  maxLabel: 'Max',
+                  onChanged: () => notifier.setLengthRange(
+                    min: _parse('lengthMin'),
+                    max: _parse('lengthMax'),
+                  ),
+                ),
+                _rangeInputs(
+                  label: 'Width',
+                  minKey: 'widthMin',
+                  maxKey: 'widthMax',
+                  minLabel: 'Min',
+                  maxLabel: 'Max',
+                  onChanged: () => notifier.setWidthRange(
+                    min: _parse('widthMin'),
+                    max: _parse('widthMax'),
+                  ),
+                ),
+                _rangeInputs(
+                  label: 'Height',
+                  minKey: 'heightMin',
+                  maxKey: 'heightMax',
+                  minLabel: 'Min',
+                  maxLabel: 'Max',
+                  onChanged: () => notifier.setHeightRange(
+                    min: _parse('heightMin'),
+                    max: _parse('heightMax'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -314,7 +313,7 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
     required String maxLabel,
     required VoidCallback onChanged,
   }) {
-    const muted = AppColors.textMutedLight;
+    final muted = AppColors.textMuted(context);
     const placeholders = BullionsFilterState.rangePlaceholders;
     final minHint = placeholders[minKey] ?? '0';
     final maxHint = placeholders[maxKey] ?? '0';
@@ -385,22 +384,18 @@ class _SelectableChip extends StatelessWidget {
           vertical: AppSpacing.s8,
         ),
         decoration: BoxDecoration(
-          color: selected
-              ? AppColors.charcoal
-              : (AppColors.warmWhite),
+          color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: selected
-                ? AppColors.charcoal
-                : (AppColors.warmBorder),
+            color: selected ? AppColors.selectedFill(context) : AppColors.border(context),
           ),
         ),
         child: Text(
           label,
           style: AppTypography.caption.copyWith(
             color: selected
-                ? AppColors.warmWhite
-                : (AppColors.textPrimaryLight),
+                ? AppColors.onSelected(context)
+                : AppColors.textPrimary(context),
             fontWeight: FontWeight.w600,
           ),
           maxLines: 1,
@@ -433,18 +428,18 @@ class _MiniChip extends StatelessWidget {
           vertical: AppSpacing.s8,
         ),
         decoration: BoxDecoration(
-          color: selected ? AppColors.charcoal : AppColors.warmWhite,
+          color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: selected ? AppColors.charcoal : AppColors.warmBorder,
+            color: selected ? AppColors.selectedFill(context) : AppColors.border(context),
           ),
         ),
         child: Text(
           label,
           style: AppTypography.caption.copyWith(
             color: selected
-                ? AppColors.warmWhite
-                : AppColors.textPrimaryLight,
+                ? AppColors.onSelected(context)
+                : AppColors.textPrimary(context),
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -473,10 +468,7 @@ class _NumberField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTypography.caption.copyWith(color: muted),
-        ),
+        Text(label, style: AppTypography.caption.copyWith(color: muted)),
         const SizedBox(height: AppSpacing.s4),
         TextField(
           controller: controller,
@@ -500,4 +492,3 @@ class _NumberField extends StatelessWidget {
     );
   }
 }
-

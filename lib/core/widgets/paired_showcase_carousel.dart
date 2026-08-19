@@ -103,7 +103,7 @@ class _PairedShowcaseCarouselState extends State<PairedShowcaseCarousel>
               fontSize: 22,
               fontWeight: FontWeight.w700,
               height: 1.1,
-              color: AppColors.textPrimaryLight,
+              color: AppColors.textPrimary(context),
             ),
           ),
           const SizedBox(height: AppSpacing.s12),
@@ -154,7 +154,7 @@ class _PairedShowcaseCarouselState extends State<PairedShowcaseCarousel>
               width: 140,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.warmBorder,
+                color: AppColors.border(context),
                 borderRadius: BorderRadius.circular(2),
               ),
               child: Stack(

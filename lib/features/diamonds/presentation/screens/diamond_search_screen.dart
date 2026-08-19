@@ -9,6 +9,7 @@ import '../../../../core/widgets/catalog_search_filter_layout.dart';
 import '../../../../core/widgets/catalog_search_filter_shell.dart';
 import '../../../../core/widgets/paired_showcase_carousel.dart';
 import '../../../../core/widgets/showcase_select_card.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../../core/widgets/filters/catalog_expandable_advanced_filters.dart';
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
@@ -62,9 +63,6 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   void initState() {
     super.initState();
     catalogScrollController.addListener(_onScroll);
-    final filters = ref.read(diamondSearchProvider);
-    _companyController.text = filters.companyNameSearch ?? '';
-    _locationController.text = filters.vendorLocationSearch ?? '';
   }
 
   @override
@@ -80,7 +78,8 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     if (catalogSpyLocked) return;
     final filterState = ref.read(diamondSearchProvider);
     final useMeleeFilters = _usesMeleeFilters(filterState);
-    final active = catalogActiveSectionFromScroll([
+    final active =
+        catalogActiveSectionFromScroll([
           (_basicKey, Section.basic),
           (_prefKey, Section.preferences),
           (_measKey, Section.measurements),
@@ -103,9 +102,14 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     final notifier = ref.read(diamondSearchProvider.notifier);
     final company = _companyController.text.trim();
     final location = _locationController.text.trim();
-    // Use '' (not null) so copyWith can clear a previous company/location filter.
-    notifier.updateCompanyNameSearch(company);
-    notifier.updateVendorLocationSearch(location);
+    if (company.isNotEmpty) {
+      notifier.addCompanyName(company);
+      _companyController.clear();
+    }
+    if (location.isNotEmpty) {
+      notifier.addVendorLocation(location);
+      _locationController.clear();
+    }
   }
 
   void _onShowDiamonds() {
@@ -119,13 +123,11 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   Widget build(BuildContext context) {
     // Keep text fields in sync when filters are reset from the results screen.
     ref.listen<DiamondFilterState>(diamondSearchProvider, (previous, next) {
-      final company = next.companyNameSearch ?? '';
-      final location = next.vendorLocationSearch ?? '';
-      if (_companyController.text != company) {
-        _companyController.text = company;
+      if (next.companyNames.isEmpty && _companyController.text.isNotEmpty) {
+        _companyController.clear();
       }
-      if (_locationController.text != location) {
-        _locationController.text = location;
+      if (next.vendorLocations.isEmpty && _locationController.text.isNotEmpty) {
+        _locationController.clear();
       }
     });
 
@@ -167,82 +169,84 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         ),
     ];
 
-    return CatalogSearchFilterShell(
-      title: widget.title,
-      isMelee: useMeleeFilters,
-      meleeFamily: widget.catalog.isLabGrown
-          ? MeleeBgFamily.labGrown
-          : MeleeBgFamily.natural,
-      onBack: () {
-        if (AiChatBackNavigation.handleListingBack(context, ref)) return;
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go(AppRouteNames.home);
-        }
-      },
-      onScrollNotification: catalogHandleScrollNotification,
-      stickyNav: CatalogSearchSectionNav<Section>(
-        navKey: catalogNavKey,
-        sections: sections,
-        activeId: _activeSection,
-        onSectionTap: (section) {
-          setState(() {
-            _activeSection = section.id;
-            if (section.id == Section.advanced) {
-              _expandAdvanced = true;
-            }
-          });
-          catalogScrollToSection(section.key);
-          if (section.id == Section.advanced) {
-            Future.delayed(const Duration(milliseconds: 350), () {
-              if (mounted) setState(() => _expandAdvanced = false);
-            });
+    return DarkThemeScope(
+      child: CatalogSearchFilterShell(
+        title: widget.title,
+        isMelee: useMeleeFilters,
+        meleeFamily: widget.catalog.isLabGrown
+            ? MeleeBgFamily.labGrown
+            : MeleeBgFamily.natural,
+        onBack: () {
+          if (AiChatBackNavigation.handleListingBack(context, ref)) return;
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(AppRouteNames.home);
           }
         },
-      ),
-      scrollController: catalogScrollController,
-      primaryLabel: 'SHOW DIAMONDS',
-      onPrimary: _onShowDiamonds,
-      onClear: () {
-        ref.read(diamondSearchProvider.notifier).reset();
-        _companyController.clear();
-        _locationController.clear();
-      },
-      bodyChildren: [
-        _buildShapeCarousel(),
-        const SizedBox(height: AppSpacing.s24),
-        CatalogSearchSection(
-          sectionKey: _basicKey,
-          title: 'Basic',
-          child: FilterCategoryBasic(
-            sectionTitle: widget.catalog.label,
-            showOriginToggle: widget.catalog == DiamondCatalogType.natural,
-            isLabCatalog: widget.catalog == DiamondCatalogType.labGrown,
+        onScrollNotification: catalogHandleScrollNotification,
+        stickyNav: CatalogSearchSectionNav<Section>(
+          navKey: catalogNavKey,
+          sections: sections,
+          activeId: _activeSection,
+          onSectionTap: (section) {
+            setState(() {
+              _activeSection = section.id;
+              if (section.id == Section.advanced) {
+                _expandAdvanced = true;
+              }
+            });
+            catalogScrollToSection(section.key);
+            if (section.id == Section.advanced) {
+              Future.delayed(const Duration(milliseconds: 350), () {
+                if (mounted) setState(() => _expandAdvanced = false);
+              });
+            }
+          },
+        ),
+        scrollController: catalogScrollController,
+        primaryLabel: 'SHOW DIAMONDS',
+        onPrimary: _onShowDiamonds,
+        onClear: () {
+          ref.read(diamondSearchProvider.notifier).reset();
+          _companyController.clear();
+          _locationController.clear();
+        },
+        bodyChildren: [
+          _buildShapeCarousel(),
+          const SizedBox(height: AppSpacing.s24),
+          CatalogSearchSection(
+            sectionKey: _basicKey,
+            title: 'Basic',
+            child: FilterCategoryBasic(
+              sectionTitle: widget.catalog.label,
+              showOriginToggle: widget.catalog == DiamondCatalogType.natural,
+              isLabCatalog: widget.catalog == DiamondCatalogType.labGrown,
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.s32),
-        CatalogSearchSection(
-          sectionKey: _prefKey,
-          title: 'Preferences',
-          child: _buildPreferenceFilters(),
-        ),
-        const SizedBox(height: AppSpacing.s32),
-        CatalogSearchSection(
-          sectionKey: _measKey,
-          title: 'Measurements',
-          child: _buildMeasurementFilters(),
-        ),
-        if (!useMeleeFilters) ...[
           const SizedBox(height: AppSpacing.s32),
           CatalogSearchSection(
-            sectionKey: _advancedKey,
-            title: 'Advanced',
-            child: _buildAdvancedFilters(),
+            sectionKey: _prefKey,
+            title: 'Preferences',
+            child: _buildPreferenceFilters(),
           ),
+          const SizedBox(height: AppSpacing.s32),
+          CatalogSearchSection(
+            sectionKey: _measKey,
+            title: 'Measurements',
+            child: _buildMeasurementFilters(),
+          ),
+          if (!useMeleeFilters) ...[
+            const SizedBox(height: AppSpacing.s32),
+            CatalogSearchSection(
+              sectionKey: _advancedKey,
+              title: 'Advanced',
+              child: _buildAdvancedFilters(),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.s32),
         ],
-        const SizedBox(height: AppSpacing.s32),
-      ],
+      ),
     );
   }
 
@@ -291,8 +295,10 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
             'Search for diamonds located in a specific city, state, or region.',
         hintText: 'Search by location (City, State, Country)',
         controller: _locationController,
-        onAdd: () =>
-            notifier.updateVendorLocationSearch(_locationController.text),
+        clearOnAdd: true,
+        values: state.vendorLocations,
+        onAdd: notifier.addVendorLocation,
+        onRemove: notifier.removeVendorLocation,
       ),
       originDropdown: FilterOriginDropdown(
         selectedOrigin: state.selectedOrigin,
@@ -308,8 +314,10 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         infoText: 'Search for diamonds supplied by a specific company name.',
         hintText: 'Search by company name',
         controller: _companyController,
-        onAdd: () =>
-            notifier.updateCompanyNameSearch(_companyController.text),
+        clearOnAdd: true,
+        values: state.companyNames,
+        onAdd: notifier.addCompanyName,
+        onRemove: notifier.removeCompanyName,
       ),
     );
   }
@@ -321,20 +329,16 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     return CatalogMeasurementFilters(
       lengthMin: state.minLength,
       lengthMax: state.maxLength,
-      onLengthMinChanged: (v) =>
-          notifier.updateLengthRange(v, state.maxLength),
-      onLengthMaxChanged: (v) =>
-          notifier.updateLengthRange(state.minLength, v),
+      onLengthMinChanged: (v) => notifier.updateLengthRange(v, state.maxLength),
+      onLengthMaxChanged: (v) => notifier.updateLengthRange(state.minLength, v),
       widthMin: state.minWidth,
       widthMax: state.maxWidth,
       onWidthMinChanged: (v) => notifier.updateWidthRange(v, state.maxWidth),
       onWidthMaxChanged: (v) => notifier.updateWidthRange(state.minWidth, v),
       heightMin: state.minHeight,
       heightMax: state.maxHeight,
-      onHeightMinChanged: (v) =>
-          notifier.updateHeightRange(v, state.maxHeight),
-      onHeightMaxChanged: (v) =>
-          notifier.updateHeightRange(state.minHeight, v),
+      onHeightMinChanged: (v) => notifier.updateHeightRange(v, state.maxHeight),
+      onHeightMaxChanged: (v) => notifier.updateHeightRange(state.minHeight, v),
       ratioMin: state.minRatio,
       ratioMax: state.maxRatio,
       onRatioMinChanged: (v) => notifier.updateRatioRange(v, state.maxRatio),

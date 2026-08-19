@@ -158,7 +158,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Minimum', style: TextStyle(fontSize: 11, color: Colors.black54)),
+                  Text('Minimum', style: TextStyle(fontSize: 11, color: AppColors.textMuted(context))),
                   const SizedBox(height: 2),
                   SizedBox(
                     height: 38,
@@ -176,12 +176,12 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                         decoration: InputDecoration(
                           hintText: widget.minLimit.toStringAsFixed(1),
                           hintStyle: AppTypography.caption.copyWith(
-                            color: AppColors.textMutedLight,
+                            color: AppColors.textMuted(context),
                           ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
                           filled: true,
-                          fillColor: AppColors.warmWhite,
+                          fillColor: AppColors.field(context),
                         ),
                         onFieldSubmitted: _handleMinSubmitted,
                       ),
@@ -195,7 +195,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Maximum', style: TextStyle(fontSize: 11, color: Colors.black54)),
+                  Text('Maximum', style: TextStyle(fontSize: 11, color: AppColors.textMuted(context))),
                   const SizedBox(height: 2),
                   SizedBox(
                     height: 38,
@@ -213,12 +213,12 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                         decoration: InputDecoration(
                           hintText: widget.maxLimit.toStringAsFixed(1),
                           hintStyle: AppTypography.caption.copyWith(
-                            color: AppColors.textMutedLight,
+                            color: AppColors.textMuted(context),
                           ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
                           filled: true,
-                          fillColor: AppColors.warmWhite,
+                          fillColor: AppColors.field(context),
                         ),
                         onFieldSubmitted: _handleMaxSubmitted,
                       ),

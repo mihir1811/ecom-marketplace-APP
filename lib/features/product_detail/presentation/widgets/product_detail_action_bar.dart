@@ -149,9 +149,9 @@ class ProductDetailActionBar extends ConsumerWidget {
     final showOffer = detail.canMakeAnOffer;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.warmWhite,
-        border: Border(top: BorderSide(color: AppColors.warmBorder)),
+      decoration: BoxDecoration(
+        color: AppColors.card(context),
+        border: Border(top: BorderSide(color: AppColors.border(context))),
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s16,

@@ -23,15 +23,15 @@ class SearchActionBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<Color?>(
-      tween: ColorTween(end: AppColors.creamBg),
+      tween: ColorTween(end: AppColors.bg(context)),
       duration: AppColors.meleeBgDuration,
       curve: Curves.easeInOutCubic,
       builder: (context, color, child) {
         return Container(
           decoration: BoxDecoration(
             color: color,
-            border: const Border(
-              top: BorderSide(color: AppColors.warmBorder),
+            border: Border(
+              top: BorderSide(color: AppColors.border(context)),
             ),
             boxShadow: AppShadows.modalLight,
           ),
@@ -49,8 +49,8 @@ class SearchActionBottomBar extends StatelessWidget {
               height: 48,
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textSecondaryLight,
-                  side: const BorderSide(color: AppColors.warmBorder),
+                  foregroundColor: AppColors.textSecondary(context),
+                  side: BorderSide(color: AppColors.border(context)),
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -60,7 +60,7 @@ class SearchActionBottomBar extends StatelessWidget {
                 child: _FittedLabel(
                   clearLabel,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                     fontWeight: FontWeight.w700,
                     fontSize: 11,
                     letterSpacing: 0.4,

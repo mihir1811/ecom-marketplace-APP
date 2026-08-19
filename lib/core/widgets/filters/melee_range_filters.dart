@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import 'filter_group_card.dart';
@@ -68,7 +69,6 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
 
   static const _gold = Color(0xFFA57A00);
   static const _goldBorder = Color(0xFFD9C58A);
-  static const _activeBg = Color(0xFF202534);
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +86,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
                   fontSize: 15,
                 ),
               ),
-              _buildToggle(),
+              _buildToggle(context),
             ],
           ),
           const SizedBox(height: AppSpacing.s20),
@@ -97,21 +97,21 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
     );
   }
 
-  Widget _buildToggle() {
+  Widget _buildToggle(BuildContext context) {
     return Container(
       height: 36,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         border: Border.all(color: _goldBorder.withValues(alpha: 0.4)),
       ),
       padding: const EdgeInsets.all(3),
       child: Row(
         children: [
-          _buildTab('Pcs', _isPcsMode, () {
+          _buildTab(context, 'Pcs', _isPcsMode, () {
             setState(() => _isPcsMode = true);
           }),
-          _buildTab('Carat', !_isPcsMode, () {
+          _buildTab(context, 'Carat', !_isPcsMode, () {
             setState(() => _isPcsMode = false);
           }),
         ],
@@ -119,7 +119,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
     );
   }
 
-  Widget _buildTab(String label, bool isActive, VoidCallback onTap) {
+  Widget _buildTab(BuildContext context, String label, bool isActive, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -127,7 +127,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
         width: 64,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isActive ? _activeBg : Colors.white,
+          color: isActive ? AppColors.selectedFill(context) : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8 - 2),
           border: isActive ? Border.all(color: _gold, width: 1) : null,
           boxShadow: isActive
@@ -146,8 +146,8 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: isActive
-                ? Colors.white
-                : Colors.black54,
+                ? AppColors.onSelected(context)
+                : AppColors.textMuted(context),
           ),
         ),
       ),

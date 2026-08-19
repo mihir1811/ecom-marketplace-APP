@@ -85,16 +85,16 @@ class _WatchFilterSwatchPill extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(
                   color: selected
-                      ? AppColors.charcoal
+                      ? AppColors.selectedFill(context)
                       : (style.needsBorder
-                          ? AppColors.warmBorder
+                          ? AppColors.border(context)
                           : Colors.transparent),
                   width: selected ? 2 : 1,
                 ),
                 boxShadow: selected
                     ? [
                         BoxShadow(
-                          color: AppColors.charcoal.withValues(alpha: 0.18),
+                          color: AppColors.selectedFill(context).withValues(alpha: 0.18),
                           blurRadius: 4,
                           offset: const Offset(0, 1),
                         ),
@@ -119,8 +119,8 @@ class _WatchFilterSwatchPill extends StatelessWidget {
                 fontSize: 11,
                 height: 1.2,
                 color: selected
-                    ? AppColors.charcoal
-                    : AppColors.textMutedLight,
+                    ? AppColors.textPrimary(context)
+                    : AppColors.textMuted(context),
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),

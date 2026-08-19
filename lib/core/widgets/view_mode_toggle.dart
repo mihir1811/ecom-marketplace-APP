@@ -30,9 +30,9 @@ class ViewModeToggle extends StatelessWidget {
     if (style == ViewModeToggleStyle.labeled) {
       return Container(
         decoration: BoxDecoration(
-          color: AppColors.sandSurface,
+          color: AppColors.surface(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
-          border: Border.all(color: AppColors.warmBorder),
+          border: Border.all(color: AppColors.border(context)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -46,7 +46,7 @@ class ViewModeToggle extends StatelessWidget {
             Container(
               width: 1,
               height: 24,
-              color: AppColors.warmBorder,
+              color: AppColors.border(context),
             ),
             _LabeledBtn(
               icon: Icons.view_list,
@@ -59,7 +59,7 @@ class ViewModeToggle extends StatelessWidget {
       );
     }
 
-    const border = AppColors.warmBorder;
+    final border = AppColors.border(context);
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -116,7 +116,7 @@ class _LabeledBtn extends StatelessWidget {
               icon,
               size: 16,
               color:
-                  isSelected ? AppColors.warmWhite : AppColors.textMutedLight,
+                  isSelected ? AppColors.warmWhite : AppColors.textMuted(context),
             ),
             const SizedBox(width: 4),
             Text(
@@ -125,7 +125,7 @@ class _LabeledBtn extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected
                     ? AppColors.warmWhite
-                    : AppColors.textMutedLight,
+                    : AppColors.textMuted(context),
               ),
             ),
           ],
@@ -152,11 +152,11 @@ class _IconBtn extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.s8),
-        color: selected ? AppColors.sandSurface : Colors.transparent,
+        color: selected ? AppColors.surface(context) : Colors.transparent,
         child: Icon(
           icon,
           size: 18,
-          color: selected ? AppColors.bronze : AppColors.textMutedLight,
+          color: selected ? AppColors.bronze : AppColors.textMuted(context),
         ),
       ),
     );

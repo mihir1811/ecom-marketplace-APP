@@ -35,7 +35,7 @@ class CatalogEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const muted = AppColors.textMutedLight;
+    final muted = AppColors.textMuted(context);
     final resolvedIconColor = iconColor ?? AppColors.bronze;
 
     return Center(

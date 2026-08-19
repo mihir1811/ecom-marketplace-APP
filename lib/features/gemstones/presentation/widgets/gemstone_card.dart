@@ -35,8 +35,8 @@ class GemstoneCardGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const textColor = AppColors.textPrimaryLight;
-    const mutedColor = AppColors.textSecondaryLight;
+    final textColor = AppColors.textPrimary(context);
+    final mutedColor = AppColors.textSecondary(context);
     final inCompare = ref.watch(isInComparisonProvider(gemstone.id));
     final title = _gridTitle(gemstone);
     final gradesLine = _gridGradesLine(gemstone);
@@ -209,8 +209,8 @@ class GemstoneCardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const textColor = AppColors.textPrimaryLight;
-    const secondaryColor = AppColors.textSecondaryLight;
+    final textColor = AppColors.textPrimary(context);
+    final secondaryColor = AppColors.textSecondary(context);
     final inCompare = ref.watch(isInComparisonProvider(gemstone.id));
     final title = _listTitle(gemstone);
     final detail = _listDetailLine(gemstone);
@@ -402,7 +402,7 @@ class GemstoneListView extends StatelessWidget {
                 Text(
                   'Loading more...',
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
               ],
@@ -470,7 +470,7 @@ class _GemstoneThumb extends StatelessWidget {
   Widget build(BuildContext context) {
     if (gemstone.hasNetworkImage) {
       return ColoredBox(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         child: AppNetworkImage(
           url: gemstone.imageUrl!,
           fit: cover ? BoxFit.cover : BoxFit.contain,

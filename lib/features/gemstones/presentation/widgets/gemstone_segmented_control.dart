@@ -32,28 +32,30 @@ class GemstoneSegmentedControl extends StatelessWidget {
   final MeleeBgFamily family;
   final bool isMelee;
 
-  Color _splashFor(String value) {
+  Color _splashFor(BuildContext context, String value) {
     // Lot type: preview Single vs Melee within the active stone-type family.
     if (value == 'Melee') {
-      return AppColors.screenBg(melee: true, family: family);
+      return AppColors.screenBgFor(context, melee: true, family: family);
     }
     if (value == 'Single') {
-      return AppColors.screenBg(melee: false, family: family);
+      return AppColors.screenBgFor(context, melee: false, family: family);
     }
     // Stone type: preview destination Natural / Lab Grown at current lot.
     if (value == 'Lab Grown') {
-      return AppColors.screenBg(
+      return AppColors.screenBgFor(
+        context,
         melee: isMelee,
         family: MeleeBgFamily.gemstoneLabGrown,
       );
     }
     if (value == 'Natural') {
-      return AppColors.screenBg(
+      return AppColors.screenBgFor(
+        context,
         melee: isMelee,
         family: MeleeBgFamily.gemstoneNatural,
       );
     }
-    return AppColors.screenBg(melee: isMelee, family: family);
+    return AppColors.screenBgFor(context, melee: isMelee, family: family);
   }
 
   @override
@@ -66,10 +68,12 @@ class GemstoneSegmentedControl extends StatelessWidget {
         padding: EdgeInsets.zero,
         margin: EdgeInsets.zero,
         decoration: BoxDecoration(
-          color: hasSelection ? AppColors.warmWhite : AppColors.sandSurface,
+          color: hasSelection
+              ? AppColors.card(context)
+              : AppColors.surface(context),
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(
-            color: hasSelection ? AppColors.bronze : AppColors.warmBorder,
+            color: hasSelection ? AppColors.bronze : AppColors.border(context),
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -77,7 +81,7 @@ class GemstoneSegmentedControl extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: options.map((opt) {
             final isCurrent = opt.value == selected;
-            final splash = _splashFor(opt.value);
+            final splash = _splashFor(context, opt.value);
 
             return Expanded(
               child: Material(
@@ -99,7 +103,7 @@ class GemstoneSegmentedControl extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color:
-                          isCurrent ? AppColors.charcoal : Colors.transparent,
+                          isCurrent ? AppColors.selectedFill(context) : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppSpacing.r12),
                     ),
                     child: Row(
@@ -110,8 +114,8 @@ class GemstoneSegmentedControl extends StatelessWidget {
                           opt.icon,
                           size: 15,
                           color: isCurrent
-                              ? AppColors.warmWhite
-                              : AppColors.textMutedLight,
+                              ? AppColors.onSelected(context)
+                              : AppColors.textMuted(context),
                         ),
                         const SizedBox(width: 4),
                         Flexible(
@@ -124,8 +128,8 @@ class GemstoneSegmentedControl extends StatelessWidget {
                               letterSpacing: 0.5,
                               height: 1,
                               color: isCurrent
-                                  ? AppColors.warmWhite
-                                  : AppColors.textMutedLight,
+                                  ? AppColors.onSelected(context)
+                                  : AppColors.textMuted(context),
                             ),
                           ),
                         ),

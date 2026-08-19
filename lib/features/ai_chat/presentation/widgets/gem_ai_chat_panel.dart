@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../../core/widgets/keyboard_aware.dart';
 import '../../application/ai_chat_providers.dart';
 import '../../domain/models/ai_chat_language.dart';
@@ -84,6 +85,28 @@ class _GemAiChatPanelState extends ConsumerState<GemAiChatPanel> {
       size.height * 0.78,
     );
 
+    return DarkThemeScope(
+      child: Builder(
+        builder: (context) => _buildPanel(
+          context: context,
+          panel: panel,
+          ui: ui,
+          panelWidth: panelWidth,
+          panelHeight: panelHeight,
+          bottomGap: bottomGap,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPanel({
+    required BuildContext context,
+    required AiChatPanelState panel,
+    required AiChatUiState ui,
+    required double panelWidth,
+    required double panelHeight,
+    required double bottomGap,
+  }) {
     return Material(
       type: MaterialType.transparency,
       child: Align(
@@ -101,7 +124,7 @@ class _GemAiChatPanelState extends ConsumerState<GemAiChatPanel> {
             width: panelWidth,
             height: panelHeight,
             child: Material(
-              color: AppColors.warmWhite,
+              color: AppColors.card(context),
               elevation: 16,
               shadowColor: AppColors.charcoal.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(AppSpacing.r24),
@@ -378,7 +401,7 @@ class _LanguageMenuPanel extends StatelessWidget {
     return Material(
       elevation: 10,
       shadowColor: AppColors.charcoal.withValues(alpha: 0.28),
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       borderRadius: BorderRadius.circular(AppSpacing.r12),
       clipBehavior: Clip.antiAlias,
       child: IntrinsicWidth(
@@ -387,7 +410,7 @@ class _LanguageMenuPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var i = 0; i < AiChatLanguage.values.length; i++) ...[
-              if (i > 0) const Divider(height: 1, color: AppColors.warmBorder),
+              if (i > 0) Divider(height: 1, color: AppColors.border(context)),
               _LanguageMenuItem(
                 language: AiChatLanguage.values[i],
                 selected: AiChatLanguage.values[i] == language,
@@ -439,14 +462,14 @@ class _LanguageMenuItem extends StatelessWidget {
               style: AppTypography.body.copyWith(
                 fontSize: 14,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: AppColors.textPrimaryLight,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(width: AppSpacing.s16),
             Text(
               language.apiValue.toUpperCase(),
               style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -529,7 +552,7 @@ class _MessagesView extends StatelessWidget {
               'Ask for diamonds, melee, gemstones, jewellery, or gold — or attach an estimation screenshot.',
               textAlign: TextAlign.center,
               style: AppTypography.body.copyWith(
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
                 fontSize: 14,
               ),
             ),
@@ -586,13 +609,13 @@ class _TypingBubble extends StatelessWidget {
           vertical: AppSpacing.s12,
         ),
         decoration: BoxDecoration(
-          color: AppColors.sandSurface,
+          color: AppColors.surface(context),
           borderRadius: BorderRadius.circular(AppSpacing.r16),
         ),
         child: Text(
           'Gem AI is searching…',
           style: AppTypography.caption.copyWith(
-            color: AppColors.textSecondaryLight,
+            color: AppColors.textSecondary(context),
           ),
         ),
       ),
@@ -636,7 +659,9 @@ class _MessageBubble extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(AppSpacing.s16),
                 decoration: BoxDecoration(
-                  color: isUser ? AppColors.charcoal : AppColors.sandSurface,
+                  color: isUser
+                      ? (AppColors.isDark(context) ? AppColors.slateBorder : AppColors.charcoal)
+                      : AppColors.surface(context),
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(AppSpacing.r16),
                     topRight: const Radius.circular(AppSpacing.r16),
@@ -674,7 +699,7 @@ class _MessageBubble extends StatelessWidget {
                       style: AppTypography.body.copyWith(
                         color: isUser
                             ? AppColors.warmWhite
-                            : AppColors.textPrimaryLight,
+                            : AppColors.textPrimary(context),
                         fontSize: 14,
                       ),
                     ),
@@ -713,7 +738,7 @@ class _HistoryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: const Color(0xFFF7F4EF),
+      color: AppColors.bg(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -736,7 +761,10 @@ class _HistoryView extends StatelessWidget {
                     children: [
                       Text(
                         'Chat history',
-                        style: AppTypography.title.copyWith(fontSize: 16),
+                        style: AppTypography.title.copyWith(
+                          fontSize: 16,
+                          color: AppColors.textPrimary(context),
+                        ),
                       ),
                       Text(
                         loading
@@ -746,7 +774,7 @@ class _HistoryView extends StatelessWidget {
                             : '${sessions.length} conversation'
                                   '${sessions.length == 1 ? '' : 's'}',
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textSecondaryLight,
+                          color: AppColors.textSecondary(context),
                         ),
                       ),
                     ],
@@ -781,14 +809,17 @@ class _HistoryView extends StatelessWidget {
                           const SizedBox(height: AppSpacing.s16),
                           Text(
                             'No saved chats',
-                            style: AppTypography.title.copyWith(fontSize: 15),
+                            style: AppTypography.title.copyWith(
+                              fontSize: 15,
+                              color: AppColors.textPrimary(context),
+                            ),
                           ),
                           const SizedBox(height: AppSpacing.s8),
                           Text(
                             'Start a conversation and it will appear here for quick reopen.',
                             textAlign: TextAlign.center,
                             style: AppTypography.body.copyWith(
-                              color: AppColors.textSecondaryLight,
+                              color: AppColors.textSecondary(context),
                               fontSize: 13,
                             ),
                           ),
@@ -837,11 +868,11 @@ class _HistorySessionCard extends StatelessWidget {
     final when = _formatSessionDate(session.updatedAt ?? session.createdAt);
 
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.r16),
-        side: const BorderSide(color: AppColors.warmBorder),
+        side: BorderSide(color: AppColors.border(context)),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -868,7 +899,7 @@ class _HistorySessionCard extends StatelessWidget {
                             width: 34,
                             height: 34,
                             decoration: BoxDecoration(
-                              color: AppColors.sandSurface,
+                              color: AppColors.surface(context),
                               borderRadius: BorderRadius.circular(
                                 AppSpacing.r12,
                               ),
@@ -887,7 +918,7 @@ class _HistorySessionCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.title.copyWith(
                                 fontSize: 14,
-                                color: AppColors.textPrimaryLight,
+                                color: AppColors.textPrimary(context),
                               ),
                             ),
                           ),
@@ -897,10 +928,10 @@ class _HistorySessionCard extends StatelessWidget {
                                 horizontal: AppSpacing.s8,
                                 vertical: 4,
                               ),
-                              decoration: BoxDecoration(
-                                color: AppColors.charcoal.withValues(
-                                  alpha: 0.08,
-                                ),
+                            decoration: BoxDecoration(
+                              color: AppColors.isDark(context)
+                                  ? AppColors.slateBorder
+                                  : AppColors.charcoal.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(
                                   AppSpacing.r20,
                                 ),
@@ -908,11 +939,11 @@ class _HistorySessionCard extends StatelessWidget {
                               child: Text(
                                 '${session.messageCount} msg'
                                 '${session.messageCount == 1 ? '' : 's'}',
-                                style: AppTypography.caption.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textSecondaryLight,
-                                  fontSize: 11,
-                                ),
+                              style: AppTypography.caption.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary(context),
+                                fontSize: 11,
+                              ),
                               ),
                             ),
                         ],
@@ -922,11 +953,11 @@ class _HistorySessionCard extends StatelessWidget {
                         preview,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTypography.body.copyWith(
-                          fontSize: 13,
-                          height: 1.35,
-                          color: AppColors.textSecondaryLight,
-                        ),
+                      style: AppTypography.body.copyWith(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: AppColors.textSecondary(context),
+                      ),
                       ),
                       if (when != null) ...[
                         const SizedBox(height: AppSpacing.s8),
@@ -935,7 +966,7 @@ class _HistorySessionCard extends StatelessWidget {
                             Icon(
                               Icons.schedule_rounded,
                               size: 13,
-                              color: AppColors.textSecondaryLight.withValues(
+                              color: AppColors.textSecondary(context).withValues(
                                 alpha: 0.8,
                               ),
                             ),
@@ -943,7 +974,7 @@ class _HistorySessionCard extends StatelessWidget {
                             Text(
                               when,
                               style: AppTypography.caption.copyWith(
-                                color: AppColors.textSecondaryLight,
+                                color: AppColors.textSecondary(context),
                                 fontSize: 11,
                               ),
                             ),
@@ -951,7 +982,7 @@ class _HistorySessionCard extends StatelessWidget {
                             Icon(
                               Icons.chevron_right_rounded,
                               size: 18,
-                              color: AppColors.textSecondaryLight.withValues(
+                              color: AppColors.textSecondary(context).withValues(
                                 alpha: 0.7,
                               ),
                             ),
@@ -1010,9 +1041,9 @@ class _Composer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: AppColors.warmWhite,
-        border: Border(top: BorderSide(color: AppColors.warmBorder)),
+      decoration: BoxDecoration(
+        color: AppColors.card(context),
+        border: Border(top: BorderSide(color: AppColors.border(context))),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
@@ -1076,25 +1107,25 @@ class _Composer extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: 'Ask Gem AI…',
                       hintStyle: AppTypography.body.copyWith(
-                        color: AppColors.textSecondaryLight,
+                        color: AppColors.textSecondary(context),
                         fontSize: 14,
                       ),
                       filled: true,
-                      fillColor: AppColors.warmWhite,
+                      fillColor: AppColors.field(context),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.s16,
                         vertical: AppSpacing.s12,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSpacing.r20),
-                        borderSide: const BorderSide(
-                          color: AppColors.warmBorder,
+                        borderSide: BorderSide(
+                          color: AppColors.border(context),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSpacing.r20),
-                        borderSide: const BorderSide(
-                          color: AppColors.warmBorder,
+                        borderSide: BorderSide(
+                          color: AppColors.border(context),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -1107,7 +1138,7 @@ class _Composer extends StatelessWidget {
                       disabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSpacing.r20),
                         borderSide: BorderSide(
-                          color: AppColors.warmBorder.withValues(alpha: 0.6),
+                          color: AppColors.border(context).withValues(alpha: 0.6),
                         ),
                       ),
                     ),

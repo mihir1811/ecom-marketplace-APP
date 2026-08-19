@@ -76,13 +76,13 @@ class WishlistToggleButton extends ConsumerWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.warmWhite,
-            border: Border.all(color: AppColors.warmBorder),
+            color: AppColors.card(context),
+            border: Border.all(color: AppColors.border(context)),
           ),
           child: Icon(
             wishlisted ? Icons.favorite : Icons.favorite_border,
             size: size,
-            color: wishlisted ? AppColors.error : AppColors.charcoal,
+            color: wishlisted ? AppColors.error : AppColors.textPrimary(context),
           ),
         ),
       ),

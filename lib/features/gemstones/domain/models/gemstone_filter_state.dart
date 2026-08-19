@@ -345,8 +345,8 @@ class GemstoneFilterState {
     this.selectedCertifications = const [],
     this.selectedOrigin,
     this.selectedCutGrades = const [],
-    this.vendorLocation = '',
-    this.companyName = '',
+    this.vendorLocations = const [],
+    this.companyNames = const [],
     this.selectedOriginCountry,
     this.minLength = dimensionMin,
     this.maxLength = dimensionMax,
@@ -389,8 +389,8 @@ class GemstoneFilterState {
   final List<String> selectedCertifications;
   final String? selectedOrigin;
   final List<String> selectedCutGrades;
-  final String vendorLocation;
-  final String companyName;
+  final List<String> vendorLocations;
+  final List<String> companyNames;
   final String? selectedOriginCountry;
   final double minLength;
   final double maxLength;
@@ -435,8 +435,8 @@ class GemstoneFilterState {
     List<String>? selectedCertifications,
     Object? selectedOrigin = _unset,
     List<String>? selectedCutGrades,
-    String? vendorLocation,
-    String? companyName,
+    List<String>? vendorLocations,
+    List<String>? companyNames,
     Object? selectedOriginCountry = _unset,
     double? minLength,
     double? maxLength,
@@ -490,8 +490,8 @@ class GemstoneFilterState {
           ? this.selectedOrigin
           : selectedOrigin as String?,
       selectedCutGrades: selectedCutGrades ?? this.selectedCutGrades,
-      vendorLocation: vendorLocation ?? this.vendorLocation,
-      companyName: companyName ?? this.companyName,
+      vendorLocations: vendorLocations ?? this.vendorLocations,
+      companyNames: companyNames ?? this.companyNames,
       selectedOriginCountry: identical(selectedOriginCountry, _unset)
           ? this.selectedOriginCountry
           : selectedOriginCountry as String?,

@@ -20,7 +20,7 @@ class FilterTextSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
 
     return MeleeTintExtentAnchor(
       child: Container(
@@ -35,7 +35,8 @@ class FilterTextSegmentedControl extends StatelessWidget {
           final isCurrent = opt == selected;
           final isMeleeOpt = opt.toLowerCase().contains('melee');
           final splash = isMeleeOpt
-              ? AppColors.screenBg(
+              ? AppColors.screenBgFor(
+                  context,
                   melee: true,
                   family: MeleeBgFamily.labGrown,
                 )
@@ -56,8 +57,8 @@ class FilterTextSegmentedControl extends StatelessWidget {
                   curve: Curves.easeOutCubic,
                   decoration: BoxDecoration(
                     color: isCurrent
-                        ? AppColors.charcoal
-                        : (AppColors.warmWhite),
+                        ? AppColors.selectedFill(context)
+                        : (AppColors.card(context)),
                     borderRadius: BorderRadius.circular(AppSpacing.r8 - 1),
                   ),
                   alignment: Alignment.center,
@@ -67,8 +68,8 @@ class FilterTextSegmentedControl extends StatelessWidget {
                       fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
                       letterSpacing: 0.5,
                       color: isCurrent
-                          ? AppColors.warmWhite
-                          : (AppColors.textPrimaryLight),
+                          ? AppColors.onSelected(context)
+                          : (AppColors.textPrimary(context)),
                     ),
                   ),
                 ),

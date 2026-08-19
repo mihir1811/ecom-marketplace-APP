@@ -33,7 +33,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gemstoneSearchProvider);
     final notifier = ref.read(gemstoneSearchProvider.notifier);
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
     final isMelee = state.lotType == 'Melee';
     final colors = GemstoneFilterState.colorsForDisplay(isMelee: isMelee);
 
@@ -134,7 +134,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.charcoal
+                              ? AppColors.selectedFill(context)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(AppSpacing.r8),
                         ),
@@ -148,7 +148,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: isSelected
-                                      ? AppColors.warmWhite
+                                      ? AppColors.onSelected(context)
                                       : borderColor,
                                   width: isSelected ? 2.5 : 1.0,
                                 ),
@@ -163,8 +163,8 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
                                     ? FontWeight.bold
                                     : FontWeight.w500,
                                 color: isSelected
-                                    ? AppColors.warmWhite
-                                    : AppColors.textSecondaryLight,
+                                    ? AppColors.onSelected(context)
+                                    : AppColors.textSecondary(context),
                               ),
                             ),
                           ],

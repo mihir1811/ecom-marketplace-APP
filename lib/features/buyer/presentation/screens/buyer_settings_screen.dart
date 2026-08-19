@@ -7,6 +7,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/theme_preference_provider.dart';
 import '../widgets/buyer_layout.dart';
 
 class BuyerSettingsScreen extends ConsumerWidget {
@@ -14,11 +15,39 @@ class BuyerSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final darkMode = ref.watch(themePreferenceProvider);
     return BuyerLayout(
       title: 'Settings',
       child: ListView(
         padding: const EdgeInsets.all(AppSpacing.s16),
         children: [
+          Text(
+            'Appearance',
+            style: AppTypography.label.copyWith(
+              color: AppColors.textMutedLight,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s8),
+          _Card(
+            children: [
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: const Icon(Icons.dark_mode_outlined),
+                title: const Text('Dark theme'),
+                subtitle: Text(
+                  'Enables dark mode on listing and filter screens.',
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textMutedLight,
+                  ),
+                ),
+                value: darkMode,
+                onChanged: (v) =>
+                    ref.read(themePreferenceProvider.notifier).setDarkMode(v),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.s24),
           Text(
             'Account',
             style: AppTypography.label.copyWith(

@@ -189,12 +189,44 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
     );
   }
 
-  void updateVendorLocation(String location) {
-    state = state.copyWith(vendorLocation: location);
+  void addVendorLocation(String location) {
+    final loc = location.trim();
+    if (loc.isEmpty) return;
+    final exists = state.vendorLocations.any(
+      (item) => item.toLowerCase() == loc.toLowerCase(),
+    );
+    if (exists) return;
+    state = state.copyWith(
+      vendorLocations: List<String>.unmodifiable([...state.vendorLocations, loc]),
+    );
   }
 
-  void updateCompanyName(String name) {
-    state = state.copyWith(companyName: name);
+  void removeVendorLocation(String location) {
+    state = state.copyWith(
+      vendorLocations: List<String>.unmodifiable(
+        state.vendorLocations.where((item) => item != location),
+      ),
+    );
+  }
+
+  void addCompanyName(String name) {
+    final value = name.trim();
+    if (value.isEmpty) return;
+    final exists = state.companyNames.any(
+      (item) => item.toLowerCase() == value.toLowerCase(),
+    );
+    if (exists) return;
+    state = state.copyWith(
+      companyNames: List<String>.unmodifiable([...state.companyNames, value]),
+    );
+  }
+
+  void removeCompanyName(String name) {
+    state = state.copyWith(
+      companyNames: List<String>.unmodifiable(
+        state.companyNames.where((item) => item != name),
+      ),
+    );
   }
 
   void updateOriginCountry(String? country) {
@@ -294,8 +326,8 @@ final matchingGemstoneCountProvider = Provider<int>((ref) {
     multiplier *= (state.selectedCutGrades.length / 5.0).clamp(0.25, 1.0);
   }
   if (state.searchByMedia) multiplier *= 0.60;
-  if (state.vendorLocation.isNotEmpty) multiplier *= 0.70;
-  if (state.companyName.isNotEmpty) multiplier *= 0.75;
+    if (state.vendorLocations.isNotEmpty) multiplier *= 0.70;
+    if (state.companyNames.isNotEmpty) multiplier *= 0.75;
   if (state.selectedOriginCountry != null) multiplier *= 0.65;
 
   return (86300 * multiplier).round().clamp(0, 86300);

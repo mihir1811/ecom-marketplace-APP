@@ -36,10 +36,14 @@ class _ComparisonTableState extends State<ComparisonTable> {
   final List<ScrollController> _horizontalControllers = [];
   bool _syncingScroll = false;
 
-  static const _headerBg = AppColors.sandSurface;
-  static const _border = AppColors.warmBorder;
-  static const _muted = AppColors.textMutedLight;
-  static const _leadBg = Color(0xFFE9EDE8);
+  Color get _headerBg => AppColors.surface(_cachedContext!);
+  Color get _border => AppColors.border(_cachedContext!);
+  Color get _muted => AppColors.textMuted(_cachedContext!);
+  Color get _leadBg => AppColors.isDark(_cachedContext!)
+      ? const Color(0xFF1E2E22)
+      : const Color(0xFFE9EDE8);
+
+  BuildContext? _cachedContext;
 
   @override
   void initState() {
@@ -107,6 +111,7 @@ class _ComparisonTableState extends State<ComparisonTable> {
 
   @override
   Widget build(BuildContext context) {
+    _cachedContext = context;
     final showReorderHint = widget.items.length > 1;
 
     return SingleChildScrollView(
@@ -203,10 +208,10 @@ class ComparisonFooterBar extends StatelessWidget {
           horizontal: AppSpacing.s16,
           vertical: AppSpacing.s12,
         ),
-        decoration: const BoxDecoration(
-          color: AppColors.warmWhite,
+        decoration: BoxDecoration(
+          color: AppColors.card(context),
           border: Border(
-            top: BorderSide(color: AppColors.warmBorder),
+            top: BorderSide(color: AppColors.border(context)),
           ),
         ),
         child: Row(
@@ -216,6 +221,7 @@ class ComparisonFooterBar extends StatelessWidget {
                 '$count $labelPlural selected',
                 style: AppTypography.caption.copyWith(
                   fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary(context),
                 ),
               ),
             ),
@@ -231,7 +237,9 @@ class ComparisonFooterBar extends StatelessWidget {
             ),
             FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.charcoal,
+                backgroundColor: AppColors.isDark(context)
+                    ? AppColors.slateBorder
+                    : AppColors.charcoal,
                 foregroundColor: AppColors.warmWhite,
               ),
               onPressed: onClear,
@@ -305,9 +313,12 @@ class _SpecLabelCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
     final rowBg = stripe
-        ? AppColors.sandSurface.withValues(alpha: 0.45)
-        : AppColors.warmWhite;
+        ? (isDark
+            ? AppColors.slateSurface.withValues(alpha: 0.6)
+            : AppColors.sandSurface.withValues(alpha: 0.45))
+        : AppColors.card(context);
 
     return Container(
       height: kCompareRowHeight,
@@ -355,7 +366,7 @@ class _ItemHeaderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sandSurface,
+      color: AppColors.surface(context),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -404,9 +415,12 @@ class _ItemValuesRow extends StatelessWidget {
       spec: spec,
     );
 
+    final isDark = AppColors.isDark(context);
     final rowBg = stripe
-        ? AppColors.sandSurface.withValues(alpha: 0.45)
-        : AppColors.warmWhite;
+        ? (isDark
+            ? AppColors.slateSurface.withValues(alpha: 0.6)
+            : AppColors.sandSurface.withValues(alpha: 0.45))
+        : AppColors.card(context);
 
     return Container(
       height: kCompareRowHeight,
@@ -562,7 +576,7 @@ class _DragColumnFeedback extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         border: Border.all(color: AppColors.bronze, width: 1.5),
         boxShadow: [
@@ -579,7 +593,7 @@ class _DragColumnFeedback extends StatelessWidget {
         children: [
           _ItemHeader(
             item: item,
-            border: AppColors.warmBorder,
+            border: AppColors.border(context),
             muted: muted,
             onRemove: () {},
           ),
@@ -615,10 +629,12 @@ class _DragSpecCell extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: stripe
-            ? AppColors.sandSurface.withValues(alpha: 0.45)
-            : AppColors.warmWhite,
-        border: const Border(
-          top: BorderSide(color: AppColors.warmBorder),
+            ? (AppColors.isDark(context)
+                ? AppColors.slateSurface.withValues(alpha: 0.6)
+                : AppColors.sandSurface.withValues(alpha: 0.45))
+            : AppColors.card(context),
+        border: Border(
+          top: BorderSide(color: AppColors.border(context)),
         ),
       ),
       child: Text(
@@ -662,10 +678,10 @@ class _ItemHeader extends StatelessWidget {
             height: 116,
             child: Stack(
               children: [
-                Positioned.fill(
+                    Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.sandSurface,
+                      color: AppColors.surface(context),
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
                       border: Border.all(color: border),
                     ),
@@ -697,7 +713,7 @@ class _ItemHeader extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.warmWhite.withValues(alpha: 0.9),
+                        color: AppColors.card(context).withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(AppSpacing.r4),
                       ),
                       child: Icon(Icons.drag_handle, size: 14, color: muted),
@@ -716,6 +732,7 @@ class _ItemHeader extends StatelessWidget {
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w700,
               fontSize: 12,
+              color: AppColors.textPrimary(context),
             ),
           ),
           Text(

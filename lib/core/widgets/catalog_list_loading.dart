@@ -21,7 +21,7 @@ class CatalogListLoading extends StatelessWidget {
           childAspectRatio: 0.72,
         ),
         itemCount: 6,
-        itemBuilder: (context, index) => _buildShimmerCard(),
+        itemBuilder: (context, index) => _buildShimmerCard(context),
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
       );
@@ -31,15 +31,15 @@ class CatalogListLoading extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
       itemCount: 5,
       separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.s12),
-      itemBuilder: (context, index) => _buildShimmerRow(),
+      itemBuilder: (context, index) => _buildShimmerRow(context),
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
     );
   }
 
-  Widget _buildShimmerCard() {
-    const base = AppColors.sandSurface;
-    const highlight = AppColors.warmWhite;
+  Widget _buildShimmerCard(BuildContext context) {
+    final base = AppColors.surface(context);
+    final highlight = AppColors.card(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -106,9 +106,9 @@ class CatalogListLoading extends StatelessWidget {
     );
   }
 
-  Widget _buildShimmerRow() {
-    const base = AppColors.sandSurface;
-    const highlight = AppColors.warmWhite;
+  Widget _buildShimmerRow(BuildContext context) {
+    final base = AppColors.surface(context);
+    final highlight = AppColors.card(context);
 
     return Container(
       height: 100,
@@ -121,9 +121,9 @@ class CatalogListLoading extends StatelessWidget {
           Container(
             width: 100,
             height: 100,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: highlight,
-              borderRadius: BorderRadius.horizontal(
+              borderRadius: const BorderRadius.horizontal(
                 left: Radius.circular(AppSpacing.r12),
               ),
             ),

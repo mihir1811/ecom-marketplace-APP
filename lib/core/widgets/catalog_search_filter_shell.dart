@@ -40,10 +40,10 @@ class CatalogSearchSectionNav<T> extends StatelessWidget {
     return Container(
       key: navKey,
       height: height,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.transparent,
         border: Border(
-          bottom: BorderSide(color: AppColors.warmBorder),
+          bottom: BorderSide(color: AppColors.border(context)),
         ),
       ),
       child: Row(
@@ -72,7 +72,7 @@ class CatalogSearchSectionNav<T> extends StatelessWidget {
                         size: 16,
                         color: activeId == section.id
                             ? AppColors.bronze
-                            : Colors.black38,
+                            : AppColors.textMuted(context),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -83,7 +83,7 @@ class CatalogSearchSectionNav<T> extends StatelessWidget {
                           letterSpacing: 0.3,
                           color: activeId == section.id
                               ? AppColors.bronze
-                              : Colors.black54,
+                              : AppColors.textMuted(context),
                         ),
                       ),
                     ],

@@ -12,6 +12,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../application/jewellery_categories_provider.dart';
 import '../../domain/models/jewellery_category_admin.dart';
 import '../jewellery_category_images.dart';
@@ -24,8 +25,16 @@ class JewelryCategoriesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final categories = ref.watch(jewelleryCategoriesProvider);
 
+    return DarkThemeScope(
+      child: Builder(
+        builder: (context) => _buildScreen(context, ref, categories),
+      ),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context, WidgetRef ref, AsyncValue<List<JewelleryCategoryAdmin>> categories) {
     return AppScaffold(
-      backgroundColor: AppColors.creamBg,
+      backgroundColor: AppColors.bg(context),
       appBar: AppBar(
         automaticallyImplyActions: false,
         title: Text(
@@ -78,6 +87,7 @@ class JewelryCategoriesScreen extends ConsumerWidget {
                   child: Text(
                     'Shop by category',
                     style: AppTypography.title.copyWith(
+                      color: AppColors.textPrimary(context),
                       fontWeight: FontWeight.w700,
                       fontSize: 18,
                     ),
@@ -127,9 +137,10 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const bg = AppColors.warmWhite;
-    const border = AppColors.warmBorder;
-    const muted = AppColors.textMutedLight;
+    final isDark = AppColors.isDark(context);
+    final bg = AppColors.card(context);
+    final border = AppColors.border(context);
+    final muted = AppColors.textMuted(context);
     final styleCount =
         category.subcategories.where((s) => s.isActive).length;
     final asset = JewelleryCategoryImages.assetFor(category.name);
@@ -142,7 +153,7 @@ class _CategoryCard extends StatelessWidget {
           color: bg,
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: border),
-          boxShadow: AppShadows.cardLight,
+          boxShadow: isDark ? [] : AppShadows.cardLight,
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -153,9 +164,9 @@ class _CategoryCard extends StatelessWidget {
                   ? Image.asset(
                       asset,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const ColoredBox(
-                        color: AppColors.sandSurface,
-                        child: Icon(
+                      errorBuilder: (_, __, ___) => ColoredBox(
+                        color: AppColors.surface(context),
+                        child: const Icon(
                           Icons.diamond_outlined,
                           color: AppColors.bronze,
                           size: 36,
@@ -167,9 +178,9 @@ class _CategoryCard extends StatelessWidget {
                       error: Image.asset(
                         asset,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const ColoredBox(
-                          color: AppColors.sandSurface,
-                          child: Icon(
+                        errorBuilder: (_, __, ___) => ColoredBox(
+                          color: AppColors.surface(context),
+                          child: const Icon(
                             Icons.diamond_outlined,
                             color: AppColors.bronze,
                             size: 36,
@@ -193,6 +204,7 @@ class _CategoryCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: AppTypography.label.copyWith(
+                      color: AppColors.textPrimary(context),
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
                     ),

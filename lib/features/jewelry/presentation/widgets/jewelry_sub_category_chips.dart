@@ -61,13 +61,13 @@ class JewelryCategoryChips extends ConsumerWidget {
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: active
-                      ? AppColors.charcoal
-                      : (AppColors.warmWhite),
+                      ? AppColors.selectedFill(context)
+                      : AppColors.card(context),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: active
-                        ? AppColors.charcoal
-                        : (AppColors.warmBorder),
+                        ? AppColors.selectedFill(context)
+                        : AppColors.border(context),
                   ),
                 ),
                 child: Text(
@@ -75,8 +75,8 @@ class JewelryCategoryChips extends ConsumerWidget {
                   style: AppTypography.caption.copyWith(
                     fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                     color: active
-                        ? AppColors.warmWhite
-                        : (AppColors.textPrimaryLight),
+                        ? AppColors.onSelected(context)
+                        : AppColors.textPrimary(context),
                   ),
                 ),
               ),

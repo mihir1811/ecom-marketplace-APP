@@ -25,14 +25,14 @@ class ShowcaseSelectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const activeColor = AppColors.bronze;
-    const inactiveBorderColor = AppColors.warmBorder;
+    final inactiveBorderColor = AppColors.border(context);
 
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.creamBg : AppColors.warmWhite,
+          color: isSelected ? AppColors.bg(context) : AppColors.card(context),
           borderRadius: const BorderRadius.all(Radius.circular(60.0)),
           border: Border.all(
             color: isSelected ? activeColor : inactiveBorderColor,
@@ -64,7 +64,7 @@ class ShowcaseSelectCard extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected
                     ? activeColor
-                    : AppColors.textPrimaryLight,
+                    : AppColors.textPrimary(context),
               ),
             ),
           ],

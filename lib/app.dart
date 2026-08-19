@@ -3,13 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/auth/auth_providers.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_preference_provider.dart';
 import 'core/widgets/keyboard_aware.dart';
 import 'features/ai_chat/presentation/widgets/gem_ai_overlay.dart';
 import 'features/auth/application/user_profile_providers.dart';
 
 /// The root application widget configuring themes and GoRouter navigation.
-class GemWorldApp extends StatelessWidget {
+class GemWorldApp extends ConsumerStatefulWidget {
   const GemWorldApp({super.key});
+
+  @override
+  ConsumerState<GemWorldApp> createState() => _GemWorldAppState();
+}
+
+class _GemWorldAppState extends ConsumerState<GemWorldApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(themePreferenceProvider.notifier).hydrate();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

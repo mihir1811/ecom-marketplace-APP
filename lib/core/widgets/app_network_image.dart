@@ -37,7 +37,7 @@ class AppNetworkImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final resolvedUrl = CdnImageUrl.normalize(url) ?? url;
     if (!_supportsNetworkLoading(resolvedUrl)) {
-      return error ?? _fallback();
+      return error ?? _fallback(context);
     }
 
     final image = kIsWeb ? _webImage(resolvedUrl) : _nativeImage(resolvedUrl);
@@ -77,9 +77,9 @@ class AppNetworkImage extends StatelessWidget {
           filterQuality: FilterQuality.medium,
           loadingBuilder: (context, child, progress) {
             if (progress == null) return child;
-            return _placeholder();
+            return _placeholder(context);
           },
-          errorBuilder: (_, __, ___) => error ?? _fallback(),
+          errorBuilder: (context, __, ___) => error ?? _fallback(context),
         );
         if (w != null && h != null) return image;
         if (constraints.hasBoundedWidth && constraints.hasBoundedHeight) {
@@ -98,33 +98,33 @@ class AppNetworkImage extends StatelessWidget {
       height: height,
       memCacheWidth: memCacheWidth,
       fadeInDuration: const Duration(milliseconds: 280),
-      placeholder: (_, __) => _placeholder(),
-      errorWidget: (_, __, ___) => error ?? _fallback(),
+      placeholder: (context, __) => _placeholder(context),
+      errorWidget: (context, __, ___) => error ?? _fallback(context),
     );
   }
 
-  Widget _placeholder() => const ColoredBox(
-        color: AppColors.sandSurface,
-        child: Center(
-          child: SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: AppColors.bronze,
-            ),
+  Widget _placeholder(BuildContext context) => ColoredBox(
+      color: AppColors.surface(context),
+      child: const Center(
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppColors.bronze,
           ),
         ),
-      );
+      ),
+    );
 
-  Widget _fallback() => const ColoredBox(
-        color: AppColors.sandSurface,
-        child: Center(
-          child: Icon(
-            Icons.image_not_supported_outlined,
-            color: AppColors.bronzeLight,
-            size: 28,
-          ),
+  Widget _fallback(BuildContext context) => ColoredBox(
+      color: AppColors.surface(context),
+      child: const Center(
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          color: AppColors.bronzeLight,
+          size: 28,
         ),
-      );
+      ),
+    );
 }

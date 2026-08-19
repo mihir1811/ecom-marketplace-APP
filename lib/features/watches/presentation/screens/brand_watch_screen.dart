@@ -9,6 +9,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../application/brand_watch_filter_provider.dart';
 import '../../application/brand_watch_list_provider.dart';
 import '../../domain/models/brand_watch_state.dart';
@@ -86,14 +87,15 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
         return Consumer(
           builder: (context, ref, _) {
             final filters = ref.watch(brandWatchFilterProvider);
-            const muted = AppColors.textMutedLight;
+            final muted = AppColors.textMuted(context);
             final n = ref.read(brandWatchFilterProvider.notifier);
 
             return Padding(
               padding: EdgeInsets.only(
                 left: AppSpacing.s16,
                 right: AppSpacing.s16,
-                bottom: MediaQuery.viewInsetsOf(context).bottom +
+                bottom:
+                    MediaQuery.viewInsetsOf(context).bottom +
                     MediaQuery.paddingOf(context).bottom +
                     AppSpacing.s16,
               ),
@@ -121,10 +123,8 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                     child: Wrap(
                       spacing: AppSpacing.s8,
                       runSpacing: AppSpacing.s8,
-                      children:
-                          BrandWatchFilterState.styleOptions.map((style) {
-                        final selected =
-                            filters.selectedStyles.contains(style);
+                      children: BrandWatchFilterState.styleOptions.map((style) {
+                        final selected = filters.selectedStyles.contains(style);
                         return _StyleChip(
                           label: style.toUpperCase(),
                           selected: selected,
@@ -222,201 +222,195 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
     final filters = ref.watch(brandWatchFilterProvider);
     final listAsync = ref.watch(brandWatchListProvider);
     final listState = listAsync.valueOrNull;
-    const muted =
-        AppColors.textMutedLight;
+    final muted = AppColors.textMuted(context);
     final logo = WatchBrandAssets.logoPath(widget.brandName);
 
-    return AppScaffold(
-      appBar: AppBar(
-        automaticallyImplyActions: false,
-        title: Row(
-          children: [
-            if (logo != null)
+    return DarkThemeScope(
+      child: AppScaffold(
+        appBar: AppBar(
+          automaticallyImplyActions: false,
+          title: Row(
+            children: [
+              if (logo != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.s8),
+                  child: Image.asset(
+                    logo,
+                    height: 28,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.watch,
+                      size: 28,
+                      color: AppColors.bronze,
+                    ),
+                  ),
+                ),
+              Expanded(
+                child: Text(
+                  widget.brandName,
+                  style: AppTypography.headline.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 22,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
+          ),
+        ),
+        body: ComparisonTrayHost(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               Padding(
-                padding: const EdgeInsets.only(right: AppSpacing.s8),
-                child: Image.asset(
-                  logo,
-                  height: 28,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.watch,
-                    size: 28,
-                    color: AppColors.bronze,
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s16,
+                  AppSpacing.s12,
+                  AppSpacing.s16,
+                  0,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.card(context),
+                    borderRadius: BorderRadius.circular(AppSpacing.r12),
+                    border: Border.all(color: AppColors.border(context)),
+                  ),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: _showSortSheet,
+                            icon: const Icon(Icons.sort, size: 18),
+                            label: Text(
+                              'Sort: ${filters.sort.label}',
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.caption.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary(context),
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.textPrimary(context),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.s12,
+                                vertical: AppSpacing.s12,
+                              ),
+                              alignment: Alignment.centerLeft,
+                            ),
+                          ),
+                        ),
+                        Container(width: 1, color: AppColors.border(context)),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _showFiltersSheet,
+                            borderRadius: const BorderRadius.horizontal(
+                              right: Radius.circular(AppSpacing.r12),
+                            ),
+                            child: SizedBox(
+                              width: 52,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.tune,
+                                    size: 22,
+                                    color: AppColors.textPrimary(context),
+                                  ),
+                                  if (filters.hasActiveFilters)
+                                    Positioned(
+                                      top: 10,
+                                      right: 12,
+                                      child: Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.bronze,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            Expanded(
-              child: Text(
-                widget.brandName,
-                style: AppTypography.headline.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 22,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s16,
+                  AppSpacing.s8,
+                  AppSpacing.s16,
+                  0,
                 ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/');
-            }
-          },
-        ),
-      ),
-      body: ComparisonTrayHost(
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s12,
-              AppSpacing.s16,
-              0,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.warmWhite,
-                borderRadius: BorderRadius.circular(AppSpacing.r12),
-                border: Border.all(
-                  color: AppColors.warmBorder,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    listState == null
+                        ? 'Loading…'
+                        : '${listState.totalCount} watches',
+                    style: AppTypography.caption.copyWith(color: muted),
+                  ),
                 ),
               ),
-              child: IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: _showSortSheet,
-                        icon: const Icon(Icons.sort, size: 18),
-                        label: Text(
-                          'Sort: ${filters.sort.label}',
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.caption.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimaryLight,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.textPrimaryLight,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.s12,
-                            vertical: AppSpacing.s12,
-                          ),
-                          alignment: Alignment.centerLeft,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width: 1,
-                      color: AppColors.warmBorder,
-                    ),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: _showFiltersSheet,
-                        borderRadius: const BorderRadius.horizontal(
-                          right: Radius.circular(AppSpacing.r12),
-                        ),
-                        child: SizedBox(
-                          width: 52,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              const Icon(
-                                Icons.tune,
-                                size: 22,
-                                color: AppColors.textPrimaryLight,
-                              ),
-                              if (filters.hasActiveFilters)
-                                Positioned(
-                                  top: 10,
-                                  right: 12,
-                                  child: Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.bronze,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s8,
-              AppSpacing.s16,
-              0,
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                listState == null
-                    ? 'Loading…'
-                    : '${listState.totalCount} watches',
-                style: AppTypography.caption.copyWith(color: muted),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s8),
+              const SizedBox(height: AppSpacing.s8),
 
-          // Watch list
-          Expanded(
-            child: listState == null || listState.isInitialLoading
-                ? const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : listState.errorMessage != null && listState.watches.isEmpty
+              // Watch list
+              Expanded(
+                child: listState == null || listState.isInitialLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : listState.errorMessage != null &&
+                          listState.watches.isEmpty
                     ? CatalogErrorState(
                         message: listState.errorMessage!,
-                        onRetry: () => ref
-                            .read(brandWatchListProvider.notifier)
-                            .refresh(),
+                        onRetry: () =>
+                            ref.read(brandWatchListProvider.notifier).refresh(),
                       )
                     : listState.watches.isEmpty
-                        ? CatalogEmptyState(
-                            icon: Icons.watch_outlined,
-                            title:
-                                'No ${widget.brandName} watches match your filters',
-                            message: 'Try adjusting style or price range.',
-                            actionLabel: 'Clear filters',
-                            onAction: () {
-                              ref
-                                  .read(brandWatchFilterProvider.notifier)
-                                  .reset();
-                              _priceMinController.clear();
-                              _priceMaxController.clear();
-                            },
-                          )
-                        : CustomScrollView(
-                            controller: _scrollController,
-                            slivers: [
-                              WatchGridSliver(
-                                watches: listState.watches,
-                                isLoadingMore: listState.isLoadingMore,
-                              ),
-                              const SliverToBoxAdapter(
-                                child: SizedBox(height: AppSpacing.s24),
-                              ),
-                            ],
+                    ? CatalogEmptyState(
+                        icon: Icons.watch_outlined,
+                        title:
+                            'No ${widget.brandName} watches match your filters',
+                        message: 'Try adjusting style or price range.',
+                        actionLabel: 'Clear filters',
+                        onAction: () {
+                          ref.read(brandWatchFilterProvider.notifier).reset();
+                          _priceMinController.clear();
+                          _priceMaxController.clear();
+                        },
+                      )
+                    : CustomScrollView(
+                        controller: _scrollController,
+                        slivers: [
+                          WatchGridSliver(
+                            watches: listState.watches,
+                            isLoadingMore: listState.isLoadingMore,
                           ),
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: AppSpacing.s24),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
           ),
-        ],
         ),
       ),
     );
@@ -445,22 +439,18 @@ class _StyleChip extends StatelessWidget {
           vertical: AppSpacing.s12,
         ),
         decoration: BoxDecoration(
-          color: selected
-              ? AppColors.charcoal
-              : (AppColors.warmWhite),
+          color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: selected
-                ? AppColors.charcoal
-                : (AppColors.warmBorder),
+            color: selected ? AppColors.selectedFill(context) : AppColors.border(context),
           ),
         ),
         child: Text(
           label,
           style: AppTypography.caption.copyWith(
             color: selected
-                ? AppColors.warmWhite
-                : (AppColors.textPrimaryLight),
+                ? AppColors.onSelected(context)
+                : (AppColors.textPrimary(context)),
             fontWeight: FontWeight.w600,
             fontSize: 12,
             letterSpacing: 0.4,
@@ -484,7 +474,7 @@ class _PriceInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
 
     return SizedBox(
       height: 40,
@@ -492,30 +482,25 @@ class _PriceInput extends StatelessWidget {
         controller: controller,
         keyboardType: TextInputType.number,
         onChanged: onChanged,
-        style: AppTypography.caption.copyWith(
-          fontSize: 13,
-        ),
+        style: AppTypography.caption.copyWith(fontSize: 13),
         decoration: InputDecoration(
           isDense: true,
           hintText: hint,
           hintStyle: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
             fontSize: 13,
           ),
           prefixText: AppCurrency.symbol,
-          prefixStyle: AppTypography.caption.copyWith(
-            fontSize: 13,
-          ),
+          prefixStyle: AppTypography.caption.copyWith(fontSize: 13),
           filled: true,
-          fillColor:
-              AppColors.warmWhite,
+          fillColor: AppColors.field(context),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppSpacing.r8),
-            borderSide: const BorderSide(color: borderColor),
+            borderSide: BorderSide(color: borderColor),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppSpacing.r8),
-            borderSide: const BorderSide(color: borderColor),
+            borderSide: BorderSide(color: borderColor),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppSpacing.r8),

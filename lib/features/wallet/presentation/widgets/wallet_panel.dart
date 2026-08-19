@@ -109,7 +109,10 @@ class _WalletLoadedView extends ConsumerWidget {
           if (index == 2) {
             return Text(
               'Transactions',
-              style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
+              style: AppTypography.title.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary(context),
+              ),
             );
           }
           if (loadingTxns) {
@@ -139,7 +142,7 @@ class _WalletLoadedView extends ConsumerWidget {
                 'No wallet transactions yet',
                 textAlign: TextAlign.center,
                 style: AppTypography.body.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
               ),
             );

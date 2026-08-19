@@ -118,7 +118,7 @@ class CartAddressSection extends ConsumerWidget {
     final address = ref.watch(cartAddressProvider);
     final addresses = ref.watch(cartAddressesProvider);
     final mutating = ref.watch(cartIsMutatingProvider);
-    const muted = AppColors.textMutedLight;
+    final muted = AppColors.textMuted(context);
 
     // Prefer full list; ensure selected address is visible even if list lagged.
     final list = <DeliveryAddress>[
@@ -197,7 +197,7 @@ class CartAddressSection extends ConsumerWidget {
                           ? null
                           : () => _editAddress(context, ref, a),
                       icon: const Icon(Icons.edit_outlined, size: 20),
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                       visualDensity: VisualDensity.compact,
                     ),
                     IconButton(
@@ -225,8 +225,8 @@ class CartAddressSection extends ConsumerWidget {
               icon: const Icon(Icons.add_location_alt_outlined, size: 18),
               label: const Text('Add new address'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.charcoal,
-                side: const BorderSide(color: AppColors.warmBorder),
+                foregroundColor: AppColors.textPrimary(context),
+                side: BorderSide(color: AppColors.border(context)),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),

@@ -157,7 +157,7 @@ class _GemstoneFilterCategoryBasicState
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                     border: Border.all(
-                      color: AppColors.warmBorder,
+                      color: AppColors.border(context),
                     ),
                   ),
                   padding: const EdgeInsets.symmetric(
@@ -170,10 +170,10 @@ class _GemstoneFilterCategoryBasicState
                     decoration: InputDecoration(
                       hintText: 'Search gemstone types...',
                       hintStyle: AppTypography.caption.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                       ),
                       prefixIcon: const Icon(Icons.search, size: 18),
-                      prefixIconColor: AppColors.textMutedLight,
+                      prefixIconColor: AppColors.textMuted(context),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -211,8 +211,8 @@ class _GemstoneFilterCategoryBasicState
                           onTap: () => setState(
                             () => _isTypesExpanded = !_isTypesExpanded,
                           ),
-                          selectedColor: AppColors.sandSurface,
-                          unselectedBgColor: AppColors.sandSurface,
+                          selectedColor: AppColors.surface(context),
+                          unselectedBgColor: AppColors.surface(context),
                           unselectedTextColor: AppColors.bronze,
                           borderColor: AppColors.bronze,
                         ),
@@ -523,8 +523,8 @@ class _GemstoneFilterCategoryBasicState
                                               .treatments.length;
                                     });
                                   },
-                                  selectedColor: AppColors.sandSurface,
-                                  unselectedBgColor: AppColors.sandSurface,
+                                  selectedColor: AppColors.surface(context),
+                                  unselectedBgColor: AppColors.surface(context),
                                   unselectedTextColor: AppColors.bronze,
                                   borderColor: AppColors.bronze,
                                 ),

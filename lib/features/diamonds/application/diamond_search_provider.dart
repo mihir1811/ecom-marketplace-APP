@@ -141,11 +141,55 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
   }
 
   void updateCompanyNameSearch(String? value) {
-    state = state.copyWith(companyNameSearch: value);
+    final name = value?.trim() ?? '';
+    if (name.isEmpty) return;
+    addCompanyName(name);
+  }
+
+  void addCompanyName(String value) {
+    final name = value.trim();
+    if (name.isEmpty) return;
+    final exists = state.companyNames.any(
+      (item) => item.toLowerCase() == name.toLowerCase(),
+    );
+    if (exists) return;
+    state = state.copyWith(
+      companyNames: List<String>.unmodifiable([...state.companyNames, name]),
+    );
+  }
+
+  void removeCompanyName(String value) {
+    state = state.copyWith(
+      companyNames: List<String>.unmodifiable(
+        state.companyNames.where((item) => item != value),
+      ),
+    );
   }
 
   void updateVendorLocationSearch(String? value) {
-    state = state.copyWith(vendorLocationSearch: value);
+    final loc = value?.trim() ?? '';
+    if (loc.isEmpty) return;
+    addVendorLocation(loc);
+  }
+
+  void addVendorLocation(String value) {
+    final loc = value.trim();
+    if (loc.isEmpty) return;
+    final exists = state.vendorLocations.any(
+      (item) => item.toLowerCase() == loc.toLowerCase(),
+    );
+    if (exists) return;
+    state = state.copyWith(
+      vendorLocations: List<String>.unmodifiable([...state.vendorLocations, loc]),
+    );
+  }
+
+  void removeVendorLocation(String value) {
+    state = state.copyWith(
+      vendorLocations: List<String>.unmodifiable(
+        state.vendorLocations.where((item) => item != value),
+      ),
+    );
   }
 
   void toggleLab(String lab) {
@@ -735,10 +779,10 @@ int computeMatchingCount(Ref ref) {
   if (state.selectedRoughSource != null) {
     multiplier *= 0.75;
   }
-  if (state.companyNameSearch != null && state.companyNameSearch!.trim().isNotEmpty) {
+  if (state.companyNames.isNotEmpty) {
     multiplier *= 0.50;
   }
-  if (state.vendorLocationSearch != null && state.vendorLocationSearch!.trim().isNotEmpty) {
+  if (state.vendorLocations.isNotEmpty) {
     multiplier *= 0.60;
   }
   if (state.selectedOrigin != null) {

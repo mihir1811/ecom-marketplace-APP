@@ -38,7 +38,7 @@ class FilterOriginDropdown extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: AppColors.creamBg,
+      backgroundColor: AppColors.bg(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.r16)),
       ),
@@ -59,7 +59,7 @@ class FilterOriginDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +97,7 @@ class FilterOriginDropdown extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border.all(color: borderColor),
               borderRadius: BorderRadius.circular(AppSpacing.r8),
-              color: AppColors.warmWhite,
+              color: AppColors.field(context),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -117,15 +117,15 @@ class FilterOriginDropdown extends StatelessWidget {
                       selectedOrigin ?? hint,
                       style: AppTypography.body.copyWith(
                         color: selectedOrigin == null
-                            ? Colors.black38
-                            : Colors.black,
+                            ? AppColors.textMuted(context)
+                            : AppColors.textPrimary(context),
                       ),
                     ),
                   ],
                 ),
-                const Icon(
+                Icon(
                   Icons.keyboard_arrow_down,
-                  color: Colors.black54,
+                  color: AppColors.textSecondary(context),
                 ),
               ],
             ),

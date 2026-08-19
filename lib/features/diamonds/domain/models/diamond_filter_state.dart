@@ -686,8 +686,8 @@ class DiamondFilterState {
     this.selectedMilkyGrades = const [],
     this.selectedEnhancement,
     this.selectedRoughSource,
-    this.companyNameSearch,
-    this.vendorLocationSearch,
+    this.companyNames = const [],
+    this.vendorLocations = const [],
     this.selectedLabs = const [],
     this.couponCode,
     this.discountPercentage,
@@ -776,8 +776,8 @@ class DiamondFilterState {
   final List<String> selectedMilkyGrades;
   final String? selectedEnhancement;
   final String? selectedRoughSource;
-  final String? companyNameSearch;
-  final String? vendorLocationSearch;
+  final List<String> companyNames;
+  final List<String> vendorLocations;
   final List<String> selectedLabs;
   final String? couponCode;
   final double? discountPercentage;
@@ -866,8 +866,8 @@ class DiamondFilterState {
     List<String>? selectedMilkyGrades,
     String? selectedEnhancement,
     String? selectedRoughSource,
-    String? companyNameSearch,
-    String? vendorLocationSearch,
+    List<String>? companyNames,
+    List<String>? vendorLocations,
     List<String>? selectedLabs,
     String? couponCode,
     double? discountPercentage,
@@ -953,8 +953,8 @@ class DiamondFilterState {
       selectedMilkyGrades: selectedMilkyGrades ?? this.selectedMilkyGrades,
       selectedEnhancement: selectedEnhancement ?? this.selectedEnhancement,
       selectedRoughSource: selectedRoughSource ?? this.selectedRoughSource,
-      companyNameSearch: companyNameSearch ?? this.companyNameSearch,
-      vendorLocationSearch: vendorLocationSearch ?? this.vendorLocationSearch,
+      companyNames: companyNames ?? this.companyNames,
+      vendorLocations: vendorLocations ?? this.vendorLocations,
       selectedLabs: selectedLabs ?? this.selectedLabs,
       couponCode: couponCode ?? this.couponCode,
       discountPercentage: discountPercentage ?? this.discountPercentage,

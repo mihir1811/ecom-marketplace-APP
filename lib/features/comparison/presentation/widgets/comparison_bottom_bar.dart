@@ -22,14 +22,14 @@ class ComparisonBottomBar extends ConsumerWidget {
 
     return Material(
       elevation: 8,
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       child: SafeArea(
         top: false,
         child: Container(
           decoration: BoxDecoration(
-            border: const Border(
+            border: Border(
               top: BorderSide(
-                color: AppColors.warmBorder,
+                color: AppColors.border(context),
               ),
             ),
             boxShadow: AppShadows.modalLight,
@@ -63,7 +63,7 @@ class ComparisonBottomBar extends ConsumerWidget {
                   'Clear All',
                   style: AppTypography.caption.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                   ),
                 ),
               ),

@@ -10,6 +10,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
@@ -31,7 +32,8 @@ class DiamondListingsScreen extends ConsumerStatefulWidget {
   final String searchRoute;
 
   @override
-  ConsumerState<DiamondListingsScreen> createState() => _DiamondListingsScreenState();
+  ConsumerState<DiamondListingsScreen> createState() =>
+      _DiamondListingsScreenState();
 }
 
 class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
@@ -47,15 +49,16 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _applyPendingAiFilters());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _applyPendingAiFilters(),
+    );
   }
 
   void _applyPendingAiFilters() {
     if (!mounted) return;
     final pending = ref.read(aiPendingDiamondFiltersProvider);
     if (pending == null) return;
-    final isLabRoute =
-        widget.searchRoute == AppRouteNames.labGrownDiamonds;
+    final isLabRoute = widget.searchRoute == AppRouteNames.labGrownDiamonds;
     if (pending.isLabGrown != isLabRoute) return;
 
     ref.read(diamondSearchProvider.notifier).replaceFilters(pending.filters);
@@ -125,8 +128,9 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
       if (!mounted) return;
       if (!_scrollController.hasClients) {
         if (attempt < 6) {
-          WidgetsBinding.instance
-              .addPostFrameCallback((_) => tryJump(attempt + 1));
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => tryJump(attempt + 1),
+          );
         }
         return;
       }
@@ -150,157 +154,163 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
   Widget build(BuildContext context) {
     final stateAsync = ref.watch(diamondListProvider);
     final viewMode = ref.watch(diamondViewModeProvider);
-    const mutedColor = AppColors.textSecondaryLight;
+    final mutedColor = AppColors.textSecondary(context);
 
-    return AppScaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (AiChatBackNavigation.handleListingBack(context, ref)) return;
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(AppRouteNames.home);
-            }
-          },
-        ),
-        title: Text(
-          widget.title,
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.s8),
-            child: ViewModeToggle(
-              style: ViewModeToggleStyle.labeled,
-              isGrid: viewMode == ViewMode.grid,
-              onGrid: () => _switchViewMode(ViewMode.grid),
-              onList: () => _switchViewMode(ViewMode.list),
-            ),
+    return DarkThemeScope(
+      child: AppScaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (AiChatBackNavigation.handleListingBack(context, ref)) return;
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go(AppRouteNames.home);
+              }
+            },
           ),
-        ],
-      ),
-      body: ComparisonTrayHost(
-        child: Column(
-          children: [
-            const DiamondListingStatsBar(),
+          title: Text(
+            widget.title,
+            style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
+          ),
+          actions: [
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.s16,
-                vertical: 0,
-              ),
-              child: Row(
-                children: [
-                  stateAsync.whenOrNull(
-                    data: (state) => Text(
-                      '${_formatCount(state.totalCount)} diamonds found',
-                      style: AppTypography.caption.copyWith(color: mutedColor),
-                    ),
-                  ) ??
-                      const SizedBox.shrink(),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => DiamondSortingBottomSheet.show(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.s8,
-                        vertical: AppSpacing.s4,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(AppSpacing.r8),
-                        border: Border.all(
-                          color: AppColors.warmBorder,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.sort, size: 14, color: mutedColor),
-                          const SizedBox(width: AppSpacing.s4),
-                          Text(
-                            'Sort',
-                            style: AppTypography.caption.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: mutedColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.s8),
-                  TextButton(
-                    onPressed: () {
-                      // Keep applied filters; just return to the finder.
-                      if (context.canPop()) {
-                        context.pop();
-                      } else {
-                        context.go(widget.searchRoute);
-                      }
-                    },
-                    child: const Text('Edit Filters'),
-                  ),
-                ],
-              ),
-            ),
-            const DiamondProjectListingActions(),
-            const Divider(height: 0),
-            Expanded(
-              child: stateAsync.when(
-                data: (state) {
-                  if (state.isInitialLoading) {
-                    return CatalogListLoading(isGrid: viewMode == ViewMode.grid);
-                  }
-                  if (state.errorMessage != null && state.diamonds.isEmpty) {
-                    return _buildError(state.errorMessage!);
-                  }
-                  if (state.diamonds.isEmpty) {
-                    return CatalogEmptyState(
-                      icon: Icons.diamond_outlined,
-                      iconSize: 72,
-                      iconColor: AppColors.textMutedLight.withValues(alpha: 0.4),
-                      title: 'No Diamonds Found',
-                      message:
-                          'Try adjusting your filters or search criteria to find matching diamonds.',
-                      padding: const EdgeInsets.all(AppSpacing.s48),
-                      titleStyle: AppTypography.headline.copyWith(
-                        color: AppColors.textPrimaryLight,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      actionLabel: 'Reset Filters',
-                      onAction: () {
-                        ref
-                            .read(diamondListProvider.notifier)
-                            .resetFiltersAndReload();
-                      },
-                      actionIcon: Icons.refresh,
-                    );
-                  }
-                  return RefreshIndicator(
-                    onRefresh: () =>
-                        ref.read(diamondListProvider.notifier).refresh(),
-                    child: viewMode == ViewMode.grid
-                        ? DiamondGridView(
-                            key: const ValueKey('diamond-grid'),
-                            diamonds: state.diamonds,
-                            scrollController: _scrollController,
-                            isLoadingMore: state.isLoadingMore,
-                          )
-                        : DiamondListView(
-                            key: const ValueKey('diamond-list'),
-                            diamonds: state.diamonds,
-                            scrollController: _scrollController,
-                            isLoadingMore: state.isLoadingMore,
-                          ),
-                  );
-                },
-                loading: () =>
-                    CatalogListLoading(isGrid: viewMode == ViewMode.grid),
-                error: (error, _) => _buildError(error.toString()),
+              padding: const EdgeInsets.only(right: AppSpacing.s8),
+              child: ViewModeToggle(
+                style: ViewModeToggleStyle.labeled,
+                isGrid: viewMode == ViewMode.grid,
+                onGrid: () => _switchViewMode(ViewMode.grid),
+                onList: () => _switchViewMode(ViewMode.list),
               ),
             ),
           ],
+        ),
+        body: ComparisonTrayHost(
+          child: Column(
+            children: [
+              const DiamondListingStatsBar(),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s16,
+                  vertical: 0,
+                ),
+                child: Row(
+                  children: [
+                    stateAsync.whenOrNull(
+                          data: (state) => Text(
+                            '${_formatCount(state.totalCount)} diamonds found',
+                            style: AppTypography.caption.copyWith(
+                              color: mutedColor,
+                            ),
+                          ),
+                        ) ??
+                        const SizedBox.shrink(),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => DiamondSortingBottomSheet.show(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s8,
+                          vertical: AppSpacing.s4,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(AppSpacing.r8),
+                          border: Border.all(color: AppColors.border(context)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.sort, size: 14, color: mutedColor),
+                            const SizedBox(width: AppSpacing.s4),
+                            Text(
+                              'Sort',
+                              style: AppTypography.caption.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: mutedColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.s8),
+                    TextButton(
+                      onPressed: () {
+                        // Keep applied filters; just return to the finder.
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go(widget.searchRoute);
+                        }
+                      },
+                      child: const Text('Edit Filters'),
+                    ),
+                  ],
+                ),
+              ),
+              const DiamondProjectListingActions(),
+              const Divider(height: 0),
+              Expanded(
+                child: stateAsync.when(
+                  data: (state) {
+                    if (state.isInitialLoading) {
+                      return CatalogListLoading(
+                        isGrid: viewMode == ViewMode.grid,
+                      );
+                    }
+                    if (state.errorMessage != null && state.diamonds.isEmpty) {
+                      return _buildError(state.errorMessage!);
+                    }
+                    if (state.diamonds.isEmpty) {
+                      return CatalogEmptyState(
+                        icon: Icons.diamond_outlined,
+                        iconSize: 72,
+                        iconColor: AppColors.textMuted(
+                          context,
+                        ).withValues(alpha: 0.4),
+                        title: 'No Diamonds Found',
+                        message:
+                            'Try adjusting your filters or search criteria to find matching diamonds.',
+                        padding: const EdgeInsets.all(AppSpacing.s48),
+                        titleStyle: AppTypography.headline.copyWith(
+                          color: AppColors.textPrimary(context),
+                          fontWeight: FontWeight.bold,
+                        ),
+                        actionLabel: 'Reset Filters',
+                        onAction: () {
+                          ref
+                              .read(diamondListProvider.notifier)
+                              .resetFiltersAndReload();
+                        },
+                        actionIcon: Icons.refresh,
+                      );
+                    }
+                    return RefreshIndicator(
+                      onRefresh: () =>
+                          ref.read(diamondListProvider.notifier).refresh(),
+                      child: viewMode == ViewMode.grid
+                          ? DiamondGridView(
+                              key: const ValueKey('diamond-grid'),
+                              diamonds: state.diamonds,
+                              scrollController: _scrollController,
+                              isLoadingMore: state.isLoadingMore,
+                            )
+                          : DiamondListView(
+                              key: const ValueKey('diamond-list'),
+                              diamonds: state.diamonds,
+                              scrollController: _scrollController,
+                              isLoadingMore: state.isLoadingMore,
+                            ),
+                    );
+                  },
+                  loading: () =>
+                      CatalogListLoading(isGrid: viewMode == ViewMode.grid),
+                  error: (error, _) => _buildError(error.toString()),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

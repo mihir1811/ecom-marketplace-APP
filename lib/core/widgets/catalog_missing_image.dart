@@ -23,7 +23,7 @@ class CatalogMissingImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: const Color(0xFFF3F4F6),
+      color: AppColors.surface(context),
       child: Padding(
         padding: EdgeInsets.all(padding),
         child: Column(
@@ -34,6 +34,12 @@ class CatalogMissingImage extends StatelessWidget {
                 child: SvgPicture.asset(
                   assetPath,
                   fit: BoxFit.contain,
+                  colorFilter: ColorFilter.mode(
+                    AppColors.isDark(context)
+                        ? const Color(0xFF4A5568)
+                        : const Color(0xFFD1D5DB),
+                    BlendMode.srcIn,
+                  ),
                   placeholderBuilder: (_) => const Icon(
                     Icons.image_not_supported_outlined,
                     size: 40,
@@ -47,7 +53,7 @@ class CatalogMissingImage extends StatelessWidget {
               Text(
                 'No image',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                   fontWeight: FontWeight.w600,
                   fontSize: 11,
                 ),

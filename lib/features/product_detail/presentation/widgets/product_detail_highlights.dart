@@ -18,9 +18,9 @@ class ProductDetailHighlights extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r20),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       clipBehavior: Clip.antiAlias,
       child: LayoutBuilder(
@@ -40,16 +40,16 @@ class ProductDetailHighlights extends StatelessWidget {
             children: [
               for (var r = 0; r < rows.length; r++) ...[
                 if (r > 0)
-                  const Divider(height: 1, color: AppColors.warmBorder),
+                  Divider(height: 1, color: AppColors.border(context)),
                 IntrinsicHeight(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       for (var c = 0; c < columns; c++) ...[
                         if (c > 0)
-                          const SizedBox(
+                          SizedBox(
                             width: 1,
-                            child: ColoredBox(color: AppColors.warmBorder),
+                            child: ColoredBox(color: AppColors.border(context)),
                           ),
                         Expanded(
                           child: c < rows[r].length
@@ -88,7 +88,7 @@ class _Tile extends StatelessWidget {
           Text(
             highlight.label.toUpperCase(),
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
               fontSize: 10,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.7,
@@ -100,7 +100,7 @@ class _Tile extends StatelessWidget {
           Text(
             highlight.value,
             style: AppTypography.label.copyWith(
-              color: AppColors.textPrimaryLight,
+              color: AppColors.textPrimary(context),
               fontSize: 15,
               fontWeight: FontWeight.w700,
               height: 1.2,

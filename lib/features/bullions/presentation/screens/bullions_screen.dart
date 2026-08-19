@@ -15,6 +15,7 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
 // import '../../application/metal_prices_provider.dart'; // Metal prices (AURUM) disabled
@@ -135,49 +136,48 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
     //   }
     // });
 
-    return CatalogScreenShell(
-      scaffoldKey: _scaffoldKey,
-      endDrawer: const BullionsFilterDrawer(),
-      title: 'Bullions',
-      onBack: _onBackPressed,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: AppSpacing.s8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-            child: _BullionsSearchBar(
-              searchController: _searchController,
-              onSearchChanged: _onSearchChanged,
-              onOpenFilters: _openFilters,
+    return DarkThemeScope(
+      child: CatalogScreenShell(
+        scaffoldKey: _scaffoldKey,
+        endDrawer: const BullionsFilterDrawer(),
+        title: 'Bullions',
+        onBack: _onBackPressed,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: AppSpacing.s8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+              child: _BullionsSearchBar(
+                searchController: _searchController,
+                onSearchChanged: _onSearchChanged,
+                onOpenFilters: _openFilters,
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.s12),
-          Expanded(
-            child: CustomScrollView(
-              controller: _scrollController,
-              slivers: [
-                const SliverToBoxAdapter(child: _BullionsPresetsSection()),
-                const SliverToBoxAdapter(child: _BullionsHeaderRow()),
-                _BullionsBody(
-                  onRetry: () =>
-                      ref.read(bullionsListProvider.notifier).refresh(),
-                  onClear: _clearFilters,
-                ),
-              ],
+            const SizedBox(height: AppSpacing.s12),
+            Expanded(
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  const SliverToBoxAdapter(child: _BullionsPresetsSection()),
+                  const SliverToBoxAdapter(child: _BullionsHeaderRow()),
+                  _BullionsBody(
+                    onRetry: () =>
+                        ref.read(bullionsListProvider.notifier).refresh(),
+                    onClear: _clearFilters,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
 class _BullionsBody extends ConsumerWidget {
-  const _BullionsBody({
-    required this.onRetry,
-    required this.onClear,
-  });
+  const _BullionsBody({required this.onRetry, required this.onClear});
   final VoidCallback onRetry;
   final VoidCallback onClear;
 
@@ -189,9 +189,7 @@ class _BullionsBody extends ConsumerWidget {
 
     if (listState == null || listState.isInitialLoading) {
       return const SliverFillRemaining(
-        child: Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
 
@@ -228,9 +226,7 @@ class _BullionsBody extends ConsumerWidget {
             bullions: listState.bullions,
             isLoadingMore: listState.isLoadingMore,
           ),
-        const SliverToBoxAdapter(
-          child: SizedBox(height: AppSpacing.s24),
-        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
       ],
     );
   }
@@ -252,7 +248,7 @@ class _BullionsSearchBar extends ConsumerWidget {
     final activeFilterCount = ref.watch(
       bullionsFilterProvider.select((s) => s.activeCount),
     );
-    const muted = AppColors.textMutedLight;
+    final muted = AppColors.textMuted(context);
 
     return ListingSearchFilterBar(
       controller: searchController,
@@ -372,27 +368,29 @@ class _BullionsHeaderRow extends ConsumerWidget {
             children: [
               Flexible(
                 child: TextButton.icon(
-                  onPressed: () => showSimpleSortSheet<BullionsSortOption>(
-                    context: context,
-                    options: BullionsSortOption.values,
-                    labelOf: (o) => o.label,
-                    current: ref.read(bullionsSortProvider),
-                  ).then((selected) {
-                    if (selected != null) {
-                      ref.read(bullionsSortProvider.notifier).state = selected;
-                    }
-                  }),
+                  onPressed: () =>
+                      showSimpleSortSheet<BullionsSortOption>(
+                        context: context,
+                        options: BullionsSortOption.values,
+                        labelOf: (o) => o.label,
+                        current: ref.read(bullionsSortProvider),
+                      ).then((selected) {
+                        if (selected != null) {
+                          ref.read(bullionsSortProvider.notifier).state =
+                              selected;
+                        }
+                      }),
                   icon: const Icon(Icons.sort, size: 18),
                   label: Text(
                     'Sort by: $sortLabel',
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.caption.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimaryLight,
+                      color: AppColors.textPrimary(context),
                     ),
                   ),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.textPrimaryLight,
+                    foregroundColor: AppColors.textPrimary(context),
                     padding: EdgeInsets.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     visualDensity: VisualDensity.compact,
@@ -423,7 +421,7 @@ class _BullionsHeaderRow extends ConsumerWidget {
             child: Text(
               countLabel,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
               ),
             ),
           ),
@@ -512,7 +510,7 @@ class _MetalPricesTicker extends ConsumerWidget {
                         : Text(
                             'Loading live prices…',
                             style: AppTypography.caption.copyWith(
-                              color: AppColors.textMutedLight,
+                              color: AppColors.textMuted(context),
                             ),
                           ),
                   )
@@ -542,7 +540,7 @@ class _MetalPricesTicker extends ConsumerWidget {
             child: Text(
               'Approximate live spot prices — actual market prices may vary slightly.',
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
                 fontSize: 10,
                 height: 1.3,
               ),
@@ -612,7 +610,7 @@ class _MetalPriceCard extends StatelessWidget {
                     Text(
                       item.code,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                         height: 1.1,
                       ),
                     ),
@@ -673,10 +671,8 @@ class _HorizontalChipRow extends StatelessWidget {
         padding: EdgeInsets.zero,
         itemCount: children.length,
         separatorBuilder: (_, __) => const SizedBox.shrink(),
-        itemBuilder: (context, index) => Align(
-          alignment: Alignment.center,
-          child: children[index],
-        ),
+        itemBuilder: (context, index) =>
+            Align(alignment: Alignment.center, child: children[index]),
       ),
     );
   }
@@ -707,17 +703,19 @@ class _PresetChip extends StatelessWidget {
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
           decoration: BoxDecoration(
-            color: selected ? AppColors.charcoal : AppColors.warmWhite,
+            color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
             borderRadius: BorderRadius.circular(AppSpacing.r8),
-            border: Border.all(color: selected ? accent : AppColors.warmBorder),
+            border: Border.all(
+              color: selected ? accent : AppColors.border(context),
+            ),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: AppTypography.label.copyWith(
               color: selected
-                  ? AppColors.warmWhite
-                  : AppColors.textPrimaryLight,
+                  ? AppColors.onSelected(context)
+                  : AppColors.textPrimary(context),
               fontWeight: FontWeight.w700,
               height: 1.0,
               leadingDistribution: TextLeadingDistribution.even,
@@ -752,10 +750,10 @@ class _VariantFilterChip extends StatelessWidget {
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
           decoration: BoxDecoration(
-            color: selected ? AppColors.charcoal : AppColors.warmWhite,
+            color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
             borderRadius: BorderRadius.circular(AppSpacing.r8),
             border: Border.all(
-              color: selected ? AppColors.charcoal : AppColors.warmBorder,
+              color: selected ? AppColors.selectedFill(context) : AppColors.border(context),
             ),
           ),
           child: Text(
@@ -763,8 +761,8 @@ class _VariantFilterChip extends StatelessWidget {
             textAlign: TextAlign.center,
             style: AppTypography.caption.copyWith(
               color: selected
-                  ? AppColors.warmWhite
-                  : AppColors.textPrimaryLight,
+                  ? AppColors.onSelected(context)
+                  : AppColors.textPrimary(context),
               fontWeight: FontWeight.w700,
               height: 1.0,
               leadingDistribution: TextLeadingDistribution.even,
@@ -775,4 +773,3 @@ class _VariantFilterChip extends StatelessWidget {
     );
   }
 }
-

@@ -19,7 +19,7 @@ class WalletTopUpSheet extends ConsumerStatefulWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: AppColors.warmWhite,
+      backgroundColor: AppColors.card(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.r32),
@@ -100,7 +100,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.warmBorder,
+                color: AppColors.border(context),
                 borderRadius: BorderRadius.circular(AppSpacing.circular),
               ),
             ),
@@ -114,7 +114,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
           Text(
             'Amount is in INR. Minimum ₹1.',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
             ),
           ),
           const SizedBox(height: AppSpacing.s16),

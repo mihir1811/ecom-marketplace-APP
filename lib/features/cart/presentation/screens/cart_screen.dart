@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../application/cart_provider.dart';
 import '../widgets/cart_address_section.dart';
 import '../widgets/cart_checkout_button.dart';
@@ -39,8 +40,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final isEmpty = ref.watch(cartIsEmptyProvider);
     final error = ref.watch(cartErrorProvider);
 
-    return AppScaffold(
-      backgroundColor: AppColors.creamBg,
+    return DarkThemeScope(
+      child: Builder(
+        builder: (context) => AppScaffold(
+          backgroundColor: AppColors.bg(context),
       appBar: AppBar(
         title: const _CartAppBarTitle(),
         actions: [
@@ -82,6 +85,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         SizedBox(height: AppSpacing.s24),
                       ],
                     ),
+        ),
+      ),
     );
   }
 }
@@ -128,10 +133,10 @@ class _CartEmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.shopping_bag_outlined,
             size: 56,
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
           ),
           const SizedBox(height: AppSpacing.s16),
           Text('Your cart is empty', style: AppTypography.body),

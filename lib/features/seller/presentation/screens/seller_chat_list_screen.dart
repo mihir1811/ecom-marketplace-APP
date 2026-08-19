@@ -8,6 +8,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../buyer/presentation/widgets/buyer_layout.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_thread.dart';
@@ -43,11 +44,13 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
           t.productType.label.toLowerCase().contains(q);
     }).toList();
 
-    return ColoredBox(
-      color: AppColors.creamBg,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return DarkThemeScope(
+      child: Builder(
+        builder: (context) => ColoredBox(
+          color: AppColors.bg(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.s8,
@@ -81,9 +84,9 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
                 if (state.threads.isNotEmpty)
                   Text(
                     '${state.threads.length}',
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedLight,
-                    ),
+                  style: AppTypography.caption.copyWith(
+                  color: AppColors.textMuted(context),
+                ),
                   ),
               ],
             ),
@@ -97,18 +100,18 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
               decoration: InputDecoration(
                 hintText: 'Search conversations',
                 hintStyle: AppTypography.body.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
                 filled: true,
-                fillColor: AppColors.warmWhite,
+                fillColor: AppColors.field(context),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.r12),
-                  borderSide: const BorderSide(color: AppColors.warmBorder),
+                  borderSide: BorderSide(color: AppColors.border(context)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.r12),
-                  borderSide: const BorderSide(color: AppColors.warmBorder),
+                  borderSide: BorderSide(color: AppColors.border(context)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.r12),
@@ -118,9 +121,11 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.s12),
-          Expanded(child: _body(state, threads)),
-        ],
+            const SizedBox(height: AppSpacing.s12),
+            Expanded(child: _body(state, threads)),
+          ],
+          ),
+        ),
       ),
     );
   }
@@ -151,10 +156,10 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: AppSpacing.s24),
         itemCount: threads.length,
-        separatorBuilder: (_, __) => const Divider(
+        separatorBuilder: (_, __) => Divider(
           height: 1,
           indent: 72,
-          color: AppColors.warmBorder,
+          color: AppColors.border(context),
         ),
         itemBuilder: (context, index) {
           final thread = threads[index];
@@ -197,11 +202,11 @@ class _ThreadTile extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 22,
-              backgroundColor: AppColors.sandSurface,
+              backgroundColor: AppColors.surface(context),
               child: Text(
                 initial,
                 style: AppTypography.label.copyWith(
-                  color: AppColors.charcoal,
+                  color: AppColors.textPrimary(context),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -224,10 +229,10 @@ class _ThreadTile extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
+                        Text(
                         _relativeTime(thread.lastMessageAt),
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                           fontSize: 11,
                         ),
                       ),
@@ -247,13 +252,13 @@ class _ThreadTile extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          thread.lastMessage.isEmpty
-                              ? '—'
-                              : thread.lastMessage,
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textSecondaryLight,
-                          ),
+                        child:                   Text(
+                    thread.lastMessage.isEmpty
+                        ? '—'
+                        : thread.lastMessage,
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textSecondary(context),
+                    ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),

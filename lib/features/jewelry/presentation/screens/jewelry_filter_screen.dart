@@ -11,6 +11,7 @@ import 'package:gemstone/core/widgets/filters/filter_boolean_checkbox.dart';
 import 'package:gemstone/core/widgets/filters/filter_chip.dart';
 import 'package:gemstone/core/widgets/filters/filter_range_slider.dart';
 import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
@@ -63,200 +64,267 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
     final n = ref.read(jewelryFilterDraftProvider.notifier);
     final resultCount = listState?.totalCount;
 
-    return AppScaffold(
-      backgroundColor: AppColors.warmWhite,
-      appBar: AppBar(
-        title: Text(
-          'Filters',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: n.reset,
-            child: Text(
-              'Reset All',
-              style: AppTypography.caption.copyWith(
-                color: AppColors.bronze,
-                fontWeight: FontWeight.w700,
+    return DarkThemeScope(
+      child: AppScaffold(
+        backgroundColor: AppColors.bg(context),
+        appBar: AppBar(
+          title: Text(
+            'Filters',
+            style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: n.reset,
+              child: Text(
+                'Reset All',
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.bronze,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(bottom: AppSpacing.s24),
-              children: [
-                _section(
-                  'availability',
-                  'AVAILABILITY',
-                  _chipWrap(
-                    JewelryFilterState.availabilityOptions,
-                    draft.availability,
-                    n.toggleAvailability,
-                  ),
-                ),
-                _section(
-                  'media',
-                  'WITH MEDIA',
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.s16,
-                    ),
-                    child: FilterBooleanCheckbox(
-                      label: 'Show items with images/media only',
-                      value: draft.withMediaOnly,
-                      onChanged: (v) => n.setWithMediaOnly(v ?? false),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: AppSpacing.s24),
+                children: [
+                  _section(
+                    'availability',
+                    'AVAILABILITY',
+                    _chipWrap(
+                      JewelryFilterState.availabilityOptions,
+                      draft.availability,
+                      n.toggleAvailability,
                     ),
                   ),
-                ),
-                _section(
-                  'gender',
-                  'GENDER',
-                  _chipWrap(
-                    JewelryFilterState.genderOptions,
-                    draft.genders,
-                    n.toggleGender,
-                  ),
-                ),
-                _section(
-                  'price',
-                  'PRICE RANGE',
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.s16,
-                    ),
-                    child: FilterRangeSlider(
-                      title: 'Price',
-                      minLimit: JewelryFilterState.priceMinLimit,
-                      maxLimit: JewelryFilterState.priceMaxLimit,
-                      currentMin: draft.priceMin,
-                      currentMax: draft.priceMax,
-                      unitPrefix: AppCurrency.symbol,
-                      isInteger: true,
-                      onChanged: n.setPriceRange,
-                      onClear: n.clearPriceRange,
-                    ),
-                  ),
-                ),
-                _section(
-                  'occasion',
-                  'OCCASION',
-                  _chipWrap(
-                    JewelryFilterState.occasionOptions,
-                    draft.occasions,
-                    n.toggleOccasion,
-                  ),
-                ),
-                _section(
-                  'metal',
-                  'METAL',
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          AppSpacing.s16,
-                          0,
-                          AppSpacing.s16,
-                          AppSpacing.s8,
-                        ),
-                        child: FilterSectionHeader(title: 'Metal Type'),
+                  _section(
+                    'media',
+                    'WITH MEDIA',
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.s16,
                       ),
-                      _chipWrap(
-                        JewelryFilterState.metalTypeOptions,
-                        draft.metalTypes,
-                        n.toggleMetalType,
+                      child: FilterBooleanCheckbox(
+                        label: 'Show items with images/media only',
+                        value: draft.withMediaOnly,
+                        onChanged: (v) => n.setWithMediaOnly(v ?? false),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          AppSpacing.s16,
-                          AppSpacing.s12,
-                          AppSpacing.s16,
-                          AppSpacing.s8,
-                        ),
-                        child: FilterSectionHeader(title: 'Metal Color'),
+                    ),
+                  ),
+                  _section(
+                    'gender',
+                    'GENDER',
+                    _chipWrap(
+                      JewelryFilterState.genderOptions,
+                      draft.genders,
+                      n.toggleGender,
+                    ),
+                  ),
+                  _section(
+                    'price',
+                    'PRICE RANGE',
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.s16,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s16,
+                      child: FilterRangeSlider(
+                        title: 'Price',
+                        minLimit: JewelryFilterState.priceMinLimit,
+                        maxLimit: JewelryFilterState.priceMaxLimit,
+                        currentMin: draft.priceMin,
+                        currentMax: draft.priceMax,
+                        unitPrefix: AppCurrency.symbol,
+                        isInteger: true,
+                        onChanged: n.setPriceRange,
+                        onClear: n.clearPriceRange,
+                      ),
+                    ),
+                  ),
+                  _section(
+                    'occasion',
+                    'OCCASION',
+                    _chipWrap(
+                      JewelryFilterState.occasionOptions,
+                      draft.occasions,
+                      n.toggleOccasion,
+                    ),
+                  ),
+                  _section(
+                    'metal',
+                    'METAL',
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            AppSpacing.s16,
+                            0,
+                            AppSpacing.s16,
+                            AppSpacing.s8,
+                          ),
+                          child: FilterSectionHeader(title: 'Metal Type'),
                         ),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Wrap(
-                            alignment: WrapAlignment.start,
-                            spacing: AppSpacing.s12,
-                            runSpacing: AppSpacing.s12,
+                        _chipWrap(
+                          JewelryFilterState.metalTypeOptions,
+                          draft.metalTypes,
+                          n.toggleMetalType,
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            AppSpacing.s16,
+                            AppSpacing.s12,
+                            AppSpacing.s16,
+                            AppSpacing.s8,
+                          ),
+                          child: FilterSectionHeader(title: 'Metal Color'),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.s16,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Wrap(
+                              alignment: WrapAlignment.start,
+                              spacing: AppSpacing.s12,
+                              runSpacing: AppSpacing.s12,
+                              children: [
+                                for (final color
+                                    in JewelryFilterState.metalColorOptions)
+                                  _MetalColorSwatch(
+                                    label: color,
+                                    selected: draft.metalColors.contains(color),
+                                    onTap: () => n.toggleMetalColor(color),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            AppSpacing.s16,
+                            AppSpacing.s16,
+                            AppSpacing.s16,
+                            AppSpacing.s8,
+                          ),
+                          child: FilterSectionHeader(title: 'Metal Purity'),
+                        ),
+                        _chipWrap(
+                          JewelryFilterState.metalPurityOptions,
+                          draft.metalPurities,
+                          n.toggleMetalPurity,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.s16,
+                            vertical: AppSpacing.s8,
+                          ),
+                          child: FilterRangeSlider(
+                            title: 'Metal Weight',
+                            minLimit: JewelryFilterState.metalWeightMinLimit,
+                            maxLimit: JewelryFilterState.metalWeightMaxLimit,
+                            currentMin: draft.metalWeightMin,
+                            currentMax: draft.metalWeightMax,
+                            unitSuffix: 'g',
+                            isInteger: true,
+                            onChanged: n.setMetalWeight,
+                            onClear: n.clearMetalWeight,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.s16,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton.icon(
+                              onPressed: () => setState(
+                                () => _metalAdvancedOpen = !_metalAdvancedOpen,
+                              ),
+                              icon: Icon(
+                                _metalAdvancedOpen
+                                    ? Icons.keyboard_arrow_up
+                                    : Icons.keyboard_arrow_down,
+                                size: 18,
+                              ),
+                              label: const Text('Advanced'),
+                            ),
+                          ),
+                        ),
+                        if (_metalAdvancedOpen) ...[
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              AppSpacing.s16,
+                              0,
+                              AppSpacing.s16,
+                              AppSpacing.s8,
+                            ),
+                            child: FilterSectionHeader(title: 'Metal Finish'),
+                          ),
+                          _chipWrap(
+                            JewelryFilterState.metalFinishOptions,
+                            draft.metalFinishes,
+                            n.toggleMetalFinish,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              AppSpacing.s16,
+                              0,
+                              AppSpacing.s16,
+                              AppSpacing.s8,
+                            ),
+                            child: FilterSectionHeader(title: 'Plating'),
+                          ),
+                          _chipWrap(
+                            JewelryFilterState.platingOptions,
+                            draft.platings,
+                            n.togglePlating,
+                          ),
+                        ],
+                        const SizedBox(height: AppSpacing.s8),
+                      ],
+                    ),
+                  ),
+                  _section(
+                    'stone',
+                    'STONE',
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.s16,
+                            0,
+                            AppSpacing.s16,
+                            AppSpacing.s12,
+                          ),
+                          child: Row(
                             children: [
-                              for (final color
-                                  in JewelryFilterState.metalColorOptions)
-                                _MetalColorSwatch(
-                                  label: color,
-                                  selected: draft.metalColors.contains(color),
-                                  onTap: () => n.toggleMetalColor(color),
+                              for (final opt
+                                  in JewelryFilterState.stoneTypeOptions) ...[
+                                if (opt !=
+                                    JewelryFilterState.stoneTypeOptions.first)
+                                  const SizedBox(width: AppSpacing.s8),
+                                Expanded(
+                                  child: FilterChipWidget(
+                                    label: opt,
+                                    isSelected:
+                                        (draft.stoneType ?? 'Natural') == opt,
+                                    onTap: () => n.setStoneType(opt),
+                                    centerLabel: true,
+                                  ),
                                 ),
+                              ],
                             ],
                           ),
                         ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          AppSpacing.s16,
-                          AppSpacing.s16,
-                          AppSpacing.s16,
-                          AppSpacing.s8,
-                        ),
-                        child: FilterSectionHeader(title: 'Metal Purity'),
-                      ),
-                      _chipWrap(
-                        JewelryFilterState.metalPurityOptions,
-                        draft.metalPurities,
-                        n.toggleMetalPurity,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s16,
-                          vertical: AppSpacing.s8,
-                        ),
-                        child: FilterRangeSlider(
-                          title: 'Metal Weight',
-                          minLimit: JewelryFilterState.metalWeightMinLimit,
-                          maxLimit: JewelryFilterState.metalWeightMaxLimit,
-                          currentMin: draft.metalWeightMin,
-                          currentMax: draft.metalWeightMax,
-                          unitSuffix: 'g',
-                          isInteger: true,
-                          onChanged: n.setMetalWeight,
-                          onClear: n.clearMetalWeight,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s16,
-                        ),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            onPressed: () => setState(
-                              () => _metalAdvancedOpen = !_metalAdvancedOpen,
-                            ),
-                            icon: Icon(
-                              _metalAdvancedOpen
-                                  ? Icons.keyboard_arrow_up
-                                  : Icons.keyboard_arrow_down,
-                              size: 18,
-                            ),
-                            label: const Text('Advanced'),
-                          ),
-                        ),
-                      ),
-                      if (_metalAdvancedOpen) ...[
                         const Padding(
                           padding: EdgeInsets.fromLTRB(
                             AppSpacing.s16,
@@ -264,301 +332,239 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                             AppSpacing.s16,
                             AppSpacing.s8,
                           ),
-                          child: FilterSectionHeader(title: 'Metal Finish'),
+                          child: FilterSectionHeader(title: 'Stone Category'),
                         ),
-                        _chipWrap(
-                          JewelryFilterState.metalFinishOptions,
-                          draft.metalFinishes,
-                          n.toggleMetalFinish,
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            AppSpacing.s16,
-                            0,
-                            AppSpacing.s16,
-                            AppSpacing.s8,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.s16,
                           ),
-                          child: FilterSectionHeader(title: 'Plating'),
-                        ),
-                        _chipWrap(
-                          JewelryFilterState.platingOptions,
-                          draft.platings,
-                          n.togglePlating,
-                        ),
-                      ],
-                      const SizedBox(height: AppSpacing.s8),
-                    ],
-                  ),
-                ),
-                _section(
-                  'stone',
-                  'STONE',
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.s16,
-                          0,
-                          AppSpacing.s16,
-                          AppSpacing.s12,
-                        ),
-                        child: Row(
-                          children: [
-                            for (final opt
-                                in JewelryFilterState.stoneTypeOptions) ...[
-                              if (opt !=
-                                  JewelryFilterState.stoneTypeOptions.first)
-                                const SizedBox(width: AppSpacing.s8),
-                              Expanded(
-                                child: FilterChipWidget(
-                                  label: opt,
-                                  isSelected:
-                                      (draft.stoneType ?? 'Natural') == opt,
-                                  onTap: () => n.setStoneType(opt),
-                                  centerLabel: true,
+                          child: TextField(
+                            onChanged: (v) => setState(() => _stoneSearch = v),
+                            scrollPadding: const EdgeInsets.fromLTRB(
+                              20,
+                              20,
+                              20,
+                              80,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Search...',
+                              prefixIcon: const Icon(Icons.search, size: 20),
+                              isDense: true,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.r12,
                                 ),
                               ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          AppSpacing.s16,
-                          0,
-                          AppSpacing.s16,
-                          AppSpacing.s8,
-                        ),
-                        child: FilterSectionHeader(title: 'Stone Category'),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s16,
-                        ),
-                        child: TextField(
-                          onChanged: (v) => setState(() => _stoneSearch = v),
-                          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-                          decoration: InputDecoration(
-                            hintText: 'Search...',
-                            prefixIcon: const Icon(Icons.search, size: 20),
-                            isDense: true,
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppSpacing.r12),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.s8),
-                      _chipWrap(
-                        JewelryFilterState.stoneCategoryOptions
-                            .where(
-                              (o) => o
-                                  .toLowerCase()
-                                  .contains(_stoneSearch.toLowerCase()),
-                            )
-                            .toList(),
-                        draft.stoneCategories,
-                        n.toggleStoneCategory,
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          AppSpacing.s16,
-                          AppSpacing.s12,
-                          AppSpacing.s16,
-                          AppSpacing.s8,
-                        ),
-                        child: FilterSectionHeader(title: 'Stone Shape'),
-                      ),
-                      _chipWrap(
-                        JewelryFilterState.stoneShapeOptions,
-                        draft.stoneShapes,
-                        n.toggleStoneShape,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s16,
-                          vertical: AppSpacing.s8,
-                        ),
-                        child: FilterRangeSlider(
-                          title: 'Stone Weight',
-                          minLimit: JewelryFilterState.stoneWeightMinLimit,
-                          maxLimit: JewelryFilterState.stoneWeightMaxLimit,
-                          currentMin: draft.stoneWeightMin,
-                          currentMax: draft.stoneWeightMax,
-                          unitSuffix: 'ct',
-                          onChanged: n.setStoneWeight,
-                          onClear: n.clearStoneWeight,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s16,
-                        ),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            onPressed: () => setState(
-                              () => _stoneAdvancedOpen = !_stoneAdvancedOpen,
-                            ),
-                            icon: Icon(
-                              _stoneAdvancedOpen
-                                  ? Icons.keyboard_arrow_up
-                                  : Icons.keyboard_arrow_down,
-                              size: 18,
-                            ),
-                            label: const Text('Advanced'),
-                          ),
-                        ),
-                      ),
-                      if (_stoneAdvancedOpen) ...[
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            AppSpacing.s16,
-                            0,
-                            AppSpacing.s16,
-                            AppSpacing.s8,
-                          ),
-                          child: FilterSectionHeader(title: 'Stone Color'),
-                        ),
+                        const SizedBox(height: AppSpacing.s8),
                         _chipWrap(
-                          JewelryFilterState.stoneColorOptions,
-                          draft.stoneColors,
-                          n.toggleStoneColor,
+                          JewelryFilterState.stoneCategoryOptions
+                              .where(
+                                (o) => o.toLowerCase().contains(
+                                  _stoneSearch.toLowerCase(),
+                                ),
+                              )
+                              .toList(),
+                          draft.stoneCategories,
+                          n.toggleStoneCategory,
                         ),
                         const Padding(
                           padding: EdgeInsets.fromLTRB(
                             AppSpacing.s16,
-                            0,
+                            AppSpacing.s12,
                             AppSpacing.s16,
                             AppSpacing.s8,
                           ),
-                          child: FilterSectionHeader(title: 'Stone Clarity'),
+                          child: FilterSectionHeader(title: 'Stone Shape'),
                         ),
                         _chipWrap(
-                          JewelryFilterState.stoneClarityOptions,
-                          draft.stoneClarities,
-                          n.toggleStoneClarity,
+                          JewelryFilterState.stoneShapeOptions,
+                          draft.stoneShapes,
+                          n.toggleStoneShape,
                         ),
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            AppSpacing.s16,
-                            0,
-                            AppSpacing.s16,
-                            AppSpacing.s8,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.s16,
+                            vertical: AppSpacing.s8,
                           ),
-                          child: FilterSectionHeader(title: 'Stone Setting'),
+                          child: FilterRangeSlider(
+                            title: 'Stone Weight',
+                            minLimit: JewelryFilterState.stoneWeightMinLimit,
+                            maxLimit: JewelryFilterState.stoneWeightMaxLimit,
+                            currentMin: draft.stoneWeightMin,
+                            currentMax: draft.stoneWeightMax,
+                            unitSuffix: 'ct',
+                            onChanged: n.setStoneWeight,
+                            onClear: n.clearStoneWeight,
+                          ),
                         ),
-                        _chipWrap(
-                          JewelryFilterState.stoneSettingOptions,
-                          draft.stoneSettings,
-                          n.toggleStoneSetting,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.s16,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton.icon(
+                              onPressed: () => setState(
+                                () => _stoneAdvancedOpen = !_stoneAdvancedOpen,
+                              ),
+                              icon: Icon(
+                                _stoneAdvancedOpen
+                                    ? Icons.keyboard_arrow_up
+                                    : Icons.keyboard_arrow_down,
+                                size: 18,
+                              ),
+                              label: const Text('Advanced'),
+                            ),
+                          ),
                         ),
+                        if (_stoneAdvancedOpen) ...[
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              AppSpacing.s16,
+                              0,
+                              AppSpacing.s16,
+                              AppSpacing.s8,
+                            ),
+                            child: FilterSectionHeader(title: 'Stone Color'),
+                          ),
+                          _chipWrap(
+                            JewelryFilterState.stoneColorOptions,
+                            draft.stoneColors,
+                            n.toggleStoneColor,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              AppSpacing.s16,
+                              0,
+                              AppSpacing.s16,
+                              AppSpacing.s8,
+                            ),
+                            child: FilterSectionHeader(title: 'Stone Clarity'),
+                          ),
+                          _chipWrap(
+                            JewelryFilterState.stoneClarityOptions,
+                            draft.stoneClarities,
+                            n.toggleStoneClarity,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              AppSpacing.s16,
+                              0,
+                              AppSpacing.s16,
+                              AppSpacing.s8,
+                            ),
+                            child: FilterSectionHeader(title: 'Stone Setting'),
+                          ),
+                          _chipWrap(
+                            JewelryFilterState.stoneSettingOptions,
+                            draft.stoneSettings,
+                            n.toggleStoneSetting,
+                          ),
+                        ],
+                        const SizedBox(height: AppSpacing.s8),
                       ],
-                      const SizedBox(height: AppSpacing.s8),
-                    ],
-                  ),
-                ),
-                ..._categorySpecificSections(draft, n),
-                _section(
-                  'cert',
-                  'CERTIFICATION',
-                  _chipWrap(
-                    JewelryFilterState.certificationOptions,
-                    draft.certifications,
-                    n.toggleCertification,
-                  ),
-                ),
-                _section(
-                  'condition',
-                  'CONDITION',
-                  _chipWrap(
-                    JewelryFilterState.conditionOptions,
-                    draft.conditions,
-                    n.toggleCondition,
-                  ),
-                ),
-                _section(
-                  'delivery',
-                  'DELIVERY TIME',
-                  _chipWrap(
-                    JewelryFilterState.deliveryTimeOptions,
-                    {
-                      if (draft.deliveryTime != null) draft.deliveryTime!,
-                    },
-                    (v) => n.setDeliveryTime(
-                      draft.deliveryTime == v ? null : v,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s12,
-              AppSpacing.s16,
-              AppSpacing.s16,
-            ),
-            decoration: const BoxDecoration(
-              color: AppColors.warmWhite,
-              border: Border(
-                top: BorderSide(
-                  color: AppColors.warmBorder,
-                ),
-              ),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: n.reset,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppSpacing.r8),
-                        ),
-                      ),
-                      child: const Text('Reset Filters'),
+                  ..._categorySpecificSections(draft, n),
+                  _section(
+                    'cert',
+                    'CERTIFICATION',
+                    _chipWrap(
+                      JewelryFilterState.certificationOptions,
+                      draft.certifications,
+                      n.toggleCertification,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.s12),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.charcoal,
-                        foregroundColor: AppColors.warmWhite,
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppSpacing.r8),
-                        ),
-                      ),
-                      onPressed: () {
-                        n.apply();
-                        ref.read(jewelryListProvider.notifier).refresh();
-                        context.pop();
-                      },
-                      child: Text(
-                        resultCount == null
-                            ? 'Show Results'
-                            : 'Show Results ($resultCount)',
-                        style: AppTypography.label.copyWith(
-                          color: AppColors.warmWhite,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                  _section(
+                    'condition',
+                    'CONDITION',
+                    _chipWrap(
+                      JewelryFilterState.conditionOptions,
+                      draft.conditions,
+                      n.toggleCondition,
+                    ),
+                  ),
+                  _section(
+                    'delivery',
+                    'DELIVERY TIME',
+                    _chipWrap(
+                      JewelryFilterState.deliveryTimeOptions,
+                      {if (draft.deliveryTime != null) draft.deliveryTime!},
+                      (v) =>
+                          n.setDeliveryTime(draft.deliveryTime == v ? null : v),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+            Container(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s16,
+                AppSpacing.s12,
+                AppSpacing.s16,
+                AppSpacing.s16,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.bg(context),
+                border: Border(
+                  top: BorderSide(color: AppColors.border(context)),
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: n.reset,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppSpacing.r8),
+                          ),
+                        ),
+                        child: const Text('Reset Filters'),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.s12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.isDark(context)
+                              ? AppColors.bronze
+                              : AppColors.charcoal,
+                          foregroundColor: AppColors.warmWhite,
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppSpacing.r8),
+                          ),
+                        ),
+                        onPressed: () {
+                          n.apply();
+                          ref.read(jewelryListProvider.notifier).refresh();
+                          context.pop();
+                        },
+                        child: Text(
+                          resultCount == null
+                              ? 'Show Results'
+                              : 'Show Results ($resultCount)',
+                          style: AppTypography.label.copyWith(
+                            color: AppColors.warmWhite,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -570,58 +576,58 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
     final parent = JewelryFilterState.parentCategoryOrDefault(draft.category);
     return switch (parent) {
       'Bracelets' => [
-          _section(
-            'braceletSize',
-            'BRACELET SIZE',
-            _chipWrap(
-              JewelryFilterState.braceletSizeOptions,
-              draft.braceletSizes,
-              n.toggleBraceletSize,
-            ),
+        _section(
+          'braceletSize',
+          'BRACELET SIZE',
+          _chipWrap(
+            JewelryFilterState.braceletSizeOptions,
+            draft.braceletSizes,
+            n.toggleBraceletSize,
           ),
-          _section(
-            'braceletLength',
-            'BRACELET LENGTH',
-            _chipWrap(
-              JewelryFilterState.braceletLengthOptions,
-              draft.braceletLengths,
-              n.toggleBraceletLength,
-            ),
+        ),
+        _section(
+          'braceletLength',
+          'BRACELET LENGTH',
+          _chipWrap(
+            JewelryFilterState.braceletLengthOptions,
+            draft.braceletLengths,
+            n.toggleBraceletLength,
           ),
-        ],
+        ),
+      ],
       'Chains' => [
-          _section(
-            'chainLength',
-            'CHAIN LENGTH',
-            _chipWrap(
-              JewelryFilterState.chainLengthOptions,
-              draft.chainLengths,
-              n.toggleChainLength,
-            ),
+        _section(
+          'chainLength',
+          'CHAIN LENGTH',
+          _chipWrap(
+            JewelryFilterState.chainLengthOptions,
+            draft.chainLengths,
+            n.toggleChainLength,
           ),
-        ],
+        ),
+      ],
       'Necklaces' => [
-          _section(
-            'necklaceLength',
-            'NECKLACE LENGTH',
-            _chipWrap(
-              JewelryFilterState.necklaceLengthOptions,
-              draft.necklaceLengths,
-              n.toggleNecklaceLength,
-            ),
+        _section(
+          'necklaceLength',
+          'NECKLACE LENGTH',
+          _chipWrap(
+            JewelryFilterState.necklaceLengthOptions,
+            draft.necklaceLengths,
+            n.toggleNecklaceLength,
           ),
-        ],
+        ),
+      ],
       'Rings' => [
-          _section(
-            'ringSize',
-            'RING SIZE',
-            _chipWrap(
-              JewelryFilterState.ringSizeOptions,
-              draft.ringSizes,
-              n.toggleRingSize,
-            ),
+        _section(
+          'ringSize',
+          'RING SIZE',
+          _chipWrap(
+            JewelryFilterState.ringSizeOptions,
+            draft.ringSizes,
+            n.toggleRingSize,
           ),
-        ],
+        ),
+      ],
       _ => const <Widget>[],
     };
   }
@@ -684,14 +690,17 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
           spacing: AppSpacing.s8,
           runSpacing: AppSpacing.s8,
           children: [
-          for (final opt in options)
-            FilterChipWidget(
-              label: opt,
-              isSelected: selected.contains(opt),
-              onTap: () => onToggle(opt),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            ),
-        ],
+            for (final opt in options)
+              FilterChipWidget(
+                label: opt,
+                isSelected: selected.contains(opt),
+                onTap: () => onToggle(opt),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -723,7 +732,9 @@ class _MetalColorSwatch extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected ? AppColors.charcoal : AppColors.warmBorder,
+                  color: selected
+                      ? AppColors.selectedFill(context)
+                      : AppColors.border(context),
                   width: selected ? 2 : 1,
                 ),
               ),
@@ -795,7 +806,13 @@ class _HalfCircleMetalPainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
 
     paint.color = colors[0];
-    canvas.drawArc(rect, -3.141592653589793 / 2, 3.141592653589793, true, paint);
+    canvas.drawArc(
+      rect,
+      -3.141592653589793 / 2,
+      3.141592653589793,
+      true,
+      paint,
+    );
 
     paint.color = colors[1];
     canvas.drawArc(rect, 3.141592653589793 / 2, 3.141592653589793, true, paint);

@@ -152,7 +152,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                   widget.title,
                   style: AppTypography.label.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryLight,
+                    color: AppColors.textPrimary(context),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.s8),
@@ -194,7 +194,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                   Text(
                     'Minimum (${widget.unitSuffix.isEmpty ? 'value' : widget.unitSuffix.trim()})',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.s4),
@@ -215,24 +215,24 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           hintText: _formatValue(widget.minLimit),
                           hintStyle: AppTypography.body.copyWith(
                             fontSize: 14,
-                            color: AppColors.textMutedLight,
+                            color: AppColors.textMuted(context),
                           ),
                           filled: true,
-                          fillColor: AppColors.warmWhite,
+                          fillColor: AppColors.field(context),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.s12,
                             vertical: AppSpacing.s8,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: const BorderSide(
-                              color: AppColors.warmBorder,
+                            borderSide: BorderSide(
+                              color: AppColors.border(context),
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: const BorderSide(
-                              color: AppColors.warmBorder,
+                            borderSide: BorderSide(
+                              color: AppColors.border(context),
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
@@ -255,7 +255,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                   Text(
                     'Maximum (${widget.unitSuffix.isEmpty ? 'value' : widget.unitSuffix.trim()})',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.s4),
@@ -276,24 +276,24 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           hintText: _formatValue(widget.maxLimit),
                           hintStyle: AppTypography.body.copyWith(
                             fontSize: 14,
-                            color: AppColors.textMutedLight,
+                            color: AppColors.textMuted(context),
                           ),
                           filled: true,
-                          fillColor: AppColors.warmWhite,
+                          fillColor: AppColors.field(context),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.s12,
                             vertical: AppSpacing.s8,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: const BorderSide(
-                              color: AppColors.warmBorder,
+                            borderSide: BorderSide(
+                              color: AppColors.border(context),
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: const BorderSide(
-                              color: AppColors.warmBorder,
+                            borderSide: BorderSide(
+                              color: AppColors.border(context),
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(

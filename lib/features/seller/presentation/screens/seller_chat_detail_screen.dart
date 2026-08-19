@@ -10,6 +10,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_message.dart';
 import '../../../chat/domain/models/chat_thread.dart';
@@ -90,28 +91,32 @@ class _SellerChatDetailScreenState
         ? state.context!.sellerName
         : _peerName(state.messages, args.peerUserId);
 
-    return ColoredBox(
-      color: AppColors.creamBg,
-      child: Column(
-        children: [
-          _ThreadHeader(
-            peerName: peerName,
-            productLabel: state.context?.productName ??
-                '${args.productTypeApi} · ${args.productId}',
-            onBack: () => context.go(
-              messagesPathFor(GoRouterState.of(context).uri.path),
-            ),
+    return DarkThemeScope(
+      child: Builder(
+        builder: (context) => ColoredBox(
+          color: AppColors.bg(context),
+          child: Column(
+            children: [
+              _ThreadHeader(
+                peerName: peerName,
+                productLabel: state.context?.productName ??
+                    '${args.productTypeApi} · ${args.productId}',
+                onBack: () => context.go(
+                  messagesPathFor(GoRouterState.of(context).uri.path),
+                ),
+              ),
+              if (state.context != null)
+                _ProductStrip(contextData: state.context!),
+              Expanded(child: _messagesBody(state, args)),
+              _Composer(
+                controller: _messageCtrl,
+                isSending: state.isSending,
+                sendError: state.sendError,
+                onSend: _send,
+              ),
+            ],
           ),
-          if (state.context != null)
-            _ProductStrip(contextData: state.context!),
-          Expanded(child: _messagesBody(state, args)),
-          _Composer(
-            controller: _messageCtrl,
-            isSending: state.isSending,
-            sendError: state.sendError,
-            onSend: _send,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -185,7 +190,7 @@ class _ThreadHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -204,6 +209,7 @@ class _ThreadHeader extends StatelessWidget {
                       peerName,
                       style: AppTypography.label.copyWith(
                         fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary(context),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -211,7 +217,7 @@ class _ThreadHeader extends StatelessWidget {
                     Text(
                       productLabel,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -243,10 +249,10 @@ class _ProductStrip extends StatelessWidget {
         horizontal: AppSpacing.s16,
         vertical: AppSpacing.s12,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.sandSurface,
+      decoration: BoxDecoration(
+        color: AppColors.surface(context),
         border: Border(
-          bottom: BorderSide(color: AppColors.warmBorder),
+          bottom: BorderSide(color: AppColors.border(context)),
         ),
       ),
       child: Row(
@@ -257,23 +263,23 @@ class _ProductStrip extends StatelessWidget {
               width: 44,
               height: 44,
               child: image == null || image.isEmpty
-                  ? const ColoredBox(
-                      color: AppColors.warmBorder,
+                  ? ColoredBox(
+                      color: AppColors.border(context),
                       child: Icon(
                         Icons.diamond_outlined,
                         size: 20,
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                       ),
                     )
                   : CachedNetworkImage(
                       imageUrl: image,
                       fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => const ColoredBox(
-                        color: AppColors.warmBorder,
+                      errorWidget: (_, __, ___) => ColoredBox(
+                        color: AppColors.border(context),
                         child: Icon(
                           Icons.image_not_supported_outlined,
                           size: 18,
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                         ),
                       ),
                     ),
@@ -288,6 +294,7 @@ class _ProductStrip extends StatelessWidget {
                   contextData.productName,
                   style: AppTypography.label.copyWith(
                     fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary(context),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -301,7 +308,7 @@ class _ProductStrip extends StatelessWidget {
                     if (price != null) AppCurrency.format(price),
                   ].join(' · '),
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -336,7 +343,9 @@ class _MessageBubble extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: AppSpacing.s8),
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
           decoration: BoxDecoration(
-            color: mine ? AppColors.charcoal : AppColors.warmWhite,
+            color: mine
+                ? (AppColors.isDark(context) ? AppColors.slateBorder : AppColors.charcoal)
+                : AppColors.card(context),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(AppSpacing.r16),
               topRight: const Radius.circular(AppSpacing.r16),
@@ -346,7 +355,7 @@ class _MessageBubble extends StatelessWidget {
             ),
             border: mine
                 ? null
-                : Border.all(color: AppColors.warmBorder),
+                : Border.all(color: AppColors.border(context)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -364,7 +373,7 @@ class _MessageBubble extends StatelessWidget {
                     height: 1.35,
                     color: mine
                         ? AppColors.warmWhite
-                        : AppColors.textPrimaryLight,
+                        : AppColors.textPrimary(context),
                   ),
                 ),
               ),
@@ -375,7 +384,7 @@ class _MessageBubble extends StatelessWidget {
                   fontSize: 10,
                   color: mine
                       ? AppColors.warmWhite.withValues(alpha: 0.65)
-                      : AppColors.textMutedLight,
+                      : AppColors.textMuted(context),
                 ),
               ),
             ],
@@ -398,7 +407,7 @@ class _DateChip extends StatelessWidget {
       child: Text(
         _label(date),
         style: AppTypography.caption.copyWith(
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
           fontSize: 11,
           letterSpacing: 0.2,
         ),
@@ -446,7 +455,7 @@ class _Composer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       child: SafeArea(
         top: false,
         child: Padding(
@@ -481,10 +490,10 @@ class _Composer extends StatelessWidget {
                       decoration: InputDecoration(
                         hintText: 'Write a message',
                         hintStyle: AppTypography.body.copyWith(
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                         ),
                         filled: true,
-                        fillColor: AppColors.sandSurface,
+                        fillColor: AppColors.surface(context),
                         border: OutlineInputBorder(
                           borderRadius:
                               BorderRadius.circular(AppSpacing.r16),

@@ -20,13 +20,13 @@ class CompareAddButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final border = isSelected
         ? AppColors.bronze
-        : (AppColors.warmBorder);
+        : (AppColors.border(context));
     final fill = isSelected
         ? AppColors.bronze.withValues(alpha: 0.12)
-        : (AppColors.warmWhite);
+        : (AppColors.card(context));
     final ink = isSelected
         ? AppColors.bronze
-        : (AppColors.charcoal);
+        : (AppColors.textPrimary(context));
 
     return Material(
       color: Colors.transparent,

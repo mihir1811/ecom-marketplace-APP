@@ -12,7 +12,7 @@ class CatalogScreenShell extends StatelessWidget {
     required this.child,
     this.scaffoldKey,
     this.endDrawer,
-    this.backgroundColor = AppColors.creamBg,
+    this.backgroundColor,
     this.automaticallyImplyActions = false,
     this.trailingActions = const [],
     super.key,
@@ -23,7 +23,7 @@ class CatalogScreenShell extends StatelessWidget {
   final Widget child;
   final GlobalKey<ScaffoldState>? scaffoldKey;
   final Widget? endDrawer;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final bool automaticallyImplyActions;
   final List<Widget> trailingActions;
 
@@ -33,7 +33,7 @@ class CatalogScreenShell extends StatelessWidget {
       scaffoldKey: scaffoldKey,
       endDrawer: endDrawer,
       endDrawerEnableOpenDragGesture: false,
-      backgroundColor: backgroundColor,
+      backgroundColor: backgroundColor ?? AppColors.bg(context),
       appBar: AppBar(
         automaticallyImplyActions: automaticallyImplyActions,
         title: Text(

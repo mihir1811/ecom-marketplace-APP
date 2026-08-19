@@ -133,14 +133,8 @@ abstract final class DiamondSearchRequestMapper {
       body['treatments'] = [treatment.trim()];
     }
 
-    final company = filters.companyNameSearch?.trim();
-    if (company != null && company.isNotEmpty) {
-      body['companies'] = [company];
-    }
-    final location = filters.vendorLocationSearch?.trim();
-    if (location != null && location.isNotEmpty) {
-      body['locations'] = [location];
-    }
+    _putStringList(body, 'companies', filters.companyNames);
+    _putStringList(body, 'locations', filters.vendorLocations);
 
     _putRange(
       body,

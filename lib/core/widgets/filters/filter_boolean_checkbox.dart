@@ -22,7 +22,7 @@ class FilterBooleanCheckbox extends StatelessWidget {
           value: value,
           activeColor: AppColors.bronze,
           checkColor: AppColors.warmWhite,
-          side: const BorderSide(color: AppColors.warmBorder),
+          side: BorderSide(color: AppColors.border(context)),
           onChanged: onChanged,
         ),
         Expanded(
@@ -30,7 +30,7 @@ class FilterBooleanCheckbox extends StatelessWidget {
             label,
             style: AppTypography.body.copyWith(
               fontSize: 14,
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
         ),

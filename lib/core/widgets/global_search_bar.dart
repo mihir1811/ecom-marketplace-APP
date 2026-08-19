@@ -8,21 +8,24 @@ class GlobalSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const textColor = AppColors.textPrimaryLight;
+    final textColor = AppColors.textPrimary(context);
+    final fieldColor = AppColors.field(context);
+    final borderColor = AppColors.border(context);
+    final mutedColor = AppColors.textMuted(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.warmWhite,
+          color: fieldColor,
           borderRadius: BorderRadius.circular(AppSpacing.r20),
-          border: Border.all(color: AppColors.warmBorder),
+          border: Border.all(color: borderColor),
         ),
         child: TextField(
           decoration: InputDecoration(
             hintText: 'Search by shape, carat, certificate...',
             hintStyle: AppTypography.body.copyWith(
-              color: AppColors.textMutedLight,
+              color: mutedColor,
             ),
             filled: false,
             border: InputBorder.none,
@@ -32,14 +35,14 @@ class GlobalSearchBar extends StatelessWidget {
               horizontal: AppSpacing.s12,
               vertical: AppSpacing.s8,
             ),
-            prefixIcon: const Padding(
-              padding: EdgeInsets.only(
+            prefixIcon: Padding(
+              padding: const EdgeInsets.only(
                 left: AppSpacing.s12,
                 right: AppSpacing.s8,
               ),
               child: Icon(
                 Icons.search,
-                color: AppColors.textMutedLight,
+                color: mutedColor,
                 size: 20,
               ),
             ),

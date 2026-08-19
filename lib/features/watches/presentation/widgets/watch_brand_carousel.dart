@@ -36,12 +36,13 @@ class WatchBrandCarousel extends ConsumerWidget {
                         style: AppTypography.title.copyWith(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
                       Text(
                         'Select one or more luxury houses',
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                         ),
                       ),
                     ],
@@ -85,21 +86,34 @@ class WatchBrandCarousel extends ConsumerWidget {
                       vertical: AppSpacing.s12,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.warmWhite,
+                      color: AppColors.card(context),
                       borderRadius: BorderRadius.circular(AppSpacing.r12),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.bronze
-                            : (AppColors.warmBorder),
+                            : AppColors.border(context),
                         width: isSelected ? 1.5 : 1,
                       ),
                     ),
                     child: logo != null
-                        ? Image.asset(
-                            logo,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) =>
-                                _BrandFallback(brand: brand),
+                        ? ColorFiltered(
+                            colorFilter: AppColors.isDark(context)
+                                ? const ColorFilter.matrix(<double>[
+                                    -1, 0, 0, 0, 255,
+                                    0, -1, 0, 0, 255,
+                                    0, 0, -1, 0, 255,
+                                    0, 0, 0, 1, 0,
+                                  ])
+                                : const ColorFilter.mode(
+                                    Colors.transparent,
+                                    BlendMode.dst,
+                                  ),
+                            child: Image.asset(
+                              logo,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) =>
+                                  _BrandFallback(brand: brand),
+                            ),
                           )
                         : _BrandFallback(brand: brand),
                   ),
@@ -185,10 +199,10 @@ class _CategoryChip extends StatelessWidget {
           vertical: 8,
         ),
         decoration: BoxDecoration(
-          color: selected ? AppColors.charcoal : (AppColors.warmWhite),
+          color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: selected ? AppColors.charcoal : (AppColors.warmBorder),
+            color: selected ? AppColors.selectedFill(context) : AppColors.border(context),
           ),
         ),
         child: Center(
@@ -196,8 +210,8 @@ class _CategoryChip extends StatelessWidget {
             label,
             style: AppTypography.caption.copyWith(
               color: selected
-                  ? AppColors.warmWhite
-                  : (AppColors.textPrimaryLight),
+                  ? AppColors.onSelected(context)
+                  : AppColors.textPrimary(context),
               fontWeight: FontWeight.w600,
               fontSize: 12,
               letterSpacing: 0.4,
@@ -214,7 +228,7 @@ Future<void> showWatchBrandsDirectory(BuildContext context) {
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: AppColors.creamBg,
+    backgroundColor: AppColors.bg(context),
     builder: (context) => const WatchBrandsDirectorySheet(),
   );
 }
@@ -241,7 +255,7 @@ class _WatchBrandsDirectorySheetState
   @override
   Widget build(BuildContext context) {
     final selected = ref.watch(watchFilterProvider.select((s) => s.brands));
-    const muted = AppColors.textMutedLight;
+    final muted = AppColors.textMuted(context);
 
     final filtered = _query.isEmpty
         ? watchBrandCategories
@@ -292,7 +306,7 @@ class _WatchBrandsDirectorySheetState
                               'Search and select brands.',
                               style: AppTypography.body.copyWith(
                                 fontSize: 14,
-                                color: AppColors.textSecondaryLight,
+                                color: AppColors.textSecondary(context),
                               ),
                             ),
                           ],
@@ -313,9 +327,9 @@ class _WatchBrandsDirectorySheetState
                     height: 44,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColors.warmWhite,
+                        color: AppColors.field(context),
                         borderRadius: BorderRadius.circular(AppSpacing.r12),
-                        border: Border.all(color: AppColors.warmBorder),
+                        border: Border.all(color: AppColors.border(context)),
                       ),
                       child: TextField(
                         controller: _searchController,
@@ -324,7 +338,7 @@ class _WatchBrandsDirectorySheetState
                         decoration: InputDecoration(
                           isDense: true,
                           hintText: 'Search brands...',
-                          prefixIcon: const Icon(
+                          prefixIcon: Icon(
                             Icons.search,
                             color: muted,
                             size: 20,
@@ -339,7 +353,7 @@ class _WatchBrandsDirectorySheetState
                                     _searchController.clear();
                                     setState(() => _query = '');
                                   },
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.clear,
                                     color: muted,
                                     size: 18,
@@ -405,7 +419,7 @@ class _WatchBrandsDirectorySheetState
                               children: [
                                 Container(
                                   width: double.infinity,
-                                  color: AppColors.sandSurface,
+                                  color: AppColors.surface(context),
                                   padding: const EdgeInsets.symmetric(
                                     vertical: AppSpacing.s8,
                                   ),

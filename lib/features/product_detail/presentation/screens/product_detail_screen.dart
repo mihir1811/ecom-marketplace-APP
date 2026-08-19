@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../domain/models/product_detail.dart';
@@ -77,8 +78,21 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
     final visibleSpecs = detail.specsForViewer(isSeller: auth.isSeller);
 
+    return DarkThemeScope(
+      child: Builder(
+        builder: (context) => _buildScaffold(context, detail, auth, visibleSpecs),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(
+    BuildContext context,
+    ProductDetail detail,
+    ({bool isSeller, bool showProtected}) auth,
+    List<ProductSpecSection> visibleSpecs,
+  ) {
     return AppScaffold(
-      backgroundColor: AppColors.creamBg,
+      backgroundColor: AppColors.bg(context),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -160,7 +174,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       child: Text(
                         detail.note!,
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                           height: 1.5,
                         ),
                       ),

@@ -73,7 +73,7 @@ class CartTotalsSection extends ConsumerWidget {
           Text(
             'ORDER SUMMARY',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
               fontWeight: FontWeight.w700,
               letterSpacing: 0.6,
             ),
@@ -90,25 +90,27 @@ class CartTotalsSection extends ConsumerWidget {
             const SizedBox(height: AppSpacing.s12),
           ],
           if (showItemsSubtotal) ...[
-            _usdOnlyRow('Items subtotal', totals.subtotalUsd),
+            _usdOnlyRow(context, 'Items subtotal', totals.subtotalUsd),
             if (totals.automaticDiscountUsd > 0)
               _usdOnlyRow(
+                context,
                 'Automatic discount',
                 -totals.automaticDiscountUsd,
               ),
             if (totals.promoDiscountUsd > 0)
-              _usdOnlyRow('Promo discount', -totals.promoDiscountUsd),
+              _usdOnlyRow(context, 'Promo discount', -totals.promoDiscountUsd),
             if (totals.totalDiscountUsd > 0 &&
                 totals.promoDiscountUsd <= 0 &&
                 totals.automaticDiscountUsd <= 0)
-              _usdOnlyRow('Discount', -totals.totalDiscountUsd),
+              _usdOnlyRow(context, 'Discount', -totals.totalDiscountUsd),
           ] else if (unavailableCount > 0 &&
               availableSubtotalUsd > merchandiseUsd) ...[
-            _usdOnlyRow('Items subtotal', availableSubtotalUsd),
+            _usdOnlyRow(context, 'Items subtotal', availableSubtotalUsd),
           ],
-          _subtotalRow(estimate),
+          _subtotalRow(context, estimate),
           if (wantVerification && estimate.verificationUsd > 0)
             _inrRow(
+              context,
               'GemWorld verification',
               estimate.verificationInr,
               fallbackUsd: estimate.verificationUsd,
@@ -116,13 +118,14 @@ class CartTotalsSection extends ConsumerWidget {
             ),
           if (estimate.hasLiveRate) ...[
             if (estimate.gstInr > 0)
-              _inrRow(gstLabel, estimate.gstInr, hasRate: true),
+              _inrRow(context, gstLabel, estimate.gstInr, hasRate: true),
             if (estimate.transactionFeeInr > 0)
-              _inrRow(txLabel, estimate.transactionFeeInr, hasRate: true),
+              _inrRow(context, txLabel, estimate.transactionFeeInr, hasRate: true),
             if (estimate.platformFeeInr > 0)
-              _inrRow('Platform fee', estimate.platformFeeInr, hasRate: true),
+              _inrRow(context, 'Platform fee', estimate.platformFeeInr, hasRate: true),
             if (estimate.deliveryFeeInr > 0)
               _inrRow(
+                context,
                 'Delivery fee',
                 estimate.deliveryFeeInr,
                 hasRate: true,
@@ -137,7 +140,7 @@ class CartTotalsSection extends ConsumerWidget {
                   Chip(
                     label: Text(promo.code),
                     visualDensity: VisualDensity.compact,
-                    backgroundColor: AppColors.sandSurface,
+                    backgroundColor: AppColors.surface(context),
                   ),
               ],
             ),
@@ -172,7 +175,7 @@ class CartTotalsSection extends ConsumerWidget {
                     Text(
                       '${AppCurrency.usd(estimate.totalUsd)} · ${estimate.liveRateLabel}',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -186,7 +189,7 @@ class CartTotalsSection extends ConsumerWidget {
     );
   }
 
-  Widget _subtotalRow(CartOrderEstimate estimate) {
+  Widget _subtotalRow(BuildContext context, CartOrderEstimate estimate) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.s12),
       child: Row(
@@ -196,7 +199,7 @@ class CartTotalsSection extends ConsumerWidget {
           Text(
             'Subtotal',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
           Column(
@@ -211,10 +214,10 @@ class CartTotalsSection extends ConsumerWidget {
                 ),
               ),
               if (estimate.hasLiveRate)
-                Text(
+                  Text(
                   AppCurrency.usd(estimate.merchandiseUsd),
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
             ],
@@ -225,6 +228,7 @@ class CartTotalsSection extends ConsumerWidget {
   }
 
   Widget _inrRow(
+    BuildContext context,
     String label,
     double inrValue, {
     required bool hasRate,
@@ -236,10 +240,10 @@ class CartTotalsSection extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
-            child: Text(
+              child: Text(
               label,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
               ),
             ),
           ),
@@ -256,7 +260,7 @@ class CartTotalsSection extends ConsumerWidget {
     );
   }
 
-  Widget _usdOnlyRow(String label, double usdValue) {
+  Widget _usdOnlyRow(BuildContext context, String label, double usdValue) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.s8),
       child: Row(
@@ -265,7 +269,7 @@ class CartTotalsSection extends ConsumerWidget {
           Text(
             label,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
           Text(

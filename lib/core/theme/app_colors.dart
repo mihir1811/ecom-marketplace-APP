@@ -94,6 +94,18 @@ class AppColors {
     return screenBg(melee: melee, family: family);
   }
 
+  /// Melee-family screen tint that adapts to the active theme.
+  /// In dark mode every family flattens to the obsidian base so the tinted
+  /// band never fights the dark surfaces.
+  static Color screenBgFor(
+    BuildContext context, {
+    bool melee = false,
+    MeleeBgFamily family = MeleeBgFamily.natural,
+  }) {
+    if (isDark(context)) return obsidianBg;
+    return screenBg(melee: melee, family: family);
+  }
+
   /// Shared duration for melee background color transitions.
   static const Duration meleeBgDuration = Duration(milliseconds: 1200);
 
@@ -106,6 +118,52 @@ class AppColors {
   static const textPrimaryDark = Color(0xFFF9FAFB);
   static const textSecondaryDark = Color(0xFFD1D5DB);
   static const textMutedDark = Color(0xFF6B7280);
+
+  /// True when the ambient theme is dark.
+  static bool isDark(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark;
+  }
+
+  /// Screen background that adapts to the active theme.
+  static Color bg(BuildContext context) =>
+      isDark(context) ? obsidianBg : creamBg;
+
+  /// Card / container surface that adapts to the active theme.
+  static Color surface(BuildContext context) =>
+      isDark(context) ? slateSurface : sandSurface;
+
+  /// Elevated card surface (white card on light, slate card on dark).
+  static Color card(BuildContext context) =>
+      isDark(context) ? slateSurface : warmWhite;
+
+  /// Border color that adapts to the active theme.
+  static Color border(BuildContext context) =>
+      isDark(context) ? slateBorder : warmBorder;
+
+  /// Input field fill that adapts to the active theme.
+  static Color field(BuildContext context) =>
+      isDark(context) ? slateSurface : warmWhite;
+
+  /// Primary text color that adapts to the active theme.
+  static Color textPrimary(BuildContext context) =>
+      isDark(context) ? textPrimaryDark : textPrimaryLight;
+
+  /// Secondary text color that adapts to the active theme.
+  static Color textSecondary(BuildContext context) =>
+      isDark(context) ? textSecondaryDark : textSecondaryLight;
+
+  /// Muted text color that adapts to the active theme.
+  static Color textMuted(BuildContext context) =>
+      isDark(context) ? textMutedDark : textMutedLight;
+
+  /// Selected chip / segment fill. Inverts against the surface so the
+  /// chosen item stays obvious in both themes.
+  static Color selectedFill(BuildContext context) =>
+      isDark(context) ? warmWhite : charcoal;
+
+  /// Text / icon color on [selectedFill].
+  static Color onSelected(BuildContext context) =>
+      isDark(context) ? charcoal : warmWhite;
 
   // Semantic Statuses
   static const error = Color(0xFFDC2626);

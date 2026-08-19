@@ -186,8 +186,8 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
 
   @override
   Widget build(BuildContext context) {
-    const baseBg =
-        AppColors.creamBg;
+    final dark = AppColors.isDark(context);
+    final baseBg = dark ? AppColors.obsidianBg : AppColors.creamBg;
 
     return NotificationListener<Notification>(
       onNotification: (notification) {
@@ -206,10 +206,12 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
       child: AnimatedBuilder(
         animation: Listenable.merge([_colorController, _rippleController]),
         builder: (context, child) {
-          final tint =
-              Color.lerp(_fromColor, _toColor, _colorT.value) ?? _toColor;
-          final showRipple = _rippleController.isAnimating ||
-              (_rippleT.value > 0 && _rippleT.value < 1);
+          final tint = dark
+              ? AppColors.obsidianBg
+              : (Color.lerp(_fromColor, _toColor, _colorT.value) ?? _toColor);
+          final showRipple = !dark &&
+              (_rippleController.isAnimating ||
+                  (_rippleT.value > 0 && _rippleT.value < 1));
           return LayoutBuilder(
             builder: (context, constraints) {
               _lastSize = constraints.biggest;
@@ -218,7 +220,7 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
                 key: _stackKey,
                 fit: StackFit.expand,
                 children: [
-                  const ColoredBox(color: baseBg),
+                  ColoredBox(color: baseBg),
                   Positioned(
                     top: 0,
                     left: 0,

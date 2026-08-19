@@ -154,9 +154,9 @@ class _ToggleBar extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: verticalPadding),
         decoration: BoxDecoration(
-          color: AppColors.creamBg,
+          color: AppColors.bg(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
-          border: Border.all(color: AppColors.warmBorder),
+          border: Border.all(color: AppColors.border(context)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

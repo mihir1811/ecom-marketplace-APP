@@ -51,10 +51,10 @@ class JewelryProductCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const bg = AppColors.warmWhite;
-    const border = AppColors.warmBorder;
-    const text = AppColors.textPrimaryLight;
-    const muted = AppColors.textSecondaryLight;
+    final bg = AppColors.card(context);
+    final border = AppColors.border(context);
+    final text = AppColors.textPrimary(context);
+    final muted = AppColors.textSecondary(context);
     final variants = item.colorVariants.take(4).toList();
     final extra = item.colorVariants.length - variants.length;
     final wishlisted = ref.watch(isInWishlistProvider(item.id));
@@ -361,7 +361,7 @@ class JewelryProductCard extends ConsumerWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.sandSurface,
+                      color: AppColors.surface(context),
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
                     ),
                     child: Text(
@@ -507,10 +507,10 @@ class JewelryProductListCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const bg = AppColors.warmWhite;
-    const border = AppColors.warmBorder;
-    const text = AppColors.textPrimaryLight;
-    const secondary = AppColors.textSecondaryLight;
+    final bg = AppColors.card(context);
+    final border = AppColors.border(context);
+    final text = AppColors.textPrimary(context);
+    final secondary = AppColors.textSecondary(context);
     final variants = item.colorVariants.take(3).toList();
     final purityLabel = item.metalPurity.replaceAll(' ', '').toLowerCase();
     final wishlisted = ref.watch(isInWishlistProvider(item.id));
@@ -756,7 +756,7 @@ class _StoneCountBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const muted = AppColors.textSecondaryLight;
+    final muted = AppColors.textSecondary(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -801,7 +801,7 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const muted = AppColors.textSecondaryLight;
+    final muted = AppColors.textSecondary(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSpacing.r8),

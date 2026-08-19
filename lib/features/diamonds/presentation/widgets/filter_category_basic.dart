@@ -62,7 +62,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
 
     final totalShapes = kAllShapes.length;
     final totalRows = (totalShapes / _shapeGridColumns).ceil();
@@ -389,14 +389,14 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: isSelected
-                                              ? AppColors.charcoal
-                                              : (AppColors.warmWhite),
+                                              ? AppColors.selectedFill(context)
+                                              : AppColors.card(context),
                                           borderRadius: BorderRadius.circular(
                                             AppSpacing.r8,
                                           ),
                                           border: Border.all(
                                             color: isSelected
-                                                ? AppColors.charcoal
+                                                ? AppColors.selectedFill(context)
                                                 : borderColor,
                                           ),
                                         ),
@@ -408,9 +408,9 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                                 ? FontWeight.bold
                                                 : FontWeight.w500,
                                             color: isSelected
-                                                ? AppColors.warmWhite
-                                                : (AppColors
-                                                    .textPrimaryLight),
+                                                ? AppColors.onSelected(context)
+                                                : (AppColors.textPrimary(
+                                                      context)),
                                           ),
                                         ),
                                       ),
@@ -447,14 +447,14 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: isSelected
-                                              ? AppColors.charcoal
-                                              : (AppColors.warmWhite),
+                                              ? AppColors.selectedFill(context)
+                                              : AppColors.card(context),
                                           borderRadius: BorderRadius.circular(
                                             AppSpacing.r8,
                                           ),
                                           border: Border.all(
                                             color: isSelected
-                                                ? AppColors.charcoal
+                                                ? AppColors.selectedFill(context)
                                                 : borderColor,
                                           ),
                                         ),
@@ -466,9 +466,9 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                                 ? FontWeight.bold
                                                 : FontWeight.w500,
                                             color: isSelected
-                                                ? AppColors.warmWhite
-                                                : (AppColors
-                                                    .textPrimaryLight),
+                                                ? AppColors.onSelected(context)
+                                                : (AppColors.textPrimary(
+                                                      context)),
                                           ),
                                         ),
                                       ),
@@ -522,9 +522,9 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                           const Spacer(),
                                           Text(
                                             hex,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 12,
-                                              color: Colors.black45,
+                                              color: AppColors.textMuted(context),
                                             ),
                                           ),
                                         ],
@@ -584,10 +584,10 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.creamBg,
+                  color: AppColors.bg(context),
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
                   border: Border.all(
-                    color: AppColors.warmBorder,
+                    color: AppColors.border(context),
                   ),
                 ),
                 child: Row(
@@ -632,7 +632,7 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
 
     return FilterGroupCard(
       child: Column(
@@ -665,11 +665,11 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.charcoal
-                        : (AppColors.warmWhite),
+                        ? AppColors.selectedFill(context)
+                        : AppColors.card(context),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isSelected ? AppColors.charcoal : borderColor,
+                      color: isSelected ? AppColors.selectedFill(context) : borderColor,
                     ),
                   ),
                   child: Text(
@@ -678,8 +678,8 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
                       fontWeight:
                           isSelected ? FontWeight.bold : FontWeight.w500,
                       color: isSelected
-                          ? AppColors.warmWhite
-                          : (AppColors.textPrimaryLight),
+                          ? AppColors.onSelected(context)
+                          : (AppColors.textPrimary(context)),
                     ),
                   ),
                 ),
@@ -704,7 +704,7 @@ class FinishPresetsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
     final presets = ['3X', 'EX-', 'VG+', 'VG-'];
 
     final content = Column(
@@ -752,12 +752,12 @@ class FinishPresetsSection extends ConsumerWidget {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.charcoal
-                            : (AppColors.warmWhite),
+                            ? AppColors.selectedFill(context)
+                            : AppColors.card(context),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color:
-                              isSelected ? AppColors.charcoal : borderColor,
+                              isSelected ? AppColors.selectedFill(context) : borderColor,
                         ),
                       ),
                       child: Text(
@@ -765,8 +765,8 @@ class FinishPresetsSection extends ConsumerWidget {
                         style: AppTypography.caption.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isSelected
-                              ? AppColors.warmWhite
-                              : (AppColors.textPrimaryLight),
+                              ? AppColors.onSelected(context)
+                              : (AppColors.textPrimary(context)),
                         ),
                       ),
                     ),
@@ -802,7 +802,7 @@ class FilterSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
 
     return MeleeTintExtentAnchor(
       child: Container(
@@ -816,7 +816,8 @@ class FilterSegmentedControl extends StatelessWidget {
         children: options.map((opt) {
           final isCurrent = opt == selected;
           final splash = opt.usesMeleeFilters
-              ? AppColors.screenBg(
+              ? AppColors.screenBgFor(
+                  context,
                   melee: true,
                   family: MeleeBgFamily.natural,
                 )
@@ -837,8 +838,8 @@ class FilterSegmentedControl extends StatelessWidget {
                   curve: Curves.easeOutCubic,
                   decoration: BoxDecoration(
                     color: isCurrent
-                        ? AppColors.charcoal
-                        : (AppColors.warmWhite),
+                        ? AppColors.selectedFill(context)
+                        : AppColors.card(context),
                     borderRadius: BorderRadius.circular(AppSpacing.r8 - 1),
                   ),
                   alignment: Alignment.center,
@@ -847,8 +848,8 @@ class FilterSegmentedControl extends StatelessWidget {
                     style: AppTypography.caption.copyWith(
                       fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
                       color: isCurrent
-                          ? AppColors.warmWhite
-                          : (AppColors.textPrimaryLight),
+                          ? AppColors.onSelected(context)
+                          : (AppColors.textPrimary(context)),
                     ),
                   ),
                 ),
@@ -876,7 +877,7 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
 
     const sieves = SieveSize.defaultSieves;
     final selectedSet = state.selectedSieveIndices.toSet();
@@ -918,7 +919,7 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
               ),
               child: Column(
                 children: [
-                  const _SieveTableHeader(borderColor: borderColor),
+                  _SieveTableHeader(borderColor: borderColor),
                   Expanded(
                     child: Scrollbar(
                       child: ListView.builder(
@@ -977,10 +978,10 @@ class _CompactPresetChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.charcoal : (AppColors.warmWhite),
+          color: isActive ? AppColors.selectedFill(context) : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: isActive ? AppColors.charcoal : (AppColors.warmBorder),
+            color: isActive ? AppColors.selectedFill(context) : AppColors.border(context),
           ),
         ),
         child: Text(
@@ -992,7 +993,7 @@ class _CompactPresetChip extends StatelessWidget {
             fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             fontSize: 11,
             height: 1.2,
-            color: isActive ? AppColors.warmWhite : (AppColors.textPrimaryLight),
+            color: isActive ? AppColors.onSelected(context) : (AppColors.textPrimary(context)),
           ),
         ),
       ),
@@ -1012,7 +1013,7 @@ class _SieveTableHeader extends StatelessWidget {
     return Container(
       height: 32,
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         border: Border(
           bottom: BorderSide(color: borderColor),
         ),
@@ -1074,7 +1075,7 @@ class _SieveTableRow extends StatelessWidget {
       child: Container(
         height: 36,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.charcoal : Colors.transparent,
+          color: isSelected ? AppColors.selectedFill(context) : Colors.transparent,
           border: Border(
             bottom: BorderSide(color: borderColor, width: 0.5),
           ),
@@ -1125,8 +1126,8 @@ class _DataCell extends StatelessWidget {
           fontWeight: isSelected ? FontWeight.bold : FontWeight.w400,
           fontSize: 11,
           color: isSelected
-              ? AppColors.warmWhite
-              : (AppColors.textSecondaryLight),
+              ? AppColors.onSelected(context)
+              : (AppColors.textSecondary(context)),
         ),
       ),
     );
@@ -1149,7 +1150,7 @@ class _SelectionSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         border: Border.all(color: borderColor),
       ),
@@ -1158,7 +1159,7 @@ class _SelectionSummaryCard extends StatelessWidget {
           Icon(
             count > 0 ? Icons.check_circle : Icons.circle_outlined,
             size: 18,
-            color: count > 0 ? AppColors.bronze : (AppColors.textMutedLight),
+            color: count > 0 ? AppColors.bronze : (AppColors.textMuted(context)),
           ),
           const SizedBox(width: AppSpacing.s8),
           Text(
@@ -1169,7 +1170,7 @@ class _SelectionSummaryCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: count > 0
                   ? AppColors.bronze
-                  : (AppColors.textSecondaryLight),
+                  : (AppColors.textSecondary(context)),
             ),
           ),
           const Spacer(),

@@ -62,9 +62,8 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
     });
   }
 
-  List<String> get _allBrandsAlphabetical => watchBrandCategories
-      .expand((g) => g.brands)
-      .toList(growable: false);
+  List<String> get _allBrandsAlphabetical =>
+      watchBrandCategories.expand((g) => g.brands).toList(growable: false);
 
   List<String> _modelOptions(WatchFilterState draft) {
     const byBrand = WatchCatalogBrands.modelsByBrand;
@@ -116,19 +115,13 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
                               'Show all brands (${_allBrandsAlphabetical.length})',
                           onTap: () => setState(() {
                             _showAllBrands = true;
-                            _visible['brand'] =
-                                _allBrandsAlphabetical.length;
+                            _visible['brand'] = _allBrandsAlphabetical.length;
                           }),
                         )
                       : null,
                 ),
                 _subLabel('Model'),
-                _expandList(
-                  'model',
-                  modelOptions,
-                  draft.models,
-                  n.toggleModel,
-                ),
+                _expandList('model', modelOptions, draft.models, n.toggleModel),
               ],
             ),
           ),
@@ -427,8 +420,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
                       FilterBooleanCheckbox(
                         label: 'Warranty Card',
                         value: draft.warrantyCardIncluded,
-                        onChanged: (v) =>
-                            n.setWarrantyCardIncluded(v ?? false),
+                        onChanged: (v) => n.setWarrantyCardIncluded(v ?? false),
                       ),
                       FilterBooleanCheckbox(
                         label: 'Full Set Only',
@@ -479,7 +471,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
         text,
         style: AppTypography.caption.copyWith(
           fontWeight: FontWeight.w600,
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
         ),
       ),
     );
@@ -609,10 +601,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
     );
   }
 
-  Widget _showMoreButton({
-    required String label,
-    required VoidCallback onTap,
-  }) {
+  Widget _showMoreButton({required String label, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.only(
         left: AppSpacing.s20,

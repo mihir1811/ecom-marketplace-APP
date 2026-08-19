@@ -10,6 +10,7 @@ import '../../../../core/widgets/catalog_search_filter_layout.dart';
 import '../../../../core/widgets/catalog_search_filter_shell.dart';
 import '../../../../core/widgets/paired_showcase_carousel.dart';
 import '../../../../core/widgets/showcase_select_card.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
 import '../../../../core/widgets/filters/catalog_search_add_field.dart';
@@ -58,6 +59,8 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
   @override
   final GlobalKey catalogNavKey = GlobalKey();
 
+  final TextEditingController _companyController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
   GemstoneSection _activeSection = GemstoneSection.basic;
 
   final GlobalKey _basicKey = GlobalKey();
@@ -74,12 +77,35 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
   void dispose() {
     catalogScrollController.removeListener(_onScroll);
     catalogScrollController.dispose();
+    _companyController.dispose();
+    _locationController.dispose();
     super.dispose();
+  }
+
+  void _commitPendingSearchFields() {
+    final notifier = ref.read(gemstoneSearchProvider.notifier);
+    final company = _companyController.text.trim();
+    final location = _locationController.text.trim();
+    if (company.isNotEmpty) {
+      notifier.addCompanyName(company);
+      _companyController.clear();
+    }
+    if (location.isNotEmpty) {
+      notifier.addVendorLocation(location);
+      _locationController.clear();
+    }
+  }
+
+  void _onShowGemstones() {
+    _commitPendingSearchFields();
+    ref.invalidate(gemstoneListProvider);
+    context.push(AppRouteNames.gemstoneResults);
   }
 
   void _onScroll() {
     if (catalogSpyLocked) return;
-    final active = catalogActiveSectionFromScroll([
+    final active =
+        catalogActiveSectionFromScroll([
           (_basicKey, GemstoneSection.basic),
           (_prefKey, GemstoneSection.preferences),
           (_measKey, GemstoneSection.measurements),
@@ -92,6 +118,15 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<GemstoneFilterState>(gemstoneSearchProvider, (previous, next) {
+      if (next.companyNames.isEmpty && _companyController.text.isNotEmpty) {
+        _companyController.clear();
+      }
+      if (next.vendorLocations.isEmpty && _locationController.text.isNotEmpty) {
+        _locationController.clear();
+      }
+    });
+
     final isMelee = ref.watch(
       gemstoneSearchProvider.select((s) => s.lotType == 'Melee'),
     );
@@ -121,59 +156,62 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
       ),
     ];
 
-    return CatalogSearchFilterShell(
-      title: 'GEMSTONE FINDER',
-      isMelee: isMelee,
-      meleeFamily: meleeFamily,
-      onBack: () {
-        if (AiChatBackNavigation.handleListingBack(context, ref)) return;
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go(AppRouteNames.home);
-        }
-      },
-      onScrollNotification: catalogHandleScrollNotification,
-      stickyNav: CatalogSearchSectionNav<GemstoneSection>(
-        navKey: catalogNavKey,
-        sections: sections,
-        activeId: _activeSection,
-        onSectionTap: (section) {
-          setState(() => _activeSection = section.id);
-          catalogScrollToSection(section.key);
+    return DarkThemeScope(
+      child: CatalogSearchFilterShell(
+        title: 'GEMSTONE FINDER',
+        isMelee: isMelee,
+        meleeFamily: meleeFamily,
+        onBack: () {
+          if (AiChatBackNavigation.handleListingBack(context, ref)) return;
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(AppRouteNames.home);
+          }
         },
+        onScrollNotification: catalogHandleScrollNotification,
+        stickyNav: CatalogSearchSectionNav<GemstoneSection>(
+          navKey: catalogNavKey,
+          sections: sections,
+          activeId: _activeSection,
+          onSectionTap: (section) {
+            setState(() => _activeSection = section.id);
+            catalogScrollToSection(section.key);
+          },
+        ),
+        scrollController: catalogScrollController,
+        primaryLabel: 'SEARCH GEMSTONES',
+        onPrimary: _onShowGemstones,
+        onClear: () {
+          ref.read(gemstoneSearchProvider.notifier).reset();
+          _companyController.clear();
+          _locationController.clear();
+        },
+        bodyChildren: [
+          _buildShowcaseCarousel(),
+          const SizedBox(height: AppSpacing.s24),
+          const _GemstoneSearchCardHeader(),
+          const SizedBox(height: AppSpacing.s24),
+          CatalogSearchSection(
+            sectionKey: _basicKey,
+            title: 'Basic',
+            child: const GemstoneFilterCategoryBasic(),
+          ),
+          const SizedBox(height: AppSpacing.s32),
+          CatalogSearchSection(
+            sectionKey: _prefKey,
+            title: 'Preferences',
+            child: _buildPreferenceFilters(),
+          ),
+          const SizedBox(height: AppSpacing.s32),
+          CatalogSearchSection(
+            sectionKey: _measKey,
+            title: 'Measurements',
+            child: _buildMeasurementFilters(),
+          ),
+          const SizedBox(height: AppSpacing.s32),
+        ],
       ),
-      scrollController: catalogScrollController,
-      primaryLabel: 'SEARCH GEMSTONES',
-      onPrimary: () {
-        ref.invalidate(gemstoneListProvider);
-        context.push(AppRouteNames.gemstoneResults);
-      },
-      onClear: () => ref.read(gemstoneSearchProvider.notifier).reset(),
-      bodyChildren: [
-        _buildShowcaseCarousel(),
-        const SizedBox(height: AppSpacing.s24),
-        const _GemstoneSearchCardHeader(),
-        const SizedBox(height: AppSpacing.s24),
-        CatalogSearchSection(
-          sectionKey: _basicKey,
-          title: 'Basic',
-          child: const GemstoneFilterCategoryBasic(),
-        ),
-        const SizedBox(height: AppSpacing.s32),
-        CatalogSearchSection(
-          sectionKey: _prefKey,
-          title: 'Preferences',
-          child: _buildPreferenceFilters(),
-        ),
-        const SizedBox(height: AppSpacing.s32),
-        CatalogSearchSection(
-          sectionKey: _measKey,
-          title: 'Measurements',
-          child: _buildMeasurementFilters(),
-        ),
-        const SizedBox(height: AppSpacing.s32),
-      ],
     );
   }
 
@@ -188,7 +226,8 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
       itemCount: _kFeaturedGemstones.length,
       itemBuilder: (context, index) {
         final name = _kFeaturedGemstones[index];
-        final isSelected = selectedTypes.contains(name) &&
+        final isSelected =
+            selectedTypes.contains(name) &&
             GemstoneFilterState.allGemstoneTypes.contains(name);
         final hue = gemstoneHue(name);
         final imagePath = gemstoneImagePath(name);
@@ -220,8 +259,11 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
         infoText:
             'Search for gemstones located in a specific city, state, or region.',
         hintText: 'Search by location (City, State, Country)',
-        onChanged: notifier.updateVendorLocation,
-        onAdd: () {},
+        controller: _locationController,
+        clearOnAdd: true,
+        values: state.vendorLocations,
+        onAdd: notifier.addVendorLocation,
+        onRemove: notifier.removeVendorLocation,
       ),
       originDropdown: FilterOriginDropdown(
         title: 'Origin Country',
@@ -236,11 +278,13 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
       ),
       companyField: CatalogSearchAddField(
         title: 'Company Name',
-        infoText:
-            'Search for gemstones supplied by a specific company name.',
+        infoText: 'Search for gemstones supplied by a specific company name.',
         hintText: 'Search by company name',
-        onChanged: notifier.updateCompanyName,
-        onAdd: () {},
+        controller: _companyController,
+        clearOnAdd: true,
+        values: state.companyNames,
+        onAdd: notifier.addCompanyName,
+        onRemove: notifier.removeCompanyName,
       ),
     );
   }
@@ -252,20 +296,16 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     return CatalogMeasurementFilters(
       lengthMin: state.minLength,
       lengthMax: state.maxLength,
-      onLengthMinChanged: (v) =>
-          notifier.updateLengthRange(v, state.maxLength),
-      onLengthMaxChanged: (v) =>
-          notifier.updateLengthRange(state.minLength, v),
+      onLengthMinChanged: (v) => notifier.updateLengthRange(v, state.maxLength),
+      onLengthMaxChanged: (v) => notifier.updateLengthRange(state.minLength, v),
       widthMin: state.minWidth,
       widthMax: state.maxWidth,
       onWidthMinChanged: (v) => notifier.updateWidthRange(v, state.maxWidth),
       onWidthMaxChanged: (v) => notifier.updateWidthRange(state.minWidth, v),
       heightMin: state.minHeight,
       heightMax: state.maxHeight,
-      onHeightMinChanged: (v) =>
-          notifier.updateHeightRange(v, state.maxHeight),
-      onHeightMaxChanged: (v) =>
-          notifier.updateHeightRange(state.minHeight, v),
+      onHeightMinChanged: (v) => notifier.updateHeightRange(v, state.maxHeight),
+      onHeightMaxChanged: (v) => notifier.updateHeightRange(state.minHeight, v),
       ratioMin: state.minRatio,
       ratioMax: state.maxRatio,
       onRatioMinChanged: (v) => notifier.updateRatioRange(v, state.maxRatio),
@@ -274,10 +314,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
         GemstoneFilterState.dimensionMin,
         GemstoneFilterState.dimensionMax,
       ),
-      ratioLimits: (
-        GemstoneFilterState.ratioMin,
-        GemstoneFilterState.ratioMax,
-      ),
+      ratioLimits: (GemstoneFilterState.ratioMin, GemstoneFilterState.ratioMax),
     );
   }
 }
@@ -302,7 +339,7 @@ class _GemstoneSearchCardHeader extends StatelessWidget {
           'Refine by type, shape, origin, and certification.',
           style: AppTypography.body.copyWith(
             fontSize: 14,
-            color: AppColors.textSecondaryLight,
+            color: AppColors.textSecondary(context),
           ),
         ),
       ],

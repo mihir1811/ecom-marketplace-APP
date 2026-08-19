@@ -26,7 +26,7 @@ class FilterScrollableChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const containerBorderColor = AppColors.warmBorder;
+    final containerBorderColor = AppColors.border(context);
 
     final content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,7 +37,7 @@ class FilterScrollableChips extends StatelessWidget {
                 title,
                 style: AppTypography.label.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimaryLight,
+                  color: AppColors.textPrimary(context),
                 ),
               ),
               const SizedBox(width: 6),
@@ -76,12 +76,12 @@ class FilterScrollableChips extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.charcoal
-                            : (AppColors.warmWhite),
+                            ? AppColors.selectedFill(context)
+                            : (AppColors.card(context)),
                         borderRadius: BorderRadius.circular(AppSpacing.r8),
                         border: Border.all(
                           color: isSelected
-                              ? AppColors.charcoal
+                              ? AppColors.selectedFill(context)
                               : containerBorderColor,
                         ),
                       ),
@@ -91,8 +91,8 @@ class FilterScrollableChips extends StatelessWidget {
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.w500,
                           color: isSelected
-                              ? AppColors.warmWhite
-                              : (AppColors.textPrimaryLight),
+                              ? AppColors.onSelected(context)
+                              : (AppColors.textPrimary(context)),
                         ),
                       ),
                     ),

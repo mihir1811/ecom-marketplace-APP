@@ -113,13 +113,10 @@ class _DiamondSortingBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = AppColors.warmWhite;
-    const textColor =
-        AppColors.textPrimaryLight;
-    const mutedColor =
-        AppColors.textSecondaryLight;
-    const borderColor =
-        AppColors.warmBorder;
+    final bgColor = AppColors.card(context);
+    final textColor = AppColors.textPrimary(context);
+    final mutedColor = AppColors.textSecondary(context);
+    final borderColor = AppColors.border(context);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.75,
@@ -136,7 +133,7 @@ class _DiamondSortingBottomSheetState
           ),
           child: Column(
             children: [
-              _buildHandle(),
+              _buildHandle(context),
               _buildHeader(context, textColor, mutedColor),
               Expanded(
                 child: SingleChildScrollView(
@@ -163,7 +160,7 @@ class _DiamondSortingBottomSheetState
     );
   }
 
-  Widget _buildHandle() {
+  Widget _buildHandle(BuildContext context) {
     return Center(
       child: Container(
         margin: const EdgeInsets.only(
@@ -173,7 +170,7 @@ class _DiamondSortingBottomSheetState
         width: 40,
         height: 4,
         decoration: BoxDecoration(
-          color: AppColors.textMutedLight.withValues(alpha: 0.3),
+          color: AppColors.textMuted(context).withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(2),
         ),
       ),
@@ -237,20 +234,20 @@ class _DiamondSortingBottomSheetState
         ),
         const SizedBox(height: AppSpacing.s12),
         if (_tempSelected.isEmpty)
-          _buildEmptySelected(mutedColor)
+          _buildEmptySelected(context, mutedColor)
         else
           _buildSelectedList(textColor, mutedColor, borderColor),
       ],
     );
   }
 
-  Widget _buildEmptySelected(Color mutedColor) {
+  Widget _buildEmptySelected(BuildContext context, Color mutedColor) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.s24),
       decoration: BoxDecoration(
         border: Border.all(
-          color: AppColors.textMutedLight.withValues(alpha: 0.2),
+          color: AppColors.textMuted(context).withValues(alpha: 0.2),
         ),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
       ),
@@ -518,7 +515,7 @@ class _DiamondSortingBottomSheetState
         color: Theme.of(context).colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: AppColors.textMutedLight.withValues(alpha: 0.15),
+            color: AppColors.textMuted(context).withValues(alpha: 0.15),
           ),
         ),
       ),

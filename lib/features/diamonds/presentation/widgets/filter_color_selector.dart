@@ -21,9 +21,14 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
   bool _isStandardExpanded = false;
   bool _isOvertonesExpanded = false;
 
-  Color _getStandardColorBg(String letter, bool isSelected) {
+  /// Pale D–Z swatches already read as white, so the inverted white
+  /// selected fill is invisible in dark mode. Bronze stays readable.
+  Color _standardGradeSelectedFill(BuildContext context) =>
+      AppColors.isDark(context) ? AppColors.bronze : AppColors.charcoal;
+
+  Color _getStandardColorBg(BuildContext context, String letter, bool isSelected) {
     if (isSelected) {
-      return AppColors.charcoal;
+      return _standardGradeSelectedFill(context);
     }
     const allLetters = DiamondFilterState.colors;
     final idx = allLetters.indexOf(letter);
@@ -54,10 +59,12 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: _getStandardColorBg(colorLetter, isSelected),
+                  color: _getStandardColorBg(context, colorLetter, isSelected),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isSelected ? AppColors.charcoal : borderColor,
+                    color: isSelected
+                        ? _standardGradeSelectedFill(context)
+                        : borderColor,
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),
@@ -67,7 +74,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                     fontWeight: FontWeight.bold,
                     color: isSelected
                         ? AppColors.warmWhite
-                        : (AppColors.textPrimaryLight),
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
               ),
@@ -90,8 +97,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
       isLabCatalog: isLabCatalog,
       useMeleeFilters: useMeleeFilters,
     );
-    const activeTabColor = AppColors.warmWhite;
-    const borderColor = AppColors.warmBorder;
+    final borderColor = AppColors.border(context);
 
     const chunks = [
       ['D', 'E', 'F'],
@@ -119,7 +125,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
           Container(
             height: 38,
             decoration: BoxDecoration(
-              color: AppColors.sandSurface,
+              color: AppColors.surface(context),
               borderRadius: BorderRadius.circular(AppSpacing.r8),
             ),
             padding: const EdgeInsets.all(2),
@@ -131,9 +137,9 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: !state.isFancyColor
-                            ? activeTabColor
-                            : Colors.transparent,
+                          color: !state.isFancyColor
+                              ? AppColors.selectedFill(context)
+                              : Colors.transparent,
                         borderRadius: BorderRadius.circular(AppSpacing.r8 - 2),
                         boxShadow: !state.isFancyColor
                             ? AppShadows.cardLight
@@ -144,8 +150,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                         style: AppTypography.caption.copyWith(
                           fontWeight: FontWeight.bold,
                           color: !state.isFancyColor
-                              ? (AppColors.charcoal)
-                              : AppColors.textMutedLight,
+                              ? AppColors.onSelected(context)
+                              : AppColors.textMuted(context),
                         ),
                       ),
                     ),
@@ -157,9 +163,9 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: state.isFancyColor
-                            ? activeTabColor
-                            : Colors.transparent,
+                          color: state.isFancyColor
+                              ? AppColors.selectedFill(context)
+                              : Colors.transparent,
                         borderRadius: BorderRadius.circular(AppSpacing.r8 - 2),
                         boxShadow: state.isFancyColor
                             ? AppShadows.cardLight
@@ -170,8 +176,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                         style: AppTypography.caption.copyWith(
                           fontWeight: FontWeight.bold,
                           color: state.isFancyColor
-                              ? (AppColors.charcoal)
-                              : AppColors.textMutedLight,
+                              ? AppColors.onSelected(context)
+                              : AppColors.textMuted(context),
                         ),
                       ),
                     ),
@@ -306,12 +312,12 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                       padding: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.charcoal
+                            ? AppColors.selectedFill(context)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color:
-                              isSelected ? AppColors.charcoal : borderColor,
+                              isSelected ? AppColors.selectedFill(context) : borderColor,
                           width: isSelected ? 1.5 : 1.0,
                         ),
                       ),
@@ -324,8 +330,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                               ? FontWeight.bold
                               : FontWeight.w500,
                           color: isSelected
-                              ? AppColors.warmWhite
-                              : AppColors.textSecondaryLight,
+                              ? AppColors.onSelected(context)
+                              : AppColors.textSecondary(context),
                         ),
                       ),
                     ),
@@ -384,12 +390,12 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.charcoal
+                              ? AppColors.selectedFill(context)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(AppSpacing.r8),
                           border: Border.all(
                             color: isSelected
-                                ? AppColors.charcoal
+                                ? AppColors.selectedFill(context)
                                 : borderColor,
                           ),
                         ),
@@ -400,8 +406,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                                 ? FontWeight.bold
                                 : FontWeight.w500,
                             color: isSelected
-                                ? AppColors.warmWhite
-                                : (AppColors.textPrimaryLight),
+                                ? AppColors.onSelected(context)
+                                : (AppColors.textPrimary(context)),
                           ),
                         ),
                       ),

@@ -27,10 +27,10 @@ class WalletTransactionTile extends StatelessWidget {
       key: ValueKey(transaction.id),
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r16),
-        border: Border.all(color: AppColors.warmBorder),
-        boxShadow: AppShadows.cardLight,
+        border: Border.all(color: AppColors.border(context)),
+        boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,19 +63,19 @@ class WalletTransactionTile extends StatelessWidget {
                     transaction.note!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondaryLight,
-                    ),
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondary(context),
+                  ),
                   ),
                 ],
                 if (dateLabel != null) ...[
                   const SizedBox(height: AppSpacing.s4),
                   Text(
-                    dateLabel,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedLight,
-                    ),
-                  ),
+                dateLabel,
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textMuted(context),
+                ),
+              ),
                 ],
               ],
             ),
@@ -94,7 +94,7 @@ class WalletTransactionTile extends StatelessWidget {
               Text(
                 'Bal ${AppCurrency.inr(transaction.balanceAfter)}',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
               ),
             ],

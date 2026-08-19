@@ -31,8 +31,8 @@ class DiamondCardList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const textColor = AppColors.textPrimaryLight;
-    const secondaryColor = AppColors.textSecondaryLight;
+    final textColor = AppColors.textPrimary(context);
+    final secondaryColor = AppColors.textSecondary(context);
     final inCompare = ref.watch(isInComparisonProvider(diamond.id));
     final title = _listTitle(diamond);
     final detail = _listDetailLine(diamond);
@@ -206,7 +206,7 @@ class _ShapeFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: AppColors.sandSurface,
+      color: AppColors.surface(context),
       child: Center(
         child: renderShapeSvg(shape, size: size, color: AppColors.bronze),
       ),

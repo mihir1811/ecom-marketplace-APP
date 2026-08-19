@@ -28,7 +28,7 @@ class FilterGroupCard extends StatelessWidget {
       margin: margin ?? const EdgeInsets.only(bottom: AppSpacing.s24),
       padding: padding ?? const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r16),
         border: Border.all(
           color: borderColor ?? AppColors.bronzeLight,

@@ -86,7 +86,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
       ),
       child: Padding(
@@ -102,7 +102,7 @@ class _StatCard extends StatelessWidget {
               softWrap: false,
               textAlign: TextAlign.center,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.4,
               ),
@@ -114,7 +114,7 @@ class _StatCard extends StatelessWidget {
               textAlign: TextAlign.center,
               style: AppTypography.label.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.charcoal,
+                color: AppColors.textPrimary(context),
               ),
             ),
           ],

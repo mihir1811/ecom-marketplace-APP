@@ -89,10 +89,10 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
                         Text(
                           listLabel,
                           style: AppTypography.body.copyWith(
-                            color: AppColors.textMutedLight,
+                            color: AppColors.textMuted(context),
                             fontWeight: FontWeight.w600,
                             decoration: TextDecoration.lineThrough,
-                            decorationColor: AppColors.textMutedLight,
+                            decorationColor: AppColors.textMuted(context),
                           ),
                         ),
                         Container(
@@ -120,7 +120,7 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
                   Text(
                     saleLabel,
                     style: AppTypography.label.copyWith(
-                      color: AppColors.textPrimaryLight,
+                      color: AppColors.textPrimary(context),
                       fontSize: 30,
                       fontWeight: FontWeight.w700,
                       height: 1.1,
@@ -145,7 +145,7 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
                   icon: wishlisted ? Icons.favorite : Icons.favorite_border,
                   tooltip:
                       wishlisted ? 'Remove from wishlist' : 'Save to wishlist',
-                  tint: wishlisted ? AppColors.terracotta : AppColors.charcoal,
+                  tint: wishlisted ? AppColors.terracotta : AppColors.textPrimary(context),
                   onTap: () {
                     toggleWishlistItem(
                       context,
@@ -165,7 +165,7 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
           Text(
             unit,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -201,9 +201,9 @@ class _ActionIcon extends StatelessWidget {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: AppColors.warmWhite,
+            color: AppColors.card(context),
             borderRadius: BorderRadius.circular(AppSpacing.r8),
-            border: Border.all(color: AppColors.warmBorder),
+            border: Border.all(color: AppColors.border(context)),
           ),
           child: loading
               ? const Padding(

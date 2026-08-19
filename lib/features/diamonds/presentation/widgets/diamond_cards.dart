@@ -26,7 +26,11 @@ import 'diamond_svg_data.dart';
 import 'diamond_list_card.dart';
 export 'diamond_list_card.dart' show DiamondCardList;
 
-Widget _diamondThumb(Diamond diamond, {double shapeSize = 48}) {
+Widget _diamondThumb(
+  BuildContext context,
+  Diamond diamond, {
+  double shapeSize = 48,
+}) {
   final url = diamond.imageUrl?.trim();
   if (url != null && url.isNotEmpty) {
     return SizedBox.expand(
@@ -35,7 +39,7 @@ Widget _diamondThumb(Diamond diamond, {double shapeSize = 48}) {
         fit: BoxFit.cover,
         memCacheWidth: 400,
         error: ColoredBox(
-          color: AppColors.sandSurface,
+          color: AppColors.surface(context),
           child: Center(
             child: renderShapeSvg(
               diamond.shape,
@@ -48,7 +52,7 @@ Widget _diamondThumb(Diamond diamond, {double shapeSize = 48}) {
     );
   }
   return ColoredBox(
-    color: AppColors.sandSurface,
+    color: AppColors.surface(context),
     child: Center(
       child: renderShapeSvg(
         diamond.shape,
@@ -72,8 +76,8 @@ class DiamondCardGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const textColor = AppColors.textPrimaryLight;
-    const mutedColor = AppColors.textSecondaryLight;
+    final textColor = AppColors.textPrimary(context);
+    final mutedColor = AppColors.textSecondary(context);
     final inCompare = ref.watch(isInComparisonProvider(diamond.id));
     final title =
         '${diamond.carat.toStringAsFixed(2)}ct ${DiamondDisplay.shape(diamond.shape)}';
@@ -90,7 +94,7 @@ class DiamondCardGrid extends ConsumerWidget {
             aspectRatio: 1.05,
             child: Stack(
               children: [
-                Positioned.fill(child: _diamondThumb(diamond)),
+                Positioned.fill(child: _diamondThumb(context, diamond)),
                 Positioned(
                   top: AppSpacing.s4,
                   right: AppSpacing.s4,
@@ -355,7 +359,7 @@ class DiamondListView extends StatelessWidget {
                 Text(
                   'Loading more...',
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
               ],

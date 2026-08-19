@@ -33,7 +33,7 @@ class FilterEndDrawerShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       width: drawerWidthFor(context),
-      backgroundColor: AppColors.warmWhite,
+      backgroundColor: AppColors.card(context),
       child: AppKeyboardInset(
         child: SafeArea(
           child: Column(
@@ -83,9 +83,9 @@ class FilterEndDrawerShell extends StatelessWidget {
                   AppSpacing.s16,
                   AppSpacing.s16,
                 ),
-                decoration: const BoxDecoration(
-                  color: AppColors.warmWhite,
-                  border: Border(top: BorderSide(color: AppColors.warmBorder)),
+                decoration: BoxDecoration(
+                  color: AppColors.card(context),
+                  border: Border(top: BorderSide(color: AppColors.border(context))),
                 ),
                 child: SizedBox(
                   width: double.infinity,
