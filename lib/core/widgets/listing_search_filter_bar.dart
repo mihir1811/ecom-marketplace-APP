@@ -64,7 +64,7 @@ class ListingSearchFilterBar extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.s8),
         Material(
-          color: AppColors.charcoal,
+          color: AppColors.selectedFill(context),
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           child: InkWell(
             onTap: onFilterTap,
@@ -75,9 +75,9 @@ class ListingSearchFilterBar extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.tune,
-                    color: AppColors.warmWhite,
+                    color: AppColors.onSelected(context),
                     size: 22,
                   ),
                   if (activeFilterCount > 0)

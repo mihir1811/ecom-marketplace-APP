@@ -32,79 +32,74 @@ class ReferenceHubScreen extends ConsumerWidget {
               ],
             )
           : state.errorMessage != null && profile == null
-              ? ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(AppSpacing.s24),
-                  children: [
-                    Text(state.errorMessage!, textAlign: TextAlign.center),
-                    const SizedBox(height: AppSpacing.s16),
-                    Center(
-                      child: FilledButton(
-                        onPressed: () =>
-                            ref.read(referenceHubProvider.notifier).refresh(),
-                        child: const Text('Retry'),
-                      ),
-                    ),
-                  ],
-                )
-              : NotificationListener<ScrollNotification>(
-                  onNotification: (n) {
-                    if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
-                      ref
-                          .read(referenceHubProvider.notifier)
-                          .loadMorePurchases();
-                    }
-                    return false;
-                  },
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                    children: [
-                      if (profile != null) _ProfileCard(profile: profile),
-                      const SizedBox(height: 16),
-                      _SectionTitle(
-                        'Inbound',
-                        badge: profile?.inboundPendingCount,
-                      ),
-                      if (state.inbound.isEmpty)
-                        const _EmptyNote('No inbound reference requests')
-                      else
-                        ...state.inbound.map(
-                          (r) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _InboundCard(request: r),
-                          ),
-                        ),
-                      const SizedBox(height: 8),
-                      const _SectionTitle('Outbound'),
-                      if (state.outbound.isEmpty)
-                        const _EmptyNote('No outbound reference requests')
-                      else
-                        ...state.outbound.map(
-                          (r) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _OutboundCard(request: r),
-                          ),
-                        ),
-                      const SizedBox(height: 8),
-                      const _SectionTitle('Referred purchases'),
-                      if (state.purchases.isEmpty)
-                        const _EmptyNote('No referred purchases yet')
-                      else
-                        ...state.purchases.map(
-                          (p) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _PurchaseCard(purchase: p),
-                          ),
-                        ),
-                      if (state.isLoadingMorePurchases)
-                        const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                    ],
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(AppSpacing.s24),
+              children: [
+                Text(state.errorMessage!, textAlign: TextAlign.center),
+                const SizedBox(height: AppSpacing.s16),
+                Center(
+                  child: FilledButton(
+                    onPressed: () =>
+                        ref.read(referenceHubProvider.notifier).refresh(),
+                    child: const Text('Retry'),
                   ),
                 ),
+              ],
+            )
+          : NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
+                  ref.read(referenceHubProvider.notifier).loadMorePurchases();
+                }
+                return false;
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                children: [
+                  if (profile != null) _ProfileCard(profile: profile),
+                  const SizedBox(height: 16),
+                  _SectionTitle('Inbound', badge: profile?.inboundPendingCount),
+                  if (state.inbound.isEmpty)
+                    const _EmptyNote('No inbound reference requests')
+                  else
+                    ...state.inbound.map(
+                      (r) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _InboundCard(request: r),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  const _SectionTitle('Outbound'),
+                  if (state.outbound.isEmpty)
+                    const _EmptyNote('No outbound reference requests')
+                  else
+                    ...state.outbound.map(
+                      (r) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _OutboundCard(request: r),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  const _SectionTitle('Referred purchases'),
+                  if (state.purchases.isEmpty)
+                    const _EmptyNote('No referred purchases yet')
+                  else
+                    ...state.purchases.map(
+                      (p) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _PurchaseCard(purchase: p),
+                      ),
+                    ),
+                  if (state.isLoadingMorePurchases)
+                    const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -123,7 +118,7 @@ class _ProfileCard extends StatelessWidget {
           Text(
             'Your referral code',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -214,7 +209,7 @@ class _InboundCard extends ConsumerWidget {
             Text(
               request.party!.email,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
               ),
             ),
           ],
@@ -222,7 +217,7 @@ class _InboundCard extends ConsumerWidget {
           Text(
             'Requested ${request.createdAtLabel}',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
             ),
           ),
           if (request.status.isPending) ...[
@@ -310,7 +305,7 @@ class _OutboundCard extends StatelessWidget {
           Text(
             'Sent ${request.createdAtLabel}',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
             ),
           ),
         ],
@@ -343,7 +338,7 @@ class _PurchaseCard extends StatelessWidget {
                 Text(
                   purchase.createdAtLabel,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
               ],
@@ -410,7 +405,7 @@ class _EmptyNote extends StatelessWidget {
       child: Text(
         text,
         style: AppTypography.caption.copyWith(
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
         ),
       ),
     );
@@ -428,7 +423,7 @@ class _StatChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -437,7 +432,7 @@ class _StatChip extends StatelessWidget {
           Text(
             label,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
             ),
           ),
           Text(
@@ -459,10 +454,10 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.warmBorder),
-        boxShadow: AppShadows.cardLight,
+        border: Border.all(color: AppColors.border(context)),
+        boxShadow: AppColors.isDark(context) ? null : AppShadows.cardLight,
       ),
       padding: const EdgeInsets.all(AppSpacing.s16),
       child: child,

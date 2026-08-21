@@ -57,22 +57,21 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
     );
     if (confirmed != true || !context.mounted) return;
 
-    final result = await ref.read(inquiryMutationProvider.notifier).delete(
-          category: category,
-          id: inquiryId,
-        );
+    final result = await ref
+        .read(inquiryMutationProvider.notifier)
+        .delete(category: category, id: inquiryId);
 
     if (!context.mounted) return;
     switch (result) {
       case Success():
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Inquiry deleted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Inquiry deleted')));
         context.go(inquiriesPathFor(GoRouterState.of(context).uri.path));
       case ResultFailure(failure: final failure):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -225,7 +224,7 @@ class _InquiryDetailBody extends StatelessWidget {
                             style: AppTypography.caption.copyWith(
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.4,
-                              color: AppColors.textMutedLight,
+                              color: AppColors.textMuted(context),
                             ),
                           ),
                           Text(
@@ -237,17 +236,17 @@ class _InquiryDetailBody extends StatelessWidget {
                           ),
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.calendar_today,
                                 size: 14,
-                                color: AppColors.textMutedLight,
+                                color: AppColors.textMuted(context),
                               ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   inquiry.createdAtLong,
                                   style: AppTypography.caption.copyWith(
-                                    color: AppColors.textSecondaryLight,
+                                    color: AppColors.textSecondary(context),
                                   ),
                                 ),
                               ),
@@ -264,10 +263,10 @@ class _InquiryDetailBody extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 22,
-                      backgroundColor: AppColors.sandSurface,
-                      child: Icon(Icons.person_outline),
+                      backgroundColor: AppColors.surface(context),
+                      child: const Icon(Icons.person_outline),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -281,7 +280,7 @@ class _InquiryDetailBody extends StatelessWidget {
                             style: AppTypography.caption.copyWith(
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.4,
-                              color: AppColors.textMutedLight,
+                              color: AppColors.textMuted(context),
                             ),
                           ),
                           Text(
@@ -293,17 +292,17 @@ class _InquiryDetailBody extends StatelessWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.email_outlined,
                                 size: 14,
-                                color: AppColors.textMutedLight,
+                                color: AppColors.textMuted(context),
                               ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   inquiry.buyerEmail,
                                   style: AppTypography.caption.copyWith(
-                                    color: AppColors.textSecondaryLight,
+                                    color: AppColors.textSecondary(context),
                                   ),
                                 ),
                               ),
@@ -346,7 +345,7 @@ class _InquiryDetailBody extends StatelessWidget {
                     Text(
                       'Specifications from your submission to admin',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -356,7 +355,7 @@ class _InquiryDetailBody extends StatelessWidget {
                         section.title,
                         style: AppTypography.label.copyWith(
                           fontWeight: FontWeight.w800,
-                          color: AppColors.charcoal,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -389,12 +388,12 @@ class _InquiryDetailBody extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                             height: 120,
-                            color: AppColors.sandSurface,
+                            color: AppColors.surface(context),
                             alignment: Alignment.center,
                             child: Text(
                               'Could not load image',
                               style: AppTypography.caption.copyWith(
-                                color: AppColors.textMutedLight,
+                                color: AppColors.textMuted(context),
                               ),
                             ),
                           ),
@@ -426,7 +425,7 @@ class _InquiryDetailBody extends StatelessWidget {
                       'Only admin replies appear here. You cannot message '
                       'other buyers or sellers on this inquiry.',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -435,9 +434,9 @@ class _InquiryDetailBody extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.sandSurface,
+                          color: AppColors.surface(context),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.warmBorder),
+                          border: Border.all(color: AppColors.border(context)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,7 +470,7 @@ class _InquiryDetailBody extends StatelessWidget {
                         'No admin response yet. Your inquiry was sent to admin '
                         'and will appear here when they reply.',
                         style: AppTypography.body.copyWith(
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                         ),
                       ),
                     ],
@@ -485,7 +484,9 @@ class _InquiryDetailBody extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(44),
                     foregroundColor: AppColors.error,
-                    side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
+                    side: BorderSide(
+                      color: AppColors.error.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: const Text('Delete inquiry'),
                 ),
@@ -660,7 +661,8 @@ List<_FieldSection> _groupFields(Map<String, String> fields) {
       if (used.contains(e.key)) continue;
       final lower = e.key.toLowerCase();
       final hit = group.value.any(
-        (k) => lower.contains(k.toLowerCase()) || k.toLowerCase().contains(lower),
+        (k) =>
+            lower.contains(k.toLowerCase()) || k.toLowerCase().contains(lower),
       );
       if (hit) {
         matched.add(e);
@@ -672,9 +674,7 @@ List<_FieldSection> _groupFields(Map<String, String> fields) {
     }
   }
 
-  final remaining = fields.entries
-      .where((e) => !used.contains(e.key))
-      .toList();
+  final remaining = fields.entries.where((e) => !used.contains(e.key)).toList();
   if (remaining.isNotEmpty) {
     result.add(_FieldSection('Other', remaining));
   }
@@ -700,9 +700,9 @@ class _TwoColGrid extends StatelessWidget {
                 width: width,
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(color: AppColors.warmBorder),
+                      bottom: BorderSide(color: AppColors.border(context)),
                     ),
                   ),
                   child: Column(
@@ -711,7 +711,7 @@ class _TwoColGrid extends StatelessWidget {
                       Text(
                         e.key,
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                           fontWeight: FontWeight.w600,
                           fontSize: 11,
                         ),
@@ -750,9 +750,9 @@ class _Card extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: child,
     );

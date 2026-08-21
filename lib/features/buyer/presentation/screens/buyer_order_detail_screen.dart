@@ -15,6 +15,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../payment/domain/models/payment_models.dart';
 import '../../../refunds/application/refund_providers.dart';
 import '../../../tracking/application/order_shipments_provider.dart';
@@ -34,173 +35,177 @@ class BuyerOrderDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(buyerOrderDetailProvider(orderId));
 
-    return BuyerLayout(
-      title: 'Order details',
-      child: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) {
-          final message = e is Failure ? e.message : 'Order not found';
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(message),
-                TextButton(
-                  onPressed: () => context.go(AppRouteNames.buyerOrders),
-                  child: const Text('Back to orders'),
-                ),
-              ],
-            ),
-          );
-        },
-        data: (order) => ListView(
-          padding: const EdgeInsets.all(AppSpacing.s16),
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () => context.go(AppRouteNames.buyerOrders),
-                  icon: const Icon(Icons.arrow_back),
-                  tooltip: 'Back',
-                ),
-                Expanded(
-                  child: Text(
-                    'Order',
-                    style: AppTypography.title.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: order.id));
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Order ID copied')),
-                    );
-                  },
-                  icon: const Icon(Icons.copy_outlined, size: 18),
-                  label: const Text('Copy order id'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.bronze,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            _Card(
+    return DarkThemeScope(
+      child: BuyerLayout(
+        title: 'Order details',
+        child: async.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) {
+            final message = e is Failure ? e.message : 'Order not found';
+            return Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              order.items.length == 1
-                                  ? 'Order item'
-                                  : '${order.items.length} items',
-                              style: AppTypography.title.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Sold by ${order.primarySellerName}',
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.textSecondaryLight,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.s8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _StatusChip(status: order.status),
-                          if (order.createdAt != null) ...[
-                            const SizedBox(height: 6),
-                            Text(
-                              'Placed ${_formatOrderDate(order.createdAt!)}',
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.textMutedLight,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
+                  Text(message),
+                  TextButton(
+                    onPressed: () => context.go(AppRouteNames.buyerOrders),
+                    child: const Text('Back to orders'),
                   ),
-                  const SizedBox(height: 14),
-                  for (var i = 0; i < order.items.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 12),
-                    _ItemRow(
-                      item: order.items[i],
-                      showSeller: order.items.length > 1 &&
-                          (order.items[i].sellerName?.isNotEmpty ?? false),
-                    ),
-                  ],
                 ],
               ),
-            ),
-            if (order.pricing != null) ...[
-              const SizedBox(height: 12),
-              _Card(
-                child: _OrderPricingSummary(
-                  pricing: order.pricing!,
-                  amountUsd: order.amountUsd,
-                  amountInr: order.amount,
-                ),
+            );
+          },
+          data: (order) => ListView(
+            padding: const EdgeInsets.all(AppSpacing.s16),
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => context.go(AppRouteNames.buyerOrders),
+                    icon: const Icon(Icons.arrow_back),
+                    tooltip: 'Back',
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Order',
+                      style: AppTypography.title.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: order.id));
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Order ID copied')),
+                      );
+                    },
+                    icon: const Icon(Icons.copy_outlined, size: 18),
+                    label: const Text('Copy order id'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.bronze,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                ],
               ),
-              if (order.invoiceUrl != null && order.invoiceUrl!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (order.invoiceNumber != null &&
-                          order.invoiceNumber!.isNotEmpty) ...[
-                        Text(
-                          'Invoice ${order.invoiceNumber}',
-                          style: AppTypography.label.copyWith(
-                            fontWeight: FontWeight.w700,
+              const SizedBox(height: AppSpacing.s8),
+              _Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                order.items.length == 1
+                                    ? 'Order item'
+                                    : '${order.items.length} items',
+                                style: AppTypography.title.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Sold by ${order.primarySellerName}',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.textSecondary(context),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.s12),
+                        const SizedBox(width: AppSpacing.s8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            _StatusChip(status: order.status),
+                            if (order.createdAt != null) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                'Placed ${_formatOrderDate(order.createdAt!)}',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.textMuted(context),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ],
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.charcoal,
-                            foregroundColor: AppColors.warmWhite,
-                          ),
-                          onPressed: () => _downloadInvoice(context, order),
-                          icon: const Icon(Icons.download_outlined, size: 20),
-                          label: const Text('Download invoice'),
-                        ),
+                    ),
+                    const SizedBox(height: 14),
+                    for (var i = 0; i < order.items.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 12),
+                      _ItemRow(
+                        item: order.items[i],
+                        showSeller:
+                            order.items.length > 1 &&
+                            (order.items[i].sellerName?.isNotEmpty ?? false),
                       ),
                     ],
+                  ],
+                ),
+              ),
+              if (order.pricing != null) ...[
+                const SizedBox(height: 12),
+                _Card(
+                  child: _OrderPricingSummary(
+                    pricing: order.pricing!,
+                    amountUsd: order.amountUsd,
+                    amountInr: order.amount,
                   ),
                 ),
+                if (order.invoiceUrl != null &&
+                    order.invoiceUrl!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _Card(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (order.invoiceNumber != null &&
+                            order.invoiceNumber!.isNotEmpty) ...[
+                          Text(
+                            'Invoice ${order.invoiceNumber}',
+                            style: AppTypography.label.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.s12),
+                        ],
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.charcoal,
+                              foregroundColor: AppColors.warmWhite,
+                            ),
+                            onPressed: () => _downloadInvoice(context, order),
+                            icon: const Icon(Icons.download_outlined, size: 20),
+                            label: const Text('Download invoice'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
+              const SizedBox(height: 12),
+              _Card(child: OrderTrackingSection(orderId: order.id)),
+              const SizedBox(height: 12),
+              _Card(child: _OrderRefundSection(order: order)),
+              const SizedBox(height: 12),
+              _Card(child: OrderReviewSection(order: order)),
+              const SizedBox(height: 24),
             ],
-            const SizedBox(height: 12),
-            _Card(child: OrderTrackingSection(orderId: order.id)),
-            const SizedBox(height: 12),
-            _Card(child: _OrderRefundSection(order: order)),
-            const SizedBox(height: 12),
-            _Card(child: OrderReviewSection(order: order)),
-            const SizedBox(height: 24),
-          ],
+          ),
         ),
       ),
     );
@@ -235,9 +240,7 @@ class _OrderRefundSection extends ConsumerWidget {
   bool get _isPaid => order.status.toUpperCase() == 'PAID';
 
   bool _shipmentBlocksRefund(List<Shipment> shipments) {
-    return shipments.any(
-      (s) => ShipmentStatuses.blocksBuyerRefund(s.status),
-    );
+    return shipments.any((s) => ShipmentStatuses.blocksBuyerRefund(s.status));
   }
 
   @override
@@ -247,7 +250,7 @@ class _OrderRefundSection extends ConsumerWidget {
         'Refunds are available after payment succeeds, and only before '
         'out for delivery.',
         style: AppTypography.caption.copyWith(
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
         ),
       );
     }
@@ -264,11 +267,7 @@ class _OrderRefundSection extends ConsumerWidget {
           ),
         ),
       ),
-      error: (_, __) => _buildRefundActions(
-        context,
-        ref,
-        refundBlocked: false,
-      ),
+      error: (_, __) => _buildRefundActions(context, ref, refundBlocked: false),
       data: (shipments) => _buildRefundActions(
         context,
         ref,
@@ -287,7 +286,7 @@ class _OrderRefundSection extends ConsumerWidget {
         'Refunds are no longer available once the order is out for delivery '
         'or delivered.',
         style: AppTypography.caption.copyWith(
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
         ),
       );
     }
@@ -297,7 +296,7 @@ class _OrderRefundSection extends ConsumerWidget {
       return Text(
         'Seller details are not available for a refund on this order yet.',
         style: AppTypography.caption.copyWith(
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
         ),
       );
     }
@@ -316,7 +315,7 @@ class _OrderRefundSection extends ConsumerWidget {
           'Request a refund for a seller portion of this paid order. '
           'Not available after out for delivery.',
           style: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
           ),
         ),
         const SizedBox(height: 12),
@@ -327,11 +326,11 @@ class _OrderRefundSection extends ConsumerWidget {
               onPressed: mutating
                   ? null
                   : () => _requestRefund(
-                        context,
-                        ref,
-                        sellerId: target.sellerId,
-                        sellerName: target.sellerName,
-                      ),
+                      context,
+                      ref,
+                      sellerId: target.sellerId,
+                      sellerName: target.sellerName,
+                    ),
               icon: const Icon(Icons.replay, size: 18),
               label: Text('Request refund · ${target.sellerName}'),
             ),
@@ -389,11 +388,9 @@ class _OrderRefundSection extends ConsumerWidget {
       return;
     }
 
-    final result = await ref.read(refundMutationProvider.notifier).create(
-          orderId: order.id,
-          sellerId: sellerId,
-          reason: reason,
-        );
+    final result = await ref
+        .read(refundMutationProvider.notifier)
+        .create(orderId: order.id, sellerId: sellerId, reason: reason);
     if (!context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     switch (result) {
@@ -455,7 +452,7 @@ class _ItemRow extends StatelessWidget {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color: AppColors.sandSurface,
+            color: AppColors.surface(context),
             borderRadius: BorderRadius.circular(10),
           ),
           clipBehavior: Clip.antiAlias,
@@ -486,7 +483,7 @@ class _ItemRow extends StatelessWidget {
                 Text(
                   meta.join(' · '),
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
               ],
@@ -494,7 +491,7 @@ class _ItemRow extends StatelessWidget {
               Text(
                 AppCurrency.usd(item.lineTotal),
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: AppColors.textSecondary(context),
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -532,8 +529,9 @@ class _OrderPricingSummary extends StatelessWidget {
     final totalInr = pricing.totalInr > 0 ? pricing.totalInr : amountInr;
     final rate = pricing.exchangeRate;
     final hasRate = rate > 0;
-    final liveRateLabel =
-        hasRate ? 'Live rate · 1 USD = ₹${rate.toStringAsFixed(2)}' : null;
+    final liveRateLabel = hasRate
+        ? 'Live rate · 1 USD = ₹${rate.toStringAsFixed(2)}'
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,7 +539,7 @@ class _OrderPricingSummary extends StatelessWidget {
         Text(
           'ORDER SUMMARY',
           style: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
             fontWeight: FontWeight.w700,
             letterSpacing: 0.6,
           ),
@@ -597,7 +595,9 @@ class _OrderPricingSummary extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  totalInr > 0 ? _inrLabel(totalInr) : AppCurrency.usd(totalUsd),
+                  totalInr > 0
+                      ? _inrLabel(totalInr)
+                      : AppCurrency.usd(totalUsd),
                   style: GoogleFonts.manrope(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
@@ -611,7 +611,7 @@ class _OrderPricingSummary extends StatelessWidget {
                         ? AppCurrency.usd(totalUsd)
                         : '${AppCurrency.usd(totalUsd)} · $liveRateLabel',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedLight,
+                      color: AppColors.textMuted(context),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -629,11 +629,7 @@ class _OrderPricingSummary extends StatelessWidget {
 }
 
 class _MoneyRow extends StatelessWidget {
-  const _MoneyRow({
-    required this.label,
-    required this.primary,
-    this.secondary,
-  });
+  const _MoneyRow({required this.label, required this.primary, this.secondary});
 
   final String label;
   final String primary;
@@ -650,7 +646,7 @@ class _MoneyRow extends StatelessWidget {
           Text(
             label,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
           Column(
@@ -666,7 +662,7 @@ class _MoneyRow extends StatelessWidget {
                 Text(
                   secondary!,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
             ],
@@ -714,9 +710,9 @@ class _Card extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: child,
     );

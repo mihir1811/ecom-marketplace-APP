@@ -41,7 +41,12 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
 
   @override
   Widget build(BuildContext context) {
-    final refundTotal = ref.watch(sellerRefundListProvider.select((s) => s.total));
+    final refundTotal = ref.watch(
+      sellerRefundListProvider.select((s) => s.total),
+    );
+    final accent = AppColors.isDark(context)
+        ? AppColors.bronzeLight
+        : AppColors.bronzeDark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -66,9 +71,9 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
         ),
         TabBar(
           controller: _tabController,
-          labelColor: AppColors.bronzeDark,
-          unselectedLabelColor: AppColors.textSecondaryLight,
-          indicatorColor: AppColors.bronzeDark,
+          labelColor: accent,
+          unselectedLabelColor: AppColors.textSecondary(context),
+          indicatorColor: accent,
           indicatorWeight: 3,
           labelStyle: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
           tabs: [
@@ -79,10 +84,7 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: const [
-              _OrdersTab(),
-              _RefundsTab(),
-            ],
+            children: const [_OrdersTab(), _RefundsTab()],
           ),
         ),
       ],
@@ -103,9 +105,8 @@ class _OrdersTab extends StatelessWidget {
         final order = kSellerOrdersMock[index];
         return _OrderSummaryCard(
           order: order,
-          onTap: () => context.go(
-            AppRouteNames.sellerOrderDetailPath(order.id),
-          ),
+          onTap: () =>
+              context.go(AppRouteNames.sellerOrderDetailPath(order.id)),
         );
       },
     );
@@ -146,10 +147,10 @@ class _OrderSummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.warmWhite,
+            color: AppColors.card(context),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.warmBorder),
-            boxShadow: AppShadows.cardLight,
+            border: Border.all(color: AppColors.border(context)),
+            boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
           ),
           child: IntrinsicHeight(
             child: Row(
@@ -203,7 +204,7 @@ class _OrderSummaryCard extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: AppTypography.caption.copyWith(
-                                      color: AppColors.textMutedLight,
+                                      color: AppColors.textMuted(context),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -211,9 +212,9 @@ class _OrderSummaryCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(
+                            Icon(
                               Icons.chevron_right,
-                              color: AppColors.textMutedLight,
+                              color: AppColors.textMuted(context),
                             ),
                           ],
                         ),
@@ -237,10 +238,10 @@ class _OrderSummaryCard extends StatelessWidget {
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.location_on_outlined,
                               size: 16,
-                              color: AppColors.textMutedLight,
+                              color: AppColors.textMuted(context),
                             ),
                             const SizedBox(width: 4),
                             Expanded(
@@ -249,7 +250,7 @@ class _OrderSummaryCard extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: AppTypography.caption.copyWith(
-                                  color: AppColors.textSecondaryLight,
+                                  color: AppColors.textSecondary(context),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -263,7 +264,7 @@ class _OrderSummaryCard extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.right,
                                   style: AppTypography.caption.copyWith(
-                                    color: AppColors.textMutedLight,
+                                    color: AppColors.textMuted(context),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -299,8 +300,8 @@ class _MetaChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = foreground ?? AppColors.charcoal;
-    final bg = background ?? AppColors.sandSurface;
+    final fg = foreground ?? AppColors.textPrimary(context);
+    final bg = background ?? AppColors.surface(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -308,7 +309,7 @@ class _MetaChip extends StatelessWidget {
         color: bg,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: (foreground ?? AppColors.warmBorder).withValues(
+          color: (foreground ?? AppColors.border(context)).withValues(
             alpha: foreground == null ? 1 : 0.25,
           ),
         ),
@@ -359,9 +360,9 @@ class _RefundsTab extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.s16),
               decoration: BoxDecoration(
-                color: AppColors.sandSurface,
+                color: AppColors.surface(context),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.warmBorder),
+                border: Border.all(color: AppColors.border(context)),
               ),
               child: Stack(
                 children: [
@@ -371,7 +372,9 @@ class _RefundsTab extends ConsumerWidget {
                     child: Icon(
                       Icons.replay,
                       size: 56,
-                      color: AppColors.textMutedLight.withValues(alpha: 0.25),
+                      color: AppColors.textMuted(
+                        context,
+                      ).withValues(alpha: 0.25),
                     ),
                   ),
                   Text(
@@ -379,7 +382,7 @@ class _RefundsTab extends ConsumerWidget {
                     'process a Razorpay refund, or reject with an optional note. '
                     'Refunds are only allowed before delivery.',
                     style: AppTypography.body.copyWith(
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                       height: 1.4,
                     ),
                   ),
@@ -458,10 +461,10 @@ class _RefundCard extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.warmBorder),
-        boxShadow: AppShadows.cardLight,
+        border: Border.all(color: AppColors.border(context)),
+        boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
       ),
       padding: const EdgeInsets.all(AppSpacing.s16),
       child: Column(
@@ -535,7 +538,7 @@ class _RefundCard extends ConsumerWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.charcoal,
+                      color: AppColors.textPrimary(context),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -553,7 +556,7 @@ class _RefundCard extends ConsumerWidget {
                   child: Text(
                     refund.reason,
                     style: AppTypography.body.copyWith(
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                     ),
                   ),
                 ),
@@ -566,7 +569,7 @@ class _RefundCard extends ConsumerWidget {
                     child: Text(
                       refund.sellerNote!,
                       style: AppTypography.body.copyWith(
-                        color: AppColors.textSecondaryLight,
+                        color: AppColors.textSecondary(context),
                       ),
                     ),
                   ),
@@ -678,10 +681,9 @@ class _RefundCard extends ConsumerWidget {
     final note = noteController.text.trim();
     noteController.dispose();
     if (confirmed != true || !context.mounted) return;
-    final result = await ref.read(refundMutationProvider.notifier).reject(
-          id,
-          sellerNote: note.isEmpty ? null : note,
-        );
+    final result = await ref
+        .read(refundMutationProvider.notifier)
+        .reject(id, sellerNote: note.isEmpty ? null : note);
     if (!context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     switch (result) {
@@ -709,7 +711,7 @@ class _InfoBlock extends StatelessWidget {
         Text(
           label,
           style: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
             fontWeight: FontWeight.w600,
           ),
         ),

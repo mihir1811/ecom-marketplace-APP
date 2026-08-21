@@ -30,10 +30,12 @@ class InquiryReplyText extends StatelessWidget {
                         '•  ',
                         style: AppTypography.body.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.charcoal,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
-                      Expanded(child: _InlineRich(line.trimLeft().substring(2))),
+                      Expanded(
+                        child: _InlineRich(line.trimLeft().substring(2)),
+                      ),
                     ],
                   )
                 : _InlineRich(line),
@@ -85,7 +87,7 @@ class _InlineRich extends StatelessWidget {
     return Text.rich(
       TextSpan(
         style: AppTypography.body.copyWith(
-          color: AppColors.charcoal,
+          color: AppColors.textPrimary(context),
           height: 1.4,
         ),
         children: spans,
@@ -172,10 +174,10 @@ class _InquirySellerReplyComposerState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Material(
-          color: AppColors.sandSurface,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-            side: BorderSide(color: AppColors.warmBorder),
+          color: AppColors.surface(context),
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+            side: BorderSide(color: AppColors.border(context)),
           ),
           child: Row(
             children: [
@@ -200,7 +202,7 @@ class _InquirySellerReplyComposerState
                 child: Text(
                   'Rich reply',
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -209,10 +211,12 @@ class _InquirySellerReplyComposerState
           ),
         ),
         Material(
-          color: AppColors.warmWhite,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(10)),
-            side: BorderSide(color: AppColors.warmBorder),
+          color: AppColors.card(context),
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(10),
+            ),
+            side: BorderSide(color: AppColors.border(context)),
           ),
           clipBehavior: Clip.antiAlias,
           child: SizedBox(
@@ -231,18 +235,18 @@ class _InquirySellerReplyComposerState
               maxLines: null,
               minLines: null,
               style: AppTypography.body.copyWith(
-                color: AppColors.charcoal,
+                color: AppColors.textPrimary(context),
                 height: 1.4,
               ),
-              cursorColor: AppColors.charcoal,
+              cursorColor: AppColors.textPrimary(context),
               decoration: InputDecoration(
                 isDense: true,
                 filled: true,
-                fillColor: AppColors.warmWhite,
+                fillColor: AppColors.card(context),
                 hintText: 'Write your answer to the buyer…',
                 hintMaxLines: 3,
                 hintStyle: AppTypography.body.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                   height: 1.4,
                 ),
                 border: InputBorder.none,
@@ -269,8 +273,8 @@ class _InquirySellerReplyComposerState
           child: FilledButton.icon(
             onPressed: widget.onSend,
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.charcoal,
-              foregroundColor: AppColors.warmWhite,
+              backgroundColor: AppColors.textPrimary(context),
+              foregroundColor: AppColors.onSelected(context),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
             icon: const Icon(Icons.send, size: 18),

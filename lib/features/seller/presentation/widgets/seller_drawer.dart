@@ -7,20 +7,21 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/theme_preference_provider.dart';
 
 /// Side drawer for seller workspace screens only.
 class SellerDrawer extends ConsumerWidget {
-  const SellerDrawer({
-    super.key,
-    required this.selectedRoute,
-  });
+  const SellerDrawer({super.key, required this.selectedRoute});
 
   final String selectedRoute;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pending =
-        ref.watch(authProvider.select((s) => s.isVerificationPending));
+    final pending = ref.watch(
+      authProvider.select((s) => s.isVerificationPending),
+    );
+    final dark = ref.watch(themePreferenceProvider);
     final items = <_DrawerItem>[
       const _DrawerItem(
         route: AppRouteNames.sellerDashboard,
@@ -103,91 +104,96 @@ class SellerDrawer extends ConsumerWidget {
       ),
     ].where((item) => !pending || !item.requiresVerified).toList();
 
-    return Drawer(
-      width: 280,
-      backgroundColor: AppColors.warmWhite,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.s16),
-              child: Row(
-                children: [
-                  Text(
-                    'Seller workspace',
-                    style: AppTypography.title,
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: 'Close',
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  final isSelected = selectedRoute == item.route ||
-                      selectedRoute.startsWith('${item.route}/');
-                  final iconColor =
-                      isSelected ? AppColors.warmWhite : AppColors.charcoal;
-                  return Material(
-                    color: isSelected ? AppColors.charcoal : Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.of(context).maybePop();
-                        context.go(item.route);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s16,
-                          vertical: AppSpacing.s12,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(item.icon, color: iconColor),
-                            const SizedBox(width: AppSpacing.s16),
-                            Expanded(
-                              child: Text(
-                                item.label,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: iconColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+    // Stay dark whenever dark mode is on, even when hosted by a light screen.
+    return Theme(
+      data: dark ? AppTheme.dark : Theme.of(context),
+      child: Drawer(
+        width: 280,
+        backgroundColor: dark ? AppColors.slateSurface : AppColors.warmWhite,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.s16),
+                child: Row(
+                  children: [
+                    Text('Seller workspace', style: AppTypography.title),
+                    const Spacer(),
+                    IconButton(
+                      tooltip: 'Close',
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).maybePop(),
                     ),
-                  );
-                },
-              ),
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.storefront_outlined),
-              title: Text(
-                'Back to shop',
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w700,
+                  ],
                 ),
               ),
-              onTap: () {
-                Navigator.of(context).maybePop();
-                context.go(AppRouteNames.home);
-              },
-            ),
-          ],
+              const Divider(height: 1),
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    final isSelected =
+                        selectedRoute == item.route ||
+                        selectedRoute.startsWith('${item.route}/');
+                    final iconColor = isSelected
+                        ? AppColors.onSelected(context)
+                        : AppColors.textPrimary(context);
+                    return Material(
+                      color: isSelected
+                          ? AppColors.selectedFill(context)
+                          : Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).maybePop();
+                          context.go(item.route);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.s16,
+                            vertical: AppSpacing.s12,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(item.icon, color: iconColor),
+                              const SizedBox(width: AppSpacing.s16),
+                              Expanded(
+                                child: Text(
+                                  item.label,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: iconColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.storefront_outlined),
+                title: Text(
+                  'Back to shop',
+                  style: AppTypography.label.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).maybePop();
+                  context.go(AppRouteNames.home);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

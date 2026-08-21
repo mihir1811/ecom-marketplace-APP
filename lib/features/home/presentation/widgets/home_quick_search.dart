@@ -58,11 +58,11 @@ class _HomeQuickSearchState extends ConsumerState<HomeQuickSearch> {
     final hasText = _controller.text.trim().isNotEmpty;
 
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.field(context),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        side: const BorderSide(color: AppColors.warmBorder),
+        side: BorderSide(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -97,7 +97,7 @@ class _HomeQuickSearchState extends ConsumerState<HomeQuickSearch> {
                   hintText: 'Search diamonds, jewelry, watches…',
                   hintStyle: AppTypography.body.copyWith(
                     fontSize: 15,
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                   ),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
@@ -115,7 +115,7 @@ class _HomeQuickSearchState extends ConsumerState<HomeQuickSearch> {
                 tooltip: 'Clear',
                 onPressed: _clear,
                 icon: const Icon(Icons.close_rounded, size: 20),
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
               ),
           ],
         ),

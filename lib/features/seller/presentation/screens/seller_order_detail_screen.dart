@@ -74,9 +74,9 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
       ];
       _noteCtrl.clear();
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Tracking update saved')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Tracking update saved')));
   }
 
   String _nowLabel() {
@@ -88,7 +88,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
   InputDecoration _fieldDecoration(String hint) {
     return InputDecoration(
       filled: true,
-      fillColor: AppColors.sandSurface,
+      fillColor: AppColors.surface(context),
       hintText: hint,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -133,7 +133,9 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
               ),
               Text(
                 'Order details',
-                style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+                style: AppTypography.title.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -157,16 +159,16 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                     Text(
                       'Shipment · $_status',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondaryLight,
+                        color: AppColors.textSecondary(context),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on_outlined,
                           size: 16,
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -174,7 +176,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                               ? order.location
                               : _locationCtrl.text,
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.textMutedLight,
+                            color: AppColors.textMuted(context),
                           ),
                         ),
                       ],
@@ -238,8 +240,9 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                     TextField(
                       controller: _noteCtrl,
                       maxLines: 3,
-                      decoration:
-                          _fieldDecoration('Optional note for the timeline'),
+                      decoration: _fieldDecoration(
+                        'Optional note for the timeline',
+                      ),
                     ),
                     const SizedBox(height: 14),
                     Align(
@@ -308,7 +311,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                     Text(
                       'No comments yet.',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -327,7 +330,9 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                           );
                         },
                         style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.info.withValues(alpha: 0.85),
+                          backgroundColor: AppColors.info.withValues(
+                            alpha: 0.85,
+                          ),
                           foregroundColor: AppColors.warmWhite,
                         ),
                         child: const Text('Post comment'),
@@ -344,9 +349,9 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
   }
 
   TextStyle get _labelStyle => AppTypography.caption.copyWith(
-        fontWeight: FontWeight.w600,
-        color: AppColors.textSecondaryLight,
-      );
+    fontWeight: FontWeight.w600,
+    color: AppColors.textSecondary(context),
+  );
 }
 
 class _Card extends StatelessWidget {
@@ -357,10 +362,10 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.warmBorder),
+        side: BorderSide(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
@@ -399,7 +404,7 @@ class _TimelineRow extends StatelessWidget {
                     child: Container(
                       width: 2,
                       margin: const EdgeInsets.symmetric(vertical: 4),
-                      color: AppColors.warmBorder,
+                      color: AppColors.border(context),
                     ),
                   ),
               ],
@@ -422,14 +427,14 @@ class _TimelineRow extends StatelessWidget {
                   Text(
                     entry.subtitle,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     entry.at,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedLight,
+                      color: AppColors.textMuted(context),
                       fontSize: 11,
                     ),
                   ),

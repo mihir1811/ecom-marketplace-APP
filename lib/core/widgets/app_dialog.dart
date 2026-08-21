@@ -11,6 +11,9 @@ Future<T?> showAppDialog<T>({
   Color? barrierColor,
   bool useRootNavigator = true,
 }) {
+  // Capture the caller's theme so dialogs opened from dark-theme screens
+  // render dark instead of inheriting the app-level light theme.
+  final theme = Theme.of(context);
   return showDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
@@ -19,7 +22,9 @@ Future<T?> showAppDialog<T>({
     builder: (context) {
       return SafeArea(
         minimum: const EdgeInsets.all(AppSpacing.s8),
-        child: AppKeyboardInset(child: builder(context)),
+        child: AppKeyboardInset(
+          child: Theme(data: theme, child: builder(context)),
+        ),
       );
     },
   );
@@ -36,6 +41,9 @@ Future<T?> showAppModalSheet<T>({
   Color? backgroundColor,
   ShapeBorder? shape,
 }) {
+  // Capture the caller's theme so sheets opened from dark-theme screens
+  // render dark instead of inheriting the app-level light theme.
+  final theme = Theme.of(context);
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: isScrollControlled,
@@ -46,7 +54,9 @@ Future<T?> showAppModalSheet<T>({
     shape: shape,
     useSafeArea: true,
     builder: (context) {
-      return AppKeyboardInset(child: builder(context));
+      return AppKeyboardInset(
+        child: Theme(data: theme, child: builder(context)),
+      );
     },
   );
 }

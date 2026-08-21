@@ -18,8 +18,7 @@ class HomeSearchResultsList extends ConsumerStatefulWidget {
       _HomeSearchResultsListState();
 }
 
-class _HomeSearchResultsListState
-    extends ConsumerState<HomeSearchResultsList> {
+class _HomeSearchResultsListState extends ConsumerState<HomeSearchResultsList> {
   final _scrollController = ScrollController();
 
   @override
@@ -55,7 +54,7 @@ class _HomeSearchResultsListState
             'Type at least 2 characters to search all catalogs.',
             textAlign: TextAlign.center,
             style: AppTypography.body.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
         ),
@@ -85,13 +84,14 @@ class _HomeSearchResultsListState
                 state.errorMessage!,
                 textAlign: TextAlign.center,
                 style: AppTypography.body.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: AppColors.textSecondary(context),
                 ),
               ),
               const SizedBox(height: AppSpacing.s12),
               TextButton(
-                onPressed: () =>
-                    ref.read(homeSearchResultsProvider.notifier).loadFirstPage(),
+                onPressed: () => ref
+                    .read(homeSearchResultsProvider.notifier)
+                    .loadFirstPage(),
                 child: const Text('Retry'),
               ),
             ],
@@ -111,7 +111,7 @@ class _HomeSearchResultsListState
             meta.notice ?? 'No results for “$query”.',
             textAlign: TextAlign.center,
             style: AppTypography.body.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
         ),
@@ -135,9 +135,9 @@ class _HomeSearchResultsListState
             ),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: AppColors.warmWhite,
+                color: AppColors.card(context),
                 borderRadius: BorderRadius.circular(AppSpacing.r8),
-                border: Border.all(color: AppColors.warmBorder),
+                border: Border.all(color: AppColors.border(context)),
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -159,7 +159,7 @@ class _HomeSearchResultsListState
                       child: Text(
                         meta.notice!,
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.charcoal,
+                          color: AppColors.textPrimary(context),
                           fontWeight: FontWeight.w500,
                           height: 1.35,
                         ),
@@ -212,10 +212,7 @@ class _HomeSearchResultsListState
 }
 
 class _HomeSearchResultTile extends StatelessWidget {
-  const _HomeSearchResultTile({
-    required this.result,
-    required this.onTap,
-  });
+  const _HomeSearchResultTile({required this.result, required this.onTap});
 
   final HomeSearchResult result;
   final VoidCallback onTap;
@@ -223,7 +220,7 @@ class _HomeSearchResultTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       borderRadius: BorderRadius.circular(AppSpacing.r12),
       child: InkWell(
         onTap: onTap,
@@ -260,7 +257,7 @@ class _HomeSearchResultTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.body.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.charcoal,
+                        color: AppColors.textPrimary(context),
                       ),
                     ),
                     if (result.subtitle.isNotEmpty) ...[
@@ -270,7 +267,7 @@ class _HomeSearchResultTile extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textSecondaryLight,
+                          color: AppColors.textSecondary(context),
                         ),
                       ),
                     ],
@@ -282,7 +279,7 @@ class _HomeSearchResultTile extends StatelessWidget {
                 result.priceLabel,
                 style: AppTypography.label.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.charcoal,
+                  color: AppColors.textPrimary(context),
                 ),
               ),
             ],
@@ -302,11 +299,11 @@ class _Thumb extends StatelessWidget {
   Widget build(BuildContext context) {
     final trimmed = url?.trim() ?? '';
     if (trimmed.isEmpty) {
-      return const ColoredBox(
-        color: AppColors.creamBg,
+      return ColoredBox(
+        color: AppColors.surface(context),
         child: Icon(
           Icons.image_outlined,
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
           size: 22,
         ),
       );
@@ -315,11 +312,11 @@ class _Thumb extends StatelessWidget {
       url: trimmed,
       fit: BoxFit.cover,
       memCacheWidth: 128,
-      error: const ColoredBox(
-        color: AppColors.creamBg,
+      error: ColoredBox(
+        color: AppColors.surface(context),
         child: Icon(
           Icons.broken_image_outlined,
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
           size: 22,
         ),
       ),

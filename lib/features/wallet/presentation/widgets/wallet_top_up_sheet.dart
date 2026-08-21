@@ -15,6 +15,12 @@ class WalletTopUpSheet extends ConsumerStatefulWidget {
   const WalletTopUpSheet({super.key});
 
   static Future<void> show(BuildContext context) {
+    // Keep the sheet on the caller's theme (dark wallet → dark sheet) since
+    // modal routes otherwise inherit the app-level light theme.
+    final theme = Theme.of(context);
+
+    
+
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -25,7 +31,7 @@ class WalletTopUpSheet extends ConsumerStatefulWidget {
           top: Radius.circular(AppSpacing.r32),
         ),
       ),
-      builder: (context) => const WalletTopUpSheet(),
+      builder: (context) => Theme(data: theme, child: const WalletTopUpSheet()),
     );
   }
 
@@ -56,8 +62,9 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
       setState(() => _fieldError = 'Enter an amount in INR.');
       return;
     }
-    final invalid =
-        ref.read(walletTopUpProvider.notifier).validateAmount(amount);
+    final invalid = ref
+        .read(walletTopUpProvider.notifier)
+        .validateAmount(amount);
     if (invalid != null) {
       setState(() => _fieldError = invalid.message);
       return;

@@ -11,12 +11,10 @@ class BuyerWalletScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const BuyerLayout(
-      title: 'Wallet',
-      child: DarkThemeScope(
-        child: VerifiedAccountGate(
-          child: WalletPanel(),
-        ),
+    return const DarkThemeScope(
+      child: BuyerLayout(
+        title: 'Wallet',
+        child: VerifiedAccountGate(child: WalletPanel()),
       ),
     );
   }

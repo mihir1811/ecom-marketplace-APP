@@ -22,9 +22,9 @@ class ProfileInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -38,7 +38,7 @@ class ProfileInfoCard extends StatelessWidget {
                     vertical: AppSpacing.s8,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.sandSurface,
+                    color: AppColors.surface(context),
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
                   child: Text(
@@ -84,7 +84,7 @@ class ProfileInfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: AppColors.textSecondaryLight),
+        Icon(icon, size: 20, color: AppColors.textSecondary(context)),
         const SizedBox(width: AppSpacing.s12),
         Expanded(
           child: Column(
@@ -93,7 +93,7 @@ class ProfileInfoRow extends StatelessWidget {
               Text(
                 label,
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -102,7 +102,7 @@ class ProfileInfoRow extends StatelessWidget {
                 value,
                 style: AppTypography.body.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimaryLight,
+                  color: AppColors.textPrimary(context),
                 ),
               ),
             ],

@@ -7,6 +7,8 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/theme_preference_provider.dart';
 
 /// Buyer-side account drawer (home + buyer screens).
 class BuyerDrawer extends ConsumerWidget {
@@ -96,6 +98,7 @@ class BuyerDrawer extends ConsumerWidget {
       ),
     );
     final currentPath = GoRouterState.of(context).uri.path;
+    final dark = ref.watch(themePreferenceProvider);
     final items = <BuyerDrawerItem>[
       _buyerItems.first,
       if (auth.isSeller && auth.showProtected) _sellerDashboardItem,
@@ -106,152 +109,158 @@ class BuyerDrawer extends ConsumerWidget {
       }),
     ];
 
-    return Drawer(
-      width: 280,
-      backgroundColor: AppColors.warmWhite,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.s16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: AppColors.charcoal,
-                    child: Text(
-                      _initials(
-                        auth.user?.fullName ?? auth.user?.username ?? 'U',
-                      ),
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.warmWhite,
-                        fontWeight: FontWeight.w700,
+    // Stay dark whenever dark mode is on, even when hosted by a light screen.
+    return Theme(
+      data: dark ? AppTheme.dark : Theme.of(context),
+      child: Drawer(
+        width: 280,
+        backgroundColor: dark ? AppColors.slateSurface : AppColors.warmWhite,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.s16),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: AppColors.selectedFill(context),
+                      child: Text(
+                        _initials(
+                          auth.user?.fullName ?? auth.user?.username ?? 'U',
+                        ),
+                        style: AppTypography.label.copyWith(
+                          color: AppColors.onSelected(context),
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.s12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          auth.user?.fullName ?? 'Account',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.title.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          auth.isSeller ? 'Seller account' : 'Account',
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textSecondaryLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Close',
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  final isSelected = !item.isSellerEntry &&
-                      (currentPath == item.route ||
-                          currentPath.startsWith('${item.route}/'));
-                  return Material(
-                    color:
-                        isSelected ? AppColors.charcoal : Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.of(context).maybePop();
-                        context.go(item.route);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s16,
-                          vertical: AppSpacing.s12,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              item.icon,
-                              color: isSelected
-                                  ? AppColors.warmWhite
-                                  : AppColors.charcoal,
+                    const SizedBox(width: AppSpacing.s12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            auth.user?.fullName ?? 'Account',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.title.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
                             ),
-                            const SizedBox(width: AppSpacing.s16),
-                            Expanded(
-                              child: Text(
-                                item.label,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: isSelected
-                                      ? AppColors.warmWhite
-                                      : AppColors.charcoal,
+                          ),
+                          Text(
+                            auth.isSeller ? 'Seller account' : 'Account',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textSecondary(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Close',
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).maybePop(),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    final isSelected =
+                        !item.isSellerEntry &&
+                        (currentPath == item.route ||
+                            currentPath.startsWith('${item.route}/'));
+                    return Material(
+                      color: isSelected
+                          ? AppColors.selectedFill(context)
+                          : Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).maybePop();
+                          context.go(item.route);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.s16,
+                            vertical: AppSpacing.s12,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                item.icon,
+                                color: isSelected
+                                    ? AppColors.onSelected(context)
+                                    : AppColors.textPrimary(context),
+                              ),
+                              const SizedBox(width: AppSpacing.s16),
+                              Expanded(
+                                child: Text(
+                                  item.label,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: isSelected
+                                        ? AppColors.onSelected(context)
+                                        : AppColors.textPrimary(context),
+                                  ),
                                 ),
                               ),
-                            ),
-                            if (item.isSellerEntry)
-                              Icon(
-                                Icons.open_in_new,
-                                size: 16,
-                                color: isSelected
-                                    ? AppColors.warmWhite
-                                    : AppColors.textMutedLight,
-                              ),
-                          ],
+                              if (item.isSellerEntry)
+                                Icon(
+                                  Icons.open_in_new,
+                                  size: 16,
+                                  color: isSelected
+                                      ? AppColors.onSelected(context)
+                                      : AppColors.textMuted(context),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
+                    );
+                  },
+                ),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.home_outlined),
+                title: Text(
+                  'Back to shop',
+                  style: AppTypography.label.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).maybePop();
+                  context.go(AppRouteNames.home);
                 },
               ),
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: Text(
-                'Back to shop',
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w700,
+              ListTile(
+                leading: const Icon(Icons.logout, color: AppColors.error),
+                title: Text(
+                  'Sign out',
+                  style: AppTypography.label.copyWith(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
+                onTap: () {
+                  Navigator.of(context).maybePop();
+                  ref.read(authProvider.notifier).logout();
+                  context.go(AppRouteNames.home);
+                },
               ),
-              onTap: () {
-                Navigator.of(context).maybePop();
-                context.go(AppRouteNames.home);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: AppColors.error),
-              title: Text(
-                'Sign out',
-                style: AppTypography.label.copyWith(
-                  color: AppColors.error,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              onTap: () {
-                Navigator.of(context).maybePop();
-                ref.read(authProvider.notifier).logout();
-                context.go(AppRouteNames.home);
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

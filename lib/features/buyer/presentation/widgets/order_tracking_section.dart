@@ -40,14 +40,12 @@ class OrderTrackingSection extends ConsumerWidget {
               return Text(
                 'No shipment yet. Tracking appears once the seller ships.',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
               );
             }
             return Column(
-              children: [
-                for (final s in shipments) _ShipmentCard(shipment: s),
-              ],
+              children: [for (final s in shipments) _ShipmentCard(shipment: s)],
             );
           },
         ),
@@ -72,7 +70,7 @@ class _ShipmentCard extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -92,7 +90,7 @@ class _ShipmentCard extends ConsumerWidget {
                 Text(
                   detail.carrier!,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
             ],
@@ -113,7 +111,7 @@ class _ShipmentCard extends ConsumerWidget {
             Text(
               'Location: ${detail.currentLocation}',
               style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
               ),
             ),
           ],
@@ -143,7 +141,7 @@ class _ShipmentCard extends ConsumerWidget {
                 child: Text(
                   c.body,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                   ),
                 ),
               ),
@@ -189,21 +187,21 @@ class _TimelineRow extends StatelessWidget {
                   Text(
                     update.location!,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedLight,
+                      color: AppColors.textMuted(context),
                     ),
                   ),
                 if (update.note != null && update.note!.isNotEmpty)
                   Text(
                     update.note!,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                     ),
                   ),
                 if (dateLabel != null)
                   Text(
                     dateLabel,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedLight,
+                      color: AppColors.textMuted(context),
                       fontSize: 11,
                     ),
                   ),

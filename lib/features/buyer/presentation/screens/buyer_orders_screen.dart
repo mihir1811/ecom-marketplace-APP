@@ -8,6 +8,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../application/buyer_orders_provider.dart';
 import '../../domain/models/buyer_order.dart';
 import '../widgets/buyer_layout.dart';
@@ -20,82 +21,76 @@ class BuyerOrdersScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(buyerOrdersProvider);
 
-    return BuyerLayout(
-      title: 'Orders',
-      child: RefreshIndicator(
-        onRefresh: () => ref.read(buyerOrdersProvider.notifier).loadInitial(),
-        child: state.isLoading && state.orders.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 120),
-                  Center(child: CircularProgressIndicator()),
-                ],
-              )
-            : state.errorMessage != null && state.orders.isEmpty
-                ? ListView(
+    return DarkThemeScope(
+      child: BuyerLayout(
+        title: 'Orders',
+        child: RefreshIndicator(
+          onRefresh: () => ref.read(buyerOrdersProvider.notifier).loadInitial(),
+          child: state.isLoading && state.orders.isEmpty
+              ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(height: 120),
+                    Center(child: CircularProgressIndicator()),
+                  ],
+                )
+              : state.errorMessage != null && state.orders.isEmpty
+              ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(AppSpacing.s24),
+                  children: [
+                    Text(state.errorMessage!, textAlign: TextAlign.center),
+                    const SizedBox(height: AppSpacing.s16),
+                    Center(
+                      child: FilledButton(
+                        onPressed: () => ref
+                            .read(buyerOrdersProvider.notifier)
+                            .loadInitial(),
+                        child: const Text('Retry'),
+                      ),
+                    ),
+                  ],
+                )
+              : state.orders.isEmpty
+              ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    const SizedBox(height: 120),
+                    Center(
+                      child: Text('No orders yet', style: AppTypography.body),
+                    ),
+                  ],
+                )
+              : NotificationListener<ScrollNotification>(
+                  onNotification: (n) {
+                    if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
+                      ref.read(buyerOrdersProvider.notifier).loadMore();
+                    }
+                    return false;
+                  },
+                  child: ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(AppSpacing.s24),
-                    children: [
-                      Text(state.errorMessage!, textAlign: TextAlign.center),
-                      const SizedBox(height: AppSpacing.s16),
-                      Center(
-                        child: FilledButton(
-                          onPressed: () => ref
-                              .read(buyerOrdersProvider.notifier)
-                              .loadInitial(),
-                          child: const Text('Retry'),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                    itemCount: state.orders.length + (state.hasMore ? 1 : 0),
+                    separatorBuilder: (_, __) => const SizedBox(height: 14),
+                    itemBuilder: (context, index) {
+                      if (index >= state.orders.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      final order = state.orders[index];
+                      return _BuyerOrderCard(
+                        order: order,
+                        onTap: () => context.go(
+                          AppRouteNames.buyerOrderDetailPath(order.id),
                         ),
-                      ),
-                    ],
-                  )
-                : state.orders.isEmpty
-                    ? ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          const SizedBox(height: 120),
-                          Center(
-                            child: Text(
-                              'No orders yet',
-                              style: AppTypography.body,
-                            ),
-                          ),
-                        ],
-                      )
-                    : NotificationListener<ScrollNotification>(
-                        onNotification: (n) {
-                          if (n.metrics.pixels >=
-                              n.metrics.maxScrollExtent - 200) {
-                            ref.read(buyerOrdersProvider.notifier).loadMore();
-                          }
-                          return false;
-                        },
-                        child: ListView.separated(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                          itemCount:
-                              state.orders.length + (state.hasMore ? 1 : 0),
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 14),
-                          itemBuilder: (context, index) {
-                            if (index >= state.orders.length) {
-                              return const Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            }
-                            final order = state.orders[index];
-                            return _BuyerOrderCard(
-                              order: order,
-                              onTap: () => context.go(
-                                AppRouteNames.buyerOrderDetailPath(order.id),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                      );
+                    },
+                  ),
+                ),
+        ),
       ),
     );
   }
@@ -134,10 +129,10 @@ class _BuyerOrderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.warmWhite,
+            color: AppColors.card(context),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.warmBorder),
-            boxShadow: AppShadows.cardLight,
+            border: Border.all(color: AppColors.border(context)),
+            boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
           ),
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.s16),
@@ -173,7 +168,7 @@ class _BuyerOrderCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -190,14 +185,14 @@ class _BuyerOrderCard extends StatelessWidget {
                             style: AppTypography.caption.copyWith(
                               fontWeight: FontWeight.w800,
                               fontSize: 15,
-                              color: AppColors.charcoal,
+                              color: AppColors.textPrimary(context),
                             ),
                           ),
                           if (order.amountInr > 0)
                             Text(
                               AppCurrency.inr(order.amountInr),
                               style: AppTypography.caption.copyWith(
-                                color: AppColors.textMutedLight,
+                                color: AppColors.textMuted(context),
                               ),
                             ),
                         ],
@@ -229,7 +224,7 @@ class _BuyerOrderCard extends StatelessWidget {
                           Text(
                             dateLabel,
                             style: AppTypography.caption.copyWith(
-                              color: AppColors.textMutedLight,
+                              color: AppColors.textMuted(context),
                             ),
                           ),
                         ],

@@ -39,18 +39,16 @@ class _SellerHelpCenterScreenState
     final subject = _subjectCtrl.text.trim();
     final message = _messageCtrl.text.trim();
     if (_issueType == null || subject.isEmpty || message.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
       return;
     }
 
     setState(() => _isSubmitting = true);
-    final result = await ref.read(helpCenterMutationProvider.notifier).create(
-          issueType: _issueType!,
-          subject: subject,
-          body: message,
-        );
+    final result = await ref
+        .read(helpCenterMutationProvider.notifier)
+        .create(issueType: _issueType!, subject: subject, body: message);
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
@@ -61,13 +59,13 @@ class _SellerHelpCenterScreenState
           _subjectCtrl.clear();
           _messageCtrl.clear();
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Question submitted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Question submitted')));
       case ResultFailure(failure: final failure):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -100,13 +98,13 @@ class _SellerHelpCenterScreenState
 
     switch (result) {
       case Success():
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Question closed')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Question closed')));
       case ResultFailure(failure: final failure):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -114,7 +112,7 @@ class _SellerHelpCenterScreenState
     return InputDecoration(
       hintText: hint,
       filled: true,
-      fillColor: AppColors.sandSurface,
+      fillColor: AppColors.field(context),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide.none,
@@ -159,7 +157,7 @@ class _SellerHelpCenterScreenState
                   'Ask our support team a question. Buyers and sellers can submit '
                   'tickets here: an admin will reply when your question is reviewed.',
                   style: AppTypography.body.copyWith(
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                     height: 1.4,
                   ),
                 ),
@@ -179,11 +177,11 @@ class _SellerHelpCenterScreenState
                         'Include enough detail so we can help quickly — order IDs, '
                         'product links, or screenshots help.',
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textSecondaryLight,
+                          color: AppColors.textSecondary(context),
                         ),
                       ),
                       const SizedBox(height: 14),
-                      Text('Issue type', style: _labelStyle),
+                      Text('Issue type', style: _labelStyle(context)),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<HelpIssueType>(
                         key: ValueKey(_issueType?.name),
@@ -199,7 +197,7 @@ class _SellerHelpCenterScreenState
                         decoration: _fieldDecoration('Select an issue type'),
                       ),
                       const SizedBox(height: 12),
-                      Text('Subject', style: _labelStyle),
+                      Text('Subject', style: _labelStyle(context)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: _subjectCtrl,
@@ -209,7 +207,7 @@ class _SellerHelpCenterScreenState
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text('Message', style: _labelStyle),
+                      Text('Message', style: _labelStyle(context)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: _messageCtrl,
@@ -247,7 +245,9 @@ class _SellerHelpCenterScreenState
                 const SizedBox(height: 20),
                 Text(
                   'Your questions',
-                  style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+                  style: AppTypography.title.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 if (listState.isLoading && listState.items.isEmpty)
@@ -259,16 +259,15 @@ class _SellerHelpCenterScreenState
                     listState.items.isEmpty)
                   _ErrorCard(
                     message: listState.errorMessage!,
-                    onRetry: () => ref
-                        .read(helpQuestionListProvider.notifier)
-                        .refresh(),
+                    onRetry: () =>
+                        ref.read(helpQuestionListProvider.notifier).refresh(),
                   )
                 else if (listState.items.isEmpty)
                   _Card(
                     child: Text(
                       'No questions yet. Submit one above and we will get back to you.',
                       style: AppTypography.body.copyWith(
-                        color: AppColors.textSecondaryLight,
+                        color: AppColors.textSecondary(context),
                       ),
                     ),
                   )
@@ -305,10 +304,10 @@ class _SellerHelpCenterScreenState
     );
   }
 
-  TextStyle get _labelStyle => AppTypography.caption.copyWith(
-        fontWeight: FontWeight.w600,
-        color: AppColors.textSecondaryLight,
-      );
+  TextStyle _labelStyle(BuildContext context) => AppTypography.caption.copyWith(
+    fontWeight: FontWeight.w600,
+    color: AppColors.textSecondary(context),
+  );
 }
 
 class _Card extends StatelessWidget {
@@ -319,10 +318,10 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.warmBorder),
+        side: BorderSide(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
@@ -369,20 +368,20 @@ class _TicketCard extends StatelessWidget {
 
     final (Color bg, Color fg, IconData icon) = switch (status) {
       HelpQuestionStatus.open => (
-          AppColors.warning.withValues(alpha: 0.12),
-          AppColors.warning,
-          Icons.schedule,
-        ),
+        AppColors.warning.withValues(alpha: 0.12),
+        AppColors.warning,
+        Icons.schedule,
+      ),
       HelpQuestionStatus.answered => (
-          AppColors.success.withValues(alpha: 0.12),
-          AppColors.success,
-          Icons.check_circle_outline,
-        ),
+        AppColors.success.withValues(alpha: 0.12),
+        AppColors.success,
+        Icons.check_circle_outline,
+      ),
       HelpQuestionStatus.closed => (
-          AppColors.sandSurface,
-          AppColors.textMutedLight,
-          Icons.lock_outline,
-        ),
+        AppColors.surface(context),
+        AppColors.textMuted(context),
+        Icons.lock_outline,
+      ),
     };
 
     return _Card(
@@ -406,22 +405,24 @@ class _TicketCard extends StatelessWidget {
                     Text(
                       ticket.createdAtLabel,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       ticket.issueType.label,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondaryLight,
+                        color: AppColors.textSecondary(context),
                       ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: bg,
                   borderRadius: BorderRadius.circular(999),
@@ -447,7 +448,7 @@ class _TicketCard extends StatelessWidget {
           Text(
             ticket.body,
             style: AppTypography.body.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
           if (ticket.hasAdminReply) ...[
@@ -457,7 +458,7 @@ class _TicketCard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.warmBorder),
+                border: Border.all(color: AppColors.border(context)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -481,7 +482,7 @@ class _TicketCard extends StatelessWidget {
             Text(
               'Awaiting admin review',
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
                 fontStyle: FontStyle.italic,
               ),
             ),

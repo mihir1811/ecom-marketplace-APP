@@ -27,20 +27,20 @@ class _SellerInquiryInboxScreenState
   InquiryCategory _category = InquiryCategory.diamond;
 
   IconData _iconFor(InquiryCategory c) => switch (c) {
-        InquiryCategory.diamond => Icons.diamond_outlined,
-        InquiryCategory.gemstone => Icons.auto_awesome,
-        InquiryCategory.bullion => Icons.monetization_on_outlined,
-        InquiryCategory.watch => Icons.watch_outlined,
-        InquiryCategory.jewelry => Icons.workspace_premium_outlined,
-      };
+    InquiryCategory.diamond => Icons.diamond_outlined,
+    InquiryCategory.gemstone => Icons.auto_awesome,
+    InquiryCategory.bullion => Icons.monetization_on_outlined,
+    InquiryCategory.watch => Icons.watch_outlined,
+    InquiryCategory.jewelry => Icons.workspace_premium_outlined,
+  };
 
   Color _accentFor(InquiryCategory c) => switch (c) {
-        InquiryCategory.diamond => AppColors.info,
-        InquiryCategory.gemstone => AppSwatches.inquiryGemstone,
-        InquiryCategory.bullion => AppSwatches.inquiryBullion,
-        InquiryCategory.watch => AppColors.textSecondaryLight,
-        InquiryCategory.jewelry => AppSwatches.inquiryJewelry,
-      };
+    InquiryCategory.diamond => AppColors.info,
+    InquiryCategory.gemstone => AppSwatches.inquiryGemstone,
+    InquiryCategory.bullion => AppSwatches.inquiryBullion,
+    InquiryCategory.watch => AppColors.textSecondaryLight,
+    InquiryCategory.jewelry => AppSwatches.inquiryJewelry,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +81,7 @@ class _SellerInquiryInboxScreenState
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.s16),
                   decoration: BoxDecoration(
-                    color: AppColors.sandSurface,
+                    color: AppColors.surface(context),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Stack(
@@ -92,8 +92,9 @@ class _SellerInquiryInboxScreenState
                         child: Icon(
                           Icons.inbox_outlined,
                           size: 48,
-                          color:
-                              AppColors.textMutedLight.withValues(alpha: 0.3),
+                          color: AppColors.textMuted(
+                            context,
+                          ).withValues(alpha: 0.3),
                         ),
                       ),
                       Column(
@@ -107,10 +108,11 @@ class _SellerInquiryInboxScreenState
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.warmWhite,
+                                color: AppColors.card(context),
                                 borderRadius: BorderRadius.circular(999),
-                                border:
-                                    Border.all(color: AppColors.warmBorder),
+                                border: Border.all(
+                                  color: AppColors.border(context),
+                                ),
                               ),
                               child: Text(
                                 sentBy == InquirySenderRole.buyer
@@ -136,7 +138,7 @@ class _SellerInquiryInboxScreenState
                             'other buyers or sellers. Open a row to see your '
                             'submission and any admin reply.',
                             style: AppTypography.body.copyWith(
-                              color: AppColors.textSecondaryLight,
+                              color: AppColors.textSecondary(context),
                               height: 1.4,
                             ),
                           ),
@@ -149,7 +151,7 @@ class _SellerInquiryInboxScreenState
                             ),
                             style: OutlinedButton.styleFrom(
                               minimumSize: const Size.fromHeight(44),
-                              backgroundColor: AppColors.warmWhite,
+                              backgroundColor: AppColors.card(context),
                             ),
                             child: const Text('New inquiry'),
                           ),
@@ -161,14 +163,15 @@ class _SellerInquiryInboxScreenState
                 const SizedBox(height: 20),
                 Text(
                   'Browse by type',
-                  style:
-                      AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+                  style: AppTypography.title.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Switch category — each type loads its own list.',
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -190,9 +193,9 @@ class _SellerInquiryInboxScreenState
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.warmWhite,
+                    color: AppColors.card(context),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.warmBorder),
+                    border: Border.all(color: AppColors.border(context)),
                   ),
                   child: Row(
                     children: [
@@ -223,10 +226,10 @@ class _SellerInquiryInboxScreenState
                               listState.isLoading
                                   ? 'Loading…'
                                   : listState.items.isEmpty
-                                      ? 'Showing 0 of 0'
-                                      : 'Showing 1–${listState.items.length} of ${listState.total}',
+                                  ? 'Showing 0 of 0'
+                                  : 'Showing 1–${listState.items.length} of ${listState.total}',
                               style: AppTypography.caption.copyWith(
-                                color: AppColors.textMutedLight,
+                                color: AppColors.textMuted(context),
                               ),
                             ),
                           ],
@@ -267,7 +270,7 @@ class _SellerInquiryInboxScreenState
                       child: Text(
                         'No ${_category.label.toLowerCase()} inquiries.',
                         style: AppTypography.body.copyWith(
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                         ),
                       ),
                     ),
@@ -294,8 +297,8 @@ class _SellerInquiryInboxScreenState
                     onPressed: listState.isLoadingMore
                         ? null
                         : () => ref
-                            .read(inquiryListProvider(_category).notifier)
-                            .loadMore(),
+                              .read(inquiryListProvider(_category).notifier)
+                              .loadMore(),
                     child: listState.isLoadingMore
                         ? const SizedBox(
                             height: 20,
@@ -332,11 +335,11 @@ class _CategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? accent.withValues(alpha: 0.1) : AppColors.warmWhite,
+      color: selected ? accent.withValues(alpha: 0.1) : AppColors.card(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
         side: BorderSide(
-          color: selected ? accent : AppColors.warmBorder,
+          color: selected ? accent : AppColors.border(context),
           width: selected ? 1.5 : 1,
         ),
       ),
@@ -348,13 +351,17 @@ class _CategoryChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: selected ? accent : AppColors.charcoal),
+              Icon(
+                icon,
+                size: 18,
+                color: selected ? accent : AppColors.textPrimary(context),
+              ),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: AppTypography.caption.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: selected ? accent : AppColors.charcoal,
+                  color: selected ? accent : AppColors.textPrimary(context),
                 ),
               ),
             ],
@@ -383,9 +390,9 @@ class _InquiryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -395,7 +402,7 @@ class _InquiryCard extends StatelessWidget {
               Text(
                 '#${inquiry.id.length > 8 ? inquiry.id.substring(0, 8) : inquiry.id}',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -403,7 +410,7 @@ class _InquiryCard extends StatelessWidget {
               Text(
                 inquiry.createdAtLabel,
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
               ),
             ],
@@ -417,7 +424,7 @@ class _InquiryCard extends StatelessWidget {
           Text(
             inquiry.summary,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
           const SizedBox(height: 8),
@@ -428,7 +435,7 @@ class _InquiryCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: inquiry.hasAdminReply
                     ? AppColors.info.withValues(alpha: 0.12)
-                    : AppColors.sandSurface,
+                    : AppColors.surface(context),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
@@ -438,7 +445,7 @@ class _InquiryCard extends StatelessWidget {
                   fontSize: 11,
                   color: inquiry.hasAdminReply
                       ? AppColors.info
-                      : AppColors.textMutedLight,
+                      : AppColors.textMuted(context),
                 ),
               ),
             ),
@@ -448,7 +455,7 @@ class _InquiryCard extends StatelessWidget {
             onPressed: onView,
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(42),
-              backgroundColor: AppColors.warmWhite,
+              backgroundColor: AppColors.card(context),
             ),
             child: const Text('View details'),
           ),

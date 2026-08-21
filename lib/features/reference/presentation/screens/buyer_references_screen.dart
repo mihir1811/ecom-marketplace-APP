@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../buyer/presentation/widgets/buyer_layout.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import 'reference_hub_screen.dart';
 
 class BuyerReferencesScreen extends StatelessWidget {
@@ -8,9 +9,11 @@ class BuyerReferencesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const BuyerLayout(
-      title: 'References',
-      child: ReferenceHubScreen(),
+    return DarkThemeScope(
+      child: Builder(
+        builder: (context) =>
+            const BuyerLayout(title: 'References', child: ReferenceHubScreen()),
+      ),
     );
   }
 }

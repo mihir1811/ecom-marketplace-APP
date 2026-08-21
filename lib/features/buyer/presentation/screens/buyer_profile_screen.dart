@@ -12,6 +12,7 @@ import '../../../auth/application/user_profile_providers.dart';
 import '../../../auth/domain/models/user_profile.dart';
 import '../../../auth/presentation/widgets/profile_info_widgets.dart';
 import '../../../auth/presentation/widgets/seller_business_profile_cards.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../widgets/buyer_layout.dart';
 
 /// Individual / buyer account profile (read-only).
@@ -23,26 +24,26 @@ class BuyerProfileScreen extends ConsumerWidget {
     final authUser = ref.watch(authProvider.select((s) => s.user));
     final profileAsync = ref.watch(userProfileProvider);
 
-    return BuyerLayout(
-      title: 'My profile',
-      child: authUser == null
-          ? const Center(child: Text('Sign in to view your profile.'))
-          : profileAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) {
-                final fallback = userProfileFromAuth(authUser);
-                return _BuyerProfileBody(
-                  profile: fallback,
-                  authUser: authUser,
-                  onRetry: () => ref.invalidate(userProfileProvider),
-                  loadError: e is Failure ? e.message : e.toString(),
-                );
-              },
-              data: (profile) => _BuyerProfileBody(
-                profile: profile,
-                authUser: authUser,
+    return DarkThemeScope(
+      child: BuyerLayout(
+        title: 'My profile',
+        child: authUser == null
+            ? const Center(child: Text('Sign in to view your profile.'))
+            : profileAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) {
+                  final fallback = userProfileFromAuth(authUser);
+                  return _BuyerProfileBody(
+                    profile: fallback,
+                    authUser: authUser,
+                    onRetry: () => ref.invalidate(userProfileProvider),
+                    loadError: e is Failure ? e.message : e.toString(),
+                  );
+                },
+                data: (profile) =>
+                    _BuyerProfileBody(profile: profile, authUser: authUser),
               ),
-            ),
+      ),
     );
   }
 }
@@ -111,7 +112,9 @@ class _BuyerProfileBody extends StatelessWidget {
             ProfileInfoRow(
               icon: Icons.verified_outlined,
               label: 'Account verification',
-              value: profile.isVerified ? 'Verified' : 'Verification is pending',
+              value: profile.isVerified
+                  ? 'Verified'
+                  : 'Verification is pending',
             ),
             ProfileInfoRow(
               icon: Icons.security_outlined,
@@ -144,30 +147,31 @@ class _ProfileHero extends StatelessWidget {
     final displayName = profile.fullName.trim().isNotEmpty
         ? profile.fullName
         : (profile.username.trim().isNotEmpty
-            ? profile.username
-            : 'Your account');
+              ? profile.username
+              : 'Your account');
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 36,
-            backgroundColor: AppColors.sandSurface,
-            backgroundImage:
-                hasPicture ? CachedNetworkImageProvider(picture) : null,
+            backgroundColor: AppColors.selectedFill(context),
+            backgroundImage: hasPicture
+                ? CachedNetworkImageProvider(picture)
+                : null,
             child: hasPicture
                 ? null
                 : Text(
                     _initials(displayName),
                     style: AppTypography.title.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: AppColors.charcoal,
+                      color: AppColors.onSelected(context),
                     ),
                   ),
           ),
@@ -191,7 +195,7 @@ class _ProfileHero extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.body.copyWith(
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                     ),
                   ),
                 const SizedBox(height: AppSpacing.s8),
@@ -201,14 +205,14 @@ class _ProfileHero extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.sandSurface,
+                    color: AppColors.surface(context),
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
                   child: Text(
                     profile.isSeller ? 'Seller' : 'Individual',
                     style: AppTypography.caption.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: AppColors.charcoal,
+                      color: AppColors.textPrimary(context),
                     ),
                   ),
                 ),

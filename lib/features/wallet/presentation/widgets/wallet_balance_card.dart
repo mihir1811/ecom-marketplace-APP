@@ -23,7 +23,7 @@ class WalletBalanceCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.charcoal,
           borderRadius: BorderRadius.circular(AppSpacing.r24),
-          boxShadow: AppShadows.cardLight,
+          boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

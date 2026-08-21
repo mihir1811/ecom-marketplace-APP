@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth/seller_only_gate.dart';
 import '../../core/auth/verified_account_gate.dart';
 import '../../core/router/route_names.dart';
+import '../../core/widgets/dark_theme_scope.dart';
 import '../seller/presentation/screens/seller_chat_detail_screen.dart';
 import '../seller/presentation/screens/seller_chat_list_screen.dart';
 import '../seller/presentation/screens/seller_help_center_screen.dart';
@@ -27,22 +29,22 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerOrders,
-    builder: (context, state) => const VerifiedAccountGate(
-      child: BuyerOrdersScreen(),
-    ),
+    builder: (context, state) =>
+        const VerifiedAccountGate(child: BuyerOrdersScreen()),
   ),
   GoRoute(
     path: '/buyer/orders/:orderId',
     builder: (context, state) => VerifiedAccountGate(
-      child: BuyerOrderDetailScreen(
-        orderId: state.pathParameters['orderId']!,
-      ),
+      child: BuyerOrderDetailScreen(orderId: state.pathParameters['orderId']!),
     ),
   ),
   GoRoute(
     path: AppRouteNames.buyerRefunds,
-    builder: (context, state) => const VerifiedAccountGate(
-      child: BuyerRefundsScreen(),
+    builder: (context, state) => DarkThemeScope(
+      child: Builder(
+        builder: (context) =>
+            const VerifiedAccountGate(child: BuyerRefundsScreen()),
+      ),
     ),
   ),
   GoRoute(
@@ -51,34 +53,50 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerInquiries,
-    builder: (context, state) => const BuyerLayout(
-      title: 'Inquiries',
-      child: SellerInquiryInboxScreen(showHeader: false),
+    builder: (context, state) => DarkThemeScope(
+      child: Builder(
+        builder: (context) => const BuyerLayout(
+          title: 'Inquiries',
+          child: SellerInquiryInboxScreen(showHeader: false),
+        ),
+      ),
     ),
   ),
   GoRoute(
     path: AppRouteNames.buyerInquiryNew,
-    builder: (context, state) => const BuyerLayout(
-      title: 'New inquiry',
-      child: SellerInquiryFormScreen(showHeader: false),
+    builder: (context, state) => DarkThemeScope(
+      child: Builder(
+        builder: (context) => const BuyerLayout(
+          title: 'New inquiry',
+          child: SellerInquiryFormScreen(showHeader: false),
+        ),
+      ),
     ),
   ),
   GoRoute(
     path: '/buyer/inquiries/:category/:inquiryId',
-    builder: (context, state) => BuyerLayout(
-      title: 'Inquiry',
-      child: SellerInquiryDetailScreen(
-        categoryName: state.pathParameters['category']!,
-        inquiryId: state.pathParameters['inquiryId']!,
-        showHeader: false,
+    builder: (context, state) => DarkThemeScope(
+      child: Builder(
+        builder: (context) => BuyerLayout(
+          title: 'Inquiry',
+          child: SellerInquiryDetailScreen(
+            categoryName: state.pathParameters['category']!,
+            inquiryId: state.pathParameters['inquiryId']!,
+            showHeader: false,
+          ),
+        ),
       ),
     ),
   ),
   GoRoute(
     path: AppRouteNames.buyerHelpCenter,
-    builder: (context, state) => const BuyerLayout(
-      title: 'Help center',
-      child: SellerHelpCenterScreen(showHeader: false),
+    builder: (context, state) => DarkThemeScope(
+      child: Builder(
+        builder: (context) => const BuyerLayout(
+          title: 'Help center',
+          child: SellerHelpCenterScreen(showHeader: false),
+        ),
+      ),
     ),
   ),
   GoRoute(

@@ -116,7 +116,8 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
     final orderReviews = orderAsync.asData?.value ?? const <SellerReview>[];
     final alreadyReviewedThisOrder =
         _submittedLocally || orderReviews.isNotEmpty;
-    final canForm = _isPaid &&
+    final canForm =
+        _isPaid &&
         sellerId != null &&
         !alreadyReviewedThisOrder &&
         !orderAsync.isLoading;
@@ -133,7 +134,7 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
         Text(
           'Public ratings for $_sellerName',
           style: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
           ),
         ),
         const SizedBox(height: 12),
@@ -153,7 +154,7 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
           Text(
             'No reviews yet for this seller.',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
             ),
           )
         else
@@ -168,7 +169,7 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
           Text(
             'You can leave a review after payment is complete.',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
             ),
           ),
         ],
@@ -236,7 +237,7 @@ class _ExistingReviewCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(AppSpacing.s12),
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -256,7 +257,7 @@ class _ExistingReviewCard extends StatelessWidget {
                 Text(
                   dateLabel,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
             ],
@@ -285,18 +286,17 @@ class _ExistingReviewCard extends StatelessWidget {
             Text(
               review.comment!,
               style: AppTypography.body.copyWith(
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
                 height: 1.4,
               ),
             ),
           ],
-          if (review.sellerReply != null &&
-              review.sellerReply!.isNotEmpty) ...[
+          if (review.sellerReply != null && review.sellerReply!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
               'Seller reply: ${review.sellerReply}',
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
               ),
             ),
           ],

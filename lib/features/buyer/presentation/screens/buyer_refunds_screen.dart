@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -33,67 +33,57 @@ class BuyerRefundsScreen extends ConsumerWidget {
                 ],
               )
             : state.errorMessage != null && state.items.isEmpty
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(AppSpacing.s24),
-                    children: [
-                      Text(state.errorMessage!, textAlign: TextAlign.center),
-                      const SizedBox(height: AppSpacing.s16),
-                      Center(
-                        child: FilledButton(
-                          onPressed: () => ref
-                              .read(buyerRefundListProvider.notifier)
-                              .refresh(),
-                          child: const Text('Retry'),
-                        ),
-                      ),
-                    ],
-                  )
-                : state.items.isEmpty
-                    ? ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          const SizedBox(height: 120),
-                          Center(
-                            child: Text(
-                              'No refund requests yet',
-                              style: AppTypography.body,
-                            ),
-                          ),
-                        ],
-                      )
-                    : NotificationListener<ScrollNotification>(
-                        onNotification: (n) {
-                          if (n.metrics.pixels >=
-                              n.metrics.maxScrollExtent - 200) {
-                            ref
-                                .read(buyerRefundListProvider.notifier)
-                                .loadMore();
-                          }
-                          return false;
-                        },
-                        child: ListView.separated(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                          itemCount:
-                              state.items.length + (state.hasMore ? 1 : 0),
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            if (index >= state.items.length) {
-                              return const Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            }
-                            return _BuyerRefundCard(
-                              refund: state.items[index],
-                            );
-                          },
-                        ),
-                      ),
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(AppSpacing.s24),
+                children: [
+                  Text(state.errorMessage!, textAlign: TextAlign.center),
+                  const SizedBox(height: AppSpacing.s16),
+                  Center(
+                    child: FilledButton(
+                      onPressed: () =>
+                          ref.read(buyerRefundListProvider.notifier).refresh(),
+                      child: const Text('Retry'),
+                    ),
+                  ),
+                ],
+              )
+            : state.items.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  const SizedBox(height: 120),
+                  Center(
+                    child: Text(
+                      'No refund requests yet',
+                      style: AppTypography.body,
+                    ),
+                  ),
+                ],
+              )
+            : NotificationListener<ScrollNotification>(
+                onNotification: (n) {
+                  if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
+                    ref.read(buyerRefundListProvider.notifier).loadMore();
+                  }
+                  return false;
+                },
+                child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  itemCount: state.items.length + (state.hasMore ? 1 : 0),
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    if (index >= state.items.length) {
+                      return const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    return _BuyerRefundCard(refund: state.items[index]);
+                  },
+                ),
+              ),
       ),
     );
   }
@@ -105,11 +95,11 @@ class _BuyerRefundCard extends ConsumerWidget {
   final RefundRequest refund;
 
   Color get _statusColor => switch (refund.status) {
-        RefundStatus.pending => AppColors.bronze,
-        RefundStatus.accepted => AppColors.success,
-        RefundStatus.rejected => AppColors.error,
-        RefundStatus.cancelled => AppColors.charcoalLight,
-      };
+    RefundStatus.pending => AppColors.bronze,
+    RefundStatus.accepted => AppColors.success,
+    RefundStatus.rejected => AppColors.error,
+    RefundStatus.cancelled => AppColors.charcoalLight,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,10 +107,10 @@ class _BuyerRefundCard extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.warmBorder),
-        boxShadow: AppShadows.cardLight,
+        border: Border.all(color: AppColors.border(context)),
+        boxShadow: AppColors.isDark(context) ? null : AppShadows.cardLight,
       ),
       padding: const EdgeInsets.all(AppSpacing.s16),
       child: Column(
@@ -151,14 +141,13 @@ class _BuyerRefundCard extends ConsumerWidget {
           Text(
             'Seller · ${refund.sellerLabel}',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
             ),
           ),
           const SizedBox(height: 4),
           InkWell(
-            onTap: () => context.go(
-              AppRouteNames.buyerOrderDetailPath(refund.orderId),
-            ),
+            onTap: () =>
+                context.go(AppRouteNames.buyerOrderDetailPath(refund.orderId)),
             child: Text(
               'Order ${refund.orderId}',
               style: AppTypography.body.copyWith(
@@ -172,7 +161,7 @@ class _BuyerRefundCard extends ConsumerWidget {
           Text(
             refund.reason,
             style: AppTypography.body.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
           if (refund.sellerNote != null) ...[
@@ -180,7 +169,7 @@ class _BuyerRefundCard extends ConsumerWidget {
             Text(
               'Seller note: ${refund.sellerNote}',
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
               ),
             ),
           ],
@@ -188,7 +177,7 @@ class _BuyerRefundCard extends ConsumerWidget {
           Text(
             'Requested ${refund.createdAtLabel}',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
             ),
           ),
           if (refund.canCancel) ...[

@@ -8,19 +8,19 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_dialog.dart';
 
-InputDecoration inquiryInputDecoration([String? hint]) {
+InputDecoration inquiryInputDecoration(BuildContext context, [String? hint]) {
   return InputDecoration(
     hintText: hint,
     isDense: true,
     filled: true,
-    fillColor: AppColors.warmWhite,
+    fillColor: AppColors.field(context),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: AppColors.warmBorder),
+      borderSide: BorderSide(color: AppColors.border(context)),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: AppColors.warmBorder),
+      borderSide: BorderSide(color: AppColors.border(context)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
@@ -31,11 +31,7 @@ InputDecoration inquiryInputDecoration([String? hint]) {
 }
 
 class InquirySectionCard extends StatelessWidget {
-  const InquirySectionCard({
-    required this.child,
-    this.title,
-    super.key,
-  });
+  const InquirySectionCard({required this.child, this.title, super.key});
 
   final String? title;
   final Widget child;
@@ -47,9 +43,9 @@ class InquirySectionCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -89,7 +85,7 @@ class InquiryLabeledField extends StatelessWidget {
             label,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
           const SizedBox(height: 6),
@@ -126,18 +122,14 @@ class InquiryTextField extends StatelessWidget {
         maxLines: maxLines,
         onChanged: onChanged,
         scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-        decoration: inquiryInputDecoration(placeholder),
+        decoration: inquiryInputDecoration(context, placeholder),
       ),
     );
   }
 }
 
 class InquiryPairFields extends StatelessWidget {
-  const InquiryPairFields({
-    required this.left,
-    required this.right,
-    super.key,
-  });
+  const InquiryPairFields({required this.left, required this.right, super.key});
 
   final Widget left;
   final Widget right;
@@ -186,7 +178,7 @@ class InquiryDropdownField extends StatelessWidget {
         onChanged: (v) {
           if (v != null) onChanged(v);
         },
-        decoration: inquiryInputDecoration(placeholder),
+        decoration: inquiryInputDecoration(context, placeholder),
       ),
     );
   }
@@ -210,10 +202,7 @@ class InquiryCheckboxField extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Checkbox(
-            value: value,
-            onChanged: (v) => onChanged(v ?? false),
-          ),
+          Checkbox(value: value, onChanged: (v) => onChanged(v ?? false)),
           Expanded(
             child: Text(
               label,
@@ -250,9 +239,10 @@ class InquiryDateField extends StatelessWidget {
       child: InkWell(
         onTap: onPick,
         child: InputDecorator(
-          decoration: inquiryInputDecoration('mm/dd/yyyy').copyWith(
-            suffixIcon: const Icon(Icons.calendar_today, size: 18),
-          ),
+          decoration: inquiryInputDecoration(
+            context,
+            'mm/dd/yyyy',
+          ).copyWith(suffixIcon: const Icon(Icons.calendar_today, size: 18)),
           child: Text(text),
         ),
       ),
@@ -333,8 +323,8 @@ class InquiryImagePickerField extends StatelessWidget {
               skippedLarge
                   ? 'Image must be smaller than 5 MB'
                   : skippedUnreadable
-                      ? 'Could not read the selected file'
-                      : 'No image selected',
+                  ? 'Could not read the selected file'
+                  : 'No image selected',
             ),
           ),
         );
@@ -374,7 +364,7 @@ class InquiryImagePickerField extends StatelessWidget {
           Text(
             helperText,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
             ),
           ),
           const SizedBox(height: 8),
@@ -429,11 +419,10 @@ class InquiryImagePickerField extends StatelessWidget {
             ),
           if (images.isNotEmpty) const SizedBox(height: 10),
           OutlinedButton.icon(
-            onPressed:
-                images.length >= maxImages ? null : () => _pick(context),
+            onPressed: images.length >= maxImages ? null : () => _pick(context),
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.charcoal,
-              side: const BorderSide(color: AppColors.warmBorder),
+              foregroundColor: AppColors.textPrimary(context),
+              side: BorderSide(color: AppColors.border(context)),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -452,11 +441,7 @@ class InquiryImagePickerField extends StatelessWidget {
 
 /// Read-only thumbnail strip for inquiry detail.
 class InquiryImageGallery extends StatelessWidget {
-  const InquiryImageGallery({
-    required this.images,
-    this.title,
-    super.key,
-  });
+  const InquiryImageGallery({required this.images, this.title, super.key});
 
   final List<Uint8List> images;
   final String? title;
@@ -472,7 +457,7 @@ class InquiryImageGallery extends StatelessWidget {
             title!,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
             ),
           ),
           const SizedBox(height: 8),

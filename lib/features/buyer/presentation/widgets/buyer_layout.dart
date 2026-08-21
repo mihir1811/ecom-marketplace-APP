@@ -28,11 +28,7 @@ void openBuyerDrawer([BuildContext? context]) {
 /// When [title] is null, no app bar is shown (for shared screens that already
 /// render their own header + menu button).
 class BuyerLayout extends ConsumerWidget {
-  const BuyerLayout({
-    super.key,
-    required this.child,
-    this.title,
-  });
+  const BuyerLayout({super.key, required this.child, this.title});
 
   final Widget child;
   final String? title;
@@ -50,11 +46,11 @@ class BuyerLayout extends ConsumerWidget {
 
     return AppScaffold(
       scaffoldKey: buyerScaffoldKey,
-      backgroundColor: AppColors.creamBg,
+      backgroundColor: AppColors.bg(context),
       drawer: const BuyerDrawer(),
       appBar: hasAppBar
           ? AppBar(
-              backgroundColor: AppColors.creamBg,
+              backgroundColor: AppColors.bg(context),
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               leading: IconButton(
@@ -64,7 +60,9 @@ class BuyerLayout extends ConsumerWidget {
               ),
               title: Text(
                 title!,
-                style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+                style: AppTypography.title.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               actions: [
                 IconButton(

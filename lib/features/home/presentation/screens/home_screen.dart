@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gemstone/core/widgets/app_dialog.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
+import 'package:gemstone/core/widgets/dark_theme_scope.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/verified_only.dart';
@@ -73,96 +75,103 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
-    final isSearching =
-        ref.watch(homeSearchQueryProvider.select((q) => q.trim().isNotEmpty));
+    final isSearching = ref.watch(
+      homeSearchQueryProvider.select((q) => q.trim().isNotEmpty),
+    );
 
-    return AppScaffold(
-      backgroundColor: AppColors.creamBg,
-      drawer: auth.isAuthenticated ? const BuyerDrawer() : null,
-      appBar: AppBar(
-        backgroundColor: AppColors.creamBg,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'GemWorld',
-          style: AppTypography.title.copyWith(
-            fontWeight: FontWeight.w700,
-            fontSize: 22,
-          ),
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Compare',
-            onPressed: () => context.push(AppRouteNames.comparison),
-            icon: const Icon(Icons.compare_arrows_rounded),
-          ),
-          VerifiedOnly(
-            child: IconButton(
-              tooltip: 'Cart',
-              onPressed: () => context.push(AppRouteNames.cart),
-              icon: Badge(
-                isLabelVisible: cartCount > 0,
-                label: Text('$cartCount'),
-                backgroundColor: AppColors.bronze,
-                child: const Icon(Icons.shopping_bag_outlined),
+    return DarkThemeScope(
+      child: Builder(
+        builder: (context) => AppScaffold(
+          backgroundColor: AppColors.bg(context),
+          drawer: auth.isAuthenticated ? const BuyerDrawer() : null,
+          appBar: AppBar(
+            backgroundColor: AppColors.bg(context),
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            title: Text(
+              'GemWorld',
+              style: AppTypography.title.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 22,
               ),
             ),
-          ),
-          if (auth.isAuthenticated && auth.isSeller && auth.canTransact) ...[
-            IconButton(
-              tooltip: 'Wallet',
-              onPressed: () => context.push(AppRouteNames.buyerWallet),
-              icon: const Icon(Icons.account_balance_wallet_outlined),
-            ),
-            IconButton(
-              tooltip: 'Messages',
-              onPressed: () => context.push(AppRouteNames.buyerMessages),
-              icon: const Icon(Icons.chat_bubble_outline),
-            ),
-          ] else if (!auth.isAuthenticated)
-            TextButton(
-              onPressed: () => context.push(AppRouteNames.login),
-              child: Text(
-                'Login',
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.charcoal,
+            actions: [
+              IconButton(
+                tooltip: 'Compare',
+                onPressed: () => context.push(AppRouteNames.comparison),
+                icon: const Icon(Icons.compare_arrows_rounded),
+              ),
+              VerifiedOnly(
+                child: IconButton(
+                  tooltip: 'Cart',
+                  onPressed: () => context.push(AppRouteNames.cart),
+                  icon: Badge(
+                    isLabelVisible: cartCount > 0,
+                    label: Text('$cartCount'),
+                    backgroundColor: AppColors.bronze,
+                    child: const Icon(Icons.shopping_bag_outlined),
+                  ),
                 ),
               ),
-            )
-          else
-            IconButton(
-              tooltip: 'Account',
-              onPressed: () => context.go(AppRouteNames.buyerProfile),
-              icon: const Icon(Icons.person_outline),
-            ),
-          const SizedBox(width: AppSpacing.s8),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const ColoredBox(
-            color: AppColors.creamBg,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.s20,
-                AppSpacing.s8,
-                AppSpacing.s20,
-                AppSpacing.s12,
-              ),
-              child: HomeQuickSearch(),
-            ),
-          ),
-          Expanded(
-            child: isSearching
-                ? const HomeSearchResultsList()
-                : _HomeBrowseBody(
-                    isAuthenticated: auth.isAuthenticated,
-                    isSeller: auth.isSeller,
+              if (auth.isAuthenticated &&
+                  auth.isSeller &&
+                  auth.canTransact) ...[
+                IconButton(
+                  tooltip: 'Wallet',
+                  onPressed: () => context.push(AppRouteNames.buyerWallet),
+                  icon: const Icon(Icons.account_balance_wallet_outlined),
+                ),
+                IconButton(
+                  tooltip: 'Messages',
+                  onPressed: () => context.push(AppRouteNames.buyerMessages),
+                  icon: const Icon(Icons.chat_bubble_outline),
+                ),
+              ] else if (!auth.isAuthenticated)
+                TextButton(
+                  onPressed: () => context.push(AppRouteNames.login),
+                  child: Text(
+                    'Login',
+                    style: AppTypography.label.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary(context),
+                    ),
                   ),
+                )
+              else
+                IconButton(
+                  tooltip: 'Account',
+                  onPressed: () => context.go(AppRouteNames.buyerProfile),
+                  icon: const Icon(Icons.person_outline),
+                ),
+              const SizedBox(width: AppSpacing.s8),
+            ],
           ),
-        ],
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ColoredBox(
+                color: AppColors.bg(context),
+                child: const Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.s20,
+                    AppSpacing.s8,
+                    AppSpacing.s20,
+                    AppSpacing.s12,
+                  ),
+                  child: HomeQuickSearch(),
+                ),
+              ),
+              Expanded(
+                child: isSearching
+                    ? const HomeSearchResultsList()
+                    : _HomeBrowseBody(
+                        isAuthenticated: auth.isAuthenticated,
+                        isSeller: auth.isSeller,
+                      ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -212,19 +221,16 @@ class _HomeBrowseBody extends ConsumerWidget {
               crossAxisSpacing: AppSpacing.s12,
               childAspectRatio: 0.92,
             ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final item = HomeScreen._categories[index];
-                return HomeCategoryTile(
-                  key: ValueKey(item.route),
-                  title: item.title,
-                  subtitle: item.subtitle,
-                  imageUrl: item.imageUrl,
-                  onTap: () => context.push(item.route),
-                );
-              },
-              childCount: HomeScreen._categories.length,
-            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final item = HomeScreen._categories[index];
+              return HomeCategoryTile(
+                key: ValueKey(item.route),
+                title: item.title,
+                subtitle: item.subtitle,
+                imageUrl: item.imageUrl,
+                onTap: () => context.push(item.route),
+              );
+            }, childCount: HomeScreen._categories.length),
           ),
         ),
         if (!isSeller) ...[
@@ -252,7 +258,7 @@ class _HomeBrowseBody extends ConsumerWidget {
               'Certified stones · Transparent sellers · Worldwide shipping',
               textAlign: TextAlign.center,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
                 letterSpacing: 0.2,
               ),
             ),
@@ -278,7 +284,7 @@ class _HomeBrowseBody extends ConsumerWidget {
                 Text(
                   '·',
                   style: AppTypography.label.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
                 TextButton(
@@ -295,7 +301,7 @@ class _HomeBrowseBody extends ConsumerWidget {
                 Text(
                   '·',
                   style: AppTypography.label.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 ),
                 TextButton(
@@ -323,7 +329,7 @@ class _HomeBrowseBody extends ConsumerWidget {
       return;
     }
 
-    final goRegister = await showDialog<bool>(
+    final goRegister = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Separate seller account required'),
@@ -377,7 +383,7 @@ class _SellerBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.charcoal,
+      color: AppColors.selectedFill(context),
       borderRadius: BorderRadius.circular(AppSpacing.r12),
       child: InkWell(
         onTap: onTap,
@@ -396,7 +402,7 @@ class _SellerBanner extends StatelessWidget {
                     Text(
                       'Sell on GemWorld',
                       style: AppTypography.title.copyWith(
-                        color: AppColors.warmWhite,
+                        color: AppColors.onSelected(context),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -412,9 +418,9 @@ class _SellerBanner extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.arrow_forward_rounded,
-                color: AppColors.warmWhite,
+                color: AppColors.onSelected(context),
               ),
             ],
           ),

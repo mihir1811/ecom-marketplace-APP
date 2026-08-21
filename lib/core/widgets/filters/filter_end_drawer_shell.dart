@@ -85,15 +85,17 @@ class FilterEndDrawerShell extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.card(context),
-                  border: Border(top: BorderSide(color: AppColors.border(context))),
+                  border: Border(
+                    top: BorderSide(color: AppColors.border(context)),
+                  ),
                 ),
                 child: SizedBox(
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.charcoal,
-                      foregroundColor: AppColors.warmWhite,
+                      backgroundColor: AppColors.selectedFill(context),
+                      foregroundColor: AppColors.onSelected(context),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppSpacing.r8),
                       ),
@@ -102,7 +104,7 @@ class FilterEndDrawerShell extends StatelessWidget {
                     child: Text(
                       showResultsLabel,
                       style: AppTypography.label.copyWith(
-                        color: AppColors.warmWhite,
+                        color: AppColors.onSelected(context),
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.6,
                       ),

@@ -92,14 +92,12 @@ class _SellerProfileBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final UserBankAccount? bank = bankState.account;
-    final accountHolder =
-        bank?.accountHolderName ?? profile.accountHolderName;
+    final accountHolder = bank?.accountHolderName ?? profile.accountHolderName;
     final accountNumber = bank?.accountNumber ?? profile.accountNumber;
     final ifsc = bank?.ifscCode ?? profile.ifscCode;
     final bankName = bank?.bankName ?? profile.bankName;
     final upi = bank?.upiId ?? profile.upiId;
-    final accountType =
-        bank?.accountType?.label ?? profile.accountType;
+    final accountType = bank?.accountType?.label ?? profile.accountType;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.s16),
@@ -150,9 +148,9 @@ class _SellerProfileBody extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.s16),
             decoration: BoxDecoration(
-              color: AppColors.warmWhite,
+              color: AppColors.card(context),
               borderRadius: BorderRadius.circular(AppSpacing.r12),
-              border: Border.all(color: AppColors.warmBorder),
+              border: Border.all(color: AppColors.border(context)),
             ),
             child: const Center(child: CircularProgressIndicator()),
           )
@@ -197,7 +195,7 @@ class _SellerProfileBody extends StatelessWidget {
           'Profile details are read-only. Contact support if you need '
           'corrections.',
           style: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
           ),
         ),
         const SizedBox(height: AppSpacing.s24),
@@ -225,23 +223,25 @@ class _SellerHero extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 28,
-            backgroundColor: AppColors.sandSurface,
-            backgroundImage:
-                hasPicture ? CachedNetworkImageProvider(picture) : null,
+            backgroundColor: AppColors.selectedFill(context),
+            backgroundImage: hasPicture
+                ? CachedNetworkImageProvider(picture)
+                : null,
             child: hasPicture
                 ? null
                 : Text(
                     name.isNotEmpty ? name[0].toUpperCase() : 'S',
                     style: AppTypography.title.copyWith(
                       fontWeight: FontWeight.w700,
+                      color: AppColors.onSelected(context),
                     ),
                   ),
           ),
@@ -266,7 +266,7 @@ class _SellerHero extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.s8),
@@ -276,7 +276,7 @@ class _SellerHero extends StatelessWidget {
                       : 'Verification is pending',
                   style: AppTypography.caption.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.charcoal,
+                    color: AppColors.textPrimary(context),
                   ),
                 ),
               ],

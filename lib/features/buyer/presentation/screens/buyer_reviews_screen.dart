@@ -7,6 +7,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../seller/application/seller_reviews_provider.dart';
 import '../../../seller/domain/models/seller_review.dart';
 import '../widgets/buyer_layout.dart';
@@ -18,68 +19,67 @@ class BuyerReviewsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(mySellerReviewsProvider);
 
-    return BuyerLayout(
-      title: 'My Reviews',
-      child: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(mySellerReviewsProvider),
-        child: async.when(
-          loading: () => ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: const [
-              SizedBox(height: 120),
-              Center(child: CircularProgressIndicator()),
-            ],
-          ),
-          error: (e, _) => ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(AppSpacing.s24),
-            children: [
-              Text(
-                e is Failure ? e.message : 'Could not load reviews.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.s16),
-              Center(
-                child: FilledButton(
-                  onPressed: () => ref.invalidate(mySellerReviewsProvider),
-                  child: const Text('Retry'),
-                ),
-              ),
-            ],
-          ),
-          data: (reviews) {
-            if (reviews.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  const SizedBox(height: 120),
-                  Center(
-                    child: Text(
-                      'No reviews yet',
-                      style: AppTypography.body,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Center(
-                    child: TextButton(
-                      onPressed: () => context.go(AppRouteNames.buyerOrders),
-                      child: const Text('View orders'),
-                    ),
-                  ),
-                ],
-              );
-            }
-            return ListView.separated(
+    return DarkThemeScope(
+      child: BuyerLayout(
+        title: 'My Reviews',
+        child: RefreshIndicator(
+          onRefresh: () async => ref.invalidate(mySellerReviewsProvider),
+          child: async.when(
+            loading: () => ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(AppSpacing.s16),
-              itemCount: reviews.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.s12),
-              itemBuilder: (context, index) {
-                return _ReviewCard(review: reviews[index]);
-              },
-            );
-          },
+              children: const [
+                SizedBox(height: 120),
+                Center(child: CircularProgressIndicator()),
+              ],
+            ),
+            error: (e, _) => ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(AppSpacing.s24),
+              children: [
+                Text(
+                  e is Failure ? e.message : 'Could not load reviews.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                Center(
+                  child: FilledButton(
+                    onPressed: () => ref.invalidate(mySellerReviewsProvider),
+                    child: const Text('Retry'),
+                  ),
+                ),
+              ],
+            ),
+            data: (reviews) {
+              if (reviews.isEmpty) {
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    const SizedBox(height: 120),
+                    Center(
+                      child: Text('No reviews yet', style: AppTypography.body),
+                    ),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: TextButton(
+                        onPressed: () => context.go(AppRouteNames.buyerOrders),
+                        child: const Text('View orders'),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(AppSpacing.s16),
+                itemCount: reviews.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.s12),
+                itemBuilder: (context, index) {
+                  return _ReviewCard(review: reviews[index]);
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -107,9 +107,9 @@ class _ReviewCard extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.all(AppSpacing.s16),
           decoration: BoxDecoration(
-            color: AppColors.warmWhite,
+            color: AppColors.card(context),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.warmBorder),
+            border: Border.all(color: AppColors.border(context)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,7 +131,7 @@ class _ReviewCard extends StatelessWidget {
                     Text(
                       dateLabel,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                       ),
                     ),
                 ],
@@ -140,7 +140,7 @@ class _ReviewCard extends StatelessWidget {
               Text(
                 'Order ${review.orderId}',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
               ),
               const SizedBox(height: AppSpacing.s8),
@@ -169,7 +169,7 @@ class _ReviewCard extends StatelessWidget {
                 Text(
                   review.comment!,
                   style: AppTypography.body.copyWith(
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                     height: 1.4,
                   ),
                 ),
