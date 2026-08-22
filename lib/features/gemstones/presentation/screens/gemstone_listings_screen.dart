@@ -11,6 +11,7 @@ import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
+import '../../../../core/widgets/theme_toggle_button.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../ai_chat/application/ai_chat_back_navigation.dart';
@@ -106,6 +107,7 @@ class _GemstoneListingsScreenState
                         GemstoneViewMode.list,
               ),
             ),
+            const ThemeToggleButton(),
           ],
         ),
         body: ComparisonTrayHost(

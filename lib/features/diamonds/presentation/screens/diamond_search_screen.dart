@@ -9,7 +9,6 @@ import '../../../../core/widgets/catalog_search_filter_layout.dart';
 import '../../../../core/widgets/catalog_search_filter_shell.dart';
 import '../../../../core/widgets/paired_showcase_carousel.dart';
 import '../../../../core/widgets/showcase_select_card.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../../core/widgets/filters/catalog_expandable_advanced_filters.dart';
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
@@ -169,8 +168,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         ),
     ];
 
-    return DarkThemeScope(
-      child: CatalogSearchFilterShell(
+    return CatalogSearchFilterShell(
         title: widget.title,
         isMelee: useMeleeFilters,
         meleeFamily: widget.catalog.isLabGrown
@@ -246,7 +244,6 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           ],
           const SizedBox(height: AppSpacing.s32),
         ],
-      ),
     );
   }
 

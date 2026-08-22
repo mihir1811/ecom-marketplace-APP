@@ -59,6 +59,11 @@ class BuyerDrawer extends ConsumerWidget {
       icon: Icons.favorite_border,
     ),
     BuyerDrawerItem(
+      route: AppRouteNames.buyerRecentlyViewed,
+      label: 'Recently Viewed',
+      icon: Icons.history,
+    ),
+    BuyerDrawerItem(
       route: AppRouteNames.buyerReviews,
       label: 'My Reviews',
       icon: Icons.star_outline,

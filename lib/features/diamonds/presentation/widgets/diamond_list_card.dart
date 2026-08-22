@@ -52,12 +52,16 @@ class DiamondCardList extends ConsumerWidget {
               children: [
                 Positioned.fill(child: _DiamondListThumb(diamond: diamond)),
                 Positioned(
-                  bottom: AppSpacing.s8,
+                  top: AppSpacing.s8,
                   left: AppSpacing.s8,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      AvailabilityStatusBadge(
+                        status: diamond.available,
+                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
+                      ),
                       RecentlyViewedBadge(
                         productId: diamond.id,
                         padding: const EdgeInsets.only(bottom: AppSpacing.s4),

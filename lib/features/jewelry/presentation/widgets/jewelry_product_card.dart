@@ -152,7 +152,13 @@ class JewelryProductCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-                RecentlyViewedImageBadge(productId: item.id),
+                Positioned(
+                  top: AppSpacing.s8,
+                  left: AppSpacing.s8,
+                  child: AvailabilityStatusBadge(
+                    status: item.availability,
+                  ),
+                ),
               ],
             ),
           ),
@@ -568,7 +574,6 @@ class JewelryProductListCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  RecentlyViewedImageBadge(productId: item.id),
                 ],
               ),
             ),

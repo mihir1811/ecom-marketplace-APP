@@ -9,28 +9,18 @@ import 'features/ai_chat/presentation/widgets/gem_ai_overlay.dart';
 import 'features/auth/application/user_profile_providers.dart';
 
 /// The root application widget configuring themes and GoRouter navigation.
-class GemWorldApp extends ConsumerStatefulWidget {
+class GemWorldApp extends ConsumerWidget {
   const GemWorldApp({super.key});
 
   @override
-  ConsumerState<GemWorldApp> createState() => _GemWorldAppState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final darkMode = ref.watch(themePreferenceProvider);
 
-class _GemWorldAppState extends ConsumerState<GemWorldApp> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(themePreferenceProvider.notifier).hydrate();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'GemWorld Diamond Marketplace',
       theme: AppTheme.light,
-      themeMode: ThemeMode.light,
+      darkTheme: AppTheme.dark,
+      themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
@@ -41,12 +31,34 @@ class _GemWorldAppState extends ConsumerState<GemWorldApp> {
               child ?? const SizedBox.shrink(),
               const Positioned.fill(child: GemAiOverlay()),
               const _AccountProfileSync(),
+              const _ThemeHydrator(child: SizedBox.shrink()),
             ],
           ),
         );
       },
     );
   }
+}
+
+class _ThemeHydrator extends ConsumerStatefulWidget {
+  const _ThemeHydrator({required this.child});
+  final Widget child;
+
+  @override
+  ConsumerState<_ThemeHydrator> createState() => _ThemeHydratorState();
+}
+
+class _ThemeHydratorState extends ConsumerState<_ThemeHydrator> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(themePreferenceProvider.notifier).hydrate();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class _AccountProfileSync extends ConsumerWidget {

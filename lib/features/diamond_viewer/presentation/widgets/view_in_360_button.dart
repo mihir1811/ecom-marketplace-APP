@@ -15,7 +15,7 @@ class ViewIn360Button extends StatelessWidget {
     super.key,
     this.title = '360° View',
     this.subtitle,
-    this.label = 'View in 360°',
+    this.label = '360° View',
     this.compact = false,
   });
 
@@ -93,23 +93,12 @@ class ViewIn360Button extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.s12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.warmWhite,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      'Rotate, pinch, and inspect at full quality',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.bronzeLight,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  label,
+                  style: AppTypography.label.copyWith(
+                    color: AppColors.warmWhite,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               const Icon(

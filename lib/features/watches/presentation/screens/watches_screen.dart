@@ -11,7 +11,6 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../application/watch_filter_provider.dart';
 import '../../application/watch_list_provider.dart';
 import '../../domain/models/watch_filter_state.dart';
@@ -63,49 +62,47 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DarkThemeScope(
-      child: CatalogScreenShell(
-        scaffoldKey: _scaffoldKey,
-        endDrawer: const WatchFilterDrawer(),
-        title: 'Luxury Watches',
-        onBack: () {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/');
-          }
-        },
-        child: ComparisonTrayHost(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: AppSpacing.s8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-                child: _WatchSearchBar(
-                  searchController: _searchController,
-                  onOpenFilters: _openFilters,
-                ),
+    return CatalogScreenShell(
+      scaffoldKey: _scaffoldKey,
+      endDrawer: const WatchFilterDrawer(),
+      title: 'Luxury Watches',
+      onBack: () {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/');
+        }
+      },
+      child: ComparisonTrayHost(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: AppSpacing.s8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+              child: _WatchSearchBar(
+                searchController: _searchController,
+                onOpenFilters: _openFilters,
               ),
-              const SizedBox(height: AppSpacing.s12),
-              Expanded(
-                child: CustomScrollView(
-                  controller: _scrollController,
-                  slivers: [
-                    const SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: AppSpacing.s12),
-                        child: WatchCategoryChips(),
-                      ),
+            ),
+            const SizedBox(height: AppSpacing.s12),
+            Expanded(
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: AppSpacing.s12),
+                      child: WatchCategoryChips(),
                     ),
-                    const SliverToBoxAdapter(child: WatchBrandCarousel()),
-                    const SliverToBoxAdapter(child: _WatchHeaderRow()),
-                    _WatchResultsSliver(searchController: _searchController),
-                  ],
-                ),
+                  ),
+                  const SliverToBoxAdapter(child: WatchBrandCarousel()),
+                  const SliverToBoxAdapter(child: _WatchHeaderRow()),
+                  _WatchResultsSliver(searchController: _searchController),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

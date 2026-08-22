@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import 'app_scaffold.dart';
+import 'app_top_bar.dart';
 
 /// Shared app scaffold and top-level layout for catalog listing screens.
-class CatalogScreenShell extends StatelessWidget {
+class CatalogScreenShell extends ConsumerWidget {
   const CatalogScreenShell({
     required this.title,
     required this.onBack,
@@ -13,8 +15,7 @@ class CatalogScreenShell extends StatelessWidget {
     this.scaffoldKey,
     this.endDrawer,
     this.backgroundColor,
-    this.automaticallyImplyActions = false,
-    this.trailingActions = const [],
+    this.showThemeToggle = true,
     super.key,
   });
 
@@ -24,30 +25,19 @@ class CatalogScreenShell extends StatelessWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
   final Widget? endDrawer;
   final Color? backgroundColor;
-  final bool automaticallyImplyActions;
-  final List<Widget> trailingActions;
+  final bool showThemeToggle;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return AppScaffold(
       scaffoldKey: scaffoldKey,
       endDrawer: endDrawer,
       endDrawerEnableOpenDragGesture: false,
       backgroundColor: backgroundColor ?? AppColors.bg(context),
-      appBar: AppBar(
-        automaticallyImplyActions: automaticallyImplyActions,
-        title: Text(
-          title,
-          style: AppTypography.headline.copyWith(
-            fontWeight: FontWeight.w700,
-            fontSize: 22,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: onBack,
-        ),
-        actions: trailingActions,
+      appBar: SimpleAppTopBar(
+        title: title,
+        onBack: onBack,
+        showThemeToggle: showThemeToggle,
       ),
       body: child,
     );

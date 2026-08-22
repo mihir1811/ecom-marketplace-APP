@@ -30,23 +30,25 @@ class MarketplaceProductCardShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(borderRadius);
+    final dark = AppColors.isDark(context);
     final resolvedBorder = borderColor ?? AppColors.border(context);
+    // Recently viewed cards: lighter in dark mode, subtle bronze tint in light.
     final resolvedBg = isRecentlyViewed
-        ? AppColors.card(context)
+        ? (dark
+            ? const Color(0xFF252830)
+            : AppColors.bronze.withValues(alpha: 0.05))
         : (backgroundColor ?? AppColors.card(context));
 
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: radius,
-        boxShadow: boxShadow ?? (AppColors.isDark(context) ? AppShadows.none : AppShadows.cardLight),
+        boxShadow: boxShadow ?? (dark ? AppShadows.none : AppShadows.cardLight),
       ),
       child: Material(
         color: resolvedBg,
         shape: RoundedRectangleBorder(
           borderRadius: radius,
-          side: BorderSide(
-            color: isRecentlyViewed ? Colors.transparent : resolvedBorder,
-          ),
+          side: BorderSide(color: resolvedBorder),
         ),
         clipBehavior: clipBehavior,
         child: InkWell(

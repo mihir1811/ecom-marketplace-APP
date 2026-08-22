@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gemstone/core/widgets/app_dialog.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
-import 'package:gemstone/core/widgets/dark_theme_scope.dart';
+import 'package:gemstone/core/widgets/app_top_bar.dart';
 
 import '../../../../core/auth/auth_providers.dart';
-import '../../../../core/auth/verified_only.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -79,54 +78,20 @@ class HomeScreen extends ConsumerWidget {
       homeSearchQueryProvider.select((q) => q.trim().isNotEmpty),
     );
 
-    return DarkThemeScope(
-      child: Builder(
-        builder: (context) => AppScaffold(
-          backgroundColor: AppColors.bg(context),
-          drawer: auth.isAuthenticated ? const BuyerDrawer() : null,
-          appBar: AppBar(
-            backgroundColor: AppColors.bg(context),
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            title: Text(
-              'GemWorld',
-              style: AppTypography.title.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: 22,
-              ),
-            ),
-            actions: [
-              IconButton(
-                tooltip: 'Compare',
-                onPressed: () => context.push(AppRouteNames.comparison),
-                icon: const Icon(Icons.compare_arrows_rounded),
-              ),
-              VerifiedOnly(
-                child: IconButton(
-                  tooltip: 'Cart',
-                  onPressed: () => context.push(AppRouteNames.cart),
-                  icon: Badge(
-                    isLabelVisible: cartCount > 0,
-                    label: Text('$cartCount'),
-                    backgroundColor: AppColors.bronze,
-                    child: const Icon(Icons.shopping_bag_outlined),
-                  ),
-                ),
-              ),
-              if (auth.isAuthenticated &&
-                  auth.isSeller &&
-                  auth.canTransact) ...[
-                IconButton(
-                  tooltip: 'Wallet',
-                  onPressed: () => context.push(AppRouteNames.buyerWallet),
-                  icon: const Icon(Icons.account_balance_wallet_outlined),
-                ),
-                IconButton(
-                  tooltip: 'Messages',
-                  onPressed: () => context.push(AppRouteNames.buyerMessages),
-                  icon: const Icon(Icons.chat_bubble_outline),
-                ),
-              ] else if (!auth.isAuthenticated)
+    return AppScaffold(
+      backgroundColor: AppColors.bg(context),
+      drawer: auth.isAuthenticated ? const BuyerDrawer() : null,
+      appBar: AppTopBar(
+        title: 'GemWorld',
+        showThemeToggle: true,
+        showCompare: true,
+        showCart: true,
+        cartCount: cartCount,
+        showSellerTools: auth.isAuthenticated && auth.isSeller && auth.canTransact,
+        onSellerWalletTap: () => context.push(AppRouteNames.buyerWallet),
+        onSellerMessagesTap: () => context.push(AppRouteNames.buyerMessages),
+        extraActions: !auth.isAuthenticated
+            ? [
                 TextButton(
                   onPressed: () => context.push(AppRouteNames.login),
                   child: Text(
@@ -136,42 +101,44 @@ class HomeScreen extends ConsumerWidget {
                       color: AppColors.textPrimary(context),
                     ),
                   ),
-                )
-              else
-                IconButton(
-                  tooltip: 'Account',
-                  onPressed: () => context.go(AppRouteNames.buyerProfile),
-                  icon: const Icon(Icons.person_outline),
                 ),
-              const SizedBox(width: AppSpacing.s8),
-            ],
+                const SizedBox(width: AppSpacing.s8),
+              ]
+            : auth.isAuthenticated && !(auth.isSeller && auth.canTransact)
+                ? [
+                    IconButton(
+                      tooltip: 'Account',
+                      onPressed: () => context.go(AppRouteNames.buyerProfile),
+                      icon: const Icon(Icons.person_outline),
+                    ),
+                    const SizedBox(width: AppSpacing.s8),
+                  ]
+                : [],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ColoredBox(
+            color: AppColors.bg(context),
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.s20,
+                AppSpacing.s8,
+                AppSpacing.s20,
+                AppSpacing.s12,
+              ),
+              child: HomeQuickSearch(),
+            ),
           ),
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ColoredBox(
-                color: AppColors.bg(context),
-                child: const Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.s20,
-                    AppSpacing.s8,
-                    AppSpacing.s20,
-                    AppSpacing.s12,
+          Expanded(
+            child: isSearching
+                ? const HomeSearchResultsList()
+                : _HomeBrowseBody(
+                    isAuthenticated: auth.isAuthenticated,
+                    isSeller: auth.isSeller,
                   ),
-                  child: HomeQuickSearch(),
-                ),
-              ),
-              Expanded(
-                child: isSearching
-                    ? const HomeSearchResultsList()
-                    : _HomeBrowseBody(
-                        isAuthenticated: auth.isAuthenticated,
-                        isSeller: auth.isSeller,
-                      ),
-              ),
-            ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -322,39 +289,40 @@ class _HomeBrowseBody extends ConsumerWidget {
       ],
     );
   }
+}
 
-  Future<void> _onSellTap(BuildContext context, WidgetRef ref) async {
-    if (!isAuthenticated) {
-      context.push('${AppRouteNames.register}?type=business');
-      return;
-    }
-
-    final goRegister = await showAppDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Separate seller account required'),
-        content: const Text(
-          'Individual accounts cannot sell products. Create a new business '
-          'account with a different email to list and sell on GemWorld. '
-          'You will be signed out of this individual account first.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Not now'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Create seller account'),
-          ),
-        ],
-      ),
-    );
-    if (goRegister != true || !context.mounted) return;
-    await ref.read(authProvider.notifier).logout();
-    if (!context.mounted) return;
-    context.go('${AppRouteNames.register}?type=business');
+Future<void> _onSellTap(BuildContext context, WidgetRef ref) async {
+  final isAuthenticated = ref.read(authProvider).isAuthenticated;
+  if (!isAuthenticated) {
+    context.push('${AppRouteNames.register}?type=business');
+    return;
   }
+
+  final goRegister = await showAppDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Separate seller account required'),
+      content: const Text(
+        'Individual accounts cannot sell products. Create a new business '
+        'account with a different email to list and sell on GemWorld. '
+        'You will be signed out of this individual account first.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Not now'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Create seller account'),
+        ),
+      ],
+    ),
+  );
+  if (goRegister != true || !context.mounted) return;
+  await ref.read(authProvider.notifier).logout();
+  if (!context.mounted) return;
+  context.go('${AppRouteNames.register}?type=business');
 }
 
 class _HomeCategory {

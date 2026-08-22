@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/theme_toggle_button.dart';
 import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
@@ -105,6 +106,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
         ),
         actions: [
+          const ThemeToggleButton(),
           IconButton(
             tooltip: 'Share',
             icon: const Icon(Icons.share_outlined),

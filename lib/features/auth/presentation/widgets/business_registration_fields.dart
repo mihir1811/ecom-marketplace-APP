@@ -60,6 +60,35 @@ class BusinessRegistrationFieldsController {
     bankName.dispose();
   }
 
+  void clear() {
+    companyName.clear();
+    addressLine1.clear();
+    addressLine2.clear();
+    city.clear();
+    state.clear();
+    country.clear();
+    zipCode.clear();
+    phone1.clear();
+    phone2.clear();
+    representativeName1.clear();
+    representativeName2.clear();
+    panCardNumber.clear();
+    aadhaarNumber.clear();
+    iecNumber.clear();
+    gstNumber.clear();
+    upiId.clear();
+    accountHolderName.clear();
+    accountNumber.clear();
+    ifscCode.clear();
+    bankName.clear();
+
+    sellerType = SellerType.naturalDiamond;
+    accountType = BankAccountType.savings;
+    companyLogo = null;
+    bannerImage = null;
+    panCard = null;
+  }
+
   /// Builds API payload when required company logo is present; otherwise `null`.
   BusinessRegistrationData? toData() {
     final logo = companyLogo;

@@ -95,7 +95,13 @@ class WatchCardGrid extends ConsumerWidget {
                     ),
                   ),
                 ),
-                RecentlyViewedImageBadge(productId: watch.id),
+                Positioned(
+                  top: AppSpacing.s8,
+                  left: AppSpacing.s8,
+                  child: AvailabilityStatusBadge(
+                    status: watch.availabilityStatus,
+                  ),
+                ),
               ],
             ),
           ),
@@ -211,12 +217,16 @@ class WatchCardList extends ConsumerWidget {
                   child: _WatchCardImage(watch: watch),
                 ),
                 Positioned(
-                  bottom: AppSpacing.s8,
+                  top: AppSpacing.s8,
                   left: AppSpacing.s8,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      AvailabilityStatusBadge(
+                        status: watch.availabilityStatus,
+                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
+                      ),
                       RecentlyViewedBadge(
                         productId: watch.id,
                         padding: const EdgeInsets.only(bottom: AppSpacing.s4),

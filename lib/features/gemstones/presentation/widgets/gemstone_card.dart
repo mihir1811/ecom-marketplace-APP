@@ -104,7 +104,13 @@ class GemstoneCardGrid extends ConsumerWidget {
                     ),
                   ),
                 ),
-                RecentlyViewedImageBadge(productId: gemstone.id),
+                Positioned(
+                  top: AppSpacing.s8,
+                  left: AppSpacing.s8,
+                  child: AvailabilityStatusBadge(
+                    status: gemstone.availability,
+                  ),
+                ),
               ],
             ),
           ),
@@ -236,12 +242,16 @@ class GemstoneCardList extends ConsumerWidget {
                   ),
                 ),
                 Positioned(
-                  bottom: AppSpacing.s8,
+                  top: AppSpacing.s8,
                   left: AppSpacing.s8,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      AvailabilityStatusBadge(
+                        status: gemstone.availability,
+                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
+                      ),
                       RecentlyViewedBadge(
                         productId: gemstone.id,
                         padding: const EdgeInsets.only(bottom: AppSpacing.s4),

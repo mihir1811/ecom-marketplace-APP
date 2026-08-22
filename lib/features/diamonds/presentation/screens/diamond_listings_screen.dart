@@ -9,8 +9,8 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
+import '../../../../core/widgets/theme_toggle_button.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
@@ -156,8 +156,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
     final viewMode = ref.watch(diamondViewModeProvider);
     final mutedColor = AppColors.textSecondary(context);
 
-    return DarkThemeScope(
-      child: AppScaffold(
+    return AppScaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -184,6 +183,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                 onList: () => _switchViewMode(ViewMode.list),
               ),
             ),
+            const ThemeToggleButton(),
           ],
         ),
         body: ComparisonTrayHost(
@@ -312,8 +312,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildError(String message) {

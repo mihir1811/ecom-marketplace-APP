@@ -80,19 +80,39 @@ class _ProductDetailMediaState extends State<ProductDetailMedia> {
             ),
           ),
         ),
-        if (videoUrl != null) ...[
+        if (videoUrl != null || widget.media.hasCertificate) ...[
           const SizedBox(height: AppSpacing.s12),
-          ViewIn360Button(
-            viewerUrl: videoUrl,
-            title: widget.media.videoLabel ?? '360° View',
-          ),
-        ],
-        if (widget.media.hasCertificate) ...[
-          const SizedBox(height: AppSpacing.s12),
-          _ViewCertificateButton(
-            url: widget.media.certificateUrl!,
-            label: widget.media.certificateLabel ?? 'Certificate',
-          ),
+          if (videoUrl != null && widget.media.hasCertificate)
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ViewIn360Button(
+                      viewerUrl: videoUrl,
+                      title: widget.media.videoLabel ?? '360° View',
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.s12),
+                  Expanded(
+                    child: _ViewCertificateButton(
+                      url: widget.media.certificateUrl!,
+                      label: widget.media.certificateLabel ?? 'Certificate',
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (videoUrl != null)
+            ViewIn360Button(
+              viewerUrl: videoUrl,
+              title: widget.media.videoLabel ?? '360° View',
+            )
+          else
+            _ViewCertificateButton(
+              url: widget.media.certificateUrl!,
+              label: widget.media.certificateLabel ?? 'Certificate',
+            ),
         ],
         if (hasMultiple) ...[
           const SizedBox(height: AppSpacing.s12),
@@ -421,25 +441,12 @@ class _ViewCertificateButton extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.s12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'View certificate',
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.textPrimaryLight,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondaryLight,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  'Certificate',
+                  style: AppTypography.label.copyWith(
+                    color: AppColors.textPrimaryLight,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               const Icon(

@@ -65,6 +65,7 @@ class AppRouteNames {
       '/buyer/inquiries/$category/$inquiryId';
   static const String buyerHelpCenter = '/buyer/help-center';
   static const String buyerWishlist = '/buyer/wishlist';
+  static const String buyerRecentlyViewed = '/buyer/recently-viewed';
   static const String buyerReviews = '/buyer/reviews';
   static const String buyerMessages = '/buyer/messages';
   static const String buyerChatDetail = '/buyer/messages/:chatId';

@@ -140,7 +140,13 @@ class DiamondCardGrid extends ConsumerWidget {
                     ),
                   ),
                 ),
-                RecentlyViewedImageBadge(productId: diamond.id),
+                Positioned(
+                  top: AppSpacing.s8,
+                  left: AppSpacing.s8,
+                  child: AvailabilityStatusBadge(
+                    status: diamond.available,
+                  ),
+                ),
               ],
             ),
           ),

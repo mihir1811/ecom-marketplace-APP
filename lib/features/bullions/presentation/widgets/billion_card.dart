@@ -81,7 +81,13 @@ class BullionCardGrid extends StatelessWidget {
                     size: 18,
                   ),
                 ),
-                RecentlyViewedImageBadge(productId: bullion.id),
+                Positioned(
+                  top: AppSpacing.s8,
+                  left: AppSpacing.s8,
+                  child: AvailabilityStatusBadge(
+                    status: bullion.availability,
+                  ),
+                ),
               ],
             ),
           ),
@@ -202,12 +208,16 @@ class BullionCardList extends StatelessWidget {
                   child: _BullionCardImage(bullion: bullion),
                 ),
                 Positioned(
-                  bottom: AppSpacing.s8,
+                  top: AppSpacing.s8,
                   left: AppSpacing.s8,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      AvailabilityStatusBadge(
+                        status: bullion.availability,
+                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
+                      ),
                       RecentlyViewedBadge(
                         productId: bullion.id,
                         padding: const EdgeInsets.only(bottom: AppSpacing.s4),
