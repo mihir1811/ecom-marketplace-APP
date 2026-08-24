@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../product_detail/presentation/screens/product_detail_screen.dart';
 import '../../../product_detail/product_detail_navigation.dart';
@@ -28,19 +28,10 @@ class SharedProductScreen extends ConsumerWidget {
 
     return async.when(
       loading: () => AppScaffold(
-        backgroundColor: AppColors.creamBg,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            tooltip: 'Back',
-            onPressed: () => context.canPop()
-                ? context.pop()
-                : context.go(AppRouteNames.home),
-          ),
-          title: Text(
-            'Shared product',
-            style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-          ),
+        backgroundColor: AppColors.bg(context),
+        appBar: SimpleAppTopBar(
+          title: 'Shared product',
+          backgroundColor: AppColors.bg(context),
         ),
         body: const Center(child: CircularProgressIndicator()),
       ),
@@ -49,19 +40,10 @@ class SharedProductScreen extends ConsumerWidget {
             ? e.message
             : 'This share link is invalid or expired.';
         return AppScaffold(
-          backgroundColor: AppColors.creamBg,
-          appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              tooltip: 'Back',
-              onPressed: () => context.canPop()
-                  ? context.pop()
-                  : context.go(AppRouteNames.home),
-            ),
-            title: Text(
-              'Shared product',
-              style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-            ),
+          backgroundColor: AppColors.bg(context),
+          appBar: SimpleAppTopBar(
+            title: 'Shared product',
+            backgroundColor: AppColors.bg(context),
           ),
           body: CatalogEmptyState(
             icon: Icons.link_off_outlined,

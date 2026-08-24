@@ -1,3 +1,5 @@
+import '../../../product_detail/domain/models/listing_seller_info.dart';
+
 /// Clean domain representation of a gemstone listing item.
 class Gemstone {
   const Gemstone({
@@ -32,6 +34,7 @@ class Gemstone {
     this.isSold = false,
     this.availability,
     this.videoUrl,
+    this.listingSeller,
   });
 
   final String id;
@@ -67,6 +70,7 @@ class Gemstone {
   final bool isSold;
   final String? availability;
   final String? videoUrl;
+  final ListingSellerInfo? listingSeller;
 
   /// True when [imageUrl] is a remote http(s) URL.
   bool get hasNetworkImage {

@@ -87,6 +87,15 @@ class ChatInboxNotifier extends Notifier<ChatInboxState> {
 final chatInboxProvider =
     NotifierProvider<ChatInboxNotifier, ChatInboxState>(ChatInboxNotifier.new);
 
+/// True when any inbox thread has unread messages (app-bar chat dot).
+final chatHasUnreadProvider = Provider<bool>((ref) {
+  final threads = ref.watch(chatInboxProvider.select((s) => s.threads));
+  for (final thread in threads) {
+    if (thread.unreadCount > 0) return true;
+  }
+  return false;
+});
+
 class ChatThreadArgs {
   const ChatThreadArgs({
     required this.threadId,
@@ -239,6 +248,8 @@ class ChatThreadNotifier extends FamilyNotifier<ChatThreadState, ChatThreadArgs>
         .toList();
     if (unread.isEmpty) return;
     await _repo.markAsRead(messageIds: unread);
+    // Refresh inbox so app-bar / list unread dots clear after reading.
+    unawaited(ref.read(chatInboxProvider.notifier).refresh());
   }
 
   Future<Result<void, Failure>> sendText(String text) async {

@@ -1,6 +1,7 @@
 /// User-facing formatting for diamond catalog values from the API.
 abstract final class DiamondDisplay {
-  static const notAvailable = 'Not available';
+  static const notAvailable = '-';
+  static const missing = '-';
 
   /// True when a raw API/UI value should not be shown as-is.
   static bool isMissing(String? value) {
@@ -13,9 +14,9 @@ abstract final class DiamondDisplay {
     return false;
   }
 
-  /// Returns a friendly label, or [notAvailable] when missing.
+  /// Returns a friendly label, or [missing] when absent.
   static String text(String? value, {bool uppercase = false}) {
-    if (isMissing(value)) return notAvailable;
+    if (isMissing(value)) return missing;
     final t = value!.trim();
     return uppercase ? t.toUpperCase() : _titleCaseWords(t);
   }
@@ -48,12 +49,43 @@ abstract final class DiamondDisplay {
   }
 
   static String shape(String? value) {
-    if (isMissing(value)) return notAvailable;
+    if (isMissing(value)) return missing;
     return _titleCaseWords(value!.trim());
   }
 
+  /// Standard color grade, falling back to fancy color (+ intensity) when absent.
+  static String? primaryColorLabel({
+    String? color,
+    String? fancyColor,
+    String? fancyIntensity,
+    bool uppercase = false,
+  }) {
+    final standard = optional(color, uppercase: uppercase);
+    if (standard != null) return standard;
+    final fancy = optional(fancyColor, uppercase: uppercase);
+    if (fancy == null) return null;
+    final intensity = optional(fancyIntensity, uppercase: uppercase);
+    if (intensity != null) return '$intensity $fancy';
+    return fancy;
+  }
+
+  static String displayPrimaryColor({
+    String? color,
+    String? fancyColor,
+    String? fancyIntensity,
+    bool uppercase = false,
+  }) {
+    return primaryColorLabel(
+          color: color,
+          fancyColor: fancyColor,
+          fancyIntensity: fancyIntensity,
+          uppercase: uppercase,
+        ) ??
+        missing;
+  }
+
   static String availability(String? value) {
-    if (isMissing(value)) return notAvailable;
+    if (isMissing(value)) return missing;
     return switch (value!.trim().toLowerCase()) {
       'yes' => 'Available',
       'hold' => 'On hold',

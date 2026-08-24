@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -15,7 +14,6 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
 // import '../../application/metal_prices_provider.dart'; // Metal prices (AURUM) disabled
@@ -108,14 +106,6 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
     }
   }
 
-  void _onBackPressed() {
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go('/');
-    }
-  }
-
   void _openFilters() {
     ref.read(bullionsFilterDraftProvider.notifier).syncFromApplied();
     _scaffoldKey.currentState?.openEndDrawer();
@@ -136,13 +126,11 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
     //   }
     // });
 
-    return DarkThemeScope(
-      child: CatalogScreenShell(
-        scaffoldKey: _scaffoldKey,
-        endDrawer: const BullionsFilterDrawer(),
-        title: 'Bullions',
-        onBack: _onBackPressed,
-        child: Column(
+    return CatalogScreenShell(
+      scaffoldKey: _scaffoldKey,
+      endDrawer: const BullionsFilterDrawer(),
+      title: 'Bullions',
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: AppSpacing.s8),
@@ -171,7 +159,6 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }

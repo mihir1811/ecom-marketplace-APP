@@ -69,29 +69,6 @@ class GemstoneCardGrid extends ConsumerWidget {
                     size: 18,
                   ),
                 ),
-                if (gemstone.discount != null && gemstone.discount! > 0)
-                  Positioned(
-                    top: AppSpacing.s8,
-                    left: AppSpacing.s8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.s8,
-                        vertical: AppSpacing.s4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.terracotta,
-                        borderRadius: BorderRadius.circular(AppSpacing.r4),
-                      ),
-                      child: Text(
-                        '-${formatDiscountPercent(gemstone.discount!)}%',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.warmWhite,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ),
                 Positioned(
                   bottom: AppSpacing.s8,
                   right: AppSpacing.s8,
@@ -185,6 +162,18 @@ class GemstoneCardGrid extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (gemstone.discount != null && gemstone.discount! > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(left: AppSpacing.s4),
+                          child: Text(
+                            '-${formatDiscountPercent(gemstone.discount!)}%',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.terracotta,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
                       const Icon(
                         Icons.arrow_forward,
                         size: 16,
@@ -244,26 +233,19 @@ class GemstoneCardList extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AvailabilityStatusBadge(
-                        status: gemstone.availability,
-                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
-                      ),
-                      RecentlyViewedBadge(
-                        productId: gemstone.id,
-                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
-                      ),
-                      WishlistToggleButton(
-                        item: WishlistItem.fromGemstone(gemstone),
-                        onAdded: () => rememberProductDetail(
-                          gemstoneProductDetail(gemstone),
-                        ),
-                        size: 18,
-                      ),
-                    ],
+                  child: AvailabilityStatusBadge(
+                    status: gemstone.availability,
+                  ),
+                ),
+                Positioned(
+                  top: AppSpacing.s8,
+                  right: AppSpacing.s8,
+                  child: WishlistToggleButton(
+                    item: WishlistItem.fromGemstone(gemstone),
+                    onAdded: () => rememberProductDetail(
+                      gemstoneProductDetail(gemstone),
+                    ),
+                    size: 18,
                   ),
                 ),
                 Positioned(
@@ -351,6 +333,18 @@ class GemstoneCardList extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (gemstone.discount != null && gemstone.discount! > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(left: AppSpacing.s4),
+                          child: Text(
+                            '-${formatDiscountPercent(gemstone.discount!)}%',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.terracotta,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
                       const Icon(
                         Icons.arrow_forward,
                         size: 18,
@@ -480,7 +474,7 @@ class _GemstoneThumb extends StatelessWidget {
   Widget build(BuildContext context) {
     if (gemstone.hasNetworkImage) {
       return ColoredBox(
-        color: AppColors.surface(context),
+        color: AppColors.sandSurface,
         child: AppNetworkImage(
           url: gemstone.imageUrl!,
           fit: cover ? BoxFit.cover : BoxFit.contain,

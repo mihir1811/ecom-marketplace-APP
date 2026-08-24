@@ -32,10 +32,19 @@ abstract final class SellerReviewMapper {
       repliedAt: _date(json['repliedAt']),
       createdAt: _date(json['createdAt']),
       updatedAt: _date(json['updatedAt']),
-      userName: _str(userMap['name']),
-      sellerName: _str(sellerMap['companyName']),
+      userName: _buyerDisplayName(userMap),
+      sellerName: _str(sellerMap['companyName']) ??
+          _str(sellerMap['name']) ??
+          _str(sellerMap['fullName']),
       sellerLogo: _str(sellerMap['companyLogo']),
     );
+  }
+
+  static String? _buyerDisplayName(Map<String, dynamic> user) {
+    return _str(user['fullName']) ??
+        _str(user['name']) ??
+        _str(user['username']) ??
+        _str(user['email']);
   }
 
   static SellerReviewsPage pageFromResponse(Map<String, dynamic> root) {

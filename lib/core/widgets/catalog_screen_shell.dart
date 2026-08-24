@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
 import 'app_scaffold.dart';
 import 'app_top_bar.dart';
 
@@ -10,7 +9,6 @@ import 'app_top_bar.dart';
 class CatalogScreenShell extends ConsumerWidget {
   const CatalogScreenShell({
     required this.title,
-    required this.onBack,
     required this.child,
     this.scaffoldKey,
     this.endDrawer,
@@ -20,7 +18,6 @@ class CatalogScreenShell extends ConsumerWidget {
   });
 
   final String title;
-  final VoidCallback onBack;
   final Widget child;
   final GlobalKey<ScaffoldState>? scaffoldKey;
   final Widget? endDrawer;
@@ -36,7 +33,6 @@ class CatalogScreenShell extends ConsumerWidget {
       backgroundColor: backgroundColor ?? AppColors.bg(context),
       appBar: SimpleAppTopBar(
         title: title,
-        onBack: onBack,
         showThemeToggle: showThemeToggle,
       ),
       body: child,

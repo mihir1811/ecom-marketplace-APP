@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../../core/widgets/keyboard_aware.dart';
 import '../../application/ai_chat_providers.dart';
 import '../../domain/models/ai_chat_language.dart';
@@ -85,17 +84,13 @@ class _GemAiChatPanelState extends ConsumerState<GemAiChatPanel> {
       size.height * 0.78,
     );
 
-    return DarkThemeScope(
-      child: Builder(
-        builder: (context) => _buildPanel(
-          context: context,
-          panel: panel,
-          ui: ui,
-          panelWidth: panelWidth,
-          panelHeight: panelHeight,
-          bottomGap: bottomGap,
-        ),
-      ),
+    return _buildPanel(
+      context: context,
+      panel: panel,
+      ui: ui,
+      panelWidth: panelWidth,
+      panelHeight: panelHeight,
+      bottomGap: bottomGap,
     );
   }
 
@@ -751,9 +746,9 @@ class _HistoryView extends StatelessWidget {
             ),
             child: Row(
               children: [
-                IconButton(
+                TextButton(
                   onPressed: onBack,
-                  icon: const Icon(Icons.arrow_back_rounded),
+                  child: const Text('Back to chat'),
                 ),
                 Expanded(
                   child: Column(

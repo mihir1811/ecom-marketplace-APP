@@ -181,10 +181,9 @@ class _InquiryDetailBody extends StatelessWidget {
                   onPressed: () => openSellerDrawer(context),
                   icon: const Icon(Icons.menu),
                 ),
-                TextButton.icon(
+                TextButton(
                   onPressed: () => context.go(inquiriesPathFor(path)),
-                  icon: const Icon(Icons.arrow_back, size: 18),
-                  label: const Text('All inquiries'),
+                  child: const Text('All inquiries'),
                 ),
               ],
             ),
@@ -192,10 +191,9 @@ class _InquiryDetailBody extends StatelessWidget {
         else
           Align(
             alignment: Alignment.centerLeft,
-            child: TextButton.icon(
+            child: TextButton(
               onPressed: () => context.go(inquiriesPathFor(path)),
-              icon: const Icon(Icons.arrow_back, size: 18),
-              label: const Text('All inquiries'),
+              child: const Text('All inquiries'),
             ),
           ),
         Expanded(

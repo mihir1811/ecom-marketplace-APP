@@ -9,12 +9,11 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
-import '../../../../core/widgets/theme_toggle_button.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
-import '../../../ai_chat/application/ai_chat_back_navigation.dart';
 import '../../../ai_chat/application/ai_pending_filters.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_project_listing_actions.dart';
 import '../widgets/diamond_cards.dart';
@@ -157,34 +156,8 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
     final mutedColor = AppColors.textSecondary(context);
 
     return AppScaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              if (AiChatBackNavigation.handleListingBack(context, ref)) return;
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go(AppRouteNames.home);
-              }
-            },
-          ),
-          title: Text(
-            widget.title,
-            style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.s8),
-              child: ViewModeToggle(
-                style: ViewModeToggleStyle.labeled,
-                isGrid: viewMode == ViewMode.grid,
-                onGrid: () => _switchViewMode(ViewMode.grid),
-                onList: () => _switchViewMode(ViewMode.list),
-              ),
-            ),
-            const ThemeToggleButton(),
-          ],
+        appBar: AppTopBar(
+          title: widget.title,
         ),
         body: ComparisonTrayHost(
           child: Column(
@@ -245,6 +218,12 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                         }
                       },
                       child: const Text('Edit Filters'),
+                    ),
+                    const SizedBox(width: AppSpacing.s8),
+                    ViewModeToggle(
+                      isGrid: viewMode == ViewMode.grid,
+                      onGrid: () => _switchViewMode(ViewMode.grid),
+                      onList: () => _switchViewMode(ViewMode.list),
                     ),
                   ],
                 ),

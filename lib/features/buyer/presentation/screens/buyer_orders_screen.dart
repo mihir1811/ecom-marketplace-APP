@@ -8,7 +8,6 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../application/buyer_orders_provider.dart';
 import '../../domain/models/buyer_order.dart';
 import '../widgets/buyer_layout.dart';
@@ -21,10 +20,9 @@ class BuyerOrdersScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(buyerOrdersProvider);
 
-    return DarkThemeScope(
-      child: BuyerLayout(
-        title: 'Orders',
-        child: RefreshIndicator(
+    return BuyerLayout(
+      title: 'Orders',
+      child: RefreshIndicator(
           onRefresh: () => ref.read(buyerOrdersProvider.notifier).loadInitial(),
           child: state.isLoading && state.orders.isEmpty
               ? ListView(
@@ -91,7 +89,6 @@ class BuyerOrdersScreen extends ConsumerWidget {
                   ),
                 ),
         ),
-      ),
     );
   }
 }

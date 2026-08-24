@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../application/brand_watch_filter_provider.dart';
 import '../../application/brand_watch_list_provider.dart';
@@ -224,9 +224,9 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
     final logo = WatchBrandAssets.logoPath(widget.brandName);
 
     return AppScaffold(
-      appBar: AppBar(
-        automaticallyImplyActions: false,
-        title: Row(
+      appBar: AppTopBar(
+        title: widget.brandName,
+        titleWidget: Row(
           children: [
             if (logo != null)
               Padding(
@@ -253,16 +253,6 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
               ),
             ),
           ],
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/');
-            }
-          },
         ),
       ),
       body: ComparisonTrayHost(

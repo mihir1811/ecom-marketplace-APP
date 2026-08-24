@@ -48,6 +48,7 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   razorpay_flutter: ^1.4.5
   socket_io_client: ^3.1.6
+  share_plus: ^13.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

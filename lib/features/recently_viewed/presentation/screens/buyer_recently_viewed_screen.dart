@@ -5,13 +5,21 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/app_currency.dart';
+import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_content_sized_grid.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
+import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
-import '../../../cart/domain/models/cart_product_type.dart';
+import '../../../buyer/domain/models/wishlist_item.dart';
+import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
+import '../../../comparison/application/comparison_provider.dart';
+import '../../../comparison/domain/models/compare_category.dart';
+import '../../../comparison/domain/models/compare_item.dart';
+import '../../../comparison/presentation/widgets/compare_add_button.dart';
+import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
 import '../../../product_detail/application/catalog_product_detail_loader.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/recently_viewed_list_provider.dart';
@@ -104,69 +112,63 @@ class _BuyerRecentlyViewedScreenState
     final asyncItems = ref.watch(recentlyViewedListProvider);
     final mutedColor = AppColors.textSecondary(context);
 
-    return DarkThemeScope(
-      child: Builder(
-        builder: (context) => BuyerLayout(
-          title: 'Recently Viewed',
-          child: asyncItems.when(
-            loading: () =>
-                const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.s48),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: AppColors.terracotta,
-                    ),
-                    const SizedBox(height: AppSpacing.s24),
-                    Text(
-                      'Failed to load recently viewed items.',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.body
-                          .copyWith(color: AppColors.terracotta),
-                    ),
-                    const SizedBox(height: AppSpacing.s24),
-                    ElevatedButton.icon(
-                      onPressed: () =>
-                          ref.invalidate(recentlyViewedListProvider),
-                      icon: const Icon(Icons.refresh, size: 18),
-                      label: const Text('Retry'),
-                    ),
-                  ],
+    return BuyerLayout(
+      title: 'Recently Viewed',
+      child: asyncItems.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.s48),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: AppColors.terracotta,
                 ),
-              ),
+                const SizedBox(height: AppSpacing.s24),
+                Text(
+                  'Failed to load recently viewed items.',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.body
+                      .copyWith(color: AppColors.terracotta),
+                ),
+                const SizedBox(height: AppSpacing.s24),
+                ElevatedButton.icon(
+                  onPressed: () => ref.invalidate(recentlyViewedListProvider),
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Retry'),
+                ),
+              ],
             ),
-            data: (page) {
-              if (page.items.isEmpty) {
-                return const CatalogEmptyState(
-                  icon: Icons.history,
-                  title: 'No recently viewed items',
-                  message:
-                      'Items you view will appear here so you can find them again.',
-                );
-              }
-              return Column(
-                children: [
-                  _buildHeader(page, mutedColor),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () =>
-                          ref.read(recentlyViewedListProvider.notifier).refresh(),
-                      child: _viewMode == _ViewMode.grid
-                          ? _buildGrid(page)
-                          : _buildList(page),
-                    ),
-                  ),
-                ],
-              );
-            },
           ),
         ),
+        data: (page) {
+          if (page.items.isEmpty) {
+            return const CatalogEmptyState(
+              icon: Icons.history,
+              title: 'No recently viewed items',
+              message:
+                  'Items you view will appear here so you can find them again.',
+            );
+          }
+          return Column(
+            children: [
+              _buildHeader(page, mutedColor),
+              const Divider(height: 1),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () =>
+                      ref.read(recentlyViewedListProvider.notifier).refresh(),
+                  child: _viewMode == _ViewMode.grid
+                      ? _buildGrid(page)
+                      : _buildList(page),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -273,7 +275,7 @@ class _BuyerRecentlyViewedScreenState
   }
 }
 
-/// Grid card matching [DiamondCardGrid] / [WatchCardGrid] layout.
+/// Grid card matching [GemstoneCardGrid] / [DiamondCardGrid] layout + actions.
 class _RecentlyViewedGridCard extends ConsumerWidget {
   const _RecentlyViewedGridCard({required this.entry});
 
@@ -283,9 +285,16 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textColor = AppColors.textPrimary(context);
     final mutedColor = AppColors.textSecondary(context);
+    final wishlistItem = _wishlistItemFor(entry);
+    final compareItem = _compareItemFor(entry);
+    final inCompare = compareItem == null
+        ? false
+        : ref.watch(isInComparisonProvider(entry.productId));
+    final priceLabel = _formattedPrice(entry);
+    final gradesLine = entry.detailLine;
+    final metaLine = entry.metaLine;
 
-    return _ProductCardShell(
-      entry: entry,
+    return MarketplaceProductCardShell(
       onTap: () => _openProduct(context, ref, entry),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -295,6 +304,27 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
             child: Stack(
               children: [
                 Positioned.fill(child: _ProductThumb(entry: entry)),
+                Positioned(
+                  top: AppSpacing.s4,
+                  right: AppSpacing.s4,
+                  child: WishlistToggleButton(
+                    item: wishlistItem,
+                    size: 18,
+                  ),
+                ),
+                if (compareItem != null)
+                  Positioned(
+                    bottom: AppSpacing.s8,
+                    right: AppSpacing.s8,
+                    child: CompareAddButton(
+                      isSelected: inCompare,
+                      onPressed: () => handleCompareToggle(
+                        context,
+                        ref,
+                        compareItem,
+                      ),
+                    ),
+                  ),
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
@@ -316,20 +346,6 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (entry.productType.isNotEmpty) ...[
-                    Text(
-                      CartProductType.label(entry.productType),
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.bronze,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 10,
-                        letterSpacing: 0.5,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: AppSpacing.s4),
-                  ],
                   Text(
                     entry.displayTitle,
                     style: AppTypography.label.copyWith(
@@ -342,10 +358,10 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
                     softWrap: true,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (entry.detailLine != null) ...[
+                  if (gradesLine != null) ...[
                     const SizedBox(height: AppSpacing.cardLineGap),
                     Text(
-                      entry.detailLine!,
+                      gradesLine,
                       style: AppTypography.caption.copyWith(
                         color: mutedColor,
                         fontSize: 11,
@@ -357,10 +373,10 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                  if (entry.metaLine != null) ...[
+                  if (metaLine != null) ...[
                     const SizedBox(height: AppSpacing.cardLineGap),
                     Text(
-                      entry.metaLine!,
+                      metaLine,
                       style: AppTypography.caption.copyWith(
                         color: mutedColor,
                         fontSize: 11,
@@ -376,10 +392,10 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.cardPriceGap),
                   Row(
                     children: [
-                      if (entry.price != null && entry.price!.isNotEmpty)
+                      if (priceLabel != null)
                         Expanded(
                           child: Text(
-                            entry.price!,
+                            priceLabel,
                             style: GoogleFonts.manrope(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -408,7 +424,7 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
   }
 }
 
-/// List card matching [DiamondCardList] / [WatchCardList] layout.
+/// List card matching [GemstoneCardList] / [DiamondCardList] layout + actions.
 class _RecentlyViewedListCard extends ConsumerWidget {
   const _RecentlyViewedListCard({required this.entry});
 
@@ -418,9 +434,15 @@ class _RecentlyViewedListCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textColor = AppColors.textPrimary(context);
     final mutedColor = AppColors.textSecondary(context);
+    final wishlistItem = _wishlistItemFor(entry);
+    final compareItem = _compareItemFor(entry);
+    final inCompare = compareItem == null
+        ? false
+        : ref.watch(isInComparisonProvider(entry.productId));
+    final priceLabel = _formattedPrice(entry);
+    final meta = entry.metaLine;
 
-    return _ProductCardShell(
-      entry: entry,
+    return MarketplaceProductCardShell(
       onTap: () => _openProduct(context, ref, entry),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -431,21 +453,8 @@ class _RecentlyViewedListCard extends ConsumerWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Positioned.fill(child: _ProductThumb(entry: entry)),
-                Positioned(
-                  top: AppSpacing.s8,
-                  left: AppSpacing.s8,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RecentlyViewedBadge(
-                        productId: entry.productId,
-                        padding:
-                            const EdgeInsets.only(bottom: AppSpacing.s4),
-                      ),
-                    ],
-                  ),
+                Positioned.fill(
+                  child: _ProductThumb(entry: entry, cover: true),
                 ),
                 Positioned(
                   top: AppSpacing.s8,
@@ -454,104 +463,109 @@ class _RecentlyViewedListCard extends ConsumerWidget {
                     status: entry.availability,
                   ),
                 ),
+                Positioned(
+                  top: AppSpacing.s8,
+                  right: AppSpacing.s8,
+                  child: WishlistToggleButton(
+                    item: wishlistItem,
+                    size: 18,
+                  ),
+                ),
+                if (compareItem != null)
+                  Positioned(
+                    bottom: AppSpacing.s8,
+                    right: AppSpacing.s8,
+                    child: CompareAddButton(
+                      size: 32,
+                      isSelected: inCompare,
+                      onPressed: () => handleCompareToggle(
+                        context,
+                        ref,
+                        compareItem,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
           Expanded(
-            child: SizedBox(
-              height: 140,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (entry.productType.isNotEmpty) ...[
-                      Text(
-                        CartProductType.label(entry.productType),
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.bronze,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 10,
-                          letterSpacing: 0.5,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: AppSpacing.s4),
-                    ],
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s16,
+                AppSpacing.s16,
+                AppSpacing.s16,
+                AppSpacing.s16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    entry.listTitle,
+                    style: AppTypography.label.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.cardLineGap),
+                  Text(
+                    entry.listDetailLine,
+                    style: AppTypography.caption.copyWith(
+                      color: mutedColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      height: 1.35,
+                    ),
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (meta != null) ...[
+                    const SizedBox(height: AppSpacing.cardLineGap),
                     Text(
-                      entry.displayTitle,
-                      style: AppTypography.label.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        height: 1.3,
+                      meta,
+                      style: AppTypography.caption.copyWith(
+                        color: mutedColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35,
                       ),
                       maxLines: 2,
                       softWrap: true,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: AppSpacing.cardLineGap),
-                    if (entry.detailLine != null)
-                      Text(
-                        entry.detailLine!,
-                        style: AppTypography.caption.copyWith(
-                          color: mutedColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          height: 1.35,
-                        ),
-                        maxLines: 2,
-                        softWrap: true,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    if (entry.metaLine != null) ...[
-                      const SizedBox(height: AppSpacing.cardLineGap),
-                      Text(
-                        entry.metaLine!,
-                        style: AppTypography.caption.copyWith(
-                          color: mutedColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          height: 1.35,
-                        ),
-                        maxLines: 2,
-                        softWrap: true,
-                        overflow: TextOverflow.ellipsis,
+                  ],
+                  const SizedBox(height: AppSpacing.cardPriceGap),
+                  Row(
+                    children: [
+                      if (priceLabel != null)
+                        Expanded(
+                          child: Text(
+                            priceLabel,
+                            style: GoogleFonts.manrope(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                            ).copyWith(color: textColor),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      else
+                        const Spacer(),
+                      const Icon(
+                        Icons.arrow_forward,
+                        size: 18,
+                        color: AppColors.bronze,
                       ),
                     ],
-                    const Spacer(),
-                    Row(
-                      children: [
-                        if (entry.price != null && entry.price!.isNotEmpty)
-                          Expanded(
-                            child: Text(
-                              entry.price!,
-                              style: GoogleFonts.manrope(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                height: 1.2,
-                              ).copyWith(color: textColor),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          )
-                        else
-                          const Spacer(),
-                        const Icon(
-                          Icons.arrow_forward,
-                          size: 18,
-                          color: AppColors.bronze,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -561,57 +575,11 @@ class _RecentlyViewedListCard extends ConsumerWidget {
   }
 }
 
-/// Shared card shell with Material + shadow + border, matching marketplace cards.
-class _ProductCardShell extends StatelessWidget {
-  const _ProductCardShell({
-    required this.entry,
-    required this.child,
-    this.onTap,
-  });
-
-  final RecentlyViewedEntry entry;
-  final Widget child;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppSpacing.r12);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: AppColors.isDark(context)
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-      ),
-      child: Material(
-        color: AppColors.card(context),
-        shape: RoundedRectangleBorder(
-          borderRadius: radius,
-          side: BorderSide(color: AppColors.border(context)),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: radius,
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
-/// Product thumbnail with proper image loading and fallback.
 class _ProductThumb extends StatelessWidget {
-  const _ProductThumb({required this.entry});
+  const _ProductThumb({required this.entry, this.cover = false});
 
   final RecentlyViewedEntry entry;
+  final bool cover;
 
   @override
   Widget build(BuildContext context) {
@@ -621,8 +589,8 @@ class _ProductThumb extends StatelessWidget {
         color: AppColors.surface(context),
         child: AppNetworkImage(
           url: url,
-          fit: BoxFit.cover,
-          memCacheWidth: 400,
+          fit: cover ? BoxFit.cover : BoxFit.contain,
+          memCacheWidth: cover ? 280 : 400,
           error: _buildFallback(context),
         ),
       );
@@ -633,15 +601,82 @@ class _ProductThumb extends StatelessWidget {
   Widget _buildFallback(BuildContext context) {
     return ColoredBox(
       color: AppColors.surface(context),
-      child: const Center(
-        child: CatalogMissingImage(padding: AppSpacing.s24),
+      child: Center(
+        child: CatalogMissingImage(
+          padding: cover ? AppSpacing.s16 : AppSpacing.s24,
+        ),
       ),
     );
   }
 }
 
-Future<void> _openProduct(BuildContext context, WidgetRef ref,
-    RecentlyViewedEntry entry) async {
+WishlistItem _wishlistItemFor(RecentlyViewedEntry entry) {
+  final category = FavoriteProductType.toCategory(
+    entry.productType == 'meleeDiamond'
+        ? FavoriteProductType.diamond
+        : entry.productType,
+  );
+  final productType = entry.productType.isNotEmpty
+      ? entry.productType
+      : FavoriteProductType.fromCategory(category);
+  return WishlistItem(
+    id: entry.productId,
+    category: category,
+    productType: productType,
+    title: entry.displayTitle,
+    subtitle: entry.detailLine ?? entry.metaLine ?? '',
+    priceLabel: _formattedPrice(entry) ?? '',
+    imageUrl: entry.imageUrl,
+  );
+}
+
+CompareItem? _compareItemFor(RecentlyViewedEntry entry) {
+  final category = switch (entry.productType) {
+    'diamond' || 'meleeDiamond' => CompareCategory.diamond,
+    'gemstone' => CompareCategory.gemstone,
+    'watch' => CompareCategory.watch,
+    _ => null,
+  };
+  if (category == null) return null;
+
+  final price = double.tryParse(entry.price ?? '') ?? 0;
+  final displayValues = <String, String>{
+    if (_formattedPrice(entry) != null) 'price': _formattedPrice(entry)!,
+    if (entry.carat != null) 'carat': '${entry.carat!.toStringAsFixed(2)}ct',
+    if (entry.shape != null && entry.shape!.isNotEmpty) 'shape': entry.shape!,
+    if (entry.color != null && entry.color!.isNotEmpty) 'color': entry.color!,
+    if (entry.clarity != null && entry.clarity!.isNotEmpty)
+      'clarity': entry.clarity!,
+    if (entry.cut != null && entry.cut!.isNotEmpty) 'cut': entry.cut!,
+  };
+  return CompareItem(
+    id: entry.productId,
+    category: category,
+    title: entry.displayTitle,
+    price: price,
+    imageUrl: entry.imageUrl,
+    shape: entry.shape,
+    displayValues: displayValues,
+    numericValues: {
+      'price': price,
+      if (entry.carat != null) 'carat': entry.carat,
+    },
+  );
+}
+
+String? _formattedPrice(RecentlyViewedEntry entry) {
+  final raw = entry.price;
+  if (raw == null || raw.trim().isEmpty) return null;
+  final value = double.tryParse(raw.replaceAll(RegExp(r'[^\d.]'), ''));
+  if (value == null || value <= 0) return null;
+  return AppCurrency.format(formatCatalogPrice(value));
+}
+
+Future<void> _openProduct(
+  BuildContext context,
+  WidgetRef ref,
+  RecentlyViewedEntry entry,
+) async {
   if (openRememberedProductDetail(context, entry.productId)) return;
 
   final detail = await CatalogProductDetailLoader.load(

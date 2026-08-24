@@ -33,18 +33,21 @@ Widget _diamondThumb(
 }) {
   final url = diamond.imageUrl?.trim();
   if (url != null && url.isNotEmpty) {
-    return SizedBox.expand(
-      child: AppNetworkImage(
-        url: url,
-        fit: BoxFit.cover,
-        memCacheWidth: 400,
-        error: ColoredBox(
-          color: AppColors.surface(context),
-          child: Center(
-            child: renderShapeSvg(
-              diamond.shape,
-              size: shapeSize,
-              color: AppColors.bronze,
+    return ColoredBox(
+      color: AppColors.surface(context),
+      child: SizedBox.expand(
+        child: AppNetworkImage(
+          url: url,
+          fit: BoxFit.cover,
+          memCacheWidth: 400,
+          error: ColoredBox(
+            color: AppColors.surface(context),
+            child: Center(
+              child: renderShapeSvg(
+                diamond.shape,
+                size: shapeSize,
+                color: AppColors.bronze,
+              ),
             ),
           ),
         ),
@@ -105,29 +108,6 @@ class DiamondCardGrid extends ConsumerWidget {
                     size: 18,
                   ),
                 ),
-                if (diamond.discount != null && diamond.discount! > 0)
-                  Positioned(
-                    top: AppSpacing.s8,
-                    left: AppSpacing.s8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.s8,
-                        vertical: AppSpacing.s4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.terracotta,
-                        borderRadius: BorderRadius.circular(AppSpacing.r4),
-                      ),
-                      child: Text(
-                        '-${formatDiscountPercent(diamond.discount!)}%',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.warmWhite,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ),
                 Positioned(
                   bottom: AppSpacing.s8,
                   right: AppSpacing.s8,
@@ -221,6 +201,18 @@ class DiamondCardGrid extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (diamond.discount != null && diamond.discount! > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(left: AppSpacing.s4),
+                          child: Text(
+                            '-${formatDiscountPercent(diamond.discount!)}%',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.terracotta,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
                       const Icon(
                         Icons.arrow_forward,
                         size: 16,
@@ -268,10 +260,15 @@ double diamondGridRowStride(BuildContext context, double viewportWidth) {
 /// Color · Clarity · Cut — only values that exist (never N/A).
 String? _gridGradesLine(Diamond diamond) {
   final parts = <String>[];
-  final color = DiamondDisplay.gradeChip(diamond.color);
+  final color = DiamondDisplay.primaryColorLabel(
+    color: diamond.color,
+    fancyColor: diamond.fancyColor,
+    fancyIntensity: diamond.fancyIntensity,
+    uppercase: true,
+  );
   final clarity = DiamondDisplay.gradeChip(diamond.clarity);
   final cut = DiamondDisplay.gradeChip(diamond.cut);
-  if (color != 'N/A') parts.add(color);
+  if (color != null) parts.add(color);
   if (clarity != 'N/A') parts.add(clarity);
   if (cut != 'N/A') parts.add(cut);
   if (parts.isEmpty) return null;

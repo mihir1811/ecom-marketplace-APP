@@ -6,7 +6,7 @@ import '../theme/app_typography.dart';
 
 enum ViewModeToggleStyle { labeled, iconOnly }
 
-/// Shared grid/list view-mode control.
+/// Shared grid/list view-mode control (compact icon-only matches jewelry).
 class ViewModeToggle extends StatelessWidget {
   const ViewModeToggle({
     required this.isGrid,
@@ -60,26 +60,31 @@ class ViewModeToggle extends StatelessWidget {
     }
 
     final border = AppColors.border(context);
-    return Container(
-      decoration: BoxDecoration(
+    return Material(
+      color: AppColors.card(context),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.r8),
-        border: Border.all(color: border),
+        side: BorderSide(color: border),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _IconBtn(
-            icon: Icons.grid_view,
-            selected: isGrid,
-            onTap: onGrid,
-          ),
-          Container(width: 1, height: 28, color: border),
-          _IconBtn(
-            icon: Icons.view_agenda_outlined,
-            selected: !isGrid,
-            onTap: onList,
-          ),
-        ],
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: 28,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _IconBtn(
+              icon: Icons.grid_view_outlined,
+              selected: isGrid,
+              onTap: onGrid,
+            ),
+            Container(width: 1, height: double.infinity, color: border),
+            _IconBtn(
+              icon: Icons.view_agenda_outlined,
+              selected: !isGrid,
+              onTap: onList,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -148,15 +153,22 @@ class _IconBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedBg = AppColors.isDark(context)
+        ? AppColors.surface(context)
+        : AppColors.sandSurface;
+
     return InkWell(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.s8),
-        color: selected ? AppColors.surface(context) : Colors.transparent,
-        child: Icon(
-          icon,
-          size: 18,
-          color: selected ? AppColors.bronze : AppColors.textMuted(context),
+      child: ColoredBox(
+        color: selected ? selectedBg : Colors.transparent,
+        child: SizedBox(
+          width: 30,
+          height: 28,
+          child: Icon(
+            icon,
+            size: 15,
+            color: selected ? AppColors.bronze : AppColors.textMuted(context),
+          ),
         ),
       ),
     );

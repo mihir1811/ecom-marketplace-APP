@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/buyer/presentation/widgets/buyer_drawer.dart';
 import '../auth/auth_providers.dart';
 import '../auth/verification_pending_banner.dart';
 import 'keyboard_aware.dart';
@@ -11,6 +12,8 @@ import 'keyboard_aware.dart';
 /// - Bottom inset is applied to [body] (or to [bottomNavigationBar] when set)
 ///   so sticky footers clear the system nav bar.
 /// - Nested [SafeArea]s remain safe (padding is consumed for descendants).
+/// - When authenticated and no [drawer] is provided, attaches [BuyerDrawer]
+///   unless a parent scaffold already has a drawer (avoids nesting).
 class AppScaffold extends ConsumerWidget {
   const AppScaffold({
     super.key,
@@ -20,6 +23,7 @@ class AppScaffold extends ConsumerWidget {
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.drawer,
+    this.enableAppDrawer = true,
     this.endDrawer,
     this.endDrawerEnableOpenDragGesture = true,
     this.bottomNavigationBar,
@@ -41,6 +45,10 @@ class AppScaffold extends ConsumerWidget {
   final Widget? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final Widget? drawer;
+
+  /// When true (default), attaches [BuyerDrawer] for signed-in users if
+  /// [drawer] is null and no ancestor scaffold already exposes a drawer.
+  final bool enableAppDrawer;
   final Widget? endDrawer;
   final bool endDrawerEnableOpenDragGesture;
   final Widget? bottomNavigationBar;
@@ -55,6 +63,20 @@ class AppScaffold extends ConsumerWidget {
   final bool safeLeft;
   final bool safeRight;
 
+  bool _parentHasDrawer(BuildContext context) {
+    var found = false;
+    context.visitAncestorElements((element) {
+      if (element is! StatefulElement) return true;
+      final state = element.state;
+      if (state is ScaffoldState && state.hasDrawer) {
+        found = true;
+        return false;
+      }
+      return true;
+    });
+    return found;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final applyTop = safeTop ?? appBar == null;
@@ -63,6 +85,8 @@ class AppScaffold extends ConsumerWidget {
     final bodySafeBottom = safeBottom && bottomNavigationBar == null;
     final pending =
         ref.watch(authProvider.select((s) => s.isVerificationPending));
+    final isAuthenticated =
+        ref.watch(authProvider.select((s) => s.isAuthenticated));
     final content = body == null
         ? null
         : pending
@@ -75,12 +99,19 @@ class AppScaffold extends ConsumerWidget {
               )
             : body;
 
+    final resolvedDrawer = drawer ??
+        (enableAppDrawer && isAuthenticated && !_parentHasDrawer(context)
+            ? const BuyerDrawer()
+            : null);
+
     return Scaffold(
       key: scaffoldKey,
       appBar: appBar,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
-      drawer: drawer == null ? null : AppKeyboardInset(child: drawer!),
+      drawer: resolvedDrawer == null
+          ? null
+          : AppKeyboardInset(child: resolvedDrawer),
       endDrawer: endDrawer == null ? null : AppKeyboardInset(child: endDrawer!),
       endDrawerEnableOpenDragGesture: endDrawerEnableOpenDragGesture,
       bottomNavigationBar: bottomNavigationBar == null

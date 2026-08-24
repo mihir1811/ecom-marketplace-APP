@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../data/policies_repository.dart';
 import '../../domain/models/policy_document.dart';
 
@@ -27,22 +28,10 @@ class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
     final horizontal = isWide ? AppSpacing.s48 : AppSpacing.s20;
 
     return AppScaffold(
-      backgroundColor: AppColors.creamBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.creamBg,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.canPop()
-              ? context.pop()
-              : context.go(AppRouteNames.home),
-        ),
-        title: Text(
-          'Policies & Legal',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-        ),
+      backgroundColor: AppColors.bg(context),
+      appBar: SimpleAppTopBar(
+        title: 'Policies & Legal',
+        backgroundColor: AppColors.bg(context),
       ),
       body: FutureBuilder<List<PolicyDocument>>(
         future: _future,

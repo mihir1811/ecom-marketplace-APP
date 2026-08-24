@@ -272,12 +272,6 @@ class _SellerInquiryFormScreenState
                   onPressed: () => openSellerDrawer(context),
                   icon: const Icon(Icons.menu),
                 ),
-                IconButton(
-                  onPressed: () => context.go(
-                    inquiriesPathFor(GoRouterState.of(context).uri.path),
-                  ),
-                  icon: const Icon(Icons.arrow_back),
-                ),
                 Expanded(
                   child: Text(
                     'Product inquiry',
@@ -292,11 +286,11 @@ class _SellerInquiryFormScreenState
         else
           Align(
             alignment: Alignment.centerLeft,
-            child: IconButton(
+            child: TextButton(
               onPressed: () => context.go(
                 inquiriesPathFor(GoRouterState.of(context).uri.path),
               ),
-              icon: const Icon(Icons.arrow_back),
+              child: const Text('All inquiries'),
             ),
           ),
         Expanded(

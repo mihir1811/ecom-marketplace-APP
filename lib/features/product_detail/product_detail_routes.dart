@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/router/route_names.dart';
 import '../../core/widgets/app_scaffold.dart';
+import '../../core/widgets/app_top_bar.dart';
 import '../../core/widgets/catalog_empty_state.dart';
 import 'domain/models/product_detail.dart';
 import 'product_detail_navigation.dart';
@@ -41,15 +42,8 @@ class _ProductDetailUnavailable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back',
-          onPressed: () => context.canPop()
-              ? context.pop()
-              : context.go(AppRouteNames.home),
-        ),
-        title: const Text('Product'),
+      appBar: const SimpleAppTopBar(
+        title: 'Product',
       ),
       body: CatalogEmptyState(
         icon: Icons.search_off_outlined,

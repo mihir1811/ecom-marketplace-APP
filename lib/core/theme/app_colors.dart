@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 enum MeleeBgFamily {
   labGrown,
   natural,
-  /// Gemstone finder — Natural stone type (lilac → soft teal).
+  /// Gemstone finder — Natural stone type (warm sand).
   gemstoneNatural,
-  /// Gemstone finder — Lab Grown stone type (aqua → periwinkle).
+  /// Gemstone finder — Lab Grown stone type (warm sand).
   gemstoneLabGrown,
 }
 
@@ -41,19 +41,19 @@ class AppColors {
   static const slateBorder = Color(0xFF2E3035);
 
   /// Catalog-specific Single/Melee screen background families.
-  /// Tuned to read clearly under the app bar + search + sticky nav band.
-  static const labGrownSingleBg = Color(0xFFD4EDDF);
-  static const labGrownMeleeBg = Color(0xFFD0E8F6);
-  static const naturalSingleBg = Color(0xFFDCDFEA);
-  static const naturalMeleeBg = Color(0xFFF0E4D4);
+  /// Warm sand / bronze tints aligned with the core brown theme.
+  static const labGrownSingleBg = Color(0xFFF3F0EB);
+  static const labGrownMeleeBg = Color(0xFFEBE4DA);
+  static const naturalSingleBg = Color(0xFFF6F2ED);
+  static const naturalMeleeBg = Color(0xFFEDE4D8);
 
-  /// Gemstone Natural — lilac (single) → soft teal (melee).
-  static const gemstoneNaturalSingleBg = Color(0xFFE4D8F2);
-  static const gemstoneNaturalMeleeBg = Color(0xFFC8E6F0);
+  /// Gemstone Natural — warm sand (single) → deeper sand (melee).
+  static const gemstoneNaturalSingleBg = Color(0xFFF5F0EB);
+  static const gemstoneNaturalMeleeBg = Color(0xFFEBE3D8);
 
-  /// Gemstone Lab Grown — crystalline aqua (single) → soft periwinkle (melee).
-  static const gemstoneLabSingleBg = Color(0xFFC4EEF2);
-  static const gemstoneLabMeleeBg = Color(0xFFD4D2F5);
+  /// Gemstone Lab Grown — neutral warm sand variants.
+  static const gemstoneLabSingleBg = Color(0xFFF2EFEA);
+  static const gemstoneLabMeleeBg = Color(0xFFEAE3D8);
 
   /// Resolves gemstone finder palette from Natural / Lab Grown stone type.
   /// Defaults to Natural when unset so Single/Melee still have a stable tint.
@@ -65,10 +65,7 @@ class AppColors {
   /// Soft melee tint of the screen background (same family as [creamBg]/[obsidianBg]).
   ///
   /// Light mode by [family]:
-  /// - [MeleeBgFamily.labGrown]: mint → sky blue
-  /// - [MeleeBgFamily.natural]: cool lavender → warm sand
-  /// - [MeleeBgFamily.gemstoneNatural]: lilac → soft teal
-  /// - [MeleeBgFamily.gemstoneLabGrown]: aqua → periwinkle
+  /// - All families use warm sand / bronze-tinted backgrounds.
   static Color screenBg({
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,

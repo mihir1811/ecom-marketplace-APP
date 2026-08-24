@@ -1,4 +1,5 @@
 import '../../../../core/network/api_config.dart';
+import '../../../product_detail/domain/models/listing_seller_info.dart';
 import '../../domain/models/gemstone.dart';
 import '../models/gemstone_dto.dart';
 
@@ -42,6 +43,7 @@ abstract final class GemstoneMapper {
       isSold: dto.isSold ?? false,
       availability: _clean(dto.availability),
       videoUrl: _resolveMediaUrl(dto.videoURL),
+      listingSeller: listingSellerFromMap(dto.seller),
     );
   }
 

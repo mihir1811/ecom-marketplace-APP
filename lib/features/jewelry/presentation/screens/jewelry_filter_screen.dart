@@ -11,7 +11,7 @@ import 'package:gemstone/core/widgets/filters/filter_boolean_checkbox.dart';
 import 'package:gemstone/core/widgets/filters/filter_chip.dart';
 import 'package:gemstone/core/widgets/filters/filter_range_slider.dart';
 import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
@@ -64,20 +64,11 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
     final n = ref.read(jewelryFilterDraftProvider.notifier);
     final resultCount = listState?.totalCount;
 
-    return DarkThemeScope(
-      child: Builder(
-        builder: (context) => AppScaffold(
-          backgroundColor: AppColors.bg(context),
-          appBar: AppBar(
-            title: Text(
-              'Filters',
-              style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
-            ),
-            actions: [
+    return AppScaffold(
+      backgroundColor: AppColors.bg(context),
+      appBar: AppTopBar(
+            title: 'Filters',
+            extraActions: [
               TextButton(
                 onPressed: n.reset,
                 child: Text(
@@ -580,8 +571,6 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 

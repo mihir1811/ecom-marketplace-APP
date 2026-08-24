@@ -12,6 +12,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../../buyer/application/buyer_orders_provider.dart';
 import '../../../buyer/presentation/widgets/order_review_section.dart';
 import '../../application/payment_checkout_provider.dart';
@@ -28,13 +29,8 @@ class PaymentConfirmationScreen extends ConsumerWidget {
     final async = ref.watch(orderDetailProvider(orderId));
 
     return AppScaffold(
-      backgroundColor: AppColors.creamBg,
-      appBar: AppBar(
-        title: Text(
-          'Order confirmation',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-        ),
-      ),
+      backgroundColor: AppColors.bg(context),
+      appBar: const SimpleAppTopBar(title: 'Order confirmation'),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) {

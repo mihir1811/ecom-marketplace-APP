@@ -12,7 +12,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../application/jewellery_categories_provider.dart';
 import '../../domain/models/jewellery_category_admin.dart';
 import '../jewellery_category_images.dart';
@@ -25,36 +25,14 @@ class JewelryCategoriesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final categories = ref.watch(jewelleryCategoriesProvider);
 
-    return DarkThemeScope(
-      child: Builder(
-        builder: (context) => _buildScreen(context, ref, categories),
-      ),
-    );
+    return _buildScreen(context, ref, categories);
   }
 
   Widget _buildScreen(BuildContext context, WidgetRef ref, AsyncValue<List<JewelleryCategoryAdmin>> categories) {
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
-      appBar: AppBar(
-        automaticallyImplyActions: false,
-        title: Text(
-          'Fine Jewelry',
-          style: AppTypography.headline.copyWith(
-            fontWeight: FontWeight.w700,
-            fontSize: 22,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(AppRouteNames.home);
-            }
-          },
-        ),
-        actions: const [],
+      appBar: const AppTopBar(
+        title: 'Fine Jewelry',
       ),
       body: categories.when(
         loading: () => const Center(

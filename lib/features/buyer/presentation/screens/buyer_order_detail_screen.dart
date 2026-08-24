@@ -15,7 +15,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_dialog.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../payment/domain/models/payment_models.dart';
 import '../../../refunds/application/refund_providers.dart';
 import '../../../tracking/application/order_shipments_provider.dart';
@@ -35,10 +34,9 @@ class BuyerOrderDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(buyerOrderDetailProvider(orderId));
 
-    return DarkThemeScope(
-      child: BuyerLayout(
-        title: 'Order details',
-        child: async.when(
+    return BuyerLayout(
+      title: 'Order details',
+      child: async.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) {
             final message = e is Failure ? e.message : 'Order not found';
@@ -60,11 +58,6 @@ class BuyerOrderDetailScreen extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  IconButton(
-                    onPressed: () => context.go(AppRouteNames.buyerOrders),
-                    icon: const Icon(Icons.arrow_back),
-                    tooltip: 'Back',
-                  ),
                   Expanded(
                     child: Text(
                       'Order',
@@ -207,7 +200,6 @@ class BuyerOrderDetailScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

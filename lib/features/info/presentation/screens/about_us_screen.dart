@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../../home/presentation/home_network_images.dart';
 
 /// Public About Us page for GemWorld — mission, values, and marketplace overview.
@@ -61,22 +62,10 @@ class AboutUsScreen extends StatelessWidget {
     final isWide = width >= 720;
 
     return AppScaffold(
-      backgroundColor: AppColors.creamBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.creamBg,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.canPop()
-              ? context.pop()
-              : context.go(AppRouteNames.home),
-        ),
-        title: Text(
-          'About GemWorld',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-        ),
+      backgroundColor: AppColors.bg(context),
+      appBar: SimpleAppTopBar(
+        title: 'About GemWorld',
+        backgroundColor: AppColors.bg(context),
       ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),

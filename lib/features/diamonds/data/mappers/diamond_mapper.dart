@@ -1,4 +1,5 @@
 import '../../../diamond_viewer/utils/viewer_url_resolver.dart';
+import '../../../product_detail/domain/models/listing_seller_info.dart';
 import '../../domain/models/diamond.dart';
 import '../models/diamond_dto.dart';
 
@@ -57,6 +58,7 @@ abstract final class DiamondMapper {
         sellerCompanyName: _clean(dto.sellerCompanyName),
         sellerCity: _clean(dto.sellerCity),
         sellerCountry: _clean(dto.sellerCountry),
+        listingSeller: listingSellerFromMap(dto.seller),
         measurement: measurement,
         ratio: _clean(dto.ratio),
         tablePercent: _clean(dto.table),
@@ -119,6 +121,7 @@ abstract final class DiamondMapper {
       sellerCompanyName: _clean(dto.sellerCompanyName),
       sellerCity: _clean(dto.sellerCity),
       sellerCountry: _clean(dto.sellerCountry),
+      listingSeller: listingSellerFromMap(dto.seller),
       measurement: _clean(dto.measurement),
       ratio: _clean(dto.ratio),
       tablePercent: _clean(dto.table),

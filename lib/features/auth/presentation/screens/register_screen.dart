@@ -81,26 +81,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   void _onAccountTypeChanged(RegistrationAccountType type) {
+    if (type == _accountType) return;
     setState(() {
       _accountType = type;
       _sellerStep = 0;
-      _fullNameController.clear();
-      _usernameController.clear();
-      _emailController.clear();
-      _passwordController.clear();
-      _referralEmailController.clear();
-      _referralCodeController.clear();
-      _businessFields.clear();
-      _profilePicture = null;
-      _profileImageLabel = 'Upload profile image';
-      _acceptTerms = false;
-      _strength = const PasswordStrength(
-        isStrong: false,
-        message: 'Password is required.',
-      );
     });
-    _formKey.currentState?.reset();
-    ref.read(authProvider.notifier).clearError();
+    // Keep typed field values and Autovalidate/error state — only switch
+    // which account-type sections are shown.
   }
 
   bool _validateCurrentStep() {

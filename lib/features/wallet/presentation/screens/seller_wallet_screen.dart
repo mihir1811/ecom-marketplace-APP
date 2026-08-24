@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../seller/presentation/widgets/seller_layout.dart';
 import '../widgets/wallet_panel.dart';
 
@@ -12,8 +11,7 @@ class SellerWalletScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DarkThemeScope(
-      child: Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
@@ -40,7 +38,6 @@ class SellerWalletScreen extends StatelessWidget {
         const SizedBox(height: AppSpacing.s8),
         const Expanded(child: WalletPanel()),
       ],
-      ),
     );
   }
 }

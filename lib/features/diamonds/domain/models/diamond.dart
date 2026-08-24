@@ -1,3 +1,5 @@
+import '../../../product_detail/domain/models/listing_seller_info.dart';
+
 /// Catalog diamond shown on listing cards and adapted into product detail.
 class Diamond {
   final String id;
@@ -26,6 +28,7 @@ class Diamond {
   final String? sellerCompanyName;
   final String? sellerCity;
   final String? sellerCountry;
+  final ListingSellerInfo? listingSeller;
   final String? measurement;
   final String? ratio;
   final String? tablePercent;
@@ -86,6 +89,7 @@ class Diamond {
     this.sellerCompanyName,
     this.sellerCity,
     this.sellerCountry,
+    this.listingSeller,
     this.measurement,
     this.ratio,
     this.tablePercent,

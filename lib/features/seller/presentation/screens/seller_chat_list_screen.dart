@@ -8,7 +8,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../buyer/presentation/widgets/buyer_layout.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_thread.dart';
@@ -44,13 +43,11 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
           t.productType.label.toLowerCase().contains(q);
     }).toList();
 
-    return DarkThemeScope(
-      child: Builder(
-        builder: (context) => ColoredBox(
-          color: AppColors.bg(context),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+    return ColoredBox(
+      color: AppColors.bg(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.s8,
@@ -123,9 +120,7 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
           ),
             const SizedBox(height: AppSpacing.s12),
             Expanded(child: _body(state, threads)),
-          ],
-          ),
-        ),
+        ],
       ),
     );
   }

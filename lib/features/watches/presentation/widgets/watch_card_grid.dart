@@ -60,29 +60,6 @@ class WatchCardGrid extends ConsumerWidget {
                     size: 18,
                   ),
                 ),
-                if (watch.discount != null && watch.discount! > 0)
-                  Positioned(
-                    top: AppSpacing.s8,
-                    left: AppSpacing.s8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.s8,
-                        vertical: AppSpacing.s4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.terracotta,
-                        borderRadius: BorderRadius.circular(AppSpacing.r4),
-                      ),
-                      child: Text(
-                        '-${formatDiscountPercent(watch.discount!)}%',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.warmWhite,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ),
                 Positioned(
                   bottom: AppSpacing.s8,
                   right: AppSpacing.s8,
@@ -168,6 +145,18 @@ class WatchCardGrid extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (watch.discount != null && watch.discount! > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(left: AppSpacing.s4),
+                          child: Text(
+                            '-${formatDiscountPercent(watch.discount!)}%',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.terracotta,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
                       const Icon(
                         Icons.arrow_forward,
                         size: 16,
@@ -219,25 +208,18 @@ class WatchCardList extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AvailabilityStatusBadge(
-                        status: watch.availabilityStatus,
-                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
-                      ),
-                      RecentlyViewedBadge(
-                        productId: watch.id,
-                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
-                      ),
-                      WishlistToggleButton(
-                        item: WishlistItem.fromWatch(watch),
-                        onAdded: () =>
-                            rememberProductDetail(watchProductDetail(watch)),
-                        size: 18,
-                      ),
-                    ],
+                  child: AvailabilityStatusBadge(
+                    status: watch.availabilityStatus,
+                  ),
+                ),
+                Positioned(
+                  top: AppSpacing.s8,
+                  right: AppSpacing.s8,
+                  child: WishlistToggleButton(
+                    item: WishlistItem.fromWatch(watch),
+                    onAdded: () =>
+                        rememberProductDetail(watchProductDetail(watch)),
+                    size: 18,
                   ),
                 ),
                 Positioned(
@@ -333,6 +315,18 @@ class WatchCardList extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (watch.discount != null && watch.discount! > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(left: AppSpacing.s4),
+                          child: Text(
+                            '-${formatDiscountPercent(watch.discount!)}%',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.terracotta,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
                       const Icon(
                         Icons.arrow_forward,
                         size: 18,

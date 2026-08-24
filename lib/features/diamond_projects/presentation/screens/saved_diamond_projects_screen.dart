@@ -10,6 +10,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
@@ -60,13 +61,8 @@ class _SavedDiamondProjectsScreenState
     final async = ref.watch(diamondProjectListProvider);
 
     return AppScaffold(
-      backgroundColor: AppColors.sandSurface,
-      appBar: AppBar(
-        title: Text(
-          'Saved projects',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
-        ),
-      ),
+      backgroundColor: AppColors.bg(context),
+      appBar: const SimpleAppTopBar(title: 'Saved projects'),
       body: async.when(
         loading: () => const CatalogListLoading(isGrid: false),
         error: (error, _) => CatalogErrorState(

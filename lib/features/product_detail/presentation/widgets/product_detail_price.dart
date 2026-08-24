@@ -9,6 +9,7 @@ import '../../../../core/utils/format_catalog_price.dart';
 import '../../../buyer/application/wishlist_provider.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../chat/presentation/open_product_seller_chat.dart';
+import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../domain/models/product_detail.dart';
 
 /// Price block — the highest-priority number on the page.
@@ -120,7 +121,9 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
                   Text(
                     saleLabel,
                     style: AppTypography.label.copyWith(
-                      color: AppColors.textPrimary(context),
+                      color: hasDiscount
+                          ? AppColors.success
+                          : AppColors.textPrimary(context),
                       fontSize: 30,
                       fontWeight: FontWeight.w700,
                       height: 1.1,
@@ -132,20 +135,13 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (canChat) ...[
-                  _ActionIcon(
-                    icon: Icons.chat_bubble_outline,
-                    tooltip: 'Chat with seller',
-                    loading: _openingChat,
-                    onTap: _openChat,
-                  ),
-                  const SizedBox(width: AppSpacing.s8),
-                ],
                 _ActionIcon(
                   icon: wishlisted ? Icons.favorite : Icons.favorite_border,
                   tooltip:
                       wishlisted ? 'Remove from wishlist' : 'Save to wishlist',
-                  tint: wishlisted ? AppColors.terracotta : AppColors.textPrimary(context),
+                  tint: wishlisted
+                      ? AppColors.terracotta
+                      : AppColors.textPrimary(context),
                   onTap: () {
                     toggleWishlistItem(
                       context,
@@ -155,6 +151,27 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
                       removedMessage: 'Removed from wishlist',
                     );
                   },
+                ),
+                if (canChat) ...[
+                  const SizedBox(width: AppSpacing.s8),
+                  _ActionIcon(
+                    icon: Icons.chat_bubble_outline,
+                    tooltip: 'Chat with seller',
+                    loading: _openingChat,
+                    onTap: _openChat,
+                  ),
+                ],
+                const SizedBox(width: AppSpacing.s8),
+                _ActionIcon(
+                  icon: Icons.share_outlined,
+                  tooltip: 'Share',
+                  onTap: () => showProductShareSheet(
+                    context: context,
+                    ref: ref,
+                    productId: detail.id,
+                    productType: detail.apiProductType,
+                    productTitle: detail.title,
+                  ),
                 ),
               ],
             ),
@@ -180,18 +197,19 @@ class _ActionIcon extends StatelessWidget {
     required this.icon,
     required this.tooltip,
     required this.onTap,
-    this.tint = AppColors.charcoal,
+    this.tint,
     this.loading = false,
   });
 
   final IconData icon;
   final String tooltip;
   final VoidCallback onTap;
-  final Color tint;
+  final Color? tint;
   final bool loading;
 
   @override
   Widget build(BuildContext context) {
+    final iconColor = tint ?? AppColors.textPrimary(context);
     return Tooltip(
       message: tooltip,
       child: InkWell(
@@ -206,11 +224,14 @@ class _ActionIcon extends StatelessWidget {
             border: Border.all(color: AppColors.border(context)),
           ),
           child: loading
-              ? const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: CircularProgressIndicator(strokeWidth: 2),
+              ? Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: iconColor,
+                  ),
                 )
-              : Icon(icon, size: 18, color: tint),
+              : Icon(icon, size: 18, color: iconColor),
         ),
       ),
     );

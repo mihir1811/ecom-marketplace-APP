@@ -11,7 +11,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../buyer/presentation/widgets/buyer_drawer.dart';
-import '../../../cart/application/cart_provider.dart';
 import '../../application/home_search_provider.dart';
 import '../home_network_images.dart';
 import '../widgets/home_category_tile.dart';
@@ -64,7 +63,6 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cartCount = ref.watch(cartItemCountProvider);
     final auth = ref.watch(
       authProvider.select(
         (s) => (
@@ -84,10 +82,9 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppTopBar(
         title: 'GemWorld',
         showThemeToggle: true,
-        showCompare: true,
-        showCart: true,
-        cartCount: cartCount,
-        showSellerTools: auth.isAuthenticated && auth.isSeller && auth.canTransact,
+        showCart: auth.isAuthenticated,
+        showWallet: auth.isAuthenticated,
+        showMessages: auth.isAuthenticated,
         onSellerWalletTap: () => context.push(AppRouteNames.buyerWallet),
         onSellerMessagesTap: () => context.push(AppRouteNames.buyerMessages),
         extraActions: !auth.isAuthenticated
@@ -104,16 +101,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(width: AppSpacing.s8),
               ]
-            : auth.isAuthenticated && !(auth.isSeller && auth.canTransact)
-                ? [
-                    IconButton(
-                      tooltip: 'Account',
-                      onPressed: () => context.go(AppRouteNames.buyerProfile),
-                      icon: const Icon(Icons.person_outline),
-                    ),
-                    const SizedBox(width: AppSpacing.s8),
-                  ]
-                : [],
+            : const [],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

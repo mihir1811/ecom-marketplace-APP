@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -11,7 +12,7 @@ import '../../../seller/application/seller_reviews_provider.dart';
 import '../../../seller/domain/models/seller_review.dart';
 import '../../../seller/presentation/widgets/seller_review_form.dart';
 
-/// Public seller ratings + optional write form after payment.
+/// Public seller ratings + write forms after payment (one per unreviewed seller).
 class OrderReviewSection extends ConsumerStatefulWidget {
   const OrderReviewSection({required this.order, super.key});
 
@@ -22,12 +23,142 @@ class OrderReviewSection extends ConsumerStatefulWidget {
 }
 
 class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
+  /// Sellers already submitted in this session (before provider refresh lands).
+  final Set<String> _submittedLocally = {};
+
+  bool get _isPaid => widget.order.status.toUpperCase() == 'PAID';
+
+  List<({String sellerId, String sellerName})> get _sellerTargets {
+    final seen = <String>{};
+    final targets = <({String sellerId, String sellerName})>[];
+    for (final seller in widget.order.sellers) {
+      if (seller.id.isEmpty || !seen.add(seller.id)) continue;
+      targets.add((sellerId: seller.id, sellerName: seller.companyName));
+    }
+    for (final item in widget.order.items) {
+      final id = item.sellerId;
+      if (id == null || id.isEmpty || !seen.add(id)) continue;
+      targets.add((
+        sellerId: id,
+        sellerName: item.sellerName?.trim().isNotEmpty == true
+            ? item.sellerName!
+            : 'Seller',
+      ));
+    }
+    return targets;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final targets = _sellerTargets;
+    final orderAsync = ref.watch(orderSellerReviewsProvider(widget.order.id));
+    final orderReviews = orderAsync.asData?.value ?? const <SellerReview>[];
+    final reviewedSellerIds = <String>{
+      ...orderReviews.map((r) => r.sellerId),
+      ..._submittedLocally,
+    };
+    final pendingTargets = targets
+        .where((t) => !reviewedSellerIds.contains(t.sellerId))
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Seller Rating & review',
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          targets.isEmpty
+              ? 'Rate sellers from this order after payment.'
+              : 'Leave a review for each seller on this order.',
+          style: AppTypography.caption.copyWith(
+            color: AppColors.textMuted(context),
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (orderAsync.isLoading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (orderAsync.hasError)
+          Text(
+            orderAsync.error is Failure
+                ? (orderAsync.error! as Failure).message
+                : 'Could not load reviews.',
+            style: AppTypography.caption.copyWith(color: AppColors.error),
+          )
+        else ...[
+          if (orderReviews.isNotEmpty) ...[
+            for (final review in orderReviews)
+              _ExistingReviewCard(review: review),
+            const SizedBox(height: 4),
+          ],
+          if (!_isPaid && targets.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'You can leave a review after payment is complete.',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textMuted(context),
+              ),
+            ),
+          ],
+          if (_isPaid && pendingTargets.isEmpty && targets.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'You have reviewed every seller on this order.',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textMuted(context),
+              ),
+            ),
+          ],
+          if (_isPaid)
+            for (final target in pendingTargets) ...[
+              const SizedBox(height: 12),
+              _SellerReviewFormBlock(
+                key: ValueKey('review-form-${target.sellerId}'),
+                orderId: widget.order.id,
+                sellerId: target.sellerId,
+                sellerName: target.sellerName,
+                onSubmitted: () {
+                  setState(() => _submittedLocally.add(target.sellerId));
+                },
+              ),
+            ],
+        ],
+      ],
+    );
+  }
+}
+
+class _SellerReviewFormBlock extends ConsumerStatefulWidget {
+  const _SellerReviewFormBlock({
+    required this.orderId,
+    required this.sellerId,
+    required this.sellerName,
+    required this.onSubmitted,
+    super.key,
+  });
+
+  final String orderId;
+  final String sellerId;
+  final String sellerName;
+  final VoidCallback onSubmitted;
+
+  @override
+  ConsumerState<_SellerReviewFormBlock> createState() =>
+      _SellerReviewFormBlockState();
+}
+
+class _SellerReviewFormBlockState
+    extends ConsumerState<_SellerReviewFormBlock> {
   late final TextEditingController _commentController;
   late final TextEditingController _titleController;
   int _rating = 0;
   bool _submitting = false;
   String? _error;
-  bool _submittedLocally = false;
 
   @override
   void initState() {
@@ -43,28 +174,8 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
     super.dispose();
   }
 
-  String? get _sellerId {
-    if (widget.order.sellers.isNotEmpty) return widget.order.sellers.first.id;
-    for (final item in widget.order.items) {
-      if (item.sellerId != null && item.sellerId!.isNotEmpty) {
-        return item.sellerId;
-      }
-    }
-    return null;
-  }
-
-  String get _sellerName {
-    if (widget.order.sellers.isNotEmpty) {
-      return widget.order.sellers.first.companyName;
-    }
-    return widget.order.primarySellerName;
-  }
-
-  bool get _isPaid => widget.order.status.toUpperCase() == 'PAID';
-
   Future<void> _submit() async {
-    final sellerId = _sellerId;
-    if (sellerId == null || _rating < 1) {
+    if (_rating < 1) {
       setState(() => _error = 'Please select a star rating.');
       return;
     }
@@ -75,8 +186,8 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
     final result = await submitSellerReview(
       ref,
       SubmitSellerReviewInput(
-        sellerId: sellerId,
-        orderId: widget.order.id,
+        sellerId: widget.sellerId,
+        orderId: widget.orderId,
         rating: _rating,
         title: _titleController.text.trim().isEmpty
             ? null
@@ -89,12 +200,12 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
     if (!mounted) return;
     switch (result) {
       case Success():
-        setState(() {
-          _submitting = false;
-          _submittedLocally = true;
-        });
+        setState(() => _submitting = false);
+        widget.onSubmitted();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Thanks for your review!')),
+          SnackBar(
+            content: Text('Thanks for reviewing ${widget.sellerName}!'),
+          ),
         );
       case ResultFailure(:final failure):
         setState(() {
@@ -106,128 +217,71 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
 
   @override
   Widget build(BuildContext context) {
-    final sellerId = _sellerId;
-    final publicAsync = sellerId == null
-        ? const AsyncValue<List<SellerReview>>.data([])
-        : ref.watch(publicSellerReviewsProvider(sellerId));
-    final orderAsync = ref.watch(orderSellerReviewsProvider(widget.order.id));
-
-    final publicReviews = publicAsync.asData?.value ?? const <SellerReview>[];
-    final orderReviews = orderAsync.asData?.value ?? const <SellerReview>[];
-    final alreadyReviewedThisOrder =
-        _submittedLocally || orderReviews.isNotEmpty;
-    final canForm =
-        _isPaid &&
-        sellerId != null &&
-        !alreadyReviewedThisOrder &&
-        !orderAsync.isLoading;
-    final isLoading = publicAsync.isLoading || orderAsync.isLoading;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Seller Rating & review',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+        SellerReviewForm(
+          rating: _rating,
+          onRatingChanged: (v) => setState(() {
+            _rating = v;
+            _error = null;
+          }),
+          commentController: _commentController,
+          titleController: _titleController,
+          enabled: !_submitting,
+          compact: true,
+          sellerName: widget.sellerName,
         ),
-        const SizedBox(height: 4),
-        Text(
-          'Public ratings for $_sellerName',
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textMuted(context),
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (isLoading)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Center(child: CircularProgressIndicator()),
-          )
-        else if (publicAsync.hasError)
+        if (_error != null) ...[
+          const SizedBox(height: 8),
           Text(
-            publicAsync.error is Failure
-                ? (publicAsync.error! as Failure).message
-                : 'Could not load reviews.',
+            _error!,
             style: AppTypography.caption.copyWith(color: AppColors.error),
-          )
-        else if (publicReviews.isEmpty)
-          Text(
-            'No reviews yet for this seller.',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-            ),
-          )
-        else
-          Column(
-            children: [
-              for (final review in publicReviews)
-                _ExistingReviewCard(review: review),
-            ],
-          ),
-        if (!_isPaid && sellerId != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            'You can leave a review after payment is complete.',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-            ),
           ),
         ],
-        if (canForm) ...[
-          const SizedBox(height: 8),
-          SellerReviewForm(
-            rating: _rating,
-            onRatingChanged: (v) => setState(() {
-              _rating = v;
-              _error = null;
-            }),
-            commentController: _commentController,
-            titleController: _titleController,
-            enabled: !_submitting,
-            compact: true,
-            sellerName: _sellerName,
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: AppTypography.caption.copyWith(color: AppColors.error),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 48,
+          child: FilledButton(
+            onPressed: _submitting ? null : _submit,
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.charcoal,
+              foregroundColor: AppColors.warmWhite,
             ),
-          ],
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 48,
-            child: FilledButton(
-              onPressed: _submitting ? null : _submit,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.charcoal,
-                foregroundColor: AppColors.warmWhite,
-              ),
-              child: _submitting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.warmWhite,
-                      ),
-                    )
-                  : const Text('Submit review'),
-            ),
+            child: _submitting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.warmWhite,
+                    ),
+                  )
+                : Text('Submit review for ${widget.sellerName}'),
           ),
-        ],
+        ),
       ],
     );
   }
 }
 
-class _ExistingReviewCard extends StatelessWidget {
+class _ExistingReviewCard extends ConsumerWidget {
   const _ExistingReviewCard({required this.review});
 
   final SellerReview review;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUserId =
+        ref.watch(authProvider.select((s) => s.user?.id)) ?? '';
+    final isMine =
+        currentUserId.isNotEmpty && review.userId == currentUserId;
+    final buyerLabel = isMine
+        ? 'me'
+        : (review.userName?.trim().isNotEmpty == true
+            ? review.userName!.trim()
+            : 'Buyer');
+
     final date = review.createdAt;
     final dateLabel = date == null
         ? null
@@ -247,7 +301,7 @@ class _ExistingReviewCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  review.sellerName ?? 'Seller',
+                  buyerLabel,
                   style: AppTypography.label.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -262,6 +316,16 @@ class _ExistingReviewCard extends StatelessWidget {
                 ),
             ],
           ),
+          if (review.sellerName != null &&
+              review.sellerName!.trim().isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              'Seller: ${review.sellerName}',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textMuted(context),
+              ),
+            ),
+          ],
           const SizedBox(height: 6),
           Row(
             children: List.generate(5, (i) {

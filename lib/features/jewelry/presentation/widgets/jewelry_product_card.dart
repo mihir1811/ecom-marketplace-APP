@@ -129,29 +129,6 @@ class JewelryProductCard extends ConsumerWidget {
                     size: 18,
                   ),
                 ),
-                if (item.discount != null && item.discount! > 0)
-                  Positioned(
-                    top: AppSpacing.s8,
-                    left: AppSpacing.s8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.s8,
-                        vertical: AppSpacing.s4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.terracotta,
-                        borderRadius: BorderRadius.circular(AppSpacing.r4),
-                      ),
-                      child: Text(
-                        '-${formatDiscountPercent(item.discount!)}%',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.warmWhite,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ),
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
@@ -225,6 +202,18 @@ class JewelryProductCard extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (item.discount != null && item.discount! > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(left: AppSpacing.s4),
+                          child: Text(
+                            '-${formatDiscountPercent(item.discount!)}%',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.terracotta,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
                       const Icon(
                         Icons.arrow_forward,
                         size: 16,
@@ -654,6 +643,15 @@ class JewelryProductListCard extends ConsumerWidget {
                             fontWeight: FontWeight.w700,
                           ).copyWith(color: text),
                         ),
+                        if (item.discount != null && item.discount! > 0)
+                          Text(
+                            '-${formatDiscountPercent(item.discount!)}%',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.terracotta,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
                         _OutlineBadge(
                           label: purityLabel,
                           borderColor:

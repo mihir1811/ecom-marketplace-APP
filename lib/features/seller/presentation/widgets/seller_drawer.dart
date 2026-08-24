@@ -7,8 +7,6 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/theme/theme_preference_provider.dart';
 
 /// Side drawer for seller workspace screens only.
 class SellerDrawer extends ConsumerWidget {
@@ -21,7 +19,6 @@ class SellerDrawer extends ConsumerWidget {
     final pending = ref.watch(
       authProvider.select((s) => s.isVerificationPending),
     );
-    final dark = ref.watch(themePreferenceProvider);
     final items = <_DrawerItem>[
       const _DrawerItem(
         route: AppRouteNames.sellerDashboard,
@@ -104,13 +101,10 @@ class SellerDrawer extends ConsumerWidget {
       ),
     ].where((item) => !pending || !item.requiresVerified).toList();
 
-    // Stay dark whenever dark mode is on, even when hosted by a light screen.
-    return Theme(
-      data: dark ? AppTheme.dark : Theme.of(context),
-      child: Drawer(
-        width: 280,
-        backgroundColor: dark ? AppColors.slateSurface : AppColors.warmWhite,
-        child: SafeArea(
+    return Drawer(
+      width: 280,
+      backgroundColor: AppColors.card(context),
+      child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -192,8 +186,7 @@ class SellerDrawer extends ConsumerWidget {
                   context.go(AppRouteNames.home);
                 },
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );

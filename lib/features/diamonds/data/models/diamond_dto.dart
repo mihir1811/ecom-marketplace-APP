@@ -74,6 +74,7 @@ class DiamondDto {
     this.sellerCompanyName,
     this.sellerCity,
     this.sellerCountry,
+    this.seller,
   });
 
   final String id;
@@ -149,6 +150,7 @@ class DiamondDto {
   final String? sellerCompanyName;
   final String? sellerCity;
   final String? sellerCountry;
+  final Map<String, dynamic>? seller;
 
   factory DiamondDto.fromJson(
     Map<String, dynamic> json, {
@@ -236,6 +238,7 @@ class DiamondDto {
       sellerCompanyName: sellerMap?['companyName']?.toString(),
       sellerCity: sellerMap?['city']?.toString(),
       sellerCountry: sellerMap?['country']?.toString(),
+      seller: sellerMap,
     );
   }
 

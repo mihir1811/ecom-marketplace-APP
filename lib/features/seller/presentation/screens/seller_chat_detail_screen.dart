@@ -10,7 +10,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_message.dart';
 import '../../../chat/domain/models/chat_thread.dart';
@@ -91,32 +90,28 @@ class _SellerChatDetailScreenState
         ? state.context!.sellerName
         : _peerName(state.messages, args.peerUserId);
 
-    return DarkThemeScope(
-      child: Builder(
-        builder: (context) => ColoredBox(
-          color: AppColors.bg(context),
-          child: Column(
-            children: [
-              _ThreadHeader(
-                peerName: peerName,
-                productLabel: state.context?.productName ??
-                    '${args.productTypeApi} · ${args.productId}',
-                onBack: () => context.go(
-                  messagesPathFor(GoRouterState.of(context).uri.path),
-                ),
-              ),
-              if (state.context != null)
-                _ProductStrip(contextData: state.context!),
-              Expanded(child: _messagesBody(state, args)),
-              _Composer(
-                controller: _messageCtrl,
-                isSending: state.isSending,
-                sendError: state.sendError,
-                onSend: _send,
-              ),
-            ],
+    return ColoredBox(
+      color: AppColors.bg(context),
+      child: Column(
+        children: [
+          _ThreadHeader(
+            peerName: peerName,
+            productLabel: state.context?.productName ??
+                '${args.productTypeApi} · ${args.productId}',
+            onBack: () => context.go(
+              messagesPathFor(GoRouterState.of(context).uri.path),
+            ),
           ),
-        ),
+          if (state.context != null)
+            _ProductStrip(contextData: state.context!),
+          Expanded(child: _messagesBody(state, args)),
+          _Composer(
+            controller: _messageCtrl,
+            isSending: state.isSending,
+            sendError: state.sendError,
+            onSend: _send,
+          ),
+        ],
       ),
     );
   }
@@ -197,9 +192,9 @@ class _ThreadHeader extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(4, 4, 16, 10),
           child: Row(
             children: [
-              IconButton(
+              TextButton(
                 onPressed: onBack,
-                icon: const Icon(Icons.arrow_back_rounded),
+                child: const Text('Inbox'),
               ),
               Expanded(
                 child: Column(

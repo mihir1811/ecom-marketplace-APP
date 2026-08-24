@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../application/cart_provider.dart';
 import '../widgets/cart_address_section.dart';
 import '../widgets/cart_checkout_button.dart';
@@ -40,13 +40,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final isEmpty = ref.watch(cartIsEmptyProvider);
     final error = ref.watch(cartErrorProvider);
 
-    return DarkThemeScope(
-      child: Builder(
-        builder: (context) => AppScaffold(
-          backgroundColor: AppColors.bg(context),
-      appBar: AppBar(
-        title: const _CartAppBarTitle(),
-        actions: [
+    return AppScaffold(
+      backgroundColor: AppColors.bg(context),
+      appBar: AppTopBar(
+        title: '',
+        titleWidget: const _CartAppBarTitle(),
+        extraActions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh',
@@ -85,8 +84,6 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         SizedBox(height: AppSpacing.s24),
                       ],
                     ),
-        ),
-      ),
     );
   }
 }

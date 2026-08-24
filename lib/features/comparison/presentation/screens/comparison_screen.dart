@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../application/comparison_provider.dart';
 import '../../domain/models/compare_spec.dart';
 import '../widgets/comparison_table.dart';
@@ -28,14 +28,8 @@ class ComparisonScreen extends ConsumerWidget {
     );
 
     if (snapshot.itemCount < 2 || snapshot.category == null) {
-      return DarkThemeScope(
-        child: AppScaffold(
-          appBar: AppBar(
-            title: Text(
-              'Compare',
-              style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ),
+      return AppScaffold(
+          appBar: const SimpleAppTopBar(title: 'Compare'),
           body: Center(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.s24),
@@ -56,22 +50,17 @@ class ComparisonScreen extends ConsumerWidget {
               ),
             ),
           ),
-        ),
-      );
+        );
     }
 
     final category = snapshot.category!;
     final items = snapshot.items;
     final specs = specsForCategory(category);
 
-    return DarkThemeScope(
-      child: AppScaffold(
-        appBar: AppBar(
-          title: Text(
-            'Compare ${category.labelPlural}',
-            style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
-          ),
-          actions: [
+    return AppScaffold(
+        appBar: AppTopBar(
+          title: 'Compare ${category.labelPlural}',
+          extraActions: [
             TextButton(
               onPressed: () {
                 ref.read(comparisonProvider.notifier).clear();
@@ -117,7 +106,6 @@ class ComparisonScreen extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

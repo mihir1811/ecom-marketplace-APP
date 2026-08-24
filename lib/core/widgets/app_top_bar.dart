@@ -5,29 +5,30 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_providers.dart';
 import '../router/route_names.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
-import 'theme_toggle_button.dart';
+import '../../features/cart/application/cart_provider.dart';
+import '../../features/chat/application/chat_providers.dart';
+import 'app_bar_actions.dart';
+import 'app_drawer_button.dart';
 
-/// Reusable top app bar with standardized actions including global theme toggle.
+/// Reusable top app bar with a fixed trailing action order:
+/// **Cart → Wallet → Messages → Theme** (when signed in).
 ///
-/// Provides consistent app bar across all screens with:
-/// - Optional leading action (back/menu)
-/// - Title
-/// - Standard trailing actions (theme toggle, compare, cart, etc.)
-/// - Role-based actions for sellers
+/// [extraActions] always render *before* that standard set.
 class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
   const AppTopBar({
     super.key,
     required this.title,
+    this.titleWidget,
     this.leading,
-    this.automaticallyImplyLeading = true,
-    this.onBack,
+    this.showDrawerButton = true,
     this.showThemeToggle = true,
-    this.showCompare = false,
-    this.showCart = false,
-    this.cartCount = 0,
-    this.showSellerTools = false,
+    this.transparent = false,
+    this.showCart = true,
+    this.cartCount,
+    this.showWallet = true,
+    this.showMessages = true,
+    @Deprecated('Use showWallet / showMessages') this.showSellerTools,
     this.onSellerWalletTap,
     this.onSellerMessagesTap,
     this.extraActions = const [],
@@ -38,14 +39,21 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
   });
 
   final String title;
+  final Widget? titleWidget;
   final Widget? leading;
-  final bool automaticallyImplyLeading;
-  final VoidCallback? onBack;
+  final bool showDrawerButton;
   final bool showThemeToggle;
-  final bool showCompare;
+  final bool transparent;
   final bool showCart;
-  final int cartCount;
-  final bool showSellerTools;
+
+  /// When null, live cart count is read from [cartItemCountProvider].
+  final int? cartCount;
+  final bool showWallet;
+  final bool showMessages;
+
+  /// Legacy alias — when non-null, overrides [showWallet] and [showMessages].
+  @Deprecated('Use showWallet / showMessages')
+  final bool? showSellerTools;
   final VoidCallback? onSellerWalletTap;
   final VoidCallback? onSellerMessagesTap;
   final List<Widget> extraActions;
@@ -61,112 +69,144 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(
       authProvider.select(
-        (s) => (isAuthenticated: s.isAuthenticated, isSeller: s.isSeller, canTransact: s.canTransact),
+        (s) => (
+          isAuthenticated: s.isAuthenticated,
+          isSeller: s.isSeller,
+          canTransact: s.canTransact,
+        ),
       ),
     );
 
-    final effectiveShowSellerTools = showSellerTools &&
-        authState.isAuthenticated &&
-        authState.isSeller &&
-        authState.canTransact;
+    // ignore: deprecated_member_use_from_same_package
+    final legacyTools = showSellerTools;
+    final walletEnabled = legacyTools ?? showWallet;
+    final messagesEnabled = legacyTools ?? showMessages;
 
-    final actions = <Widget>[];
+    final liveCartCount = showCart && authState.isAuthenticated && cartCount == null
+        ? ref.watch(cartItemCountProvider)
+        : (cartCount ?? 0);
 
-    if (showCompare) {
-      actions.add(
-        IconButton(
-          tooltip: 'Compare',
-          onPressed: () => context.push(AppRouteNames.comparison),
-          icon: const Icon(Icons.compare_arrows_rounded),
-        ),
-      );
-    }
+    final actions = <Widget>[
+      ...extraActions,
+    ];
 
-    if (showCart) {
-      actions.add(
-        IconButton(
-          tooltip: 'Cart',
-          onPressed: () => context.push(AppRouteNames.cart),
-          icon: Badge(
-            isLabelVisible: cartCount > 0,
-            label: Text('$cartCount'),
-            backgroundColor: AppColors.bronze,
-            child: const Icon(Icons.shopping_bag_outlined),
+    if (authState.isAuthenticated) {
+      // Fixed order: Cart → Wallet → Messages → Theme
+      if (showCart) {
+        actions.add(
+          IconButton(
+            tooltip: 'Cart',
+            onPressed: () => context.push(AppRouteNames.cart),
+            icon: Badge(
+              isLabelVisible: liveCartCount > 0,
+              label: Text('$liveCartCount'),
+              backgroundColor: AppColors.bronze,
+              child: const Icon(Icons.shopping_bag_outlined),
+            ),
           ),
-        ),
-      );
-    }
+        );
+      }
 
-    if (effectiveShowSellerTools) {
-      if (onSellerWalletTap != null) {
+      if (walletEnabled) {
         actions.add(
           IconButton(
             tooltip: 'Wallet',
-            onPressed: onSellerWalletTap,
+            onPressed: onSellerWalletTap ??
+                () => context.push(
+                      authState.isSeller && authState.canTransact
+                          ? AppRouteNames.sellerWallet
+                          : AppRouteNames.buyerWallet,
+                    ),
             icon: const Icon(Icons.account_balance_wallet_outlined),
           ),
         );
       }
-      if (onSellerMessagesTap != null) {
+
+      if (messagesEnabled) {
+        final hasUnread = ref.watch(chatHasUnreadProvider);
         actions.add(
           IconButton(
             tooltip: 'Messages',
-            onPressed: onSellerMessagesTap,
-            icon: const Icon(Icons.chat_bubble_outline),
+            onPressed: onSellerMessagesTap ??
+                () => context.push(
+                      authState.isSeller && authState.canTransact
+                          ? AppRouteNames.sellerChat
+                          : AppRouteNames.buyerMessages,
+                    ),
+            icon: Badge(
+              isLabelVisible: hasUnread,
+              smallSize: 8,
+              backgroundColor: AppColors.bronze,
+              child: const Icon(Icons.chat_bubble_outline),
+            ),
           ),
         );
       }
     }
 
-    actions.addAll(extraActions);
+    // Theme stays last. Drawer is leading-only so it never breaks this order.
+    actions.addAll(
+      buildAppBarActions(
+        showDrawerButton: false,
+        showThemeToggle: showThemeToggle,
+      ),
+    );
 
-    if (showThemeToggle) {
-      actions.add(const ThemeToggleButton());
-      actions.add(const SizedBox(width: AppSpacing.s8));
-    }
-
-    final leadingWidget = leading ??
-        (automaticallyImplyLeading && onBack != null
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: onBack,
-              )
+    final effectiveLeading = leading ??
+        (showDrawerButton && authState.isAuthenticated
+            ? const AppDrawerButton()
             : null);
 
     return AppBar(
-      backgroundColor: backgroundColor ?? AppColors.bg(context),
+      backgroundColor: transparent
+          ? Colors.transparent
+          : (backgroundColor ?? AppColors.bg(context)),
       surfaceTintColor: Colors.transparent,
       elevation: elevation,
       scrolledUnderElevation: scrolledUnderElevation,
       centerTitle: centerTitle,
-      title: Text(
-        title,
-        style: AppTypography.headline.copyWith(
-          fontWeight: FontWeight.w700,
-          fontSize: 22,
-        ),
-      ),
-      leading: leadingWidget,
+      title: titleWidget ??
+          Text(
+            title,
+            style: AppTypography.headline.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 22,
+            ),
+          ),
+      leading: effectiveLeading,
+      automaticallyImplyLeading: false,
       actions: actions,
     );
   }
 }
 
-/// Simplified app bar for screens that just need a title and theme toggle.
+/// Simplified app bar — same trailing order as [AppTopBar] when signed in.
 class SimpleAppTopBar extends ConsumerWidget implements PreferredSizeWidget {
   const SimpleAppTopBar({
     super.key,
     required this.title,
-    this.onBack,
+    this.titleWidget,
     this.leading,
+    this.showDrawerButton = true,
     this.showThemeToggle = true,
+    this.showCart = true,
+    this.showWallet = true,
+    this.showMessages = true,
+    this.transparent = false,
+    this.centerTitle = false,
     this.backgroundColor,
   });
 
   final String title;
-  final VoidCallback? onBack;
+  final Widget? titleWidget;
   final Widget? leading;
+  final bool showDrawerButton;
   final bool showThemeToggle;
+  final bool showCart;
+  final bool showWallet;
+  final bool showMessages;
+  final bool transparent;
+  final bool centerTitle;
   final Color? backgroundColor;
 
   @override
@@ -176,13 +216,16 @@ class SimpleAppTopBar extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AppTopBar(
       title: title,
-      onBack: onBack,
+      titleWidget: titleWidget,
       leading: leading,
+      showDrawerButton: showDrawerButton,
       showThemeToggle: showThemeToggle,
+      showCart: showCart,
+      showWallet: showWallet,
+      showMessages: showMessages,
+      transparent: transparent,
+      centerTitle: centerTitle,
       backgroundColor: backgroundColor,
-      showCompare: false,
-      showCart: false,
-      showSellerTools: false,
     );
   }
 }

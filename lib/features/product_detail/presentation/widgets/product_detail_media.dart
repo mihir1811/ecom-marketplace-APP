@@ -8,15 +8,21 @@ import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../diamond_viewer/presentation/widgets/view_in_360_button.dart';
 import '../../../diamond_viewer/utils/viewer_url_resolver.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
+import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../domain/models/product_detail.dart';
 import '../screens/certificate_viewer_screen.dart';
 
 /// Hero media frame. Identical framing for every segment — only the content
 /// inside the frame changes, so the page never shifts between categories.
 class ProductDetailMedia extends StatefulWidget {
-  const ProductDetailMedia({required this.media, super.key});
+  const ProductDetailMedia({
+    required this.media,
+    this.availabilityStatus,
+    super.key,
+  });
 
   final ProductMedia media;
+  final String? availabilityStatus;
 
   @override
   State<ProductDetailMedia> createState() => _ProductDetailMediaState();
@@ -51,9 +57,9 @@ class _ProductDetailMediaState extends State<ProductDetailMedia> {
           aspectRatio: 1,
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.warmWhite,
+              color: AppColors.card(context),
               borderRadius: BorderRadius.circular(AppSpacing.r24),
-              border: Border.all(color: AppColors.warmBorder),
+              border: Border.all(color: AppColors.border(context)),
             ),
             clipBehavior: Clip.antiAlias,
             child: Stack(
@@ -76,6 +82,13 @@ class _ProductDetailMediaState extends State<ProductDetailMedia> {
                       asset: showcaseAssets[i],
                     ),
                   ),
+                Positioned(
+                  top: AppSpacing.s12,
+                  left: AppSpacing.s12,
+                  child: AvailabilityStatusBadge(
+                    status: widget.availabilityStatus,
+                  ),
+                ),
               ],
             ),
           ),
@@ -148,8 +161,8 @@ class _ProductDetailMediaState extends State<ProductDetailMedia> {
                   height: 6,
                   decoration: BoxDecoration(
                     color: i == _index
-                        ? AppColors.charcoal
-                        : AppColors.warmBorder,
+                        ? AppColors.textPrimary(context)
+                        : AppColors.border(context),
                     borderRadius: BorderRadius.circular(AppSpacing.circular),
                   ),
                 ),
@@ -192,7 +205,10 @@ class _Frame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!image.isAsset) {
-      return AppNetworkImage(url: image.path, fit: fit);
+      return ColoredBox(
+        color: AppColors.surface(context),
+        child: AppNetworkImage(url: image.path, fit: fit),
+      );
     }
     if (image.path == CatalogMissingImage.assetPath ||
         image.path.toLowerCase().endsWith('.svg')) {
@@ -226,13 +242,13 @@ class _Thumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderColor =
-        isActive ? AppColors.charcoal : AppColors.warmBorder;
+        isActive ? AppColors.textPrimary(context) : AppColors.border(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 72,
         decoration: BoxDecoration(
-          color: AppColors.warmWhite,
+          color: AppColors.surface(context),
           borderRadius: BorderRadius.circular(AppSpacing.r12),
           border: Border.all(color: borderColor, width: isActive ? 1.5 : 1),
         ),
@@ -287,8 +303,8 @@ class _Fallback extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              media.fallbackTint.withValues(alpha: 0.16),
-              AppColors.sandSurface,
+              media.fallbackTint.withValues(alpha: 0.12),
+              AppColors.surface(context),
             ],
           ),
         ),

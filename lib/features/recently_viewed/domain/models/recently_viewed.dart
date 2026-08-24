@@ -37,29 +37,89 @@ class RecentlyViewedEntry {
     }
     if (carat != null) {
       final parts = <String>['${carat!.toStringAsFixed(2)}ct'];
-      if (shape != null && shape!.isNotEmpty) parts.add(shape!);
+      if (_optional(shape) != null) parts.add(shape!);
       return parts.join(' ');
     }
-    return productId;
+    if (_optional(stockNumber) != null) return stockNumber!;
+    final typeLabel =
+        productType.isNotEmpty ? _capitalizeType(productType) : null;
+    if (typeLabel != null) return typeLabel;
+    return 'Untitled product';
   }
 
+  /// List-style title: prefer carat + shape (+ cut) like listing cards.
+  String get listTitle {
+    if (carat != null) {
+      final caratLabel = '${carat!.toStringAsFixed(2)}ct';
+      final shapeLabel = _optional(shape);
+      final cutLabel = _optional(cut);
+      if (shapeLabel != null &&
+          cutLabel != null &&
+          shapeLabel.toLowerCase() != cutLabel.toLowerCase()) {
+        return '$caratLabel $shapeLabel $cutLabel';
+      }
+      if (shapeLabel != null) return '$caratLabel $shapeLabel';
+      if (cutLabel != null) return '$caratLabel $cutLabel';
+    }
+    return displayTitle;
+  }
+
+  static String _capitalizeType(String type) {
+    return type
+        .replaceAllMapped(
+          RegExp(r'([A-Z])'),
+          (m) => ' ${m.group(1)}',
+        )
+        .trim()
+        .split(' ')
+        .map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+        .join(' ');
+  }
+
+  static String? _optional(String? value) {
+    if (value == null) return null;
+    final t = value.trim();
+    if (t.isEmpty ||
+        t == '-' ||
+        t == '—' ||
+        t == '–' ||
+        t.toLowerCase() == 'n/a') {
+      return null;
+    }
+    return t;
+  }
+
+  /// Color · Clarity · Cut — listing-style grades line.
   String? get detailLine {
     final parts = <String>[];
-    if (color != null && color!.isNotEmpty) parts.add(color!);
-    if (clarity != null && clarity!.isNotEmpty) parts.add(clarity!);
-    if (cut != null && cut!.isNotEmpty) parts.add(cut!);
-    if (parts.isEmpty) return null;
-    return parts.join(' · ');
-  }
-
-  String? get metaLine {
-    final parts = <String>[];
-    if (stockNumber != null && stockNumber!.isNotEmpty) {
-      parts.add('Stock $stockNumber');
+    final colorLabel = _optional(color);
+    final clarityLabel = _optional(clarity);
+    final cutLabel = _optional(cut);
+    if (colorLabel != null) parts.add(colorLabel);
+    if (clarityLabel != null) parts.add(clarityLabel);
+    if (cutLabel != null) parts.add(cutLabel);
+    if (parts.isEmpty) {
+      final shapeLabel = _optional(shape);
+      if (shapeLabel != null) parts.add(shapeLabel);
     }
     if (parts.isEmpty) return null;
     return parts.join(' · ');
   }
+
+  /// Stock · viewed date — listing-style meta line.
+  String? get metaLine {
+    final parts = <String>[];
+    if (_optional(stockNumber) != null) {
+      parts.add('Stock $stockNumber');
+    }
+    if (viewedAtLabel.isNotEmpty && viewedAtLabel != '—') {
+      parts.add('Viewed $viewedAtLabel');
+    }
+    if (parts.isEmpty) return null;
+    return parts.join(' · ');
+  }
+
+  String get listDetailLine => detailLine ?? 'Specs unavailable';
 }
 
 class RecentlyViewedId {

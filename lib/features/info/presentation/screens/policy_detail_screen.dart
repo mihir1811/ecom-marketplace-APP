@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../data/policies_repository.dart';
 import '../../domain/models/policy_document.dart';
 
@@ -43,19 +44,11 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
     final horizontal = isWide ? AppSpacing.s48 : AppSpacing.s20;
 
     return AppScaffold(
-      backgroundColor: AppColors.creamBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.creamBg,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.canPop()
-              ? context.pop()
-              : context.go(AppRouteNames.policies),
-        ),
-        title: FutureBuilder<PolicyDocument?>(
+      backgroundColor: AppColors.bg(context),
+      appBar: AppTopBar(
+        title: 'Policy',
+        backgroundColor: AppColors.bg(context),
+        titleWidget: FutureBuilder<PolicyDocument?>(
           future: _future,
           builder: (context, snapshot) {
             return Text(

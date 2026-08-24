@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_drawer_button.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/app_top_bar.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
@@ -15,12 +15,12 @@ final GlobalKey<ScaffoldState> buyerScaffoldKey = GlobalKey<ScaffoldState>();
 
 void openBuyerDrawer([BuildContext? context]) {
   final state = buyerScaffoldKey.currentState;
-  if (state != null) {
+  if (state != null && state.hasDrawer) {
     state.openDrawer();
     return;
   }
   if (context != null) {
-    Scaffold.maybeOf(context)?.openDrawer();
+    openAppDrawer(context);
   }
 }
 
@@ -43,7 +43,6 @@ class BuyerLayout extends ConsumerWidget {
     }
 
     final hasAppBar = title != null;
-    final showSellerTools = authState.isSeller && authState.canTransact;
 
     return AppScaffold(
       scaffoldKey: buyerScaffoldKey,
@@ -57,19 +56,15 @@ class BuyerLayout extends ConsumerWidget {
                 icon: const Icon(Icons.menu),
                 onPressed: () => openBuyerDrawer(context),
               ),
+              showDrawerButton: false,
+              // Cart → Wallet → Messages → Theme (AppTopBar fixed order)
+              showCart: true,
+              showWallet: true,
+              showMessages: true,
               showThemeToggle: true,
-              showCompare: false,
-              showCart: false,
-              showSellerTools: showSellerTools,
               onSellerWalletTap: () => context.push(AppRouteNames.buyerWallet),
-              onSellerMessagesTap: () => context.push(AppRouteNames.buyerMessages),
-              extraActions: [
-                IconButton(
-                  tooltip: 'Shop',
-                  onPressed: () => context.go(AppRouteNames.home),
-                  icon: const Icon(Icons.storefront_outlined),
-                ),
-              ],
+              onSellerMessagesTap: () =>
+                  context.push(AppRouteNames.buyerMessages),
             )
           : null,
       body: child,

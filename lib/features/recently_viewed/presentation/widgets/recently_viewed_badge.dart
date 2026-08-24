@@ -6,19 +6,21 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/recently_viewed_providers.dart';
 
-/// Availability status shown on listing card images.
+/// Availability status dot for listing card images.
 /// Color-coded: green=Available, yellow=On Hold/Memo, red=Sold/Unavailable.
 class AvailabilityStatusBadge extends StatelessWidget {
   const AvailabilityStatusBadge({
     required this.status,
     this.padding = EdgeInsets.zero,
+    this.dotOnly = true,
     super.key,
   });
 
   final String? status;
   final EdgeInsetsGeometry padding;
+  final bool dotOnly;
 
-  Color _statusColor(BuildContext context) {
+  static Color statusColor(BuildContext context, String? status) {
     final label = status?.toLowerCase() ?? '';
     if (label == 'available' || label == 'yes') return AppColors.success;
     if (label == 'sold' || label.contains('unavailable')) return AppColors.error;
@@ -27,6 +29,8 @@ class AvailabilityStatusBadge extends StatelessWidget {
     }
     return AppColors.textMuted(context);
   }
+
+  Color _statusColor(BuildContext context) => statusColor(context, status);
 
   String get _displayLabel {
     final label = status?.toLowerCase() ?? '';
@@ -44,6 +48,44 @@ class AvailabilityStatusBadge extends StatelessWidget {
     if (status == null || status!.isEmpty) return const SizedBox.shrink();
 
     final color = _statusColor(context);
+    final ring = AppColors.isDark(context)
+        ? Colors.white.withValues(alpha: 0.92)
+        : Colors.white;
+
+    if (dotOnly) {
+      return Padding(
+        padding: padding,
+        child: Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: ring,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.22),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: color.withValues(alpha: 0.35),
+                width: 0.5,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     final dark = AppColors.isDark(context);
 
     return Padding(
@@ -67,8 +109,8 @@ class AvailabilityStatusBadge extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 6,
-              height: 6,
+              width: 8,
+              height: 8,
               decoration: BoxDecoration(
                 color: color,
                 shape: BoxShape.circle,

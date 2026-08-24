@@ -12,8 +12,6 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
-import '../../../ai_chat/application/ai_chat_back_navigation.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
@@ -80,17 +78,8 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
       _ => title,
     };
 
-    return DarkThemeScope(
-      child: CatalogScreenShell(
-        title: displayTitle,
-        onBack: () {
-          if (AiChatBackNavigation.handleListingBack(context, ref)) return;
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go(AppRouteNames.jewelry);
-          }
-        },
+    return CatalogScreenShell(
+      title: displayTitle,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -111,7 +100,6 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }

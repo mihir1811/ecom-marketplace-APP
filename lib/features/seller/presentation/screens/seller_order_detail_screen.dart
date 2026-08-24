@@ -126,11 +126,6 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                 onPressed: () => openSellerDrawer(context),
                 icon: const Icon(Icons.menu),
               ),
-              IconButton(
-                onPressed: () => context.go(AppRouteNames.sellerOrders),
-                icon: const Icon(Icons.arrow_back),
-                tooltip: 'Back',
-              ),
               Text(
                 'Order details',
                 style: AppTypography.title.copyWith(

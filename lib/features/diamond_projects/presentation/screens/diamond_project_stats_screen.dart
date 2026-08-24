@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../application/diamond_project_save_provider.dart';
 import '../../application/diamond_project_selection_provider.dart';
@@ -40,13 +41,10 @@ class _DiamondProjectStatsScreenState
     final wide = MediaQuery.sizeOf(context).width >= 720;
 
     return AppScaffold(
-      backgroundColor: AppColors.sandSurface,
-      appBar: AppBar(
-        title: Text(
-          'Diamond project',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
-        ),
-        actions: [
+      backgroundColor: AppColors.bg(context),
+      appBar: AppTopBar(
+        title: 'Diamond project',
+        extraActions: [
           if (wide) ...[
             TextButton(
               onPressed: () =>

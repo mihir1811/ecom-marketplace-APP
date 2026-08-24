@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/theme_toggle_button.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
-import '../../../product_share/presentation/widgets/product_share_sheet.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../domain/models/product_detail.dart';
 import '../widgets/product_detail_action_bar.dart';
@@ -18,6 +15,7 @@ import '../widgets/product_detail_header.dart';
 import '../widgets/product_detail_highlights.dart';
 import '../widgets/product_detail_media.dart';
 import '../widgets/product_detail_price.dart';
+import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_specs.dart';
 
 /// One product detail screen for every marketplace segment.
@@ -54,7 +52,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 
-  List<Widget> _summaryBlocks(ProductDetail detail) {
+  List<Widget> _summaryBlocks(
+    ProductDetail detail, {
+    required bool isSeller,
+  }) {
     return [
       ProductDetailHeader(detail: detail),
       const SizedBox(height: AppSpacing.s24),
@@ -62,10 +63,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       const SizedBox(height: AppSpacing.s24),
       ProductDetailHighlights(highlights: detail.highlights),
       const SizedBox(height: AppSpacing.s16),
-      ProductDetailAssurance(
-        certification: detail.certification,
-        availability: detail.availability,
-      ),
+      ProductDetailAssurance(certification: detail.certification),
+      if (isSeller && detail.listingSeller != null) ...[
+        const SizedBox(height: AppSpacing.s24),
+        ProductDetailSellerPanel(seller: detail.listingSeller!),
+      ],
     ];
   }
 
@@ -79,11 +81,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
     final visibleSpecs = detail.specsForViewer(isSeller: auth.isSeller);
 
-    return DarkThemeScope(
-      child: Builder(
-        builder: (context) => _buildScaffold(context, detail, auth, visibleSpecs),
-      ),
-    );
+    return _buildScaffold(context, detail, auth, visibleSpecs);
   }
 
   Widget _buildScaffold(
@@ -94,31 +92,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   ) {
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back',
-          onPressed: () =>
-              context.canPop() ? context.pop() : context.go('/'),
-        ),
-        title: Text(
-          detail.segment.label,
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-        ),
-        actions: [
-          const ThemeToggleButton(),
-          IconButton(
-            tooltip: 'Share',
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () => showProductShareSheet(
-              context: context,
-              ref: ref,
-              productId: detail.id,
-              productType: detail.apiProductType,
-              productTitle: detail.title,
-            ),
-          ),
-        ],
+      appBar: AppTopBar(
+        title: detail.segment.label,
       ),
       bottomNavigationBar: auth.showProtected
           ? ProductDetailActionBar(detail: detail)
@@ -148,22 +123,31 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       children: [
                         Expanded(
                           flex: 5,
-                          child: ProductDetailMedia(media: detail.media),
+                          child: ProductDetailMedia(
+                            media: detail.media,
+                            availabilityStatus: detail.availabilityStatus,
+                          ),
                         ),
                         const SizedBox(width: AppSpacing.s40),
                         Expanded(
                           flex: 6,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: _summaryBlocks(detail),
+                            children: _summaryBlocks(
+                              detail,
+                              isSeller: auth.isSeller,
+                            ),
                           ),
                         ),
                       ],
                     )
                   else ...[
-                    ProductDetailMedia(media: detail.media),
+                    ProductDetailMedia(
+                      media: detail.media,
+                      availabilityStatus: detail.availabilityStatus,
+                    ),
                     const SizedBox(height: AppSpacing.s24),
-                    ..._summaryBlocks(detail),
+                    ..._summaryBlocks(detail, isSeller: auth.isSeller),
                   ],
                   const SizedBox(height: AppSpacing.s40),
                   for (final section in visibleSpecs) ...[

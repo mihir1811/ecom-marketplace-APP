@@ -8,6 +8,7 @@ import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../diamonds/domain/models/diamond.dart';
 import '../../../diamonds/domain/models/diamond_display.dart';
 import '../models/product_detail.dart';
+import '../models/listing_seller_info.dart';
 
 /// Maps a natural or lab grown diamond onto the universal detail shape.
 ProductDetail diamondProductDetail(Diamond d) {
@@ -19,12 +20,18 @@ ProductDetail diamondProductDetail(Diamond d) {
       d.pricePerCarat ?? (d.carat > 0 ? d.price / d.carat : null);
   final carat = d.carat.toStringAsFixed(2);
   final shape = DiamondDisplay.shape(d.shape);
-  final color = DiamondDisplay.optional(d.color, uppercase: true);
+  final color = DiamondDisplay.displayPrimaryColor(
+    color: d.color,
+    fancyColor: d.fancyColor,
+    fancyIntensity: d.fancyIntensity,
+    uppercase: true,
+  );
+  final colorIsMissing = color == DiamondDisplay.missing;
   final clarity = DiamondDisplay.optional(d.clarity, uppercase: true);
   final cut = DiamondDisplay.optional(d.cut, uppercase: true);
 
   final subtitleParts = <String>[
-    if (color != null) color,
+    if (!colorIsMissing) color,
     if (clarity != null) clarity,
     if (cut != null) '$cut cut',
   ];
@@ -34,6 +41,14 @@ ProductDetail diamondProductDetail(Diamond d) {
     if (!DiamondDisplay.isMissing(d.sellerCountry)) d.sellerCountry!.trim(),
   ].join(', ');
 
+  final sellerInfo = d.listingSeller ??
+      (DiamondDisplay.optional(d.sellerCompanyName) == null
+          ? null
+          : ListingSellerInfo(
+              displayName: d.sellerCompanyName!.trim(),
+              location: location.isEmpty ? null : location,
+            ));
+
   return ProductDetail(
     id: d.id,
     segment: segment,
@@ -41,7 +56,7 @@ ProductDetail diamondProductDetail(Diamond d) {
         d.isMelee ? CartProductType.meleeDiamond : CartProductType.diamond,
     title: '$carat ct $shape',
     subtitle: subtitleParts.isEmpty
-        ? DiamondDisplay.notAvailable
+        ? DiamondDisplay.missing
         : subtitleParts.join(' · '),
     referenceLabel: 'Stock ID',
     referenceValue: DiamondDisplay.optional(d.stockNumber) ?? d.id,
@@ -94,19 +109,19 @@ ProductDetail diamondProductDetail(Diamond d) {
     ),
     highlights: [
       ProductHighlight('Carat', carat),
-      ProductHighlight('Color', color ?? DiamondDisplay.notAvailable),
-      ProductHighlight('Clarity', clarity ?? DiamondDisplay.notAvailable),
+      ProductHighlight('Color', color),
+      ProductHighlight('Clarity', clarity ?? DiamondDisplay.missing),
       ProductHighlight(
         d.isMelee ? 'Sieve' : 'Cut',
         d.isMelee
             ? (DiamondDisplay.optional(d.sieveLabel) ??
                 cut ??
-                DiamondDisplay.notAvailable)
-            : (cut ?? DiamondDisplay.notAvailable),
+                DiamondDisplay.missing)
+            : (cut ?? DiamondDisplay.missing),
       ),
     ],
     certification: ProductCertification(
-      authority: authority ?? DiamondDisplay.notAvailable,
+      authority: authority ?? DiamondDisplay.missing,
       referenceLabel: 'Report',
       referenceValue: DiamondDisplay.optional(d.certificateNumber) ??
           DiamondDisplay.optional(d.stockNumber) ??
@@ -117,6 +132,8 @@ ProductDetail diamondProductDetail(Diamond d) {
           : (authority == null ? 'Certificate' : '$authority certificate'),
     ),
     availability: _availability(d),
+    availabilityStatus: d.isSold ? 'sold' : d.available,
+    listingSeller: sellerInfo,
     specSections: [
       specSection(ProductSpecGroup.essentials, {
         'Shape': shape,
@@ -140,7 +157,7 @@ ProductDetail diamondProductDetail(Diamond d) {
       }),
       specSection(ProductSpecGroup.quality, {
         'Cut grade': cut,
-        'Color grade': color,
+        'Color grade': colorIsMissing ? null : color,
         'Clarity grade': clarity,
         'Polish': DiamondDisplay.optional(d.polish, uppercase: true),
         'Symmetry': DiamondDisplay.optional(d.symmetry, uppercase: true),
@@ -173,8 +190,6 @@ ProductDetail diamondProductDetail(Diamond d) {
         'Stock number': DiamondDisplay.optional(d.stockNumber),
         'Origin': DiamondDisplay.optional(d.origin),
         'Rough source': DiamondDisplay.optional(d.roughSource),
-        'Seller': DiamondDisplay.optional(d.sellerCompanyName),
-        'Seller location': location.isEmpty ? null : location,
       }),
       specSection(ProductSpecGroup.inclusions, {
         'Media': [

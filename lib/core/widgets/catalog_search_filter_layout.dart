@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
-import 'package:go_router/go_router.dart';
 
-import '../router/route_names.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
-import '../theme/app_typography.dart';
+import 'app_top_bar.dart';
 import 'global_search_bar.dart';
 import 'melee_background_shell.dart';
 import 'search_action_bottom_bar.dart';
@@ -25,7 +23,6 @@ class CatalogSearchFilterShell extends StatelessWidget {
     required this.onPrimary,
     required this.onClear,
     this.clearLabel = 'CLEAR ALL',
-    this.onBack,
     this.onScrollNotification,
     super.key,
   });
@@ -40,7 +37,6 @@ class CatalogSearchFilterShell extends StatelessWidget {
   final VoidCallback onPrimary;
   final VoidCallback onClear;
   final String clearLabel;
-  final VoidCallback? onBack;
   final bool Function(ScrollNotification notification)? onScrollNotification;
 
   @override
@@ -50,29 +46,9 @@ class CatalogSearchFilterShell extends StatelessWidget {
       family: meleeFamily,
       child: AppScaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: onBack ??
-                () {
-                  if (context.canPop()) {
-                    context.pop();
-                  } else {
-                    context.go(AppRouteNames.home);
-                  }
-                },
-          ),
-          title: Text(
-            title,
-            style: AppTypography.title.copyWith(
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.0,
-            ),
-          ),
+        appBar: AppTopBar(
+          title: title,
+          transparent: true,
           centerTitle: true,
         ),
         body: Column(

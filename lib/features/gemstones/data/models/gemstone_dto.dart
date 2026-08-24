@@ -40,6 +40,7 @@ class GemstoneDto {
     this.isOnAuction,
     this.isSold,
     this.tags,
+    this.seller,
   });
 
   final String id;
@@ -83,8 +84,16 @@ class GemstoneDto {
   final bool? isOnAuction;
   final bool? isSold;
   final String? tags;
+  final Map<String, dynamic>? seller;
 
   factory GemstoneDto.fromJson(Map<String, dynamic> json) {
+    final seller = json['seller'];
+    final sellerMap = seller is Map<String, dynamic>
+        ? seller
+        : seller is Map
+            ? seller.map((k, v) => MapEntry(k.toString(), v))
+            : null;
+
     return GemstoneDto(
       id: json['id']?.toString() ?? '',
       stockNumber: json['stockNumber']?.toString(),
@@ -125,6 +134,7 @@ class GemstoneDto {
       isOnAuction: json['isOnAuction'] as bool?,
       isSold: json['isSold'] as bool?,
       tags: json['tags']?.toString(),
+      seller: sellerMap,
     );
   }
 

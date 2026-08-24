@@ -7,7 +7,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../product_detail/application/catalog_product_detail_loader.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/wishlist_provider.dart';
@@ -22,11 +21,9 @@ class BuyerWishlistScreen extends ConsumerWidget {
     final wishlist = ref.watch(wishlistProvider);
     final items = wishlist.items;
 
-    return DarkThemeScope(
-      child: Builder(
-        builder: (context) => BuyerLayout(
-          title: 'My Wishlist',
-          child: wishlist.isLoading && items.isEmpty
+    return BuyerLayout(
+      title: 'My Wishlist',
+      child: wishlist.isLoading && items.isEmpty
               ? const Center(child: CircularProgressIndicator())
               : wishlist.errorMessage != null && items.isEmpty
               ? CatalogErrorState(
@@ -66,8 +63,6 @@ class BuyerWishlistScreen extends ConsumerWidget {
                     );
                   },
                 ),
-        ),
-      ),
     );
   }
 }

@@ -7,8 +7,6 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/theme/theme_preference_provider.dart';
 
 /// Buyer-side account drawer (home + buyer screens).
 class BuyerDrawer extends ConsumerWidget {
@@ -103,7 +101,6 @@ class BuyerDrawer extends ConsumerWidget {
       ),
     );
     final currentPath = GoRouterState.of(context).uri.path;
-    final dark = ref.watch(themePreferenceProvider);
     final items = <BuyerDrawerItem>[
       _buyerItems.first,
       if (auth.isSeller && auth.showProtected) _sellerDashboardItem,
@@ -114,13 +111,10 @@ class BuyerDrawer extends ConsumerWidget {
       }),
     ];
 
-    // Stay dark whenever dark mode is on, even when hosted by a light screen.
-    return Theme(
-      data: dark ? AppTheme.dark : Theme.of(context),
-      child: Drawer(
-        width: 280,
-        backgroundColor: dark ? AppColors.slateSurface : AppColors.warmWhite,
-        child: SafeArea(
+    return Drawer(
+      width: 280,
+      backgroundColor: AppColors.card(context),
+      child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -264,8 +258,7 @@ class BuyerDrawer extends ConsumerWidget {
                   context.go(AppRouteNames.home);
                 },
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );

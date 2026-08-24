@@ -6,11 +6,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/theme_preference_provider.dart';
+import '../../../../core/widgets/app_drawer_button.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import 'seller_drawer.dart';
 
@@ -20,12 +19,12 @@ final GlobalKey<ScaffoldState> sellerScaffoldKey = GlobalKey<ScaffoldState>();
 /// Opens the side drawer from seller (or buyer-hosted shared) screens.
 void openSellerDrawer([BuildContext? context]) {
   final sellerState = sellerScaffoldKey.currentState;
-  if (sellerState != null) {
+  if (sellerState != null && sellerState.hasDrawer) {
     sellerState.openDrawer();
     return;
   }
   if (context != null) {
-    Scaffold.maybeOf(context)?.openDrawer();
+    openAppDrawer(context);
   }
 }
 
@@ -90,49 +89,29 @@ class SellerLayout extends ConsumerWidget {
     }
 
     final shellTitle = _shellTitleFor(selectedRoute);
-    final dark =
-        ref.watch(themePreferenceProvider) && _isDarkRoute(selectedRoute);
-    final theme = dark ? AppTheme.dark : AppTheme.light;
 
-    return Theme(
-      data: theme,
-      child: AppScaffold(
-        scaffoldKey: sellerScaffoldKey,
-        drawer: SellerDrawer(selectedRoute: selectedRoute),
-        appBar: shellTitle == null
-            ? null
-            : AppBar(
-                backgroundColor: AppColors.bg(context),
-                surfaceTintColor: Colors.transparent,
-                elevation: 0,
-                leading: IconButton(
-                  tooltip: 'Menu',
-                  icon: const Icon(Icons.menu),
-                  onPressed: () => openSellerDrawer(context),
-                ),
-                title: Text(
-                  shellTitle,
-                  style: AppTypography.title.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+    return AppScaffold(
+      scaffoldKey: sellerScaffoldKey,
+      drawer: SellerDrawer(selectedRoute: selectedRoute),
+      appBar: shellTitle == null
+          ? null
+          : AppTopBar(
+              title: shellTitle,
+              leading: IconButton(
+                tooltip: 'Menu',
+                icon: const Icon(Icons.menu),
+                onPressed: () => openSellerDrawer(context),
               ),
-        body: child,
-      ),
+              showDrawerButton: false,
+              showCart: true,
+              showWallet: true,
+              showMessages: true,
+              showThemeToggle: true,
+              onSellerWalletTap: () => context.push(AppRouteNames.sellerWallet),
+              onSellerMessagesTap: () => context.push(AppRouteNames.sellerChat),
+            ),
+      body: child,
     );
-  }
-
-  /// Seller workspace routes that opt into the dark theme. The shared shell
-  /// switches to [AppTheme.dark] only on these (/sub-routes); every other
-  /// seller page keeps the light theme.
-  static const _darkRoutes = <String>[
-    AppRouteNames.sellerWallet,
-    AppRouteNames.sellerOrders,
-    AppRouteNames.sellerProfile,
-  ];
-
-  static bool _isDarkRoute(String route) {
-    return _darkRoutes.any((r) => route == r || route.startsWith('$r/'));
   }
 
   static String? _shellTitleFor(String route) {

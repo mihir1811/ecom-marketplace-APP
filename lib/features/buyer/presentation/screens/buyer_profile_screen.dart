@@ -12,7 +12,6 @@ import '../../../auth/application/user_profile_providers.dart';
 import '../../../auth/domain/models/user_profile.dart';
 import '../../../auth/presentation/widgets/profile_info_widgets.dart';
 import '../../../auth/presentation/widgets/seller_business_profile_cards.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../widgets/buyer_layout.dart';
 
 /// Individual / buyer account profile (read-only).
@@ -24,10 +23,9 @@ class BuyerProfileScreen extends ConsumerWidget {
     final authUser = ref.watch(authProvider.select((s) => s.user));
     final profileAsync = ref.watch(userProfileProvider);
 
-    return DarkThemeScope(
-      child: BuyerLayout(
-        title: 'My profile',
-        child: authUser == null
+    return BuyerLayout(
+      title: 'My profile',
+      child: authUser == null
             ? const Center(child: Text('Sign in to view your profile.'))
             : profileAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -43,7 +41,6 @@ class BuyerProfileScreen extends ConsumerWidget {
                 data: (profile) =>
                     _BuyerProfileBody(profile: profile, authUser: authUser),
               ),
-      ),
     );
   }
 }

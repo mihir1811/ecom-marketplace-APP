@@ -6,8 +6,9 @@ import '../theme/theme_preference_provider.dart';
 
 /// Applies the dark theme to its subtree when dark mode is enabled.
 ///
-/// Light-themed screens (home, detail, auth, etc.) stay on the light theme;
-/// only listing and filter screens opt in by being wrapped in this scope.
+/// Prefer [MaterialApp.themeMode] at the app root for global theming.
+/// This scope remains for isolated subtrees (e.g. widget tests) that need
+/// an explicit theme override.
 class DarkThemeScope extends ConsumerWidget {
   const DarkThemeScope({required this.child, super.key});
 

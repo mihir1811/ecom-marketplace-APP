@@ -89,6 +89,8 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
       certificateLabel: certificateLabel,
     ),
     availability: _availability(g),
+    availabilityStatus: g.isSold ? 'sold' : g.availability,
+    listingSeller: g.listingSeller,
     specSections: [
       specSection(ProductSpecGroup.essentials, {
         'Gemstone type': g.type,

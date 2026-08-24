@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../application/seller_products_provider.dart';
 import '../../domain/models/seller_product.dart';
 
@@ -256,20 +257,15 @@ class _SellerProductEditScreenState
       );
     }
     if (_product == null) {
-      return AppScaffold(
-        appBar: AppBar(title: const Text('Edit product')),
-        body: const Center(child: Text('Product not found')),
+      return const AppScaffold(
+        appBar: SimpleAppTopBar(title: 'Edit product'),
+        body: Center(child: Text('Product not found')),
       );
     }
     const muted = AppColors.textMutedLight;
 
     return AppScaffold(
-      appBar: AppBar(
-        title: Text(
-          'Edit product',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-        ),
-      ),
+      appBar: const SimpleAppTopBar(title: 'Edit product'),
       body: Form(
         key: _formKey,
         child: ListView(

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../../../buyer/domain/models/wishlist_item.dart';
+import '../models/listing_seller_info.dart';
 
 /// Marketplace segments that share the single product detail presentation.
 enum ProductSegment {
@@ -311,6 +312,8 @@ class ProductDetail {
     this.badges = const [],
     this.certification,
     this.availability,
+    this.availabilityStatus,
+    this.listingSeller,
     this.shapeKey,
     this.note,
     this.isMakeAnOfferAllowed = false,
@@ -338,6 +341,10 @@ class ProductDetail {
 
   final ProductCertification? certification;
   final ProductAvailability? availability;
+
+  /// Raw API availability code (`yes`, `hold`, `memo`, …) for status dots.
+  final String? availabilityStatus;
+  final ListingSellerInfo? listingSeller;
   final List<ProductSpecSection> specSections;
 
   /// Shape name forwarded to the cart, which renders a shape glyph.
@@ -360,10 +367,22 @@ class ProductDetail {
 
   /// Specs shown to the current viewer.
   ///
-  /// Seller identity / contact rows are seller-account-only — individual
-  /// (buyer) accounts never see them, even when verified.
+  /// Seller identity / contact rows are seller-account-only. Individual listing
+  /// sellers expose name only; business sellers include contact fields.
   List<ProductSpecSection> specsForViewer({required bool isSeller}) {
-    if (isSeller) return orderedSpecs;
+    if (isSeller) {
+      return orderedSpecs
+          .map(
+            (section) => ProductSpecSection(
+              section.group,
+              section.specs
+                  .where((spec) => _sellerMayViewSpec(spec.label, listingSeller))
+                  .toList(growable: false),
+            ),
+          )
+          .where((section) => section.specs.isNotEmpty)
+          .toList(growable: false);
+    }
     return orderedSpecs
         .map(
           (section) => ProductSpecSection(
@@ -411,5 +430,22 @@ bool _isSellerRestrictedSpec(String label) {
       normalized == 'company name' ||
       normalized == 'seller company' ||
       normalized == 'contact' ||
-      normalized == 'seller contact';
+      normalized == 'seller contact' ||
+      normalized == 'seller email' ||
+      normalized == 'seller phone' ||
+      normalized == 'seller location';
+}
+
+bool _sellerMayViewSpec(String label, ListingSellerInfo? seller) {
+  if (_isSellerRestrictedSpec(label)) {
+    if (seller?.isIndividual ?? false) {
+      final normalized = label.trim().toLowerCase();
+      return normalized == 'seller' ||
+          normalized == 'seller name' ||
+          normalized == 'company name' ||
+          normalized == 'seller company';
+    }
+    return true;
+  }
+  return true;
 }

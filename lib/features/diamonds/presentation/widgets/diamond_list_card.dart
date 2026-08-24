@@ -54,25 +54,18 @@ class DiamondCardList extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AvailabilityStatusBadge(
-                        status: diamond.available,
-                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
-                      ),
-                      RecentlyViewedBadge(
-                        productId: diamond.id,
-                        padding: const EdgeInsets.only(bottom: AppSpacing.s4),
-                      ),
-                      WishlistToggleButton(
-                        item: WishlistItem.fromDiamond(diamond),
-                        onAdded: () =>
-                            rememberProductDetail(diamondProductDetail(diamond)),
-                        size: 18,
-                      ),
-                    ],
+                  child: AvailabilityStatusBadge(
+                    status: diamond.available,
+                  ),
+                ),
+                Positioned(
+                  top: AppSpacing.s8,
+                  right: AppSpacing.s8,
+                  child: WishlistToggleButton(
+                    item: WishlistItem.fromDiamond(diamond),
+                    onAdded: () =>
+                        rememberProductDetail(diamondProductDetail(diamond)),
+                    size: 18,
                   ),
                 ),
                 Positioned(
@@ -161,6 +154,19 @@ class DiamondCardList extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        if (diamond.discount != null && diamond.discount! > 0)
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(left: AppSpacing.s4),
+                            child: Text(
+                              '-${formatDiscountPercent(diamond.discount!)}%',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.terracotta,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
                         const Icon(
                           Icons.arrow_forward,
                           size: 18,
@@ -192,11 +198,14 @@ class _DiamondListThumb extends StatelessWidget {
 
     if (!hasPhoto) return fallback;
 
-    return AppNetworkImage(
-      url: photoUrl,
-      fit: BoxFit.cover,
-      memCacheWidth: 480,
-      error: fallback,
+    return ColoredBox(
+      color: AppColors.surface(context),
+      child: AppNetworkImage(
+        url: photoUrl,
+        fit: BoxFit.cover,
+        memCacheWidth: 480,
+        error: fallback,
+      ),
     );
   }
 }
@@ -221,16 +230,21 @@ class _ShapeFallback extends StatelessWidget {
 String _listTitle(Diamond diamond) {
   final carat = '${diamond.carat.toStringAsFixed(2)}ct';
   final shape = DiamondDisplay.shape(diamond.shape);
-  if (shape == DiamondDisplay.notAvailable) return carat;
+  if (shape == DiamondDisplay.missing) return carat;
   return '$carat $shape';
 }
 
 String _listDetailLine(Diamond diamond) {
   final parts = <String>[];
-  final color = DiamondDisplay.gradeChip(diamond.color);
+  final color = DiamondDisplay.primaryColorLabel(
+    color: diamond.color,
+    fancyColor: diamond.fancyColor,
+    fancyIntensity: diamond.fancyIntensity,
+    uppercase: true,
+  );
   final clarity = DiamondDisplay.gradeChip(diamond.clarity);
   final cut = DiamondDisplay.gradeChip(diamond.cut);
-  if (color != 'N/A') parts.add('Col $color');
+  if (color != null) parts.add('Col $color');
   if (clarity != 'N/A') parts.add(clarity);
   if (cut != 'N/A') parts.add('Cut $cut');
   if (parts.isEmpty) {

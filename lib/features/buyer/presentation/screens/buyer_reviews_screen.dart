@@ -7,7 +7,6 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/dark_theme_scope.dart';
 import '../../../seller/application/seller_reviews_provider.dart';
 import '../../../seller/domain/models/seller_review.dart';
 import '../widgets/buyer_layout.dart';
@@ -19,10 +18,9 @@ class BuyerReviewsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(mySellerReviewsProvider);
 
-    return DarkThemeScope(
-      child: BuyerLayout(
-        title: 'My Reviews',
-        child: RefreshIndicator(
+    return BuyerLayout(
+      title: 'My Reviews',
+      child: RefreshIndicator(
           onRefresh: () async => ref.invalidate(mySellerReviewsProvider),
           child: async.when(
             loading: () => ListView(
@@ -81,7 +79,6 @@ class BuyerReviewsScreen extends ConsumerWidget {
             },
           ),
         ),
-      ),
     );
   }
 }
