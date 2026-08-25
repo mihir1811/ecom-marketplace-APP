@@ -59,20 +59,41 @@ class ReferenceHubState {
 
 class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
   CancelToken? _cancelToken;
+  bool _started = false;
+  Future<void>? _inFlight;
+  ReferenceHubState _latest = const ReferenceHubState(isLoading: true);
 
   ReferenceRepository get _repo => ref.read(referenceRepositoryProvider);
 
   @override
   ReferenceHubState build() {
     ref.onDispose(() => _cancelToken?.cancel());
-    Future.microtask(refresh);
-    return const ReferenceHubState(isLoading: true);
+    if (!_started) {
+      _started = true;
+      Future.microtask(_loadOnce);
+    }
+    return _latest;
   }
 
-  Future<void> refresh() async {
+  Future<void> refresh() => _loadOnce();
+
+  Future<void> _loadOnce() async {
+    final pending = _inFlight;
+    if (pending != null) return pending;
+    final done = _doRefresh();
+    _inFlight = done;
+    try {
+      await done;
+    } finally {
+      if (identical(_inFlight, done)) _inFlight = null;
+    }
+  }
+
+  Future<void> _doRefresh() async {
     _cancelToken?.cancel('refresh');
     _cancelToken = CancelToken();
-    state = state.copyWith(isLoading: true, clearError: true);
+    _latest = _latest.copyWith(isLoading: true, clearError: true);
+    state = _latest;
 
     final me = await _repo.getMe(cancelToken: _cancelToken);
     final inbound = await _repo.listInbound(cancelToken: _cancelToken);
@@ -90,7 +111,7 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
       }
     }
 
-    state = ReferenceHubState(
+    _latest = ReferenceHubState(
       profile: me is Success<ReferenceProfile, Failure> ? me.value : null,
       inbound: inbound is Success<List<ReferenceRequest>, Failure>
           ? inbound.value
@@ -110,6 +131,7 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
       isLoading: false,
       errorMessage: firstFailure?.message,
     );
+    state = _latest;
   }
 
   Future<void> loadMorePurchases() async {

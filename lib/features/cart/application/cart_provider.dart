@@ -317,6 +317,7 @@ class CartNotifier extends Notifier<CartState> {
       }
 
       items = CartMapper.mergeCartAndSummary(items, summary);
+      summary = CartMapper.reconcileSummaryPrices(summary, items);
     }
 
     if (firstFailure != null && items.isEmpty && summary.isEmpty) {

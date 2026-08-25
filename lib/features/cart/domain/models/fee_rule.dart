@@ -86,10 +86,15 @@ class FeeRulesCatalog {
   const FeeRulesCatalog({
     this.rules = const [],
     this.configuredFeeTypes = const [],
+    this.isFromApi = false,
   });
 
   final List<FeeRule> rules;
   final List<String> configuredFeeTypes;
+
+  /// True when this catalog came from a successful `GET /fees` response.
+  /// When true, missing fee types charge `0` (no local hardcoded fallbacks).
+  final bool isFromApi;
 
   static const empty = FeeRulesCatalog();
 

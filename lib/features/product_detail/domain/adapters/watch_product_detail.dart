@@ -106,5 +106,105 @@ ProductDetail watchProductDetail(Watch w) {
     ],
     note: 'Condition grade and completeness of the set are the two largest '
         'drivers of resale value on pre-owned references.',
+    naturalSpecTabs: _watchSpecTabs(w, inclusions: inclusions),
   );
+}
+
+/// Same tabbed card layout as diamonds/gemstones; watch Details / Security fields.
+ProductTabbedSpecs _watchSpecTabs(
+  Watch w, {
+  required List<String> inclusions,
+}) {
+  final price = AppCurrency.format(formatGroupedWhole(w.price));
+  final scope = inclusions.isEmpty ? '-' : inclusions.join(', ');
+  final availability = w.inStock
+      ? 'Item is in stock'
+      : (w.availabilityStatus.trim().isEmpty
+          ? 'Availability not listed'
+          : w.availabilityStatus);
+  final water = w.waterResistanceM > 0
+      ? '${w.waterResistanceM}m'
+      : '-';
+  final caseSize =
+      w.caseSizeMm > 0 ? '${w.caseSizeMm} mm' : '-';
+  final year = w.year > 0 ? '${w.year}' : '-';
+
+  return ProductTabbedSpecs(
+    tabs: [
+      ProductSpecTab(
+        title: 'Details',
+        sections: [
+          ProductSpecTabSection(
+            title: 'Basic Info',
+            rows: [
+              ProductSpec('Listing code', _na(w.id)),
+              ProductSpec('Brand', _na(w.brand)),
+              ProductSpec('Model', _na(w.model)),
+              const ProductSpec('Reference number', '-'),
+              ProductSpec('Movement', _na(w.movement)),
+              ProductSpec('Case material', _na(w.caseMaterial)),
+              ProductSpec('Bracelet material', _na(w.strapMaterial)),
+              ProductSpec('Year of production', year),
+              ProductSpec('Condition', _na(w.condition)),
+              ProductSpec('Scope of delivery', scope),
+              ProductSpec('Gender', _na(w.gender)),
+              ProductSpec('Price', price),
+              ProductSpec('Availability', availability),
+            ],
+          ),
+          ProductSpecTabSection(
+            title: 'Caliber',
+            rows: [
+              ProductSpec('Movement', _na(w.movement)),
+              ProductSpec('Caliber/movement', _na(w.collection)),
+              ProductSpec('Power reserve', _na(w.powerReserveRange)),
+              const ProductSpec('Display', '-'),
+            ],
+          ),
+          ProductSpecTabSection(
+            title: 'Case',
+            rows: [
+              ProductSpec('Case size', caseSize),
+              ProductSpec('Case material', _na(w.caseMaterial)),
+              ProductSpec('Case shape', _na(w.caseShape)),
+              ProductSpec('Glass', _na(w.glassMaterial)),
+              ProductSpec('Dial color', _na(w.dialColor)),
+              ProductSpec('Water resistance', water),
+            ],
+          ),
+          ProductSpecTabSection(
+            title: 'Bracelet/strap',
+            rows: [
+              ProductSpec('Bracelet material', _na(w.strapMaterial)),
+              ProductSpec('Bracelet color', _na(w.strapColor)),
+            ],
+          ),
+        ],
+      ),
+      const ProductSpecTab(
+        title: 'Security',
+        rows: [
+          ProductSpec(
+            'Authenticity and secure checkout',
+            'Every listed watch can include box, papers, warranty card, '
+                'condition, and seller details so buyers can review the '
+                'listing before checkout.',
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+String _na(String? value) {
+  if (value == null) return '-';
+  final t = value.trim();
+  if (t.isEmpty ||
+      t == '-' ||
+      t == '—' ||
+      t == '–' ||
+      t.toLowerCase() == 'n/a') {
+    return '-';
+  }
+  return t;
 }

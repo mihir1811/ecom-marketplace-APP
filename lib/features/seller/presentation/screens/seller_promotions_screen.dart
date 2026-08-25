@@ -161,10 +161,10 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
             padding: const EdgeInsets.all(AppSpacing.s16),
             children: [
               Material(
-                color: AppColors.warmWhite,
+                color: AppColors.card(context),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppColors.warmBorder),
+                  side: BorderSide(color: AppColors.border(context)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.s16),
@@ -261,12 +261,12 @@ class _TabButton extends StatelessWidget {
     return TextButton(
       onPressed: onTap,
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.charcoal,
+        foregroundColor: AppColors.textPrimary(context),
       ),
       child: Text(
         label,
         style: AppTypography.label.copyWith(
-          color: AppColors.charcoal,
+          color: AppColors.textPrimary(context),
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -286,7 +286,9 @@ class _EmptyState extends StatelessWidget {
       child: Center(
         child: Text(
           label,
-          style: AppTypography.body.copyWith(color: AppColors.textMutedLight),
+          style: AppTypography.body.copyWith(
+            color: AppColors.textMuted(context),
+          ),
         ),
       ),
     );
@@ -305,7 +307,7 @@ class _DiscountTile extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -323,12 +325,12 @@ class _DiscountTile extends StatelessWidget {
                 Text(
                   item.description,
                   style: AppTypography.caption
-                      .copyWith(color: AppColors.textSecondaryLight),
+                      .copyWith(color: AppColors.textSecondary(context)),
                 ),
                 Text(
                   '${item.type == PromotionType.percentage ? '${item.value}%' : AppCurrency.format(item.value)} · ${item.startDateLabel} → ${item.endDateLabel}',
                   style: AppTypography.caption
-                      .copyWith(color: AppColors.textMutedLight),
+                      .copyWith(color: AppColors.textMuted(context)),
                 ),
               ],
             ),
@@ -356,7 +358,7 @@ class _PromoTile extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -374,13 +376,13 @@ class _PromoTile extends StatelessWidget {
                 Text(
                   item.description,
                   style: AppTypography.caption
-                      .copyWith(color: AppColors.textSecondaryLight),
+                      .copyWith(color: AppColors.textSecondary(context)),
                 ),
                 Text(
                   '${item.type == PromotionType.percentage ? '${item.value}%' : AppCurrency.format(item.value)}'
                   '${item.maxUses != null ? ' · Max ${item.maxUses}' : ''} · ${item.startDateLabel} → ${item.endDateLabel}',
                   style: AppTypography.caption
-                      .copyWith(color: AppColors.textMutedLight),
+                      .copyWith(color: AppColors.textMuted(context)),
                 ),
               ],
             ),
@@ -503,14 +505,14 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                   label: 'Discount Name',
                   child: TextField(
                     controller: _nameCtrl,
-                    decoration: _inputDecoration('e.g., Summer Sale'),
+                    decoration: _inputDecoration(context, 'e.g., Summer Sale'),
                   ),
                 ),
                 _LabeledField(
                   label: 'Description',
                   child: TextField(
                     controller: _descCtrl,
-                    decoration: _inputDecoration('Description'),
+                    decoration: _inputDecoration(context, 'Description'),
                   ),
                 ),
                 _LabeledField(
@@ -530,7 +532,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                     onChanged: (v) {
                       if (v != null) setState(() => _type = v);
                     },
-                    decoration: _inputDecoration(''),
+                    decoration: _inputDecoration(context, ''),
                   ),
                 ),
                 _LabeledField(
@@ -538,7 +540,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                   child: TextField(
                     controller: _valueCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: _inputDecoration('10'),
+                    decoration: _inputDecoration(context, '10'),
                   ),
                 ),
                 Row(
@@ -549,7 +551,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                         child: InkWell(
                           onTap: () => _pickDate(isStart: true),
                           child: InputDecorator(
-                            decoration: _inputDecoration('mm/dd/yyyy').copyWith(
+                            decoration: _inputDecoration(context, 'mm/dd/yyyy').copyWith(
                               suffixIcon:
                                   const Icon(Icons.calendar_today, size: 18),
                             ),
@@ -565,7 +567,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                         child: InkWell(
                           onTap: () => _pickDate(isStart: false),
                           child: InputDecorator(
-                            decoration: _inputDecoration('mm/dd/yyyy').copyWith(
+                            decoration: _inputDecoration(context, 'mm/dd/yyyy').copyWith(
                               suffixIcon:
                                   const Icon(Icons.calendar_today, size: 18),
                             ),
@@ -706,14 +708,14 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                   label: 'Promo Code',
                   child: TextField(
                     controller: _codeCtrl,
-                    decoration: _inputDecoration('e.g., SUMMER20'),
+                    decoration: _inputDecoration(context, 'e.g., SUMMER20'),
                   ),
                 ),
                 _LabeledField(
                   label: 'Description',
                   child: TextField(
                     controller: _descCtrl,
-                    decoration: _inputDecoration('Description'),
+                    decoration: _inputDecoration(context, 'Description'),
                   ),
                 ),
                 _LabeledField(
@@ -733,7 +735,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                     onChanged: (v) {
                       if (v != null) setState(() => _type = v);
                     },
-                    decoration: _inputDecoration(''),
+                    decoration: _inputDecoration(context, ''),
                   ),
                 ),
                 _LabeledField(
@@ -741,7 +743,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                   child: TextField(
                     controller: _valueCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: _inputDecoration('20'),
+                    decoration: _inputDecoration(context, '20'),
                   ),
                 ),
                 _LabeledField(
@@ -749,7 +751,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                   child: TextField(
                     controller: _maxUsesCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: _inputDecoration('100'),
+                    decoration: _inputDecoration(context, '100'),
                   ),
                 ),
                 Row(
@@ -760,7 +762,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                         child: InkWell(
                           onTap: () => _pickDate(isStart: true),
                           child: InputDecorator(
-                            decoration: _inputDecoration('mm/dd/yyyy').copyWith(
+                            decoration: _inputDecoration(context, 'mm/dd/yyyy').copyWith(
                               suffixIcon:
                                   const Icon(Icons.calendar_today, size: 18),
                             ),
@@ -776,7 +778,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                         child: InkWell(
                           onTap: () => _pickDate(isStart: false),
                           child: InputDecorator(
-                            decoration: _inputDecoration('mm/dd/yyyy').copyWith(
+                            decoration: _inputDecoration(context, 'mm/dd/yyyy').copyWith(
                               suffixIcon:
                                   const Icon(Icons.calendar_today, size: 18),
                             ),
@@ -827,7 +829,7 @@ class _LabeledField extends StatelessWidget {
             label,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
           const SizedBox(height: 6),
@@ -838,17 +840,18 @@ class _LabeledField extends StatelessWidget {
   }
 }
 
-InputDecoration _inputDecoration(String hint) {
+InputDecoration _inputDecoration(BuildContext context, String hint) {
+  final borderSide = BorderSide(color: AppColors.border(context));
   return InputDecoration(
     hintText: hint.isEmpty ? null : hint,
     isDense: true,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: AppColors.warmBorder),
+      borderSide: borderSide,
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: AppColors.warmBorder),
+      borderSide: borderSide,
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
   );

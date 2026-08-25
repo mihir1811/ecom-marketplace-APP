@@ -36,7 +36,7 @@ class SellerSectionScreen extends StatelessWidget {
           Text(
             'Coming soon.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: AppColors.textSecondary(context),
                 ),
           ),
         ],

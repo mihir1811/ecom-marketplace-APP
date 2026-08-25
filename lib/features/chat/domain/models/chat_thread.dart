@@ -27,6 +27,15 @@ class ChatThread {
   final int unreadCount;
   final String productNameHint;
 
+  /// User-facing listing line (never a raw product UUID).
+  String get listingLabel {
+    final hint = productNameHint.trim();
+    if (hint.isEmpty || hint.toLowerCase() == productType.label.toLowerCase()) {
+      return productType.label;
+    }
+    return '${productType.label} · $hint';
+  }
+
   static String encodeId({
     required ChatProductType productType,
     required String productId,

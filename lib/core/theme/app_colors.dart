@@ -162,6 +162,14 @@ class AppColors {
   static Color onSelected(BuildContext context) =>
       isDark(context) ? charcoal : warmWhite;
 
+  /// Drawer / nav-row selected fill — soft elevate in dark, solid charcoal in light.
+  static Color navSelectedFill(BuildContext context) =>
+      isDark(context) ? charcoalLight : charcoal;
+
+  /// Text / icon color on [navSelectedFill].
+  static Color navOnSelected(BuildContext context) =>
+      isDark(context) ? textPrimaryDark : warmWhite;
+
   // Semantic Statuses
   static const error = Color(0xFFDC2626);
   static const success = Color(0xFF16A34A);

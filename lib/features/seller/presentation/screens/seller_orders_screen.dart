@@ -348,7 +348,9 @@ class _RefundsTab extends ConsumerWidget {
       onRefresh: () => ref.read(sellerRefundListProvider.notifier).refresh(),
       child: NotificationListener<ScrollNotification>(
         onNotification: (n) {
-          if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
+          if (n is ScrollUpdateNotification &&
+              n.metrics.maxScrollExtent > 0 &&
+              n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
             ref.read(sellerRefundListProvider.notifier).loadMore();
           }
           return false;

@@ -14,6 +14,7 @@ import '../widgets/product_detail_assurance.dart';
 import '../widgets/product_detail_header.dart';
 import '../widgets/product_detail_highlights.dart';
 import '../widgets/product_detail_media.dart';
+import '../widgets/product_detail_natural_specs.dart';
 import '../widgets/product_detail_price.dart';
 import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_specs.dart';
@@ -61,8 +62,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       const SizedBox(height: AppSpacing.s24),
       ProductDetailPrice(detail: detail),
       const SizedBox(height: AppSpacing.s24),
-      ProductDetailHighlights(highlights: detail.highlights),
-      const SizedBox(height: AppSpacing.s16),
+      if (detail.naturalSpecTabs == null) ...[
+        ProductDetailHighlights(highlights: detail.highlights),
+        const SizedBox(height: AppSpacing.s16),
+      ],
       ProductDetailAssurance(certification: detail.certification),
       if (isSeller && detail.listingSeller != null) ...[
         const SizedBox(height: AppSpacing.s24),
@@ -150,9 +153,17 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ..._summaryBlocks(detail, isSeller: auth.isSeller),
                   ],
                   const SizedBox(height: AppSpacing.s40),
-                  for (final section in visibleSpecs) ...[
-                    ProductDetailSpecSection(section: section),
+                  if (detail.naturalSpecTabs != null) ...[
+                    ProductDetailNaturalSpecs(
+                      specs: detail.naturalSpecTabs!,
+                      productId: detail.id,
+                    ),
                     const SizedBox(height: AppSpacing.s32),
+                  ] else ...[
+                    for (final section in visibleSpecs) ...[
+                      ProductDetailSpecSection(section: section),
+                      const SizedBox(height: AppSpacing.s32),
+                    ],
                   ],
                   if (detail.note != null)
                     Padding(

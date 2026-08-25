@@ -51,20 +51,24 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
         ? formatGroupedWhole
         : formatCatalogPrice;
 
+    // Catalog lot price from API — never scale with melee pcs/carat draft.
+    final amount = price.displayAmount;
+
     late final String saleLabel;
     late final String? listLabel;
     if (!hasDiscount) {
-      saleLabel = price.display;
+      saleLabel = '${price.currencySymbol}${formatAmount(amount)}';
       listLabel = null;
     } else if (price.displayAmountIsListPrice) {
       // List in amountLabel → discounted = list × (1 − %/100).
-      final sale = price.displayAmount * (1 - discount! / 100);
-      listLabel = price.display;
+      final list = amount;
+      final sale = list * (1 - discount! / 100);
+      listLabel = '${price.currencySymbol}${formatAmount(list)}';
       saleLabel = '${price.currencySymbol}${formatAmount(sale)}';
     } else {
       // Net already in amountLabel → list inferred from %.
-      saleLabel = price.display;
-      final list = price.displayAmount / (1 - discount! / 100);
+      saleLabel = '${price.currencySymbol}${formatAmount(amount)}';
+      final list = amount / (1 - discount! / 100);
       listLabel = '${price.currencySymbol}${formatAmount(list)}';
     }
 

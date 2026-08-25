@@ -48,6 +48,7 @@ class CartItem {
   double get displayPriceUsd => lineTotalUsd ?? priceUsd;
 
   CartItem copyWith({
+    String? title,
     int? quantity,
     double? unitPriceUsd,
     double? lineTotalUsd,
@@ -59,7 +60,7 @@ class CartItem {
       cartId: cartId,
       productId: productId,
       productType: productType,
-      title: title,
+      title: title ?? this.title,
       category: category,
       quantity: quantity ?? this.quantity,
       priceUsd: priceUsd ?? this.priceUsd,

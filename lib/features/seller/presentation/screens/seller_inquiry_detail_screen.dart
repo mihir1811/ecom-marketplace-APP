@@ -149,7 +149,7 @@ class _InquiryDetailBody extends StatelessWidget {
       InquiryCategory.diamond => AppColors.info,
       InquiryCategory.gemstone => AppSwatches.inquiryGemstone,
       InquiryCategory.bullion => AppSwatches.inquiryBullion,
-      InquiryCategory.watch => AppColors.textSecondaryLight,
+      InquiryCategory.watch => AppColors.textSecondary(context),
       InquiryCategory.jewelry => AppSwatches.inquiryJewelry,
     };
     final icon = switch (inquiry.category) {

@@ -262,7 +262,7 @@ class _SellerProductEditScreenState
         body: Center(child: Text('Product not found')),
       );
     }
-    const muted = AppColors.textMutedLight;
+    final muted = AppColors.textMuted(context);
 
     return AppScaffold(
       appBar: const SimpleAppTopBar(title: 'Edit product'),
@@ -344,7 +344,7 @@ class _SectionHeader extends StatelessWidget {
         vertical: AppSpacing.s12,
       ),
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(AppSpacing.r8),
       ),
       child: Text(
@@ -470,7 +470,7 @@ class _EditTextField extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.r8),
-          borderSide: const BorderSide(color: AppColors.warmBorder),
+          borderSide: BorderSide(color: AppColors.border(context)),
         ),
       ),
       validator: field.required

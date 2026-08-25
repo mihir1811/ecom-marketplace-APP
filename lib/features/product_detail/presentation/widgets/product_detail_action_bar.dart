@@ -12,6 +12,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../cart/application/cart_provider.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
+import '../../application/melee_qty_draft_provider.dart';
 import '../../domain/models/product_detail.dart';
 
 /// Sticky commitment bar. Keep only the primary decision actions here.
@@ -35,10 +36,52 @@ class ProductDetailActionBar extends ConsumerWidget {
       return;
     }
     if (!AccountAccess.guard(context, ref)) return;
+    if (_isOwnListing(ref)) {
+      _notify(context, 'You cannot purchase your own listing');
+      return;
+    }
+
+    var quantity = 1;
+    Map<String, dynamic>? specifications;
+    final meleeQty = detail.naturalSpecTabs?.meleeQty;
+    if (meleeQty != null) {
+      ref.read(meleeQtyDraftProvider(detail.id).notifier).ensureSeeded(meleeQty);
+      final draft = ref.read(meleeQtyDraftProvider(detail.id));
+      if (draft == null ||
+          (draft.pieces < 1 && draft.carat <= 0)) {
+        _notify(context, 'Enter how many pieces or carats to add');
+        return;
+      }
+      if (draft.inCarat) {
+        final maxCt = meleeQty.totalCarat;
+        if (maxCt != null && draft.carat > maxCt + 1e-9) {
+          _notify(
+            context,
+            'Only ${maxCt.toStringAsFixed(2)} ct available',
+          );
+          return;
+        }
+      } else {
+        final maxPcs = meleeQty.totalPcs;
+        if (maxPcs != null && draft.pieces > maxPcs) {
+          _notify(context, 'Only $maxPcs pcs available');
+          return;
+        }
+      }
+      // Partial melee amount lives in specifications; quantity is the cart line.
+      quantity = 1;
+      final calculated = draft.proportionalPrice(
+        detail.price.displayAmount,
+        meleeQty,
+      );
+      specifications = draft.toSpecifications(calculatedPrice: calculated);
+    }
 
     final result = await ref.read(cartProvider.notifier).addProduct(
           productId: detail.id,
           productType: detail.apiProductType,
+          quantity: quantity,
+          specifications: specifications,
         );
     if (!context.mounted) return;
     switch (result) {
@@ -56,6 +99,10 @@ class ProductDetailActionBar extends ConsumerWidget {
       return;
     }
     if (!AccountAccess.guard(context, ref)) return;
+    if (_isOwnListing(ref)) {
+      _notify(context, 'You cannot make an offer on your own listing');
+      return;
+    }
 
     final minHint = detail.minimumOfferPrice;
     final controller = TextEditingController(
@@ -140,13 +187,26 @@ class ProductDetailActionBar extends ConsumerWidget {
     }
   }
 
+  bool _isOwnListing(WidgetRef ref) {
+    final auth = ref.read(authProvider);
+    return detail.isOwnedByCurrentAccount(
+      userId: auth.user?.id,
+      sellerId: auth.sellerId,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final purchasable = detail.isPurchasable;
     final mutating = ref.watch(cartIsMutatingProvider);
     final inCart = ref.watch(isProductInCartProvider(detail.id));
     final offerMutating = ref.watch(productOfferMutationProvider).isLoading;
-    final showOffer = detail.canMakeAnOffer;
+    final auth = ref.watch(authProvider);
+    final ownListing = detail.isOwnedByCurrentAccount(
+      userId: auth.user?.id,
+      sellerId: auth.sellerId,
+    );
+    final showOffer = detail.canMakeAnOffer && !ownListing;
 
     return Container(
       decoration: BoxDecoration(
@@ -177,7 +237,7 @@ class ProductDetailActionBar extends ConsumerWidget {
           Expanded(
             flex: showOffer ? 2 : 1,
             child: ElevatedButton(
-              onPressed: !purchasable || mutating
+              onPressed: ownListing || !purchasable || mutating
                   ? null
                   : inCart
                       ? () => context.push(AppRouteNames.cart)
@@ -189,11 +249,13 @@ class ProductDetailActionBar extends ConsumerWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Text(
-                      !purchasable
-                          ? 'Unavailable'
-                          : inCart
-                              ? 'View in cart'
-                              : 'Add to cart',
+                      ownListing
+                          ? 'Your listing'
+                          : !purchasable
+                              ? 'Unavailable'
+                              : inCart
+                                  ? 'View in cart'
+                                  : 'Add to cart',
                     ),
             ),
           ),

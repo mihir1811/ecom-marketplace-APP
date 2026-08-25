@@ -147,7 +147,9 @@ class CartOrderEstimate {
       totalInr: totalInr,
       totalUsd: totalUsd,
       gstRateLabel: _gstLabel(catalog, lines),
-      transactionFeeRateLabel: (txRate * 100).toStringAsFixed(2),
+      transactionFeeRateLabel: txRate <= 0
+          ? null
+          : (txRate * 100).toStringAsFixed(2),
       exchangeRate: rate,
     );
   }
@@ -161,7 +163,10 @@ class CartOrderEstimate {
         .ofType(type)
         .where((r) => r.valueType.isPercentage)
         .toList();
-    if (rules.isEmpty) return fallback;
+    if (rules.isEmpty) {
+      // Database-backed catalog: missing type means no charge.
+      return catalog.isFromApi ? 0 : fallback;
+    }
     return rules.first.rateFraction;
   }
 
@@ -175,6 +180,7 @@ class CartOrderEstimate {
     final rules =
         catalog.ofType(type).where((r) => r.valueType.isFixed).toList();
     if (rules.isEmpty) {
+      if (catalog.isFromApi) return 0;
       if (fallbackMin != null && cartInr < fallbackMin) return 0;
       return fallbackValue;
     }
@@ -196,7 +202,7 @@ class CartOrderEstimate {
     final gstRules =
         catalog.ofType(FeeType.gst).where((r) => r.valueType.isPercentage);
     if (gstRules.isEmpty) {
-      return taxableInr * CartFeeConfig.gstRate;
+      return catalog.isFromApi ? 0 : taxableInr * CartFeeConfig.gstRate;
     }
 
     if (lines.isEmpty || merchandiseUsd <= 0) {
@@ -233,7 +239,9 @@ class CartOrderEstimate {
     final gstRules =
         catalog.ofType(FeeType.gst).where((r) => r.valueType.isPercentage);
     if (gstRules.isEmpty) {
-      return (CartFeeConfig.gstRate * 100).toStringAsFixed(0);
+      return catalog.isFromApi
+          ? null
+          : (CartFeeConfig.gstRate * 100).toStringAsFixed(0);
     }
     if (lines.isEmpty) {
       final global = gstRules.where((r) => r.productCategories.isEmpty);

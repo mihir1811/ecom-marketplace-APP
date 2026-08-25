@@ -35,11 +35,11 @@ class _SellerInquiryInboxScreenState
     InquiryCategory.jewelry => Icons.workspace_premium_outlined,
   };
 
-  Color _accentFor(InquiryCategory c) => switch (c) {
+  Color _accentFor(BuildContext context, InquiryCategory c) => switch (c) {
     InquiryCategory.diamond => AppColors.info,
     InquiryCategory.gemstone => AppSwatches.inquiryGemstone,
     InquiryCategory.bullion => AppSwatches.inquiryBullion,
-    InquiryCategory.watch => AppColors.textSecondaryLight,
+    InquiryCategory.watch => AppColors.textSecondary(context),
     InquiryCategory.jewelry => AppSwatches.inquiryJewelry,
   };
 
@@ -185,7 +185,7 @@ class _SellerInquiryInboxScreenState
                         label: c.label,
                         icon: _iconFor(c),
                         selected: _category == c,
-                        accent: _accentFor(c),
+                        accent: _accentFor(context, c),
                         onTap: () => setState(() => _category = c),
                       ),
                   ],
@@ -204,12 +204,13 @@ class _SellerInquiryInboxScreenState
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: _accentFor(_category).withValues(alpha: 0.12),
+                          color: _accentFor(context, _category)
+                              .withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           _iconFor(_category),
-                          color: _accentFor(_category),
+                          color: _accentFor(context, _category),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -280,7 +281,7 @@ class _SellerInquiryInboxScreenState
                   for (final inquiry in listState.items) ...[
                     _InquiryCard(
                       inquiry: inquiry,
-                      accent: _accentFor(inquiry.category),
+                      accent: _accentFor(context, inquiry.category),
                       icon: _iconFor(inquiry.category),
                       onView: () => context.openRoute(
                         inquiryDetailPathFor(

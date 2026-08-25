@@ -1,9 +1,5 @@
-import 'dart:async';
-
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/seller_insights_repository_impl.dart';
 import '../domain/models/seller_insights.dart';
@@ -36,40 +32,56 @@ class SellerDashboardState {
 
 class SellerDashboardNotifier
     extends FamilyNotifier<SellerDashboardState, SellerDashboardParams> {
-  CancelToken? _cancelToken;
+  bool _started = false;
+  Future<void>? _inFlight;
+  SellerDashboardState _latest = const SellerDashboardState(isLoading: true);
 
   SellerInsightsRepository get _repo =>
       ref.read(sellerInsightsRepositoryProvider);
 
   @override
   SellerDashboardState build(SellerDashboardParams arg) {
-    ref.onDispose(() {
-      _cancelToken?.cancel();
-    });
-    Future.microtask(refresh);
-    return const SellerDashboardState(isLoading: true);
+    if (!_started) {
+      _started = true;
+      Future.microtask(_loadOnce);
+    }
+    return _latest;
   }
 
   Future<void> refresh() async {
-    _cancelToken?.cancel('refresh');
-    _cancelToken = CancelToken();
-    if (state.snapshot == null) {
-      state = state.copyWith(isLoading: true, clearError: true);
+    _repo.invalidateCache();
+    return _doRefresh();
+  }
+
+  Future<void> _loadOnce() async {
+    final pending = _inFlight;
+    if (pending != null) return pending;
+    final done = _doRefresh();
+    _inFlight = done;
+    try {
+      await done;
+    } finally {
+      if (identical(_inFlight, done)) _inFlight = null;
+    }
+  }
+
+  Future<void> _doRefresh() async {
+    if (_latest.snapshot == null) {
+      _latest = _latest.copyWith(isLoading: true, clearError: true);
+      state = _latest;
     }
 
-    final result = await _repo.getDashboard(
-      params: arg,
-      cancelToken: _cancelToken,
-    );
+    final result = await _repo.getDashboard(params: arg);
     switch (result) {
       case Success(:final value):
-        state = SellerDashboardState(snapshot: value);
+        _latest = SellerDashboardState(snapshot: value);
+        state = _latest;
       case ResultFailure(:final failure):
-        if (failure is NetworkFailure && failure.isCancelled) return;
-        state = state.copyWith(
+        _latest = _latest.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
+        state = _latest;
     }
   }
 }
@@ -106,46 +118,56 @@ class SellerAnalyticsState {
 
 class SellerAnalyticsNotifier
     extends FamilyNotifier<SellerAnalyticsState, AnalyticsRange> {
-  CancelToken? _cancelToken;
-  Timer? _poll;
+  bool _started = false;
+  Future<void>? _inFlight;
+  SellerAnalyticsState _latest = const SellerAnalyticsState(isLoading: true);
 
   SellerInsightsRepository get _repo =>
       ref.read(sellerInsightsRepositoryProvider);
 
   @override
   SellerAnalyticsState build(AnalyticsRange arg) {
-    ref.onDispose(() {
-      _poll?.cancel();
-      _cancelToken?.cancel();
-    });
-    _poll = Timer.periodic(const Duration(seconds: 20), (_) {
-      refresh(silent: true);
-    });
-    Future.microtask(refresh);
-    return const SellerAnalyticsState(isLoading: true);
+    if (!_started) {
+      _started = true;
+      Future.microtask(_loadOnce);
+    }
+    return _latest;
   }
 
-  Future<void> refresh({bool silent = false}) async {
-    _cancelToken?.cancel('refresh');
-    _cancelToken = CancelToken();
-    if (!silent || state.snapshot == null) {
-      state = state.copyWith(isLoading: true, clearError: true);
+  Future<void> refresh() async {
+    _repo.invalidateCache();
+    return _doRefresh();
+  }
+
+  Future<void> _loadOnce() async {
+    final pending = _inFlight;
+    if (pending != null) return pending;
+    final done = _doRefresh();
+    _inFlight = done;
+    try {
+      await done;
+    } finally {
+      if (identical(_inFlight, done)) _inFlight = null;
+    }
+  }
+
+  Future<void> _doRefresh() async {
+    if (_latest.snapshot == null) {
+      _latest = _latest.copyWith(isLoading: true, clearError: true);
+      state = _latest;
     }
 
-    final result = await _repo.getAnalytics(
-      range: arg,
-      cancelToken: _cancelToken,
-    );
+    final result = await _repo.getAnalytics(range: arg);
     switch (result) {
       case Success(:final value):
-        state = SellerAnalyticsState(snapshot: value);
+        _latest = SellerAnalyticsState(snapshot: value);
+        state = _latest;
       case ResultFailure(:final failure):
-        if (failure is NetworkFailure && failure.isCancelled) return;
-        if (silent && state.snapshot != null) return;
-        state = state.copyWith(
+        _latest = _latest.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
+        state = _latest;
     }
   }
 }

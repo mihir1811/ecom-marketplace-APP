@@ -268,6 +268,66 @@ class ProductSpecSection {
   final List<ProductSpec> specs;
 }
 
+/// Named group of rows inside a tab (e.g. Basic Info under Details).
+class ProductSpecTabSection {
+  const ProductSpecTabSection({
+    required this.title,
+    required this.rows,
+  });
+
+  final String title;
+  final List<ProductSpec> rows;
+}
+
+/// One tab in the natural-diamond / gemstone / watch overview card.
+class ProductSpecTab {
+  const ProductSpecTab({
+    required this.title,
+    this.rows = const [],
+    this.sections = const [],
+    this.isComment = false,
+    this.commentBody,
+  });
+
+  final String title;
+  final List<ProductSpec> rows;
+
+  /// When non-empty, rendered as titled cards instead of a single [rows] card.
+  final List<ProductSpecTabSection> sections;
+  final bool isComment;
+  final String? commentBody;
+
+  bool get hasSections => sections.isNotEmpty;
+}
+
+/// Melee lot quantity picker shown under natural melee spec tabs.
+class ProductMeleeQty {
+  const ProductMeleeQty({this.totalPcs, this.totalCarat, this.caratPerPcs});
+
+  final int? totalPcs;
+  final double? totalCarat;
+  final double? caratPerPcs;
+
+  /// Prefer lot totals for purchase math — `caratPerPcs` from API is often stale.
+  double get resolvedCaratPerPcs {
+    final pcs = totalPcs;
+    final ct = totalCarat;
+    if (pcs != null && pcs > 0 && ct != null && ct > 0) {
+      return ct / pcs;
+    }
+    if (caratPerPcs != null && caratPerPcs! > 0) return caratPerPcs!;
+    return 0;
+  }
+}
+
+/// Tabbed grading card for natural and lab-grown diamonds (single or melee).
+class ProductTabbedSpecs {
+  const ProductTabbedSpecs({required this.tabs, this.meleeQty});
+
+  final List<ProductSpecTab> tabs;
+  final ProductMeleeQty? meleeQty;
+}
+
 /// Builds a spec section from an ordered map, dropping blank or null values so
 /// segments never render empty rows.
 ProductSpecSection specSection(
@@ -318,6 +378,7 @@ class ProductDetail {
     this.note,
     this.isMakeAnOfferAllowed = false,
     this.minimumOfferPrice,
+    this.naturalSpecTabs,
   });
 
   final String id;
@@ -353,6 +414,9 @@ class ProductDetail {
   final bool isMakeAnOfferAllowed;
   final double? minimumOfferPrice;
 
+  /// Overview / Advance for singles; Summary / Details for melee (natural + lab).
+  final ProductTabbedSpecs? naturalSpecTabs;
+
   bool get canMakeAnOffer =>
       isMakeAnOfferAllowed &&
       (apiProductType == 'diamond' || apiProductType == 'meleeDiamond');
@@ -376,7 +440,9 @@ class ProductDetail {
             (section) => ProductSpecSection(
               section.group,
               section.specs
-                  .where((spec) => _sellerMayViewSpec(spec.label, listingSeller))
+                  .where(
+                    (spec) => _sellerMayViewSpec(spec.label, listingSeller),
+                  )
                   .toList(growable: false),
             ),
           )
@@ -396,18 +462,24 @@ class ProductDetail {
         .toList(growable: false);
   }
 
-  bool get isPurchasable =>
-      availability?.tone != ProductStockTone.unavailable;
+  bool get isPurchasable => availability?.tone != ProductStockTone.unavailable;
+
+  bool isOwnedByCurrentAccount({
+    required String? userId,
+    required String? sellerId,
+  }) {
+    return listingSeller?.isOwnedBy(userId: userId, sellerId: sellerId) ??
+        false;
+  }
 
   WishlistCategory get wishlistCategory => switch (segment) {
-        ProductSegment.naturalDiamond ||
-        ProductSegment.labGrownDiamond =>
-          WishlistCategory.diamond,
-        ProductSegment.gemstone => WishlistCategory.gemstone,
-        ProductSegment.jewelry => WishlistCategory.jewelry,
-        ProductSegment.watch => WishlistCategory.watch,
-        ProductSegment.bullion => WishlistCategory.bullion,
-      };
+    ProductSegment.naturalDiamond ||
+    ProductSegment.labGrownDiamond => WishlistCategory.diamond,
+    ProductSegment.gemstone => WishlistCategory.gemstone,
+    ProductSegment.jewelry => WishlistCategory.jewelry,
+    ProductSegment.watch => WishlistCategory.watch,
+    ProductSegment.bullion => WishlistCategory.bullion,
+  };
 
   WishlistItem toWishlistItem() {
     return WishlistItem(

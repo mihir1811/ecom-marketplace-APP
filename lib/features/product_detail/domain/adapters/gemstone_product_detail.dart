@@ -68,18 +68,14 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
       priceInr: usdToInr(g.price),
       displayAmount: g.price,
       unitLabel: 'per carat',
-      unitAmountLabel:
-          perCarat == null ? null : formatGroupedWhole(perCarat),
+      unitAmountLabel: perCarat == null ? null : formatGroupedWhole(perCarat),
       discountPercent: g.discount,
     ),
     highlights: [
       ProductHighlight('Carat', carat),
-      ProductHighlight('Origin', g.origin.isEmpty ? 'N/A' : g.origin),
-      ProductHighlight('Color', g.color.isEmpty ? 'N/A' : g.color),
-      ProductHighlight(
-        'Treatment',
-        g.treatment.isEmpty ? 'N/A' : g.treatment,
-      ),
+      ProductHighlight('Origin', g.origin.isEmpty ? '-' : g.origin),
+      ProductHighlight('Color', g.color.isEmpty ? '-' : g.color),
+      ProductHighlight('Treatment', g.treatment.isEmpty ? '-' : g.treatment),
     ],
     certification: ProductCertification(
       authority: authority ?? 'Not certified',
@@ -106,9 +102,7 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
         'Clarity': _optional(g.clarity),
         'Quality grade': _optional(g.qualityGrade),
         'Treatment': _optional(g.treatment),
-        'Hardness': g.hardness > 0
-            ? '${formatDecimal(g.hardness)} Mohs'
-            : null,
+        'Hardness': g.hardness > 0 ? '${formatDecimal(g.hardness)} Mohs' : null,
       }),
       specSection(ProductSpecGroup.measurements, {
         'Dimensions': _optional(g.dimensions),
@@ -120,10 +114,69 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
         'Stock number': _optional(g.stockNumber),
       }),
     ],
-    note: 'Treatment disclosure follows the laboratory report. Untreated '
+    note:
+        'Treatment disclosure follows the laboratory report. Untreated '
         'stones of the same grade carry a premium.',
+    naturalSpecTabs: _gemstoneSpecTabs(g),
   );
 }
+
+/// Same tabbed card layout as diamonds; gemstone tab names and fields.
+ProductTabbedSpecs _gemstoneSpecTabs(Gemstone g) {
+  final totalPrice = AppCurrency.format(formatGroupedWhole(g.price));
+  final caratWeight =
+      g.carat > 0 ? '${g.carat.toStringAsFixed(2)} ct' : '-';
+  final type = _na(g.type);
+  final shape = _na(g.shape);
+  final origin = _na(g.origin);
+  final treatment = _na(g.treatment);
+  final color = _na(g.color);
+  final clarity = _na(g.clarity);
+  final cut = _na(g.cut);
+  final authority = _optional(g.lab, uppercase: true);
+  final certStatus = authority == null
+      ? 'This gemstone is not certified'
+      : 'This gemstone is certified by $authority';
+
+  return ProductTabbedSpecs(
+    tabs: [
+      ProductSpecTab(
+        title: 'Overview',
+        rows: [
+          ProductSpec('Total Price', totalPrice),
+          ProductSpec('Type', type),
+          ProductSpec('Shape', shape),
+          ProductSpec('Origin', origin),
+          ProductSpec('Treatment', treatment),
+          ProductSpec('Carat Weight', caratWeight),
+          ProductSpec('Color', color),
+          ProductSpec('Clarity', clarity),
+          ProductSpec('Cut', cut),
+        ],
+      ),
+      ProductSpecTab(
+        title: 'Specifications',
+        rows: [
+          ProductSpec('Total Price', totalPrice),
+          ProductSpec('Carat Weight', caratWeight),
+          ProductSpec('Color', color),
+          ProductSpec('Clarity', clarity),
+          ProductSpec('Cut', cut),
+          ProductSpec('Shape', shape),
+          ProductSpec('Treatment', treatment),
+        ],
+      ),
+      ProductSpecTab(
+        title: 'Certification',
+        rows: [
+          ProductSpec('Certification Status', certStatus),
+        ],
+      ),
+    ],
+  );
+}
+
+String _na(String? value) => _optional(value) ?? '-';
 
 ProductAvailability _availability(Gemstone g) {
   if (g.isSold) {
@@ -134,28 +187,32 @@ ProductAvailability _availability(Gemstone g) {
   }
   return switch ((g.availability ?? '').toLowerCase()) {
     'hold' => const ProductAvailability(
-        label: 'On hold',
-        tone: ProductStockTone.limited,
-      ),
+      label: 'On hold',
+      tone: ProductStockTone.limited,
+    ),
     'memo' => const ProductAvailability(
-        label: 'On memo',
-        tone: ProductStockTone.limited,
-      ),
+      label: 'On memo',
+      tone: ProductStockTone.limited,
+    ),
     'yes' => const ProductAvailability(
-        label: 'Available',
-        tone: ProductStockTone.available,
-      ),
+      label: 'Available',
+      tone: ProductStockTone.available,
+    ),
     _ => const ProductAvailability(
-        label: 'Availability not listed',
-        tone: ProductStockTone.limited,
-      ),
+      label: 'Availability not listed',
+      tone: ProductStockTone.limited,
+    ),
   };
 }
 
 String? _optional(String? value, {bool uppercase = false}) {
   if (value == null) return null;
   final t = value.trim();
-  if (t.isEmpty || t == '-' || t == '—' || t == '–' || t.toLowerCase() == 'n/a') {
+  if (t.isEmpty ||
+      t == '-' ||
+      t == '—' ||
+      t == '–' ||
+      t.toLowerCase() == 'n/a') {
     return null;
   }
   return uppercase ? t.toUpperCase() : t;

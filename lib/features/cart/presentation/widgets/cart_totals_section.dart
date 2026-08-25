@@ -29,7 +29,8 @@ class CartTotalsSection extends ConsumerWidget {
     final items = ref.watch(cartProvider.select((s) => s.items));
     final availableItems = items.where((i) => i.isAvailable).toList();
     final merchandiseUsd = ref.watch(cartAvailableMerchandiseUsdProvider);
-    final fees = ref.watch(activeFeesProvider).valueOrNull ?? FeeRulesCatalog.empty;
+    final feesAsync = ref.watch(activeFeesProvider);
+    final fees = feesAsync.valueOrNull ?? FeeRulesCatalog.empty;
     final wantVerification = ref.watch(
       paymentCheckoutProvider.select((s) => s.wantGemworldVerification),
     );

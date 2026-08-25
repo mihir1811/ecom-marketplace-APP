@@ -54,7 +54,7 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.s16),
                 decoration: BoxDecoration(
-                  color: AppColors.sandSurface,
+                  color: AppColors.surface(context),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Stack(
@@ -65,7 +65,7 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
                       child: Icon(
                         Icons.gavel_outlined,
                         size: 56,
-                        color: AppColors.textMutedLight.withValues(alpha: 0.25),
+                        color: AppColors.textMuted(context).withValues(alpha: 0.25),
                       ),
                     ),
                     Column(
@@ -77,9 +77,9 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.warmWhite,
+                            color: AppColors.card(context),
                             borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: AppColors.warmBorder),
+                            border: Border.all(color: AppColors.border(context)),
                           ),
                           child: Text(
                             'Seller · Auctions',
@@ -93,7 +93,7 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
                           'Manage your live auctions, view all bids, and see '
                           'winners when auctions close.',
                           style: AppTypography.body.copyWith(
-                            color: AppColors.textSecondaryLight,
+                            color: AppColors.textSecondary(context),
                             height: 1.4,
                           ),
                         ),
@@ -156,7 +156,7 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
                     child: Text(
                       'No auctions in this filter.',
                       style: AppTypography.body.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                       ),
                     ),
                   ),
@@ -183,11 +183,15 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? AppColors.info : AppColors.warmWhite,
+      color: selected
+          ? AppColors.selectedFill(context)
+          : AppColors.card(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(999),
         side: BorderSide(
-          color: selected ? AppColors.info : AppColors.warmBorder,
+          color: selected
+              ? AppColors.selectedFill(context)
+              : AppColors.border(context),
         ),
       ),
       child: InkWell(
@@ -199,7 +203,9 @@ class _FilterChip extends StatelessWidget {
             label,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w700,
-              color: selected ? AppColors.warmWhite : AppColors.charcoal,
+              color: selected
+                  ? AppColors.onSelected(context)
+                  : AppColors.textPrimary(context),
             ),
           ),
         ),
@@ -228,10 +234,10 @@ class _AuctionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.warmBorder),
+        side: BorderSide(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
@@ -254,24 +260,24 @@ class _AuctionCard extends StatelessWidget {
             Text(
               'Auction #${auction.id} · Min bid: ${auction.minBid} · Current: ${auction.currentBid}',
               style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
               ),
             ),
             const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
+                Icon(
                   Icons.schedule,
                   size: 16,
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     '${auction.startsAt} → ${auction.endsAt}',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedLight,
+                      color: AppColors.textMuted(context),
                     ),
                   ),
                 ),
@@ -294,7 +300,7 @@ class _AuctionCard extends StatelessWidget {
                 TextButton(
                   onPressed: () {},
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.charcoal,
+                    foregroundColor: AppColors.textPrimary(context),
                     padding: EdgeInsets.zero,
                     visualDensity: VisualDensity.compact,
                   ),
@@ -335,7 +341,7 @@ class _AuctionCard extends StatelessWidget {
                 Text(
                   'No bids yet.',
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                 )
               else
@@ -361,9 +367,9 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Text(
         label,
@@ -384,7 +390,7 @@ class _BidTile extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -424,13 +430,13 @@ class _BidTile extends StatelessWidget {
           Text(
             '${bid.bidder} · ${bid.email}',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
           Text(
             bid.at,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textMutedLight,
+              color: AppColors.textMuted(context),
               fontSize: 11,
             ),
           ),

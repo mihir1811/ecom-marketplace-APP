@@ -211,7 +211,182 @@ ProductDetail diamondProductDetail(Diamond d) {
             'number before payment.',
     isMakeAnOfferAllowed: d.isMakeAnOfferAllowed,
     minimumOfferPrice: d.minimumOfferPrice,
+    naturalSpecTabs: d.isMelee
+        ? _meleeSpecTabs(d)
+        : _singleSpecTabs(d),
   );
+}
+
+const _emDash = '—';
+
+String _dash(String? value) {
+  final text = DiamondDisplay.optional(value);
+  return text ?? _emDash;
+}
+
+String _orDash(String value) =>
+    DiamondDisplay.isMissing(value) ? _emDash : value;
+
+String _grade(String? value) {
+  if (DiamondDisplay.isMissing(value)) return _emDash;
+  return DiamondDisplay.gradeChip(value);
+}
+
+String _percent(String? value) {
+  if (DiamondDisplay.isMissing(value)) return _emDash;
+  final t = value!.trim();
+  return t.endsWith('%') ? t : '$t%';
+}
+
+String _weightCt(double carat) {
+  final text = carat == carat.roundToDouble()
+      ? carat.toInt().toString()
+      : carat.toString();
+  return '$text CT';
+}
+
+String _cutSymPol(Diamond d) {
+  return '${_grade(d.cut)} - ${_grade(d.symmetry)} - ${_grade(d.polish)}';
+}
+
+ProductTabbedSpecs _meleeSpecTabs(Diamond d) {
+  final comment = DiamondDisplay.optional(d.comment);
+  final origin = DiamondDisplay.optional(d.origin) ??
+      (d.isLabGrown ? 'Lab-Grown Melee' : null);
+
+  return ProductTabbedSpecs(
+    tabs: [
+      ProductSpecTab(
+        title: 'Summary',
+        rows: [
+          ProductSpec('Shape', DiamondDisplay.shape(d.shape)),
+          ProductSpec(
+            'Weight per piece',
+            DiamondDisplay.number(d.caratPerPcs, decimals: 2, suffix: ' ct') ??
+                _emDash,
+          ),
+          ProductSpec('Total pieces', d.totalPcs?.toString() ?? _emDash),
+          ProductSpec(
+            'Total Weight',
+            DiamondDisplay.number(d.totalCaratWeight, suffix: ' ct') ??
+                _weightCt(d.carat),
+          ),
+          ProductSpec('Color', _dash(d.color)),
+          ProductSpec('Clarity', _dash(d.clarity)),
+          ProductSpec('Cut', _dash(d.cut)),
+        ],
+      ),
+      ProductSpecTab(
+        title: 'Details',
+        rows: [
+          ProductSpec('Sieve', _dash(d.sieveLabel)),
+          ProductSpec('Measurement min', _dash(d.measurementMin)),
+          ProductSpec('Measurement max', _dash(d.measurementMax)),
+          ProductSpec('Ratio', _dash(d.ratio)),
+          ProductSpec('Shade', _dash(d.shade)),
+          ProductSpec('Origin', origin ?? _emDash),
+          ProductSpec('Growth', _dash(d.growthType)),
+          ProductSpec(
+            'Certificate #',
+            _dash(d.certificateNumber ?? d.certificate),
+          ),
+          ProductSpec('Treatment', _dash(d.enhancement)),
+          ProductSpec('Polish', _dash(d.polish)),
+        ],
+      ),
+      ProductSpecTab(
+        title: 'Comment',
+        isComment: true,
+        commentBody: comment ?? 'No Comment Available',
+      ),
+    ],
+    meleeQty: d.isSeparable
+        ? ProductMeleeQty(
+            totalPcs: d.totalPcs,
+            totalCarat: d.totalCaratWeight,
+            caratPerPcs: d.caratPerPcs,
+          )
+        : null,
+  );
+}
+
+ProductTabbedSpecs _singleSpecTabs(Diamond d) {
+  final comment = DiamondDisplay.optional(d.comment);
+  final measurement = DiamondDisplay.optional(d.measurement) ??
+      _measurementRange(d.measurementMin, d.measurementMax);
+  final bgm = DiamondDisplay.boolLabel(
+        d.bgm,
+        yes: d.isLabGrown ? 'YES' : 'Present',
+        no: d.isLabGrown ? 'NO' : 'None',
+      ) ??
+      _emDash;
+  final lastRow = d.isLabGrown
+      ? ProductSpec('Growth Type', _dash(d.growthType))
+      : ProductSpec('Rough Source', _dash(d.roughSource));
+
+  return ProductTabbedSpecs(
+    tabs: [
+      ProductSpecTab(
+        title: 'Overview',
+        rows: [
+          ProductSpec(
+            'Certificate',
+            _dash(d.certificateNumber ?? d.certificate),
+          ),
+          ProductSpec(
+            'Shape',
+            _orDash(DiamondDisplay.shape(d.shape).toUpperCase()),
+          ),
+          ProductSpec('Weight', _weightCt(d.carat)),
+          ProductSpec(
+            'Color',
+            _orDash(
+              DiamondDisplay.displayPrimaryColor(
+                color: d.color,
+                fancyColor: d.fancyColor,
+                fancyIntensity: d.fancyIntensity,
+                uppercase: true,
+              ),
+            ),
+          ),
+          ProductSpec('Clarity', _grade(d.clarity)),
+          ProductSpec('Cut - Sym - Pol', _cutSymPol(d)),
+          ProductSpec('BGM', bgm),
+          ProductSpec('Floro', _dash(d.fluorescence)),
+          lastRow,
+        ],
+      ),
+      ProductSpecTab(
+        title: 'Advance',
+        rows: [
+          ProductSpec('Measurement', measurement ?? _emDash),
+          ProductSpec('Ratio', _dash(d.ratio)),
+          ProductSpec('Table Percent', _percent(d.tablePercent)),
+          ProductSpec('Depth Percent', _percent(d.depthPercent)),
+          const ProductSpec('Crown', _emDash),
+          const ProductSpec('Pavilion', _emDash),
+          ProductSpec('Girdle', _dash(d.girdleCondition)),
+          ProductSpec('Culet Condition', _dash(d.culetCondition)),
+          ProductSpec('Treatment', _dash(d.enhancement)),
+        ],
+      ),
+      ProductSpecTab(
+        title: 'Comment',
+        isComment: true,
+        commentBody: comment ?? 'No Comment Available',
+      ),
+    ],
+  );
+}
+
+String? _measurementRange(String? min, String? max) {
+  final a = DiamondDisplay.optional(min);
+  final b = DiamondDisplay.optional(max);
+  if (a != null && b != null) {
+    if (a.toLowerCase() == b.toLowerCase()) return a;
+    return '$a × $b';
+  }
+  return a ?? b;
 }
 
 ProductAvailability _availability(Diamond d) {

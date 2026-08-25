@@ -39,6 +39,22 @@ class ReferenceParty {
     if (u.isNotEmpty) return u;
     return email;
   }
+
+  /// e.g. `peter (m3847693@gmail.com)`
+  String get nameWithEmail {
+    final n = displayName;
+    final e = email.trim();
+    if (e.isEmpty || e == n) return n;
+    return '$n ($e)';
+  }
+
+  /// e.g. `peter · m3847693@gmail.com`
+  String get nameDotEmail {
+    final n = displayName;
+    final e = email.trim();
+    if (e.isEmpty || e == n) return n;
+    return '$n · $e';
+  }
 }
 
 class ReferenceRequest {

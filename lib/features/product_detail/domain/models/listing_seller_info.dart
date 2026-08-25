@@ -2,12 +2,19 @@
 class ListingSellerInfo {
   const ListingSellerInfo({
     required this.displayName,
+    this.id,
+    this.userId,
     this.email,
     this.phone,
     this.location,
     this.registrationType = ListingSellerRegistrationType.unknown,
   });
 
+  /// Seller record id from the listing payload.
+  final String? id;
+
+  /// Linked user id when the API nests `userId` / `user.id`.
+  final String? userId;
   final String displayName;
   final String? email;
   final String? phone;
@@ -22,6 +29,20 @@ class ListingSellerInfo {
       (email?.trim().isNotEmpty ?? false) ||
       (phone?.trim().isNotEmpty ?? false) ||
       (location?.trim().isNotEmpty ?? false);
+
+  /// True when this listing belongs to the signed-in seller/user.
+  bool isOwnedBy({required String? userId, required String? sellerId}) {
+    bool same(String? a, String? b) {
+      final left = a?.trim() ?? '';
+      final right = b?.trim() ?? '';
+      return left.isNotEmpty && left == right;
+    }
+
+    return same(id, sellerId) ||
+        same(id, userId) ||
+        same(this.userId, userId) ||
+        same(this.userId, sellerId);
+  }
 }
 
 enum ListingSellerRegistrationType { individual, business, unknown }
@@ -38,20 +59,29 @@ ListingSellerInfo? listingSellerFromMap(Object? raw) {
     _ => ListingSellerRegistrationType.unknown,
   };
 
+  final nestedUser = map['user'];
+  final nestedUserId = nestedUser is Map
+      ? _str(nestedUser['id']) ?? _str(nestedUser['_id'])
+      : null;
+
   final company = _str(map['companyName']);
   final representative = _str(map['representativeName1']) ??
       _str(map['representativeName']) ??
       _str(map['name']) ??
       _str(map['fullName']);
   final displayName = company ?? representative;
-  if (displayName == null) return null;
+  final sellerId = _str(map['id']) ?? _str(map['_id']) ?? _str(map['sellerId']);
+  final userId = _str(map['userId']) ?? nestedUserId;
+  if (displayName == null && sellerId == null && userId == null) return null;
 
   final city = _str(map['city']);
   final country = _str(map['country']);
   final location = [city, country].where((p) => p != null).join(', ');
 
   return ListingSellerInfo(
-    displayName: displayName,
+    id: sellerId,
+    userId: userId,
+    displayName: displayName ?? 'Seller',
     email: _str(map['email']),
     phone: _str(map['phone1']) ?? _str(map['phone']) ?? _str(map['businessPhone1']),
     location: location.isEmpty ? null : location,

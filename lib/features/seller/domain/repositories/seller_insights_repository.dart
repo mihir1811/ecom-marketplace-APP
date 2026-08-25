@@ -15,4 +15,7 @@ abstract class SellerInsightsRepository {
     required AnalyticsRange range,
     CancelToken? cancelToken,
   });
+
+  /// Drops cached orders/refunds so the next read hits the network.
+  void invalidateCache();
 }

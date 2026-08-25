@@ -126,13 +126,13 @@ class BuyerDrawer extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor: AppColors.selectedFill(context),
+                      backgroundColor: AppColors.navSelectedFill(context),
                       child: Text(
                         _initials(
                           auth.user?.fullName ?? auth.user?.username ?? 'U',
                         ),
                         style: AppTypography.label.copyWith(
-                          color: AppColors.onSelected(context),
+                          color: AppColors.navOnSelected(context),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -181,7 +181,7 @@ class BuyerDrawer extends ConsumerWidget {
                             currentPath.startsWith('${item.route}/'));
                     return Material(
                       color: isSelected
-                          ? AppColors.selectedFill(context)
+                          ? AppColors.navSelectedFill(context)
                           : Colors.transparent,
                       child: InkWell(
                         onTap: () {
@@ -198,7 +198,7 @@ class BuyerDrawer extends ConsumerWidget {
                               Icon(
                                 item.icon,
                                 color: isSelected
-                                    ? AppColors.onSelected(context)
+                                    ? AppColors.navOnSelected(context)
                                     : AppColors.textPrimary(context),
                               ),
                               const SizedBox(width: AppSpacing.s16),
@@ -210,7 +210,7 @@ class BuyerDrawer extends ConsumerWidget {
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     color: isSelected
-                                        ? AppColors.onSelected(context)
+                                        ? AppColors.navOnSelected(context)
                                         : AppColors.textPrimary(context),
                                   ),
                                 ),
@@ -220,7 +220,7 @@ class BuyerDrawer extends ConsumerWidget {
                                   Icons.open_in_new,
                                   size: 16,
                                   color: isSelected
-                                      ? AppColors.onSelected(context)
+                                      ? AppColors.navOnSelected(context)
                                       : AppColors.textMuted(context),
                                 ),
                             ],

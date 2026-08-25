@@ -7,6 +7,7 @@ import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
@@ -94,6 +95,7 @@ class SellerLayout extends ConsumerWidget {
     return AppScaffold(
       scaffoldKey: sellerScaffoldKey,
       drawer: SellerDrawer(selectedRoute: selectedRoute),
+      backgroundColor: AppColors.bg(context),
       appBar: shellTitle == null
           ? null
           : AppTopBar(

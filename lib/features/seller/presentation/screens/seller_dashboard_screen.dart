@@ -148,7 +148,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                         Text(
                           '${_fmtDate(_customStart!)} → ${_fmtDate(_customEnd!)}',
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.textSecondaryLight,
+                            color: AppColors.textSecondary(context),
                           ),
                         ),
                       ],
@@ -164,7 +164,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                             ? 'To ${_fmtDate(snapshot.chart.endDate!)}'
                             : '',
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textSecondaryLight,
+                          color: AppColors.textSecondary(context),
                         ),
                       ),
                     ],
@@ -178,7 +178,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                     child: Text(
                       'View All',
                       style: AppTypography.label.copyWith(
-                        color: AppColors.charcoal,
+                        color: AppColors.textPrimary(context),
                         decoration: TextDecoration.underline,
                       ),
                     ),
@@ -187,7 +187,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                       ? Text(
                           'No orders yet.',
                           style: AppTypography.body.copyWith(
-                            color: AppColors.textMutedLight,
+                            color: AppColors.textMuted(context),
                           ),
                         )
                       : Column(
@@ -313,7 +313,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
             }
 
             return AlertDialog(
-              backgroundColor: AppColors.warmWhite,
+              backgroundColor: AppColors.card(context),
               title: Text(
                 'Custom date range',
                 style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
@@ -390,12 +390,12 @@ class _CustomDateField extends StatelessWidget {
           label,
           style: AppTypography.caption.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondaryLight,
+            color: AppColors.textSecondary(context),
           ),
         ),
         const SizedBox(height: 6),
         Material(
-          color: AppColors.warmWhite,
+          color: AppColors.card(context),
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -406,11 +406,11 @@ class _CustomDateField extends StatelessWidget {
                 suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
-                  borderSide: const BorderSide(color: AppColors.warmBorder),
+                  borderSide: BorderSide(color: AppColors.border(context)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
-                  borderSide: const BorderSide(color: AppColors.warmBorder),
+                  borderSide: BorderSide(color: AppColors.border(context)),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -421,8 +421,8 @@ class _CustomDateField extends StatelessWidget {
                 text,
                 style: AppTypography.body.copyWith(
                   color: value == null
-                      ? AppColors.textMutedLight
-                      : AppColors.charcoal,
+                      ? AppColors.textMuted(context)
+                      : AppColors.textPrimary(context),
                 ),
               ),
             ),
@@ -465,12 +465,12 @@ class _MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.r12),
         side: BorderSide(
-          color: selected ? AppColors.info : AppColors.warmBorder,
+          color: selected ? AppColors.info : AppColors.border(context),
           width: selected ? 2 : 1,
         ),
       ),
@@ -488,7 +488,7 @@ class _MetricCard extends StatelessWidget {
                     child: Text(
                       data.title,
                       style: AppTypography.label.copyWith(
-                        color: AppColors.charcoal,
+                        color: AppColors.textPrimary(context),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -502,14 +502,14 @@ class _MetricCard extends StatelessWidget {
                 style: AppTypography.headline.copyWith(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.charcoal,
+                  color: AppColors.textPrimary(context),
                 ),
               ),
               const SizedBox(height: AppSpacing.s8),
               Text(
                 data.subtitle,
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                   height: 1.3,
                 ),
                 maxLines: 2,
@@ -538,7 +538,7 @@ class _TopHeader extends StatelessWidget {
             IconButton(
               onPressed: () => openSellerDrawer(context),
               icon: const Icon(Icons.menu),
-              color: AppColors.charcoal,
+              color: AppColors.textPrimary(context),
               tooltip: 'Open menu',
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -547,7 +547,7 @@ class _TopHeader extends StatelessWidget {
               child: Text(
                 'Dashboard',
                 style: AppTypography.headline.copyWith(
-                  color: AppColors.charcoal,
+                  color: AppColors.textPrimary(context),
                 ),
               ),
             ),
@@ -557,7 +557,7 @@ class _TopHeader extends StatelessWidget {
         Text(
           subtitle,
           style: AppTypography.body.copyWith(
-            color: AppColors.textSecondaryLight,
+            color: AppColors.textSecondary(context),
           ),
         ),
       ],
@@ -590,7 +590,7 @@ class _CardSection extends StatelessWidget {
                   child: Text(
                     title,
                     style: AppTypography.title.copyWith(
-                      color: AppColors.charcoal,
+                      color: AppColors.textPrimary(context),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -639,11 +639,11 @@ class _SalesRangeDropdown extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.r8),
-          borderSide: const BorderSide(color: AppColors.warmBorder),
+          borderSide: BorderSide(color: AppColors.border(context)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.r8),
-          borderSide: const BorderSide(color: AppColors.warmBorder),
+          borderSide: BorderSide(color: AppColors.border(context)),
         ),
       ),
       items: [
@@ -697,7 +697,7 @@ class _DashboardBarChart extends StatelessWidget {
                   Text(
                     formatY(tick),
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedLight,
+                      color: AppColors.textMuted(context),
                       fontSize: 11,
                     ),
                   ),
@@ -719,7 +719,7 @@ class _DashboardBarChart extends StatelessWidget {
                           top: _chartHeight * (1 - yTicks[i] / maxY),
                           child: Container(
                             height: 1,
-                            color: AppColors.warmBorder.withValues(alpha: 0.6),
+                            color: AppColors.border(context).withValues(alpha: 0.6),
                           ),
                         ),
                       Row(
@@ -753,7 +753,7 @@ class _DashboardBarChart extends StatelessWidget {
                           label,
                           textAlign: TextAlign.center,
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.textMutedLight,
+                            color: AppColors.textMuted(context),
                             fontSize: 11,
                           ),
                           maxLines: 1,
@@ -872,7 +872,7 @@ class _OrderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.sandSurface,
+      color: AppColors.surface(context),
       elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
@@ -882,8 +882,8 @@ class _OrderRow extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.warmWhite,
-                border: Border.all(color: AppColors.warmBorder, width: 1),
+                color: AppColors.card(context),
+                border: Border.all(color: AppColors.border(context), width: 1),
                 borderRadius: BorderRadius.circular(AppSpacing.r12),
               ),
               child: const Icon(Icons.receipt_long_outlined),
@@ -896,7 +896,7 @@ class _OrderRow extends StatelessWidget {
                   Text(
                     orderId,
                     style: AppTypography.label.copyWith(
-                      color: AppColors.charcoal,
+                      color: AppColors.textPrimary(context),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -924,7 +924,7 @@ class _OrderRow extends StatelessWidget {
             Text(
               amount,
               style: AppTypography.title.copyWith(
-                color: AppColors.charcoal,
+                color: AppColors.textPrimary(context),
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -958,14 +958,14 @@ class _UploadStatusRow extends StatelessWidget {
           child: Text(
             label,
             style: AppTypography.body.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
         ),
         Text(
           value,
           style: AppTypography.title.copyWith(
-            color: AppColors.charcoal,
+            color: AppColors.textPrimary(context),
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -995,7 +995,7 @@ class _QuickActionsSection extends StatelessWidget {
         Text(
           'Quick Actions',
           style: AppTypography.title.copyWith(
-            color: AppColors.charcoal,
+            color: AppColors.textPrimary(context),
             fontWeight: FontWeight.w700,
           ),
         ),

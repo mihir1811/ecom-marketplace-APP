@@ -84,6 +84,7 @@ abstract final class SharedProductDetailMapper {
       note: detail.note,
       isMakeAnOfferAllowed: detail.isMakeAnOfferAllowed,
       minimumOfferPrice: detail.minimumOfferPrice,
+      naturalSpecTabs: detail.naturalSpecTabs,
     );
   }
 
@@ -149,6 +150,7 @@ abstract final class SharedProductDetailMapper {
       note: detail.note,
       isMakeAnOfferAllowed: detail.isMakeAnOfferAllowed,
       minimumOfferPrice: detail.minimumOfferPrice,
+      naturalSpecTabs: detail.naturalSpecTabs,
     );
   }
 }

@@ -8,6 +8,9 @@ class BuyerReferencesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const BuyerLayout(title: 'References', child: ReferenceHubScreen());
+    return const BuyerLayout(
+      title: 'My Reference',
+      child: ReferenceHubScreen(),
+    );
   }
 }

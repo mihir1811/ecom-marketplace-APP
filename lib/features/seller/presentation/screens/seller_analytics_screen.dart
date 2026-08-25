@@ -74,7 +74,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                   IconButton(
                     onPressed: () => openSellerDrawer(context),
                     icon: const Icon(Icons.menu),
-                    color: AppColors.charcoal,
+                    color: AppColors.textPrimary(context),
                     tooltip: 'Open menu',
                     padding: EdgeInsets.zero,
                     constraints:
@@ -84,7 +84,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                     child: Text(
                       'Analytics',
                       style: AppTypography.headline.copyWith(
-                        color: AppColors.charcoal,
+                        color: AppColors.textPrimary(context),
                       ),
                     ),
                   ),
@@ -94,7 +94,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
               Text(
                 'Performance insights across sales, orders, and traffic.',
                 style: AppTypography.body.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: AppColors.textSecondary(context),
                 ),
               ),
               const SizedBox(height: AppSpacing.s16),
@@ -125,9 +125,9 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                         delta: kpi.delta,
                         deltaUp: kpi.deltaUp,
                         icon: (_kpiMeta[kpi.title] ??
-                            (Icons.insights_outlined, AppColors.charcoal)).$1,
+                            (Icons.insights_outlined, AppColors.textPrimary(context))).$1,
                         color: (_kpiMeta[kpi.title] ??
-                            (Icons.insights_outlined, AppColors.charcoal)).$2,
+                            (Icons.insights_outlined, AppColors.textPrimary(context))).$2,
                       ),
                   ],
                 ),
@@ -139,7 +139,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                       ? Text(
                           'No revenue in this period.',
                           style: AppTypography.body.copyWith(
-                            color: AppColors.textMutedLight,
+                            color: AppColors.textMuted(context),
                           ),
                         )
                       : _RevenueLineChart(
@@ -158,7 +158,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                           ? Text(
                               'No category sales yet.',
                               style: AppTypography.body.copyWith(
-                                color: AppColors.textMutedLight,
+                                color: AppColors.textMuted(context),
                               ),
                             )
                           : _CategoryDonut(
@@ -181,7 +181,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                           ? Text(
                               'No orders in this period.',
                               style: AppTypography.body.copyWith(
-                                color: AppColors.textMutedLight,
+                                color: AppColors.textMuted(context),
                               ),
                             )
                           : _OrderStatusBars(
@@ -233,13 +233,13 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                           icon: (_engagementMeta[m.label] ??
                                   (
                                     Icons.insights_outlined,
-                                    AppColors.charcoal
+                                    AppColors.textPrimary(context)
                                   ))
                               .$1,
                           color: (_engagementMeta[m.label] ??
                                   (
                                     Icons.insights_outlined,
-                                    AppColors.charcoal
+                                    AppColors.textPrimary(context)
                                   ))
                               .$2,
                         ),
@@ -343,14 +343,15 @@ class _RangeSelector extends StatelessWidget {
               label: Text(labels[range]!),
               selected: value == range,
               onSelected: (_) => onChanged(range),
-              selectedColor: AppColors.charcoal,
+              selectedColor: AppColors.selectedFill(context),
               labelStyle: AppTypography.label.copyWith(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color:
-                    value == range ? AppColors.warmWhite : AppColors.charcoal,
+                color: value == range
+                    ? AppColors.onSelected(context)
+                    : AppColors.textPrimary(context),
               ),
-              side: const BorderSide(color: AppColors.warmBorder),
+              side: BorderSide(color: AppColors.border(context)),
               showCheckmark: false,
             ),
             const SizedBox(width: AppSpacing.s8),
@@ -386,9 +387,9 @@ class _KpiGrid extends StatelessWidget {
             return Container(
               padding: const EdgeInsets.all(AppSpacing.s16),
               decoration: BoxDecoration(
-                color: AppColors.warmWhite,
+                color: AppColors.card(context),
                 borderRadius: BorderRadius.circular(AppSpacing.r12),
-                border: Border.all(color: AppColors.warmBorder),
+                border: Border.all(color: AppColors.border(context)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,7 +401,7 @@ class _KpiGrid extends StatelessWidget {
                           kpi.title,
                           style: AppTypography.label.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: AppColors.charcoal,
+                            color: AppColors.textPrimary(context),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -417,7 +418,7 @@ class _KpiGrid extends StatelessWidget {
                       style: AppTypography.headline.copyWith(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.charcoal,
+                        color: AppColors.textPrimary(context),
                       ),
                     ),
                   ),
@@ -475,9 +476,9 @@ class _AnalyticsCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,7 +486,7 @@ class _AnalyticsCard extends StatelessWidget {
           Text(
             title,
             style: AppTypography.title.copyWith(
-              color: AppColors.charcoal,
+              color: AppColors.textPrimary(context),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -494,7 +495,7 @@ class _AnalyticsCard extends StatelessWidget {
             Text(
               subtitle!,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
               ),
             ),
           ],
@@ -540,7 +541,7 @@ class _RevenueLineChart extends StatelessWidget {
                         _fmtShort(maxY * f),
                         style: AppTypography.caption.copyWith(
                           fontSize: 10,
-                          color: AppColors.textMutedLight,
+                          color: AppColors.textMuted(context),
                         ),
                       ),
                   ],
@@ -554,7 +555,7 @@ class _RevenueLineChart extends StatelessWidget {
                     maxY: maxY,
                     lineColor: AppColors.bronze,
                     fillColor: AppColors.bronze.withValues(alpha: 0.12),
-                    gridColor: AppColors.warmBorder.withValues(alpha: 0.6),
+                    gridColor: AppColors.border(context).withValues(alpha: 0.6),
                   ),
                   child: const SizedBox.expand(),
                 ),
@@ -573,7 +574,7 @@ class _RevenueLineChart extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTypography.caption.copyWith(
                     fontSize: 10,
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -693,7 +694,7 @@ class _CategoryDonut extends StatelessWidget {
                   Text(
                     'of revenue',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textMutedLight,
+                      color: AppColors.textMuted(context),
                       fontSize: 10,
                     ),
                   ),
@@ -804,7 +805,7 @@ class _OrderStatusBars extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: maxCount > 0 ? row.count / maxCount : 0,
                       minHeight: 10,
-                      backgroundColor: AppColors.sandSurface,
+                      backgroundColor: AppColors.surface(context),
                       valueColor: AlwaysStoppedAnimation(row.color),
                     ),
                   ),
@@ -948,9 +949,9 @@ class _EngagementGrid extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(AppSpacing.s12),
           decoration: BoxDecoration(
-            color: AppColors.sandSurface,
+            color: AppColors.surface(context),
             borderRadius: BorderRadius.circular(AppSpacing.r12),
-            border: Border.all(color: AppColors.warmBorder),
+            border: Border.all(color: AppColors.border(context)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -973,7 +974,7 @@ class _EngagementGrid extends StatelessWidget {
                       style: AppTypography.label.copyWith(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.charcoal,
+                        color: AppColors.textPrimary(context),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -987,7 +988,7 @@ class _EngagementGrid extends StatelessWidget {
                 style: AppTypography.headline.copyWith(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.charcoal,
+                  color: AppColors.textPrimary(context),
                 ),
               ),
               const SizedBox(height: 2),
@@ -995,7 +996,7 @@ class _EngagementGrid extends StatelessWidget {
                 m.hint,
                 style: AppTypography.caption.copyWith(
                   fontSize: 10,
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

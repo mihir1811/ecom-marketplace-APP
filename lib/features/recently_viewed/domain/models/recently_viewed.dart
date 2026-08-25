@@ -1,3 +1,9 @@
+import '../../../bullions/domain/models/billion.dart';
+import '../../../diamonds/domain/models/diamond.dart';
+import '../../../gemstones/domain/models/gemstone.dart';
+import '../../../jewelry/domain/models/jewelry.dart';
+import '../../../watches/domain/models/watch.dart';
+
 class RecentlyViewedEntry {
   const RecentlyViewedEntry({
     required this.id,
@@ -14,6 +20,11 @@ class RecentlyViewedEntry {
     this.clarity,
     this.cut,
     this.availability,
+    this.diamond,
+    this.gemstone,
+    this.watch,
+    this.jewelry,
+    this.bullion,
   });
 
   final String id;
@@ -30,16 +41,27 @@ class RecentlyViewedEntry {
   final String? clarity;
   final String? cut;
   final String? availability;
+  final Diamond? diamond;
+  final Gemstone? gemstone;
+  final Watch? watch;
+  final Jewelry? jewelry;
+  final Bullion? bullion;
 
   String get displayTitle {
-    if (productTitle != null && productTitle!.isNotEmpty) {
-      return productTitle!;
+    final title = productTitle?.trim();
+    final stock = _optional(stockNumber);
+    final titleIsStock = title != null &&
+        stock != null &&
+        title.toLowerCase() == stock.toLowerCase();
+    if (title != null && title.isNotEmpty && !titleIsStock) {
+      return title;
     }
     if (carat != null) {
       final parts = <String>['${carat!.toStringAsFixed(2)}ct'];
       if (_optional(shape) != null) parts.add(shape!);
       return parts.join(' ');
     }
+    if (title != null && title.isNotEmpty) return title;
     if (_optional(stockNumber) != null) return stockNumber!;
     final typeLabel =
         productType.isNotEmpty ? _capitalizeType(productType) : null;

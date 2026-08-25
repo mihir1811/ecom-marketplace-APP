@@ -97,8 +97,8 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const textColor = AppColors.textPrimaryLight;
-    const mutedColor = AppColors.textSecondaryLight;
+    final textColor = AppColors.textPrimary(context);
+    final mutedColor = AppColors.textSecondary(context);
     final title = _gridTitle(product);
     final gradesLine = _gridGradesLine(product);
     final metaLine = _gridMetaLine(product);
@@ -118,7 +118,7 @@ class _ProductCard extends StatelessWidget {
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
                   child: Material(
-                    color: AppColors.warmWhite,
+                    color: AppColors.card(context),
                     borderRadius: BorderRadius.circular(AppSpacing.r4),
                     child: SizedBox(
                       width: 28,
@@ -143,7 +143,7 @@ class _ProductCard extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: AppColors.warmWhite.withValues(alpha: 0.92),
+                        color: AppColors.card(context).withValues(alpha: 0.92),
                         borderRadius: BorderRadius.circular(AppSpacing.r8),
                       ),
                       child: const Icon(Icons.more_vert, size: 18),
@@ -313,7 +313,7 @@ class _ProductThumb extends StatelessWidget {
     final url = _firstImageUrl(product);
     if (url != null) {
       return ColoredBox(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         child: AppNetworkImage(
           url: url,
           fit: BoxFit.contain,
@@ -371,7 +371,7 @@ class _MenuRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = danger ? AppColors.error : AppColors.charcoal;
+    final color = danger ? AppColors.error : AppColors.textPrimary(context);
     return Row(
       children: [
         Icon(icon, size: 18, color: color),

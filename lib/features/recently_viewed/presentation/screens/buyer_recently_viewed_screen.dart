@@ -20,13 +20,14 @@ import '../../../comparison/domain/models/compare_category.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
+import '../../../buyer/presentation/widgets/buyer_layout.dart';
 import '../../../product_detail/application/catalog_product_detail_loader.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/recently_viewed_list_provider.dart';
 import '../../application/recently_viewed_providers.dart';
 import '../../domain/models/recently_viewed.dart';
-import '../widgets/../../../buyer/presentation/widgets/buyer_layout.dart';
 import '../widgets/recently_viewed_badge.dart';
+import '../widgets/recently_viewed_catalog_card.dart';
 
 enum _ViewMode { grid, list }
 
@@ -225,8 +226,11 @@ class _BuyerRecentlyViewedScreenState
       controller: _scrollController,
       itemCount: page.items.length,
       isLoadingMore: page.hasMore,
-      itemBuilder: (context, index) =>
-          _RecentlyViewedGridCard(entry: page.items[index]),
+      itemBuilder: (context, index) => RecentlyViewedCatalogCard(
+        entry: page.items[index],
+        isGrid: true,
+        fallback: _RecentlyViewedGridCard(entry: page.items[index]),
+      ),
     );
   }
 
@@ -268,7 +272,11 @@ class _BuyerRecentlyViewedScreenState
         }
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-          child: _RecentlyViewedListCard(entry: page.items[index]),
+          child: RecentlyViewedCatalogCard(
+            entry: page.items[index],
+            isGrid: false,
+            fallback: _RecentlyViewedListCard(entry: page.items[index]),
+          ),
         );
       },
     );

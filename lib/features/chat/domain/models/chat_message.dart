@@ -36,6 +36,7 @@ class ChatMessage {
     this.fileUrl,
     this.productId,
     this.productType,
+    this.productNameHint = '',
     this.readAt,
     this.from,
     this.to,
@@ -51,6 +52,7 @@ class ChatMessage {
   final ChatMessageType messageType;
   final String? productId;
   final ChatProductType? productType;
+  final String productNameHint;
   final DateTime createdAt;
   final bool isRead;
   final DateTime? readAt;

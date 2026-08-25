@@ -1,3 +1,19 @@
+import '../../../bullions/data/mappers/bullion_mapper.dart';
+import '../../../bullions/data/models/bullion_dto.dart';
+import '../../../bullions/domain/models/billion.dart';
+import '../../../diamonds/data/mappers/diamond_mapper.dart';
+import '../../../diamonds/data/models/diamond_dto.dart';
+import '../../../diamonds/domain/models/diamond.dart';
+import '../../../diamonds/domain/models/diamond_display.dart';
+import '../../../gemstones/data/mappers/gemstone_mapper.dart';
+import '../../../gemstones/data/models/gemstone_dto.dart';
+import '../../../gemstones/domain/models/gemstone.dart';
+import '../../../jewelry/data/mappers/jewelry_mapper.dart';
+import '../../../jewelry/data/models/jewelry_dto.dart';
+import '../../../jewelry/domain/models/jewelry.dart';
+import '../../../watches/data/mappers/watch_mapper.dart';
+import '../../../watches/data/models/watch_dto.dart';
+import '../../../watches/domain/models/watch.dart';
 import '../../domain/models/recently_viewed.dart';
 
 abstract final class RecentlyViewedMapper {
@@ -5,22 +21,76 @@ abstract final class RecentlyViewedMapper {
     final product = json['product'];
     final productMap = product is Map<String, dynamic> ? product : null;
     final productType = json['productType']?.toString() ?? '';
+    final productId = json['productId']?.toString() ?? '';
+    final normalized =
+        productMap == null ? null : _normalizeProduct(productMap, productId);
+
+    final diamond = _parseDiamond(normalized, productType);
+    final gemstone = _parseGemstone(normalized, productType);
+    final watch = _parseWatch(normalized, productType);
+    final jewelry = _parseJewelry(normalized, productType);
+    final bullion = _parseBullion(normalized, productType);
 
     return RecentlyViewedEntry(
       id: json['id']?.toString() ?? '',
-      productId: json['productId']?.toString() ?? '',
+      productId: productId,
       productType: productType,
       viewedAtLabel: _label(_parseDate(json['viewedAt'] ?? json['createdAt'])),
-      stockNumber: _nullableString(productMap?['stockNumber']),
-      productTitle: _extractTitle(productMap, productType),
-      imageUrl: _extractImageUrl(productMap),
-      price: _formatPrice(productMap),
-      carat: _asDouble(productMap?['carat']),
-      shape: _nullableString(productMap?['shape']),
-      color: _nullableString(productMap?['color']),
-      clarity: _nullableString(productMap?['clarity']),
-      cut: _nullableString(productMap?['cut']),
-      availability: _availabilityForType(productType, productMap),
+      stockNumber: _nullableString(normalized?['stockNumber']),
+      productTitle: _listingTitle(
+            diamond: diamond,
+            gemstone: gemstone,
+            watch: watch,
+            jewelry: jewelry,
+            bullion: bullion,
+          ) ??
+          _extractTitle(normalized, productType),
+      imageUrl: diamond?.imageUrl ??
+          gemstone?.imageUrl ??
+          watch?.renderableImageUrl ??
+          jewelry?.imageUrl ??
+          bullion?.renderableImageUrl ??
+          _extractImageUrl(normalized),
+      price: diamond != null
+          ? diamond.price.toString()
+          : gemstone != null
+              ? gemstone.price.toString()
+              : watch != null
+                  ? watch.price.toString()
+                  : jewelry != null
+                      ? jewelry.price.toString()
+                      : bullion != null
+                          ? bullion.price.toString()
+                          : _formatPrice(normalized),
+      carat: diamond?.carat ??
+          gemstone?.carat ??
+          _asDouble(normalized?['caratWeight']) ??
+          _asDouble(normalized?['totalCarat']) ??
+          _asDouble(normalized?['carat']),
+      shape: _nullableString(diamond?.shape) ??
+          _nullableString(gemstone?.shape) ??
+          _nullableString(normalized?['shape']),
+      color: _nullableString(diamond?.color) ??
+          _nullableString(gemstone?.color) ??
+          _nullableString(normalized?['primaryColor']) ??
+          _nullableString(normalized?['color']),
+      clarity: _nullableString(diamond?.clarity) ??
+          _nullableString(gemstone?.clarity) ??
+          _nullableString(normalized?['clarity']),
+      cut: _nullableString(diamond?.cut) ??
+          _nullableString(gemstone?.cut) ??
+          _nullableString(normalized?['cut']),
+      availability: diamond?.available ??
+          gemstone?.availability ??
+          watch?.availabilityStatus ??
+          jewelry?.availability ??
+          bullion?.availability ??
+          _availabilityForType(productType, normalized),
+      diamond: diamond,
+      gemstone: gemstone,
+      watch: watch,
+      jewelry: jewelry,
+      bullion: bullion,
     );
   }
 
@@ -48,10 +118,15 @@ abstract final class RecentlyViewedMapper {
 
   static String? _extractTitle(Map<String, dynamic>? product, String type) {
     if (product == null) return null;
+    final stock = _nullableString(product['stockNumber']);
     final explicit = _nullableString(product['title']) ??
         _nullableString(product['name']) ??
-        _nullableString(product['productName']);
-    if (explicit != null) return explicit;
+        _nullableString(product['productName']) ??
+        _nullableString(product['productTitle']);
+    if (explicit != null &&
+        (stock == null || explicit.toLowerCase() != stock.toLowerCase())) {
+      return explicit;
+    }
     // Construct from available data per type
     return switch (type) {
       'diamond' || 'meleeDiamond' => _diamondTitle(product),
@@ -64,7 +139,10 @@ abstract final class RecentlyViewedMapper {
   }
 
   static String? _diamondTitle(Map<String, dynamic> p) {
-    final carat = _asDouble(p['carat']);
+    final carat = _asDouble(p['caratWeight']) ??
+        _asDouble(p['totalCaratWeight']) ??
+        _asDouble(p['caratWeightPerpcs']) ??
+        _asDouble(p['carat']);
     final shape = _nullableString(p['shape']);
     if (carat != null && shape != null && shape.isNotEmpty) {
       return '${carat.toStringAsFixed(2)}ct $shape';
@@ -74,8 +152,12 @@ abstract final class RecentlyViewedMapper {
   }
 
   static String? _gemstoneTitle(Map<String, dynamic> p) {
-    final gemType = _nullableString(p['gemType']) ?? _nullableString(p['type']);
-    final carat = _asDouble(p['carat']);
+    final gemType = _nullableString(p['gemsType']) ??
+        _nullableString(p['gemType']) ??
+        _nullableString(p['type']);
+    final carat = _asDouble(p['totalCarat']) ??
+        _asDouble(p['caratPerPcs']) ??
+        _asDouble(p['carat']);
     if (gemType != null && carat != null) {
       return '${carat.toStringAsFixed(2)}ct $gemType';
     }
@@ -271,5 +353,122 @@ abstract final class RecentlyViewedMapper {
       'memo' => 'On Memo',
       _ => null,
     };
+  }
+
+  static Map<String, dynamic> _normalizeProduct(
+    Map<String, dynamic> product,
+    String productId,
+  ) {
+    final map = Map<String, dynamic>.from(product);
+    if ((map['id']?.toString() ?? '').trim().isEmpty && productId.isNotEmpty) {
+      map['id'] = productId;
+    }
+    map['caratWeight'] ??= map['carat'];
+    map['totalCarat'] ??= map['carat'] ?? map['caratWeight'];
+    map['totalPrice'] ??= map['price'] ?? map['salePrice'] ?? map['retailPrice'];
+    map['gemsType'] ??= map['gemType'] ?? map['type'];
+    map['primaryColor'] ??= map['color'];
+    map['productTitle'] ??=
+        map['title'] ?? map['name'] ?? map['productName'];
+    return map;
+  }
+
+  static String? _listingTitle({
+    Diamond? diamond,
+    Gemstone? gemstone,
+    Watch? watch,
+    Jewelry? jewelry,
+    Bullion? bullion,
+  }) {
+    if (diamond != null) {
+      return '${diamond.carat.toStringAsFixed(2)}ct ${DiamondDisplay.shape(diamond.shape)}';
+    }
+    if (gemstone != null) {
+      final carat = '${gemstone.carat.toStringAsFixed(2)}ct';
+      final shape = _nullableString(gemstone.shape);
+      if (shape != null) return '$carat $shape';
+      final type = _nullableString(gemstone.type);
+      return type == null ? carat : '$carat $type';
+    }
+    if (watch != null) {
+      final model = watch.model.trim();
+      if (model.isNotEmpty) return model;
+      final brand = watch.brand.trim();
+      return brand.isEmpty ? null : brand;
+    }
+    if (jewelry != null) {
+      final name = jewelry.name.trim();
+      return name.isEmpty ? null : name;
+    }
+    if (bullion != null) {
+      final parts = [
+        if (bullion.weightLabel.isNotEmpty) bullion.weightLabel,
+        if (bullion.presetVariant.isNotEmpty) bullion.presetVariant,
+      ];
+      if (parts.isNotEmpty) return parts.join(' ');
+      final name = bullion.name.trim();
+      return name.isEmpty ? null : name;
+    }
+    return null;
+  }
+
+  static Diamond? _parseDiamond(Map<String, dynamic>? product, String type) {
+    if (product == null) return null;
+    if (type != 'diamond' && type != 'meleeDiamond') return null;
+    try {
+      final dto = DiamondDto.fromJson(
+        product,
+        isMelee: type == 'meleeDiamond',
+      );
+      if (dto.id.isEmpty) return null;
+      return DiamondMapper.toDomain(dto, isLabGrown: false);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Gemstone? _parseGemstone(Map<String, dynamic>? product, String type) {
+    if (product == null || type != 'gemstone') return null;
+    try {
+      final dto = GemstoneDto.fromJson(product);
+      if (dto.id.isEmpty) return null;
+      return GemstoneMapper.toDomain(dto);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Watch? _parseWatch(Map<String, dynamic>? product, String type) {
+    if (product == null || type != 'watch') return null;
+    try {
+      final dto = WatchDto.fromJson(product);
+      if (dto.id.isEmpty) return null;
+      return WatchMapper.toDomain(dto);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Jewelry? _parseJewelry(Map<String, dynamic>? product, String type) {
+    if (product == null) return null;
+    if (type != 'jewelry' && type != 'jewellery') return null;
+    try {
+      final dto = JewelryDto.fromJson(product);
+      if (dto.id.isEmpty) return null;
+      return JewelryMapper.toDomain(dto);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Bullion? _parseBullion(Map<String, dynamic>? product, String type) {
+    if (product == null || type != 'bullion') return null;
+    try {
+      final dto = BullionDto.fromJson(product);
+      if (dto.id.isEmpty) return null;
+      return BullionMapper.toDomain(dto);
+    } catch (_) {
+      return null;
+    }
   }
 }

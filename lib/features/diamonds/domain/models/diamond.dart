@@ -30,6 +30,8 @@ class Diamond {
   final String? sellerCountry;
   final ListingSellerInfo? listingSeller;
   final String? measurement;
+  final String? measurementMin;
+  final String? measurementMax;
   final String? ratio;
   final String? tablePercent;
   final String? depthPercent;
@@ -91,6 +93,8 @@ class Diamond {
     this.sellerCountry,
     this.listingSeller,
     this.measurement,
+    this.measurementMin,
+    this.measurementMax,
     this.ratio,
     this.tablePercent,
     this.depthPercent,

@@ -47,7 +47,6 @@ class ActiveFeesNotifier extends AsyncNotifier<FeeRulesCatalog> {
       state = const AsyncValue.data(FeeRulesCatalog.empty);
       return;
     }
-    state = const AsyncValue.loading();
     _cancelToken?.cancel('refresh');
     _cancelToken = CancelToken();
     final result = await _repo.listActive(cancelToken: _cancelToken);

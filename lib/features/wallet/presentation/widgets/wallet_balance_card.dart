@@ -21,7 +21,9 @@ class WalletBalanceCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(AppSpacing.s24),
         decoration: BoxDecoration(
-          color: AppColors.charcoal,
+          color: AppColors.isDark(context)
+              ? AppColors.charcoalLight
+              : AppColors.charcoal,
           borderRadius: BorderRadius.circular(AppSpacing.r24),
           boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
         ),

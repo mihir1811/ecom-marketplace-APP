@@ -166,7 +166,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
         TabBar(
           controller: _tabController,
           labelColor: AppColors.info,
-          unselectedLabelColor: AppColors.textSecondaryLight,
+          unselectedLabelColor: AppColors.textSecondary(context),
           indicatorColor: AppColors.info,
           indicatorWeight: 3,
           labelStyle: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
@@ -191,11 +191,11 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
-                      borderSide: const BorderSide(color: AppColors.warmBorder),
+                      borderSide: BorderSide(color: AppColors.border(context)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
-                      borderSide: const BorderSide(color: AppColors.warmBorder),
+                      borderSide: BorderSide(color: AppColors.border(context)),
                     ),
                     contentPadding: const EdgeInsets.symmetric(vertical: 0),
                   ),
@@ -225,7 +225,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
               Text(
                 '$total total · use column picker to show all fields',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
               ),
               const Spacer(),
@@ -261,7 +261,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
                           child: Text(
                             'No products yet.',
                             style: AppTypography.body.copyWith(
-                              color: AppColors.textMutedLight,
+                              color: AppColors.textMuted(context),
                             ),
                           ),
                         )
@@ -328,7 +328,7 @@ class _StatusDropdown extends StatelessWidget {
           'Status',
           style: AppTypography.caption.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondaryLight,
+            color: AppColors.textSecondary(context),
           ),
         ),
         const SizedBox(width: 8),
@@ -373,7 +373,7 @@ class _ViewModeToggle extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppSpacing.r8),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -384,7 +384,7 @@ class _ViewModeToggle extends StatelessWidget {
             selected: mode == SellerProductsViewMode.grid,
             onTap: () => onChanged(SellerProductsViewMode.grid),
           ),
-          Container(width: 1, height: 32, color: AppColors.warmBorder),
+          Container(width: 1, height: 32, color: AppColors.border(context)),
           _ToggleChip(
             label: 'Cards',
             icon: Icons.grid_view,
@@ -413,7 +413,7 @@ class _ToggleChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? AppColors.info : Colors.transparent,
+      color: selected ? AppColors.selectedFill(context) : Colors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -424,14 +424,18 @@ class _ToggleChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 18,
-                color: selected ? AppColors.warmWhite : AppColors.charcoal,
+                color: selected
+                    ? AppColors.onSelected(context)
+                    : AppColors.textPrimary(context),
               ),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: AppTypography.caption.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: selected ? AppColors.warmWhite : AppColors.charcoal,
+                  color: selected
+                      ? AppColors.onSelected(context)
+                      : AppColors.textPrimary(context),
                 ),
               ),
             ],
@@ -469,16 +473,16 @@ class _PaginationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.warmBorder)),
-        color: AppColors.warmWhite,
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.border(context))),
+        color: AppColors.card(context),
       ),
       child: Row(
         children: [
           Text(
             'Rows per page:',
-            style:
-                AppTypography.caption.copyWith(color: AppColors.textMutedLight),
+            style: AppTypography.caption
+                .copyWith(color: AppColors.textMuted(context)),
           ),
           const SizedBox(width: 8),
           DropdownButton<int>(
@@ -497,7 +501,7 @@ class _PaginationBar extends StatelessWidget {
           Text(
             total == 0 ? '0 of 0' : '$start–$end of $total',
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondaryLight,
+              color: AppColors.textSecondary(context),
             ),
           ),
           IconButton(

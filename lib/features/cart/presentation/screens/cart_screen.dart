@@ -8,6 +8,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_top_bar.dart';
 import '../../application/cart_provider.dart';
+import '../../application/fees_providers.dart';
 import '../widgets/cart_address_section.dart';
 import '../widgets/cart_checkout_button.dart';
 import '../widgets/cart_items_section.dart';
@@ -31,6 +32,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     Future.microtask(() {
       if (!mounted) return;
       ref.read(cartProvider.notifier).refresh(mode: CartLoadMode.full);
+      ref.read(activeFeesProvider.notifier).refresh();
     });
   }
 
@@ -49,9 +51,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh',
-            onPressed: () => ref
-                .read(cartProvider.notifier)
-                .refresh(mode: CartLoadMode.full, force: true),
+            onPressed: () {
+              ref
+                  .read(cartProvider.notifier)
+                  .refresh(mode: CartLoadMode.full, force: true);
+              ref.read(activeFeesProvider.notifier).refresh();
+            },
           ),
         ],
       ),
@@ -60,9 +65,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           : error != null && isEmpty
               ? _CartErrorState(
                   message: error,
-                  onRetry: () => ref
-                      .read(cartProvider.notifier)
-                      .refresh(mode: CartLoadMode.full, force: true),
+                  onRetry: () {
+                    ref
+                        .read(cartProvider.notifier)
+                        .refresh(mode: CartLoadMode.full, force: true);
+                    ref.read(activeFeesProvider.notifier).refresh();
+                  },
                 )
               : isEmpty
                   ? const _CartEmptyState()

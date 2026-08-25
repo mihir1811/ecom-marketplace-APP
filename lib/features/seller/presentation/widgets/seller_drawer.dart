@@ -133,11 +133,11 @@ class SellerDrawer extends ConsumerWidget {
                         selectedRoute == item.route ||
                         selectedRoute.startsWith('${item.route}/');
                     final iconColor = isSelected
-                        ? AppColors.onSelected(context)
+                        ? AppColors.navOnSelected(context)
                         : AppColors.textPrimary(context);
                     return Material(
                       color: isSelected
-                          ? AppColors.selectedFill(context)
+                          ? AppColors.navSelectedFill(context)
                           : Colors.transparent,
                       child: InkWell(
                         onTap: () {

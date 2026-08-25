@@ -53,7 +53,7 @@ class _SellerProductColumnPickerPanelState
     return Material(
       elevation: 8,
       borderRadius: BorderRadius.circular(AppSpacing.r8),
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       child: SizedBox(
         width: 280,
         height: 420,
@@ -129,7 +129,7 @@ class _SellerProductColumnPickerPanelState
                     label: Text(
                       'Show/Hide All',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.charcoal,
+                        color: AppColors.textPrimary(context),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -140,7 +140,7 @@ class _SellerProductColumnPickerPanelState
                     child: Text(
                       'RESET',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.5,
                       ),

@@ -23,6 +23,7 @@ abstract final class ChatMapper {
       messageType: _messageType(json['messageType']?.toString()),
       productId: json['productId']?.toString(),
       productType: ChatProductType.fromApi(json['productType']?.toString()),
+      productNameHint: _productNameHint(json),
       createdAt: createdAt,
       isRead: json['isRead'] == true,
       readAt: readAt,
@@ -117,7 +118,11 @@ abstract final class ChatMapper {
           lastMessage: preview,
           lastMessageAt: msg.createdAt,
           unreadCount: (existing?.unreadCount ?? 0) + unreadBump,
-          productNameHint: productType.label,
+          productNameHint: _betterHint(
+            msg.productNameHint,
+            existing?.productNameHint,
+            productType.label,
+          ),
         );
       } else {
         map[id] = ChatThread(
@@ -130,7 +135,11 @@ abstract final class ChatMapper {
           lastMessage: existing.lastMessage,
           lastMessageAt: existing.lastMessageAt,
           unreadCount: existing.unreadCount + unreadBump,
-          productNameHint: existing.productNameHint,
+          productNameHint: _betterHint(
+            existing.productNameHint,
+            msg.productNameHint,
+            productType.label,
+          ),
         );
       }
     }
@@ -138,6 +147,43 @@ abstract final class ChatMapper {
     final list = map.values.toList()
       ..sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
     return list;
+  }
+
+  static String _productNameHint(Map<String, dynamic> json) {
+    final nested = json['product'];
+    final nestedMap =
+        nested is Map ? Map<String, dynamic>.from(nested) : null;
+    final candidates = <Object?>[
+      json['productName'],
+      json['productTitle'],
+      json['stockNumber'],
+      nestedMap?['productName'],
+      nestedMap?['name'],
+      nestedMap?['title'],
+      nestedMap?['stockNumber'],
+      nestedMap?['brand'],
+      nestedMap?['model'],
+    ];
+    for (final raw in candidates) {
+      final text = raw?.toString().trim() ?? '';
+      if (text.isEmpty) continue;
+      if (_looksLikeUuid(text)) continue;
+      return text;
+    }
+    return '';
+  }
+
+  static String _betterHint(String a, String? b, String fallback) {
+    if (a.trim().isNotEmpty && !_looksLikeUuid(a)) return a.trim();
+    final other = b?.trim() ?? '';
+    if (other.isNotEmpty && !_looksLikeUuid(other)) return other;
+    return fallback;
+  }
+
+  static bool _looksLikeUuid(String text) {
+    return RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-',
+    ).hasMatch(text.trim());
   }
 
   static ChatParticipant? _participant(Object? raw) {

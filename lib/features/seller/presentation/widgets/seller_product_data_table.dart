@@ -51,7 +51,7 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
       return Center(
         child: Text(
           'Select columns using the column picker.',
-          style: AppTypography.body.copyWith(color: AppColors.textMutedLight),
+          style: AppTypography.body.copyWith(color: AppColors.textMuted(context)),
         ),
       );
     }
@@ -92,7 +92,7 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
                     headingTextStyle: AppTypography.caption.copyWith(
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.4,
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                       fontSize: 11,
                     ),
                     columns: [
@@ -203,14 +203,14 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.sandSurface,
+          color: AppColors.surface(context),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.warmBorder),
+          border: Border.all(color: AppColors.border(context)),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.image_outlined,
           size: 20,
-          color: AppColors.textMutedLight,
+          color: AppColors.textMuted(context),
         ),
       );
     }
@@ -233,7 +233,7 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               foregroundColor:
-                  expired ? AppColors.textMutedLight : AppColors.info,
+                  expired ? AppColors.textMuted(context) : AppColors.info,
             ),
             child: const Text('Active'),
           ),
@@ -244,7 +244,7 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               foregroundColor:
-                  expired ? AppColors.charcoal : AppColors.textMutedLight,
+                  expired ? AppColors.textPrimary(context) : AppColors.textMuted(context),
             ),
             child: const Text('Expire'),
           ),
@@ -257,7 +257,7 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
       text,
       overflow: TextOverflow.ellipsis,
       style: AppTypography.caption.copyWith(
-        color: AppColors.charcoal,
+        color: AppColors.textPrimary(context),
         fontSize: 13,
       ),
     );
@@ -277,19 +277,19 @@ class _StatusPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: highlighted
             ? AppColors.info.withValues(alpha: 0.12)
-            : AppColors.sandSurface,
+            : AppColors.surface(context),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: highlighted
               ? AppColors.info.withValues(alpha: 0.35)
-              : AppColors.warmBorder,
+              : AppColors.border(context),
         ),
       ),
       child: Text(
         label,
         style: AppTypography.caption.copyWith(
           fontWeight: FontWeight.w600,
-          color: highlighted ? AppColors.info : AppColors.textSecondaryLight,
+          color: highlighted ? AppColors.info : AppColors.textSecondary(context),
         ),
       ),
     );
@@ -313,7 +313,7 @@ class _ActionIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       tooltip: tooltip,
-      icon: Icon(icon, size: 18, color: color ?? AppColors.charcoal),
+      icon: Icon(icon, size: 18, color: color ?? AppColors.textPrimary(context)),
       padding: const EdgeInsets.all(6),
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
       onPressed: onPressed,

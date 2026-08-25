@@ -1,3 +1,4 @@
+import '../../../../core/utils/melee_purchase_math.dart';
 import '../../domain/models/cart_item.dart';
 import '../../domain/models/cart_product_type.dart';
 import '../../domain/models/cart_summary.dart';
@@ -10,9 +11,19 @@ abstract final class CartMapper {
     final productMap =
         product is Map<String, dynamic> ? product : const <String, dynamic>{};
     final productType = _str(json['productType']) ?? '';
-    final price = _num(productMap['totalPrice']) ??
+    final specsRaw = json['specifications'];
+    final specifications =
+        specsRaw is Map<String, dynamic> ? specsRaw : null;
+
+    final meleeLine = MeleePurchaseMath.linePriceFromCartPayload(
+      specifications: specifications,
+      product: productMap,
+    );
+    final lotPrice = _num(productMap['totalPrice']) ??
         _num(productMap['price']) ??
         0;
+    final price = meleeLine ?? lotPrice;
+
     final name = _str(productMap['name']) ??
         _str(productMap['brand']) ??
         _str(productMap['stockNumber']) ??
@@ -29,8 +40,11 @@ abstract final class CartMapper {
       productType: productType,
       title: name,
       category: CartProductType.label(productType),
+      // Cart line count — melee partial amount lives in specifications, not qty.
       quantity: _int(json['quantity']) ?? 1,
       priceUsd: price,
+      unitPriceUsd: meleeLine,
+      lineTotalUsd: meleeLine,
       imageUrl: image,
       shape: _str(productMap['shape']),
       seller: _str(json['seller']) ?? _str(productMap['sellerName']),
@@ -188,6 +202,10 @@ abstract final class CartMapper {
   }
 
   /// Merges summary line pricing onto hydrated cart rows.
+  ///
+  /// When a row already has melee [CartItem.lineTotalUsd] from specifications
+  /// (`calculatedPrice` / lot share), keep that price — summary often prices
+  /// separable melee as `pricePerPcs × pcs`, which disagrees with detail.
   static List<CartItem> mergeSummaryPrices(
     List<CartItem> items,
     CartSummary summary,
@@ -199,12 +217,22 @@ abstract final class CartMapper {
     return [
       for (final item in items)
         if (byCartId[item.cartId] case final line?)
-          item.copyWith(
-            quantity: line.quantity,
-            unitPriceUsd: line.unitPrice,
-            lineTotalUsd: line.lineTotal,
-            priceUsd: line.lineTotal,
-          )
+          item.lineTotalUsd != null
+              ? item.copyWith(
+                  title: (line.name != null && line.name!.isNotEmpty)
+                      ? line.name
+                      : item.title,
+                  quantity: line.quantity,
+                )
+              : item.copyWith(
+                  title: (line.name != null && line.name!.isNotEmpty)
+                      ? line.name
+                      : item.title,
+                  quantity: line.quantity,
+                  unitPriceUsd: line.unitPrice,
+                  lineTotalUsd: line.lineTotal,
+                  priceUsd: line.lineTotal,
+                )
         else
           item,
     ];
@@ -217,6 +245,80 @@ abstract final class CartMapper {
   ) {
     if (cartItems.isEmpty) return itemsFromSummary(summary);
     return mergeSummaryPrices(cartItems, summary);
+  }
+
+  /// Aligns summary money with cart rows after melee price correction.
+  static CartSummary reconcileSummaryPrices(
+    CartSummary summary,
+    List<CartItem> items,
+  ) {
+    if (items.isEmpty) return summary;
+
+    final byId = {for (final item in items) item.cartId: item};
+    var changed = false;
+    final lines = <CartSummaryLine>[];
+
+    if (summary.items.isEmpty) {
+      for (final item in items) {
+        lines.add(
+          CartSummaryLine(
+            cartId: item.cartId,
+            productId: item.productId,
+            productType: item.productType,
+            quantity: item.quantity,
+            unitPrice: item.unitPriceUsd ?? item.displayPriceUsd,
+            lineTotal: item.displayPriceUsd,
+            sellerId: item.sellerId,
+            name: item.title,
+            image: item.imageUrl,
+          ),
+        );
+      }
+      changed = true;
+    } else {
+      for (final line in summary.items) {
+        final item = byId[line.cartId];
+        if (item == null) {
+          lines.add(line);
+          continue;
+        }
+        final corrected = item.displayPriceUsd;
+        if ((corrected - line.lineTotal).abs() > 0.009) {
+          changed = true;
+          lines.add(
+            CartSummaryLine(
+              cartId: line.cartId,
+              productId: line.productId,
+              productType: line.productType,
+              quantity: line.quantity,
+              unitPrice: item.unitPriceUsd ?? corrected,
+              lineTotal: corrected,
+              sellerId: line.sellerId ?? item.sellerId,
+              name: line.name ?? item.title,
+              image: line.image ?? item.imageUrl,
+            ),
+          );
+        } else {
+          lines.add(line);
+        }
+      }
+    }
+
+    if (!changed) return summary;
+
+    final subtotal = lines.fold<double>(0, (sum, line) => sum + line.lineTotal);
+    final discounted =
+        (subtotal - summary.totalDiscount).clamp(0.0, double.infinity);
+    return CartSummary(
+      items: lines,
+      subtotal: subtotal,
+      automaticDiscountTotal: summary.automaticDiscountTotal,
+      promoDiscountTotal: summary.promoDiscountTotal,
+      totalDiscount: summary.totalDiscount,
+      discountedSubtotal: discounted,
+      appliedPromoCodes: summary.appliedPromoCodes,
+      automaticDiscounts: summary.automaticDiscounts,
+    );
   }
 
   static String? _str(Object? v) {

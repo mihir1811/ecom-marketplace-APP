@@ -110,13 +110,19 @@ abstract final class ReferenceMapper {
         json['name']?.toString() ??
         productType ??
         'Purchase';
-    final amount = _asDouble(json['amount'] ?? json['total'] ?? json['price']);
+    final amount = _asDouble(
+      json['commissionAmount'] ??
+          json['commission'] ??
+          json['amount'] ??
+          json['total'] ??
+          json['price'],
+    );
     final createdAt = _parseDate(json['createdAt'] ?? json['purchasedAt']);
 
     return ReferencePurchase(
       id: id,
       label: title,
-      amountLabel: amount == null ? '—' : AppCurrency.usd(amount),
+      amountLabel: amount == null ? '—' : AppCurrency.inr(amount),
       createdAtLabel: _label(createdAt),
       productType: productType,
       raw: json,

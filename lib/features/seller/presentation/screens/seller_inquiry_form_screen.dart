@@ -244,11 +244,11 @@ class _SellerInquiryFormScreenState
     super.dispose();
   }
 
-  Color _accent(InquiryCategory c) => switch (c) {
+  Color _accent(BuildContext context, InquiryCategory c) => switch (c) {
     InquiryCategory.diamond => AppColors.info,
     InquiryCategory.gemstone => AppSwatches.inquiryGemstone,
     InquiryCategory.bullion => AppSwatches.inquiryBullion,
-    InquiryCategory.watch => AppColors.textSecondaryLight,
+    InquiryCategory.watch => AppColors.textSecondary(context),
     InquiryCategory.jewelry => AppSwatches.inquiryJewelry,
   };
 
@@ -355,7 +355,7 @@ class _SellerInquiryFormScreenState
                       value: c,
                       child: Row(
                         children: [
-                          Icon(_icon(c), size: 18, color: _accent(c)),
+                          Icon(_icon(c), size: 18, color: _accent(context, c)),
                           const SizedBox(width: 8),
                           Text(c.label),
                         ],
@@ -397,7 +397,7 @@ class _SellerInquiryFormScreenState
                                 width: 22,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.white,
+                                  color: AppColors.warmWhite,
                                 ),
                               )
                             : Text(

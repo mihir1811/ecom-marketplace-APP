@@ -2,17 +2,37 @@ import '../../domain/models/fee_rule.dart';
 
 abstract final class FeeRuleMapper {
   static FeeRulesCatalog catalogFromJson(Map<String, dynamic>? root) {
-    final data = root?['data'];
-    final list = data is List ? data : const [];
+    if (root == null) {
+      return const FeeRulesCatalog(isFromApi: true);
+    }
+
+    final data = root['data'];
+    Map<String, dynamic>? nested;
+    List<dynamic> list = const [];
+
+    if (data is List) {
+      list = data;
+    } else if (data is Map<String, dynamic>) {
+      nested = data;
+      final fees = data['fees'] ?? data['rules'] ?? data['items'];
+      if (fees is List) {
+        list = fees;
+      }
+    } else if (root['fees'] is List) {
+      list = root['fees'] as List;
+    }
+
     final rules = <FeeRule>[];
     for (final item in list) {
-      if (item is! Map<String, dynamic>) continue;
-      final rule = fromJson(item);
+      if (item is! Map) continue;
+      final map = Map<String, dynamic>.from(item);
+      final rule = fromJson(map);
       if (rule.id.isEmpty) continue;
       rules.add(rule);
     }
 
-    final configured = root?['configuredFeeTypes'];
+    final configured =
+        root['configuredFeeTypes'] ?? nested?['configuredFeeTypes'];
     final types = <String>[];
     if (configured is List) {
       for (final t in configured) {
@@ -21,7 +41,11 @@ abstract final class FeeRuleMapper {
       }
     }
 
-    return FeeRulesCatalog(rules: rules, configuredFeeTypes: types);
+    return FeeRulesCatalog(
+      rules: rules,
+      configuredFeeTypes: types,
+      isFromApi: true,
+    );
   }
 
   static FeeRule fromJson(Map<String, dynamic> json) {

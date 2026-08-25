@@ -156,7 +156,7 @@ class _EmptyHint extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: Text(
         text,
-        style: AppTypography.body.copyWith(color: AppColors.textMutedLight),
+        style: AppTypography.body.copyWith(color: AppColors.textMuted(context)),
       ),
     );
   }
@@ -178,10 +178,10 @@ class _DeviceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.warmBorder),
+        side: BorderSide(color: AppColors.border(context)),
       ),
       child: ListTile(
         title: Text(title),
@@ -203,10 +203,10 @@ class _SessionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.warmBorder),
+        side: BorderSide(color: AppColors.border(context)),
       ),
       child: ListTile(
         title: Text(session.deviceInfo),

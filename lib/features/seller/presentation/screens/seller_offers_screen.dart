@@ -112,14 +112,14 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.s16),
                 decoration: BoxDecoration(
-                  color: AppColors.sandSurface,
+                  color: AppColors.surface(context),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
                   'Review buyer price offers on your listings. Accept or reject '
                   'to keep the deal moving.',
                   style: AppTypography.body.copyWith(
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                     height: 1.4,
                   ),
                 ),
@@ -175,7 +175,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
                     child: Text(
                       'No offers in this filter.',
                       style: AppTypography.body.copyWith(
-                        color: AppColors.textMutedLight,
+                        color: AppColors.textMuted(context),
                       ),
                     ),
                   ),
@@ -202,11 +202,11 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? AppColors.info : AppColors.warmWhite,
+      color: selected ? AppColors.info : AppColors.card(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(999),
         side: BorderSide(
-          color: selected ? AppColors.info : AppColors.warmBorder,
+          color: selected ? AppColors.info : AppColors.border(context),
         ),
       ),
       child: InkWell(
@@ -218,7 +218,9 @@ class _FilterChip extends StatelessWidget {
             label,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w700,
-              color: selected ? AppColors.warmWhite : AppColors.charcoal,
+              color: selected
+                  ? AppColors.warmWhite
+                  : AppColors.textPrimary(context),
             ),
           ),
         ),
@@ -238,11 +240,11 @@ class _OfferCard extends StatelessWidget {
   final VoidCallback onAccept;
   final VoidCallback onReject;
 
-  Color get _statusColor => switch (offer.status) {
+  Color _statusColor(BuildContext context) => switch (offer.status) {
         ProductOfferStatus.pending => AppColors.info,
         ProductOfferStatus.accepted => AppColors.success,
         ProductOfferStatus.rejected => AppColors.error,
-        ProductOfferStatus.expired => AppColors.textMutedLight,
+        ProductOfferStatus.expired => AppColors.textMuted(context),
       };
 
   @override
@@ -251,12 +253,13 @@ class _OfferCard extends StatelessWidget {
     final productLabel =
         offer.productLabel ?? offer.productType;
     final listPrice = offer.listPrice;
+    final statusColor = _statusColor(context);
 
     return Material(
-      color: AppColors.warmWhite,
+      color: AppColors.card(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.warmBorder),
+        side: BorderSide(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
@@ -271,13 +274,13 @@ class _OfferCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _statusColor.withValues(alpha: 0.12),
+                    color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     offer.status.label,
                     style: AppTypography.caption.copyWith(
-                      color: _statusColor,
+                      color: statusColor,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -286,7 +289,7 @@ class _OfferCard extends StatelessWidget {
                 Text(
                   offer.createdAtLabel,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textMuted(context),
                     fontSize: 11,
                   ),
                 ),
@@ -302,7 +305,7 @@ class _OfferCard extends StatelessWidget {
               Text(
                 'Stock ${offer.stockNumber}',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: AppColors.textSecondary(context),
                 ),
               ),
             ],
@@ -334,7 +337,7 @@ class _OfferCard extends StatelessWidget {
                   if (offer.buyerEmail != null) offer.buyerEmail!,
                 ].join(' · '),
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: AppColors.textSecondary(context),
                 ),
               ),
             ],
@@ -344,13 +347,13 @@ class _OfferCard extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.sandSurface,
+                  color: AppColors.surface(context),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   offer.message!,
                   style: AppTypography.body.copyWith(
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
                     height: 1.35,
                   ),
                 ),
@@ -402,9 +405,9 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.sandSurface,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Text(
         label,
@@ -433,7 +436,7 @@ class _PriceBlock extends StatelessWidget {
         Text(
           label,
           style: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -442,7 +445,9 @@ class _PriceBlock extends StatelessWidget {
           value,
           style: AppTypography.title.copyWith(
             fontWeight: FontWeight.w800,
-            color: emphasize ? AppColors.info : AppColors.charcoal,
+            color: emphasize
+                ? AppColors.info
+                : AppColors.textPrimary(context),
             fontSize: emphasize ? 18 : 16,
           ),
         ),
