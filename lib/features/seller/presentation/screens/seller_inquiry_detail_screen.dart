@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
-import '../../../../core/router/account_nav.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -67,7 +66,7 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Inquiry deleted')));
-        context.go(inquiriesPathFor(GoRouterState.of(context).uri.path));
+        context.goBack();
       case ResultFailure(failure: final failure):
         ScaffoldMessenger.of(
           context,
@@ -77,12 +76,11 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final path = GoRouterState.of(context).uri.path;
     final category = InquiryCategory.fromRouteName(categoryName);
     if (category == null) {
       return Center(
         child: TextButton(
-          onPressed: () => context.go(inquiriesPathFor(path)),
+          onPressed: () => context.goBack(),
           child: const Text('Back to inquiries'),
         ),
       );
@@ -105,7 +103,7 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
               Text(message, style: AppTypography.body),
               const SizedBox(height: 12),
               TextButton(
-                onPressed: () => context.go(inquiriesPathFor(path)),
+                onPressed: () => context.goBack(),
                 child: const Text('Back to inquiries'),
               ),
             ],
@@ -114,7 +112,6 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
       },
       data: (inquiry) => _InquiryDetailBody(
         inquiry: inquiry,
-        path: path,
         category: category,
         showHeader: showHeader,
         onDelete: () => _confirmDelete(context, ref, category),
@@ -126,14 +123,12 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
 class _InquiryDetailBody extends StatelessWidget {
   const _InquiryDetailBody({
     required this.inquiry,
-    required this.path,
     required this.category,
     required this.showHeader,
     required this.onDelete,
   });
 
   final SellerInquiry inquiry;
-  final String path;
   final InquiryCategory category;
   final bool showHeader;
   final VoidCallback onDelete;
@@ -182,7 +177,7 @@ class _InquiryDetailBody extends StatelessWidget {
                   icon: const Icon(Icons.menu),
                 ),
                 TextButton(
-                  onPressed: () => context.go(inquiriesPathFor(path)),
+                  onPressed: () => context.goBack(),
                   child: const Text('All inquiries'),
                 ),
               ],
@@ -192,7 +187,7 @@ class _InquiryDetailBody extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
-              onPressed: () => context.go(inquiriesPathFor(path)),
+              onPressed: () => context.goBack(),
               child: const Text('All inquiries'),
             ),
           ),

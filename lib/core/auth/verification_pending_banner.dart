@@ -16,8 +16,9 @@ class VerificationPendingBanner extends ConsumerWidget {
         ref.watch(authProvider.select((s) => s.isVerificationPending));
     if (!pending) return const SizedBox.shrink();
 
+    final dark = AppColors.isDark(context);
     return Material(
-      color: AppColors.warning.withValues(alpha: 0.12),
+      color: AppColors.warning.withValues(alpha: dark ? 0.22 : 0.12),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.s16,
@@ -25,10 +26,10 @@ class VerificationPendingBanner extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.hourglass_top_rounded,
               size: 18,
-              color: AppColors.warning,
+              color: dark ? AppColors.bronzeLight : AppColors.warning,
             ),
             const SizedBox(width: AppSpacing.s8),
             Expanded(
@@ -37,7 +38,7 @@ class VerificationPendingBanner extends ConsumerWidget {
                 'and selling stay unavailable until an admin verifies your '
                 'account.',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.charcoal,
+                  color: AppColors.textPrimary(context),
                   fontWeight: FontWeight.w600,
                 ),
               ),

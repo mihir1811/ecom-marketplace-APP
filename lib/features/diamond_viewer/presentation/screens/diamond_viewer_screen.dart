@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -57,9 +57,7 @@ class _DiamondViewerScreenState extends State<DiamondViewerScreen> {
                 children: [
                   IconButton(
                     tooltip: 'Close',
-                    onPressed: () => context.canPop()
-                        ? context.pop()
-                        : context.go('/'),
+                    onPressed: () => context.goBack(),
                     icon: const Icon(Icons.close, color: AppColors.warmWhite),
                   ),
                   Expanded(

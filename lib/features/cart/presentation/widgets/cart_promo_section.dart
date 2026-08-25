@@ -114,16 +114,19 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
               const SizedBox(width: AppSpacing.s8),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: promo.applied
-                      ? AppColors.textMutedLight
-                      : (canApply
-                          ? AppColors.charcoal
-                          : AppColors.textMutedLight),
-                  foregroundColor: AppColors.warmWhite,
-                  disabledBackgroundColor:
-                      AppColors.textMutedLight.withValues(alpha: 0.5),
-                  disabledForegroundColor:
-                      AppColors.warmWhite.withValues(alpha: 0.7),
+                  backgroundColor: canApply || promo.applied
+                      ? AppColors.selectedFill(context)
+                      : AppColors.surface(context),
+                  foregroundColor: canApply || promo.applied
+                      ? AppColors.onSelected(context)
+                      : AppColors.textSecondary(context),
+                  disabledBackgroundColor: AppColors.surface(context),
+                  disabledForegroundColor: AppColors.textSecondary(context),
+                  side: BorderSide(
+                    color: canApply || promo.applied
+                        ? Colors.transparent
+                        : AppColors.border(context),
+                  ),
                 ),
                 onPressed: mutating
                     ? null

@@ -3,6 +3,7 @@ import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -210,11 +211,10 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                     const SizedBox(width: AppSpacing.s8),
                     TextButton(
                       onPressed: () {
-                        // Keep applied filters; just return to the finder.
                         if (context.canPop()) {
-                          context.pop();
+                          context.goBack();
                         } else {
-                          context.go(widget.searchRoute);
+                          context.openRoute(widget.searchRoute);
                         }
                       },
                       child: const Text('Edit Filters'),

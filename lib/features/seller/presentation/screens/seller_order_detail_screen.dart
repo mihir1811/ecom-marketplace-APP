@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_names.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -108,7 +107,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
           children: [
             const Text('Order not found'),
             TextButton(
-              onPressed: () => context.go(AppRouteNames.sellerOrders),
+              onPressed: () => context.goBack(),
               child: const Text('Back to orders'),
             ),
           ],

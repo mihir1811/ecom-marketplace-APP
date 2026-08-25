@@ -298,25 +298,6 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.s8),
-            _ShareActionTile(
-              icon: Icons.share_outlined,
-              title: 'Share to apps',
-              subtitle: 'Opens your device share sheet (Messages, Mail, etc.)',
-              onTap: _shareNative,
-            ),
-            _ShareActionTile(
-              icon: Icons.link,
-              title: 'Copy link',
-              subtitle: 'Link opens this product inside GemWorld',
-              onTap: _copyLink,
-            ),
-            _ShareActionTile(
-              icon: Icons.email_outlined,
-              title: 'Send email',
-              subtitle: 'Share with price, images, and video options above',
-              onTap: () => setState(() => _showEmailForm = true),
-            ),
             if (_showEmailForm) ...[
               const Divider(height: 24),
               Text(
@@ -403,34 +384,6 @@ class _ShareChannelButton extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _ShareActionTile extends StatelessWidget {
-  const _ShareActionTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: AppColors.bronze),
-      title: Text(title, style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
-      subtitle: Text(
-        subtitle,
-        style: AppTypography.caption.copyWith(color: AppColors.textMuted(context)),
-      ),
-      onTap: onTap,
     );
   }
 }

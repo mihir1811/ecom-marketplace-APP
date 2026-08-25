@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -81,7 +82,7 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
                     ),
                     const SizedBox(height: AppSpacing.s12),
                     TextButton(
-                      onPressed: () => context.go(AppRouteNames.policies),
+                      onPressed: () => context.openRoute(AppRouteNames.policies),
                       child: const Text('View all policies'),
                     ),
                   ],

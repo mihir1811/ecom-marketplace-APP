@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -52,10 +52,6 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             onPressed: () => ref
                 .read(cartProvider.notifier)
                 .refresh(mode: CartLoadMode.full, force: true),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => context.pop(),
           ),
         ],
       ),
@@ -139,7 +135,7 @@ class _CartEmptyState extends StatelessWidget {
           Text('Your cart is empty', style: AppTypography.body),
           const SizedBox(height: AppSpacing.s16),
           FilledButton(
-            onPressed: () => context.pop(),
+            onPressed: () => context.goBack(),
             child: const Text('Continue shopping'),
           ),
         ],

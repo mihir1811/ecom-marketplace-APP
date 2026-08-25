@@ -616,7 +616,7 @@ class _FilePickButton extends StatelessWidget {
             vertical: AppSpacing.s16,
             horizontal: AppSpacing.s24,
           ),
-          side: const BorderSide(color: AppColors.warmBorder),
+          side: BorderSide(color: AppColors.border(context)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.r8),
           ),
@@ -654,7 +654,7 @@ class SellerRegistrationStepHeader extends StatelessWidget {
         Text(
           'Step ${currentStep + 1} of ${SellerRegistrationSteps.count}',
           style: AppTypography.caption.copyWith(
-            color: AppColors.textSecondaryLight,
+            color: AppColors.textSecondary(context),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -668,8 +668,8 @@ class SellerRegistrationStepHeader extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: i <= currentStep
-                        ? AppColors.charcoal
-                        : AppColors.warmBorder,
+                        ? AppColors.selectedFill(context)
+                        : AppColors.border(context),
                     borderRadius: BorderRadius.circular(AppSpacing.r4),
                   ),
                 ),
@@ -681,7 +681,7 @@ class SellerRegistrationStepHeader extends StatelessWidget {
         Text(
           title,
           style: AppTypography.headline.copyWith(
-            color: AppColors.textPrimaryLight,
+            color: AppColors.textPrimary(context),
             fontWeight: FontWeight.w700,
           ),
         ),

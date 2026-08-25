@@ -6,7 +6,6 @@ abstract final class CartFeeConfig {
   static const double transactionFeeRate = 0.0236;
   static const double platformFeeInr = 100;
   static const double platformFeeThresholdInr = 5000;
-  static const double verificationRate = 0.01;
   static const double deliveryFeeInr = 99;
 }
 
@@ -74,13 +73,18 @@ class CartOrderEstimate {
         (exchangeRate != null && exchangeRate > 0) ? exchangeRate : null;
     final merchandiseInr = rate == null ? 0.0 : merchandiseUsd * rate;
 
-    final verificationRate = _percentageRate(
-      catalog,
-      FeeType.gemworldVerification,
-      fallback: CartFeeConfig.verificationRate,
-    );
+    final verificationOffered = catalog.offersGemworldVerification;
+    final verificationRate = verificationOffered
+        ? _percentageRate(
+            catalog,
+            FeeType.gemworldVerification,
+            fallback: 0,
+          )
+        : 0.0;
     final verificationUsd =
-        wantVerification ? merchandiseUsd * verificationRate : 0.0;
+        wantVerification && verificationOffered
+            ? merchandiseUsd * verificationRate
+            : 0.0;
     final verificationInr = rate == null ? 0.0 : verificationUsd * rate;
     final taxableInr = merchandiseInr + verificationInr;
 

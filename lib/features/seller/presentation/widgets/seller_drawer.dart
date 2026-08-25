@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -142,7 +142,7 @@ class SellerDrawer extends ConsumerWidget {
                       child: InkWell(
                         onTap: () {
                           Navigator.of(context).maybePop();
-                          context.go(item.route);
+                          context.openRoute(item.route);
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -183,7 +183,7 @@ class SellerDrawer extends ConsumerWidget {
                 ),
                 onTap: () {
                   Navigator.of(context).maybePop();
-                  context.go(AppRouteNames.home);
+                  context.resetTo(AppRouteNames.home);
                 },
               ),
           ],

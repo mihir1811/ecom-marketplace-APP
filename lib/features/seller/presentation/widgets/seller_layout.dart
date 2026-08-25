@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -52,7 +53,7 @@ class SellerLayout extends ConsumerWidget {
     if (!authState.isSeller) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
-        context.go(AppRouteNames.home);
+        context.resetTo(AppRouteNames.home);
       });
       return const AppScaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -72,7 +73,7 @@ class SellerLayout extends ConsumerWidget {
     if (authState.isVerificationPending && !allowedWhenPending) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
-        context.go(AppRouteNames.home);
+        context.resetTo(AppRouteNames.home);
       });
       return AppScaffold(
         body: Center(

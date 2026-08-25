@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -43,7 +43,7 @@ class ComparisonScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.s16),
                   FilledButton(
-                    onPressed: () => context.pop(),
+                    onPressed: () => context.goBack(),
                     child: const Text('Go back'),
                   ),
                 ],
@@ -64,7 +64,7 @@ class ComparisonScreen extends ConsumerWidget {
             TextButton(
               onPressed: () {
                 ref.read(comparisonProvider.notifier).clear();
-                context.pop();
+                context.goBack();
               },
               child: Text(
                 'Start New',
@@ -85,7 +85,7 @@ class ComparisonScreen extends ConsumerWidget {
                 onRemove: (id) {
                   ref.read(comparisonProvider.notifier).remove(id);
                   if (ref.read(comparisonProvider).count < 2) {
-                    context.pop();
+                    context.goBack();
                   }
                 },
                 onReorder: (oldIndex, newIndex) {
@@ -98,10 +98,10 @@ class ComparisonScreen extends ConsumerWidget {
             ComparisonFooterBar(
               count: items.length,
               labelPlural: category.labelPlural,
-              onBrowse: () => context.pop(),
+              onBrowse: () => context.goBack(),
               onClear: () {
                 ref.read(comparisonProvider.notifier).clear();
-                context.pop();
+                context.goBack();
               },
             ),
           ],

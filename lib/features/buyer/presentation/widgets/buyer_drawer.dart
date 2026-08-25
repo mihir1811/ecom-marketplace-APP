@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/auth/confirm_sign_out.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -184,7 +186,7 @@ class BuyerDrawer extends ConsumerWidget {
                       child: InkWell(
                         onTap: () {
                           Navigator.of(context).maybePop();
-                          context.go(item.route);
+                          context.openRoute(item.route);
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -240,7 +242,7 @@ class BuyerDrawer extends ConsumerWidget {
                 ),
                 onTap: () {
                   Navigator.of(context).maybePop();
-                  context.go(AppRouteNames.home);
+                  context.resetTo(AppRouteNames.home);
                 },
               ),
               ListTile(
@@ -252,10 +254,12 @@ class BuyerDrawer extends ConsumerWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                onTap: () {
+                onTap: () async {
+                  final confirmed = await confirmSignOut(context);
+                  if (!confirmed || !context.mounted) return;
                   Navigator.of(context).maybePop();
                   ref.read(authProvider.notifier).logout();
-                  context.go(AppRouteNames.home);
+                  context.resetTo(AppRouteNames.home);
                 },
               ),
           ],

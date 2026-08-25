@@ -9,6 +9,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../widgets/auth_theme.dart';
 
 /// Forgot password screen matching the provided UI reference.
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -68,14 +69,14 @@ class _ForgotPasswordScreenState
                       Text(
                         'Forgot Password',
                         style: AppTypography.display.copyWith(
-                          color: AppColors.textPrimaryLight,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s12),
                       Text(
                         'Enter your registered email and we will send you a reset link.',
                         style: AppTypography.body.copyWith(
-                          color: AppColors.textSecondaryLight,
+                          color: AppColors.textSecondary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s24),
@@ -125,27 +126,9 @@ class _ForgotPasswordScreenState
                                               email: _emailController.text,
                                             );
                                       },
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: AppColors.charcoal,
-                                  foregroundColor: AppColors.warmWhite,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: AppSpacing.s16,
-                                    horizontal: AppSpacing.s24,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppSpacing.r8),
-                                  ),
-                                ),
+                                style: authFilledButtonStyle(context),
                                 child: authState.isLoading
-                                    ? const SizedBox(
-                                        height: 18,
-                                        width: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: AppColors.warmWhite,
-                                        ),
-                                      )
+                                    ? authButtonSpinner(context)
                                     : const Text('Send Reset Link'),
                               ),
                             ),
@@ -184,7 +167,7 @@ class _ForgotPasswordScreenState
                           child: Text(
                             'Back to login',
                             style: AppTypography.label.copyWith(
-                              color: AppColors.charcoal,
+                              color: AppColors.textPrimary(context),
                               decoration: TextDecoration.underline,
                             ),
                           ),

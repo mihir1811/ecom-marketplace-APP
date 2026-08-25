@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/result.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -111,13 +112,7 @@ class _DiamondProjectStatsScreenState
               message:
                   'Use Select current page on a diamond listing to analyze loaded stones.',
               actionLabel: 'Back to listings',
-              onAction: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go(AppRouteNames.diamondResults);
-                }
-              },
+              onAction: () => context.goBack(),
             )
           : ListView(
               padding: const EdgeInsets.all(AppSpacing.s16),

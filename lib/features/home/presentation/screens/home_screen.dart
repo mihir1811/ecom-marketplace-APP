@@ -6,6 +6,7 @@ import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:gemstone/core/widgets/app_top_bar.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -85,12 +86,12 @@ class HomeScreen extends ConsumerWidget {
         showCart: auth.isAuthenticated,
         showWallet: auth.isAuthenticated,
         showMessages: auth.isAuthenticated,
-        onSellerWalletTap: () => context.push(AppRouteNames.buyerWallet),
-        onSellerMessagesTap: () => context.push(AppRouteNames.buyerMessages),
+        onSellerWalletTap: () => context.openRoute(AppRouteNames.buyerWallet),
+        onSellerMessagesTap: () => context.openRoute(AppRouteNames.buyerMessages),
         extraActions: !auth.isAuthenticated
             ? [
                 TextButton(
-                  onPressed: () => context.push(AppRouteNames.login),
+                  onPressed: () => context.openRoute(AppRouteNames.login),
                   child: Text(
                     'Login',
                     style: AppTypography.label.copyWith(
@@ -183,7 +184,7 @@ class _HomeBrowseBody extends ConsumerWidget {
                 title: item.title,
                 subtitle: item.subtitle,
                 imageUrl: item.imageUrl,
-                onTap: () => context.push(item.route),
+                onTap: () => context.openRoute(item.route),
               );
             }, childCount: HomeScreen._categories.length),
           ),
@@ -227,7 +228,7 @@ class _HomeBrowseBody extends ConsumerWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 TextButton(
-                  onPressed: () => context.push(AppRouteNames.aboutUs),
+                  onPressed: () => context.openRoute(AppRouteNames.aboutUs),
                   child: Text(
                     'About GemWorld',
                     style: AppTypography.label.copyWith(
@@ -244,7 +245,7 @@ class _HomeBrowseBody extends ConsumerWidget {
                 ),
                 TextButton(
                   onPressed: () =>
-                      context.push(AppRouteNames.termsAndConditions),
+                      context.openRoute(AppRouteNames.termsAndConditions),
                   child: Text(
                     'Terms & Conditions',
                     style: AppTypography.label.copyWith(
@@ -260,7 +261,7 @@ class _HomeBrowseBody extends ConsumerWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => context.push(AppRouteNames.policies),
+                  onPressed: () => context.openRoute(AppRouteNames.policies),
                   child: Text(
                     'Policies',
                     style: AppTypography.label.copyWith(
@@ -282,7 +283,7 @@ class _HomeBrowseBody extends ConsumerWidget {
 Future<void> _onSellTap(BuildContext context, WidgetRef ref) async {
   final isAuthenticated = ref.read(authProvider).isAuthenticated;
   if (!isAuthenticated) {
-    context.push('${AppRouteNames.register}?type=business');
+    context.openRoute('${AppRouteNames.register}?type=business');
     return;
   }
 
@@ -310,7 +311,7 @@ Future<void> _onSellTap(BuildContext context, WidgetRef ref) async {
   if (goRegister != true || !context.mounted) return;
   await ref.read(authProvider.notifier).logout();
   if (!context.mounted) return;
-  context.go('${AppRouteNames.register}?type=business');
+  context.resetTo('${AppRouteNames.register}?type=business');
 }
 
 class _HomeCategory {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/router/app_navigation.dart';
 import '../../core/router/route_names.dart';
 import '../../core/widgets/app_scaffold.dart';
 import '../../core/widgets/app_top_bar.dart';
@@ -52,7 +53,7 @@ class _ProductDetailUnavailable extends StatelessWidget {
             ? 'Open the product from a catalog listing to see its details.'
             : 'Reopen $productId from a catalog listing to see its details.',
         actionLabel: 'Browse catalog',
-        onAction: () => context.go(AppRouteNames.home),
+        onAction: () => context.resetTo(AppRouteNames.home),
       ),
     );
   }

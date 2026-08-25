@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
+import '../router/app_navigation.dart';
 import '../router/route_names.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
@@ -27,7 +27,7 @@ class VerifiedAccountGate extends ConsumerWidget {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
-      context.go(fallbackRoute);
+      context.resetTo(fallbackRoute);
     });
 
     return Center(

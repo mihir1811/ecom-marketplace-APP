@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../../cart/application/cart_provider.dart';
+import '../../cart/application/fees_providers.dart';
 import '../../wallet/application/wallet_provider.dart';
 import '../data/repositories/payment_repository_impl.dart';
 import '../domain/models/payment_models.dart';
@@ -132,26 +133,10 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
       );
     }
 
+    final fees = ref.read(activeFeesProvider).valueOrNull;
+    final wantVerification = state.wantGemworldVerification &&
+        (fees?.offersGemworldVerification ?? false);
     final useWallet = state.useWallet;
-    if (useWallet) {
-      final wallet = ref.read(walletProvider).valueOrNull;
-      final balance = wallet?.balance ?? 0;
-      final due = payableInr ?? 0;
-      if (due <= 0) {
-        return Result.failure(
-          const ValidationFailure(
-            'Waiting for the live total before wallet payment.',
-          ),
-        );
-      }
-      if (balance + 0.009 < due) {
-        return Result.failure(
-          const ValidationFailure(
-            'Insufficient wallet balance for this order.',
-          ),
-        );
-      }
-    }
 
     state = state.copyWith(
       phase: CheckoutPhase.creatingOrder,
@@ -170,7 +155,7 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     }
 
     final created = await _payments.createOrder(
-      wantGemworldVerification: state.wantGemworldVerification,
+      wantGemworldVerification: wantVerification,
       useWallet: useWallet,
     );
     if (created is ResultFailure<PaymentCheckoutSession, Failure>) {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -173,13 +173,13 @@ class _OrderBody extends ConsumerWidget {
         FilledButton(
           onPressed: () {
             ref.invalidate(buyerOrdersProvider);
-            context.go(AppRouteNames.buyerOrders);
+            context.resetTo(AppRouteNames.buyerOrders);
           },
           child: const Text('View my orders'),
         ),
         const SizedBox(height: AppSpacing.s8),
         OutlinedButton(
-          onPressed: () => context.go(AppRouteNames.home),
+          onPressed: () => context.resetTo(AppRouteNames.home),
           child: const Text('Continue shopping'),
         ),
       ],

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../application/wishlist_provider.dart';
@@ -18,7 +18,7 @@ Future<bool?> toggleWishlistItem(
   String removedMessage = 'Removed from wishlist',
 }) async {
   if (!ref.read(authProvider).isAuthenticated) {
-    context.go(AppRouteNames.login);
+    context.openRoute(AppRouteNames.login);
     return null;
   }
 

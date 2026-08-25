@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -128,8 +128,8 @@ class AboutUsScreen extends StatelessWidget {
                 _TrustCard(),
                 const SizedBox(height: AppSpacing.s32),
                 _ContactCard(
-                  onHelpTap: () => context.push(AppRouteNames.buyerHelpCenter),
-                  onSellTap: () => context.push(AppRouteNames.login),
+                  onHelpTap: () => context.openRoute(AppRouteNames.buyerHelpCenter),
+                  onSellTap: () => context.openRoute(AppRouteNames.login),
                 ),
                 const SizedBox(height: AppSpacing.s48),
               ]),

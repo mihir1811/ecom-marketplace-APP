@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../widgets/auth_brand_header.dart';
+import '../widgets/auth_theme.dart';
 
 /// OTP verification screen after registration.
 class VerifyOtpScreen extends ConsumerStatefulWidget {
@@ -86,7 +87,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                       Text(
                         'Verify OTP',
                         style: AppTypography.display.copyWith(
-                          color: AppColors.textPrimaryLight,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s12),
@@ -95,7 +96,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                             ? 'Enter the 6-digit code from your email.'
                             : 'We sent a 6-digit code to $email.',
                         style: AppTypography.body.copyWith(
-                          color: AppColors.textSecondaryLight,
+                          color: AppColors.textSecondary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s24),
@@ -154,31 +155,13 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                               otp: _otpController.text,
                                             );
                                       },
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: AppColors.charcoal,
-                                  foregroundColor: AppColors.warmWhite,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: AppSpacing.s16,
-                                    horizontal: AppSpacing.s24,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppSpacing.r8),
-                                  ),
-                                ),
+                                style: authFilledButtonStyle(context),
                                 child: authState.isLoading
-                                    ? const SizedBox(
-                                        height: 18,
-                                        width: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: AppColors.warmWhite,
-                                        ),
-                                      )
+                                    ? authButtonSpinner(context)
                                     : Text(
                                         'Verify \u2192',
                                         style: AppTypography.label.copyWith(
-                                          color: AppColors.warmWhite,
+                                          color: AppColors.onSelected(context),
                                         ),
                                       ),
                               ),
@@ -211,7 +194,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                               child: Text(
                                 'Resend OTP',
                                 style: AppTypography.label.copyWith(
-                                  color: AppColors.charcoal,
+                                  color: AppColors.textPrimary(context),
                                   decoration: TextDecoration.underline,
                                 ),
                               ),
@@ -225,7 +208,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                 child: Text(
                                   'Back to login',
                                   style: AppTypography.label.copyWith(
-                                    color: AppColors.charcoal,
+                                    color: AppColors.textPrimary(context),
                                   ),
                                 ),
                               ),

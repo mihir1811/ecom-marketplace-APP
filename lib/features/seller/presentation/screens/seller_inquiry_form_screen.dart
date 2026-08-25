@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/result.dart';
 import '../../../../core/router/account_nav.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_swatches.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -227,7 +228,7 @@ class _SellerInquiryFormScreenState
           SnackBar(content: Text('${_category!.label} inquiry sent to admin')),
         );
         final path = GoRouterState.of(context).uri.path;
-        context.go(inquiryDetailPathFor(path, _category!.name, inquiry.id));
+        context.openRoute(inquiryDetailPathFor(path, _category!.name, inquiry.id));
       case ResultFailure(failure: final failure):
         ScaffoldMessenger.of(
           context,
@@ -287,9 +288,7 @@ class _SellerInquiryFormScreenState
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
-              onPressed: () => context.go(
-                inquiriesPathFor(GoRouterState.of(context).uri.path),
-              ),
+              onPressed: () => context.goBack(),
               child: const Text('All inquiries'),
             ),
           ),
@@ -326,9 +325,7 @@ class _SellerInquiryFormScreenState
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
-                  onPressed: () => context.go(
-                    inquiriesPathFor(GoRouterState.of(context).uri.path),
-                  ),
+                  onPressed: () => context.goBack(),
                   child: const Text('Open inquiry inbox'),
                 ),
               ),

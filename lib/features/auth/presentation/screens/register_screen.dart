@@ -13,6 +13,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../widgets/auth_brand_header.dart';
+import '../widgets/auth_theme.dart';
 import '../widgets/business_registration_fields.dart';
 
 /// Registration screen matching the provided UI reference.
@@ -213,14 +214,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       Text(
                         _isSeller ? 'Seller registration' : 'Register',
                         style: AppTypography.display.copyWith(
-                          color: AppColors.textPrimaryLight,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s16),
                       Text(
                         'Account types are separate — individual buyers cannot sell on the same account.',
                         style: AppTypography.body.copyWith(
-                          color: AppColors.textSecondaryLight,
+                          color: AppColors.textSecondary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s12),
@@ -332,20 +333,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 child: FilledButton(
                                   onPressed:
                                       authState.isLoading ? null : _submit,
-                                  style: _primaryButtonStyle,
+                                  style: authFilledButtonStyle(context),
                                   child: authState.isLoading
-                                      ? const SizedBox(
-                                          height: 18,
-                                          width: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: AppColors.warmWhite,
-                                          ),
-                                        )
+                                      ? authButtonSpinner(context)
                                       : Text(
                                           'Create account \u2192',
                                           style: AppTypography.label.copyWith(
-                                            color: AppColors.warmWhite,
+                                            color: AppColors.onSelected(context),
                                           ),
                                         ),
                                 ),
@@ -359,7 +353,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 child: Text(
                                   'Already registered? Sign in',
                                   style: AppTypography.label.copyWith(
-                                    color: AppColors.charcoal,
+                                    color: AppColors.textPrimary(context),
                                   ),
                                 ),
                               ),
@@ -378,18 +372,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 }
-
-ButtonStyle get _primaryButtonStyle => FilledButton.styleFrom(
-      backgroundColor: AppColors.charcoal,
-      foregroundColor: AppColors.warmWhite,
-      padding: const EdgeInsets.symmetric(
-        vertical: AppSpacing.s16,
-        horizontal: AppSpacing.s24,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.r8),
-      ),
-    );
 
 class _BasicDetailsFields extends StatelessWidget {
   const _BasicDetailsFields({
@@ -502,7 +484,7 @@ class _BasicDetailsFields extends StatelessWidget {
             style: AppTypography.caption.copyWith(
               color: strength.isStrong
                   ? AppColors.success
-                  : AppColors.textSecondaryLight,
+                  : AppColors.textSecondary(context),
             ),
           ),
         ),
@@ -516,7 +498,7 @@ class _BasicDetailsFields extends StatelessWidget {
                 vertical: AppSpacing.s16,
                 horizontal: AppSpacing.s24,
               ),
-              side: const BorderSide(color: AppColors.warmBorder),
+              side: BorderSide(color: AppColors.border(context)),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppSpacing.r8),
               ),
@@ -593,7 +575,7 @@ class _TermsCheckbox extends StatelessWidget {
           child: RichText(
             text: TextSpan(
               style: AppTypography.body.copyWith(
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
               ),
               children: [
                 const TextSpan(
@@ -603,7 +585,7 @@ class _TermsCheckbox extends StatelessWidget {
                 TextSpan(
                   text: 'Terms of Service',
                   style: AppTypography.body.copyWith(
-                    color: AppColors.charcoal,
+                    color: AppColors.textPrimary(context),
                     decoration: TextDecoration.underline,
                   ),
                   recognizer: recognizer,
@@ -612,7 +594,7 @@ class _TermsCheckbox extends StatelessWidget {
                 TextSpan(
                   text: 'Ethical Sourcing Policy.',
                   style: AppTypography.body.copyWith(
-                    color: AppColors.charcoal,
+                    color: AppColors.textPrimary(context),
                     decoration: TextDecoration.underline,
                   ),
                   recognizer: recognizer,
@@ -654,7 +636,7 @@ class _SellerStepActions extends StatelessWidget {
                   vertical: AppSpacing.s16,
                   horizontal: AppSpacing.s16,
                 ),
-                side: const BorderSide(color: AppColors.warmBorder),
+                side: BorderSide(color: AppColors.border(context)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
                 ),
@@ -662,7 +644,7 @@ class _SellerStepActions extends StatelessWidget {
               child: Text(
                 'Back',
                 style: AppTypography.label.copyWith(
-                  color: AppColors.charcoal,
+                  color: AppColors.textPrimary(context),
                 ),
               ),
             ),
@@ -673,22 +655,15 @@ class _SellerStepActions extends StatelessWidget {
           flex: step > 0 ? 2 : 1,
           child: FilledButton(
             onPressed: isLoading ? null : onContinue,
-            style: _primaryButtonStyle,
+            style: authFilledButtonStyle(context),
             child: isLoading
-                ? const SizedBox(
-                    height: 18,
-                    width: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.warmWhite,
-                    ),
-                  )
+                ? authButtonSpinner(context)
                 : Text(
                     isLastStep
                         ? 'Create seller account \u2192'
                         : 'Continue \u2192',
                     style: AppTypography.label.copyWith(
-                      color: AppColors.warmWhite,
+                      color: AppColors.onSelected(context),
                     ),
                   ),
           ),
@@ -761,11 +736,13 @@ class _AccountTypeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? AppColors.sandSurface : AppColors.warmWhite,
+      color: selected ? AppColors.surface(context) : AppColors.card(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         side: BorderSide(
-          color: selected ? AppColors.charcoal : AppColors.warmBorder,
+          color: selected
+              ? AppColors.selectedFill(context)
+              : AppColors.border(context),
           width: selected ? 1.5 : 1,
         ),
       ),
@@ -780,15 +757,15 @@ class _AccountTypeCard extends StatelessWidget {
               Icon(
                 icon,
                 color: selected
-                    ? AppColors.charcoal
-                    : AppColors.textSecondaryLight,
+                    ? AppColors.textPrimary(context)
+                    : AppColors.textSecondary(context),
               ),
               const SizedBox(height: AppSpacing.s8),
               Text(
                 title,
                 style: AppTypography.label.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimaryLight,
+                  color: AppColors.textPrimary(context),
                 ),
               ),
               const SizedBox(height: AppSpacing.s4),
@@ -797,7 +774,7 @@ class _AccountTypeCard extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: AppColors.textSecondary(context),
                 ),
               ),
             ],

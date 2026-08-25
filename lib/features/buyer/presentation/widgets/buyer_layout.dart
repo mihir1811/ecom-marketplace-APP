@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
@@ -62,9 +62,9 @@ class BuyerLayout extends ConsumerWidget {
               showWallet: true,
               showMessages: true,
               showThemeToggle: true,
-              onSellerWalletTap: () => context.push(AppRouteNames.buyerWallet),
+              onSellerWalletTap: () => context.openRoute(AppRouteNames.buyerWallet),
               onSellerMessagesTap: () =>
-                  context.push(AppRouteNames.buyerMessages),
+                  context.openRoute(AppRouteNames.buyerMessages),
             )
           : null,
       body: child,

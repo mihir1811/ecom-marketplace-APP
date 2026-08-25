@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/auth/confirm_sign_out.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -64,7 +65,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.person_outline),
                 title: const Text('My profile'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.go(AppRouteNames.buyerProfile),
+                onTap: () => context.openRoute(AppRouteNames.buyerProfile),
               ),
               const Divider(height: 1),
               ListTile(
@@ -72,7 +73,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.help_outline),
                 title: const Text('Help center'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.go(AppRouteNames.buyerHelpCenter),
+                onTap: () => context.openRoute(AppRouteNames.buyerHelpCenter),
               ),
               const Divider(height: 1),
               ListTile(
@@ -80,7 +81,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.info_outline),
                 title: const Text('About GemWorld'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(AppRouteNames.aboutUs),
+                onTap: () => context.openRoute(AppRouteNames.aboutUs),
               ),
               const Divider(height: 1),
               ListTile(
@@ -88,7 +89,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.gavel_outlined),
                 title: const Text('Policies & Legal'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(AppRouteNames.policies),
+                onTap: () => context.openRoute(AppRouteNames.policies),
               ),
               const Divider(height: 1),
               ListTile(
@@ -96,7 +97,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.description_outlined),
                 title: const Text('Terms & Conditions'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(AppRouteNames.termsAndConditions),
+                onTap: () => context.openRoute(AppRouteNames.termsAndConditions),
               ),
               const Divider(height: 1),
               ListTile(
@@ -109,9 +110,11 @@ class BuyerSettingsScreen extends ConsumerWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                onTap: () {
+                onTap: () async {
+                  final confirmed = await confirmSignOut(context);
+                  if (!confirmed || !context.mounted) return;
                   ref.read(authProvider.notifier).logout();
-                  context.go(AppRouteNames.home);
+                  context.resetTo(AppRouteNames.home);
                 },
               ),
             ],

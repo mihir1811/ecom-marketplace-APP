@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -59,7 +59,8 @@ class BuyerReviewsScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Center(
                       child: TextButton(
-                        onPressed: () => context.go(AppRouteNames.buyerOrders),
+                        onPressed: () =>
+                            context.openRoute(AppRouteNames.buyerOrders),
                         child: const Text('View orders'),
                       ),
                     ),
@@ -99,7 +100,7 @@ class _ReviewCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () =>
-            context.go(AppRouteNames.buyerOrderDetailPath(review.orderId)),
+            context.openRoute(AppRouteNames.buyerOrderDetailPath(review.orderId)),
         borderRadius: BorderRadius.circular(14),
         child: Ink(
           padding: const EdgeInsets.all(AppSpacing.s16),

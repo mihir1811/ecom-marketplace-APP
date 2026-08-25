@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/result.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
@@ -147,7 +147,7 @@ class _BuyerRefundCard extends ConsumerWidget {
           const SizedBox(height: 4),
           InkWell(
             onTap: () =>
-                context.go(AppRouteNames.buyerOrderDetailPath(refund.orderId)),
+                context.openRoute(AppRouteNames.buyerOrderDetailPath(refund.orderId)),
             child: Text(
               'Order ${refund.orderId}',
               style: AppTypography.body.copyWith(

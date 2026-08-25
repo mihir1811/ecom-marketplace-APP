@@ -97,4 +97,16 @@ class FeeRulesCatalog {
 
   List<FeeRule> ofType(FeeType type) =>
       rules.where((r) => r.isActive && r.feeType == type).toList();
+
+  /// True when GET /fees currently exposes an active GemWorld verification rule.
+  bool get offersGemworldVerification =>
+      ofType(FeeType.gemworldVerification).isNotEmpty;
+
+  /// Verification percent points from the active rule (`1` → 1%), else 0.
+  double get gemworldVerificationPercent {
+    final rules = ofType(FeeType.gemworldVerification)
+        .where((r) => r.valueType.isPercentage);
+    if (rules.isEmpty) return 0;
+    return rules.first.value;
+  }
 }

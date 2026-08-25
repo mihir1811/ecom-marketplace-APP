@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +10,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
+import '../../../wallet/application/wallet_provider.dart';
 import '../../application/cart_provider.dart';
 import '../../application/fees_providers.dart';
 import '../../domain/models/cart_order_estimate.dart';
@@ -30,6 +33,11 @@ class CartTotalsSection extends ConsumerWidget {
     final wantVerification = ref.watch(
       paymentCheckoutProvider.select((s) => s.wantGemworldVerification),
     );
+    final useWallet = ref.watch(
+      paymentCheckoutProvider.select((s) => s.useWallet),
+    );
+    final walletBalance =
+        ref.watch(walletProvider).valueOrNull?.balance ?? 0;
 
     final lines = availableItems
         .map(
@@ -43,10 +51,16 @@ class CartTotalsSection extends ConsumerWidget {
     final estimate = CartOrderEstimate.compute(
       merchandiseUsd: merchandiseUsd,
       exchangeRate: totals.exchangeRate,
-      wantVerification: wantVerification,
+      wantVerification: wantVerification && fees.offersGemworldVerification,
       fees: fees,
       lines: lines,
     );
+
+    final walletAppliedInr = useWallet
+        ? math.min(walletBalance, estimate.totalInr)
+        : 0.0;
+    final remainingInr =
+        math.max(0.0, estimate.totalInr - walletAppliedInr);
 
     final unavailableCount = items.length - availableItems.length;
     final availableSubtotalUsd = availableItems.fold<double>(
@@ -184,6 +198,21 @@ class CartTotalsSection extends ConsumerWidget {
               ),
             ],
           ),
+          if (useWallet && estimate.hasLiveRate && walletAppliedInr > 0) ...[
+            const SizedBox(height: AppSpacing.s12),
+            _inrRow(
+              context,
+              'Wallet',
+              -walletAppliedInr,
+              hasRate: true,
+            ),
+            _inrRow(
+              context,
+              remainingInr <= 0.009 ? 'Amount to pay' : 'Pay via Razorpay',
+              remainingInr,
+              hasRate: true,
+            ),
+          ],
         ],
       ),
     );

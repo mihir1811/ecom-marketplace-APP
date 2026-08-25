@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
@@ -81,7 +81,7 @@ class ComparisonBottomBar extends ConsumerWidget {
                   ),
                 ),
                 onPressed: state.count >= 2
-                    ? () => context.push(AppRouteNames.comparison)
+                    ? () => context.openRoute(AppRouteNames.comparison)
                     : null,
                 child: Text(
                   'Compare',

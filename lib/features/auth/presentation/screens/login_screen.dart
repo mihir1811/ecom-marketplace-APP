@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../widgets/auth_brand_header.dart';
+import '../widgets/auth_theme.dart';
 
 /// Login screen (Username + Password) matching the provided UI reference.
 class LoginScreen extends ConsumerStatefulWidget {
@@ -75,7 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Text(
                         'Login',
                         style: AppTypography.display.copyWith(
-                          color: AppColors.textPrimaryLight,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s24),
@@ -147,7 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 child: Text(
                                   'Forgot password?',
                                   style: AppTypography.label.copyWith(
-                                    color: AppColors.charcoal,
+                                    color: AppColors.textPrimary(context),
                                     decoration: TextDecoration.underline,
                                   ),
                                 ),
@@ -189,31 +190,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                                   _passwordController.text,
                                             );
                                       },
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: AppColors.charcoal,
-                                  foregroundColor: AppColors.warmWhite,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: AppSpacing.s16,
-                                    horizontal: AppSpacing.s24,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppSpacing.r8),
-                                  ),
-                                ),
+                                style: authFilledButtonStyle(context),
                                 child: authState.isLoading
-                                    ? const SizedBox(
-                                        height: 18,
-                                        width: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: AppColors.warmWhite,
-                                        ),
-                                      )
+                                    ? authButtonSpinner(context)
                                     : Text(
                                         'Sign in \u2192',
                                         style: AppTypography.label.copyWith(
-                                          color: AppColors.warmWhite,
+                                          color: AppColors.onSelected(context),
                                         ),
                                       ),
                               ),
@@ -229,7 +212,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 child: Text(
                                   'New to GemWorld? Create an account',
                                   style: AppTypography.label.copyWith(
-                                    color: AppColors.charcoal,
+                                    color: AppColors.textPrimary(context),
                                   ),
                                 ),
                               ),

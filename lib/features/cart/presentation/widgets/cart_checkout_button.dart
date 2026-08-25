@@ -1,9 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/error/result.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -53,7 +55,7 @@ class CartCheckoutButton extends ConsumerWidget {
         await showPaymentSuccessDialog(context, order: value);
         if (!context.mounted) return;
         ref.invalidate(buyerOrdersProvider);
-        context.go(AppRouteNames.buyerOrders);
+        context.resetTo(AppRouteNames.buyerOrders);
       case ResultFailure(:final failure):
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(failure.message)),
@@ -94,10 +96,17 @@ class CartCheckoutButton extends ConsumerWidget {
 
     final wallet = walletAsync.valueOrNull;
     final walletBalance = wallet?.balance ?? 0;
-    final canPayWithWallet =
-        estimate.hasLiveRate && walletBalance + 0.009 >= estimate.totalInr;
-    final useWallet = checkout.useWallet && canPayWithWallet;
-    final verificationOn = checkout.wantGemworldVerification;
+    final useWallet = checkout.useWallet;
+    final walletAppliedInr = useWallet
+        ? math.min(walletBalance, estimate.totalInr)
+        : 0.0;
+    final remainingInr =
+        math.max(0.0, estimate.totalInr - walletAppliedInr);
+    final fullyCoveredByWallet =
+        useWallet && estimate.hasLiveRate && remainingInr <= 0.009;
+    final verificationOffered = fees.offersGemworldVerification;
+    final verificationOn =
+        checkout.wantGemworldVerification && verificationOffered;
 
     String label;
     if (!hasAddress) {
@@ -110,7 +119,7 @@ class CartCheckoutButton extends ConsumerWidget {
       label = 'Complete payment…';
     } else if (checkout.phase == CheckoutPhase.verifying) {
       label = useWallet ? 'Paying with wallet…' : 'Verifying payment…';
-    } else if (useWallet) {
+    } else if (fullyCoveredByWallet) {
       label = 'Pay with wallet';
     } else {
       label = 'Continue to checkout';
@@ -121,6 +130,10 @@ class CartCheckoutButton extends ConsumerWidget {
       subtitle = 'Required before payment';
     } else if (hasUnavailable) {
       subtitle = 'Unavailable items are excluded from the total';
+    } else if (!busy && estimate.hasLiveRate && useWallet && walletAppliedInr > 0) {
+      subtitle = fullyCoveredByWallet
+          ? 'Wallet ${AppCurrency.inr(walletAppliedInr)}'
+          : 'Wallet ${AppCurrency.inr(walletAppliedInr)} · pay ${AppCurrency.inr(remainingInr)}';
     } else if (!busy && estimate.hasLiveRate) {
       subtitle =
           '${AppCurrency.usd(estimate.totalUsd)} USD · ${estimate.liveRateLabel}';
@@ -131,43 +144,28 @@ class CartCheckoutButton extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Material(
-          color: AppColors.warmWhite,
-          child: SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              'GemWorld verification',
-              style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimaryLight,
-              ),
-            ),
-            subtitle: Text(
-              'Adds 1% verification commission to the total',
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
-              ),
-            ),
+        if (verificationOffered) ...[
+          _CheckoutToggleTile(
+            title: 'GemWorld verification',
+            subtitle: fees.gemworldVerificationPercent > 0
+                ? 'Adds ${_percentLabel(fees.gemworldVerificationPercent)}% verification commission to the total'
+                : 'Adds verification commission to the total',
             value: verificationOn,
-            onChanged: busy
-                ? null
-                : (v) => ref
-                    .read(paymentCheckoutProvider.notifier)
-                    .setWantGemworldVerification(v),
-            activeThumbColor: AppColors.warmWhite,
-            activeTrackColor: AppColors.bronze,
-            inactiveThumbColor: AppColors.charcoalLight,
-            inactiveTrackColor: AppColors.warmBorder,
+            enabled: !busy,
+            onChanged: (v) => ref
+                .read(paymentCheckoutProvider.notifier)
+                .setWantGemworldVerification(v),
           ),
-        ),
-        const SizedBox(height: AppSpacing.s4),
+          const SizedBox(height: AppSpacing.s4),
+        ],
         _WalletPayOption(
           busy: busy,
           walletAsync: walletAsync,
           walletBalance: walletBalance,
           payableInr: estimate.totalInr,
+          remainingInr: remainingInr,
+          walletAppliedInr: walletAppliedInr,
           hasLiveRate: estimate.hasLiveRate,
-          canPayWithWallet: canPayWithWallet,
           useWallet: checkout.useWallet,
           onChanged: (v) =>
               ref.read(paymentCheckoutProvider.notifier).setUseWallet(v),
@@ -179,8 +177,8 @@ class CartCheckoutButton extends ConsumerWidget {
           height: 56,
           child: FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.charcoal,
-              foregroundColor: AppColors.warmWhite,
+              backgroundColor: AppColors.selectedFill(context),
+              foregroundColor: AppColors.onSelected(context),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppSpacing.r12),
               ),
@@ -199,11 +197,6 @@ class CartCheckoutButton extends ConsumerWidget {
                         ),
                       );
                     } else if (canCheckout) {
-                      if (checkout.useWallet && !canPayWithWallet) {
-                        ref
-                            .read(paymentCheckoutProvider.notifier)
-                            .setUseWallet(false);
-                      }
                       _pay(
                         context,
                         ref,
@@ -220,12 +213,12 @@ class CartCheckoutButton extends ConsumerWidget {
                     }
                   },
             child: busy
-                ? const SizedBox(
+                ? SizedBox(
                     width: 22,
                     height: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppColors.warmWhite,
+                      color: AppColors.onSelected(context),
                     ),
                   )
                 : Column(
@@ -234,7 +227,7 @@ class CartCheckoutButton extends ConsumerWidget {
                       Text(
                         label,
                         style: AppTypography.label.copyWith(
-                          color: AppColors.warmWhite,
+                          color: AppColors.onSelected(context),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -242,7 +235,8 @@ class CartCheckoutButton extends ConsumerWidget {
                         Text(
                           subtitle,
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.warmWhite.withValues(alpha: 0.75),
+                            color: AppColors.onSelected(context)
+                                .withValues(alpha: 0.75),
                             fontSize: 11,
                           ),
                           maxLines: 1,
@@ -257,14 +251,88 @@ class CartCheckoutButton extends ConsumerWidget {
   }
 }
 
+String _percentLabel(double percent) {
+  return percent == percent.roundToDouble()
+      ? percent.toStringAsFixed(0)
+      : percent.toStringAsFixed(2);
+}
+
+class _CheckoutToggleTile extends StatelessWidget {
+  const _CheckoutToggleTile({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
+    this.icon,
+    this.onSubtitleTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool value;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+  final IconData? icon;
+  final VoidCallback? onSubtitleTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final titleColor = enabled
+        ? AppColors.textPrimary(context)
+        : AppColors.textMuted(context);
+    final subtitleColor = enabled
+        ? AppColors.textSecondary(context)
+        : AppColors.textMuted(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        secondary: icon == null
+            ? null
+            : Icon(
+                icon,
+                color: enabled ? AppColors.bronze : AppColors.textMuted(context),
+              ),
+        title: Text(
+          title,
+          style: AppTypography.label.copyWith(
+            fontWeight: FontWeight.w600,
+            color: titleColor,
+          ),
+        ),
+        subtitle: GestureDetector(
+          onTap: onSubtitleTap,
+          child: Text(
+            subtitle,
+            style: AppTypography.caption.copyWith(color: subtitleColor),
+          ),
+        ),
+        value: value,
+        onChanged: enabled ? onChanged : null,
+        activeThumbColor: AppColors.warmWhite,
+        activeTrackColor: AppColors.bronze,
+        inactiveThumbColor: enabled
+            ? (AppColors.isDark(context)
+                ? AppColors.textSecondaryDark
+                : AppColors.charcoalLight)
+            : AppColors.textMuted(context),
+        inactiveTrackColor: AppColors.border(context),
+      ),
+    );
+  }
+}
+
 class _WalletPayOption extends StatelessWidget {
   const _WalletPayOption({
     required this.busy,
     required this.walletAsync,
     required this.walletBalance,
     required this.payableInr,
+    required this.remainingInr,
+    required this.walletAppliedInr,
     required this.hasLiveRate,
-    required this.canPayWithWallet,
     required this.useWallet,
     required this.onChanged,
     required this.onRetryWallet,
@@ -274,8 +342,9 @@ class _WalletPayOption extends StatelessWidget {
   final AsyncValue<Wallet> walletAsync;
   final double walletBalance;
   final double payableInr;
+  final double remainingInr;
+  final double walletAppliedInr;
   final bool hasLiveRate;
-  final bool canPayWithWallet;
   final bool useWallet;
   final ValueChanged<bool> onChanged;
   final VoidCallback onRetryWallet;
@@ -284,8 +353,7 @@ class _WalletPayOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLoading = walletAsync.isLoading && walletAsync.valueOrNull == null;
     final hasError = walletAsync.hasError && walletAsync.valueOrNull == null;
-    final enabled = !busy && canPayWithWallet;
-    final switchedOn = useWallet && canPayWithWallet;
+    final enabled = !busy && !isLoading && !hasError;
 
     String subtitle;
     if (isLoading) {
@@ -295,51 +363,24 @@ class _WalletPayOption extends StatelessWidget {
     } else if (!hasLiveRate) {
       subtitle =
           'Balance ${AppCurrency.inr(walletBalance)} · waiting for live total';
-    } else if (canPayWithWallet) {
+    } else if (useWallet && walletAppliedInr > 0 && remainingInr > 0.009) {
+      subtitle =
+          'Balance ${AppCurrency.inr(walletBalance)} · apply ${AppCurrency.inr(walletAppliedInr)}, pay ${AppCurrency.inr(remainingInr)}';
+    } else if (useWallet && walletAppliedInr > 0) {
       subtitle =
           'Balance ${AppCurrency.inr(walletBalance)} · covers ${AppCurrency.inr(payableInr)}';
     } else {
-      subtitle =
-          'Balance ${AppCurrency.inr(walletBalance)} · need ${AppCurrency.inr(payableInr)}';
+      subtitle = 'Balance ${AppCurrency.inr(walletBalance)}';
     }
 
-    final titleColor =
-        enabled ? AppColors.textPrimaryLight : AppColors.textMutedLight;
-    final subtitleColor =
-        enabled ? AppColors.textSecondaryLight : AppColors.textMutedLight;
-
-    return Material(
-      color: AppColors.warmWhite,
-      child: SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        secondary: Icon(
-          Icons.account_balance_wallet_outlined,
-          color: enabled ? AppColors.bronze : AppColors.textMutedLight,
-        ),
-        title: Text(
-          'Pay with wallet',
-          style: AppTypography.label.copyWith(
-            fontWeight: FontWeight.w600,
-            color: titleColor,
-          ),
-        ),
-        subtitle: GestureDetector(
-          onTap: hasError && !busy ? onRetryWallet : null,
-          child: Text(
-            subtitle,
-            style: AppTypography.caption.copyWith(color: subtitleColor),
-          ),
-        ),
-        value: switchedOn,
-        onChanged: enabled ? onChanged : null,
-        activeThumbColor: AppColors.warmWhite,
-        activeTrackColor: AppColors.bronze,
-        inactiveThumbColor:
-            enabled ? AppColors.charcoalLight : AppColors.textMutedLight,
-        inactiveTrackColor: enabled
-            ? AppColors.warmBorder
-            : AppColors.sandSurface,
-      ),
+    return _CheckoutToggleTile(
+      title: 'Pay with wallet',
+      subtitle: subtitle,
+      value: useWallet,
+      enabled: enabled,
+      icon: Icons.account_balance_wallet_outlined,
+      onChanged: onChanged,
+      onSubtitleTap: hasError && !busy ? onRetryWallet : null,
     );
   }
 }

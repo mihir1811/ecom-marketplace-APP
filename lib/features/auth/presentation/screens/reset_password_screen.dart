@@ -9,6 +9,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../widgets/auth_theme.dart';
 
 /// Reset password screen opened from email deep link (`?token=`).
 class ResetPasswordScreen extends ConsumerStatefulWidget {
@@ -70,7 +71,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       Text(
                         'Reset Password',
                         style: AppTypography.display.copyWith(
-                          color: AppColors.textPrimaryLight,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s12),
@@ -79,7 +80,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             ? 'This reset link is missing a token. Open the link from your email again.'
                             : 'Choose a new password for your account.',
                         style: AppTypography.body.copyWith(
-                          color: AppColors.textSecondaryLight,
+                          color: AppColors.textSecondary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s24),
@@ -95,18 +96,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           width: double.infinity,
                           child: FilledButton(
                             onPressed: () => context.go(AppRouteNames.login),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.charcoal,
-                              foregroundColor: AppColors.warmWhite,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: AppSpacing.s16,
-                                horizontal: AppSpacing.s24,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppSpacing.r8),
-                              ),
-                            ),
+                            style: authFilledButtonStyle(context),
                             child: const Text('Go to login'),
                           ),
                         ),
@@ -159,7 +149,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                 style: AppTypography.caption.copyWith(
                                   color: _strength.isStrong
                                       ? AppColors.success
-                                      : AppColors.textSecondaryLight,
+                                      : AppColors.textSecondary(context),
                                 ),
                               ),
                               const SizedBox(height: AppSpacing.s16),
@@ -225,27 +215,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                                     _passwordController.text,
                                               );
                                         },
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: AppColors.charcoal,
-                                    foregroundColor: AppColors.warmWhite,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: AppSpacing.s16,
-                                      horizontal: AppSpacing.s24,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(AppSpacing.r8),
-                                    ),
-                                  ),
+                                  style: authFilledButtonStyle(context),
                                   child: authState.isLoading
-                                      ? const SizedBox(
-                                          height: 18,
-                                          width: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: AppColors.warmWhite,
-                                          ),
-                                        )
+                                      ? authButtonSpinner(context)
                                       : const Text('Reset password'),
                                 ),
                               ),
@@ -261,7 +233,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           child: Text(
                             'Back to login',
                             style: AppTypography.label.copyWith(
-                              color: AppColors.charcoal,
+                              color: AppColors.textPrimary(context),
                               decoration: TextDecoration.underline,
                             ),
                           ),

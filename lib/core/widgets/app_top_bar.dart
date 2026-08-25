@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/auth_providers.dart';
+import '../router/app_navigation.dart';
 import '../router/route_names.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
@@ -96,7 +97,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
         actions.add(
           IconButton(
             tooltip: 'Cart',
-            onPressed: () => context.push(AppRouteNames.cart),
+            onPressed: () => context.openRoute(AppRouteNames.cart),
             icon: Badge(
               isLabelVisible: liveCartCount > 0,
               label: Text('$liveCartCount'),
@@ -112,7 +113,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
           IconButton(
             tooltip: 'Wallet',
             onPressed: onSellerWalletTap ??
-                () => context.push(
+                () => context.openRoute(
                       authState.isSeller && authState.canTransact
                           ? AppRouteNames.sellerWallet
                           : AppRouteNames.buyerWallet,
@@ -128,7 +129,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
           IconButton(
             tooltip: 'Messages',
             onPressed: onSellerMessagesTap ??
-                () => context.push(
+                () => context.openRoute(
                       authState.isSeller && authState.canTransact
                           ? AppRouteNames.sellerChat
                           : AppRouteNames.buyerMessages,
@@ -152,10 +153,15 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
       ),
     );
 
+    final location = GoRouterState.of(context).uri.path;
+    final showBack = leading == null &&
+        (GoRouter.of(context).canPop() || location != AppRouteNames.home);
     final effectiveLeading = leading ??
-        (showDrawerButton && authState.isAuthenticated
-            ? const AppDrawerButton()
-            : null);
+        (showBack
+            ? BackButton(onPressed: () => context.goBack())
+            : (showDrawerButton && authState.isAuthenticated
+                ? const AppDrawerButton()
+                : null));
 
     return AppBar(
       backgroundColor: transparent

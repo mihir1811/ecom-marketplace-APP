@@ -1,9 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/account_nav.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -78,9 +77,7 @@ class _SellerChatDetailScreenState
         title: 'Conversation not found',
         message: 'This thread link is invalid or outdated.',
         actionLabel: 'Back to messages',
-        onAction: () => context.go(
-          messagesPathFor(GoRouterState.of(context).uri.path),
-        ),
+        onAction: () => context.goBack(),
       );
     }
 
@@ -98,9 +95,7 @@ class _SellerChatDetailScreenState
             peerName: peerName,
             productLabel: state.context?.productName ??
                 '${args.productTypeApi} · ${args.productId}',
-            onBack: () => context.go(
-              messagesPathFor(GoRouterState.of(context).uri.path),
-            ),
+            onBack: () => context.goBack(),
           ),
           if (state.context != null)
             _ProductStrip(contextData: state.context!),
