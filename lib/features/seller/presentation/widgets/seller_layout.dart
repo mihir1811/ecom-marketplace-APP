@@ -15,16 +15,8 @@ import '../../../../core/widgets/app_top_bar.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import 'seller_drawer.dart';
 
-/// Shared scaffold key so any seller-section screen can open the drawer.
-final GlobalKey<ScaffoldState> sellerScaffoldKey = GlobalKey<ScaffoldState>();
-
 /// Opens the side drawer from seller (or buyer-hosted shared) screens.
 void openSellerDrawer([BuildContext? context]) {
-  final sellerState = sellerScaffoldKey.currentState;
-  if (sellerState != null && sellerState.hasDrawer) {
-    sellerState.openDrawer();
-    return;
-  }
   if (context != null) {
     openAppDrawer(context);
   }
@@ -93,7 +85,6 @@ class SellerLayout extends ConsumerWidget {
     final shellTitle = _shellTitleFor(selectedRoute);
 
     return AppScaffold(
-      scaffoldKey: sellerScaffoldKey,
       drawer: SellerDrawer(selectedRoute: selectedRoute),
       backgroundColor: AppColors.bg(context),
       appBar: shellTitle == null

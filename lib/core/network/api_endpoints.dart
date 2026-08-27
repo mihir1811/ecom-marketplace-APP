@@ -149,6 +149,12 @@ abstract final class ApiEndpoints {
   static String productShareEmail(String id) => '/product-share/$id/email';
   static String productShareByToken(String token) => '/product-share/$token';
 
+  // API share (seller inventory API keys)
+  static const String apiShare = '/api-share';
+  static const String apiShareGenerate = '/api-share/generate';
+  static const String apiShareData = '/api-share/data';
+  static String apiShareById(String id) => '/api-share/$id';
+
   // Product offer
   static const String productOffer = '/product-offer';
   static String productOfferMine(String productType, String productId) =>

@@ -24,6 +24,11 @@ enum InquiryCategory {
   String get imageFieldKey =>
       this == InquiryCategory.jewelry ? 'referenceImage' : 'imageUrl';
 
+  /// Primary submit button copy for the matching category form.
+  String get submitLabel => this == InquiryCategory.jewelry
+      ? 'Submit jewellery inquiry'
+      : 'Submit ${label.toLowerCase()} inquiry';
+
   static InquiryCategory? fromRouteName(String name) {
     final lower = name.toLowerCase();
     for (final c in InquiryCategory.values) {

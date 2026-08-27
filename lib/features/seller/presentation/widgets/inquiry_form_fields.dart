@@ -30,6 +30,121 @@ InputDecoration inquiryInputDecoration(BuildContext context, [String? hint]) {
   );
 }
 
+/// Shared preset lists for inquiry dropdowns (plus Others in the field widget).
+abstract final class InquirySpecOptions {
+  static const shapes = [
+    'Round',
+    'Oval',
+    'Pear',
+    'Emerald',
+    'Cushion',
+    'Princess',
+    'Marquise',
+    'Heart',
+    'Radiant',
+    'Asscher',
+    'Cabochon',
+  ];
+
+  static const gemstoneTypes = [
+    'Ruby',
+    'Sapphire',
+    'Emerald',
+    'Amethyst',
+    'Aquamarine',
+    'Garnet',
+    'Topaz',
+    'Tourmaline',
+    'Tanzanite',
+    'Opal',
+    'Pearl',
+  ];
+
+  static const gemstoneColors = [
+    'Red',
+    'Blue',
+    'Green',
+    'Yellow',
+    'Pink',
+    'Purple',
+    'Orange',
+    'White',
+    'Black',
+    'Brown',
+    'Multi',
+  ];
+
+  static const gemstoneClarities = [
+    'FL',
+    'IF',
+    'VVS',
+    'VS',
+    'SI',
+    'I',
+    'Opaque',
+  ];
+
+  static const origins = [
+    'Burma',
+    'Sri Lanka',
+    'Colombia',
+    'Brazil',
+    'Africa',
+    'Madagascar',
+    'India',
+    'Thailand',
+  ];
+
+  static const treatments = [
+    'None',
+    'Heat',
+    'Oil',
+    'Diffusion',
+    'Irradiation',
+    'Fracture filling',
+  ];
+
+  static const jewelryCategories = [
+    'Ring',
+    'Necklace',
+    'Bracelet',
+    'Earring',
+    'Accessories',
+  ];
+
+  static const ringSizes = [
+    'US 4',
+    'US 5',
+    'US 6',
+    'US 7',
+    'US 8',
+    'US 9',
+    'US 10',
+    'US 11',
+    'US 12',
+    'US 13',
+  ];
+
+  static const necklaceLengths = [
+    '14 inch',
+    '16 inch',
+    '18 inch',
+    '20 inch',
+    '22 inch',
+    '24 inch',
+    '30 inch',
+  ];
+
+  static const braceletLengths = [
+    '6 inch',
+    '6.5 inch',
+    '7 inch',
+    '7.5 inch',
+    '8 inch',
+    '8.5 inch',
+  ];
+}
+
 class InquirySectionCard extends StatelessWidget {
   const InquirySectionCard({required this.child, this.title, super.key});
 
@@ -147,38 +262,257 @@ class InquiryPairFields extends StatelessWidget {
   }
 }
 
-class InquiryDropdownField extends StatelessWidget {
+class InquiryTripleFields extends StatelessWidget {
+  const InquiryTripleFields({
+    required this.first,
+    required this.second,
+    required this.third,
+    super.key,
+  });
+
+  final Widget first;
+  final Widget second;
+  final Widget third;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 560) {
+          return Column(children: [first, second, third]);
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: first),
+            const SizedBox(width: 10),
+            Expanded(child: second),
+            const SizedBox(width: 10),
+            Expanded(child: third),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class InquiryDropdownField extends StatefulWidget {
   const InquiryDropdownField({
     required this.label,
     required this.value,
     required this.options,
     required this.onChanged,
+    this.optionLabels,
     this.hint,
+    this.allowOther = true,
     super.key,
   });
+
+  static const otherValue = '__other__';
 
   final String label;
   final String value;
   final List<String> options;
+  final Map<String, String>? optionLabels;
   final ValueChanged<String> onChanged;
   final String? hint;
+  final bool allowOther;
+
+  @override
+  State<InquiryDropdownField> createState() => _InquiryDropdownFieldState();
+}
+
+class _InquiryDropdownFieldState extends State<InquiryDropdownField> {
+  late bool _otherMode;
+  late final TextEditingController _custom;
+
+  @override
+  void initState() {
+    super.initState();
+    _otherMode = widget.allowOther &&
+        widget.value.isNotEmpty &&
+        !widget.options.contains(widget.value);
+    _custom = TextEditingController(text: _otherMode ? widget.value : '');
+  }
+
+  @override
+  void didUpdateWidget(InquiryDropdownField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final inPreset = widget.options.contains(widget.value);
+    if (inPreset) {
+      if (_otherMode) setState(() => _otherMode = false);
+      return;
+    }
+    if (widget.allowOther && widget.value.isNotEmpty) {
+      if (!_otherMode) setState(() => _otherMode = true);
+      if (_custom.text != widget.value) _custom.text = widget.value;
+    }
+  }
+
+  @override
+  void dispose() {
+    _custom.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final placeholder = hint ?? 'Select $label';
-    return InquiryLabeledField(
-      label: label,
-      child: DropdownButtonFormField<String>(
-        key: ValueKey('$label-$value'),
-        initialValue: options.contains(value) ? value : options.first,
-        hint: Text(placeholder),
-        items: [
-          for (final o in options) DropdownMenuItem(value: o, child: Text(o)),
+    final placeholder = widget.hint ?? 'Select ${widget.label}';
+    final inPreset = widget.options.contains(widget.value);
+    final selected = _otherMode
+        ? InquiryDropdownField.otherValue
+        : (inPreset ? widget.value : widget.options.first);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.label,
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary(context),
+            ),
+          ),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<String>(
+            key: ValueKey('${widget.label}-$selected'),
+            initialValue: selected,
+            isExpanded: true,
+            hint: Text(placeholder, overflow: TextOverflow.ellipsis),
+            items: [
+              for (final o in widget.options)
+                DropdownMenuItem(
+                  value: o,
+                  child: Text(
+                    widget.optionLabels?[o] ?? o,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              if (widget.allowOther)
+                const DropdownMenuItem(
+                  value: InquiryDropdownField.otherValue,
+                  child: Text(
+                    'Others (specify manually)',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+            onChanged: (v) {
+              if (v == null) return;
+              if (v == InquiryDropdownField.otherValue) {
+                setState(() => _otherMode = true);
+                widget.onChanged(_custom.text);
+                return;
+              }
+              setState(() => _otherMode = false);
+              widget.onChanged(v);
+            },
+            decoration: inquiryInputDecoration(context, placeholder),
+          ),
+          if (_otherMode) ...[
+            const SizedBox(height: 8),
+            TextField(
+              controller: _custom,
+              onChanged: widget.onChanged,
+              scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+              decoration: inquiryInputDecoration(
+                context,
+                'Specify ${widget.label}',
+              ),
+            ),
+          ],
         ],
-        onChanged: (v) {
-          if (v != null) onChanged(v);
-        },
-        decoration: inquiryInputDecoration(context, placeholder),
+      ),
+    );
+  }
+}
+
+class InquirySegmentedField extends StatelessWidget {
+  const InquirySegmentedField({
+    required this.options,
+    required this.value,
+    required this.onChanged,
+    this.label,
+    this.selectedColor,
+    super.key,
+  });
+
+  final String? label;
+  final List<({String value, String label})> options;
+  final String value;
+  final ValueChanged<String> onChanged;
+  final Color? selectedColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = selectedColor ?? AppColors.selectedFill(context);
+    final control = DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.field(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border(context)),
+      ),
+      child: Row(
+        children: [
+          for (final option in options)
+            Expanded(
+              child: InkWell(
+                onTap: () => onChanged(option.value),
+                borderRadius: BorderRadius.circular(8),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: value == option.value ? selected : null,
+                    borderRadius: BorderRadius.circular(7),
+                    border: value == option.value &&
+                            selected == AppColors.bronze
+                        ? const Border.fromBorderSide(
+                            BorderSide(color: AppColors.bronze),
+                          )
+                        : null,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    option.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: value == option.value
+                          ? (selected == AppColors.bronze
+                                ? AppColors.warmWhite
+                                : AppColors.onSelected(context))
+                          : AppColors.textSecondary(context),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    if (label == null) return control;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            label!,
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary(context),
+            ),
+          ),
+          const SizedBox(height: 6),
+          control,
+        ],
       ),
     );
   }
@@ -433,6 +767,113 @@ class InquiryImagePickerField extends StatelessWidget {
               images.isEmpty ? 'Upload reference image' : 'Add another image',
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Single video file picker for inquiry "From device".
+class InquiryVideoPickerField extends StatelessWidget {
+  const InquiryVideoPickerField({
+    required this.label,
+    required this.fileName,
+    required this.onPicked,
+    this.helperText = 'MP4, WebM, MOV, AVI — max 50MB',
+    super.key,
+  });
+
+  final String label;
+  final String fileName;
+  final ValueChanged<String> onPicked;
+  final String helperText;
+
+  Future<void> _pick(BuildContext context) async {
+    try {
+      const typeGroup = XTypeGroup(
+        label: 'videos',
+        extensions: <String>['mp4', 'webm', 'mov', 'avi'],
+      );
+      final file = await openFile(acceptedTypeGroups: [typeGroup]);
+      if (file == null) return;
+
+      const maxBytes = 50 * 1024 * 1024;
+      final bytes = await file.readAsBytes();
+      if (!context.mounted) return;
+
+      if (bytes.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not read the selected file')),
+        );
+        return;
+      }
+      if (bytes.length > maxBytes) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Video must be smaller than 50 MB')),
+        );
+        return;
+      }
+
+      onPicked(file.name);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to open file picker. Please retry.'),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final chosen = fileName.trim();
+    return InquiryLabeledField(
+      label: label,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            helperText,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textMuted(context),
+            ),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => _pick(context),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.textPrimary(context),
+              side: BorderSide(color: AppColors.border(context)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            icon: const Icon(Icons.video_file_outlined, size: 20),
+            label: Text(
+              chosen.isEmpty ? 'Choose file' : chosen,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            chosen.isEmpty ? 'No file chosen' : chosen,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textMuted(context),
+            ),
+          ),
+          if (chosen.isNotEmpty)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () => onPicked(''),
+                child: const Text('Remove'),
+              ),
+            ),
         ],
       ),
     );

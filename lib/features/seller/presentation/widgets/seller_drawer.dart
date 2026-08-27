@@ -95,6 +95,12 @@ class SellerDrawer extends ConsumerWidget {
         icon: Icons.devices_outlined,
       ),
       const _DrawerItem(
+        route: AppRouteNames.sellerApiKeys,
+        label: 'API keys',
+        icon: Icons.vpn_key_outlined,
+        requiresVerified: true,
+      ),
+      const _DrawerItem(
         route: AppRouteNames.sellerProfile,
         label: 'Profile',
         icon: Icons.person_outline,

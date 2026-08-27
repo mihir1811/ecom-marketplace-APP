@@ -77,6 +77,7 @@ abstract final class InquiryRequestMapper {
   ) {
     _ensureCertification(body);
     _ensureDiamondLabFields(body);
+    _stripDiamondUiFields(body);
 
     for (final spec in _defaultsFor(category)) {
       if (!_isMissing(body, spec.key)) continue;
@@ -93,6 +94,12 @@ abstract final class InquiryRequestMapper {
   static void _ensureDiamondLabFields(Map<String, dynamic> body) {
     if (body['diamondType'] == 'LAB' && _isMissing(body, 'growthProcess')) {
       body['growthProcess'] = _na;
+    }
+  }
+
+  static void _stripDiamondUiFields(Map<String, dynamic> body) {
+    if (body['diamondType'] != 'LAB') {
+      body.remove('growthProcess');
     }
   }
 
@@ -178,6 +185,7 @@ abstract final class InquiryRequestMapper {
       ],
       InquiryCategory.bullion => [
         for (final key in [
+          'certificateCompany',
           'metalType',
           'metalFineness',
           'shapeFormat',
@@ -248,6 +256,9 @@ abstract final class InquiryRequestMapper {
           'stoneCut',
           'settingType',
           'ringSize',
+          'necklaceLength',
+          'braceletSize',
+          'braceletLength',
           'engravingText',
           'paymentTerms',
           'designDescription',
@@ -382,6 +393,7 @@ abstract final class InquiryRequestMapper {
       'inclusionType',
       'fluorescenceIntensityMin',
       'fluorescenceIntensityMax',
+      'caratPerPiece',
       'quantity',
       'totalPriceMin',
       'totalPriceMax',
@@ -397,6 +409,7 @@ abstract final class InquiryRequestMapper {
       'remarks',
       'urgency',
       'imageUrl',
+      'videoUrl',
       'deliveryLocation',
     },
     InquiryCategory.gemstone: {
@@ -426,9 +439,12 @@ abstract final class InquiryRequestMapper {
       'paymentTerms',
       'urgency',
       'imageUrl',
+      'videoUrl',
       'deliveryLocation',
     },
     InquiryCategory.bullion: {
+      'isCertified',
+      'certificateCompany',
       'metalType',
       'metalFineness',
       'shapeFormat',
@@ -450,6 +466,7 @@ abstract final class InquiryRequestMapper {
       'paymentTerms',
       'urgency',
       'imageUrl',
+      'videoUrl',
       'deliveryLocation',
     },
     InquiryCategory.watch: {
@@ -473,6 +490,7 @@ abstract final class InquiryRequestMapper {
       'description',
       'urgency',
       'imageUrl',
+      'videoUrl',
       'deliveryLocation',
     },
     InquiryCategory.jewelry: {
@@ -496,6 +514,9 @@ abstract final class InquiryRequestMapper {
       'stoneQuantity',
       'settingType',
       'ringSize',
+      'necklaceLength',
+      'braceletSize',
+      'braceletLength',
       'chainLengthMin',
       'chainLengthMax',
       'widthMin',
@@ -523,8 +544,7 @@ abstract final class InquiryRequestMapper {
     'caratMax',
     'caratWeightMin',
     'caratWeightMax',
-    'sieveSizeMin',
-    'sieveSizeMax',
+    'caratPerPiece',
     'quantity',
     'totalPriceMin',
     'totalPriceMax',

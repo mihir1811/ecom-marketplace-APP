@@ -11,14 +11,7 @@ import '../../../../core/widgets/app_top_bar.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import 'buyer_drawer.dart';
 
-final GlobalKey<ScaffoldState> buyerScaffoldKey = GlobalKey<ScaffoldState>();
-
 void openBuyerDrawer([BuildContext? context]) {
-  final state = buyerScaffoldKey.currentState;
-  if (state != null && state.hasDrawer) {
-    state.openDrawer();
-    return;
-  }
   if (context != null) {
     openAppDrawer(context);
   }
@@ -45,7 +38,6 @@ class BuyerLayout extends ConsumerWidget {
     final hasAppBar = title != null;
 
     return AppScaffold(
-      scaffoldKey: buyerScaffoldKey,
       backgroundColor: AppColors.bg(context),
       drawer: const BuyerDrawer(),
       appBar: hasAppBar
