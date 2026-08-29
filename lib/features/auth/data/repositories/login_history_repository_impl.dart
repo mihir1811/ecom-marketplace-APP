@@ -28,9 +28,7 @@ class LoginHistoryRepositoryImpl implements LoginHistoryRepository {
         ApiEndpoints.loginHistory,
         cancelToken: cancelToken,
       );
-      return Result.success(
-        LoginHistoryMapper.sessionsFromRoot(response.data),
-      );
+      return Result.success(LoginHistoryMapper.sessionsFromRoot(response.data));
     } on DioException catch (e) {
       return Result.failure(ApiError.fromDio(e));
     } catch (e) {
@@ -47,9 +45,7 @@ class LoginHistoryRepositoryImpl implements LoginHistoryRepository {
         ApiEndpoints.loginHistoryActiveSeller,
         cancelToken: cancelToken,
       );
-      return Result.success(
-        LoginHistoryMapper.devicesFromRoot(response.data),
-      );
+      return Result.success(LoginHistoryMapper.devicesFromRoot(response.data));
     } on DioException catch (e) {
       return Result.failure(ApiError.fromDio(e));
     } catch (e) {

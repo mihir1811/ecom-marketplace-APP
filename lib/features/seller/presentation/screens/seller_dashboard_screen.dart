@@ -14,6 +14,9 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_insights_provider.dart';
 import '../../domain/models/seller_insights.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Seller dashboard screen shown after login.
 class SellerDashboardScreen extends ConsumerStatefulWidget {
   const SellerDashboardScreen({super.key});
@@ -29,9 +32,12 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
   DateTime? _customEnd;
   DashboardMetric _metric = DashboardMetric.totalSales;
 
-  static const _metricIcons = <DashboardMetric, (IconData, Color)>{
+  static final _metricIcons = <DashboardMetric, (IconData, Color)>{
     DashboardMetric.totalSales: (Icons.attach_money_outlined, AppColors.bronze),
-    DashboardMetric.productsSold: (Icons.inventory_2_outlined, AppColors.success),
+    DashboardMetric.productsSold: (
+      Icons.inventory_2_outlined,
+      AppColors.success,
+    ),
     DashboardMetric.orders: (Icons.shopping_cart_outlined, AppColors.info),
     DashboardMetric.inventoryValue: (
       Icons.warehouse_outlined,
@@ -40,11 +46,11 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
   };
 
   SellerDashboardParams get _params => SellerDashboardParams(
-        range: _range,
-        metric: _metric,
-        customStart: _customStart,
-        customEnd: _customEnd,
-      );
+    range: _range,
+    metric: _metric,
+    customStart: _customStart,
+    customEnd: _customEnd,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -60,12 +66,13 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
           child: ListView(
             children: [
-              const _TopHeader(
-                subtitle:
-                    'Welcome back! Here’s what’s happening with your business today.',
+              _TopHeader(
+                subtitle: context.tr(
+                  RemainingL10n.welcomeBackHereSWhatSHappening,
+                ),
               ),
               if (state.errorMessage != null && snapshot == null) ...[
-                const SizedBox(height: AppSpacing.s16),
+                SizedBox(height: AppSpacing.s16),
                 CatalogErrorState(
                   message: state.errorMessage!,
                   onRetry: () => ref
@@ -160,7 +167,9 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                       const SizedBox(height: AppSpacing.s12),
                       Text(
                         snapshot.chart.endDate != null
-                            ? 'To ${_fmtDate(snapshot.chart.endDate!)}'
+                            ? context.tr(RemainingL10n.throughDate, {
+                                'date': _fmtDate(snapshot.chart.endDate!),
+                              })
                             : '',
                         style: AppTypography.caption.copyWith(
                           color: AppColors.textSecondary(context),
@@ -171,11 +180,12 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s16),
                 _CardSection(
-                  title: 'Recent Orders',
+                  title: context.tr(RemainingL10n.recentOrders),
                   trailing: TextButton(
-                    onPressed: () => context.openRoute(AppRouteNames.sellerOrders),
+                    onPressed: () =>
+                        context.openRoute(AppRouteNames.sellerOrders),
                     child: Text(
-                      'View All',
+                      context.tr(RemainingL10n.viewAll),
                       style: AppTypography.label.copyWith(
                         color: AppColors.textPrimary(context),
                         decoration: TextDecoration.underline,
@@ -184,16 +194,18 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                   ),
                   child: snapshot.recentOrders.isEmpty
                       ? Text(
-                          'No orders yet.',
+                          context.tr(RemainingL10n.noOrdersYet),
                           style: AppTypography.body.copyWith(
                             color: AppColors.textMuted(context),
                           ),
                         )
                       : Column(
                           children: [
-                            for (var i = 0;
-                                i < snapshot.recentOrders.length;
-                                i++) ...[
+                            for (
+                              var i = 0;
+                              i < snapshot.recentOrders.length;
+                              i++
+                            ) ...[
                               if (i > 0) const SizedBox(height: AppSpacing.s12),
                               _OrderRow(
                                 orderId: '#${snapshot.recentOrders[i].id}',
@@ -209,26 +221,26 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s16),
                 _CardSection(
-                  title: 'Product Upload Status',
+                  title: context.tr(RemainingL10n.productUploadStatus),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _UploadStatusRow(
-                        label: 'Successful',
+                        label: context.tr(RemainingL10n.successful),
                         value: '${snapshot.uploadStatus.successful}',
                         icon: Icons.check_circle_outline,
                         color: AppColors.success,
                       ),
                       const SizedBox(height: 12),
                       _UploadStatusRow(
-                        label: 'On Hold',
+                        label: context.tr(RemainingL10n.onHold),
                         value: '${snapshot.uploadStatus.onHold}',
                         icon: Icons.pause_circle_outline,
                         color: AppColors.warning,
                       ),
                       const SizedBox(height: 12),
                       _UploadStatusRow(
-                        label: 'Failed',
+                        label: context.tr(RemainingL10n.failed),
                         value: '${snapshot.uploadStatus.failed}',
                         icon: Icons.cancel_outlined,
                         color: AppColors.error,
@@ -262,10 +274,12 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
 
   String _chartSectionTitle(DashboardMetric metric) {
     return switch (metric) {
-      DashboardMetric.totalSales => 'Sales Overview',
-      DashboardMetric.productsSold => 'Products Sold',
-      DashboardMetric.orders => 'Orders',
-      DashboardMetric.inventoryValue => 'Inventory Value',
+      DashboardMetric.totalSales => context.tr(RemainingL10n.salesOverview),
+      DashboardMetric.productsSold => context.tr(RemainingL10n.productsSold),
+      DashboardMetric.orders => context.tr(RemainingL10n.orders),
+      DashboardMetric.inventoryValue => context.tr(
+        RemainingL10n.inventoryValue,
+      ),
     };
   }
 
@@ -288,7 +302,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                 initialDate: start ?? DateTime.now(),
                 firstDate: firstDate,
                 lastDate: end ?? lastDate,
-                helpText: 'Select start date',
+                helpText: context.tr(RemainingL10n.selectStartDate),
               );
               if (picked == null) return;
               setDialogState(() {
@@ -305,7 +319,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                 initialDate: end ?? start ?? DateTime.now(),
                 firstDate: start ?? firstDate,
                 lastDate: lastDate,
-                helpText: 'Select end date',
+                helpText: context.tr(RemainingL10n.selectEndDate),
               );
               if (picked == null) return;
               setDialogState(() => end = picked);
@@ -314,8 +328,10 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
             return AlertDialog(
               backgroundColor: AppColors.card(context),
               title: Text(
-                'Custom date range',
-                style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+                context.tr(RemainingL10n.customDateRange),
+                style: AppTypography.title.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               content: SizedBox(
                 width: 320,
@@ -323,13 +339,13 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _CustomDateField(
-                      label: 'Start date',
+                      label: context.tr(RemainingL10n.startDate),
                       value: start,
                       onTap: pickStart,
                     ),
                     const SizedBox(height: AppSpacing.s12),
                     _CustomDateField(
-                      label: 'End date',
+                      label: context.tr(RemainingL10n.endDate),
                       value: end,
                       onTap: pickEnd,
                     ),
@@ -339,7 +355,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(context.tr(RemainingL10n.cancel)),
                 ),
                 FilledButton(
                   onPressed: start != null && end != null
@@ -349,7 +365,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                     backgroundColor: AppColors.charcoal,
                     foregroundColor: AppColors.warmWhite,
                   ),
-                  child: const Text('Apply'),
+                  child: Text(context.tr(RemainingL10n.apply)),
                 ),
               ],
             );
@@ -379,7 +395,7 @@ class _CustomDateField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = value == null
-        ? 'Select date'
+        ? context.tr(RemainingL10n.selectDate)
         : _SellerDashboardScreenState._fmtDate(value!);
 
     return Column(
@@ -401,7 +417,7 @@ class _CustomDateField extends StatelessWidget {
             child: InputDecorator(
               decoration: InputDecoration(
                 isDense: true,
-                hintText: 'Select date',
+                hintText: context.tr(RemainingL10n.selectDate),
                 suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -539,11 +555,7 @@ class _TopHeader extends StatelessWidget {
 }
 
 class _CardSection extends StatelessWidget {
-  const _CardSection({
-    required this.title,
-    this.trailing,
-    required this.child,
-  });
+  const _CardSection({required this.title, this.trailing, required this.child});
 
   final String title;
   final Widget? trailing;
@@ -593,13 +605,13 @@ class _SalesRangeDropdown extends StatelessWidget {
   final DateTime? customStart;
   final DateTime? customEnd;
 
-  static const _labels = {
-    SalesRange.daily: 'Daily',
-    SalesRange.weekly: 'Weekly',
-    SalesRange.monthly: 'Monthly',
-    SalesRange.quarterly: 'Quarterly',
-    SalesRange.yearly: 'Yearly',
-    SalesRange.custom: 'Custom',
+  Map<SalesRange, String> _labels(BuildContext context) => {
+    SalesRange.daily: context.tr(RemainingL10n.daily),
+    SalesRange.weekly: context.tr(RemainingL10n.weekly),
+    SalesRange.monthly: context.tr(RemainingL10n.monthly),
+    SalesRange.quarterly: context.tr(RemainingL10n.quarterly),
+    SalesRange.yearly: context.tr(RemainingL10n.yearly),
+    SalesRange.custom: context.tr(RemainingL10n.custom),
   };
 
   @override
@@ -609,7 +621,10 @@ class _SalesRangeDropdown extends StatelessWidget {
       initialValue: value,
       decoration: InputDecoration(
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           borderSide: BorderSide(color: AppColors.border(context)),
@@ -621,10 +636,7 @@ class _SalesRangeDropdown extends StatelessWidget {
       ),
       items: [
         for (final range in SalesRange.values)
-          DropdownMenuItem(
-            value: range,
-            child: Text(_labels[range]!),
-          ),
+          DropdownMenuItem(value: range, child: Text(_labels(context)[range]!)),
       ],
       onChanged: (v) {
         if (v != null) onChanged(v);
@@ -649,7 +661,7 @@ class _DashboardBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final series = values.isEmpty ? const <double>[0] : values;
-    final xLabels = labels.isEmpty ? const ['—'] : labels;
+    final xLabels = labels.isEmpty ? ['—'] : labels;
     final maxY = _niceMax(series);
     final yTicks = _yTicks(maxY);
     final formatY = _yFormatter(metric);
@@ -692,7 +704,9 @@ class _DashboardBarChart extends StatelessWidget {
                           top: _chartHeight * (1 - yTicks[i] / maxY),
                           child: Container(
                             height: 1,
-                            color: AppColors.border(context).withValues(alpha: 0.6),
+                            color: AppColors.border(
+                              context,
+                            ).withValues(alpha: 0.6),
                           ),
                         ),
                       Row(
@@ -761,10 +775,10 @@ class _DashboardBarChart extends StatelessWidget {
     final nice = normalized <= 1
         ? 1
         : normalized <= 2
-            ? 2
-            : normalized <= 5
-                ? 5
-                : 10;
+        ? 2
+        : normalized <= 5
+        ? 5
+        : 10;
     return nice * magnitude;
   }
 
@@ -782,15 +796,17 @@ class _DashboardBarChart extends StatelessWidget {
 
   static String Function(double) _yFormatter(DashboardMetric metric) {
     return switch (metric) {
-      DashboardMetric.totalSales => (v) => AppCurrency.format(v.toStringAsFixed(2)),
+      DashboardMetric.totalSales => (v) => AppCurrency.format(
+        v.toStringAsFixed(2),
+      ),
       DashboardMetric.productsSold => (v) => v.toStringAsFixed(0),
       DashboardMetric.orders => (v) => v.toStringAsFixed(0),
       DashboardMetric.inventoryValue => (v) {
-          if (v >= 1000) {
-            return '${AppCurrency.format((v / 1000).toStringAsFixed(0))}k';
-          }
-          return AppCurrency.format(v.toStringAsFixed(0));
-        },
+        if (v >= 1000) {
+          return '${AppCurrency.format((v / 1000).toStringAsFixed(0))}k';
+        }
+        return AppCurrency.format(v.toStringAsFixed(0));
+      },
     };
   }
 }
@@ -819,9 +835,7 @@ class _BarColumn extends StatelessWidget {
           height: barHeight.clamp(0, height),
           decoration: BoxDecoration(
             color: color,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(4),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
           ),
         ),
       ),
@@ -950,12 +964,20 @@ class _UploadStatusRow extends StatelessWidget {
 class _QuickActionsSection extends StatelessWidget {
   const _QuickActionsSection();
 
-  static const _actions = [
-    (Icons.receipt_long_outlined, 'View Orders', AppRouteNames.sellerOrders),
-    (Icons.inventory_2_outlined, 'Products', AppRouteNames.sellerProducts),
+  List<(IconData, String, String)> _actions(BuildContext context) => [
+    (
+      Icons.receipt_long_outlined,
+      context.tr(RemainingL10n.viewOrders),
+      AppRouteNames.sellerOrders,
+    ),
+    (
+      Icons.inventory_2_outlined,
+      context.tr(RemainingL10n.products),
+      AppRouteNames.sellerProducts,
+    ),
     (
       Icons.analytics_outlined,
-      'Diamond projects',
+      context.tr(RemainingL10n.diamondProjects),
       AppRouteNames.savedDiamondProjects,
     ),
   ];
@@ -966,7 +988,7 @@ class _QuickActionsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          context.tr(RemainingL10n.quickActions),
           style: AppTypography.title.copyWith(
             color: AppColors.textPrimary(context),
             fontWeight: FontWeight.w700,
@@ -976,7 +998,7 @@ class _QuickActionsSection extends StatelessWidget {
         GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
-          itemCount: _actions.length,
+          itemCount: _actions(context).length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: AppSpacing.s12,
@@ -984,7 +1006,7 @@ class _QuickActionsSection extends StatelessWidget {
             childAspectRatio: 3.2,
           ),
           itemBuilder: (context, index) {
-            final (icon, label, route) = _actions[index];
+            final (icon, label, route) = _actions(context)[index];
             return FilledButton(
               onPressed: () {
                 context.openRoute(route);
@@ -1021,4 +1043,3 @@ class _QuickActionsSection extends StatelessWidget {
     );
   }
 }
-

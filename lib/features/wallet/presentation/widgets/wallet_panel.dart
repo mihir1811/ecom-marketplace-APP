@@ -11,6 +11,9 @@ import '../widgets/wallet_balance_card.dart';
 import '../widgets/wallet_top_up_sheet.dart';
 import '../widgets/wallet_transaction_tile.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Shared wallet body used by buyer and seller shells.
 class WalletPanel extends ConsumerWidget {
   const WalletPanel({super.key});
@@ -42,14 +45,16 @@ class WalletPanel extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSpacing.s24),
           children: [
             Text(
-              error is Failure ? error.message : 'Could not load your wallet.',
+              error is Failure
+                  ? error.message
+                  : context.tr(RemainingL10n.walletLoadError),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.s16),
             Center(
               child: FilledButton(
                 onPressed: () => _refresh(ref),
-                child: const Text('Retry'),
+                child: Text(context.tr(RemainingL10n.retry)),
               ),
             ),
           ],
@@ -71,9 +76,7 @@ class _WalletLoadedView extends ConsumerWidget {
     final extra = txns.hasMore ? 1 : 0;
     final loadingTxns = txns.isLoading && txns.items.isEmpty;
     final empty = txns.items.isEmpty && !txns.isLoading;
-    final count = 3 +
-        (loadingTxns || empty ? 1 : txns.items.length) +
-        extra;
+    final count = 3 + (loadingTxns || empty ? 1 : txns.items.length) + extra;
 
     return NotificationListener<ScrollNotification>(
       onNotification: (n) {
@@ -103,12 +106,12 @@ class _WalletLoadedView extends ConsumerWidget {
             return FilledButton.icon(
               onPressed: () => WalletTopUpSheet.show(context),
               icon: const Icon(Icons.add),
-              label: const Text('Top up'),
+              label: Text(context.tr(RemainingL10n.topUp)),
             );
           }
           if (index == 2) {
             return Text(
-              'Transactions',
+              context.tr(RemainingL10n.transactions),
               style: AppTypography.title.copyWith(
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary(context),
@@ -131,7 +134,7 @@ class _WalletLoadedView extends ConsumerWidget {
                     onPressed: () => ref
                         .read(walletTransactionsProvider.notifier)
                         .loadInitial(),
-                    child: const Text('Retry'),
+                    child: Text(context.tr(RemainingL10n.retry)),
                   ),
                 ],
               );
@@ -139,7 +142,7 @@ class _WalletLoadedView extends ConsumerWidget {
             return Padding(
               padding: const EdgeInsets.only(top: AppSpacing.s32),
               child: Text(
-                'No wallet transactions yet',
+                context.tr(RemainingL10n.noWalletTransactions),
                 textAlign: TextAlign.center,
                 style: AppTypography.body.copyWith(
                   color: AppColors.textMuted(context),

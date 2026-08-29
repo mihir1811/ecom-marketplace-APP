@@ -2,6 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -35,171 +38,186 @@ class BuyerOrderDetailScreen extends ConsumerWidget {
     final async = ref.watch(buyerOrderDetailProvider(orderId));
 
     return BuyerLayout(
-      title: 'Order details',
+      title: context.tr(AccountCommerceL10n.orderDetails),
       child: async.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) {
-            final message = e is Failure ? e.message : 'Order not found';
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(message),
-                  TextButton(
-                    onPressed: () => context.goBack(),
-                    child: const Text('Back to orders'),
-                  ),
-                ],
-              ),
-            );
-          },
-          data: (order) => ListView(
-            padding: const EdgeInsets.all(AppSpacing.s16),
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Order',
-                      style: AppTypography.title.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) {
+          final message = e is Failure
+              ? e.message
+              : context.tr(AccountCommerceL10n.orderNotFound);
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(message),
+                TextButton(
+                  onPressed: () => context.goBack(),
+                  child: Text(context.tr(AccountCommerceL10n.backToOrders)),
+                ),
+              ],
+            ),
+          );
+        },
+        data: (order) => ListView(
+          padding: const EdgeInsets.all(AppSpacing.s16),
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Order',
+                    style: AppTypography.title.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  TextButton.icon(
-                    onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: order.id));
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Order ID copied')),
-                      );
-                    },
-                    icon: const Icon(Icons.copy_outlined, size: 18),
-                    label: const Text('Copy order id'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.bronze,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.s8),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                order.items.length == 1
-                                    ? 'Order item'
-                                    : '${order.items.length} items',
-                                style: AppTypography.title.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Sold by ${order.primarySellerName}',
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.textSecondary(context),
-                                ),
-                              ),
-                            ],
-                          ),
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: order.id));
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          context.tr(AccountCommerceL10n.orderIdCopied),
                         ),
-                        const SizedBox(width: AppSpacing.s8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.copy_outlined, size: 18),
+                  label: Text(context.tr(AccountCommerceL10n.copyOrderId)),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.bronze,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.s8),
+            _Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _StatusChip(status: order.status),
-                            if (order.createdAt != null) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                'Placed ${_formatOrderDate(order.createdAt!)}',
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.textMuted(context),
-                                ),
+                            Text(
+                              order.items.length == 1
+                                  ? context.tr(AccountCommerceL10n.orderItem)
+                                  : context.tr(AccountCommerceL10n.itemsCount, {
+                                      'count': order.items.length,
+                                    }),
+                              style: AppTypography.title.copyWith(
+                                fontWeight: FontWeight.w700,
                               ),
-                            ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              context.tr(AccountCommerceL10n.soldBy, {
+                                'seller': order.primarySellerName,
+                              }),
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textSecondary(context),
+                              ),
+                            ),
                           ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    for (var i = 0; i < order.items.length; i++) ...[
-                      if (i > 0) const SizedBox(height: 12),
-                      _ItemRow(
-                        item: order.items[i],
-                        showSeller:
-                            order.items.length > 1 &&
-                            (order.items[i].sellerName?.isNotEmpty ?? false),
+                      ),
+                      const SizedBox(width: AppSpacing.s8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          _StatusChip(status: order.status),
+                          if (order.createdAt != null) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              context.tr(AccountCommerceL10n.placedOn, {
+                                'date': _formatOrderDate(order.createdAt!),
+                              }),
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textMuted(context),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 14),
+                  for (var i = 0; i < order.items.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 12),
+                    _ItemRow(
+                      item: order.items[i],
+                      showSeller:
+                          order.items.length > 1 &&
+                          (order.items[i].sellerName?.isNotEmpty ?? false),
+                    ),
                   ],
+                ],
+              ),
+            ),
+            if (order.pricing != null) ...[
+              const SizedBox(height: 12),
+              _Card(
+                child: _OrderPricingSummary(
+                  pricing: order.pricing!,
+                  amountUsd: order.amountUsd,
+                  amountInr: order.amount,
                 ),
               ),
-              if (order.pricing != null) ...[
+              if (order.invoiceUrl != null && order.invoiceUrl!.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 _Card(
-                  child: _OrderPricingSummary(
-                    pricing: order.pricing!,
-                    amountUsd: order.amountUsd,
-                    amountInr: order.amount,
-                  ),
-                ),
-                if (order.invoiceUrl != null &&
-                    order.invoiceUrl!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _Card(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (order.invoiceNumber != null &&
-                            order.invoiceNumber!.isNotEmpty) ...[
-                          Text(
-                            'Invoice ${order.invoiceNumber}',
-                            style: AppTypography.label.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.s12),
-                        ],
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: FilledButton.icon(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.charcoal,
-                              foregroundColor: AppColors.warmWhite,
-                            ),
-                            onPressed: () => _downloadInvoice(context, order),
-                            icon: const Icon(Icons.download_outlined, size: 20),
-                            label: const Text('Download invoice'),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (order.invoiceNumber != null &&
+                          order.invoiceNumber!.isNotEmpty) ...[
+                        Text(
+                          context.tr(AccountCommerceL10n.invoiceNumber, {
+                            'number': order.invoiceNumber,
+                          }),
+                          style: AppTypography.label.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
+                        const SizedBox(height: AppSpacing.s12),
                       ],
-                    ),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.charcoal,
+                            foregroundColor: AppColors.warmWhite,
+                          ),
+                          onPressed: () => _downloadInvoice(context, order),
+                          icon: const Icon(Icons.download_outlined, size: 20),
+                          label: Text(
+                            context.tr(AccountCommerceL10n.downloadInvoice),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ],
-              const SizedBox(height: 12),
-              _Card(child: OrderTrackingSection(orderId: order.id)),
-              const SizedBox(height: 12),
-              _Card(child: _OrderRefundSection(order: order)),
-              const SizedBox(height: 12),
-              _Card(child: OrderReviewSection(order: order)),
-              const SizedBox(height: 24),
             ],
-          ),
+            const SizedBox(height: 12),
+            _Card(child: OrderTrackingSection(orderId: order.id)),
+            const SizedBox(height: 12),
+            _Card(child: _OrderRefundSection(order: order)),
+            const SizedBox(height: 12),
+            _Card(child: OrderReviewSection(order: order)),
+            const SizedBox(height: 24),
+          ],
         ),
+      ),
     );
   }
 }
@@ -299,7 +317,7 @@ class _OrderRefundSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Refunds',
+          context.tr(AccountCommerceL10n.refunds),
           style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 6),
@@ -324,14 +342,18 @@ class _OrderRefundSection extends ConsumerWidget {
                       sellerName: target.sellerName,
                     ),
               icon: const Icon(Icons.replay, size: 18),
-              label: Text('Request refund · ${target.sellerName}'),
+              label: Text(
+                context.tr(AccountCommerceL10n.requestRefund, {
+                  'seller': target.sellerName,
+                }),
+              ),
             ),
           ),
           const SizedBox(height: 8),
         ],
         TextButton(
           onPressed: () => context.openRoute(AppRouteNames.buyerRefunds),
-          child: const Text('View my refund requests'),
+          child: Text(context.tr(AccountCommerceL10n.viewRefunds)),
         ),
       ],
     );
@@ -347,25 +369,25 @@ class _OrderRefundSection extends ConsumerWidget {
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Refund · $sellerName'),
+        title: Text('${context.tr(AccountCommerceL10n.refunds)} · $sellerName'),
         content: TextField(
           controller: reasonController,
           maxLines: 4,
           maxLength: 2000,
-          decoration: const InputDecoration(
-            labelText: 'Reason',
-            hintText: 'Why are you requesting a refund?',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.reason),
+            hintText: context.tr(AccountCommerceL10n.refundReasonHint),
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(CoreL10n.cancel)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Submit'),
+            child: Text(context.tr(CoreL10n.submit)),
           ),
         ],
       ),
@@ -375,7 +397,9 @@ class _OrderRefundSection extends ConsumerWidget {
     if (confirmed != true || !context.mounted) return;
     if (reason.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a refund reason')),
+        SnackBar(
+          content: Text(context.tr(AccountCommerceL10n.refundReasonRequired)),
+        ),
       );
       return;
     }
@@ -388,7 +412,9 @@ class _OrderRefundSection extends ConsumerWidget {
     switch (result) {
       case Success():
         messenger.showSnackBar(
-          const SnackBar(content: Text('Refund request submitted')),
+          SnackBar(
+            content: Text(context.tr(AccountCommerceL10n.refundSubmitted)),
+          ),
         );
       case ResultFailure(failure: final failure):
         messenger.showSnackBar(SnackBar(content: Text(failure.message)));
@@ -433,8 +459,10 @@ class _ItemRow extends StatelessWidget {
         : item.productType.replaceAll('_', ' ');
     final meta = [
       if (typeLabel != null) typeLabel,
-      if (item.quantity > 1) 'Qty ${item.quantity}',
-      if (showSeller && item.sellerName != null) 'Sold by ${item.sellerName}',
+      if (item.quantity > 1)
+        context.tr(AccountCommerceL10n.quantity, {'count': item.quantity}),
+      if (showSeller && item.sellerName != null)
+        context.tr(AccountCommerceL10n.soldBy, {'seller': item.sellerName}),
     ];
 
     return Row(
@@ -529,7 +557,7 @@ class _OrderPricingSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'ORDER SUMMARY',
+          context.tr(AccountCommerceL10n.orderSummary),
           style: AppTypography.caption.copyWith(
             color: AppColors.textMuted(context),
             fontWeight: FontWeight.w700,
@@ -539,7 +567,7 @@ class _OrderPricingSummary extends StatelessWidget {
         const SizedBox(height: AppSpacing.s16),
         if (pricing.subtotal > subtotalUsd && pricing.promotionDiscount > 0)
           _MoneyRow(
-            label: 'Items subtotal',
+            label: context.tr(AccountCommerceL10n.itemsSubtotal),
             primary: AppCurrency.usd(pricing.subtotal),
           ),
         if (pricing.promotionDiscount > 0)
@@ -558,17 +586,17 @@ class _OrderPricingSummary extends StatelessWidget {
           _MoneyRow(label: 'GST', primary: _inrLabel(pricing.gst)),
         if (pricing.transactionFee > 0)
           _MoneyRow(
-            label: 'Transaction fee',
+            label: context.tr(AccountCommerceL10n.transactionFee),
             primary: _inrLabel(pricing.transactionFee),
           ),
         if (pricing.platformFee > 0)
           _MoneyRow(
-            label: 'Platform fee',
+            label: context.tr(AccountCommerceL10n.platformFee),
             primary: _inrLabel(pricing.platformFee),
           ),
         if (pricing.gemworldVerificationCommission > 0)
           _MoneyRow(
-            label: 'GemWorld verification',
+            label: context.tr(AccountCommerceL10n.verificationFee),
             primary: _inrLabel(pricing.gemworldVerificationCommission),
           ),
         const Divider(height: 28),
@@ -681,12 +709,16 @@ Future<void> _downloadInvoice(BuildContext context, PaymentOrder order) async {
     );
     if (!ok) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Could not open the invoice.')),
+        SnackBar(
+          content: Text(context.tr(AccountCommerceL10n.invoiceOpenFailed)),
+        ),
       );
     }
   } catch (_) {
     messenger.showSnackBar(
-      const SnackBar(content: Text('Could not open the invoice.')),
+      SnackBar(
+        content: Text(context.tr(AccountCommerceL10n.invoiceOpenFailed)),
+      ),
     );
   }
 }

@@ -11,6 +11,9 @@ import '../../../../core/widgets/app_top_bar.dart';
 import '../../data/policies_repository.dart';
 import '../../domain/models/policy_document.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Renders any policy by [policyId] from [assets/policies/policies.json].
 class PolicyDetailScreen extends StatefulWidget {
   const PolicyDetailScreen({super.key, required this.policyId});
@@ -22,19 +25,26 @@ class PolicyDetailScreen extends StatefulWidget {
 }
 
 class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
+  Locale? _loadedLocale;
   late Future<PolicyDocument?> _future;
 
   @override
-  void initState() {
-    super.initState();
-    _future = PoliciesRepository.loadById(widget.policyId);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = Localizations.localeOf(context);
+    if (_loadedLocale?.languageCode == locale.languageCode) return;
+    _loadedLocale = locale;
+    _future = PoliciesRepository.loadById(widget.policyId, locale);
   }
 
   @override
   void didUpdateWidget(covariant PolicyDetailScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.policyId != widget.policyId) {
-      _future = PoliciesRepository.loadById(widget.policyId);
+      _future = PoliciesRepository.loadById(
+        widget.policyId,
+        _loadedLocale ?? Localizations.localeOf(context),
+      );
     }
   }
 
@@ -47,13 +57,13 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
       appBar: AppTopBar(
-        title: 'Policy',
+        title: context.tr(RemainingL10n.policy),
         backgroundColor: AppColors.bg(context),
         titleWidget: FutureBuilder<PolicyDocument?>(
           future: _future,
           builder: (context, snapshot) {
             return Text(
-              snapshot.data?.title ?? 'Policy',
+              snapshot.data?.title ?? context.tr(RemainingL10n.policy),
               style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
             );
           },
@@ -75,15 +85,16 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Policy not found',
+                      context.tr(RemainingL10n.policyNotFound),
                       style: AppTypography.title.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.s12),
                     TextButton(
-                      onPressed: () => context.openRoute(AppRouteNames.policies),
-                      child: const Text('View all policies'),
+                      onPressed: () =>
+                          context.openRoute(AppRouteNames.policies),
+                      child: Text(context.tr(RemainingL10n.viewAllPolicies)),
                     ),
                   ],
                 ),
@@ -120,7 +131,9 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
                     ),
                     const SizedBox(height: AppSpacing.s8),
                     Text(
-                      'Effective Date: ${document.effectiveDate}',
+                      context.tr(RemainingL10n.effectiveDateValue, {
+                        'date': document.effectiveDate,
+                      }),
                       style: AppTypography.label.copyWith(
                         color: AppColors.textMutedLight,
                       ),
@@ -262,14 +275,12 @@ class _PolicySupportCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Need help?',
+            context.tr(RemainingL10n.needHelp),
             style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: AppSpacing.s8),
           Text(
-            'For questions about this policy, orders, or account issues, '
-            'contact support through the Help Center or email '
-            'support@gemworld.com.',
+            context.tr(RemainingL10n.forQuestionsAboutThisPolicyOrders),
             style: AppTypography.body.copyWith(
               color: AppColors.textSecondaryLight,
               height: 1.55,
@@ -287,12 +298,12 @@ class _PolicySupportCard extends StatelessWidget {
                   foregroundColor: AppColors.charcoal,
                   side: const BorderSide(color: AppColors.warmBorder),
                 ),
-                child: const Text('Help Center'),
+                child: Text(context.tr(RemainingL10n.helpCenter2)),
               ),
               TextButton(
                 onPressed: () => context.push(AppRouteNames.policies),
                 child: Text(
-                  'All policies',
+                  context.tr(RemainingL10n.allPolicies),
                   style: AppTypography.label.copyWith(
                     color: AppColors.bronze,
                     fontWeight: FontWeight.w600,
@@ -302,7 +313,7 @@ class _PolicySupportCard extends StatelessWidget {
               TextButton(
                 onPressed: () => context.push(AppRouteNames.aboutUs),
                 child: Text(
-                  'About GemWorld',
+                  context.tr(RemainingL10n.aboutGemWorld),
                   style: AppTypography.label.copyWith(
                     color: AppColors.bronze,
                     fontWeight: FontWeight.w600,

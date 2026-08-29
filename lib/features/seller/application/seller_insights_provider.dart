@@ -86,10 +86,12 @@ class SellerDashboardNotifier
   }
 }
 
-final sellerDashboardProvider = NotifierProvider.family<
-    SellerDashboardNotifier, SellerDashboardState, SellerDashboardParams>(
-  SellerDashboardNotifier.new,
-);
+final sellerDashboardProvider =
+    NotifierProvider.family<
+      SellerDashboardNotifier,
+      SellerDashboardState,
+      SellerDashboardParams
+    >(SellerDashboardNotifier.new);
 
 class SellerAnalyticsState {
   const SellerAnalyticsState({
@@ -172,7 +174,9 @@ class SellerAnalyticsNotifier
   }
 }
 
-final sellerAnalyticsProvider = NotifierProvider.family<
-    SellerAnalyticsNotifier, SellerAnalyticsState, AnalyticsRange>(
-  SellerAnalyticsNotifier.new,
-);
+final sellerAnalyticsProvider =
+    NotifierProvider.family<
+      SellerAnalyticsNotifier,
+      SellerAnalyticsState,
+      AnalyticsRange
+    >(SellerAnalyticsNotifier.new);

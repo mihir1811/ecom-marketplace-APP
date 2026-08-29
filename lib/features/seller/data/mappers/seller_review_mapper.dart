@@ -3,11 +3,13 @@ import '../../domain/models/seller_review.dart';
 abstract final class SellerReviewMapper {
   static SellerReview fromJson(Map<String, dynamic> json) {
     final user = json['user'];
-    final userMap =
-        user is Map<String, dynamic> ? user : const <String, dynamic>{};
+    final userMap = user is Map<String, dynamic>
+        ? user
+        : const <String, dynamic>{};
     final seller = json['seller'];
-    final sellerMap =
-        seller is Map<String, dynamic> ? seller : const <String, dynamic>{};
+    final sellerMap = seller is Map<String, dynamic>
+        ? seller
+        : const <String, dynamic>{};
 
     final images = <String>[];
     final rawImages = json['imageUrls'];
@@ -33,7 +35,8 @@ abstract final class SellerReviewMapper {
       createdAt: _date(json['createdAt']),
       updatedAt: _date(json['updatedAt']),
       userName: _buyerDisplayName(userMap),
-      sellerName: _str(sellerMap['companyName']) ??
+      sellerName:
+          _str(sellerMap['companyName']) ??
           _str(sellerMap['name']) ??
           _str(sellerMap['fullName']),
       sellerLogo: _str(sellerMap['companyLogo']),
@@ -49,8 +52,9 @@ abstract final class SellerReviewMapper {
 
   static SellerReviewsPage pageFromResponse(Map<String, dynamic> root) {
     final data = root['data'];
-    final dataMap =
-        data is Map<String, dynamic> ? data : const <String, dynamic>{};
+    final dataMap = data is Map<String, dynamic>
+        ? data
+        : const <String, dynamic>{};
     final listJson = dataMap['data'] ?? data;
     final reviews = <SellerReview>[];
     if (listJson is List) {
@@ -63,8 +67,9 @@ abstract final class SellerReviewMapper {
     }
 
     final meta = dataMap['meta'] ?? root['meta'];
-    final metaMap =
-        meta is Map<String, dynamic> ? meta : const <String, dynamic>{};
+    final metaMap = meta is Map<String, dynamic>
+        ? meta
+        : const <String, dynamic>{};
 
     return SellerReviewsPage(
       reviews: reviews,

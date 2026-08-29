@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'inquiry_form_fields.dart';
 import 'inquiry_reference_media.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Gemstone inquiry sections: certification, specs, commercial, dimensions.
 class GemstoneInquiryForm extends StatelessWidget {
   const GemstoneInquiryForm({
@@ -33,17 +36,17 @@ class GemstoneInquiryForm extends StatelessWidget {
     return Column(
       children: [
         InquirySectionCard(
-          title: 'Certification',
+          title: context.tr(RemainingL10n.certification),
           child: Column(
             children: [
               InquiryCheckboxField(
-                label: 'Is Certified',
+                label: context.tr(RemainingL10n.isCertified2),
                 value: flag('isCertified'),
                 onChanged: (v) => setFlag('isCertified', v),
               ),
               if (flag('isCertified'))
                 InquiryTextField(
-                  label: 'Certificate Company',
+                  label: context.tr(RemainingL10n.certificateCompany),
                   controller: controller('certificateName'),
                   hint: 'e.g. GIA',
                   onChanged: onChanged,
@@ -52,12 +55,12 @@ class GemstoneInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Gemstone',
+          title: context.tr(RemainingL10n.gemstone),
           child: Column(
             children: [
               InquiryPairFields(
                 left: InquiryDropdownField(
-                  label: 'Gemstone Type',
+                  label: context.tr(RemainingL10n.gemstoneType),
                   value: controller('gemstoneType').text,
                   options: InquirySpecOptions.gemstoneTypes,
                   onChanged: (v) {
@@ -66,7 +69,7 @@ class GemstoneInquiryForm extends StatelessWidget {
                   },
                 ),
                 right: InquiryDropdownField(
-                  label: 'Shape',
+                  label: context.tr(RemainingL10n.shape),
                   value: controller('shape').text,
                   options: InquirySpecOptions.shapes,
                   onChanged: (v) {
@@ -77,19 +80,19 @@ class GemstoneInquiryForm extends StatelessWidget {
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Total Carat Weight Min',
+                  label: context.tr(RemainingL10n.totalCaratWeightMin),
                   controller: controller('caratMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Total Carat Weight Max',
+                  label: context.tr(RemainingL10n.totalCaratWeightMax),
                   controller: controller('caratMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryDropdownField(
-                  label: 'Primary Color Min',
+                  label: context.tr(RemainingL10n.primaryColorMin),
                   value: controller('primaryColorMin').text,
                   options: InquirySpecOptions.gemstoneColors,
                   onChanged: (v) {
@@ -98,7 +101,7 @@ class GemstoneInquiryForm extends StatelessWidget {
                   },
                 ),
                 right: InquiryDropdownField(
-                  label: 'Primary Color Max',
+                  label: context.tr(RemainingL10n.primaryColorMax),
                   value: controller('primaryColorMax').text,
                   options: InquirySpecOptions.gemstoneColors,
                   onChanged: (v) {
@@ -108,7 +111,7 @@ class GemstoneInquiryForm extends StatelessWidget {
                 ),
               ),
               InquiryDropdownField(
-                label: 'Clarity',
+                label: context.tr(RemainingL10n.clarity),
                 value: controller('clarity').text,
                 options: InquirySpecOptions.gemstoneClarities,
                 onChanged: (v) {
@@ -117,7 +120,7 @@ class GemstoneInquiryForm extends StatelessWidget {
                 },
               ),
               InquiryDropdownField(
-                label: 'Origin',
+                label: context.tr(RemainingL10n.origin),
                 value: controller('origin').text,
                 options: InquirySpecOptions.origins,
                 onChanged: (v) {
@@ -126,7 +129,7 @@ class GemstoneInquiryForm extends StatelessWidget {
                 },
               ),
               InquiryDropdownField(
-                label: 'Treatment',
+                label: context.tr(RemainingL10n.treatment),
                 value: controller('treatments').text,
                 options: InquirySpecOptions.treatments,
                 onChanged: (v) {
@@ -138,46 +141,46 @@ class GemstoneInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Commercial',
+          title: context.tr(RemainingL10n.commercial),
           child: Column(
             children: [
               InquiryTextField(
-                label: 'Quantity',
+                label: context.tr(RemainingL10n.quantity),
                 controller: controller('quantity'),
                 onChanged: onChanged,
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Total Price Min',
+                  label: context.tr(RemainingL10n.totalPriceMin),
                   controller: controller('totalBudgetMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Total Price Max',
+                  label: context.tr(RemainingL10n.totalPriceMax),
                   controller: controller('totalBudgetMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Price Per Carat Min',
+                  label: context.tr(RemainingL10n.pricePerCaratMin),
                   controller: controller('pricePerCaratMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Price Per Carat Max',
+                  label: context.tr(RemainingL10n.pricePerCaratMax),
                   controller: controller('pricePerCaratMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryTextField(
-                label: 'Description',
+                label: context.tr(RemainingL10n.description),
                 controller: controller('description'),
                 maxLines: 3,
                 onChanged: onChanged,
               ),
               InquiryTextField(
-                label: 'Payment Terms',
+                label: context.tr(RemainingL10n.paymentTerms),
                 controller: controller('paymentTerms'),
                 onChanged: onChanged,
               ),
@@ -185,41 +188,41 @@ class GemstoneInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Dimensions',
+          title: context.tr(RemainingL10n.dimensions),
           child: Column(
             children: [
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Length Min',
+                  label: context.tr(RemainingL10n.lengthMin),
                   controller: controller('lengthMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Length Max',
+                  label: context.tr(RemainingL10n.lengthMax),
                   controller: controller('lengthMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Width Min',
+                  label: context.tr(RemainingL10n.widthMin),
                   controller: controller('widthMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Width Max',
+                  label: context.tr(RemainingL10n.widthMax),
                   controller: controller('widthMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Height Min',
+                  label: context.tr(RemainingL10n.heightMin),
                   controller: controller('heightMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Height Max',
+                  label: context.tr(RemainingL10n.heightMax),
                   controller: controller('heightMax'),
                   onChanged: onChanged,
                 ),
@@ -228,16 +231,16 @@ class GemstoneInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Logistics',
+          title: context.tr(RemainingL10n.logistics),
           child: Column(
             children: [
               InquiryDateField(
-                label: 'Urgency',
+                label: context.tr(RemainingL10n.urgency),
                 value: urgency,
                 onPick: onPickUrgency,
               ),
               InquiryTextField(
-                label: 'Delivery Address',
+                label: context.tr(RemainingL10n.deliveryAddress),
                 controller: controller('deliveryLocation'),
                 onChanged: onChanged,
               ),

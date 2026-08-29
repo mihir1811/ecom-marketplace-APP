@@ -12,6 +12,9 @@ import '../../../../core/widgets/app_top_bar.dart';
 import '../../application/seller_products_provider.dart';
 import '../../domain/models/seller_product.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class _EditField {
   const _EditField(this.id, {this.fullWidth = false, this.required = false});
 
@@ -34,13 +37,13 @@ const _kEditInputMinHeight = 52.0;
 
 /// Categorized editable fields for the seller product edit form.
 const kSellerEditSections = <_EditSection>[
-  _EditSection('Basic', [
+  const _EditSection('Basic', [
     _EditField('stock_number', required: true),
     _EditField('available'),
     _EditField('tags'),
     _EditField('origin'),
   ]),
-  _EditSection('Diamond specs', [
+  const _EditSection('Diamond specs', [
     _EditField('shape'),
     _EditField('carat_weight'),
     _EditField('color'),
@@ -50,13 +53,13 @@ const kSellerEditSections = <_EditSection>[
     _EditField('symmetry'),
     _EditField('eye_clean'),
   ]),
-  _EditSection('Pricing', [
+  const _EditSection('Pricing', [
     _EditField('rap'),
     _EditField('discount'),
     _EditField('price_per_carat'),
     _EditField('total_price', required: true),
   ]),
-  _EditSection('Measurements', [
+  const _EditSection('Measurements', [
     _EditField('measurement'),
     _EditField('ratio'),
     _EditField('table'),
@@ -70,13 +73,13 @@ const kSellerEditSections = <_EditSection>[
     _EditField('pavilion_depth'),
     _EditField('culet_size'),
   ]),
-  _EditSection('Certificate', [
+  const _EditSection('Certificate', [
     _EditField('certificate_company_name'),
     _EditField('certificate_number'),
     _EditField('certification'),
     _EditField('laser_inscription'),
   ]),
-  _EditSection('Appearance', [
+  const _EditSection('Appearance', [
     _EditField('fluorescence_intensity'),
     _EditField('fluorescence_color'),
     _EditField('shade'),
@@ -92,7 +95,7 @@ const kSellerEditSections = <_EditSection>[
     _EditField('growth_type'),
     _EditField('inclusions_type'),
   ]),
-  _EditSection('Notes', [
+  const _EditSection('Notes', [
     _EditField('comment', fullWidth: true),
     _EditField('cert_comment', fullWidth: true),
     _EditField('key_to_symbols', fullWidth: true),
@@ -101,11 +104,11 @@ const kSellerEditSections = <_EditSection>[
 
 /// Flat list of all editable field ids (for controllers / save).
 List<String> get kSellerEditableFieldIds => [
-      for (final section in kSellerEditSections)
-        for (final field in section.fields) field.id,
-    ];
+  for (final section in kSellerEditSections)
+    for (final field in section.fields) field.id,
+];
 
-const _fieldLabels = <String, String>{
+final _fieldLabels = <String, String>{
   'stock_number': 'Stock number',
   'available': 'Available',
   'tags': 'Tags',
@@ -224,10 +227,7 @@ class _SellerProductEditScreenState
       fields[id] = text.isEmpty ? null : text;
     }
     final stock = fields['stock_number'] ?? _product!.stockNumber;
-    final updated = _product!.copyWith(
-      stockNumber: stock,
-      fields: fields,
-    );
+    final updated = _product!.copyWith(stockNumber: stock, fields: fields);
 
     setState(() => _saving = true);
     final result = await ref
@@ -239,13 +239,13 @@ class _SellerProductEditScreenState
     switch (result) {
       case Success():
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product updated')),
+          SnackBar(content: Text(context.tr(RemainingL10n.productUpdated))),
         );
         Navigator.of(context).pop(true);
       case ResultFailure(:final failure):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -257,19 +257,19 @@ class _SellerProductEditScreenState
       );
     }
     if (_product == null) {
-      return const AppScaffold(
-        appBar: SimpleAppTopBar(title: 'Edit product'),
-        body: Center(child: Text('Product not found')),
+      return AppScaffold(
+        appBar: SimpleAppTopBar(title: context.tr(RemainingL10n.editProduct2)),
+        body: Center(child: Text(context.tr(RemainingL10n.productNotFound))),
       );
     }
     final muted = AppColors.textMuted(context);
 
     return AppScaffold(
-      appBar: const SimpleAppTopBar(title: 'Edit product'),
+      appBar: SimpleAppTopBar(title: context.tr(RemainingL10n.editProduct2)),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             AppSpacing.s16,
             AppSpacing.s12,
             AppSpacing.s16,
@@ -278,19 +278,13 @@ class _SellerProductEditScreenState
           children: [
             Text(
               'Stock ${_product!.stockNumber} · ID ${_product!.id}',
-              style: AppTypography.body.copyWith(
-                color: muted,
-                fontSize: 15,
-              ),
+              style: AppTypography.body.copyWith(color: muted, fontSize: 15),
             ),
             const SizedBox(height: AppSpacing.s12),
             for (final section in kSellerEditSections) ...[
               _SectionHeader(title: section.title),
               const SizedBox(height: AppSpacing.s8),
-              _FieldGrid(
-                fields: section.fields,
-                controllers: _controllers,
-              ),
+              _FieldGrid(fields: section.fields, controllers: _controllers),
               const SizedBox(height: AppSpacing.s16),
             ],
             SizedBox(
@@ -314,7 +308,7 @@ class _SellerProductEditScreenState
                         ),
                       )
                     : Text(
-                        'Save changes',
+                        context.tr(RemainingL10n.saveChanges),
                         style: AppTypography.label.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -359,10 +353,7 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _FieldGrid extends StatelessWidget {
-  const _FieldGrid({
-    required this.fields,
-    required this.controllers,
-  });
+  const _FieldGrid({required this.fields, required this.controllers});
 
   final List<_EditField> fields;
   final Map<String, TextEditingController> controllers;
@@ -457,9 +448,7 @@ class _EditTextField extends StatelessWidget {
           fontSize: _kEditLabelFontSize,
           fontWeight: FontWeight.w600,
         ),
-        labelStyle: AppTypography.label.copyWith(
-          fontSize: _kEditLabelFontSize,
-        ),
+        labelStyle: AppTypography.label.copyWith(fontSize: _kEditLabelFontSize),
         constraints: const BoxConstraints(minHeight: _kEditInputMinHeight),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.s16,
@@ -488,7 +477,7 @@ Future<bool> confirmDeleteSellerProduct(
   final result = await showAppDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Delete product?'),
+      title: Text(context.tr(RemainingL10n.deleteProduct2)),
       content: Text(
         'Remove stock ${product.stockNumber} from your active listings? '
         'This cannot be undone from this screen.',
@@ -496,12 +485,12 @@ Future<bool> confirmDeleteSellerProduct(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
+          child: Text(context.tr(RemainingL10n.cancel)),
         ),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: AppColors.error),
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Delete'),
+          child: Text(context.tr(RemainingL10n.delete)),
         ),
       ],
     ),

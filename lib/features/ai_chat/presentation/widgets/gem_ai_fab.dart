@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Circular Gem AI launcher — drag to reposition; tap to open/close.
 class GemAiFab extends StatefulWidget {
   const GemAiFab({
@@ -51,7 +54,9 @@ class _GemAiFabState extends State<GemAiFab>
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: widget.isOpen ? 'Close Gem AI' : 'Open Gem AI',
+      label: widget.isOpen
+          ? context.tr(RemainingL10n.closeGemAi)
+          : context.tr(RemainingL10n.openGemAi),
       child: AnimatedBuilder(
         animation: _pulse,
         builder: (context, child) {
@@ -172,7 +177,7 @@ class _FabIdleContent extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          'Gem Ai',
+          context.tr(RemainingL10n.gemAi2),
           textAlign: TextAlign.center,
           style: AppTypography.caption.copyWith(
             color: AppColors.warmWhite,

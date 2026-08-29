@@ -15,7 +15,7 @@ final referenceRepositoryProvider = Provider<ReferenceRepository>(
 );
 
 class ReferenceRepositoryImpl implements ReferenceRepository {
-  ReferenceRepositoryImpl(this._dio);
+  const ReferenceRepositoryImpl(this._dio);
 
   final Dio _dio;
 

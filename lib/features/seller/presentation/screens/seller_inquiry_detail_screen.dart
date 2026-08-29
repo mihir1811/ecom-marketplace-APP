@@ -14,6 +14,9 @@ import '../../domain/models/seller_inquiry.dart';
 import '../widgets/inquiry_form_fields.dart';
 import '../widgets/inquiry_seller_reply.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerInquiryDetailScreen extends ConsumerWidget {
   const SellerInquiryDetailScreen({
     required this.categoryName,
@@ -32,19 +35,19 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete inquiry?'),
-        content: const Text(
-          'This will permanently remove your inquiry. This action cannot be undone.',
+        title: Text(context.tr(RemainingL10n.deleteInquiry)),
+        content: Text(
+          context.tr(RemainingL10n.thisWillPermanentlyRemoveYourInquiryThis),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(RemainingL10n.cancel)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text(
-              'Delete',
+            child: Text(
+              context.tr(RemainingL10n.delete),
               style: TextStyle(color: AppColors.error),
             ),
           ),
@@ -60,9 +63,9 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
     if (!context.mounted) return;
     switch (result) {
       case Success():
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Inquiry deleted')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr(RemainingL10n.inquiryDeleted))),
+        );
         context.goBack();
       case ResultFailure(failure: final failure):
         ScaffoldMessenger.of(
@@ -78,7 +81,7 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
       return Center(
         child: TextButton(
           onPressed: () => context.goBack(),
-          child: const Text('Back to inquiries'),
+          child: Text(context.tr(RemainingL10n.backToInquiries)),
         ),
       );
     }
@@ -92,7 +95,7 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
       error: (error, _) {
         final message = error is Failure
             ? error.message
-            : 'Could not load inquiry.';
+            : context.tr(RemainingL10n.couldNotLoadInquiry);
         return Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -101,7 +104,7 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => context.goBack(),
-                child: const Text('Back to inquiries'),
+                child: Text(context.tr(RemainingL10n.backToInquiries)),
               ),
             ],
           ),
@@ -157,7 +160,7 @@ class _InquiryDetailBody extends StatelessWidget {
     final textFields = Map<String, String>.fromEntries(
       inquiry.fields.entries.where((e) => !_isImageFieldKey(e.key)),
     );
-    final sections = _groupFields(textFields);
+    final sections = _groupFields(context, textFields);
 
     return Column(
       children: [
@@ -165,7 +168,7 @@ class _InquiryDetailBody extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: TextButton(
             onPressed: () => context.goBack(),
-            child: const Text('All inquiries'),
+            child: Text(context.tr(RemainingL10n.allInquiries)),
           ),
         ),
         Expanded(
@@ -245,8 +248,8 @@ class _InquiryDetailBody extends StatelessWidget {
                         children: [
                           Text(
                             inquiry.sentBy == InquirySenderRole.seller
-                                ? 'SUBMITTED BY'
-                                : 'SUBMITTED BY',
+                                ? context.tr(RemainingL10n.submittedBy)
+                                : context.tr(RemainingL10n.submittedBy),
                             style: AppTypography.caption.copyWith(
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.4,
@@ -281,8 +284,8 @@ class _InquiryDetailBody extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             inquiry.sentBy == InquirySenderRole.seller
-                                ? 'Seller → Admin'
-                                : 'Buyer → Admin',
+                                ? context.tr(RemainingL10n.sellerToAdmin)
+                                : context.tr(RemainingL10n.buyerToAdmin),
                             style: AppTypography.caption.copyWith(
                               fontWeight: FontWeight.w600,
                               color: AppColors.bronze,
@@ -304,7 +307,7 @@ class _InquiryDetailBody extends StatelessWidget {
                         const Icon(Icons.description_outlined, size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          'Inquiry details',
+                          context.tr(RemainingL10n.inquiryDetails),
                           style: AppTypography.title.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -313,7 +316,9 @@ class _InquiryDetailBody extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Specifications from your submission to admin',
+                      context.tr(
+                        RemainingL10n.specificationsFromYourSubmissionToAdmin,
+                      ),
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textMuted(context),
                       ),
@@ -334,7 +339,7 @@ class _InquiryDetailBody extends StatelessWidget {
                     if (inquiry.referenceImages.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       InquiryImageGallery(
-                        title: 'YOUR REFERENCE IMAGES',
+                        title: context.tr(RemainingL10n.yourReferenceImages),
                         images: inquiry.referenceImages,
                       ),
                     ],
@@ -342,7 +347,7 @@ class _InquiryDetailBody extends StatelessWidget {
                         inquiry.imageUrl!.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       Text(
-                        'REFERENCE IMAGE',
+                        context.tr(RemainingL10n.referenceImage2),
                         style: AppTypography.caption.copyWith(
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.3,
@@ -361,7 +366,7 @@ class _InquiryDetailBody extends StatelessWidget {
                             color: AppColors.surface(context),
                             alignment: Alignment.center,
                             child: Text(
-                              'Could not load image',
+                              context.tr(RemainingL10n.couldNotLoadImage),
                               style: AppTypography.caption.copyWith(
                                 color: AppColors.textMuted(context),
                               ),
@@ -383,7 +388,7 @@ class _InquiryDetailBody extends StatelessWidget {
                         const Icon(Icons.support_agent_outlined, size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          'Admin response',
+                          context.tr(RemainingL10n.adminResponse),
                           style: AppTypography.title.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -392,8 +397,7 @@ class _InquiryDetailBody extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Only admin replies appear here. You cannot message '
-                      'other buyers or sellers on this inquiry.',
+                      context.tr(RemainingL10n.onlyAdminRepliesAppearHereYou),
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textMuted(context),
                       ),
@@ -412,8 +416,8 @@ class _InquiryDetailBody extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'ADMIN REPLY'
-                              '${inquiry.adminReplyAt != null ? ' · ${inquiry.adminReplyAt}' : ''}',
+                              context.tr(RemainingL10n.adminReply) +
+                                  '${inquiry.adminReplyAt != null ? ' · ${inquiry.adminReplyAt}' : ''}',
                               style: AppTypography.caption.copyWith(
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.3,
@@ -428,7 +432,9 @@ class _InquiryDetailBody extends StatelessWidget {
                             if (inquiry.adminReplyImages.isNotEmpty) ...[
                               const SizedBox(height: 12),
                               InquiryImageGallery(
-                                title: 'ADMIN REFERENCE IMAGES',
+                                title: context.tr(
+                                  RemainingL10n.adminReferenceImages,
+                                ),
                                 images: inquiry.adminReplyImages,
                               ),
                             ],
@@ -437,8 +443,7 @@ class _InquiryDetailBody extends StatelessWidget {
                       ),
                     ] else ...[
                       Text(
-                        'No admin response yet. Your inquiry was sent to admin '
-                        'and will appear here when they reply.',
+                        context.tr(RemainingL10n.noAdminResponseYetYourInquiry),
                         style: AppTypography.body.copyWith(
                           color: AppColors.textMuted(context),
                         ),
@@ -458,7 +463,7 @@ class _InquiryDetailBody extends StatelessWidget {
                       color: AppColors.error.withValues(alpha: 0.5),
                     ),
                   ),
-                  child: const Text('Delete inquiry'),
+                  child: Text(context.tr(RemainingL10n.deleteInquiryAction)),
                 ),
               ),
             ],
@@ -475,7 +480,10 @@ class _FieldSection {
   final List<MapEntry<String, String>> entries;
 }
 
-List<_FieldSection> _groupFields(Map<String, String> fields) {
+List<_FieldSection> _groupFields(
+  BuildContext context,
+  Map<String, String> fields,
+) {
   const groups = <String, List<String>>{
     'General': [
       'Sub-category (PARCEL / SINGLE)',
@@ -640,13 +648,24 @@ List<_FieldSection> _groupFields(Map<String, String> fields) {
       }
     }
     if (matched.isNotEmpty) {
-      result.add(_FieldSection(group.key, matched));
+      final title = switch (group.key) {
+        'General' => context.tr(RemainingL10n.general),
+        'Certification' => context.tr(RemainingL10n.certification),
+        'Stone details' => context.tr(RemainingL10n.stoneDetails),
+        'Parcel sizing' => context.tr(RemainingL10n.parcelSizing),
+        'Quality / specifications' => context.tr(RemainingL10n.qualitySpecs),
+        'Commercial' => context.tr(RemainingL10n.commercial),
+        'Dimensions' => context.tr(RemainingL10n.dimensions),
+        'Logistics & notes' => context.tr(RemainingL10n.logisticsAndNotes),
+        _ => group.key,
+      };
+      result.add(_FieldSection(title, matched));
     }
   }
 
   final remaining = fields.entries.where((e) => !used.contains(e.key)).toList();
   if (remaining.isNotEmpty) {
-    result.add(_FieldSection('Other', remaining));
+    result.add(_FieldSection(context.tr(RemainingL10n.other), remaining));
   }
   return result;
 }

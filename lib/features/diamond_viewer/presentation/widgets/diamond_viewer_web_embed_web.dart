@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:web/web.dart' as web;
 
 import '../../domain/models/diamond_viewer_load_state.dart';
@@ -25,7 +26,8 @@ class DiamondViewerWebEmbed extends StatefulWidget {
     BuildContext context,
     String message,
     VoidCallback retry,
-  )? errorBuilder;
+  )?
+  errorBuilder;
   final ValueChanged<DiamondViewerLoadState>? onLoadStateChanged;
   final VoidCallback? onRetry;
 
@@ -65,8 +67,8 @@ class _DiamondViewerWebEmbedState extends State<DiamondViewerWebEmbed> {
       iframe.onError.listen((_) {
         if (!mounted) return;
         _emit(
-          const DiamondViewerFailed(
-            message: 'The 360° viewer could not be loaded in this browser.',
+          DiamondViewerFailed(
+            message: context.tr(CatalogL10n.viewerBrowserError),
           ),
         );
       });

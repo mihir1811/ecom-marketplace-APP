@@ -44,8 +44,9 @@ class WalletTopUpState {
     return WalletTopUpState(
       phase: phase ?? this.phase,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      creditedWallet:
-          clearWallet ? null : (creditedWallet ?? this.creditedWallet),
+      creditedWallet: clearWallet
+          ? null
+          : (creditedWallet ?? this.creditedWallet),
     );
   }
 }
@@ -70,9 +71,7 @@ class WalletTopUpNotifier extends Notifier<WalletTopUpState> {
       return const ValidationFailure('Minimum top-up amount is ₹1.');
     }
     if (amountInr > maxAmountInr) {
-      return const ValidationFailure(
-        'Maximum top-up amount is ₹1,00,000.',
-      );
+      return const ValidationFailure('Maximum top-up amount is ₹1,00,000.');
     }
     return null;
   }
@@ -172,5 +171,5 @@ class WalletTopUpNotifier extends Notifier<WalletTopUpState> {
 
 final walletTopUpProvider =
     NotifierProvider<WalletTopUpNotifier, WalletTopUpState>(
-  WalletTopUpNotifier.new,
-);
+      WalletTopUpNotifier.new,
+    );

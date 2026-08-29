@@ -54,10 +54,7 @@ class LoginHistoryNotifier extends Notifier<LoginHistoryState> {
     final devicesResult = await _repo.listActiveSellerDevices();
     switch ((historyResult, devicesResult)) {
       case (Success(value: final sessions), Success(value: final devices)):
-        state = LoginHistoryState(
-          sessions: sessions,
-          activeDevices: devices,
-        );
+        state = LoginHistoryState(sessions: sessions, activeDevices: devices);
       case (ResultFailure(failure: final f), _):
         state = LoginHistoryState(errorMessage: f.message);
       case (_, ResultFailure(failure: final f)):
@@ -72,8 +69,9 @@ class LoginHistoryNotifier extends Notifier<LoginHistoryState> {
       case Success():
         state = LoginHistoryState(
           sessions: state.sessions.where((s) => s.id != sessionId).toList(),
-          activeDevices:
-              state.activeDevices.where((d) => d.id != sessionId).toList(),
+          activeDevices: state.activeDevices
+              .where((d) => d.id != sessionId)
+              .toList(),
         );
       case ResultFailure(failure: final failure):
         state = state.copyWith(
@@ -87,5 +85,5 @@ class LoginHistoryNotifier extends Notifier<LoginHistoryState> {
 
 final loginHistoryProvider =
     NotifierProvider<LoginHistoryNotifier, LoginHistoryState>(
-  LoginHistoryNotifier.new,
-);
+      LoginHistoryNotifier.new,
+    );

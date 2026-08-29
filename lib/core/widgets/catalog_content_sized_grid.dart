@@ -3,10 +3,8 @@ import 'package:flutter/rendering.dart';
 
 import '../theme/app_spacing.dart';
 
-typedef CatalogGridItemBuilder = Widget Function(
-  BuildContext context,
-  int index,
-);
+typedef CatalogGridItemBuilder =
+    Widget Function(BuildContext context, int index);
 
 /// Two-column catalog grid where each card sizes to its content.
 ///
@@ -82,21 +80,18 @@ class CatalogContentSizedGridSliver extends StatelessWidget {
     return SliverPadding(
       padding: padding,
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, rowIndex) {
-            if (rowIndex >= rowCount) {
-              return const _CatalogGridLoadingRow();
-            }
-            return _CatalogGridRow(
-              rowIndex: rowIndex,
-              rowCount: rowCount,
-              itemCount: itemCount,
-              isLoadingMore: isLoadingMore,
-              itemBuilder: itemBuilder,
-            );
-          },
-          childCount: total,
-        ),
+        delegate: SliverChildBuilderDelegate((context, rowIndex) {
+          if (rowIndex >= rowCount) {
+            return const _CatalogGridLoadingRow();
+          }
+          return _CatalogGridRow(
+            rowIndex: rowIndex,
+            rowCount: rowCount,
+            itemCount: itemCount,
+            isLoadingMore: isLoadingMore,
+            itemBuilder: itemBuilder,
+          );
+        }, childCount: total),
       ),
     );
   }
@@ -124,9 +119,7 @@ class _CatalogGridRow extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.only(
-        bottom: rowIndex == rowCount - 1 && !isLoadingMore
-            ? 0
-            : AppSpacing.s12,
+        bottom: rowIndex == rowCount - 1 && !isLoadingMore ? 0 : AppSpacing.s12,
       ),
       // Match both cards to the taller sibling so bottoms align.
       child: IntrinsicHeight(
@@ -134,17 +127,13 @@ class _CatalogGridRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: RepaintBoundary(
-                child: itemBuilder(context, leftIndex),
-              ),
+              child: RepaintBoundary(child: itemBuilder(context, leftIndex)),
             ),
             const SizedBox(width: AppSpacing.s12),
             Expanded(
               child: rightIndex >= itemCount
                   ? const SizedBox.shrink()
-                  : RepaintBoundary(
-                      child: itemBuilder(context, rightIndex),
-                    ),
+                  : RepaintBoundary(child: itemBuilder(context, rightIndex)),
             ),
           ],
         ),

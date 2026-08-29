@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../domain/models/diamond_viewer_config.dart';
 import '../../domain/models/diamond_viewer_load_state.dart';
 import '../../utils/viewer_js_bridge.dart';
@@ -42,7 +43,8 @@ class DiamondViewer extends StatefulWidget {
     BuildContext context,
     String message,
     VoidCallback retry,
-  )? errorBuilder;
+  )?
+  errorBuilder;
   final ValueChanged<DiamondViewerLoadState>? onLoadStateChanged;
   final ValueChanged<String>? onEngineDetected;
 
@@ -57,9 +59,9 @@ class _DiamondViewerState extends State<DiamondViewer> {
   var _loadGeneration = 0;
 
   String? get _resolvedUrl => ViewerUrlResolver.resolve(
-        widget.viewerUrl,
-        httpsOnly: widget.config.httpsOnly,
-      );
+    widget.viewerUrl,
+    httpsOnly: widget.config.httpsOnly,
+  );
 
   @override
   void initState() {
@@ -96,10 +98,7 @@ class _DiamondViewerState extends State<DiamondViewer> {
       if (!mounted) return;
       if (_state is DiamondViewerReady) return;
       _emit(
-        const DiamondViewerFailed(
-          message: 'The viewer took too long to load. Check your connection '
-              'and try again.',
-        ),
+        DiamondViewerFailed(message: context.tr(CatalogL10n.viewerTimeout)),
       );
     });
   }
@@ -111,8 +110,8 @@ class _DiamondViewerState extends State<DiamondViewer> {
     final url = _resolvedUrl;
     if (url == null) {
       _emit(
-        const DiamondViewerFailed(
-          message: 'This product does not have a valid 360° viewer link.',
+        DiamondViewerFailed(
+          message: context.tr(CatalogL10n.viewerInvalidUrl),
           canRetry: false,
         ),
       );
@@ -200,14 +199,9 @@ class _DiamondViewerState extends State<DiamondViewer> {
   Widget build(BuildContext context) {
     final url = _resolvedUrl;
     if (url == null) {
-          return widget.errorBuilder?.call(
-            context,
-            'This product does not have a valid 360° viewer link.',
-            _reload,
-          ) ??
-          const DiamondViewerErrorView(
-            message: 'This product does not have a valid 360° viewer link.',
-          );
+      final message = context.tr(CatalogL10n.viewerInvalidUrl);
+      return widget.errorBuilder?.call(context, message, _reload) ??
+          DiamondViewerErrorView(message: message);
     }
 
     final progress = switch (_state) {
@@ -287,7 +281,9 @@ class _DiamondViewerState extends State<DiamondViewer> {
               _timeout?.cancel();
               _emit(
                 DiamondViewerFailed(
-                  message: 'Viewer unavailable (HTTP $code).',
+                  message: context.tr(CatalogL10n.viewerHttpError, {
+                    'code': code,
+                  }),
                 ),
               );
             },

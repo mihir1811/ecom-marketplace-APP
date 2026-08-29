@@ -2,6 +2,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/auth/seller_only_gate.dart';
 import '../../core/auth/verified_account_gate.dart';
+import '../../core/l10n/app_localizations.dart';
+import '../../core/l10n/translations/account_commerce_messages.dart';
 import '../../core/router/route_names.dart';
 import '../seller/presentation/screens/seller_chat_detail_screen.dart';
 import '../seller/presentation/screens/seller_chat_list_screen.dart';
@@ -48,22 +50,22 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerInquiries,
-    builder: (context, state) => const BuyerLayout(
-      title: 'Inquiries',
-      child: SellerInquiryInboxScreen(showHeader: false),
+    builder: (context, state) => BuyerLayout(
+      title: context.tr(AccountCommerceL10n.inquiries),
+      child: const SellerInquiryInboxScreen(showHeader: false),
     ),
   ),
   GoRoute(
     path: AppRouteNames.buyerInquiryNew,
-    builder: (context, state) => const BuyerLayout(
-      title: 'New inquiry',
-      child: SellerInquiryFormScreen(),
+    builder: (context, state) => BuyerLayout(
+      title: context.tr(AccountCommerceL10n.newInquiry),
+      child: const SellerInquiryFormScreen(),
     ),
   ),
   GoRoute(
     path: '/buyer/inquiries/:category/:inquiryId',
     builder: (context, state) => BuyerLayout(
-      title: 'Inquiry',
+      title: context.tr(AccountCommerceL10n.inquiry),
       child: SellerInquiryDetailScreen(
         categoryName: state.pathParameters['category']!,
         inquiryId: state.pathParameters['inquiryId']!,
@@ -72,9 +74,9 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerHelpCenter,
-    builder: (context, state) => const BuyerLayout(
-      title: 'Help center',
-      child: SellerHelpCenterScreen(showHeader: false),
+    builder: (context, state) => BuyerLayout(
+      title: context.tr(AccountCommerceL10n.helpCenter),
+      child: const SellerHelpCenterScreen(showHeader: false),
     ),
   ),
   GoRoute(
@@ -91,9 +93,9 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerMessages,
-    builder: (context, state) => const BuyerLayout(
-      title: 'Messages',
-      child: VerifiedAccountGate(
+    builder: (context, state) => BuyerLayout(
+      title: context.tr(CoreL10n.messages),
+      child: const VerifiedAccountGate(
         fallbackRoute: AppRouteNames.buyerProfile,
         child: SellerOnlyGate(
           fallbackRoute: AppRouteNames.buyerProfile,
@@ -105,7 +107,7 @@ final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: '/buyer/messages/:chatId',
     builder: (context, state) => BuyerLayout(
-      title: 'Chat',
+      title: context.tr(AccountCommerceL10n.chat),
       child: VerifiedAccountGate(
         fallbackRoute: AppRouteNames.buyerProfile,
         child: SellerOnlyGate(

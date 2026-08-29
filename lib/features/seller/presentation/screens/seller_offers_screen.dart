@@ -10,6 +10,9 @@ import '../../../product_offer/application/product_offer_providers.dart';
 import '../../../product_offer/data/mappers/product_offer_mapper.dart';
 import '../../../product_offer/domain/models/product_offer.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerOffersScreen extends ConsumerStatefulWidget {
   const SellerOffersScreen({super.key});
 
@@ -21,12 +24,12 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
   ProductOfferStatus? _filter;
 
   String? get _statusFilter => switch (_filter) {
-        ProductOfferStatus.pending => 'PENDING',
-        ProductOfferStatus.accepted => 'ACCEPTED',
-        ProductOfferStatus.rejected => 'REJECTED',
-        ProductOfferStatus.expired => 'EXPIRED',
-        null => null,
-      };
+    ProductOfferStatus.pending => 'PENDING',
+    ProductOfferStatus.accepted => 'ACCEPTED',
+    ProductOfferStatus.rejected => 'REJECTED',
+    ProductOfferStatus.expired => 'EXPIRED',
+    null => null,
+  };
 
   List<ProductOffer> _visible(List<ProductOffer> items) {
     if (_filter == null) return items;
@@ -41,10 +44,9 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
   }
 
   Future<void> _respond(ProductOffer offer, ProductOfferStatus status) async {
-    final result = await ref.read(sellerOfferListProvider.notifier).respond(
-          id: offer.id,
-          status: status,
-        );
+    final result = await ref
+        .read(sellerOfferListProvider.notifier)
+        .respond(id: offer.id, status: status);
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     switch (result) {
@@ -92,7 +94,9 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
                     state.errorMessage!,
-                    style: AppTypography.caption.copyWith(color: AppColors.error),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.error,
+                    ),
                   ),
                 ),
               Container(
@@ -102,8 +106,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  'Review buyer price offers on your listings. Accept or reject '
-                  'to keep the deal moving.',
+                  context.tr(RemainingL10n.reviewBuyerPriceOffersOnYour),
                   style: AppTypography.body.copyWith(
                     color: AppColors.textSecondary(context),
                     height: 1.4,
@@ -116,22 +119,22 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
                 runSpacing: 8,
                 children: [
                   _FilterChip(
-                    label: 'All',
+                    label: context.tr(RemainingL10n.all),
                     selected: _filter == null,
                     onTap: () => _applyFilter(null),
                   ),
                   _FilterChip(
-                    label: 'Pending',
+                    label: context.tr(RemainingL10n.pending),
                     selected: _filter == ProductOfferStatus.pending,
                     onTap: () => _applyFilter(ProductOfferStatus.pending),
                   ),
                   _FilterChip(
-                    label: 'Accepted',
+                    label: context.tr(RemainingL10n.accepted),
                     selected: _filter == ProductOfferStatus.accepted,
                     onTap: () => _applyFilter(ProductOfferStatus.accepted),
                   ),
                   _FilterChip(
-                    label: 'Rejected',
+                    label: context.tr(RemainingL10n.rejected),
                     selected: _filter == ProductOfferStatus.rejected,
                     onTap: () => _applyFilter(ProductOfferStatus.rejected),
                   ),
@@ -159,7 +162,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
                   padding: const EdgeInsets.only(top: 40),
                   child: Center(
                     child: Text(
-                      'No offers in this filter.',
+                      context.tr(RemainingL10n.noOffersInThisFilter),
                       style: AppTypography.body.copyWith(
                         color: AppColors.textMuted(context),
                       ),
@@ -227,17 +230,16 @@ class _OfferCard extends StatelessWidget {
   final VoidCallback onReject;
 
   Color _statusColor(BuildContext context) => switch (offer.status) {
-        ProductOfferStatus.pending => AppColors.info,
-        ProductOfferStatus.accepted => AppColors.success,
-        ProductOfferStatus.rejected => AppColors.error,
-        ProductOfferStatus.expired => AppColors.textMuted(context),
-      };
+    ProductOfferStatus.pending => AppColors.info,
+    ProductOfferStatus.accepted => AppColors.success,
+    ProductOfferStatus.rejected => AppColors.error,
+    ProductOfferStatus.expired => AppColors.textMuted(context),
+  };
 
   @override
   Widget build(BuildContext context) {
     final isPending = offer.status.isPending;
-    final productLabel =
-        offer.productLabel ?? offer.productType;
+    final productLabel = offer.productLabel ?? offer.productType;
     final listPrice = offer.listPrice;
     final statusColor = _statusColor(context);
 
@@ -257,8 +259,10 @@ class _OfferCard extends StatelessWidget {
                 _Pill(label: offer.productType),
                 const SizedBox(width: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
@@ -301,14 +305,14 @@ class _OfferCard extends StatelessWidget {
                 if (listPrice != null)
                   Expanded(
                     child: _PriceBlock(
-                      label: 'List price',
+                      label: context.tr(RemainingL10n.listPrice),
                       value: AppCurrency.format(listPrice),
                     ),
                   ),
                 if (listPrice != null) const SizedBox(width: 12),
                 Expanded(
                   child: _PriceBlock(
-                    label: 'Buyer offer',
+                    label: context.tr(RemainingL10n.buyerOffer),
                     value: ProductOfferMapper.offerPriceLabel(offer.amount),
                     emphasize: true,
                   ),
@@ -357,7 +361,7 @@ class _OfferCard extends StatelessWidget {
                         side: const BorderSide(color: AppColors.error),
                         minimumSize: const Size.fromHeight(44),
                       ),
-                      child: const Text('Reject'),
+                      child: Text(context.tr(RemainingL10n.reject)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -368,7 +372,7 @@ class _OfferCard extends StatelessWidget {
                         backgroundColor: AppColors.charcoal,
                         minimumSize: const Size.fromHeight(44),
                       ),
-                      child: const Text('Accept'),
+                      child: Text(context.tr(RemainingL10n.accept)),
                     ),
                   ),
                 ],
@@ -431,9 +435,7 @@ class _PriceBlock extends StatelessWidget {
           value,
           style: AppTypography.title.copyWith(
             fontWeight: FontWeight.w800,
-            color: emphasize
-                ? AppColors.info
-                : AppColors.textPrimary(context),
+            color: emphasize ? AppColors.info : AppColors.textPrimary(context),
             fontSize: emphasize ? 18 : 16,
           ),
         ),

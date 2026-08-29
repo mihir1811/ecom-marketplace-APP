@@ -5,6 +5,9 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/seller_product_column.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Scrollable column visibility picker (search, show/hide all, reset).
 class SellerProductColumnPickerPanel extends StatefulWidget {
   const SellerProductColumnPickerPanel({
@@ -66,7 +69,7 @@ class _SellerProductColumnPickerPanelState
                 controller: _searchController,
                 decoration: InputDecoration(
                   isDense: true,
-                  hintText: 'Search',
+                  hintText: context.tr(RemainingL10n.search),
                   prefixIcon: const Icon(Icons.search, size: 20),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -78,7 +81,10 @@ class _SellerProductColumnPickerPanelState
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    borderSide: const BorderSide(color: AppColors.info, width: 2),
+                    borderSide: const BorderSide(
+                      color: AppColors.info,
+                      width: 2,
+                    ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -122,12 +128,14 @@ class _SellerProductColumnPickerPanelState
                   TextButton.icon(
                     onPressed: () => widget.onShowHideAll(!_allVisible),
                     icon: Icon(
-                      _allVisible ? Icons.indeterminate_check_box : Icons.check_box,
+                      _allVisible
+                          ? Icons.indeterminate_check_box
+                          : Icons.check_box,
                       size: 18,
                       color: AppColors.info,
                     ),
                     label: Text(
-                      'Show/Hide All',
+                      context.tr(RemainingL10n.showHideAll),
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textPrimary(context),
                         fontWeight: FontWeight.w600,
@@ -138,7 +146,7 @@ class _SellerProductColumnPickerPanelState
                   TextButton(
                     onPressed: widget.onReset,
                     child: Text(
-                      'RESET',
+                      context.tr(RemainingL10n.reset),
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textMuted(context),
                         fontWeight: FontWeight.w700,

@@ -3,6 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/router/app_navigation.dart';
@@ -30,13 +33,14 @@ class CartCheckoutButton extends ConsumerWidget {
     // Never prefills — always a blank form for a new address.
     final saved = await showDeliveryAddressSheet(context);
     if (saved == null) return;
-    final result =
-        await ref.read(cartProvider.notifier).saveAndSelectAddress(saved);
+    final result = await ref
+        .read(cartProvider.notifier)
+        .saveAndSelectAddress(saved);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -57,9 +61,9 @@ class CartCheckoutButton extends ConsumerWidget {
         ref.invalidate(buyerOrdersProvider);
         context.resetTo(AppRouteNames.buyerOrders);
       case ResultFailure(:final failure):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -100,8 +104,7 @@ class CartCheckoutButton extends ConsumerWidget {
     final walletAppliedInr = useWallet
         ? math.min(walletBalance, estimate.totalInr)
         : 0.0;
-    final remainingInr =
-        math.max(0.0, estimate.totalInr - walletAppliedInr);
+    final remainingInr = math.max(0.0, estimate.totalInr - walletAppliedInr);
     final fullyCoveredByWallet =
         useWallet && estimate.hasLiveRate && remainingInr <= 0.009;
     final verificationOffered = fees.offersGemworldVerification;
@@ -110,9 +113,9 @@ class CartCheckoutButton extends ConsumerWidget {
 
     String label;
     if (!hasAddress) {
-      label = 'Add delivery address';
+      label = context.tr(AccountCommerceL10n.addDeliveryAddress);
     } else if (hasUnavailable) {
-      label = 'Remove unavailable items';
+      label = context.tr(AccountCommerceL10n.removeUnavailable);
     } else if (checkout.phase == CheckoutPhase.creatingOrder) {
       label = 'Creating order…';
     } else if (checkout.phase == CheckoutPhase.awaitingPayment) {
@@ -120,9 +123,9 @@ class CartCheckoutButton extends ConsumerWidget {
     } else if (checkout.phase == CheckoutPhase.verifying) {
       label = useWallet ? 'Paying with wallet…' : 'Verifying payment…';
     } else if (fullyCoveredByWallet) {
-      label = 'Pay with wallet';
+      label = context.tr(AccountCommerceL10n.payWallet);
     } else {
-      label = 'Continue to checkout';
+      label = context.tr(AccountCommerceL10n.continueCheckout);
     }
 
     String? subtitle;
@@ -130,7 +133,10 @@ class CartCheckoutButton extends ConsumerWidget {
       subtitle = 'Required before payment';
     } else if (hasUnavailable) {
       subtitle = 'Unavailable items are excluded from the total';
-    } else if (!busy && estimate.hasLiveRate && useWallet && walletAppliedInr > 0) {
+    } else if (!busy &&
+        estimate.hasLiveRate &&
+        useWallet &&
+        walletAppliedInr > 0) {
       subtitle = fullyCoveredByWallet
           ? 'Wallet ${AppCurrency.inr(walletAppliedInr)}'
           : 'Wallet ${AppCurrency.inr(walletAppliedInr)} · pay ${AppCurrency.inr(remainingInr)}';
@@ -146,7 +152,7 @@ class CartCheckoutButton extends ConsumerWidget {
       children: [
         if (verificationOffered) ...[
           _CheckoutToggleTile(
-            title: 'GemWorld verification',
+            title: context.tr(AccountCommerceL10n.verificationFee),
             subtitle: fees.gemworldVerificationPercent > 0
                 ? 'Adds ${_percentLabel(fees.gemworldVerificationPercent)}% verification commission to the total'
                 : 'Adds verification commission to the total',
@@ -197,11 +203,7 @@ class CartCheckoutButton extends ConsumerWidget {
                         ),
                       );
                     } else if (canCheckout) {
-                      _pay(
-                        context,
-                        ref,
-                        payableInr: estimate.totalInr,
-                      );
+                      _pay(context, ref, payableInr: estimate.totalInr);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -235,8 +237,9 @@ class CartCheckoutButton extends ConsumerWidget {
                         Text(
                           subtitle,
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.onSelected(context)
-                                .withValues(alpha: 0.75),
+                            color: AppColors.onSelected(
+                              context,
+                            ).withValues(alpha: 0.75),
                             fontSize: 11,
                           ),
                           maxLines: 1,
@@ -293,7 +296,9 @@ class _CheckoutToggleTile extends StatelessWidget {
             ? null
             : Icon(
                 icon,
-                color: enabled ? AppColors.bronze : AppColors.textMuted(context),
+                color: enabled
+                    ? AppColors.bronze
+                    : AppColors.textMuted(context),
               ),
         title: Text(
           title,
@@ -315,8 +320,8 @@ class _CheckoutToggleTile extends StatelessWidget {
         activeTrackColor: AppColors.bronze,
         inactiveThumbColor: enabled
             ? (AppColors.isDark(context)
-                ? AppColors.textSecondaryDark
-                : AppColors.charcoalLight)
+                  ? AppColors.textSecondaryDark
+                  : AppColors.charcoalLight)
             : AppColors.textMuted(context),
         inactiveTrackColor: AppColors.border(context),
       ),
@@ -374,7 +379,7 @@ class _WalletPayOption extends StatelessWidget {
     }
 
     return _CheckoutToggleTile(
-      title: 'Pay with wallet',
+      title: context.tr(AccountCommerceL10n.payWallet),
       subtitle: subtitle,
       value: useWallet,
       enabled: enabled,

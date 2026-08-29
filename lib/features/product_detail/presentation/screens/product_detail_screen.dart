@@ -157,6 +157,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ProductDetailNaturalSpecs(
                       specs: detail.naturalSpecTabs!,
                       productId: detail.id,
+                      lotPrice: detail.price.displayAmount,
+                      currencySymbol: detail.price.currencySymbol,
                     ),
                     const SizedBox(height: AppSpacing.s32),
                   ] else ...[

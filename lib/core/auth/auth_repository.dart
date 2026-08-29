@@ -68,10 +68,7 @@ abstract class AuthRepository {
 
 /// Result of a successful account-deletion request.
 class AccountDeletionScheduled {
-  const AccountDeletionScheduled({
-    required this.message,
-    this.recoverUntil,
-  });
+  const AccountDeletionScheduled({required this.message, this.recoverUntil});
 
   final String message;
   final DateTime? recoverUntil;
@@ -92,10 +89,7 @@ class RegisterPendingVerification {
 
 /// Result of resend-otp.
 class ResendOtpResult {
-  const ResendOtpResult({
-    required this.email,
-    this.expiresInMinutes,
-  });
+  const ResendOtpResult({required this.email, this.expiresInMinutes});
 
   final String email;
   final int? expiresInMinutes;
@@ -251,16 +245,17 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       final root = response.data ?? const <String, dynamic>{};
       final data = root['data'];
-      final payload =
-          data is Map<String, dynamic> ? data : const <String, dynamic>{};
+      final payload = data is Map<String, dynamic>
+          ? data
+          : const <String, dynamic>{};
       final resolvedEmail =
           (payload['email'] as String?)?.trim().isNotEmpty == true
-              ? (payload['email'] as String).trim()
-              : email;
-      final requires =
-          payload['requiresVerification'] as bool? ?? true;
-      final typeRaw =
-          (payload['registrationType'] as String?)?.trim().toLowerCase();
+          ? (payload['email'] as String).trim()
+          : email;
+      final requires = payload['requiresVerification'] as bool? ?? true;
+      final typeRaw = (payload['registrationType'] as String?)
+          ?.trim()
+          .toLowerCase();
       final resolvedType = typeRaw == 'business'
           ? RegistrationAccountType.business
           : registrationType;
@@ -283,8 +278,9 @@ class AuthRepositoryImpl implements AuthRepository {
     required String fallbackName,
   }) async {
     final bytes = await file.readAsBytes();
-    final filename =
-        file.name.trim().isNotEmpty ? file.name.trim() : fallbackName;
+    final filename = file.name.trim().isNotEmpty
+        ? file.name.trim()
+        : fallbackName;
     return MultipartFile.fromBytes(bytes, filename: filename);
   }
 
@@ -301,7 +297,9 @@ class AuthRepositoryImpl implements AuthRepository {
       final session = _parseSession(response.data, rememberDevice: true);
       if (session == null) {
         return Result.failure(
-          const AuthFailure('Unexpected verification response. Please try again.'),
+          const AuthFailure(
+            'Unexpected verification response. Please try again.',
+          ),
         );
       }
       await _persist(session);
@@ -324,8 +322,9 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       final root = response.data ?? const <String, dynamic>{};
       final data = root['data'];
-      final payload =
-          data is Map<String, dynamic> ? data : const <String, dynamic>{};
+      final payload = data is Map<String, dynamic>
+          ? data
+          : const <String, dynamic>{};
       return Result.success(
         ResendOtpResult(
           email: (payload['email'] as String?)?.trim() ?? email,
@@ -361,9 +360,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Result<void, Failure>> forgetPassword({
-    required String email,
-  }) async {
+  Future<Result<void, Failure>> forgetPassword({required String email}) async {
     try {
       await _dio.post<Map<String, dynamic>>(
         ApiEndpoints.authForgetPassword,
@@ -386,9 +383,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _dio.post<Map<String, dynamic>>(
         ApiEndpoints.authResetPassword,
         data: {'newPassword': newPassword},
-        options: Options(
-          headers: {'Authorization': 'Bearer $resetToken'},
-        ),
+        options: Options(headers: {'Authorization': 'Bearer $resetToken'}),
       );
       return Result.success(null);
     } on DioException catch (e) {
@@ -415,8 +410,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final payload = data is Map<String, dynamic>
           ? data
           : data is Map
-              ? Map<String, dynamic>.from(data)
-              : const <String, dynamic>{};
+          ? Map<String, dynamic>.from(data)
+          : const <String, dynamic>{};
       final untilRaw = payload['recoverUntil'];
       DateTime? recoverUntil;
       if (untilRaw is String && untilRaw.trim().isNotEmpty) {
@@ -424,10 +419,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       await _tokenStore.clear();
       return Result.success(
-        AccountDeletionScheduled(
-          message: message,
-          recoverUntil: recoverUntil,
-        ),
+        AccountDeletionScheduled(message: message, recoverUntil: recoverUntil),
       );
     } on DioException catch (e) {
       return Result.failure(AuthApiError.fromDio(e));
@@ -493,15 +485,15 @@ class AuthRepositoryImpl implements AuthRepository {
     final data = dataRaw is Map<String, dynamic>
         ? dataRaw
         : dataRaw is Map
-            ? Map<String, dynamic>.from(dataRaw)
-            : null;
+        ? Map<String, dynamic>.from(dataRaw)
+        : null;
     if (data == null) return null;
     final userRaw = data['user'];
     final userJson = userRaw is Map<String, dynamic>
         ? userRaw
         : userRaw is Map
-            ? Map<String, dynamic>.from(userRaw)
-            : null;
+        ? Map<String, dynamic>.from(userRaw)
+        : null;
     if (userJson == null) return null;
     final token = (data['accessToken'] as String?)?.trim() ?? '';
     if (token.isEmpty) return null;

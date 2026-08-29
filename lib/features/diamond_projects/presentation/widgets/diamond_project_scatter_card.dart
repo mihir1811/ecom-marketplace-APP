@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -15,11 +16,16 @@ class DiamondProjectScatterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final axisColor = AppColors.border(context);
+    final gridColor = axisColor.withValues(alpha: 0.45);
+    final labelColor = AppColors.textMuted(context);
+    final pointColor = AppColors.textPrimary(context);
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
@@ -27,17 +33,23 @@ class DiamondProjectScatterCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Carat vs price per carat',
+              context.tr(CatalogL10n.caratVsPpc),
               style: AppTypography.label.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.charcoal,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: AppSpacing.s16),
             AspectRatio(
               aspectRatio: 16 / 9,
               child: CustomPaint(
-                painter: _ScatterPainter(stats.scatter),
+                painter: _ScatterPainter(
+                  stats.scatter,
+                  axisColor: axisColor,
+                  gridColor: gridColor,
+                  labelColor: labelColor,
+                  pointColor: pointColor,
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.s8),
@@ -50,11 +62,13 @@ class DiamondProjectScatterCard extends StatelessWidget {
                 const SizedBox(width: AppSpacing.s8),
                 Flexible(
                   child: Text(
-                    '${stats.outliers.length} \$/ct outliers (IQR method)',
+                    context.tr(CatalogL10n.ppcOutliers, {
+                      'count': '${stats.outliers.length}',
+                    }),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                     ),
                   ),
                 ),
@@ -68,9 +82,19 @@ class DiamondProjectScatterCard extends StatelessWidget {
 }
 
 class _ScatterPainter extends CustomPainter {
-  _ScatterPainter(this.points);
+  _ScatterPainter(
+    this.points, {
+    required this.axisColor,
+    required this.gridColor,
+    required this.labelColor,
+    required this.pointColor,
+  });
 
   final List<DiamondProjectScatterPoint> points;
+  final Color axisColor;
+  final Color gridColor;
+  final Color labelColor;
+  final Color pointColor;
 
   static const _left = 56.0;
   static const _right = 12.0;
@@ -87,7 +111,7 @@ class _ScatterPainter extends CustomPainter {
     );
 
     final axis = Paint()
-      ..color = AppColors.warmBorder
+      ..color = axisColor
       ..strokeWidth = 1;
     canvas.drawLine(plot.bottomLeft, plot.bottomRight, axis);
     canvas.drawLine(plot.topLeft, plot.bottomLeft, axis);
@@ -107,7 +131,6 @@ class _ScatterPainter extends CustomPainter {
       if (y > dataMaxY) dataMaxY = y;
     }
 
-    // Same inclusive nice-tick algorithm for X and Y (equal step style).
     final xAxis = _niceAxis(dataMinX, dataMaxX, targetTicks: 4);
     final yAxis = _niceAxis(dataMinY, dataMaxY, targetTicks: 5);
     final minX = xAxis.min;
@@ -116,7 +139,7 @@ class _ScatterPainter extends CustomPainter {
     final maxY = yAxis.max;
 
     final grid = Paint()
-      ..color = AppColors.warmBorder.withValues(alpha: 0.45)
+      ..color = gridColor
       ..strokeWidth = 1;
 
     for (final tick in xAxis.ticks) {
@@ -158,13 +181,12 @@ class _ScatterPainter extends CustomPainter {
         Offset(dx, dy),
         point.isOutlier ? 3.5 : 2.4,
         Paint()
-          ..color = point.isOutlier ? AppColors.error : AppColors.charcoal
+          ..color = point.isOutlier ? AppColors.error : pointColor
           ..style = PaintingStyle.fill,
       );
     }
   }
 
-  /// Pads data, then expands domain to inclusive nice ticks (X and Y share this).
   static ({double min, double max, List<double> ticks}) _niceAxis(
     double dataMin,
     double dataMax, {
@@ -189,12 +211,10 @@ class _ScatterPainter extends CustomPainter {
       span = hi - lo;
     }
 
-    // Aim for ~targetTicks inclusive labels (like 0.6 / 0.8 / 1.0 on X).
     var step = _niceStep(span / math.max(targetTicks - 1, 1));
     var axisMin = (lo / step).floor() * step;
     var axisMax = (hi / step).ceil() * step;
 
-    // Ensure at least 3 steps so Y never collapses to a single mid label.
     var tickCount = ((axisMax - axisMin) / step).round();
     if (tickCount < 3) {
       step = _niceStep(span / 3);
@@ -270,7 +290,7 @@ class _ScatterPainter extends CustomPainter {
     return '\$${value.toStringAsFixed(1)}';
   }
 
-  static void _drawLabel(
+  void _drawLabel(
     Canvas canvas,
     String text,
     Offset anchor, {
@@ -280,7 +300,7 @@ class _ScatterPainter extends CustomPainter {
       text: TextSpan(
         text: text,
         style: AppTypography.caption.copyWith(
-          color: AppColors.textMutedLight,
+          color: labelColor,
           fontSize: 10,
         ),
       ),
@@ -296,5 +316,9 @@ class _ScatterPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ScatterPainter oldDelegate) =>
-      oldDelegate.points != points;
+      oldDelegate.points != points ||
+      oldDelegate.axisColor != axisColor ||
+      oldDelegate.gridColor != gridColor ||
+      oldDelegate.labelColor != labelColor ||
+      oldDelegate.pointColor != pointColor;
 }

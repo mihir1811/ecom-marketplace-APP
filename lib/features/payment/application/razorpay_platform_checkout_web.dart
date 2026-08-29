@@ -72,9 +72,7 @@ Future<Result<RazorpayPaymentSuccess, Failure>> openPlatformCheckout(
 
   void onDismiss() {
     completeOnce(
-      Result.failure(
-        const ValidationFailure('Payment was cancelled.'),
-      ),
+      Result.failure(const ValidationFailure('Payment was cancelled.')),
     );
   }
 

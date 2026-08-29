@@ -7,6 +7,9 @@ import '../../../../core/theme/app_typography.dart';
 import 'inquiry_form_fields.dart';
 import 'inquiry_reference_media.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Diamond inquiry field groups for single/parcel, natural/lab, and fancy color.
 class DiamondInquiryForm extends StatelessWidget {
   const DiamondInquiryForm({
@@ -41,11 +44,11 @@ class DiamondInquiryForm extends StatelessWidget {
     return Column(
       children: [
         InquirySectionCard(
-          title: 'Basic details',
+          title: context.tr(RemainingL10n.basicDetails),
           child: Column(
             children: [
               InquiryDropdownField(
-                label: 'Sub category',
+                label: context.tr(RemainingL10n.subCategory),
                 value: controller('subCategory').text,
                 options: const ['SINGLE', 'PARCEL'],
                 allowOther: false,
@@ -55,7 +58,7 @@ class DiamondInquiryForm extends StatelessWidget {
                 },
               ),
               InquiryDropdownField(
-                label: 'Diamond type',
+                label: context.tr(RemainingL10n.diamondType),
                 value: controller('diamondType').text,
                 options: const ['NATURAL', 'LAB'],
                 allowOther: false,
@@ -68,12 +71,12 @@ class DiamondInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Quality & specs',
+          title: context.tr(RemainingL10n.qualitySpecs),
           child: Column(
             children: [
               if (_isLab)
                 InquiryDropdownField(
-                  label: 'Growth process',
+                  label: context.tr(RemainingL10n.growthProcess),
                   value: controller('growthProcess', 'CVD').text,
                   options: const ['CVD', 'HPHT'],
                   allowOther: false,
@@ -83,43 +86,49 @@ class DiamondInquiryForm extends StatelessWidget {
                   },
                 ),
               InquiryCheckboxField(
-                label: 'Is certified',
+                label: context.tr(RemainingL10n.isCertified),
                 value: flag('isCertified'),
                 onChanged: (v) => setFlag('isCertified', v),
               ),
               if (flag('isCertified'))
                 InquiryTextField(
-                  label: 'Certificate name',
+                  label: context.tr(RemainingL10n.certificateName),
                   controller: controller('certificateName'),
                   hint: 'Enter certificate name (e.g. GIA)',
                   onChanged: onChanged,
                 ),
               InquiryTextField(
-                label: 'Shape',
+                label: context.tr(RemainingL10n.shape),
                 controller: controller('shape'),
                 onChanged: onChanged,
               ),
               if (_isParcel) ...[
                 InquiryPairFields(
                   left: InquiryTextField(
-                    label: 'Sieve min.',
+                    label: context.tr(RemainingL10n.sieveMin),
                     controller: controller('sieveSizeMin'),
                     hint: 'e.g. +6.5',
                     onChanged: onChanged,
                   ),
                   right: InquiryTextField(
-                    label: 'Sieve max.',
+                    label: context.tr(RemainingL10n.sieveMax),
                     controller: controller('sieveSizeMax'),
                     hint: 'e.g. -8.5',
                     onChanged: onChanged,
                   ),
                 ),
                 InquirySegmentedField(
-                  label: 'Parcel measure',
+                  label: context.tr(RemainingL10n.parcelMeasure),
                   value: _measureCarat ? 'carat' : 'pieces',
-                  options: const [
-                    (value: 'carat', label: 'Total carat'),
-                    (value: 'pieces', label: 'Total pieces'),
+                  options: [
+                    (
+                      value: 'carat',
+                      label: context.tr(RemainingL10n.totalCarat),
+                    ),
+                    (
+                      value: 'pieces',
+                      label: context.tr(RemainingL10n.totalPieces),
+                    ),
                   ],
                   onChanged: (v) {
                     controller('parcelMeasure').text = v;
@@ -127,7 +136,7 @@ class DiamondInquiryForm extends StatelessWidget {
                   },
                 ),
                 Text(
-                  'Select either total carat or total pieces — not both.',
+                  context.tr(RemainingL10n.selectEitherTotalCaratOrTotalPieces),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textMuted(context),
                   ),
@@ -136,24 +145,24 @@ class DiamondInquiryForm extends StatelessWidget {
                 if (_measureCarat)
                   InquiryPairFields(
                     left: InquiryTextField(
-                      label: 'Total carat min.',
+                      label: context.tr(RemainingL10n.totalCaratMin),
                       controller: controller('caratMin'),
                       onChanged: onChanged,
                     ),
                     right: InquiryTextField(
-                      label: 'Total carat max.',
+                      label: context.tr(RemainingL10n.totalCaratMax),
                       controller: controller('caratMax'),
                       onChanged: onChanged,
                     ),
                   )
                 else
                   InquiryTextField(
-                    label: 'Total pieces',
+                    label: context.tr(RemainingL10n.totalPieces),
                     controller: controller('totalPieces'),
                     onChanged: onChanged,
                   ),
                 InquiryTextField(
-                  label: 'Carat per piece',
+                  label: context.tr(RemainingL10n.caratPerPiece),
                   controller: controller('caratPerPiece'),
                   hint: '0.05',
                   onChanged: onChanged,
@@ -161,12 +170,12 @@ class DiamondInquiryForm extends StatelessWidget {
               ] else
                 InquiryPairFields(
                   left: InquiryTextField(
-                    label: 'Carat min.',
+                    label: context.tr(RemainingL10n.caratMin),
                     controller: controller('caratMin'),
                     onChanged: onChanged,
                   ),
                   right: InquiryTextField(
-                    label: 'Carat max.',
+                    label: context.tr(RemainingL10n.caratMax),
                     controller: controller('caratMax'),
                     onChanged: onChanged,
                   ),
@@ -175,7 +184,7 @@ class DiamondInquiryForm extends StatelessWidget {
               if (_isFancy)
                 InquiryPairFields(
                   left: InquiryDropdownField(
-                    label: 'Fancy clr. min.',
+                    label: context.tr(RemainingL10n.fancyColorMin),
                     value: controller('fancyColorMin', 'Yellow').text,
                     options: _fancyColors,
                     optionLabels: {
@@ -187,7 +196,7 @@ class DiamondInquiryForm extends StatelessWidget {
                     },
                   ),
                   right: InquiryDropdownField(
-                    label: 'Fancy clr. max.',
+                    label: context.tr(RemainingL10n.fancyColorMax),
                     value: controller('fancyColorMax', 'Yellow').text,
                     options: _fancyColors,
                     optionLabels: {
@@ -202,7 +211,7 @@ class DiamondInquiryForm extends StatelessWidget {
               else
                 InquiryPairFields(
                   left: InquiryDropdownField(
-                    label: 'Color min.',
+                    label: context.tr(RemainingL10n.colorMin),
                     value: controller('colorMin').text,
                     options: _colorGrades.keys.toList(),
                     optionLabels: _colorGrades,
@@ -212,7 +221,7 @@ class DiamondInquiryForm extends StatelessWidget {
                     },
                   ),
                   right: InquiryDropdownField(
-                    label: 'Color max.',
+                    label: context.tr(RemainingL10n.colorMax),
                     value: controller('colorMax').text,
                     options: _colorGrades.keys.toList(),
                     optionLabels: _colorGrades,
@@ -224,7 +233,7 @@ class DiamondInquiryForm extends StatelessWidget {
                 ),
               InquiryPairFields(
                 left: InquiryDropdownField(
-                  label: 'Clarity min.',
+                  label: context.tr(RemainingL10n.clarityMin),
                   value: controller('clarityMin').text,
                   options: _clarities,
                   onChanged: (v) {
@@ -233,7 +242,7 @@ class DiamondInquiryForm extends StatelessWidget {
                   },
                 ),
                 right: InquiryDropdownField(
-                  label: 'Clarity max.',
+                  label: context.tr(RemainingL10n.clarityMax),
                   value: controller('clarityMax').text,
                   options: _clarities,
                   onChanged: (v) {
@@ -243,7 +252,7 @@ class DiamondInquiryForm extends StatelessWidget {
                 ),
               ),
               InquiryTextField(
-                label: 'Cut – symmetry – polish',
+                label: context.tr(RemainingL10n.cutSymmetryPolish),
                 controller: controller('cut'),
                 hint: 'EX-VG-VG',
                 onChanged: onChanged,
@@ -252,68 +261,68 @@ class DiamondInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Commercial',
+          title: context.tr(RemainingL10n.commercial),
           child: Column(
             children: [
               InquiryCheckboxField(
-                label: 'BGM',
+                label: context.tr(RemainingL10n.bgm),
                 value: flag('bgm'),
                 onChanged: (v) => setFlag('bgm', v),
               ),
               InquiryTextField(
-                label: 'Inclusion type',
+                label: context.tr(RemainingL10n.inclusionType),
                 controller: controller('inclusionType'),
                 onChanged: onChanged,
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Floro. min.',
+                  label: context.tr(RemainingL10n.floroMin),
                   controller: controller('fluorescenceIntensityMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Floro. max.',
+                  label: context.tr(RemainingL10n.floroMax),
                   controller: controller('fluorescenceIntensityMax'),
                   onChanged: onChanged,
                 ),
               ),
               if (!_isParcel)
                 InquiryTextField(
-                  label: 'Quantity',
+                  label: context.tr(RemainingL10n.quantity),
                   controller: controller('quantity'),
                   onChanged: onChanged,
                 ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Total price min.',
+                  label: context.tr(RemainingL10n.totalPriceMin2),
                   controller: controller('totalPriceMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Total price max.',
+                  label: context.tr(RemainingL10n.totalPriceMax2),
                   controller: controller('totalPriceMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Ppc min.',
+                  label: context.tr(RemainingL10n.ppcMin),
                   controller: controller('pricePerCaratMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Ppc max.',
+                  label: context.tr(RemainingL10n.ppcMax),
                   controller: controller('pricePerCaratMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryTextField(
-                label: 'Payment terms',
+                label: context.tr(RemainingL10n.paymentTerms2),
                 controller: controller('paymentTerms'),
                 onChanged: onChanged,
               ),
               InquiryTextField(
-                label: 'Remarks',
+                label: context.tr(RemainingL10n.remarks),
                 controller: controller('remarks'),
                 maxLines: 3,
                 onChanged: onChanged,
@@ -322,41 +331,41 @@ class DiamondInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Dimensions',
+          title: context.tr(RemainingL10n.dimensions),
           child: Column(
             children: [
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Length min.',
+                  label: context.tr(RemainingL10n.lengthMin2),
                   controller: controller('lengthMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Length max.',
+                  label: context.tr(RemainingL10n.lengthMax2),
                   controller: controller('lengthMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Width min.',
+                  label: context.tr(RemainingL10n.widthMin2),
                   controller: controller('widthMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Width max.',
+                  label: context.tr(RemainingL10n.widthMax2),
                   controller: controller('widthMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Height min.',
+                  label: context.tr(RemainingL10n.heightMin2),
                   controller: controller('heightMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Height max.',
+                  label: context.tr(RemainingL10n.heightMax2),
                   controller: controller('heightMax'),
                   onChanged: onChanged,
                 ),
@@ -365,16 +374,16 @@ class DiamondInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Logistics',
+          title: context.tr(RemainingL10n.logistics),
           child: Column(
             children: [
               InquiryDateField(
-                label: 'Urgency',
+                label: context.tr(RemainingL10n.urgency),
                 value: urgency,
                 onPick: onPickUrgency,
               ),
               InquiryTextField(
-                label: 'Delivery address',
+                label: context.tr(RemainingL10n.deliveryAddress2),
                 controller: controller('deliveryLocation'),
                 onChanged: onChanged,
               ),
@@ -397,7 +406,7 @@ class DiamondInquiryForm extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            'Color',
+            context.tr(RemainingL10n.color),
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary(context),
@@ -411,9 +420,9 @@ class DiamondInquiryForm extends StatelessWidget {
               selectedColor: _isFancy
                   ? AppColors.bronze
                   : AppColors.selectedFill(context),
-              options: const [
-                (value: 'standard', label: 'Standard'),
-                (value: 'fancy', label: 'Fancy'),
+              options: [
+                (value: 'standard', label: context.tr(RemainingL10n.standard)),
+                (value: 'fancy', label: context.tr(RemainingL10n.fancy)),
               ],
               onChanged: (v) => setFlag('isFancyColor', v == 'fancy'),
             ),
@@ -423,7 +432,7 @@ class DiamondInquiryForm extends StatelessWidget {
     );
   }
 
-  static const _clarities = [
+  static final _clarities = [
     'FL',
     'IF',
     'VVS1',

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -40,14 +43,15 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
 
   Future<void> _apply() async {
     if (!_hasText) return;
-    final result =
-        await ref.read(cartProvider.notifier).applyPromo(_promoController.text);
+    final result = await ref
+        .read(cartProvider.notifier)
+        .applyPromo(_promoController.text);
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     switch (result) {
       case Success():
         messenger.showSnackBar(
-          const SnackBar(content: Text('Promo applied')),
+          SnackBar(content: Text(context.tr(AccountCommerceL10n.promoApplied))),
         );
       case ResultFailure(:final failure):
         messenger.showSnackBar(SnackBar(content: Text(failure.message)));
@@ -58,9 +62,9 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
     final result = await ref.read(cartProvider.notifier).removePromo(code);
     if (!mounted) return;
     if (result case ResultFailure(:final failure)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
     } else {
       _promoController.clear();
     }
@@ -85,7 +89,7 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
               ),
               const SizedBox(width: AppSpacing.s8),
               Text(
-                'Promo code',
+                context.tr(AccountCommerceL10n.promoCode),
                 style: AppTypography.label.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -100,7 +104,7 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
                   controller: _promoController,
                   enabled: !mutating && !promo.applied,
                   decoration: InputDecoration(
-                    hintText: 'Enter code',
+                    hintText: context.tr(AccountCommerceL10n.enterCode),
                     isDense: true,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -131,9 +135,13 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
                 onPressed: mutating
                     ? null
                     : promo.applied && promo.code != null
-                        ? () => _remove(promo.code!)
-                        : (canApply ? _apply : null),
-                child: Text(promo.applied ? 'Remove' : 'Apply'),
+                    ? () => _remove(promo.code!)
+                    : (canApply ? _apply : null),
+                child: Text(
+                  promo.applied
+                      ? context.tr(AccountCommerceL10n.remove)
+                      : 'Apply',
+                ),
               ),
             ],
           ),

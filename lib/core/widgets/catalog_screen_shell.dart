@@ -31,10 +31,7 @@ class CatalogScreenShell extends ConsumerWidget {
       endDrawer: endDrawer,
       endDrawerEnableOpenDragGesture: false,
       backgroundColor: backgroundColor ?? AppColors.bg(context),
-      appBar: SimpleAppTopBar(
-        title: title,
-        showThemeToggle: showThemeToggle,
-      ),
+      appBar: SimpleAppTopBar(title: title, showThemeToggle: showThemeToggle),
       body: child,
     );
   }

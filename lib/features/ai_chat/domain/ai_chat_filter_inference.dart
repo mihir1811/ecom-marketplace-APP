@@ -2,7 +2,13 @@ import '../../diamonds/domain/models/diamond_filter_state.dart';
 import '../../gemstones/domain/models/gemstone_filter_state.dart';
 import '../domain/models/ai_chat_product.dart';
 
-enum AiChatListingKind { diamondNatural, diamondLabGrown, gemstone, jewelry, other }
+enum AiChatListingKind {
+  diamondNatural,
+  diamondLabGrown,
+  gemstone,
+  jewelry,
+  other,
+}
 
 class AiChatInferredListing {
   const AiChatInferredListing({
@@ -61,8 +67,9 @@ abstract final class AiChatFilterInference {
     List<AiChatProductGroup> productGroups = const [],
   }) {
     final q = userQuery.toLowerCase();
-    final groupText =
-        productGroups.map((g) => g.label.toLowerCase()).join(' · ');
+    final groupText = productGroups
+        .map((g) => g.label.toLowerCase())
+        .join(' · ');
     final blob =
         '$q $groupText ${products.map((p) => '${p.productType} ${p.href}').join(' ')}'
             .toLowerCase();
@@ -98,13 +105,15 @@ abstract final class AiChatFilterInference {
     List<AiChatProduct> products,
     List<AiChatProductGroup> groups,
   ) {
-    final sampleType = (products.isNotEmpty
-            ? products.first.productType
-            : (groups.isNotEmpty ? groups.first.productType : ''))
-        .toLowerCase()
-        .replaceAll(RegExp(r'[\s_-]'), '');
+    final sampleType =
+        (products.isNotEmpty
+                ? products.first.productType
+                : (groups.isNotEmpty ? groups.first.productType : ''))
+            .toLowerCase()
+            .replaceAll(RegExp(r'[\s_-]'), '');
 
-    final hasNaturalSignal = RegExp(r'\bnatural\b').hasMatch(blob) ||
+    final hasNaturalSignal =
+        RegExp(r'\bnatural\b').hasMatch(blob) ||
         products.any((p) {
           final href = p.href.toLowerCase();
           return href.contains('/diamonds/') &&
@@ -112,7 +121,8 @@ abstract final class AiChatFilterInference {
               !href.contains('labgrown');
         });
 
-    final hasLabGrownSignal = blob.contains('lab grown') ||
+    final hasLabGrownSignal =
+        blob.contains('lab grown') ||
         blob.contains('lab-grown') ||
         blob.contains('labgrown') ||
         RegExp(r'\blab[-\s]?grown\b').hasMatch(blob) ||
@@ -127,7 +137,8 @@ abstract final class AiChatFilterInference {
               type.contains('lab-grown');
         });
 
-    final isDiamondContext = sampleType.contains('diamond') ||
+    final isDiamondContext =
+        sampleType.contains('diamond') ||
         sampleType.contains('melee') ||
         blob.contains('diamond') ||
         blob.contains('melee') ||
@@ -180,7 +191,9 @@ abstract final class AiChatFilterInference {
 
     for (final shape in _shapes) {
       if (RegExp('\\b${RegExp.escape(shape.toLowerCase())}\\b').hasMatch(q) ||
-          RegExp('\\b${RegExp.escape(shape.toLowerCase())}\\b').hasMatch(blob)) {
+          RegExp(
+            '\\b${RegExp.escape(shape.toLowerCase())}\\b',
+          ).hasMatch(blob)) {
         shapes.add(shape);
       }
     }
@@ -197,7 +210,9 @@ abstract final class AiChatFilterInference {
       if (lab != null &&
           lab.isNotEmpty &&
           DiamondFilterState.labs.any((l) => l.toUpperCase() == lab)) {
-        labs.add(DiamondFilterState.labs.firstWhere((l) => l.toUpperCase() == lab));
+        labs.add(
+          DiamondFilterState.labs.firstWhere((l) => l.toUpperCase() == lab),
+        );
       }
     }
 
@@ -228,7 +243,8 @@ abstract final class AiChatFilterInference {
     }
 
     final carat = _caratRange(q, products, productGroups);
-    final isMelee = blob.contains('melee') ||
+    final isMelee =
+        blob.contains('melee') ||
         blob.contains('parcel') ||
         products.any((p) => p.productType.toLowerCase().contains('melee'));
 
@@ -295,7 +311,9 @@ abstract final class AiChatFilterInference {
     ).firstMatch(q);
     if (match != null) {
       final a = double.tryParse(match.group(1)!);
-      final b = match.group(2) != null ? double.tryParse(match.group(2)!) : null;
+      final b = match.group(2) != null
+          ? double.tryParse(match.group(2)!)
+          : null;
       if (a != null && b != null) {
         return (a < b ? a : b, a < b ? b : a);
       }

@@ -7,6 +7,8 @@ import 'app_top_bar.dart';
 import 'global_search_bar.dart';
 import 'melee_background_shell.dart';
 import 'search_action_bottom_bar.dart';
+import '../l10n/translations/remaining_messages.dart';
+import '../l10n/app_localizations.dart';
 
 /// Shared chrome for diamond/gemstone finder screens:
 /// melee background, transparent app bar, global search, sticky nav,
@@ -22,7 +24,7 @@ class CatalogSearchFilterShell extends StatelessWidget {
     required this.primaryLabel,
     required this.onPrimary,
     required this.onClear,
-    this.clearLabel = 'CLEAR ALL',
+    this.clearLabel,
     this.onScrollNotification,
     super.key,
   });
@@ -36,7 +38,7 @@ class CatalogSearchFilterShell extends StatelessWidget {
   final String primaryLabel;
   final VoidCallback onPrimary;
   final VoidCallback onClear;
-  final String clearLabel;
+  final String? clearLabel;
   final bool Function(ScrollNotification notification)? onScrollNotification;
 
   @override
@@ -46,11 +48,7 @@ class CatalogSearchFilterShell extends StatelessWidget {
       family: meleeFamily,
       child: AppScaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppTopBar(
-          title: title,
-          transparent: true,
-          centerTitle: true,
-        ),
+        appBar: AppTopBar(title: title, transparent: true),
         body: Column(
           children: [
             const GlobalSearchBar(),
@@ -64,7 +62,8 @@ class CatalogSearchFilterShell extends StatelessWidget {
                         stickyNav,
                         Expanded(
                           child: NotificationListener<ScrollNotification>(
-                            onNotification: onScrollNotification ?? (_) => false,
+                            onNotification:
+                                onScrollNotification ?? (_) => false,
                             child: SingleChildScrollView(
                               controller: scrollController,
                               padding: const EdgeInsets.only(
@@ -88,7 +87,8 @@ class CatalogSearchFilterShell extends StatelessWidget {
                       child: SearchActionBottomBar(
                         primaryLabel: primaryLabel,
                         onPrimary: onPrimary,
-                        clearLabel: clearLabel,
+                        clearLabel:
+                            clearLabel ?? context.tr(RemainingL10n.clearAll),
                         onClear: onClear,
                       ),
                     ),

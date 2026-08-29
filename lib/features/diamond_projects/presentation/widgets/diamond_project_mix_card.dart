@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -23,9 +24,9 @@ class DiamondProjectMixCard extends StatelessWidget {
       title: title,
       child: entries.isEmpty
           ? Text(
-              'No data',
+              context.tr(CatalogL10n.projectNoData),
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
               ),
             )
           : Column(
@@ -58,7 +59,7 @@ class _MixRow extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.charcoal,
+              color: AppColors.textPrimary(context),
             ),
           ),
         ),
@@ -68,8 +69,8 @@ class _MixRow extends StatelessWidget {
             child: LinearProgressIndicator(
               value: entry.count / max,
               minHeight: 10,
-              backgroundColor: AppColors.sandSurface,
-              color: AppColors.charcoal,
+              backgroundColor: AppColors.surface(context),
+              color: AppColors.textPrimary(context),
             ),
           ),
         ),
@@ -78,7 +79,7 @@ class _MixRow extends StatelessWidget {
           '${entry.count}',
           style: AppTypography.caption.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondaryLight,
+            color: AppColors.textSecondary(context),
           ),
         ),
       ],
@@ -96,9 +97,9 @@ class _ProjectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
@@ -109,7 +110,7 @@ class _ProjectCard extends StatelessWidget {
               title,
               style: AppTypography.label.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.charcoal,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: AppSpacing.s12),

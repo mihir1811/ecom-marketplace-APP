@@ -29,88 +29,86 @@ class FilterScrollableChips extends StatelessWidget {
     final containerBorderColor = AppColors.border(context);
 
     final content = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                title,
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary(context),
-                ),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              title,
+              style: AppTypography.label.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary(context),
               ),
-              const SizedBox(width: 6),
-              Tooltip(
-                message: infoText,
-                triggerMode: TooltipTriggerMode.tap,
-                preferBelow: false,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                textStyle: const TextStyle(color: Colors.white, fontSize: 13),
-                child: const Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: AppColors.bronze,
-                ),
+            ),
+            const SizedBox(width: 6),
+            Tooltip(
+              message: infoText,
+              triggerMode: TooltipTriggerMode.tap,
+              preferBelow: false,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(6),
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: options.map((opt) {
-                final isSelected = selectedItems.contains(opt);
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: GestureDetector(
-                    onTap: () => onToggle(opt),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
+              textStyle: const TextStyle(color: Colors.white, fontSize: 13),
+              child: const Icon(
+                Icons.info_outline,
+                size: 16,
+                color: AppColors.bronze,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.s8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: options.map((opt) {
+              final isSelected = selectedItems.contains(opt);
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: GestureDetector(
+                  onTap: () => onToggle(opt),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.selectedFill(context)
+                          : (AppColors.card(context)),
+                      borderRadius: BorderRadius.circular(AppSpacing.r8),
+                      border: Border.all(
                         color: isSelected
                             ? AppColors.selectedFill(context)
-                            : (AppColors.card(context)),
-                        borderRadius: BorderRadius.circular(AppSpacing.r8),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.selectedFill(context)
-                              : containerBorderColor,
-                        ),
+                            : containerBorderColor,
                       ),
-                      child: Text(
-                        opt,
-                        style: AppTypography.caption.copyWith(
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected
-                              ? AppColors.onSelected(context)
-                              : (AppColors.textPrimary(context)),
-                        ),
+                    ),
+                    child: Text(
+                      opt,
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.onSelected(context)
+                            : (AppColors.textPrimary(context)),
                       ),
                     ),
                   ),
-                );
-              }).toList(),
-            ),
+                ),
+              );
+            }).toList(),
           ),
-        ],
-      );
+        ),
+      ],
+    );
 
     if (!wrapWithCard) {
       return content;
     }
 
-    return FilterGroupCard(
-      margin: margin,
-      child: content,
-    );
+    return FilterGroupCard(margin: margin, child: content);
   }
 }

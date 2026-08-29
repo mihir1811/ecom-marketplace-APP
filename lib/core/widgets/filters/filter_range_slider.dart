@@ -110,7 +110,9 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
   String _formatDisplayValue(double val) {
     final formatted = widget.isInteger
         ? val.round().toString().replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]},',
+          )
         : val.toStringAsFixed(2);
     return '${widget.unitPrefix}$formatted${widget.unitSuffix}';
   }
@@ -206,10 +208,17 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           _handleMinSubmitted(_minController.text);
                         }
                       },
-                        child: TextField(
-                          controller: _minController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+                      child: TextField(
+                        controller: _minController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        scrollPadding: const EdgeInsets.fromLTRB(
+                          20,
+                          20,
+                          20,
+                          80,
+                        ),
                         style: AppTypography.body.copyWith(fontSize: 14),
                         decoration: InputDecoration(
                           hintText: _formatValue(widget.minLimit),
@@ -237,7 +246,10 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: const BorderSide(color: AppColors.bronze, width: 1.5),
+                            borderSide: const BorderSide(
+                              color: AppColors.bronze,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                         onSubmitted: _handleMinSubmitted,
@@ -267,10 +279,17 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           _handleMaxSubmitted(_maxController.text);
                         }
                       },
-                        child: TextField(
-                          controller: _maxController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+                      child: TextField(
+                        controller: _maxController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        scrollPadding: const EdgeInsets.fromLTRB(
+                          20,
+                          20,
+                          20,
+                          80,
+                        ),
                         style: AppTypography.body.copyWith(fontSize: 14),
                         decoration: InputDecoration(
                           hintText: _formatValue(widget.maxLimit),
@@ -298,7 +317,10 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: const BorderSide(color: AppColors.bronze, width: 1.5),
+                            borderSide: const BorderSide(
+                              color: AppColors.bronze,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                         onSubmitted: _handleMaxSubmitted,

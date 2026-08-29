@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_listing_header_row.dart';
 import '../../../../core/widgets/catalog_screen_shell.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
-import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
@@ -70,36 +70,35 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = ref.watch(
-      jewelryFilterProvider.select((s) => s.category ?? 'Jewelry'),
-    );
+    final title = ref.watch(jewelryFilterProvider.select((s) => s.category));
     final displayTitle = switch (title) {
-      'All Accessories' => 'Accessories',
+      null => context.tr(CatalogL10n.jewelry),
+      'All Accessories' => context.tr(CatalogL10n.accessories),
       _ => title,
     };
 
     return CatalogScreenShell(
       title: displayTitle,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: AppSpacing.s8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-              child: _JewelrySearchBar(
-                searchController: _searchController,
-                onOpenFilters: _openFilters,
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: AppSpacing.s8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+            child: _JewelrySearchBar(
+              searchController: _searchController,
+              onOpenFilters: _openFilters,
             ),
-            const SizedBox(height: AppSpacing.s12),
-            Expanded(
-              child: _JewelryResultsView(
-                scrollController: _scrollController,
-                searchController: _searchController,
-              ),
+          ),
+          const SizedBox(height: AppSpacing.s12),
+          Expanded(
+            child: _JewelryResultsView(
+              scrollController: _scrollController,
+              searchController: _searchController,
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -121,7 +120,7 @@ class _JewelrySearchBar extends ConsumerWidget {
 
     return ListingSearchFilterBar(
       controller: searchController,
-      hintText: 'Search by name, SKU, metal, stone...',
+      hintText: context.tr(CatalogL10n.searchJewelry),
       mutedColor: AppColors.textMuted(context),
       activeFilterCount: activeFilterCount,
       onFilterTap: onOpenFilters,
@@ -144,87 +143,34 @@ class _JewelryHeaderRow extends ConsumerWidget {
       jewelryListProvider.select((value) {
         final listState = value.valueOrNull;
         return listState == null || listState.isInitialLoading
-            ? 'Loading…'
-            : 'Showing ${listState.totalCount} Products';
+            ? context.tr(CatalogL10n.loading)
+            : context.tr(CatalogL10n.showingProducts, {
+                'count': listState.totalCount,
+              });
       }),
     );
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s16,
-            AppSpacing.s8,
-            AppSpacing.s16,
-            AppSpacing.s4,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: TextButton.icon(
-                  onPressed: () =>
-                      showSimpleSortSheet<JewelrySortOption>(
-                        context: context,
-                        options: JewelrySortOption.values,
-                        labelOf: (o) => o.label,
-                        current: ref.read(jewelrySortProvider),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(20),
-                          ),
-                        ),
-                      ).then((selected) {
-                        if (selected != null) {
-                          ref.read(jewelrySortProvider.notifier).state =
-                              selected;
-                        }
-                      }),
-                  icon: const Icon(Icons.sort, size: 18),
-                  label: Text(
-                    'Sort by: $sortLabel',
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.caption.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(context),
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary(context),
-                    padding: EdgeInsets.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ),
-              ViewModeToggle(
-                isGrid: isGrid,
-                onGrid: () => ref.read(jewelryViewModeProvider.notifier).state =
-                    JewelryViewMode.grid,
-                onList: () => ref.read(jewelryViewModeProvider.notifier).state =
-                    JewelryViewMode.list,
-              ),
-            ],
-          ),
+    return CatalogListingHeaderRow(
+      sortLabel: sortLabel,
+      onSortTap: () => showSimpleSortSheet<JewelrySortOption>(
+        context: context,
+        options: JewelrySortOption.values,
+        labelOf: (o) => o.label,
+        current: ref.read(jewelrySortProvider),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s16,
-            0,
-            AppSpacing.s16,
-            AppSpacing.s8,
-          ),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              countLabel,
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textMuted(context),
-              ),
-            ),
-          ),
-        ),
-      ],
+      ).then((selected) {
+        if (selected != null) {
+          ref.read(jewelrySortProvider.notifier).state = selected;
+        }
+      }),
+      isGrid: isGrid,
+      onGrid: () =>
+          ref.read(jewelryViewModeProvider.notifier).state = JewelryViewMode.grid,
+      onList: () =>
+          ref.read(jewelryViewModeProvider.notifier).state = JewelryViewMode.list,
+      countLabel: countLabel,
     );
   }
 }
@@ -266,7 +212,9 @@ class _JewelryResultsView extends ConsumerWidget {
           const SliverToBoxAdapter(child: _JewelryHeaderRow()),
           SliverFillRemaining(
             child: CatalogErrorState(
-              message: listState.errorMessage ?? 'Something went wrong',
+              message:
+                  listState.errorMessage ??
+                  context.tr(CatalogL10n.somethingWentWrong),
               onRetry: () => ref.read(jewelryListProvider.notifier).refresh(),
             ),
           ),
@@ -283,9 +231,9 @@ class _JewelryResultsView extends ConsumerWidget {
           SliverFillRemaining(
             child: CatalogEmptyState(
               icon: Icons.diamond_outlined,
-              title: 'No products found',
-              message: 'Try clearing filters or adjusting search.',
-              actionLabel: 'Clear Filters',
+              title: context.tr(CatalogL10n.noProducts),
+              message: context.tr(CatalogL10n.adjustOrClear),
+              actionLabel: context.tr(CatalogL10n.clearAll),
               onAction: () {
                 ref.read(jewelryFilterProvider.notifier).reset();
                 searchController.clear();

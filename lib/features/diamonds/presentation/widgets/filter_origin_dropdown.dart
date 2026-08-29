@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -9,22 +10,23 @@ class FilterOriginDropdown extends StatelessWidget {
   const FilterOriginDropdown({
     required this.selectedOrigin,
     required this.onSelected,
-    this.title = 'Origin Country',
-    this.hint = 'Select origin country',
-    this.infoText = "Filter by the diamond's mined origin country.",
-    this.pickerTitle = 'Select Origin Country',
+    this.title,
+    this.hint,
+    this.infoText,
+    this.pickerTitle,
     this.options,
     this.flags,
     this.showFlags = true,
+    this.useDiamondOriginHelp = true,
     super.key,
   });
 
   final String? selectedOrigin;
   final ValueChanged<String?> onSelected;
-  final String title;
-  final String hint;
-  final String infoText;
-  final String pickerTitle;
+  final String? title;
+  final String? hint;
+  final String? infoText;
+  final String? pickerTitle;
 
   /// Custom option list; defaults to the full diamond country list.
   final List<String>? options;
@@ -32,15 +34,18 @@ class FilterOriginDropdown extends StatelessWidget {
   /// Custom flag emoji map; defaults to the diamond country flags.
   final Map<String, String>? flags;
   final bool showFlags;
+  final bool useDiamondOriginHelp;
 
-  void _showCountryPicker(BuildContext context) {
+  void _showCountryPicker(BuildContext context, String pickerTitle) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: AppColors.bg(context),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.r16)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.r16),
+        ),
       ),
       builder: (context) {
         return _CountryPickerModal(
@@ -60,6 +65,17 @@ class FilterOriginDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderColor = AppColors.border(context);
+    final resolvedTitle = title ?? context.tr(CatalogL10n.originCountry);
+    final resolvedHint = hint ?? context.tr(CatalogL10n.selectOriginCountry);
+    final resolvedInfoText =
+        infoText ??
+        context.tr(
+          useDiamondOriginHelp
+              ? CatalogL10n.diamondOriginCountryHelp
+              : CatalogL10n.originCountryHelp,
+        );
+    final resolvedPickerTitle =
+        pickerTitle ?? context.tr(CatalogL10n.selectOriginCountry);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,12 +83,12 @@ class FilterOriginDropdown extends StatelessWidget {
         Row(
           children: [
             Text(
-              title,
+              resolvedTitle,
               style: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 6),
             Tooltip(
-              message: infoText,
+              message: resolvedInfoText,
               triggerMode: TooltipTriggerMode.tap,
               preferBelow: false,
               decoration: BoxDecoration(
@@ -90,7 +106,10 @@ class FilterOriginDropdown extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.s8),
         GestureDetector(
-          onTap: () => _showCountryPicker(context),
+          onTap: () => _showCountryPicker(
+            context,
+            resolvedPickerTitle,
+          ),
           child: Container(
             height: 48,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -106,15 +125,16 @@ class FilterOriginDropdown extends StatelessWidget {
                   children: [
                     if (selectedOrigin != null && showFlags) ...[
                       Text(
-                        (flags ?? DiamondFilterState.countryFlags)[
-                                selectedOrigin!] ??
+                        (flags ??
+                                DiamondFilterState
+                                    .countryFlags)[selectedOrigin!] ??
                             '',
                         style: const TextStyle(fontSize: 20),
                       ),
                       const SizedBox(width: 8),
                     ],
                     Text(
-                      selectedOrigin ?? hint,
+                      selectedOrigin ?? resolvedHint,
                       style: AppTypography.body.copyWith(
                         color: selectedOrigin == null
                             ? AppColors.textMuted(context)
@@ -205,7 +225,9 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
             children: [
               Text(
                 widget.title,
-                style: AppTypography.headline.copyWith(fontWeight: FontWeight.bold),
+                style: AppTypography.headline.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.close),
@@ -217,9 +239,11 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
           TextField(
             autofocus: true,
             decoration: InputDecoration(
-              hintText: 'Search countries...',
+              hintText: context.tr(CatalogL10n.searchCountries),
               prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onChanged: _onSearchChanged,
           ),
@@ -233,15 +257,13 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
               itemCount: _filteredCountries.length,
               itemBuilder: (context, index) {
                 final country = _filteredCountries[index];
-                final flag =
-                    widget.showFlags ? (widget.flags[country] ?? '') : '';
+                final flag = widget.showFlags
+                    ? (widget.flags[country] ?? '')
+                    : '';
                 return ListTile(
                   leading: flag.isEmpty
                       ? null
-                      : Text(
-                          flag,
-                          style: const TextStyle(fontSize: 24),
-                        ),
+                      : Text(flag, style: const TextStyle(fontSize: 24)),
                   title: Text(country),
                   trailing: const Icon(Icons.chevron_right, size: 16),
                   onTap: () => widget.onSelected(country),

@@ -4,6 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import '../l10n/translations/remaining_messages.dart';
+import '../l10n/app_localizations.dart';
 
 /// Shared “no product photo” placeholder for catalog cards (not diamonds).
 ///
@@ -49,7 +51,7 @@ class CatalogMissingImage extends StatelessWidget {
             if (showLabel) ...[
               const SizedBox(height: AppSpacing.s8),
               Text(
-                'No image',
+                context.tr(RemainingL10n.noImage),
                 style: AppTypography.caption.copyWith(
                   color: AppColors.textMuted(context),
                   fontWeight: FontWeight.w600,

@@ -2,6 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_user.dart';
 import '../../../../core/error/failure.dart';
@@ -24,23 +27,23 @@ class BuyerProfileScreen extends ConsumerWidget {
     final profileAsync = ref.watch(userProfileProvider);
 
     return BuyerLayout(
-      title: 'My profile',
+      title: context.tr(AccountCommerceL10n.myProfile),
       child: authUser == null
-            ? const Center(child: Text('Sign in to view your profile.'))
-            : profileAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) {
-                  final fallback = userProfileFromAuth(authUser);
-                  return _BuyerProfileBody(
-                    profile: fallback,
-                    authUser: authUser,
-                    onRetry: () => ref.invalidate(userProfileProvider),
-                    loadError: e is Failure ? e.message : e.toString(),
-                  );
-                },
-                data: (profile) =>
-                    _BuyerProfileBody(profile: profile, authUser: authUser),
-              ),
+          ? Center(child: Text(context.tr(AccountCommerceL10n.signInProfile)))
+          : profileAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) {
+                final fallback = userProfileFromAuth(authUser);
+                return _BuyerProfileBody(
+                  profile: fallback,
+                  authUser: authUser,
+                  onRetry: () => ref.invalidate(userProfileProvider),
+                  loadError: e is Failure ? e.message : e.toString(),
+                );
+              },
+              data: (profile) =>
+                  _BuyerProfileBody(profile: profile, authUser: authUser),
+            ),
     );
   }
 }
@@ -72,51 +75,54 @@ class _BuyerProfileBody extends StatelessWidget {
             style: AppTypography.caption.copyWith(color: AppColors.error),
           ),
           if (onRetry != null)
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            TextButton(
+              onPressed: onRetry,
+              child: Text(context.tr(AccountCommerceL10n.retry)),
+            ),
         ],
         const SizedBox(height: AppSpacing.s16),
         ProfileInfoCard(
-          title: 'Personal details',
+          title: context.tr(AccountCommerceL10n.personalDetails),
           rows: [
             ProfileInfoRow(
               icon: Icons.badge_outlined,
-              label: 'Full name',
-              value: profileDisplay(profile.fullName),
+              label: context.tr(AccountCommerceL10n.fullNameField),
+              value: profileDisplay(context, profile.fullName),
             ),
             ProfileInfoRow(
               icon: Icons.alternate_email,
-              label: 'Username',
-              value: profileDisplay(profile.username),
+              label: context.tr(AccountCommerceL10n.username),
+              value: profileDisplay(context, profile.username),
             ),
             ProfileInfoRow(
               icon: Icons.mail_outline,
-              label: 'Email',
-              value: profileDisplay(profile.email),
+              label: context.tr(AccountCommerceL10n.email),
+              value: profileDisplay(context, profile.email),
             ),
           ],
         ),
         const SizedBox(height: AppSpacing.s16),
         ProfileInfoCard(
-          title: 'Account status',
+          title: context.tr(AccountCommerceL10n.accountStatus),
           rows: [
             ProfileInfoRow(
               icon: Icons.person_outline,
-              label: 'Account type',
+              label: context.tr(AccountCommerceL10n.accountType),
               value: profile.isSeller
-                  ? 'Seller (business)'
-                  : 'Individual (buying only)',
+                  ? context.tr(AccountCommerceL10n.sellerBusiness)
+                  : context.tr(AccountCommerceL10n.individualBuyer),
             ),
             ProfileInfoRow(
               icon: Icons.verified_outlined,
-              label: 'Account verification',
+              label: context.tr(AccountCommerceL10n.accountVerification),
               value: profile.isVerified
                   ? 'Verified'
-                  : 'Verification is pending',
+                  : context.tr(AccountCommerceL10n.verificationPending),
             ),
             ProfileInfoRow(
               icon: Icons.security_outlined,
               label: 'Role',
-              value: profileDisplay(profile.role),
+              value: profileDisplay(context, profile.role),
             ),
           ],
         ),

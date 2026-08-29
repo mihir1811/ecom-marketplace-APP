@@ -107,10 +107,7 @@ class InquiryListNotifier
         );
       case ResultFailure(failure: final failure):
         if (failure is NetworkFailure && failure.isCancelled) return;
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
     }
   }
 
@@ -120,10 +117,7 @@ class InquiryListNotifier
     state = state.copyWith(isLoadingMore: true, clearError: true);
     final nextPage = state.currentPage + 1;
 
-    final result = await _repo.listInquiries(
-      category: arg,
-      page: nextPage,
-    );
+    final result = await _repo.listInquiries(category: arg, page: nextPage);
 
     switch (result) {
       case Success(value: final page):
@@ -145,36 +139,38 @@ class InquiryListNotifier
   }
 }
 
-final inquiryListProvider = NotifierProvider.family<InquiryListNotifier,
-    InquiryListState, InquiryCategory>(
-  InquiryListNotifier.new,
-);
+final inquiryListProvider =
+    NotifierProvider.family<
+      InquiryListNotifier,
+      InquiryListState,
+      InquiryCategory
+    >(InquiryListNotifier.new);
 
 final inquiryDetailProvider = FutureProvider.autoDispose
-    .family<SellerInquiry, ({InquiryCategory category, String id})>(
-  (ref, params) async {
-    final result = await ref.read(inquiryRepositoryProvider).getInquiry(
-          category: params.category,
-          id: params.id,
-        );
+    .family<SellerInquiry, ({InquiryCategory category, String id})>((
+      ref,
+      params,
+    ) async {
+      final result = await ref
+          .read(inquiryRepositoryProvider)
+          .getInquiry(category: params.category, id: params.id);
 
-    switch (result) {
-      case Success(value: final inquiry):
-        return inquiry;
-      case ResultFailure(failure: final failure):
-        final cached = ref.read(inquiryListCacheProvider)[
-          _inquiryCacheKey(params.category, params.id)
-        ];
-        final user = ref.read(authProvider).user;
-        if (cached != null &&
-            user != null &&
-            (user.isAdmin || cached.userId == user.id)) {
-          return cached;
-        }
-        throw failure;
-    }
-  },
-);
+      switch (result) {
+        case Success(value: final inquiry):
+          return inquiry;
+        case ResultFailure(failure: final failure):
+          final cached = ref.read(
+            inquiryListCacheProvider,
+          )[_inquiryCacheKey(params.category, params.id)];
+          final user = ref.read(authProvider).user;
+          if (cached != null &&
+              user != null &&
+              (user.isAdmin || cached.userId == user.id)) {
+            return cached;
+          }
+          throw failure;
+      }
+    });
 
 class InquiryMutationNotifier extends Notifier<AsyncValue<void>> {
   @override
@@ -194,15 +190,16 @@ class InquiryMutationNotifier extends Notifier<AsyncValue<void>> {
       urgency: urgency,
     );
 
-    final result = await ref.read(inquiryRepositoryProvider).createInquiry(
-          category: category,
-          body: body,
-        );
+    final result = await ref
+        .read(inquiryRepositoryProvider)
+        .createInquiry(category: category, body: body);
 
     state = switch (result) {
       Success() => const AsyncValue.data(null),
-      ResultFailure(failure: final failure) =>
-        AsyncValue.error(failure, StackTrace.current),
+      ResultFailure(failure: final failure) => AsyncValue.error(
+        failure,
+        StackTrace.current,
+      ),
     };
 
     if (result case Success()) {
@@ -217,22 +214,21 @@ class InquiryMutationNotifier extends Notifier<AsyncValue<void>> {
     required String id,
   }) async {
     state = const AsyncValue.loading();
-    final result = await ref.read(inquiryRepositoryProvider).deleteInquiry(
-          category: category,
-          id: id,
-        );
+    final result = await ref
+        .read(inquiryRepositoryProvider)
+        .deleteInquiry(category: category, id: id);
 
     state = switch (result) {
       Success() => const AsyncValue.data(null),
-      ResultFailure(failure: final failure) =>
-        AsyncValue.error(failure, StackTrace.current),
+      ResultFailure(failure: final failure) => AsyncValue.error(
+        failure,
+        StackTrace.current,
+      ),
     };
 
     if (result case Success()) {
       ref.invalidate(inquiryListProvider(category));
-      ref.invalidate(
-        inquiryDetailProvider((category: category, id: id)),
-      );
+      ref.invalidate(inquiryDetailProvider((category: category, id: id)));
     }
 
     return result;
@@ -241,5 +237,5 @@ class InquiryMutationNotifier extends Notifier<AsyncValue<void>> {
 
 final inquiryMutationProvider =
     NotifierProvider<InquiryMutationNotifier, AsyncValue<void>>(
-  InquiryMutationNotifier.new,
-);
+      InquiryMutationNotifier.new,
+    );

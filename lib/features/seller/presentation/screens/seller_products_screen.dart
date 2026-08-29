@@ -15,6 +15,9 @@ import '../widgets/seller_product_column_picker.dart';
 import '../widgets/seller_product_data_table.dart';
 import 'seller_product_edit_screen.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerProductsScreen extends ConsumerStatefulWidget {
   const SellerProductsScreen({super.key});
 
@@ -87,8 +90,10 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
             ),
           ),
           Positioned(
-            left: (offset.dx - 240)
-                .clamp(8.0, MediaQuery.sizeOf(context).width - 296),
+            left: (offset.dx - 240).clamp(
+              8.0,
+              MediaQuery.sizeOf(context).width - 296,
+            ),
             top: offset.dy + box.size.height + 4,
             child: SellerProductColumnPickerPanel(
               visibleColumnIds: state.visibleColumnIds,
@@ -117,12 +122,18 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
     switch (result) {
       case Success():
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Deleted ${product.stockNumber}')),
+          SnackBar(
+            content: Text(
+              context.tr(RemainingL10n.deletedProduct, {
+                'stockNumber': product.stockNumber,
+              }),
+            ),
+          ),
         );
       case ResultFailure(:final failure):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -136,8 +147,9 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
     final total = filtered.length;
     final start = state.page * state.rowsPerPage;
     final end = (start + state.rowsPerPage).clamp(0, total);
-    final pageItems =
-        start < total ? filtered.sublist(start, end) : <SellerProduct>[];
+    final pageItems = start < total
+        ? filtered.sublist(start, end)
+        : <SellerProduct>[];
     final columns = visibleColumnsInOrder(state);
     final maxPage = total == 0 ? 0 : ((total - 1) / state.rowsPerPage).floor();
 
@@ -151,8 +163,8 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
           indicatorColor: AppColors.info,
           indicatorWeight: 3,
           labelStyle: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
-          tabs: const [
-            Tab(text: 'Natural Diamonds'),
+          tabs: [
+            Tab(text: context.tr(RemainingL10n.naturalDiamonds)),
             Tab(text: 'Melee Diamonds'),
           ],
         ),
@@ -168,7 +180,9 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
                   controller: _searchController,
                   onChanged: ctrl.setSearchQuery,
                   decoration: InputDecoration(
-                    hintText: 'Search stock, certificate, shape, color, tags...',
+                    hintText: context.tr(
+                      RemainingL10n.searchStockCertificateShapeColorTags,
+                    ),
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -213,12 +227,12 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
               if (state.viewMode == SellerProductsViewMode.grid) ...[
                 IconButton(
                   key: _columnPickerAnchorKey,
-                  tooltip: 'Columns',
+                  tooltip: context.tr(RemainingL10n.columns),
                   icon: const Icon(Icons.view_column_outlined),
                   onPressed: _toggleColumnPicker,
                 ),
                 IconButton(
-                  tooltip: 'Export',
+                  tooltip: context.tr(RemainingL10n.export),
                   icon: const Icon(Icons.download_outlined),
                   onPressed: () {},
                 ),
@@ -231,47 +245,44 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
           child: catalogState.isLoading && catalog.isEmpty
               ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
               : catalogState.errorMessage != null && catalog.isEmpty
-                  ? CatalogErrorState(
-                      message: catalogState.errorMessage!,
-                      onRetry: () => ref
-                          .read(sellerProductsCatalogProvider.notifier)
-                          .refresh(),
-                    )
-                  : pageItems.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No products yet.',
-                            style: AppTypography.body.copyWith(
-                              color: AppColors.textMuted(context),
-                            ),
-                          ),
+              ? CatalogErrorState(
+                  message: catalogState.errorMessage!,
+                  onRetry: () => ref
+                      .read(sellerProductsCatalogProvider.notifier)
+                      .refresh(),
+                )
+              : pageItems.isEmpty
+              ? Center(
+                  child: Text(
+                    context.tr(RemainingL10n.noProducts),
+                    style: AppTypography.body.copyWith(
+                      color: AppColors.textMuted(context),
+                    ),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: () => ref
+                      .read(sellerProductsCatalogProvider.notifier)
+                      .refresh(),
+                  child: state.viewMode == SellerProductsViewMode.grid
+                      ? SellerProductDataTable(
+                          products: pageItems,
+                          columns: columns,
+                          selectedIds: state.selectedProductIds,
+                          onToggleSelection: ctrl.toggleProductSelection,
+                          onToggleSelectAll: (selected) =>
+                              ctrl.toggleSelectAllOnPage(pageItems, selected),
+                          onEdit: _editProduct,
+                          onDelete: _deleteProduct,
                         )
-                      : RefreshIndicator(
-                          onRefresh: () => ref
-                              .read(sellerProductsCatalogProvider.notifier)
-                              .refresh(),
-                          child: state.viewMode == SellerProductsViewMode.grid
-                              ? SellerProductDataTable(
-                                  products: pageItems,
-                                  columns: columns,
-                                  selectedIds: state.selectedProductIds,
-                                  onToggleSelection: ctrl.toggleProductSelection,
-                                  onToggleSelectAll: (selected) => ctrl
-                                      .toggleSelectAllOnPage(
-                                    pageItems,
-                                    selected,
-                                  ),
-                                  onEdit: _editProduct,
-                                  onDelete: _deleteProduct,
-                                )
-                              : SellerProductCardsView(
-                                  products: pageItems,
-                                  selectedIds: state.selectedProductIds,
-                                  onToggleSelection: ctrl.toggleProductSelection,
-                                  onEdit: _editProduct,
-                                  onDelete: _deleteProduct,
-                                ),
+                      : SellerProductCardsView(
+                          products: pageItems,
+                          selectedIds: state.selectedProductIds,
+                          onToggleSelection: ctrl.toggleProductSelection,
+                          onEdit: _editProduct,
+                          onDelete: _deleteProduct,
                         ),
+                ),
         ),
         _PaginationBar(
           rowsPerPage: state.rowsPerPage,
@@ -281,10 +292,12 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
           end: end,
           maxPage: maxPage,
           onRowsPerPageChanged: ctrl.setRowsPerPage,
-          onPrevious:
-              state.page > 0 ? () => ctrl.setPage(state.page - 1) : null,
-          onNext:
-              state.page < maxPage ? () => ctrl.setPage(state.page + 1) : null,
+          onPrevious: state.page > 0
+              ? () => ctrl.setPage(state.page - 1)
+              : null,
+          onNext: state.page < maxPage
+              ? () => ctrl.setPage(state.page + 1)
+              : null,
         ),
       ],
     );
@@ -292,10 +305,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
 }
 
 class _StatusDropdown extends StatelessWidget {
-  const _StatusDropdown({
-    required this.value,
-    required this.onChanged,
-  });
+  const _StatusDropdown({required this.value, required this.onChanged});
 
   final SellerProductStatusFilter value;
   final ValueChanged<SellerProductStatusFilter> onChanged;
@@ -306,7 +316,7 @@ class _StatusDropdown extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Status',
+          context.tr(RemainingL10n.status2),
           style: AppTypography.caption.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textSecondary(context),
@@ -317,18 +327,18 @@ class _StatusDropdown extends StatelessWidget {
           value: value,
           underline: const SizedBox.shrink(),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
-          items: const [
+          items: [
             DropdownMenuItem(
               value: SellerProductStatusFilter.active,
-              child: Text('Active'),
+              child: Text(context.tr(RemainingL10n.active)),
             ),
             DropdownMenuItem(
               value: SellerProductStatusFilter.expired,
-              child: Text('Expired'),
+              child: Text(context.tr(RemainingL10n.expired)),
             ),
             DropdownMenuItem(
               value: SellerProductStatusFilter.all,
-              child: Text('All'),
+              child: Text(context.tr(RemainingL10n.all)),
             ),
           ],
           onChanged: (v) {
@@ -341,10 +351,7 @@ class _StatusDropdown extends StatelessWidget {
 }
 
 class _ViewModeToggle extends StatelessWidget {
-  const _ViewModeToggle({
-    required this.mode,
-    required this.onChanged,
-  });
+  const _ViewModeToggle({required this.mode, required this.onChanged});
 
   final SellerProductsViewMode mode;
   final ValueChanged<SellerProductsViewMode> onChanged;
@@ -360,14 +367,14 @@ class _ViewModeToggle extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _ToggleChip(
-            label: 'Grid',
+            label: context.tr(RemainingL10n.grid),
             icon: Icons.table_rows_outlined,
             selected: mode == SellerProductsViewMode.grid,
             onTap: () => onChanged(SellerProductsViewMode.grid),
           ),
           Container(width: 1, height: 32, color: AppColors.border(context)),
           _ToggleChip(
-            label: 'Cards',
+            label: context.tr(RemainingL10n.cards),
             icon: Icons.grid_view,
             selected: mode == SellerProductsViewMode.cards,
             onTap: () => onChanged(SellerProductsViewMode.cards),
@@ -461,24 +468,34 @@ class _PaginationBar extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            'Rows per page:',
-            style: AppTypography.caption
-                .copyWith(color: AppColors.textMuted(context)),
+            context.tr(RemainingL10n.rowsPerPage),
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textMuted(context),
+            ),
           ),
           const SizedBox(width: 8),
           DropdownButton<int>(
             value: rowsPerPage,
-            underline: const SizedBox.shrink(),
-            items: const [
-              DropdownMenuItem(value: 10, child: Text('10')),
-              DropdownMenuItem(value: 25, child: Text('25')),
-              DropdownMenuItem(value: 50, child: Text('50')),
+            underline: SizedBox.shrink(),
+            items: [
+              DropdownMenuItem(
+                value: 10,
+                child: Text(context.tr(RemainingL10n.message10)),
+              ),
+              DropdownMenuItem(
+                value: 25,
+                child: Text(context.tr(RemainingL10n.message25)),
+              ),
+              DropdownMenuItem(
+                value: 50,
+                child: Text(context.tr(RemainingL10n.message50)),
+              ),
             ],
             onChanged: (v) {
               if (v != null) onRowsPerPageChanged(v);
             },
           ),
-          const Spacer(),
+          Spacer(),
           Text(
             total == 0 ? '0 of 0' : '$start–$end of $total',
             style: AppTypography.caption.copyWith(
@@ -489,10 +506,7 @@ class _PaginationBar extends StatelessWidget {
             icon: const Icon(Icons.chevron_left),
             onPressed: onPrevious,
           ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            onPressed: onNext,
-          ),
+          IconButton(icon: const Icon(Icons.chevron_right), onPressed: onNext),
         ],
       ),
     );

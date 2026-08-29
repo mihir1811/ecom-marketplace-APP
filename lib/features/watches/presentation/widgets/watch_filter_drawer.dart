@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -99,7 +100,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
         children: [
           _section(
             'brand',
-            'BRAND',
+            context.tr(CatalogL10n.brandLabel),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -127,7 +128,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'watch_style',
-            'WATCH STYLE',
+            context.tr(CatalogL10n.watchStyle),
             _list(
               WatchFilterState.styleOptions,
               draft.categories,
@@ -137,7 +138,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'availability',
-            'AVAILABILITY',
+            context.tr(CatalogL10n.availability),
             _list(
               WatchFilterState.availabilityOptions,
               draft.availabilityStatuses,
@@ -147,7 +148,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'with_media',
-            'WITH MEDIA',
+            context.tr(CatalogL10n.withMedia),
             _list(
               WatchFilterState.withMediaOptions,
               draft.withMedia,
@@ -157,7 +158,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'gender',
-            'GENDER',
+            context.tr(CatalogL10n.gender),
             _list(
               WatchFilterState.genderOptions,
               draft.genders,
@@ -167,7 +168,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'price_range',
-            'PRICE RANGE',
+            context.tr(CatalogL10n.priceRange),
             _list(
               WatchFilterState.priceRangeOptions,
               draft.priceRanges,
@@ -177,7 +178,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'movement',
-            'MOVEMENT',
+            context.tr(CatalogL10n.movement),
             _list(
               WatchFilterState.movementOptions,
               draft.movements,
@@ -186,7 +187,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'case',
-            'CASE',
+            context.tr(CatalogL10n.watchCase),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -223,7 +224,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'bezel',
-            'BEZEL',
+            context.tr(CatalogL10n.bezel),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -245,7 +246,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'dial',
-            'DIAL',
+            context.tr(CatalogL10n.dial),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -279,7 +280,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'strap',
-            'STRAP',
+            context.tr(CatalogL10n.strap),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -300,7 +301,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'clasp',
-            'CLASP',
+            context.tr(CatalogL10n.clasp),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -321,7 +322,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'crown',
-            'CROWN',
+            context.tr(CatalogL10n.crown),
             _list(
               WatchFilterState.crownTypeOptions,
               draft.crownTypes,
@@ -331,7 +332,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'features',
-            'FEATURES',
+            context.tr(CatalogL10n.features),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -367,7 +368,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'model_year',
-            'MODEL YEAR',
+            context.tr(CatalogL10n.modelYear),
             _expandList(
               'year',
               WatchFilterState.modelYearOptions,
@@ -378,7 +379,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'condition',
-            'CONDITION',
+            context.tr(CatalogL10n.condition),
             _list(
               WatchFilterState.conditionOptions,
               draft.conditions,
@@ -388,7 +389,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
           _section(
             'authentication',
-            'AUTHENTICATION',
+            context.tr(CatalogL10n.authentication),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -408,22 +409,22 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
                     childAspectRatio: 3.2,
                     children: [
                       FilterBooleanCheckbox(
-                        label: 'Box Included',
+                        label: context.tr(CatalogL10n.boxIncluded),
                         value: draft.boxIncluded,
                         onChanged: (v) => n.setBoxIncluded(v ?? false),
                       ),
                       FilterBooleanCheckbox(
-                        label: 'Papers Included',
+                        label: context.tr(CatalogL10n.papersIncluded),
                         value: draft.papersIncluded,
                         onChanged: (v) => n.setPapersIncluded(v ?? false),
                       ),
                       FilterBooleanCheckbox(
-                        label: 'Warranty Card',
+                        label: context.tr(CatalogL10n.warrantyCard),
                         value: draft.warrantyCardIncluded,
                         onChanged: (v) => n.setWarrantyCardIncluded(v ?? false),
                       ),
                       FilterBooleanCheckbox(
-                        label: 'Full Set Only',
+                        label: context.tr(CatalogL10n.fullSetOnly),
                         value: draft.fullSetIncluded,
                         onChanged: (v) => n.setFullSetIncluded(v ?? false),
                       ),
@@ -593,7 +594,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
         _list(showing, selected, onToggle, grid: grid),
         if (remaining > 0)
           _showMoreButton(
-            label: 'Show all ($remaining)',
+            label: context.tr(CatalogL10n.showAllCount, {'count': remaining}),
             onTap: () => setState(() => _visible[key] = values.length),
           ),
         if (trailing != null) trailing,

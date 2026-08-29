@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -16,9 +17,9 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
@@ -26,10 +27,10 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Price stats',
+              context.tr(CatalogL10n.priceStats),
               style: AppTypography.label.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.charcoal,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: AppSpacing.s12),
@@ -37,15 +38,15 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _Stat(
-                  label: 'MEAN (AVG)',
+                  label: context.tr(CatalogL10n.meanAverage),
                   value: AppCurrency.usd(stats.meanPrice, decimals: 0),
                 ),
                 _Stat(
-                  label: 'MEDIAN',
+                  label: context.tr(CatalogL10n.median),
                   value: AppCurrency.usd(stats.medianPrice, decimals: 0),
                 ),
                 _Stat(
-                  label: 'MODE',
+                  label: context.tr(CatalogL10n.mode),
                   value:
                       '${AppCurrency.usd(stats.modePrice, decimals: 0)} (${stats.modeCount}x)',
                 ),
@@ -53,19 +54,23 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.s16),
             Text(
-              'OUTLIERS',
+              context.tr(CatalogL10n.outliers),
               style: AppTypography.caption.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
               ),
             ),
             const SizedBox(height: AppSpacing.s4),
             Text(
-              'Count: ${stats.outliers.length}  ·  IQR fences ${AppCurrency.usd(stats.iqrLow, decimals: 0)} - ${AppCurrency.usd(stats.iqrHigh, decimals: 0)}',
+              context.tr(CatalogL10n.outliersSummary, {
+                'count': '${stats.outliers.length}',
+                'low': AppCurrency.usd(stats.iqrLow, decimals: 0),
+                'high': AppCurrency.usd(stats.iqrHigh, decimals: 0),
+              }),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondaryLight,
+                color: AppColors.textSecondary(context),
               ),
             ),
             if (stats.outliers.isNotEmpty) ...[
@@ -81,7 +86,9 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
                           outlier.item.stockLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTypography.caption,
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textPrimary(context),
+                          ),
                         ),
                       ),
                       Expanded(
@@ -89,7 +96,9 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
                           outlier.item.carat.toStringAsFixed(2),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTypography.caption,
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textPrimary(context),
+                          ),
                         ),
                       ),
                       Expanded(
@@ -104,7 +113,9 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        outlier.isHigh ? 'High' : 'Low',
+                        outlier.isHigh
+                            ? context.tr(CatalogL10n.outlierHigh)
+                            : context.tr(CatalogL10n.outlierLow),
                         style: AppTypography.caption.copyWith(
                           color: AppColors.error,
                           fontWeight: FontWeight.w600,
@@ -135,13 +146,16 @@ class _Stat extends StatelessWidget {
         Text(
           label,
           style: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
             fontWeight: FontWeight.w600,
           ),
         ),
         Text(
           value,
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+          style: AppTypography.title.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary(context),
+          ),
         ),
       ],
     );

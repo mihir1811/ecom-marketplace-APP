@@ -75,10 +75,7 @@ class AppliedPromoCode {
 }
 
 class AutomaticDiscount {
-  const AutomaticDiscount({
-    required this.label,
-    this.discountAmount = 0,
-  });
+  const AutomaticDiscount({required this.label, this.discountAmount = 0});
 
   final String label;
   final double discountAmount;

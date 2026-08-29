@@ -34,13 +34,14 @@ abstract class AuthTokenStore {
 ///   `OperationError` in Chrome, which would break remember-me persistence
 class SecureAuthTokenStore implements AuthTokenStore {
   SecureAuthTokenStore({FlutterSecureStorage? storage})
-      : _storage = storage ??
-            const FlutterSecureStorage(
-              aOptions: AndroidOptions(),
-              iOptions: IOSOptions(
-                accessibility: KeychainAccessibility.first_unlock,
-              ),
-            );
+    : _storage =
+          storage ??
+          const FlutterSecureStorage(
+            aOptions: AndroidOptions(),
+            iOptions: IOSOptions(
+              accessibility: KeychainAccessibility.first_unlock,
+            ),
+          );
 
   static const _accessToken = 'gw.auth.accessToken';
   static const _userId = 'gw.auth.userId';
@@ -75,10 +76,8 @@ class SecureAuthTokenStore implements AuthTokenStore {
   }) async {
     _cachedAccessToken = accessToken;
     _cachedUserId = userId;
-    _cachedSellerId =
-        sellerId != null && sellerId.isNotEmpty ? sellerId : null;
-    _cachedUserName =
-        userName != null && userName.isNotEmpty ? userName : null;
+    _cachedSellerId = sellerId != null && sellerId.isNotEmpty ? sellerId : null;
+    _cachedUserName = userName != null && userName.isNotEmpty ? userName : null;
     _cachedRole = role != null && role.isNotEmpty ? role : null;
     if (isVerified != null) {
       _cachedIsVerified = isVerified;
@@ -182,9 +181,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
     _cachedUserName = source[_userName];
     _cachedRole = source[_role];
     final verifiedRaw = source[_isVerified];
-    _cachedIsVerified = verifiedRaw == null
-        ? null
-        : verifiedRaw == 'true';
+    _cachedIsVerified = verifiedRaw == null ? null : verifiedRaw == 'true';
     _cachedSellerSnapshot = source[_sellerSnapshot];
     _cachedRememberDevice = source[_rememberDevice] == 'true';
   }
@@ -199,10 +196,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
       // Prefer secure session keys, but fill blanks from prefs (seller snapshot
       // may land in prefs when Keychain rejects a large value).
       return {
-        for (final key in {
-          ...secure.keys,
-          ...prefs.keys,
-        })
+        for (final key in {...secure.keys, ...prefs.keys})
           key: (secure[key] != null && secure[key]!.isNotEmpty)
               ? secure[key]
               : prefs[key],
@@ -330,7 +324,9 @@ class SecureAuthTokenStore implements AuthTokenStore {
         }
       } catch (e, st) {
         assert(() {
-          debugPrint('AuthTokenStore.sellerSnapshot prefs write failed: $e\n$st');
+          debugPrint(
+            'AuthTokenStore.sellerSnapshot prefs write failed: $e\n$st',
+          );
           return true;
         }());
       }
@@ -345,7 +341,9 @@ class SecureAuthTokenStore implements AuthTokenStore {
       }
     } catch (e, st) {
       assert(() {
-        debugPrint('AuthTokenStore.sellerSnapshot secure write failed: $e\n$st');
+        debugPrint(
+          'AuthTokenStore.sellerSnapshot secure write failed: $e\n$st',
+        );
         return true;
       }());
     }

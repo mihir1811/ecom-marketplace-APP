@@ -89,10 +89,7 @@ class WalletTransactionsNotifier extends Notifier<WalletTransactionsState> {
           hasMore: value.hasMore,
         );
       case ResultFailure(:final failure):
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
     }
   }
 
@@ -100,10 +97,7 @@ class WalletTransactionsNotifier extends Notifier<WalletTransactionsState> {
     if (!state.hasMore || state.isLoadingMore || state.isLoading) return;
     state = state.copyWith(isLoadingMore: true, clearError: true);
     final nextPage = state.page + 1;
-    final result = await _repo.getTransactions(
-      page: nextPage,
-      limit: pageSize,
-    );
+    final result = await _repo.getTransactions(page: nextPage, limit: pageSize);
     switch (result) {
       case Success(:final value):
         state = state.copyWith(
@@ -123,5 +117,5 @@ class WalletTransactionsNotifier extends Notifier<WalletTransactionsState> {
 
 final walletTransactionsProvider =
     NotifierProvider<WalletTransactionsNotifier, WalletTransactionsState>(
-  WalletTransactionsNotifier.new,
-);
+      WalletTransactionsNotifier.new,
+    );

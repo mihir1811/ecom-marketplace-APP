@@ -209,7 +209,8 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
           final tint = dark
               ? AppColors.obsidianBg
               : (Color.lerp(_fromColor, _toColor, _colorT.value) ?? _toColor);
-          final showRipple = !dark &&
+          final showRipple =
+              !dark &&
               (_rippleController.isAnimating ||
                   (_rippleT.value > 0 && _rippleT.value < 1));
           return LayoutBuilder(
@@ -255,10 +256,9 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
                                       ? AppColors.bronzeLight
                                       : AppColors.bronze,
                                   origin: _rippleOrigin == Offset.zero
-                                      ? _resolveOrigin(Size(
-                                          _lastSize.width,
-                                          height,
-                                        ))
+                                      ? _resolveOrigin(
+                                          Size(_lastSize.width, height),
+                                        )
                                       : _rippleOrigin,
                                 ),
                                 size: Size.infinite,
@@ -298,7 +298,8 @@ class _WaterDropPainter extends CustomPainter {
     if (progress <= 0) return;
 
     final center = origin;
-    final maxRadius = math.sqrt(
+    final maxRadius =
+        math.sqrt(
           math.max(center.dx, size.width - center.dx) *
                   math.max(center.dx, size.width - center.dx) +
               math.max(center.dy, size.height - center.dy) *

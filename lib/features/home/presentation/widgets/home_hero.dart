@@ -4,6 +4,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 /// Full-bleed marketplace hero — brand, one line, two CTAs, network image.
 class HomeHero extends StatelessWidget {
@@ -20,7 +22,10 @@ class HomeHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final height = (MediaQuery.sizeOf(context).height * 0.42).clamp(280.0, 420.0);
+    final height = (MediaQuery.sizeOf(context).height * 0.42).clamp(
+      280.0,
+      420.0,
+    );
 
     return SizedBox(
       height: height,
@@ -28,10 +33,7 @@ class HomeHero extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          AppNetworkImage(
-            url: imageUrl,
-            memCacheWidth: 1600,
-          ),
+          AppNetworkImage(url: imageUrl, memCacheWidth: 1600),
           const DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -68,7 +70,9 @@ class HomeHero extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.s8),
                 Text(
-                  'Certified diamonds, gems, and fine jewelry — in one place.',
+                  context.tr(
+                    RemainingL10n.certifiedDiamondsGemsAndFineJewelryIn,
+                  ),
                   style: AppTypography.body.copyWith(
                     color: AppColors.warmWhite.withValues(alpha: 0.88),
                     fontSize: 15,
@@ -94,7 +98,7 @@ class HomeHero extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'Find diamonds',
+                        context.tr(RemainingL10n.findDiamonds),
                         style: AppTypography.label.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.charcoal,
@@ -117,7 +121,7 @@ class HomeHero extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'Browse jewelry',
+                        context.tr(RemainingL10n.browseJewelry),
                         style: AppTypography.label.copyWith(
                           fontWeight: FontWeight.w600,
                           color: AppColors.warmWhite,

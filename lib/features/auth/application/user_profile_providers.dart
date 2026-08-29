@@ -11,8 +11,8 @@ import '../domain/repositories/user_profile_repository.dart';
 
 final userProfileProvider =
     AsyncNotifierProvider.autoDispose<UserProfileNotifier, UserProfile>(
-  UserProfileNotifier.new,
-);
+      UserProfileNotifier.new,
+    );
 
 class UserProfileNotifier extends AutoDisposeAsyncNotifier<UserProfile> {
   UserProfileRepository get _repo => ref.read(userProfileRepositoryProvider);
@@ -24,22 +24,24 @@ class UserProfileNotifier extends AutoDisposeAsyncNotifier<UserProfile> {
     final result = await _repo.getProfile();
     return switch (result) {
       Success(value: final profile) => () {
-          final merged = overlaySellerAccount(profile, authUser);
-          _syncAuth(merged);
-          return merged;
-        }(),
+        final merged = overlaySellerAccount(profile, authUser);
+        _syncAuth(merged);
+        return merged;
+      }(),
       ResultFailure(failure: final failure) => () {
-          if (authUser != null && _isEmptyProfile(failure)) {
-            return userProfileFromAuth(authUser);
-          }
-          throw failure;
-        }(),
+        if (authUser != null && _isEmptyProfile(failure)) {
+          return userProfileFromAuth(authUser);
+        }
+        throw failure;
+      }(),
     };
   }
 
   void _syncAuth(UserProfile profile) {
     Future.microtask(() {
-      ref.read(authProvider.notifier).applyAccountProfile(
+      ref
+          .read(authProvider.notifier)
+          .applyAccountProfile(
             fullName: profile.fullName.trim().isEmpty ? null : profile.fullName,
             username: profile.username.trim().isEmpty ? null : profile.username,
             email: profile.email.trim().isEmpty ? null : profile.email,
@@ -116,10 +118,14 @@ UserProfile overlaySellerAccount(UserProfile profile, AuthUser? user) {
     sellerType: _prefer(profile.sellerType, seeded.sellerType),
     businessPhone1: _prefer(profile.businessPhone1, seeded.businessPhone1),
     businessPhone2: _prefer(profile.businessPhone2, seeded.businessPhone2),
-    representativeName1:
-        _prefer(profile.representativeName1, seeded.representativeName1),
-    representativeName2:
-        _prefer(profile.representativeName2, seeded.representativeName2),
+    representativeName1: _prefer(
+      profile.representativeName1,
+      seeded.representativeName1,
+    ),
+    representativeName2: _prefer(
+      profile.representativeName2,
+      seeded.representativeName2,
+    ),
     panCardNumber: _prefer(profile.panCardNumber, seeded.panCardNumber),
     aadhaarNumber: _prefer(profile.aadhaarNumber, seeded.aadhaarNumber),
     iecNumber: _prefer(profile.iecNumber, seeded.iecNumber),

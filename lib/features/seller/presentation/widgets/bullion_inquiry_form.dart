@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'inquiry_form_fields.dart';
 import 'inquiry_reference_media.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Bullion inquiry sections: certification, metal specs, commercial, logistics.
 class BullionInquiryForm extends StatelessWidget {
   const BullionInquiryForm({
@@ -33,17 +36,17 @@ class BullionInquiryForm extends StatelessWidget {
     return Column(
       children: [
         InquirySectionCard(
-          title: 'Certification',
+          title: context.tr(RemainingL10n.certification),
           child: Column(
             children: [
               InquiryCheckboxField(
-                label: 'Is Certified',
+                label: context.tr(RemainingL10n.isCertified2),
                 value: flag('isCertified'),
                 onChanged: (v) => setFlag('isCertified', v),
               ),
               if (flag('isCertified'))
                 InquiryTextField(
-                  label: 'Certificate Company',
+                  label: context.tr(RemainingL10n.certificateCompany),
                   controller: controller('certificateName'),
                   hint: 'BIS Hallmark',
                   onChanged: onChanged,
@@ -52,24 +55,24 @@ class BullionInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Bullion',
+          title: context.tr(RemainingL10n.bullion),
           child: Column(
             children: [
               InquiryTripleFields(
                 first: InquiryTextField(
-                  label: 'Metal Type',
+                  label: context.tr(RemainingL10n.metalType),
                   controller: controller('metalType'),
                   hint: 'Gold',
                   onChanged: onChanged,
                 ),
                 second: InquiryTextField(
-                  label: 'Metal Fineness',
+                  label: context.tr(RemainingL10n.metalFineness),
                   controller: controller('metalFineness'),
                   hint: '24K',
                   onChanged: onChanged,
                 ),
                 third: InquiryTextField(
-                  label: 'Shape Format',
+                  label: context.tr(RemainingL10n.shapeFormat),
                   controller: controller('shapeFormat'),
                   hint: 'Coin',
                   onChanged: onChanged,
@@ -77,18 +80,18 @@ class BullionInquiryForm extends StatelessWidget {
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Weight Min',
+                  label: context.tr(RemainingL10n.weightMin),
                   controller: controller('weightMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Weight Max',
+                  label: context.tr(RemainingL10n.weightMax),
                   controller: controller('weightMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryTextField(
-                label: 'Preferred Mint',
+                label: context.tr(RemainingL10n.preferredMint),
                 controller: controller('preferredMint'),
                 onChanged: onChanged,
               ),
@@ -96,46 +99,46 @@ class BullionInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Commercial',
+          title: context.tr(RemainingL10n.commercial),
           child: Column(
             children: [
               InquiryTextField(
-                label: 'Quantity',
+                label: context.tr(RemainingL10n.quantity),
                 controller: controller('quantity'),
                 onChanged: onChanged,
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Total Price Min',
+                  label: context.tr(RemainingL10n.totalPriceMin),
                   controller: controller('totalPriceMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Total Price Max',
+                  label: context.tr(RemainingL10n.totalPriceMax),
                   controller: controller('totalPriceMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Price Per Gram Min',
+                  label: context.tr(RemainingL10n.pricePerGramMin),
                   controller: controller('pricePerGramMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Price Per Gram Max',
+                  label: context.tr(RemainingL10n.pricePerGramMax),
                   controller: controller('pricePerGramMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryTextField(
-                label: 'Description',
+                label: context.tr(RemainingL10n.description),
                 controller: controller('description'),
                 maxLines: 3,
                 onChanged: onChanged,
               ),
               InquiryTextField(
-                label: 'Payment Terms',
+                label: context.tr(RemainingL10n.paymentTerms),
                 controller: controller('paymentTerms'),
                 onChanged: onChanged,
               ),
@@ -143,41 +146,41 @@ class BullionInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Dimensions',
+          title: context.tr(RemainingL10n.dimensions),
           child: Column(
             children: [
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Length Min',
+                  label: context.tr(RemainingL10n.lengthMin),
                   controller: controller('lengthMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Length Max',
+                  label: context.tr(RemainingL10n.lengthMax),
                   controller: controller('lengthMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Width Min',
+                  label: context.tr(RemainingL10n.widthMin),
                   controller: controller('widthMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Width Max',
+                  label: context.tr(RemainingL10n.widthMax),
                   controller: controller('widthMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Height Min',
+                  label: context.tr(RemainingL10n.heightMin),
                   controller: controller('heightMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Height Max',
+                  label: context.tr(RemainingL10n.heightMax),
                   controller: controller('heightMax'),
                   onChanged: onChanged,
                 ),
@@ -186,16 +189,16 @@ class BullionInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Logistics',
+          title: context.tr(RemainingL10n.logistics),
           child: Column(
             children: [
               InquiryDateField(
-                label: 'Urgency',
+                label: context.tr(RemainingL10n.urgency),
                 value: urgency,
                 onPick: onPickUrgency,
               ),
               InquiryTextField(
-                label: 'Delivery Address',
+                label: context.tr(RemainingL10n.deliveryAddress),
                 controller: controller('deliveryLocation'),
                 onChanged: onChanged,
               ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/error/result.dart';
@@ -46,9 +49,9 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not open this product right now.'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(context.tr(AccountCommerceL10n.productOpenFailed)),
+          duration: const Duration(seconds: 2),
         ),
       );
     } finally {
@@ -75,7 +78,9 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppSpacing.r16),
               border: Border.all(
-                color: available ? AppColors.border(context) : AppColors.error.withValues(alpha: 0.35),
+                color: available
+                    ? AppColors.border(context)
+                    : AppColors.error.withValues(alpha: 0.35),
               ),
             ),
             padding: const EdgeInsets.all(AppSpacing.s12),
@@ -153,7 +158,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                             ),
                           ),
                           IconButton(
-                            tooltip: 'Remove',
+                            tooltip: context.tr(AccountCommerceL10n.remove),
                             onPressed: mutating || _opening
                                 ? null
                                 : () async {
@@ -161,9 +166,12 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                         .read(cartProvider.notifier)
                                         .removeItem(item.cartId);
                                     if (!context.mounted) return;
-                                    if (result
-                                        case ResultFailure(:final failure)) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                    if (result case ResultFailure(
+                                      :final failure,
+                                    )) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
                                           content: Text(failure.message),
                                         ),
@@ -171,8 +179,8 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                     }
                                   },
                             icon: const Icon(Icons.delete_outline, size: 20),
-                          color: AppColors.textMuted(context),
-                          visualDensity: VisualDensity.compact,
+                            color: AppColors.textMuted(context),
+                            visualDensity: VisualDensity.compact,
                           ),
                         ],
                       ),
@@ -190,9 +198,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                         const SizedBox(height: AppSpacing.s4),
                         Text(
                           item.seller!,
-                          style: AppTypography.caption.copyWith(
-                            color: muted,
-                          ),
+                          style: AppTypography.caption.copyWith(color: muted),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -216,7 +222,9 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                       if (item.quantity > 1) ...[
                         const SizedBox(height: AppSpacing.s4),
                         Text(
-                          'Qty ${item.quantity}',
+                          context.tr(AccountCommerceL10n.quantity, {
+                            'count': item.quantity,
+                          }),
                           style: AppTypography.caption.copyWith(
                             color: AppColors.textSecondary(context),
                           ),

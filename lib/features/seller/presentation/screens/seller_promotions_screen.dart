@@ -11,6 +11,9 @@ import '../../../../core/widgets/app_dialog.dart';
 import '../../../promotions/application/promotions_providers.dart';
 import '../../../promotions/domain/models/promotion.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 enum _PromoTab { discounts, promoCodes }
 
 class SellerPromotionsScreen extends ConsumerStatefulWidget {
@@ -21,7 +24,8 @@ class SellerPromotionsScreen extends ConsumerStatefulWidget {
       _SellerPromotionsScreenState();
 }
 
-class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen> {
+class _SellerPromotionsScreenState
+    extends ConsumerState<SellerPromotionsScreen> {
   _PromoTab _tab = _PromoTab.discounts;
 
   Future<void> _openAddDiscount() async {
@@ -30,19 +34,22 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
       context: context,
       builder: (context) => _AddDiscountDialog(
         onSave: (input) async {
-          final result =
-              await ref.read(sellerPromotionsProvider.notifier).createDiscount(input);
+          final result = await ref
+              .read(sellerPromotionsProvider.notifier)
+              .createDiscount(input);
           if (!context.mounted) return;
           switch (result) {
             case Success():
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Discount created')),
+                SnackBar(
+                  content: Text(context.tr(RemainingL10n.discountCreated)),
+                ),
               );
             case ResultFailure(:final failure):
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(failure.message)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(failure.message)));
           }
         },
       ),
@@ -55,19 +62,22 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
       context: context,
       builder: (context) => _AddPromoCodeDialog(
         onSave: (input) async {
-          final result =
-              await ref.read(sellerPromotionsProvider.notifier).createPromoCode(input);
+          final result = await ref
+              .read(sellerPromotionsProvider.notifier)
+              .createPromoCode(input);
           if (!context.mounted) return;
           switch (result) {
             case Success():
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Promo code created')),
+                SnackBar(
+                  content: Text(context.tr(RemainingL10n.promoCodeCreated)),
+                ),
               );
             case ResultFailure(:final failure):
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(failure.message)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(failure.message)));
           }
         },
       ),
@@ -75,24 +85,26 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
   }
 
   Future<void> _deleteDiscount(String id) async {
-    final result =
-        await ref.read(sellerPromotionsProvider.notifier).deleteDiscount(id);
+    final result = await ref
+        .read(sellerPromotionsProvider.notifier)
+        .deleteDiscount(id);
     if (!mounted) return;
     if (result case ResultFailure(:final failure)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
   Future<void> _deletePromoCode(String id) async {
-    final result =
-        await ref.read(sellerPromotionsProvider.notifier).deletePromoCode(id);
+    final result = await ref
+        .read(sellerPromotionsProvider.notifier)
+        .deletePromoCode(id);
     if (!mounted) return;
     if (result case ResultFailure(:final failure)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -129,13 +141,13 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
           child: Row(
             children: [
               _TabButton(
-                label: 'Discounts',
+                label: context.tr(RemainingL10n.discounts),
                 selected: isDiscounts,
                 onTap: () => setState(() => _tab = _PromoTab.discounts),
               ),
               const SizedBox(width: 16),
               _TabButton(
-                label: 'Promo Codes',
+                label: context.tr(RemainingL10n.promoCodes),
                 selected: !isDiscounts,
                 onTap: () => setState(() => _tab = _PromoTab.promoCodes),
               ),
@@ -171,8 +183,8 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
                             onPressed: state.isMutating
                                 ? null
                                 : isDiscounts
-                                    ? _openAddDiscount
-                                    : _openAddPromoCode,
+                                ? _openAddDiscount
+                                : _openAddPromoCode,
                             child: Text(
                               isDiscounts ? 'Add Discount' : 'Add Promo Code',
                             ),
@@ -187,7 +199,9 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
                         )
                       else if (isDiscounts)
                         if (state.discounts.isEmpty)
-                          const _EmptyState(label: 'No discounts found.')
+                          _EmptyState(
+                            label: context.tr(RemainingL10n.noDiscountsFound),
+                          )
                         else
                           for (final d in state.discounts) ...[
                             _DiscountTile(
@@ -197,7 +211,9 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
                             const SizedBox(height: 10),
                           ]
                       else if (state.promoCodes.isEmpty)
-                        const _EmptyState(label: 'No promo codes found.')
+                        _EmptyState(
+                          label: context.tr(RemainingL10n.noPromoCodesFound),
+                        )
                       else
                         for (final p in state.promoCodes) ...[
                           _PromoTile(
@@ -237,9 +253,7 @@ class _TabButton extends StatelessWidget {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.info,
           foregroundColor: AppColors.warmWhite,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: Text(label),
       );
@@ -305,24 +319,27 @@ class _DiscountTile extends StatelessWidget {
               children: [
                 Text(
                   item.name,
-                  style: AppTypography.label
-                      .copyWith(fontWeight: FontWeight.w700),
+                  style: AppTypography.label.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 Text(
                   item.description,
-                  style: AppTypography.caption
-                      .copyWith(color: AppColors.textSecondary(context)),
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondary(context),
+                  ),
                 ),
                 Text(
                   '${item.type == PromotionType.percentage ? '${item.value}%' : AppCurrency.format(item.value)} · ${item.startDateLabel} → ${item.endDateLabel}',
-                  style: AppTypography.caption
-                      .copyWith(color: AppColors.textMuted(context)),
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textMuted(context),
+                  ),
                 ),
               ],
             ),
           ),
           IconButton(
-            tooltip: 'Delete',
+            tooltip: context.tr(RemainingL10n.delete),
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline, size: 20),
           ),
@@ -356,25 +373,28 @@ class _PromoTile extends StatelessWidget {
               children: [
                 Text(
                   item.code,
-                  style: AppTypography.label
-                      .copyWith(fontWeight: FontWeight.w700),
+                  style: AppTypography.label.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 Text(
                   item.description,
-                  style: AppTypography.caption
-                      .copyWith(color: AppColors.textSecondary(context)),
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondary(context),
+                  ),
                 ),
                 Text(
                   '${item.type == PromotionType.percentage ? '${item.value}%' : AppCurrency.format(item.value)}'
                   '${item.maxUses != null ? ' · Max ${item.maxUses}' : ''} · ${item.startDateLabel} → ${item.endDateLabel}',
-                  style: AppTypography.caption
-                      .copyWith(color: AppColors.textMuted(context)),
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textMuted(context),
+                  ),
                 ),
               ],
             ),
           ),
           IconButton(
-            tooltip: 'Delete',
+            tooltip: context.tr(RemainingL10n.delete),
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline, size: 20),
           ),
@@ -431,7 +451,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
   }
 
   String _fmt(DateTime? d) {
-    if (d == null) return 'mm/dd/yyyy';
+    if (d == null) return context.tr(RemainingL10n.mmDdYyyy);
     String two(int v) => v.toString().padLeft(2, '0');
     return '${two(d.month)}/${two(d.day)}/${d.year}';
   }
@@ -474,7 +494,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Add Discount',
+                        context.tr(RemainingL10n.addDiscount),
                         style: AppTypography.title.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -486,33 +506,36 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 _LabeledField(
-                  label: 'Discount Name',
+                  label: context.tr(RemainingL10n.discountName),
                   child: TextField(
                     controller: _nameCtrl,
                     decoration: _inputDecoration(context, 'e.g., Summer Sale'),
                   ),
                 ),
                 _LabeledField(
-                  label: 'Description',
+                  label: context.tr(RemainingL10n.description),
                   child: TextField(
                     controller: _descCtrl,
-                    decoration: _inputDecoration(context, 'Description'),
+                    decoration: _inputDecoration(
+                      context,
+                      context.tr(RemainingL10n.description),
+                    ),
                   ),
                 ),
                 _LabeledField(
-                  label: 'Discount Type',
+                  label: context.tr(RemainingL10n.discountType),
                   child: DropdownButtonFormField<PromotionType>(
                     initialValue: _type,
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: PromotionType.percentage,
-                        child: Text('Percentage (%)'),
+                        child: Text(context.tr(RemainingL10n.percentage)),
                       ),
                       DropdownMenuItem(
                         value: PromotionType.fixedAmount,
-                        child: Text('Fixed amount'),
+                        child: Text(context.tr(RemainingL10n.fixedAmount)),
                       ),
                     ],
                     onChanged: (v) {
@@ -522,7 +545,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                   ),
                 ),
                 _LabeledField(
-                  label: 'Value',
+                  label: context.tr(RemainingL10n.value),
                   child: TextField(
                     controller: _valueCtrl,
                     keyboardType: TextInputType.number,
@@ -533,14 +556,17 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                   children: [
                     Expanded(
                       child: _LabeledField(
-                        label: 'Start Date',
+                        label: context.tr(RemainingL10n.startDate2),
                         child: InkWell(
                           onTap: () => _pickDate(isStart: true),
                           child: InputDecorator(
-                            decoration: _inputDecoration(context, 'mm/dd/yyyy').copyWith(
-                              suffixIcon:
-                                  const Icon(Icons.calendar_today, size: 18),
-                            ),
+                            decoration: _inputDecoration(context, 'mm/dd/yyyy')
+                                .copyWith(
+                                  suffixIcon: const Icon(
+                                    Icons.calendar_today,
+                                    size: 18,
+                                  ),
+                                ),
                             child: Text(_fmt(_start)),
                           ),
                         ),
@@ -549,14 +575,17 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _LabeledField(
-                        label: 'End Date',
+                        label: context.tr(RemainingL10n.endDate2),
                         child: InkWell(
                           onTap: () => _pickDate(isStart: false),
                           child: InputDecorator(
-                            decoration: _inputDecoration(context, 'mm/dd/yyyy').copyWith(
-                              suffixIcon:
-                                  const Icon(Icons.calendar_today, size: 18),
-                            ),
+                            decoration: _inputDecoration(context, 'mm/dd/yyyy')
+                                .copyWith(
+                                  suffixIcon: const Icon(
+                                    Icons.calendar_today,
+                                    size: 18,
+                                  ),
+                                ),
                             child: Text(_fmt(_end)),
                           ),
                         ),
@@ -576,7 +605,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save Discount'),
+                      : Text(context.tr(RemainingL10n.saveDiscount)),
                 ),
               ],
             ),
@@ -588,7 +617,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
 }
 
 class _AddPromoCodeDialog extends StatefulWidget {
-  const _AddPromoCodeDialog({required this.onSave});
+  _AddPromoCodeDialog({required this.onSave});
 
   final _PromoCodeSave onSave;
 
@@ -633,7 +662,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
   }
 
   String _fmt(DateTime? d) {
-    if (d == null) return 'mm/dd/yyyy';
+    if (d == null) return context.tr(RemainingL10n.mmDdYyyy);
     String two(int v) => v.toString().padLeft(2, '0');
     return '${two(d.month)}/${two(d.day)}/${d.year}';
   }
@@ -677,7 +706,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Add Promo Code',
+                        context.tr(RemainingL10n.addPromoCode),
                         style: AppTypography.title.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -689,33 +718,36 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 _LabeledField(
-                  label: 'Promo Code',
+                  label: context.tr(RemainingL10n.promoCode),
                   child: TextField(
                     controller: _codeCtrl,
                     decoration: _inputDecoration(context, 'e.g., SUMMER20'),
                   ),
                 ),
                 _LabeledField(
-                  label: 'Description',
+                  label: context.tr(RemainingL10n.description),
                   child: TextField(
                     controller: _descCtrl,
-                    decoration: _inputDecoration(context, 'Description'),
+                    decoration: _inputDecoration(
+                      context,
+                      context.tr(RemainingL10n.description),
+                    ),
                   ),
                 ),
                 _LabeledField(
-                  label: 'Discount Type',
+                  label: context.tr(RemainingL10n.discountType),
                   child: DropdownButtonFormField<PromotionType>(
                     initialValue: _type,
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: PromotionType.percentage,
-                        child: Text('Percentage (%)'),
+                        child: Text(context.tr(RemainingL10n.percentage)),
                       ),
                       DropdownMenuItem(
                         value: PromotionType.fixedAmount,
-                        child: Text('Fixed amount'),
+                        child: Text(context.tr(RemainingL10n.fixedAmount)),
                       ),
                     ],
                     onChanged: (v) {
@@ -725,7 +757,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                   ),
                 ),
                 _LabeledField(
-                  label: 'Value',
+                  label: context.tr(RemainingL10n.value),
                   child: TextField(
                     controller: _valueCtrl,
                     keyboardType: TextInputType.number,
@@ -733,7 +765,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                   ),
                 ),
                 _LabeledField(
-                  label: 'Max Uses (Optional)',
+                  label: context.tr(RemainingL10n.maxUsesOptional),
                   child: TextField(
                     controller: _maxUsesCtrl,
                     keyboardType: TextInputType.number,
@@ -744,14 +776,17 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                   children: [
                     Expanded(
                       child: _LabeledField(
-                        label: 'Start Date',
+                        label: context.tr(RemainingL10n.startDate2),
                         child: InkWell(
                           onTap: () => _pickDate(isStart: true),
                           child: InputDecorator(
-                            decoration: _inputDecoration(context, 'mm/dd/yyyy').copyWith(
-                              suffixIcon:
-                                  const Icon(Icons.calendar_today, size: 18),
-                            ),
+                            decoration: _inputDecoration(context, 'mm/dd/yyyy')
+                                .copyWith(
+                                  suffixIcon: const Icon(
+                                    Icons.calendar_today,
+                                    size: 18,
+                                  ),
+                                ),
                             child: Text(_fmt(_start)),
                           ),
                         ),
@@ -760,14 +795,17 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _LabeledField(
-                        label: 'End Date',
+                        label: context.tr(RemainingL10n.endDate2),
                         child: InkWell(
                           onTap: () => _pickDate(isStart: false),
                           child: InputDecorator(
-                            decoration: _inputDecoration(context, 'mm/dd/yyyy').copyWith(
-                              suffixIcon:
-                                  const Icon(Icons.calendar_today, size: 18),
-                            ),
+                            decoration: _inputDecoration(context, 'mm/dd/yyyy')
+                                .copyWith(
+                                  suffixIcon: const Icon(
+                                    Icons.calendar_today,
+                                    size: 18,
+                                  ),
+                                ),
                             child: Text(_fmt(_end)),
                           ),
                         ),
@@ -787,7 +825,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save Promo Code'),
+                      : Text(context.tr(RemainingL10n.savePromoCode)),
                 ),
               ],
             ),
@@ -799,7 +837,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
 }
 
 class _LabeledField extends StatelessWidget {
-  const _LabeledField({required this.label, required this.child});
+  _LabeledField({required this.label, required this.child});
 
   final String label;
   final Widget child;

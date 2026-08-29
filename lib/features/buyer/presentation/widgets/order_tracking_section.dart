@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/failure.dart';
@@ -22,7 +25,7 @@ class OrderTrackingSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Shipment tracking',
+          context.tr(AccountCommerceL10n.shipmentTracking),
           style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 12),
@@ -32,13 +35,15 @@ class OrderTrackingSection extends ConsumerWidget {
             child: Center(child: CircularProgressIndicator()),
           ),
           error: (e, _) => Text(
-            e is Failure ? e.message : 'Could not load tracking.',
+            e is Failure
+                ? e.message
+                : context.tr(AccountCommerceL10n.trackingLoadFailed),
             style: AppTypography.caption.copyWith(color: AppColors.error),
           ),
           data: (shipments) {
             if (shipments.isEmpty) {
               return Text(
-                'No shipment yet. Tracking appears once the seller ships.',
+                context.tr(AccountCommerceL10n.noShipment),
                 style: AppTypography.caption.copyWith(
                   color: AppColors.textMuted(context),
                 ),
@@ -99,7 +104,9 @@ class _ShipmentCard extends ConsumerWidget {
               detail.trackingNumber!.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
-              'Tracking # ${detail.trackingNumber}',
+              context.tr(AccountCommerceL10n.trackingNumber, {
+                'number': detail.trackingNumber,
+              }),
               style: AppTypography.caption.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -109,7 +116,9 @@ class _ShipmentCard extends ConsumerWidget {
               detail.currentLocation!.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              'Location: ${detail.currentLocation}',
+              context.tr(AccountCommerceL10n.location, {
+                'location': detail.currentLocation,
+              }),
               style: AppTypography.caption.copyWith(
                 color: AppColors.textSecondary(context),
               ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/result.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -44,13 +45,12 @@ class _DiamondProjectStatsScreenState
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
       appBar: AppTopBar(
-        title: 'Diamond project',
+        title: context.tr(CatalogL10n.diamondProject),
         extraActions: [
           if (wide) ...[
             TextButton(
-              onPressed: () =>
-                  context.push(AppRouteNames.savedDiamondProjects),
-              child: const Text('Saved Statistics'),
+              onPressed: () => context.push(AppRouteNames.savedDiamondProjects),
+              child: Text(context.tr(CatalogL10n.savedStatistics)),
             ),
             TextButton(
               onPressed: saving || selection.isEmpty ? null : _save,
@@ -60,18 +60,19 @@ class _DiamondProjectStatsScreenState
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save now'),
+                  : Text(context.tr(CatalogL10n.saveNow)),
             ),
             TextButton(
               onPressed: selection.isEmpty
                   ? null
-                  : () =>
-                      ref.read(diamondProjectSelectionProvider.notifier).clear(),
-              child: const Text('Clear selection'),
+                  : () => ref
+                        .read(diamondProjectSelectionProvider.notifier)
+                        .clear(),
+              child: Text(context.tr(CatalogL10n.clearSelection)),
             ),
           ] else ...[
             IconButton(
-              tooltip: 'Save now',
+              tooltip: context.tr(CatalogL10n.saveNow),
               onPressed: saving || selection.isEmpty ? null : _save,
               icon: saving
                   ? const SizedBox(
@@ -82,7 +83,7 @@ class _DiamondProjectStatsScreenState
                   : const Icon(Icons.save_outlined),
             ),
             PopupMenuButton<String>(
-              tooltip: 'Project actions',
+              tooltip: context.tr(CatalogL10n.projectActions),
               onSelected: (value) {
                 switch (value) {
                   case 'saved':
@@ -92,13 +93,13 @@ class _DiamondProjectStatsScreenState
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'saved',
-                  child: Text('Saved statistics'),
+                  child: Text(context.tr(CatalogL10n.savedStatistics)),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'clear',
-                  child: Text('Clear selection'),
+                  child: Text(context.tr(CatalogL10n.clearSelection)),
                 ),
               ],
             ),
@@ -108,10 +109,9 @@ class _DiamondProjectStatsScreenState
       body: selection.isEmpty
           ? CatalogEmptyState(
               icon: Icons.analytics_outlined,
-              title: 'No diamonds selected',
-              message:
-                  'Use Select current page on a diamond listing to analyze loaded stones.',
-              actionLabel: 'Back to listings',
+              title: context.tr(CatalogL10n.noDiamondsSelected),
+              message: context.tr(CatalogL10n.selectPageHelp),
+              actionLabel: context.tr(CatalogL10n.backToListings),
               onAction: () => context.goBack(),
             )
           : ListView(
@@ -137,11 +137,11 @@ class _DiamondProjectStatsScreenState
                       final wide = constraints.maxWidth >= 720;
                       final mixes = [
                         DiamondProjectMixCard(
-                          title: 'Shape mix',
+                          title: context.tr(CatalogL10n.shapeMix),
                           entries: stats.shapeMix,
                         ),
                         DiamondProjectMixCard(
-                          title: 'Color mix',
+                          title: context.tr(CatalogL10n.colorMix),
                           entries: stats.colorMix,
                         ),
                       ];
@@ -171,19 +171,21 @@ class _DiamondProjectStatsScreenState
                       final wide = constraints.maxWidth >= 720;
                       final charts = [
                         DiamondProjectMixCard(
-                          title: 'Clarity mix',
+                          title: context.tr(CatalogL10n.clarityMix),
                           entries: stats.clarityMix,
                         ),
                         DiamondProjectHistogramCard(
-                          title: 'Price distribution',
+                          title: context.tr(CatalogL10n.priceDistribution),
                           entries: stats.priceBuckets,
                         ),
                         DiamondProjectHistogramCard(
-                          title: 'Price per carat distribution',
+                          title: context.tr(
+                            CatalogL10n.pricePerCaratDistribution,
+                          ),
                           entries: stats.ppcBuckets,
                         ),
                         DiamondProjectHistogramCard(
-                          title: 'Carat distribution',
+                          title: context.tr(CatalogL10n.caratDistribution),
                           entries: stats.caratBuckets,
                         ),
                       ];
@@ -239,19 +241,20 @@ class _DiamondProjectStatsScreenState
   }
 
   Future<void> _save() async {
-    final result =
-        await ref.read(diamondProjectSaveProvider.notifier).save();
+    final result = await ref.read(diamondProjectSaveProvider.notifier).save();
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     switch (result) {
       case Success(:final value):
         messenger.showSnackBar(
-          SnackBar(content: Text('Saved ${value.name}')),
+          SnackBar(
+            content: Text(
+              context.tr(CatalogL10n.savedProject, {'name': value.name}),
+            ),
+          ),
         );
       case ResultFailure(:final failure):
-        messenger.showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 }
@@ -275,13 +278,13 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final id = projectId;
     final idLabel = id == null || id.isEmpty
-        ? 'Unsaved'
+        ? context.tr(CatalogL10n.projectUnsaved)
         : 'ID ${id.length > 8 ? id.substring(0, 8) : id}…';
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
@@ -297,15 +300,19 @@ class _SummaryCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.title.copyWith(
                       fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary(context),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.s4),
                   Text(
-                    '$stoneCount diamonds selected · $idLabel',
+                    context.tr(CatalogL10n.diamondsSelectedSummary, {
+                      'count': '$stoneCount',
+                      'id': idLabel,
+                    }),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondaryLight,
+                      color: AppColors.textSecondary(context),
                     ),
                   ),
                 ],
@@ -313,7 +320,11 @@ class _SummaryCard extends StatelessWidget {
             ),
             TextButton(
               onPressed: onToggleAnalytics,
-              child: Text(showAnalytics ? 'Hide analytics →' : 'Show analytics →'),
+              child: Text(
+                showAnalytics
+                    ? context.tr(CatalogL10n.hideAnalytics)
+                    : context.tr(CatalogL10n.showAnalytics),
+              ),
             ),
           ],
         ),

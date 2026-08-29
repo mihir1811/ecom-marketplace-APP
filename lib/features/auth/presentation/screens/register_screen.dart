@@ -1,6 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -44,12 +47,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   int _sellerStep = 0;
   bool _obscurePassword = true;
   bool _acceptTerms = false;
-  String _profileImageLabel = 'Upload profile image';
+  String _profileImageLabel = AccountCommerceL10n.uploadProfileImage;
   XFile? _profilePicture;
 
   PasswordStrength _strength = const PasswordStrength(
     isStrong: false,
-    message: 'Password is required.',
+    message: AccountCommerceL10n.passwordRequired,
   );
 
   bool _didAutoRedirect = false;
@@ -128,8 +131,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!ok) return;
 
     if (!_acceptTerms) {
-      ref.read(authProvider.notifier).setErrorMessage(
-            'Please agree to the Terms of Service (including chatbot data use) and Ethical Sourcing Policy.',
+      ref
+          .read(authProvider.notifier)
+          .setErrorMessage(
+            context.tr(AccountCommerceL10n.termsAgreement),
           );
       return;
     }
@@ -143,14 +148,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
       business = _businessFields.toData();
       if (business == null) {
-        ref.read(authProvider.notifier).setErrorMessage(
-              'Seller registration details are incomplete.',
-            );
+        ref
+            .read(authProvider.notifier)
+            .setErrorMessage(context.tr(AccountCommerceL10n.sellerIncomplete));
         return;
       }
     }
 
-    final registered = await ref.read(authProvider.notifier).register(
+    final registered = await ref
+        .read(authProvider.notifier)
+        .register(
           fullName: _fullNameController.text,
           username: _usernameController.text,
           email: _emailController.text,
@@ -205,21 +212,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       AuthBrandHeader(
-                        eyebrow: _isSeller ? 'SELLER ACCOUNT' : 'NEW ACCOUNT',
+                        eyebrow: _isSeller
+                            ? context.tr(AccountCommerceL10n.sellerAccount)
+                            : context.tr(AccountCommerceL10n.newAccount),
                         subtitle: _isSeller
-                            ? 'For Businesses'
-                            : 'Join GemWorld',
+                            ? context.tr(AccountCommerceL10n.forBusinesses)
+                            : context.tr(AccountCommerceL10n.joinGemWorld),
                       ),
                       const SizedBox(height: AppSpacing.s24),
                       Text(
-                        _isSeller ? 'Seller registration' : 'Register',
+                        _isSeller
+                            ? context.tr(AccountCommerceL10n.sellerRegistration)
+                            : context.tr(AccountCommerceL10n.register),
                         style: AppTypography.display.copyWith(
                           color: AppColors.textPrimary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s16),
                       Text(
-                        'Account types are separate — individual buyers cannot sell on the same account.',
+                        context.tr(AccountCommerceL10n.accountTypesSeparate),
                         style: AppTypography.body.copyWith(
                           color: AppColors.textSecondary(context),
                         ),
@@ -250,7 +261,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 referralCodeController: _referralCodeController,
                                 obscurePassword: _obscurePassword,
                                 strength: _strength,
-                                profileImageLabel: _profileImageLabel,
+                                profileImageLabel:
+                                    _profileImageLabel ==
+                                        AccountCommerceL10n.uploadProfileImage
+                                    ? context.tr(_profileImageLabel)
+                                    : _profileImageLabel,
                                 isLoading: authState.isLoading,
                                 onToggleObscure: () {
                                   setState(() {
@@ -331,15 +346,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               SizedBox(
                                 width: double.infinity,
                                 child: FilledButton(
-                                  onPressed:
-                                      authState.isLoading ? null : _submit,
+                                  onPressed: authState.isLoading
+                                      ? null
+                                      : _submit,
                                   style: authFilledButtonStyle(context),
                                   child: authState.isLoading
                                       ? authButtonSpinner(context)
                                       : Text(
                                           'Create account \u2192',
                                           style: AppTypography.label.copyWith(
-                                            color: AppColors.onSelected(context),
+                                            color: AppColors.onSelected(
+                                              context,
+                                            ),
                                           ),
                                         ),
                                 ),
@@ -351,7 +369,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     ? null
                                     : () => context.go(AppRouteNames.login),
                                 child: Text(
-                                  'Already registered? Sign in',
+                                  context.tr(
+                                    AccountCommerceL10n.alreadyRegistered,
+                                  ),
                                   style: AppTypography.label.copyWith(
                                     color: AppColors.textPrimary(context),
                                   ),
@@ -411,13 +431,15 @@ class _BasicDetailsFields extends StatelessWidget {
         TextFormField(
           controller: fullNameController,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Full name',
-            prefixIcon: Icon(Icons.person_outline),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.fullName),
+            prefixIcon: const Icon(Icons.person_outline),
           ),
           validator: (value) {
             final v = value?.trim() ?? '';
-            if (v.isEmpty) return 'Full name is required';
+            if (v.isEmpty) {
+              return context.tr(AccountCommerceL10n.fullNameRequired);
+            }
             return null;
           },
         ),
@@ -425,9 +447,9 @@ class _BasicDetailsFields extends StatelessWidget {
         TextFormField(
           controller: usernameController,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Username',
-            prefixIcon: Icon(Icons.person_outline),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.username),
+            prefixIcon: const Icon(Icons.person_outline),
           ),
           validator: (value) {
             final v = value?.trim() ?? '';
@@ -440,14 +462,16 @@ class _BasicDetailsFields extends StatelessWidget {
           controller: emailController,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Email address',
-            prefixIcon: Icon(Icons.mail_outline),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.emailAddress),
+            prefixIcon: const Icon(Icons.mail_outline),
           ),
           validator: (value) {
             final v = value?.trim() ?? '';
-            if (v.isEmpty) return 'Email is required';
-            if (!isValidEmail(v)) return 'Enter a valid email address';
+            if (v.isEmpty) return context.tr(AccountCommerceL10n.emailRequired);
+            if (!isValidEmail(v)) {
+              return context.tr(AccountCommerceL10n.validEmail);
+            }
             return null;
           },
         ),
@@ -458,10 +482,12 @@ class _BasicDetailsFields extends StatelessWidget {
           textInputAction: TextInputAction.next,
           onChanged: onPasswordChanged,
           decoration: InputDecoration(
-            labelText: 'Password',
+            labelText: context.tr(AccountCommerceL10n.password),
             prefixIcon: const Icon(Icons.lock_outline),
             suffixIcon: IconButton(
-              tooltip: obscurePassword ? 'Show password' : 'Hide password',
+              tooltip: obscurePassword
+                  ? context.tr(AccountCommerceL10n.showPassword)
+                  : context.tr(AccountCommerceL10n.hidePassword),
               icon: Icon(
                 obscurePassword
                     ? Icons.visibility_off_outlined
@@ -523,14 +549,16 @@ class _BasicDetailsFields extends StatelessWidget {
           controller: referralEmailController,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Referral email (optional)',
-            prefixIcon: Icon(Icons.mail_outline),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.referralEmail),
+            prefixIcon: const Icon(Icons.mail_outline),
           ),
           validator: (value) {
             final v = value?.trim() ?? '';
             if (v.isEmpty) return null;
-            if (!isValidEmail(v)) return 'Enter a valid referral email';
+            if (!isValidEmail(v)) {
+              return context.tr(AccountCommerceL10n.validReferralEmail);
+            }
             return null;
           },
         ),
@@ -539,9 +567,9 @@ class _BasicDetailsFields extends StatelessWidget {
           controller: referralCodeController,
           textInputAction: TextInputAction.done,
           textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(
-            labelText: 'Referral code (optional)',
-            prefixIcon: Icon(Icons.card_giftcard_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.referralCode),
+            prefixIcon: const Icon(Icons.card_giftcard_outlined),
           ),
         ),
       ],
@@ -578,21 +606,22 @@ class _TermsCheckbox extends StatelessWidget {
                 color: AppColors.textSecondary(context),
               ),
               children: [
-                const TextSpan(
-                  text:
-                      'I agree to the Terms of Service (including chatbot data use for AI training) and ',
+                TextSpan(
+                  text: context.tr(AccountCommerceL10n.agreeToTermsIntro),
                 ),
                 TextSpan(
-                  text: 'Terms of Service',
+                  text: context.tr(AccountCommerceL10n.termsOfServiceLink),
                   style: AppTypography.body.copyWith(
                     color: AppColors.textPrimary(context),
                     decoration: TextDecoration.underline,
                   ),
                   recognizer: recognizer,
                 ),
-                const TextSpan(text: ' and '),
+                TextSpan(text: context.tr(AccountCommerceL10n.agreeToTermsAnd)),
                 TextSpan(
-                  text: 'Ethical Sourcing Policy.',
+                  text: context.tr(
+                    AccountCommerceL10n.ethicalSourcingPolicyLink,
+                  ),
                   style: AppTypography.body.copyWith(
                     color: AppColors.textPrimary(context),
                     decoration: TextDecoration.underline,
@@ -693,7 +722,7 @@ class _AccountTypeSelector extends StatelessWidget {
             selected: value == RegistrationAccountType.individual,
             enabled: enabled,
             icon: Icons.person_outline,
-            title: 'For Individual',
+            title: context.tr(AccountCommerceL10n.individual),
             subtitle:
                 'Buy and browse only — create a separate business account later to sell',
             onTap: () => onChanged(RegistrationAccountType.individual),
@@ -705,7 +734,7 @@ class _AccountTypeSelector extends StatelessWidget {
             selected: value == RegistrationAccountType.business,
             enabled: enabled,
             icon: Icons.storefront_outlined,
-            title: 'For Businesses',
+            title: context.tr(AccountCommerceL10n.forBusinesses),
             subtitle:
                 'Dedicated seller account — cannot share an individual login',
             onTap: () => onChanged(RegistrationAccountType.business),

@@ -42,9 +42,7 @@ class CatalogSearchSectionNav<T> extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         color: Colors.transparent,
-        border: Border(
-          bottom: BorderSide(color: AppColors.border(context)),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.border(context))),
       ),
       child: Row(
         children: [
@@ -151,9 +149,7 @@ mixin CatalogSearchScrollMixin<T extends StatefulWidget> on State<T> {
     return navBox.localToGlobal(Offset(0, navBox.size.height)).dy;
   }
 
-  S? catalogActiveSectionFromScroll<S>(
-    List<(GlobalKey, S)> sections,
-  ) {
+  S? catalogActiveSectionFromScroll<S>(List<(GlobalKey, S)> sections) {
     final navBottom = catalogNavBottom();
     S? found;
     S? lastVisible;
@@ -184,7 +180,8 @@ mixin CatalogSearchScrollMixin<T extends StatefulWidget> on State<T> {
 
   /// Unlocks scroll-spy when the user drags or wheels the list.
   bool catalogHandleScrollNotification(ScrollNotification notification) {
-    final userDrag = (notification is ScrollStartNotification &&
+    final userDrag =
+        (notification is ScrollStartNotification &&
             notification.dragDetails != null) ||
         (notification is ScrollUpdateNotification &&
             notification.dragDetails != null);

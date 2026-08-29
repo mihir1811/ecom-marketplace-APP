@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -95,17 +98,11 @@ class _ComparisonTableState extends State<ComparisonTable> {
 
   double get _contentWidth => widget.items.length * kCompareColWidth;
 
-  Widget _scrollableValues({
-    required int rowIndex,
-    required Widget child,
-  }) {
+  Widget _scrollableValues({required int rowIndex, required Widget child}) {
     return SingleChildScrollView(
       controller: _horizontalControllers[rowIndex],
       scrollDirection: Axis.horizontal,
-      child: SizedBox(
-        width: _contentWidth,
-        child: child,
-      ),
+      child: SizedBox(width: _contentWidth, child: child),
     );
   }
 
@@ -210,9 +207,7 @@ class ComparisonFooterBar extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: AppColors.card(context),
-          border: Border(
-            top: BorderSide(color: AppColors.border(context)),
-          ),
+          border: Border(top: BorderSide(color: AppColors.border(context))),
         ),
         child: Row(
           children: [
@@ -228,7 +223,7 @@ class ComparisonFooterBar extends StatelessWidget {
             TextButton(
               onPressed: onBrowse,
               child: Text(
-                'Browse More',
+                context.tr(AccountCommerceL10n.browseMore),
                 style: AppTypography.caption.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.bronze,
@@ -243,7 +238,7 @@ class ComparisonFooterBar extends StatelessWidget {
                 foregroundColor: AppColors.warmWhite,
               ),
               onPressed: onClear,
-              child: const Text('Start New Comparison'),
+              child: Text(context.tr(AccountCommerceL10n.newComparison)),
             ),
           ],
         ),
@@ -284,7 +279,7 @@ class _SpecColumnHeader extends StatelessWidget {
             Icon(Icons.drag_indicator, size: 16, color: muted),
             const SizedBox(height: 2),
             Text(
-              'Hold & drag cards to reorder',
+              context.tr(AccountCommerceL10n.reorderHint),
               style: AppTypography.caption.copyWith(
                 color: muted,
                 fontSize: 10,
@@ -316,8 +311,8 @@ class _SpecLabelCell extends StatelessWidget {
     final isDark = AppColors.isDark(context);
     final rowBg = stripe
         ? (isDark
-            ? AppColors.slateSurface.withValues(alpha: 0.6)
-            : AppColors.sandSurface.withValues(alpha: 0.45))
+              ? AppColors.slateSurface.withValues(alpha: 0.6)
+              : AppColors.sandSurface.withValues(alpha: 0.45))
         : AppColors.card(context);
 
     return Container(
@@ -406,8 +401,13 @@ class _ItemValuesRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displays =
-        items.map((e) => e.displayValues[spec.key] ?? 'N/A').toList();
+    final displays = items
+        .map(
+          (e) =>
+              e.displayValues[spec.key] ??
+              context.tr(AccountCommerceL10n.notAvailable),
+        )
+        .toList();
     final nums = items.map((e) => e.numericValues[spec.key]).toList();
     final leaders = leadingFlags(
       displayValues: displays,
@@ -418,8 +418,8 @@ class _ItemValuesRow extends StatelessWidget {
     final isDark = AppColors.isDark(context);
     final rowBg = stripe
         ? (isDark
-            ? AppColors.slateSurface.withValues(alpha: 0.6)
-            : AppColors.sandSurface.withValues(alpha: 0.45))
+              ? AppColors.slateSurface.withValues(alpha: 0.6)
+              : AppColors.sandSurface.withValues(alpha: 0.45))
         : AppColors.card(context);
 
     return Container(
@@ -463,8 +463,9 @@ class _ItemValuesRow extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.caption.copyWith(
-                          fontWeight:
-                              leaders[i] ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight: leaders[i]
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                           fontSize: 12,
                         ),
                       ),
@@ -599,7 +600,9 @@ class _DragColumnFeedback extends StatelessWidget {
           ),
           for (var i = 0; i < specs.length; i++)
             _DragSpecCell(
-              value: item.displayValues[specs[i].key] ?? 'N/A',
+              value:
+                  item.displayValues[specs[i].key] ??
+                  context.tr(AccountCommerceL10n.notAvailable),
               stripe: i.isEven,
             ),
         ],
@@ -609,10 +612,7 @@ class _DragColumnFeedback extends StatelessWidget {
 }
 
 class _DragSpecCell extends StatelessWidget {
-  const _DragSpecCell({
-    required this.value,
-    required this.stripe,
-  });
+  const _DragSpecCell({required this.value, required this.stripe});
 
   final String value;
   final bool stripe;
@@ -630,12 +630,10 @@ class _DragSpecCell extends StatelessWidget {
       decoration: BoxDecoration(
         color: stripe
             ? (AppColors.isDark(context)
-                ? AppColors.slateSurface.withValues(alpha: 0.6)
-                : AppColors.sandSurface.withValues(alpha: 0.45))
+                  ? AppColors.slateSurface.withValues(alpha: 0.6)
+                  : AppColors.sandSurface.withValues(alpha: 0.45))
             : AppColors.card(context),
-        border: Border(
-          top: BorderSide(color: AppColors.border(context)),
-        ),
+        border: Border(top: BorderSide(color: AppColors.border(context))),
       ),
       child: Text(
         value,
@@ -678,7 +676,7 @@ class _ItemHeader extends StatelessWidget {
             height: 116,
             child: Stack(
               children: [
-                    Positioned.fill(
+                Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
                       color: AppColors.surface(context),
@@ -752,7 +750,8 @@ class _ItemHeader extends StatelessWidget {
     final url = item.imageUrl?.trim();
     if (url != null && url.isNotEmpty) {
       final lower = url.toLowerCase();
-      final isNetwork = lower.startsWith('http://') ||
+      final isNetwork =
+          lower.startsWith('http://') ||
           lower.startsWith('https://') ||
           lower.startsWith('www.');
       if (isNetwork) {
@@ -771,10 +770,8 @@ class _ItemHeader extends StatelessWidget {
           child: Image.asset(
             url,
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Icon(
-              Icons.diamond_outlined,
-              color: AppColors.bronze,
-            ),
+            errorBuilder: (_, __, ___) =>
+                const Icon(Icons.diamond_outlined, color: AppColors.bronze),
           ),
         );
       }

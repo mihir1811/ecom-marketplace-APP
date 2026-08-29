@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/router/route_names.dart';
 import 'presentation/screens/diamond_listings_screen.dart';
 import 'presentation/screens/diamond_search_screen.dart';
@@ -23,8 +24,8 @@ final List<RouteBase> diamondsRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.labGrownDiamondResults,
-        builder: (context, state) => const DiamondListingsScreen(
-          title: 'Lab Grown Results',
+        builder: (context, state) => DiamondListingsScreen(
+          title: context.tr(CatalogL10n.labGrownResults),
           searchRoute: AppRouteNames.labGrownDiamonds,
         ),
       ),

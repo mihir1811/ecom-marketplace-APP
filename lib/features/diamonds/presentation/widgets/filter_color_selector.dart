@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -26,7 +27,11 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
   Color _standardGradeSelectedFill(BuildContext context) =>
       AppColors.isDark(context) ? AppColors.bronze : AppColors.charcoal;
 
-  Color _getStandardColorBg(BuildContext context, String letter, bool isSelected) {
+  Color _getStandardColorBg(
+    BuildContext context,
+    String letter,
+    bool isSelected,
+  ) {
     if (isSelected) {
       return _standardGradeSelectedFill(context);
     }
@@ -34,8 +39,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
     final idx = allLetters.indexOf(letter);
     final fraction = idx / (allLetters.length - 1);
 
-    const Color startColor = Colors.white;
-    const Color endColor = Color(0xFFFEF3C7);
+    const Color startColor = Color(0xFFE4E2DC);
+    const Color endColor = Color(0xFFD9BE78);
 
     return Color.lerp(startColor, endColor, fraction) ?? startColor;
   }
@@ -64,7 +69,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                   border: Border.all(
                     color: isSelected
                         ? _standardGradeSelectedFill(context)
-                        : borderColor,
+                        : const Color(0xFFC8C3B8),
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),
@@ -115,10 +120,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Color',
-            style: AppTypography.label.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            context.tr(CatalogL10n.color),
+            style: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: AppSpacing.s8),
 
@@ -137,21 +140,21 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                          color: !state.isFancyColor
-                              ? AppColors.selectedFill(context)
-                              : Colors.transparent,
+                        color: !state.isFancyColor
+                            ? AppColors.selectedFill(context)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(AppSpacing.r8 - 2),
                         boxShadow: !state.isFancyColor
                             ? AppShadows.cardLight
                             : null,
                       ),
                       child: Text(
-                        'Standard',
+                        context.tr(CatalogL10n.standard),
                         style: AppTypography.caption.copyWith(
                           fontWeight: FontWeight.bold,
                           color: !state.isFancyColor
                               ? AppColors.onSelected(context)
-                              : AppColors.textMuted(context),
+                              : AppColors.textSecondary(context),
                         ),
                       ),
                     ),
@@ -163,21 +166,21 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                          color: state.isFancyColor
-                              ? AppColors.selectedFill(context)
-                              : Colors.transparent,
+                        color: state.isFancyColor
+                            ? AppColors.selectedFill(context)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(AppSpacing.r8 - 2),
                         boxShadow: state.isFancyColor
                             ? AppShadows.cardLight
                             : null,
                       ),
                       child: Text(
-                        'Fancy',
+                        context.tr(CatalogL10n.fancy),
                         style: AppTypography.caption.copyWith(
                           fontWeight: FontWeight.bold,
                           color: state.isFancyColor
                               ? AppColors.onSelected(context)
-                              : AppColors.textMuted(context),
+                              : AppColors.textSecondary(context),
                         ),
                       ),
                     ),
@@ -251,9 +254,10 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
             ),
           ] else ...[
             Text(
-              'Fancy Colors',
-              style:
-                  AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+              context.tr(CatalogL10n.fancyColors),
+              style: AppTypography.caption.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: AppSpacing.s8),
 
@@ -264,8 +268,9 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                 itemCount: fancyColors.length,
                 itemBuilder: (context, index) {
                   final colorName = fancyColors[index];
-                  final isSelected =
-                      state.selectedFancyColors.contains(colorName);
+                  final isSelected = state.selectedFancyColors.contains(
+                    colorName,
+                  );
                   return Padding(
                     padding: const EdgeInsets.only(right: 12.0),
                     child: FancyColorDiamondButton(
@@ -280,9 +285,10 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
             const SizedBox(height: AppSpacing.s20),
 
             Text(
-              'Overtone',
-              style:
-                  AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+              context.tr(CatalogL10n.overtone),
+              style: AppTypography.caption.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: AppSpacing.s8),
             AnimatedSize(
@@ -302,8 +308,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                 ),
                 itemBuilder: (context, index) {
                   final overtone = DiamondFilterState.overtones[index];
-                  final isSelected =
-                      state.selectedOvertones.contains(overtone);
+                  final isSelected = state.selectedOvertones.contains(overtone);
                   return GestureDetector(
                     onTap: () => notifier.toggleOvertone(overtone),
                     child: AnimatedContainer(
@@ -316,8 +321,9 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color:
-                              isSelected ? AppColors.selectedFill(context) : borderColor,
+                          color: isSelected
+                              ? AppColors.selectedFill(context)
+                              : borderColor,
                           width: isSelected ? 1.5 : 1.0,
                         ),
                       ),
@@ -365,9 +371,10 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
             const SizedBox(height: AppSpacing.s20),
 
             Text(
-              'Intensity',
-              style:
-                  AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+              context.tr(CatalogL10n.intensity),
+              style: AppTypography.caption.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: AppSpacing.s8),
             SizedBox(
@@ -461,8 +468,12 @@ class FancyColorDiamondButton extends StatelessWidget {
 
   FancyGemCut _cutFor(String name) {
     return switch (name.toLowerCase()) {
-      'yellow' || 'red' || 'grey' || 'gray' || 'other' || 'multi' =>
-        FancyGemCut.emerald,
+      'yellow' ||
+      'red' ||
+      'grey' ||
+      'gray' ||
+      'other' ||
+      'multi' => FancyGemCut.emerald,
       'orange' || 'blue' || 'brown' || 'teal' || 'bi' => FancyGemCut.oval,
       'pink' || 'violet' => FancyGemCut.heart,
       'green' || 'black' || 'white' => FancyGemCut.princess,

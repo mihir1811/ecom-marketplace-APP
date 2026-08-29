@@ -6,7 +6,9 @@ enum HomeSearchMode { freeText, stockNumber, certificateNumber }
 /// Classifies stock / cert / free-text the way the web header does.
 abstract final class HomeSearchQueryClassifier {
   /// Alphanumeric stock/SKU tokens (e.g. `GY93727`).
-  static final _stockLike = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9\-_./]{4,}$');
+  static final _stockLike = RegExp(
+    r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9\-_./]{4,}$',
+  );
 
   /// Long mostly-numeric certificate ids (e.g. `2141439997`).
   static final _certLike = RegExp(r'^\d{8,}$');
@@ -36,8 +38,7 @@ abstract final class HomeSearchQueryClassifier {
         HomeSearchKind.bullion => 'stockNumber',
         HomeSearchKind.diamond ||
         HomeSearchKind.lab ||
-        HomeSearchKind.melee =>
-          'stockNumber',
+        HomeSearchKind.melee => 'stockNumber',
       };
     }
 
@@ -51,10 +52,8 @@ abstract final class HomeSearchQueryClassifier {
         'stockNumber,gemsType,subType,origin,shape,primaryColor,description,tags',
       HomeSearchKind.watch =>
         'brand,model,referenceNumber,stockNumber,collection,description',
-      HomeSearchKind.jewelry =>
-        'productTitle,stockNumber,variants.stockNumber',
-      HomeSearchKind.bullion =>
-        'mintMark,stockNumber,design,certification',
+      HomeSearchKind.jewelry => 'productTitle,stockNumber,variants.stockNumber',
+      HomeSearchKind.bullion => 'mintMark,stockNumber,design,certification',
     };
   }
 }

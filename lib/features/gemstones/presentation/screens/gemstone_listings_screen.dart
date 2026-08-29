@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_listing_header_row.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
 import '../../../../core/widgets/app_top_bar.dart';
-import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/gemstone_list_provider.dart';
 import '../../domain/models/gemstone_sort_option.dart';
@@ -71,123 +69,86 @@ class _GemstoneListingsScreenState
   Widget build(BuildContext context) {
     final stateAsync = ref.watch(gemstoneListProvider);
     final viewMode = ref.watch(gemstoneViewModeProvider);
-    final muted = AppColors.textSecondary(context);
+    final sortOption = ref.watch(gemstoneSortProvider);
+    final countLabel = stateAsync.when(
+      data: (state) => state.isInitialLoading
+          ? context.tr(CatalogL10n.loading)
+          : context.tr(CatalogL10n.showingGemstones, {
+              'count': '${state.totalCount}',
+            }),
+      loading: () => context.tr(CatalogL10n.loading),
+      error: (_, __) => '',
+    );
 
     return AppScaffold(
-      appBar: const AppTopBar(
-        title: 'Gemstone Results',
-      ),
+      appBar: AppTopBar(title: context.tr(CatalogL10n.gemstoneResults)),
       body: ComparisonTrayHost(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-              child: Row(
-                children: [
-                  Flexible(
-                    child:
-                        stateAsync.whenOrNull(
-                          data: (s) => Text(
-                            '${s.totalCount} gemstones found',
-                            style: AppTypography.caption.copyWith(
-                              color: muted,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ) ??
-                        const SizedBox.shrink(),
-                  ),
-                  TextButton(
-                    onPressed: () =>
-                        context.pushReplacement(AppRouteNames.gemstones),
-                    style: TextButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text('Edit Filters'),
-                  ),
-                  const SizedBox(width: AppSpacing.s8),
-                  ViewModeToggle(
-                    isGrid: viewMode == GemstoneViewMode.grid,
-                    onGrid: () => ref
-                        .read(gemstoneViewModeProvider.notifier)
-                        .state = GemstoneViewMode.grid,
-                    onList: () => ref
-                        .read(gemstoneViewModeProvider.notifier)
-                        .state = GemstoneViewMode.list,
-                  ),
-                  TextButton.icon(
-                    onPressed: () => _openSortSheet(context),
-                    icon: const Icon(Icons.sort, size: 18),
-                    label: Text(
-                      ref.watch(
-                        gemstoneSortProvider.select((s) => s.shortLabel),
-                      ),
-                      style: AppTypography.caption.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary(context),
-                      visualDensity: VisualDensity.compact,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      padding: const EdgeInsets.only(left: AppSpacing.s4),
-                    ),
-                  ),
-                ],
-              ),
+            CatalogListingHeaderRow(
+              sortLabel: sortOption.label,
+              onSortTap: () => _openSortSheet(context),
+              isGrid: viewMode == GemstoneViewMode.grid,
+              onGrid: () =>
+                  ref.read(gemstoneViewModeProvider.notifier).state =
+                      GemstoneViewMode.grid,
+              onList: () =>
+                  ref.read(gemstoneViewModeProvider.notifier).state =
+                      GemstoneViewMode.list,
+              countLabel: countLabel,
+              onEditFilters: () =>
+                  context.pushReplacement(AppRouteNames.gemstones),
             ),
             const Divider(height: 0),
             Expanded(
-                child: stateAsync.when(
-                  data: (state) {
-                    if (state.isInitialLoading) {
-                      return CatalogListLoading(
-                        isGrid: viewMode == GemstoneViewMode.grid,
-                      );
-                    }
-                    if (state.gemstones.isEmpty) {
-                      return CatalogEmptyState(
-                        icon: Icons.diamond_outlined,
-                        title: 'No gemstones match your filters.',
-                        message: 'Try adjusting your search criteria.',
-                        actionLabel: 'Edit Filters',
-                        onAction: () =>
-                            context.pushReplacement(AppRouteNames.gemstones),
-                      );
-                    }
-                    return RefreshIndicator(
-                      onRefresh: () =>
-                          ref.read(gemstoneListProvider.notifier).refresh(),
-                      child: viewMode == GemstoneViewMode.grid
-                          ? GemstoneGridView(
-                              key: const ValueKey('gemstone-grid'),
-                              gemstones: state.gemstones,
-                              scrollController: _scrollController,
-                              isLoadingMore: state.isLoadingMore,
-                            )
-                          : GemstoneListView(
-                              key: const ValueKey('gemstone-list'),
-                              gemstones: state.gemstones,
-                              scrollController: _scrollController,
-                              isLoadingMore: state.isLoadingMore,
-                            ),
+              child: stateAsync.when(
+                data: (state) {
+                  if (state.isInitialLoading) {
+                    return CatalogListLoading(
+                      isGrid: viewMode == GemstoneViewMode.grid,
                     );
-                  },
-                  loading: () => CatalogListLoading(
-                    isGrid: viewMode == GemstoneViewMode.grid,
-                  ),
-                  error: (e, _) => CatalogErrorState(
-                    message: '$e',
-                    onRetry: () =>
+                  }
+                  if (state.gemstones.isEmpty) {
+                    return CatalogEmptyState(
+                      icon: Icons.diamond_outlined,
+                      title: context.tr(CatalogL10n.noGemstones),
+                      message: context.tr(CatalogL10n.adjustSearchCriteria),
+                      actionLabel: context.tr(CatalogL10n.editFilters),
+                      onAction: () =>
+                          context.pushReplacement(AppRouteNames.gemstones),
+                    );
+                  }
+                  return RefreshIndicator(
+                    onRefresh: () =>
                         ref.read(gemstoneListProvider.notifier).refresh(),
-                  ),
+                    child: viewMode == GemstoneViewMode.grid
+                        ? GemstoneGridView(
+                            key: const ValueKey('gemstone-grid'),
+                            gemstones: state.gemstones,
+                            scrollController: _scrollController,
+                            isLoadingMore: state.isLoadingMore,
+                          )
+                        : GemstoneListView(
+                            key: const ValueKey('gemstone-list'),
+                            gemstones: state.gemstones,
+                            scrollController: _scrollController,
+                            isLoadingMore: state.isLoadingMore,
+                          ),
+                  );
+                },
+                loading: () => CatalogListLoading(
+                  isGrid: viewMode == GemstoneViewMode.grid,
+                ),
+                error: (e, _) => CatalogErrorState(
+                  message: '$e',
+                  onRetry: () =>
+                      ref.read(gemstoneListProvider.notifier).refresh(),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
     );
   }
 }

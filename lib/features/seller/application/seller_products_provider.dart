@@ -77,10 +77,10 @@ class SellerProductsCatalogState {
   }
 }
 
-final sellerProductsCatalogProvider = NotifierProvider<
-    SellerProductsCatalogNotifier, SellerProductsCatalogState>(
-  SellerProductsCatalogNotifier.new,
-);
+final sellerProductsCatalogProvider =
+    NotifierProvider<SellerProductsCatalogNotifier, SellerProductsCatalogState>(
+      SellerProductsCatalogNotifier.new,
+    );
 
 /// Live seller catalog loaded from `/diamond` and `/melee-diamond`.
 class SellerProductsCatalogNotifier
@@ -115,19 +115,15 @@ class SellerProductsCatalogNotifier
     _cancelToken = CancelToken();
     state = state.copyWith(isLoading: true, clearError: true);
 
-    final result = await ref.read(sellerProductRepositoryProvider).listProducts(
-          sellerId: sellerId,
-          cancelToken: _cancelToken,
-        );
+    final result = await ref
+        .read(sellerProductRepositoryProvider)
+        .listProducts(sellerId: sellerId, cancelToken: _cancelToken);
     switch (result) {
       case Success(:final value):
         state = SellerProductsCatalogState(products: value);
       case ResultFailure(:final failure):
         if (failure is NetworkFailure && failure.isCancelled) return;
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
     }
   }
 
@@ -253,8 +249,8 @@ class SellerProductsController extends Notifier<SellerProductsState> {
 
 final sellerProductsControllerProvider =
     NotifierProvider<SellerProductsController, SellerProductsState>(
-  SellerProductsController.new,
-);
+      SellerProductsController.new,
+    );
 
 List<SellerProduct> filteredSellerProducts(
   List<SellerProduct> catalog,

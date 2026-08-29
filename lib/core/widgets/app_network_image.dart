@@ -63,9 +63,11 @@ class AppNetworkImage extends StatelessWidget {
     // HTML images can report unbounded intrinsics; expand into parent bounds.
     return LayoutBuilder(
       builder: (context, constraints) {
-        final w = width ??
+        final w =
+            width ??
             (constraints.maxWidth.isFinite ? constraints.maxWidth : null);
-        final h = height ??
+        final h =
+            height ??
             (constraints.maxHeight.isFinite ? constraints.maxHeight : null);
         final image = Image.network(
           imageUrl,
@@ -104,27 +106,27 @@ class AppNetworkImage extends StatelessWidget {
   }
 
   Widget _placeholder(BuildContext context) => ColoredBox(
-      color: AppColors.surface(context),
-      child: const Center(
-        child: SizedBox(
-          width: 22,
-          height: 22,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: AppColors.bronze,
-          ),
+    color: AppColors.surface(context),
+    child: const Center(
+      child: SizedBox(
+        width: 22,
+        height: 22,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: AppColors.bronze,
         ),
       ),
-    );
+    ),
+  );
 
   Widget _fallback(BuildContext context) => ColoredBox(
-      color: AppColors.surface(context),
-      child: const Center(
-        child: Icon(
-          Icons.image_not_supported_outlined,
-          color: AppColors.bronzeLight,
-          size: 28,
-        ),
+    color: AppColors.surface(context),
+    child: const Center(
+      child: Icon(
+        Icons.image_not_supported_outlined,
+        color: AppColors.bronzeLight,
+        size: 28,
       ),
-    );
+    ),
+  );
 }

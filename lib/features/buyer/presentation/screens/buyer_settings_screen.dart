@@ -4,12 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/confirm_delete_account.dart';
 import '../../../../core/auth/confirm_sign_out.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
+import '../../../../core/widgets/language_menu_button.dart';
 import '../widgets/buyer_layout.dart';
 
 class BuyerSettingsScreen extends ConsumerWidget {
@@ -19,12 +22,12 @@ class BuyerSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final darkMode = ref.watch(themePreferenceProvider);
     return BuyerLayout(
-      title: 'Settings',
+      title: context.tr(CoreL10n.settings),
       child: ListView(
         padding: const EdgeInsets.all(AppSpacing.s16),
         children: [
           Text(
-            'Appearance',
+            context.tr(CoreL10n.appearance),
             style: AppTypography.label.copyWith(
               color: AppColors.textMuted(context),
               fontWeight: FontWeight.w700,
@@ -36,23 +39,24 @@ class BuyerSettingsScreen extends ConsumerWidget {
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 secondary: const Icon(Icons.dark_mode_outlined),
-                title: const Text('Dark theme'),
+                title: Text(context.tr(CoreL10n.darkTheme)),
                 subtitle: Text(
-                  'Enables dark mode across the app.',
+                  context.tr(CoreL10n.darkThemeDescription),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textMuted(context),
                   ),
                 ),
                 value: darkMode,
-                onChanged: (v) => ref
-                    .read(themePreferenceProvider.notifier)
-                    .setDarkMode(v),
+                onChanged: (v) =>
+                    ref.read(themePreferenceProvider.notifier).setDarkMode(v),
               ),
+              const Divider(height: 1),
+              const LanguageSettingsTile(),
             ],
           ),
           const SizedBox(height: AppSpacing.s24),
           Text(
-            'Account',
+            context.tr(CoreL10n.account),
             style: AppTypography.label.copyWith(
               color: AppColors.textMuted(context),
               fontWeight: FontWeight.w700,
@@ -64,7 +68,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.person_outline),
-                title: const Text('My profile'),
+                title: Text(context.tr(AccountCommerceL10n.myProfile)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.openRoute(AppRouteNames.buyerProfile),
               ),
@@ -72,7 +76,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.help_outline),
-                title: const Text('Help center'),
+                title: Text(context.tr(AccountCommerceL10n.helpCenter)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.openRoute(AppRouteNames.buyerHelpCenter),
               ),
@@ -80,7 +84,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.info_outline),
-                title: const Text('About GemWorld'),
+                title: Text(context.tr(AccountCommerceL10n.aboutGemWorld)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.openRoute(AppRouteNames.aboutUs),
               ),
@@ -88,7 +92,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.gavel_outlined),
-                title: const Text('Policies & Legal'),
+                title: Text(context.tr(AccountCommerceL10n.policiesLegal)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.openRoute(AppRouteNames.policies),
               ),
@@ -96,7 +100,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.description_outlined),
-                title: const Text('Terms & Conditions'),
+                title: Text(context.tr(AccountCommerceL10n.termsConditions)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () =>
                     context.openRoute(AppRouteNames.termsAndConditions),
@@ -106,7 +110,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.logout, color: AppColors.error),
                 title: Text(
-                  'Sign out',
+                  context.tr(AccountCommerceL10n.signOut),
                   style: AppTypography.label.copyWith(
                     color: AppColors.error,
                     fontWeight: FontWeight.w700,
@@ -127,14 +131,14 @@ class BuyerSettingsScreen extends ConsumerWidget {
                   color: AppColors.error,
                 ),
                 title: Text(
-                  'Delete account',
+                  context.tr(AccountCommerceL10n.deleteAccount),
                   style: AppTypography.label.copyWith(
                     color: AppColors.error,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 subtitle: Text(
-                  'Schedules deletion with a 7-day recovery window.',
+                  context.tr(AccountCommerceL10n.deleteRecoveryWindow),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textMuted(context),
                   ),
@@ -158,24 +162,25 @@ class BuyerSettingsScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (!ok) {
-      final message = ref.read(authProvider).errorMessage ??
+      final message =
+          ref.read(authProvider).errorMessage ??
           'Could not delete account. Please try again.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
       return;
     }
 
     final deletion = ref.read(authProvider);
     final until = deletion.accountDeletionRecoverUntil;
-    final base = deletion.accountDeletionMessage ??
+    final base =
+        deletion.accountDeletionMessage ??
         'Your account is scheduled for deletion.';
-    final detail =
-        until == null ? base : '$base Recover by ${until.toLocal()}.';
+    final detail = until == null
+        ? base
+        : '$base Recover by ${until.toLocal()}.';
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(detail)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(detail)));
     context.resetTo(AppRouteNames.recoverAccount);
   }
 }

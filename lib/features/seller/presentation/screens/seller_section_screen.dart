@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 /// Placeholder for seller sections that are not yet fully implemented.
 class SellerSectionScreen extends StatelessWidget {
-  const SellerSectionScreen({
-    super.key,
-    required this.title,
-  });
+  const SellerSectionScreen({super.key, required this.title});
 
   final String title;
 
@@ -18,16 +17,13 @@ class SellerSectionScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
+          Text(title, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 16),
           Text(
-            'Coming soon.',
+            context.tr(RemainingL10n.comingSoon),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary(context),
-                ),
+              color: AppColors.textSecondary(context),
+            ),
           ),
         ],
       ),

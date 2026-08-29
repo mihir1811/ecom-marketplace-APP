@@ -19,48 +19,52 @@ import '../widgets/home_hero.dart';
 import '../widgets/home_quick_search.dart';
 import '../widgets/home_search_results_list.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// GemWorld marketplace landing — minimal, image-led, one-tap catalog access.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  static const _categories = <_HomeCategory>[
-    _HomeCategory(
-      title: 'Natural Diamonds',
-      subtitle: 'Certified finder',
-      imageUrl: HomeNetworkImages.naturalDiamonds,
-      route: AppRouteNames.diamonds,
-    ),
-    _HomeCategory(
-      title: 'Lab Grown',
-      subtitle: 'CVD & HPHT',
-      imageUrl: HomeNetworkImages.labGrown,
-      route: AppRouteNames.labGrownDiamonds,
-    ),
-    _HomeCategory(
-      title: 'Gemstones',
-      subtitle: 'Ruby to tanzanite',
-      imageUrl: HomeNetworkImages.gemstones,
-      route: AppRouteNames.gemstones,
-    ),
-    _HomeCategory(
-      title: 'Watches',
-      subtitle: 'Luxury brands',
-      imageUrl: HomeNetworkImages.watches,
-      route: AppRouteNames.watches,
-    ),
-    _HomeCategory(
-      title: 'Jewelry',
-      subtitle: 'Rings & more',
-      imageUrl: HomeNetworkImages.jewelry,
-      route: AppRouteNames.jewelry,
-    ),
-    _HomeCategory(
-      title: 'Bullion',
-      subtitle: 'Gold & silver',
-      imageUrl: HomeNetworkImages.bullion,
-      route: AppRouteNames.bullions,
-    ),
-  ];
+  static List<_HomeCategory> _categories(BuildContext context) =>
+      <_HomeCategory>[
+        _HomeCategory(
+          title: context.tr(RemainingL10n.naturalDiamonds),
+          subtitle: context.tr(RemainingL10n.certifiedFinder),
+          imageUrl: HomeNetworkImages.naturalDiamonds,
+          route: AppRouteNames.diamonds,
+        ),
+        _HomeCategory(
+          title: context.tr(RemainingL10n.labGrown),
+          subtitle: context.tr(RemainingL10n.cvdHpht),
+          imageUrl: HomeNetworkImages.labGrown,
+          route: AppRouteNames.labGrownDiamonds,
+        ),
+        _HomeCategory(
+          title: context.tr(RemainingL10n.gemstones),
+          subtitle: context.tr(RemainingL10n.rubyToTanzanite),
+          imageUrl: HomeNetworkImages.gemstones,
+          route: AppRouteNames.gemstones,
+        ),
+        _HomeCategory(
+          title: context.tr(RemainingL10n.watches),
+          subtitle: context.tr(RemainingL10n.luxuryBrands),
+          imageUrl: HomeNetworkImages.watches,
+          route: AppRouteNames.watches,
+        ),
+        _HomeCategory(
+          title: context.tr(RemainingL10n.jewelry),
+          subtitle: context.tr(RemainingL10n.ringsAndMore),
+          imageUrl: HomeNetworkImages.jewelry,
+          route: AppRouteNames.jewelry,
+        ),
+        _HomeCategory(
+          title: context.tr(RemainingL10n.bullion),
+          subtitle: context.tr(RemainingL10n.goldSilver),
+          imageUrl: HomeNetworkImages.bullion,
+          route: AppRouteNames.bullions,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,7 +83,7 @@ class HomeScreen extends ConsumerWidget {
 
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
-      drawer: auth.isAuthenticated ? const BuyerDrawer() : null,
+      drawer: auth.isAuthenticated ? BuyerDrawer() : null,
       appBar: AppTopBar(
         title: 'GemWorld',
         showThemeToggle: true,
@@ -87,13 +91,14 @@ class HomeScreen extends ConsumerWidget {
         showWallet: auth.isAuthenticated,
         showMessages: auth.isAuthenticated,
         onSellerWalletTap: () => context.openRoute(AppRouteNames.buyerWallet),
-        onSellerMessagesTap: () => context.openRoute(AppRouteNames.buyerMessages),
+        onSellerMessagesTap: () =>
+            context.openRoute(AppRouteNames.buyerMessages),
         extraActions: !auth.isAuthenticated
             ? [
                 TextButton(
                   onPressed: () => context.openRoute(AppRouteNames.login),
                   child: Text(
-                    'Login',
+                    context.tr(RemainingL10n.login),
                     style: AppTypography.label.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary(context),
@@ -102,7 +107,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(width: AppSpacing.s8),
               ]
-            : const [],
+            : [],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -159,7 +164,7 @@ class _HomeBrowseBody extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
             child: Text(
-              'Shop',
+              context.tr(RemainingL10n.shop),
               style: AppTypography.headline.copyWith(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
@@ -178,7 +183,7 @@ class _HomeBrowseBody extends ConsumerWidget {
               childAspectRatio: 0.92,
             ),
             delegate: SliverChildBuilderDelegate((context, index) {
-              final item = HomeScreen._categories[index];
+              final item = HomeScreen._categories(context)[index];
               return HomeCategoryTile(
                 key: ValueKey(item.route),
                 title: item.title,
@@ -186,7 +191,7 @@ class _HomeBrowseBody extends ConsumerWidget {
                 imageUrl: item.imageUrl,
                 onTap: () => context.openRoute(item.route),
               );
-            }, childCount: HomeScreen._categories.length),
+            }, childCount: HomeScreen._categories(context).length),
           ),
         ),
         if (!isSeller) ...[
@@ -211,7 +216,10 @@ class _HomeBrowseBody extends ConsumerWidget {
               AppSpacing.s16,
             ),
             child: Text(
-              'Certified stones · Transparent sellers · Worldwide shipping',
+              context.tr(
+                RemainingL10n
+                    .certifiedStonesTransparentSellersWorldwideShipping,
+              ),
               textAlign: TextAlign.center,
               style: AppTypography.caption.copyWith(
                 color: AppColors.textSecondary(context),
@@ -230,7 +238,7 @@ class _HomeBrowseBody extends ConsumerWidget {
                 TextButton(
                   onPressed: () => context.openRoute(AppRouteNames.aboutUs),
                   child: Text(
-                    'About GemWorld',
+                    context.tr(RemainingL10n.aboutGemWorld),
                     style: AppTypography.label.copyWith(
                       color: AppColors.bronze,
                       fontWeight: FontWeight.w600,
@@ -247,7 +255,7 @@ class _HomeBrowseBody extends ConsumerWidget {
                   onPressed: () =>
                       context.openRoute(AppRouteNames.termsAndConditions),
                   child: Text(
-                    'Terms & Conditions',
+                    context.tr(RemainingL10n.termsConditions),
                     style: AppTypography.label.copyWith(
                       color: AppColors.bronze,
                       fontWeight: FontWeight.w600,
@@ -263,7 +271,7 @@ class _HomeBrowseBody extends ConsumerWidget {
                 TextButton(
                   onPressed: () => context.openRoute(AppRouteNames.policies),
                   child: Text(
-                    'Policies',
+                    context.tr(RemainingL10n.policies),
                     style: AppTypography.label.copyWith(
                       color: AppColors.bronze,
                       fontWeight: FontWeight.w600,
@@ -290,20 +298,16 @@ Future<void> _onSellTap(BuildContext context, WidgetRef ref) async {
   final goRegister = await showAppDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Separate seller account required'),
-      content: const Text(
-        'Individual accounts cannot sell products. Create a new business '
-        'account with a different email to list and sell on GemWorld. '
-        'You will be signed out of this individual account first.',
-      ),
+      title: Text(context.tr(RemainingL10n.sellerAccountRequired)),
+      content: Text(context.tr(RemainingL10n.sellerAccountRequiredBody)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Not now'),
+          child: Text(context.tr(RemainingL10n.notNow)),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Create seller account'),
+          child: Text(context.tr(RemainingL10n.createSellerAccount)),
         ),
       ],
     ),
@@ -357,7 +361,7 @@ class _SellerBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Sell on GemWorld',
+                      context.tr(RemainingL10n.sellOnGemWorld),
                       style: AppTypography.title.copyWith(
                         color: AppColors.onSelected(context),
                         fontWeight: FontWeight.w700,
@@ -366,8 +370,8 @@ class _SellerBanner extends StatelessWidget {
                     const SizedBox(height: AppSpacing.s4),
                     Text(
                       isAuthenticatedIndividual
-                          ? 'Selling needs a separate business account — not this individual login.'
-                          : 'Register a business account to list diamonds, gems, and jewelry.',
+                          ? context.tr(RemainingL10n.sellerSeparateAccountNote)
+                          : context.tr(RemainingL10n.sellerRegisterNote),
                       style: AppTypography.caption.copyWith(
                         color: AppColors.bronzeLight,
                       ),

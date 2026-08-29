@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
@@ -79,13 +82,13 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const AuthBrandHeader(
-                        eyebrow: 'VERIFY EMAIL',
-                        subtitle: 'Enter the code we sent you',
+                      AuthBrandHeader(
+                        eyebrow: context.tr(AccountCommerceL10n.verifyEmail),
+                        subtitle: context.tr(AccountCommerceL10n.enterCodeSent),
                       ),
                       const SizedBox(height: AppSpacing.s24),
                       Text(
-                        'Verify OTP',
+                        context.tr(AccountCommerceL10n.verifyOtp),
                         style: AppTypography.display.copyWith(
                           color: AppColors.textPrimary(context),
                         ),
@@ -93,8 +96,10 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                       const SizedBox(height: AppSpacing.s12),
                       Text(
                         email.isEmpty
-                            ? 'Enter the 6-digit code from your email.'
-                            : 'We sent a 6-digit code to $email.',
+                            ? context.tr(AccountCommerceL10n.enterSixDigitCode)
+                            : context.tr(AccountCommerceL10n.codeSentToEmail, {
+                                'email': email,
+                              }),
                         style: AppTypography.body.copyWith(
                           color: AppColors.textSecondary(context),
                         ),
@@ -112,15 +117,17 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
-                              decoration: const InputDecoration(
-                                labelText: 'OTP',
-                                prefixIcon: Icon(Icons.pin_outlined),
+                              decoration: InputDecoration(
+                                labelText: context.tr(AccountCommerceL10n.otp),
+                                prefixIcon: const Icon(Icons.pin_outlined),
                                 counterText: '',
                               ),
                               validator: (value) {
                                 final v = value?.trim() ?? '';
                                 if (v.length != 6) {
-                                  return 'Enter the 6-digit OTP.';
+                                  return context.tr(
+                                    AccountCommerceL10n.enterOtp,
+                                  );
                                 }
                                 return null;
                               },
@@ -144,8 +151,8 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                         ref
                                             .read(authProvider.notifier)
                                             .clearError();
-                                        final ok = _formKey.currentState
-                                                ?.validate() ??
+                                        final ok =
+                                            _formKey.currentState?.validate() ??
                                             false;
                                         if (!ok) return;
                                         await ref
@@ -168,14 +175,16 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                             ),
                             const SizedBox(height: AppSpacing.s16),
                             TextButton(
-                              onPressed: authState.isLoading ||
+                              onPressed:
+                                  authState.isLoading ||
                                       _resendBusy ||
                                       email.isEmpty
                                   ? null
                                   : () async {
                                       setState(() => _resendBusy = true);
-                                      final messenger =
-                                          ScaffoldMessenger.of(context);
+                                      final messenger = ScaffoldMessenger.of(
+                                        context,
+                                      );
                                       final ok = await ref
                                           .read(authProvider.notifier)
                                           .resendOtp(email: email);
@@ -183,16 +192,18 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                       setState(() => _resendBusy = false);
                                       if (ok) {
                                         messenger.showSnackBar(
-                                          const SnackBar(
+                                          SnackBar(
                                             content: Text(
-                                              'OTP sent. Check your email.',
+                                              context.tr(
+                                                AccountCommerceL10n.otpSent,
+                                              ),
                                             ),
                                           ),
                                         );
                                       }
                                     },
                               child: Text(
-                                'Resend OTP',
+                                context.tr(AccountCommerceL10n.resendOtp),
                                 style: AppTypography.label.copyWith(
                                   color: AppColors.textPrimary(context),
                                   decoration: TextDecoration.underline,
@@ -206,7 +217,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                     ? null
                                     : () => context.go(AppRouteNames.login),
                                 child: Text(
-                                  'Back to login',
+                                  context.tr(AccountCommerceL10n.backToLogin),
                                   style: AppTypography.label.copyWith(
                                     color: AppColors.textPrimary(context),
                                   ),

@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'inquiry_form_fields.dart';
 import 'inquiry_reference_media.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Jewellery inquiry: base details, stones, design, commercial, and media.
 class JewelryInquiryForm extends StatelessWidget {
   const JewelryInquiryForm({
@@ -35,12 +38,12 @@ class JewelryInquiryForm extends StatelessWidget {
     return Column(
       children: [
         InquirySectionCard(
-          title: 'Base Details',
+          title: context.tr(RemainingL10n.baseDetails),
           child: Column(
             children: [
               InquiryPairFields(
                 left: InquiryDropdownField(
-                  label: 'Category',
+                  label: context.tr(RemainingL10n.category),
                   value: subCategory,
                   options: InquirySpecOptions.jewelryCategories,
                   allowOther: false,
@@ -50,7 +53,7 @@ class JewelryInquiryForm extends StatelessWidget {
                   },
                 ),
                 right: InquiryTextField(
-                  label: 'Metal Type',
+                  label: context.tr(RemainingL10n.metalType),
                   controller: controller('metalType'),
                   hint: 'Gold',
                   onChanged: onChanged,
@@ -58,31 +61,31 @@ class JewelryInquiryForm extends StatelessWidget {
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Metal Purity',
+                  label: context.tr(RemainingL10n.metalPurity),
                   controller: controller('metalPurity'),
                   hint: '18KT',
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Metal Color',
+                  label: context.tr(RemainingL10n.metalColor),
                   controller: controller('metalColor'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Occasion',
+                  label: context.tr(RemainingL10n.occasion),
                   controller: controller('occasion'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Intended Wearer',
+                  label: context.tr(RemainingL10n.intendedWearer),
                   controller: controller('intendedWearer'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryTextField(
-                label: 'Finish',
+                label: context.tr(RemainingL10n.finish),
                 controller: controller('finish'),
                 onChanged: onChanged,
               ),
@@ -90,17 +93,17 @@ class JewelryInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Stone Details',
+          title: context.tr(RemainingL10n.stoneDetails),
           child: Column(
             children: [
               InquiryCheckboxField(
-                label: 'Has Stone',
+                label: context.tr(RemainingL10n.hasStone),
                 value: hasStone,
                 onChanged: (v) => setFlag('hasStone', v),
               ),
               if (hasStone) ...[
                 InquiryDropdownField(
-                  label: 'Stone Type',
+                  label: context.tr(RemainingL10n.stoneType),
                   value: controller('stoneType', 'NATURAL').text,
                   options: const ['NATURAL', 'LAB'],
                   allowOther: false,
@@ -110,7 +113,7 @@ class JewelryInquiryForm extends StatelessWidget {
                   },
                 ),
                 InquiryDropdownField(
-                  label: 'Stone Shape',
+                  label: context.tr(RemainingL10n.stoneShape),
                   value: controller('stoneShape').text,
                   options: InquirySpecOptions.shapes,
                   onChanged: (v) {
@@ -120,48 +123,48 @@ class JewelryInquiryForm extends StatelessWidget {
                 ),
                 InquiryPairFields(
                   left: InquiryTextField(
-                    label: 'Stone Carat Min',
+                    label: context.tr(RemainingL10n.stoneCaratMin),
                     controller: controller('stoneCaratMin'),
                     onChanged: onChanged,
                   ),
                   right: InquiryTextField(
-                    label: 'Stone Carat Max',
+                    label: context.tr(RemainingL10n.stoneCaratMax),
                     controller: controller('stoneCaratMax'),
                     onChanged: onChanged,
                   ),
                 ),
                 InquiryPairFields(
                   left: InquiryTextField(
-                    label: 'Stone Color Min',
+                    label: context.tr(RemainingL10n.stoneColorMin),
                     controller: controller('stoneColorMin'),
                     onChanged: onChanged,
                   ),
                   right: InquiryTextField(
-                    label: 'Stone Color Max',
+                    label: context.tr(RemainingL10n.stoneColorMax),
                     controller: controller('stoneColorMax'),
                     onChanged: onChanged,
                   ),
                 ),
                 InquiryPairFields(
                   left: InquiryTextField(
-                    label: 'Stone Clarity Min',
+                    label: context.tr(RemainingL10n.stoneClarityMin),
                     controller: controller('stoneClarityMin'),
                     onChanged: onChanged,
                   ),
                   right: InquiryTextField(
-                    label: 'Stone Clarity Max',
+                    label: context.tr(RemainingL10n.stoneClarityMax),
                     controller: controller('stoneClarityMax'),
                     onChanged: onChanged,
                   ),
                 ),
                 InquiryPairFields(
                   left: InquiryTextField(
-                    label: 'Stone Cut',
+                    label: context.tr(RemainingL10n.stoneCut),
                     controller: controller('stoneCut'),
                     onChanged: onChanged,
                   ),
                   right: InquiryTextField(
-                    label: 'Stone Quantity',
+                    label: context.tr(RemainingL10n.stoneQuantity),
                     controller: controller('stoneQuantity'),
                     onChanged: onChanged,
                   ),
@@ -171,7 +174,7 @@ class JewelryInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Design & Dimensions',
+          title: context.tr(RemainingL10n.designDimensions),
           child: _JewelryDesignFields(
             subCategory: subCategory,
             controller: controller,
@@ -179,44 +182,44 @@ class JewelryInquiryForm extends StatelessWidget {
           ),
         ),
         InquirySectionCard(
-          title: 'Commercial & Delivery',
+          title: context.tr(RemainingL10n.commercialDelivery),
           child: Column(
             children: [
               InquiryCheckboxField(
-                label: 'Is Engraving Required',
+                label: context.tr(RemainingL10n.engravingRequired),
                 value: flag('isEngravingRequired'),
                 onChanged: (v) => setFlag('isEngravingRequired', v),
               ),
               if (flag('isEngravingRequired'))
                 InquiryTextField(
-                  label: 'Engraving Text',
+                  label: context.tr(RemainingL10n.engravingText),
                   controller: controller('engravingText'),
                   onChanged: onChanged,
                 ),
               InquiryTextField(
-                label: 'Quantity',
+                label: context.tr(RemainingL10n.quantity),
                 controller: controller('quantity'),
                 onChanged: onChanged,
               ),
               InquiryTextField(
-                label: 'Payment Terms',
+                label: context.tr(RemainingL10n.paymentTerms),
                 controller: controller('paymentTerms'),
                 onChanged: onChanged,
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Total Price Min',
+                  label: context.tr(RemainingL10n.totalPriceMin),
                   controller: controller('totalPriceMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Total Price Max',
+                  label: context.tr(RemainingL10n.totalPriceMax),
                   controller: controller('totalPriceMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryTextField(
-                label: 'Design Description',
+                label: context.tr(RemainingL10n.designDescription),
                 controller: controller('designDescription'),
                 maxLines: 4,
                 onChanged: onChanged,
@@ -231,12 +234,12 @@ class JewelryInquiryForm extends StatelessWidget {
                 embedded: true,
               ),
               InquiryDateField(
-                label: 'Urgency',
+                label: context.tr(RemainingL10n.urgency),
                 value: urgency,
                 onPick: onPickUrgency,
               ),
               InquiryTextField(
-                label: 'Delivery Address',
+                label: context.tr(RemainingL10n.deliveryAddress),
                 controller: controller('deliveryLocation'),
                 onChanged: onChanged,
               ),
@@ -259,13 +262,13 @@ class _JewelryDesignFields extends StatelessWidget {
   final TextEditingController Function(String key, [String initial]) controller;
   final ValueChanged<String>? onChanged;
 
-  String get _kind {
+  String _kind(BuildContext context) {
     final value = subCategory.trim().toLowerCase();
-    if (value.startsWith('ring')) return 'ring';
-    if (value.startsWith('necklace')) return 'necklace';
-    if (value.startsWith('bracelet')) return 'bracelet';
-    if (value.startsWith('earring')) return 'earring';
-    return 'accessories';
+    if (value.startsWith('ring')) return context.tr(RemainingL10n.ring);
+    if (value.startsWith('necklace')) return context.tr(RemainingL10n.necklace);
+    if (value.startsWith('bracelet')) return context.tr(RemainingL10n.bracelet);
+    if (value.startsWith('earring')) return context.tr(RemainingL10n.earring);
+    return context.tr(RemainingL10n.accessories);
   }
 
   @override
@@ -273,100 +276,97 @@ class _JewelryDesignFields extends StatelessWidget {
     return Column(
       children: [
         InquiryTextField(
-          label: 'Setting Type',
+          label: context.tr(RemainingL10n.settingType),
           controller: controller('settingType'),
           onChanged: onChanged,
         ),
-        ...switch (_kind) {
+        ...switch (_kind(context)) {
           'ring' => [
-              InquiryDropdownField(
-                label: 'Ring Size',
-                value: controller('ringSize').text,
-                options: InquirySpecOptions.ringSizes,
-                onChanged: (v) {
-                  controller('ringSize').text = v;
-                  onChanged?.call(v);
-                },
-              ),
-              ..._thicknessAndWeight(),
-            ],
+            InquiryDropdownField(
+              label: context.tr(RemainingL10n.ringSize),
+              value: controller('ringSize').text,
+              options: InquirySpecOptions.ringSizes,
+              onChanged: (v) {
+                controller('ringSize').text = v;
+                onChanged?.call(v);
+              },
+            ),
+            ..._thicknessAndWeight(context),
+          ],
           'necklace' => [
-              InquiryDropdownField(
-                label: 'Necklace Length',
-                value: controller('necklaceLength').text,
-                options: InquirySpecOptions.necklaceLengths,
-                onChanged: (v) {
-                  controller('necklaceLength').text = v;
-                  onChanged?.call(v);
-                },
-              ),
-              ..._thicknessAndWeight(),
-            ],
+            InquiryDropdownField(
+              label: context.tr(RemainingL10n.necklaceLength),
+              value: controller('necklaceLength').text,
+              options: InquirySpecOptions.necklaceLengths,
+              onChanged: (v) {
+                controller('necklaceLength').text = v;
+                onChanged?.call(v);
+              },
+            ),
+            ..._thicknessAndWeight(context),
+          ],
           'bracelet' => [
-              InquiryTextField(
-                label: 'Bracelet Size',
-                controller: controller('braceletSize'),
-                hint: 'c.g. / inch',
-                onChanged: onChanged,
-              ),
-              InquiryDropdownField(
-                label: 'Bracelet Length',
-                value: controller('braceletLength').text,
-                options: InquirySpecOptions.braceletLengths,
-                onChanged: (v) {
-                  controller('braceletLength').text = v;
-                  onChanged?.call(v);
-                },
-              ),
-            ],
-          _ => [
-              ..._widthRange(),
-              ..._thicknessAndWeight(),
-            ],
+            InquiryTextField(
+              label: context.tr(RemainingL10n.braceletSize),
+              controller: controller('braceletSize'),
+              hint: 'c.g. / inch',
+              onChanged: onChanged,
+            ),
+            InquiryDropdownField(
+              label: context.tr(RemainingL10n.braceletLength),
+              value: controller('braceletLength').text,
+              options: InquirySpecOptions.braceletLengths,
+              onChanged: (v) {
+                controller('braceletLength').text = v;
+                onChanged?.call(v);
+              },
+            ),
+          ],
+          _ => [..._widthRange(context), ..._thicknessAndWeight(context)],
         },
       ],
     );
   }
 
-  List<Widget> _widthRange() => [
-        InquiryPairFields(
-          left: InquiryTextField(
-            label: 'Width Min',
-            controller: controller('widthMin'),
-            onChanged: onChanged,
-          ),
-          right: InquiryTextField(
-            label: 'Width Max',
-            controller: controller('widthMax'),
-            onChanged: onChanged,
-          ),
-        ),
-      ];
+  List<Widget> _widthRange(BuildContext context) => [
+    InquiryPairFields(
+      left: InquiryTextField(
+        label: context.tr(RemainingL10n.widthMin),
+        controller: controller('widthMin'),
+        onChanged: onChanged,
+      ),
+      right: InquiryTextField(
+        label: context.tr(RemainingL10n.widthMax),
+        controller: controller('widthMax'),
+        onChanged: onChanged,
+      ),
+    ),
+  ];
 
-  List<Widget> _thicknessAndWeight() => [
-        InquiryPairFields(
-          left: InquiryTextField(
-            label: 'Thickness Min',
-            controller: controller('thicknessMin'),
-            onChanged: onChanged,
-          ),
-          right: InquiryTextField(
-            label: 'Thickness Max',
-            controller: controller('thicknessMax'),
-            onChanged: onChanged,
-          ),
-        ),
-        InquiryPairFields(
-          left: InquiryTextField(
-            label: 'Approx Weight Min',
-            controller: controller('approxWeightMin'),
-            onChanged: onChanged,
-          ),
-          right: InquiryTextField(
-            label: 'Approx Weight Max',
-            controller: controller('approxWeightMax'),
-            onChanged: onChanged,
-          ),
-        ),
-      ];
+  List<Widget> _thicknessAndWeight(BuildContext context) => [
+    InquiryPairFields(
+      left: InquiryTextField(
+        label: context.tr(RemainingL10n.thicknessMin),
+        controller: controller('thicknessMin'),
+        onChanged: onChanged,
+      ),
+      right: InquiryTextField(
+        label: context.tr(RemainingL10n.thicknessMax),
+        controller: controller('thicknessMax'),
+        onChanged: onChanged,
+      ),
+    ),
+    InquiryPairFields(
+      left: InquiryTextField(
+        label: context.tr(RemainingL10n.approxWeightMin),
+        controller: controller('approxWeightMin'),
+        onChanged: onChanged,
+      ),
+      right: InquiryTextField(
+        label: context.tr(RemainingL10n.approxWeightMax),
+        controller: controller('approxWeightMax'),
+        onChanged: onChanged,
+      ),
+    ),
+  ];
 }

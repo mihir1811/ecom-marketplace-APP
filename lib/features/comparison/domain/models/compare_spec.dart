@@ -1,3 +1,4 @@
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'compare_category.dart';
 
 /// How a comparable spec picks a "leading" value among selected items.
@@ -36,116 +37,107 @@ class CompareSpecDef {
 const diamondCompareSpecs = <CompareSpecDef>[
   CompareSpecDef(
     key: 'price',
-    label: 'Price',
+    label: AccountCommerceL10n.price,
     winRule: CompareWinRule.lowerBetter,
   ),
   CompareSpecDef(
     key: 'carat',
-    label: 'Carat Weight',
+    label: AccountCommerceL10n.caratWeight,
     winRule: CompareWinRule.higherBetter,
   ),
-  CompareSpecDef(key: 'shape', label: 'Shape'),
-  CompareSpecDef(key: 'measurements', label: 'Measurements'),
-  CompareSpecDef(key: 'certificate', label: 'Certificate #'),
+  CompareSpecDef(key: 'shape', label: AccountCommerceL10n.shape),
+  CompareSpecDef(key: 'measurements', label: AccountCommerceL10n.measurements),
+  CompareSpecDef(key: 'certificate', label: AccountCommerceL10n.certificate),
   CompareSpecDef(
     key: 'cut',
-    label: 'Cut',
+    label: AccountCommerceL10n.cut,
     winRule: CompareWinRule.gradeBetter,
     gradeOrder: ['Ideal', 'Excellent', 'Very Good', 'Good', 'Fair'],
   ),
   CompareSpecDef(
     key: 'color',
-    label: 'Color',
+    label: AccountCommerceL10n.color,
     winRule: CompareWinRule.gradeBetter,
     gradeOrder: ['D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'],
   ),
   CompareSpecDef(
     key: 'clarity',
-    label: 'Clarity',
+    label: AccountCommerceL10n.clarity,
     winRule: CompareWinRule.gradeBetter,
-    gradeOrder: [
-      'FL',
-      'IF',
-      'VVS1',
-      'VVS2',
-      'VS1',
-      'VS2',
-      'SI1',
-      'SI2',
-    ],
+    gradeOrder: ['FL', 'IF', 'VVS1', 'VVS2', 'VS1', 'VS2', 'SI1', 'SI2'],
   ),
   CompareSpecDef(
     key: 'table',
-    label: 'Table %',
+    label: AccountCommerceL10n.tablePercent,
     winRule: CompareWinRule.none,
   ),
   CompareSpecDef(
     key: 'depth',
-    label: 'Depth %',
+    label: AccountCommerceL10n.depthPercent,
     winRule: CompareWinRule.none,
   ),
-  CompareSpecDef(key: 'ratio', label: 'Ratio'),
+  CompareSpecDef(key: 'ratio', label: AccountCommerceL10n.ratio),
   CompareSpecDef(
     key: 'polish',
-    label: 'Polish',
+    label: AccountCommerceL10n.polish,
     winRule: CompareWinRule.gradeBetter,
     gradeOrder: ['Ideal', 'Excellent', 'Very Good', 'Good', 'Fair'],
   ),
   CompareSpecDef(
     key: 'symmetry',
-    label: 'Symmetry',
+    label: AccountCommerceL10n.symmetry,
     winRule: CompareWinRule.gradeBetter,
     gradeOrder: ['Ideal', 'Excellent', 'Very Good', 'Good', 'Fair'],
   ),
-  CompareSpecDef(key: 'fluorescence', label: 'Fluorescence'),
-  CompareSpecDef(key: 'lab', label: 'Lab'),
+  CompareSpecDef(key: 'fluorescence', label: AccountCommerceL10n.fluorescence),
+  CompareSpecDef(key: 'lab', label: AccountCommerceL10n.lab),
 ];
 
 /// Spec rows for gemstone comparison.
 const gemstoneCompareSpecs = <CompareSpecDef>[
   CompareSpecDef(
     key: 'price',
-    label: 'Price',
+    label: AccountCommerceL10n.price,
     winRule: CompareWinRule.lowerBetter,
   ),
   CompareSpecDef(
     key: 'carat',
-    label: 'Total Carat',
+    label: AccountCommerceL10n.totalCarat,
     winRule: CompareWinRule.higherBetter,
   ),
-  CompareSpecDef(key: 'type', label: 'Type'),
-  CompareSpecDef(key: 'origin', label: 'Origin'),
-  CompareSpecDef(key: 'cut', label: 'Cut'),
-  CompareSpecDef(key: 'color', label: 'Color'),
-  CompareSpecDef(key: 'clarity', label: 'Clarity'),
-  CompareSpecDef(key: 'treatment', label: 'Treatment'),
-  CompareSpecDef(key: 'dimensions', label: 'Dimensions'),
-  CompareSpecDef(key: 'shape', label: 'Shape'),
+  CompareSpecDef(key: 'type', label: AccountCommerceL10n.type),
+  CompareSpecDef(key: 'origin', label: AccountCommerceL10n.origin),
+  CompareSpecDef(key: 'cut', label: AccountCommerceL10n.cut),
+  CompareSpecDef(key: 'color', label: AccountCommerceL10n.color),
+  CompareSpecDef(key: 'clarity', label: AccountCommerceL10n.clarity),
+  CompareSpecDef(key: 'treatment', label: AccountCommerceL10n.treatment),
+  CompareSpecDef(key: 'dimensions', label: AccountCommerceL10n.dimensions),
+  CompareSpecDef(key: 'shape', label: AccountCommerceL10n.shape),
   CompareSpecDef(
     key: 'hardness',
-    label: 'Hardness',
+    label: AccountCommerceL10n.hardness,
     winRule: CompareWinRule.higherBetter,
   ),
-  CompareSpecDef(key: 'lab', label: 'Lab'),
-  CompareSpecDef(key: 'certificate', label: 'Certificate #'),
+  CompareSpecDef(key: 'lab', label: AccountCommerceL10n.lab),
+  CompareSpecDef(key: 'certificate', label: AccountCommerceL10n.certificate),
 ];
 
 /// Spec rows for watch comparison.
 const watchCompareSpecs = <CompareSpecDef>[
   CompareSpecDef(
     key: 'price',
-    label: 'Price',
+    label: AccountCommerceL10n.price,
     winRule: CompareWinRule.lowerBetter,
   ),
-  CompareSpecDef(key: 'brand', label: 'Brand'),
-  CompareSpecDef(key: 'model', label: 'Model'),
-  CompareSpecDef(key: 'movement', label: 'Movement'),
-  CompareSpecDef(key: 'caseMaterial', label: 'Case Material'),
-  CompareSpecDef(key: 'dialColor', label: 'Dial Color'),
-  CompareSpecDef(key: 'gender', label: 'Gender'),
+  CompareSpecDef(key: 'brand', label: AccountCommerceL10n.brand),
+  CompareSpecDef(key: 'model', label: AccountCommerceL10n.model),
+  CompareSpecDef(key: 'movement', label: AccountCommerceL10n.movement),
+  CompareSpecDef(key: 'caseMaterial', label: AccountCommerceL10n.caseMaterial),
+  CompareSpecDef(key: 'dialColor', label: AccountCommerceL10n.dialColor),
+  CompareSpecDef(key: 'gender', label: AccountCommerceL10n.gender),
   CompareSpecDef(
     key: 'year',
-    label: 'Year',
+    label: AccountCommerceL10n.year,
     winRule: CompareWinRule.higherBetter,
   ),
 ];
@@ -214,7 +206,9 @@ List<bool> leadingFlags({
       if (usable.length < 2) return List<bool>.filled(n, false);
 
       final best = usable.map((i) => ranks[i]!).reduce((a, b) => a < b ? a : b);
-      final worst = usable.map((i) => ranks[i]!).reduce((a, b) => a > b ? a : b);
+      final worst = usable
+          .map((i) => ranks[i]!)
+          .reduce((a, b) => a > b ? a : b);
       if (best == worst) return List<bool>.filled(n, false);
 
       return List<bool>.generate(

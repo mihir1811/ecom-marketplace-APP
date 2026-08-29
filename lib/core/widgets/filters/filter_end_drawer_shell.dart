@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -67,7 +68,7 @@ class FilterEndDrawerShell extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Close',
+                      tooltip: context.tr(CatalogL10n.close),
                       onPressed: () => Navigator.of(context).maybePop(),
                       icon: const Icon(Icons.close),
                     ),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
+import 'core/l10n/app_localizations.dart';
 
 void main() {
   runZonedGuarded(() {
@@ -9,36 +10,38 @@ void main() {
     
     // Layer 3 Error Boundary - Degrades gracefully in production rather than showing the red screen
     ErrorWidget.builder = (FlutterErrorDetails details) {
-      return const Scaffold(
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: Color(0xFFDC2626),
-                    size: 48,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Something went wrong.',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+      return Builder(
+        builder: (context) => Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Color(0xFFDC2626),
+                      size: 48,
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'An unexpected error occurred. Please reload or restart the application.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF4B5563),
+                    const SizedBox(height: 16),
+                    Text(
+                      context.tr(CoreL10n.somethingWentWrong),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      context.tr(CoreL10n.unexpectedError),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFF4B5563),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

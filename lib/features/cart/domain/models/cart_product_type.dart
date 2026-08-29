@@ -8,12 +8,12 @@ abstract final class CartProductType {
   static const String bullion = 'bullion';
 
   static String label(String type) => switch (type) {
-        diamond => 'Diamond',
-        meleeDiamond => 'Melee Diamond',
-        gemstone => 'Gemstone',
-        jewellery => 'Jewelry',
-        watch => 'Watch',
-        bullion => 'Bullion',
-        _ => type,
-      };
+    diamond => 'Diamond',
+    meleeDiamond => 'Melee Diamond',
+    gemstone => 'Gemstone',
+    jewellery => 'Jewelry',
+    watch => 'Watch',
+    bullion => 'Bullion',
+    _ => type,
+  };
 }

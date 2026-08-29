@@ -15,7 +15,7 @@ final sellerReviewRepositoryProvider = Provider<SellerReviewRepository>(
 );
 
 class SellerReviewRepositoryImpl implements SellerReviewRepository {
-  SellerReviewRepositoryImpl(this._dio);
+  const SellerReviewRepositoryImpl(this._dio);
 
   final Dio _dio;
 

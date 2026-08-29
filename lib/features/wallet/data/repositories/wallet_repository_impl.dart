@@ -17,7 +17,7 @@ final walletRepositoryProvider = Provider<WalletRepository>(
 
 /// Live wallet repository backed by `/wallet*` APIs.
 class WalletRepositoryImpl implements WalletRepository {
-  WalletRepositoryImpl(this._dio);
+  const WalletRepositoryImpl(this._dio);
 
   final Dio _dio;
 
@@ -49,10 +49,7 @@ class WalletRepositoryImpl implements WalletRepository {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
         ApiEndpoints.walletTransactions,
-        queryParameters: {
-          'page': page,
-          'limit': limit,
-        },
+        queryParameters: {'page': page, 'limit': limit},
       );
       return Result.success(
         WalletMapper.transactionsPageFromJson(

@@ -13,8 +13,9 @@ import '../domain/repositories/payment_repository.dart';
 import 'razorpay_checkout_service.dart';
 
 /// Short-lived FX cache for cart INR estimates.
-final exchangeRateProvider =
-    FutureProvider.autoDispose<ExchangeRate>((ref) async {
+final exchangeRateProvider = FutureProvider.autoDispose<ExchangeRate>((
+  ref,
+) async {
   final link = ref.keepAlive();
   Timer? timer;
   timer = Timer(const Duration(minutes: 2), link.close);
@@ -105,9 +106,7 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     state = state.copyWith(useWallet: value);
   }
 
-  Future<Result<PaymentOrder, Failure>> checkout({
-    double? payableInr,
-  }) async {
+  Future<Result<PaymentOrder, Failure>> checkout({double? payableInr}) async {
     if (state.isBusy) {
       return Result.failure(
         const ValidationFailure('Payment is already in progress.'),
@@ -120,9 +119,7 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     }
     if (cart.items.any((e) => !e.isAvailable)) {
       return Result.failure(
-        const ValidationFailure(
-          'Remove unavailable items before payment.',
-        ),
+        const ValidationFailure('Remove unavailable items before payment.'),
       );
     }
     if (!cart.canCheckout || cart.address == null) {
@@ -134,7 +131,8 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     }
 
     final fees = ref.read(activeFeesProvider).valueOrNull;
-    final wantVerification = state.wantGemworldVerification &&
+    final wantVerification =
+        state.wantGemworldVerification &&
         (fees?.offersGemworldVerification ?? false);
     final useWallet = state.useWallet;
 
@@ -144,8 +142,9 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
       clearOrder: true,
     );
 
-    final synced =
-        await ref.read(cartProvider.notifier).syncSelectedAddressForCheckout();
+    final synced = await ref
+        .read(cartProvider.notifier)
+        .syncSelectedAddressForCheckout();
     if (synced is ResultFailure<void, Failure>) {
       state = state.copyWith(
         phase: CheckoutPhase.failed,
@@ -166,10 +165,10 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
       return Result.failure(created.failure);
     }
 
-    final session =
-        (created as Success<PaymentCheckoutSession, Failure>).value;
+    final session = (created as Success<PaymentCheckoutSession, Failure>).value;
 
-    final walletSettled = session.isFullyPaidByWallet ||
+    final walletSettled =
+        session.isFullyPaidByWallet ||
         (useWallet &&
             session.orderId.isNotEmpty &&
             session.amountPaise <= 0 &&
@@ -224,8 +223,7 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
       return Result.failure(paid.failure);
     }
 
-    final success =
-        (paid as Success<RazorpayPaymentSuccess, Failure>).value;
+    final success = (paid as Success<RazorpayPaymentSuccess, Failure>).value;
 
     state = state.copyWith(phase: CheckoutPhase.verifying);
     final verified = await _payments.verifyPayment(
@@ -272,14 +270,16 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
 
 final paymentCheckoutProvider =
     NotifierProvider<PaymentCheckoutNotifier, CheckoutState>(
-  PaymentCheckoutNotifier.new,
-);
+      PaymentCheckoutNotifier.new,
+    );
 
-final orderDetailProvider =
-    FutureProvider.autoDispose.family<PaymentOrder, String>((ref, orderId) async {
-  final result = await ref.watch(paymentRepositoryProvider).getOrder(orderId);
-  return switch (result) {
-    Success(:final value) => value,
-    ResultFailure(:final failure) => throw failure,
-  };
-});
+final orderDetailProvider = FutureProvider.autoDispose
+    .family<PaymentOrder, String>((ref, orderId) async {
+      final result = await ref
+          .watch(paymentRepositoryProvider)
+          .getOrder(orderId);
+      return switch (result) {
+        Success(:final value) => value,
+        ResultFailure(:final failure) => throw failure,
+      };
+    });

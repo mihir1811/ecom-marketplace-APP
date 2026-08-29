@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
@@ -48,16 +49,12 @@ class ShowcaseSelectCard extends StatelessWidget {
           children: [
             Expanded(
               child: Center(
-                child: SizedBox(
-                  width: 84,
-                  height: 84,
-                  child: media,
-                ),
+                child: SizedBox(width: 84, height: 84, child: media),
               ),
             ),
             const SizedBox(height: AppSpacing.s16),
             Text(
-              name,
+              context.trCatalogValue(name),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.label.copyWith(

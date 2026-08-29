@@ -35,8 +35,8 @@ class MarketplaceProductCardShell extends StatelessWidget {
     // Recently viewed cards: lighter in dark mode, subtle bronze tint in light.
     final resolvedBg = isRecentlyViewed
         ? (dark
-            ? const Color(0xFF252830)
-            : AppColors.bronze.withValues(alpha: 0.05))
+              ? const Color(0xFF252830)
+              : AppColors.bronze.withValues(alpha: 0.05))
         : (backgroundColor ?? AppColors.card(context));
 
     return DecoratedBox(
@@ -51,11 +51,7 @@ class MarketplaceProductCardShell extends StatelessWidget {
           side: BorderSide(color: resolvedBorder),
         ),
         clipBehavior: clipBehavior,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: radius,
-          child: child,
-        ),
+        child: InkWell(onTap: onTap, borderRadius: radius, child: child),
       ),
     );
   }

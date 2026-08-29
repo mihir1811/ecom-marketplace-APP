@@ -7,7 +7,8 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../domain/models/payment_models.dart';
 import 'razorpay_platform_checkout_stub.dart'
-    if (dart.library.html) 'razorpay_platform_checkout_web.dart' as platform;
+    if (dart.library.html) 'razorpay_platform_checkout_web.dart'
+    as platform;
 
 /// Thin Razorpay Checkout wrapper — amounts/keys come only from the server.
 class RazorpayCheckoutService {
@@ -72,9 +73,7 @@ class RazorpayCheckoutService {
       final message = failure?.message?.trim();
       if (code == Razorpay.PAYMENT_CANCELLED) {
         _complete(
-          Result.failure(
-            const ValidationFailure('Payment was cancelled.'),
-          ),
+          Result.failure(const ValidationFailure('Payment was cancelled.')),
         );
         return;
       }

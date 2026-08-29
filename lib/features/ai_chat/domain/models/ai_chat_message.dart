@@ -12,18 +12,12 @@ enum AiChatRole {
 }
 
 class AiChatHistoryTurn {
-  const AiChatHistoryTurn({
-    required this.role,
-    required this.content,
-  });
+  const AiChatHistoryTurn({required this.role, required this.content});
 
   final AiChatRole role;
   final String content;
 
-  Map<String, dynamic> toJson() => {
-        'role': role.apiValue,
-        'content': content,
-      };
+  Map<String, dynamic> toJson() => {'role': role.apiValue, 'content': content};
 }
 
 class AiChatMessage {
@@ -53,8 +47,6 @@ class AiChatMessage {
   /// User text that produced this assistant reply (for “See more” filters).
   final String sourceQuery;
 
-  AiChatHistoryTurn toHistoryTurn() => AiChatHistoryTurn(
-        role: role,
-        content: content,
-      );
+  AiChatHistoryTurn toHistoryTurn() =>
+      AiChatHistoryTurn(role: role, content: content);
 }

@@ -16,12 +16,14 @@ abstract final class PaymentMapper {
     Map<String, dynamic> json,
   ) {
     final user = json['user'];
-    final userMap =
-        user is Map<String, dynamic> ? user : const <String, dynamic>{};
+    final userMap = user is Map<String, dynamic>
+        ? user
+        : const <String, dynamic>{};
     return PaymentCheckoutSession(
       orderId: _str(json['orderId']) ?? '',
       razorpayOrderId: _str(json['razorpayOrderId']) ?? '',
-      amountPaise: _int(json['amount']) ??
+      amountPaise:
+          _int(json['amount']) ??
           _int(json['amountPaise']) ??
           _int(json['amountDue']) ??
           0,
@@ -30,7 +32,8 @@ abstract final class PaymentMapper {
       amountUsd: _num(json['amountUsd']),
       amountInr: _num(json['amountInr']) ?? _num(json['amountDueInr']),
       exchangeRate: _num(json['exchangeRate']),
-      walletAppliedInr: _num(json['walletAppliedInr']) ??
+      walletAppliedInr:
+          _num(json['walletAppliedInr']) ??
           _num(json['walletAmount']) ??
           _num(json['walletDebited']),
       status: _str(json['status']) ?? _str(json['orderStatus']),
@@ -106,8 +109,9 @@ abstract final class PaymentMapper {
 
   static PaymentOrderItem orderItemFromJson(Map<String, dynamic> json) {
     final seller = json['seller'];
-    final sellerMap =
-        seller is Map<String, dynamic> ? seller : const <String, dynamic>{};
+    final sellerMap = seller is Map<String, dynamic>
+        ? seller
+        : const <String, dynamic>{};
     return PaymentOrderItem(
       productId: _str(json['productId']) ?? '',
       productType: _str(json['productType']) ?? '',
@@ -122,12 +126,11 @@ abstract final class PaymentMapper {
     );
   }
 
-  static PaymentOrdersPage ordersPageFromJson(
-    Map<String, dynamic> root,
-  ) {
+  static PaymentOrdersPage ordersPageFromJson(Map<String, dynamic> root) {
     final data = root['data'];
-    final dataMap =
-        data is Map<String, dynamic> ? data : const <String, dynamic>{};
+    final dataMap = data is Map<String, dynamic>
+        ? data
+        : const <String, dynamic>{};
     final ordersJson = dataMap['orders'] ?? data;
     final orders = <PaymentOrder>[];
     if (ordersJson is List) {
@@ -140,8 +143,9 @@ abstract final class PaymentMapper {
     }
 
     final meta = root['meta'];
-    final metaMap =
-        meta is Map<String, dynamic> ? meta : const <String, dynamic>{};
+    final metaMap = meta is Map<String, dynamic>
+        ? meta
+        : const <String, dynamic>{};
     final pagination = metaMap['pagination'];
     final pageMap = pagination is Map<String, dynamic>
         ? pagination

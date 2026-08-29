@@ -21,11 +21,11 @@ import '../widgets/inquiry_form_fields.dart';
 import '../widgets/jewelry_inquiry_form.dart';
 import '../widgets/watch_inquiry_form.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerInquiryFormScreen extends ConsumerStatefulWidget {
-  const SellerInquiryFormScreen({
-    super.key,
-    this.initialCategory,
-  });
+  const SellerInquiryFormScreen({super.key, this.initialCategory});
 
   final InquiryCategory? initialCategory;
 
@@ -188,7 +188,9 @@ class _SellerInquiryFormScreenState
           SnackBar(content: Text('${_category!.label} inquiry sent to admin')),
         );
         final path = GoRouterState.of(context).uri.path;
-        context.openRoute(inquiryDetailPathFor(path, _category!.name, inquiry.id));
+        context.openRoute(
+          inquiryDetailPathFor(path, _category!.name, inquiry.id),
+        );
       case ResultFailure(failure: final failure):
         ScaffoldMessenger.of(
           context,
@@ -212,7 +214,7 @@ class _SellerInquiryFormScreenState
           alignment: Alignment.centerLeft,
           child: TextButton(
             onPressed: () => context.goBack(),
-            child: const Text('All inquiries'),
+            child: Text(context.tr(RemainingL10n.allInquiries)),
           ),
         ),
         Expanded(
@@ -226,11 +228,10 @@ class _SellerInquiryFormScreenState
                     height: 1.4,
                   ),
                   children: [
-                    const TextSpan(
-                      text:
-                          'Choose a category, then complete the form. You need '
-                          'to be signed in to submit — we will use your account '
-                          'to attach the inquiry to you. ',
+                    TextSpan(
+                      text: context.tr(
+                        RemainingL10n.chooseACategoryThenCompleteThe,
+                      ),
                     ),
                     WidgetSpan(
                       alignment: PlaceholderAlignment.baseline,
@@ -238,7 +239,7 @@ class _SellerInquiryFormScreenState
                       child: GestureDetector(
                         onTap: () => context.goBack(),
                         child: Text(
-                          'View your submitted inquiries',
+                          context.tr(RemainingL10n.viewYourSubmittedInquiries),
                           style: AppTypography.body.copyWith(
                             color: AppColors.info,
                             fontWeight: FontWeight.w700,
@@ -252,14 +253,14 @@ class _SellerInquiryFormScreenState
               ),
               const SizedBox(height: 16),
               Text(
-                'STEP 1  What are you looking for?',
+                context.tr(RemainingL10n.step1WhatAreYouLookingFor),
                 style: AppTypography.label.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Tap a category to load the matching form.',
+                context.tr(RemainingL10n.tapACategoryToLoadTheMatching),
                 style: AppTypography.caption.copyWith(
                   color: AppColors.textSecondary(context),
                 ),
@@ -277,7 +278,7 @@ class _SellerInquiryFormScreenState
               if (_category != null) ...[
                 const SizedBox(height: 20),
                 Text(
-                  'STEP 2  Details',
+                  context.tr(RemainingL10n.step2Details),
                   style: AppTypography.label.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -308,7 +309,7 @@ class _SellerInquiryFormScreenState
                     );
                     final tools = OutlinedButton(
                       onPressed: _reset,
-                      child: const Text('Reset form'),
+                      child: Text(context.tr(RemainingL10n.resetForm)),
                     );
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -318,16 +319,12 @@ class _SellerInquiryFormScreenState
                           const SizedBox(height: 10),
                           submit,
                         ] else
-                          Row(
-                            children: [
-                              tools,
-                              const Spacer(),
-                              submit,
-                            ],
-                          ),
+                          Row(children: [tools, const Spacer(), submit]),
                         const SizedBox(height: 8),
                         Text(
-                          'Submit is enabled after you make changes.',
+                          context.tr(
+                            RemainingL10n.submitIsEnabledAfterYouMakeChanges,
+                          ),
                           style: AppTypography.caption.copyWith(
                             color: AppColors.textMuted(context),
                           ),
@@ -405,7 +402,6 @@ class _SellerInquiryFormScreenState
       onReferenceImages: _setReferenceImages,
     ),
   ];
-
 
   void _prepareMediaFields(Map<String, String> textFields) {
     const uiOnly = {'photoSource', 'videoSource', 'videoFileName'};

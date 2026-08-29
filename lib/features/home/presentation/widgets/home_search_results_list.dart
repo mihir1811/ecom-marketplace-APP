@@ -9,6 +9,9 @@ import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/home_search_provider.dart';
 import '../../domain/models/home_search_result.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Real-time search hits under the sticky home search bar (infinite scroll).
 class HomeSearchResultsList extends ConsumerStatefulWidget {
   const HomeSearchResultsList({super.key});
@@ -51,7 +54,7 @@ class _HomeSearchResultsListState extends ConsumerState<HomeSearchResultsList> {
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.s24),
           child: Text(
-            'Type at least 2 characters to search all catalogs.',
+            context.tr(RemainingL10n.searchMinChars),
             textAlign: TextAlign.center,
             style: AppTypography.body.copyWith(
               color: AppColors.textSecondary(context),
@@ -92,7 +95,7 @@ class _HomeSearchResultsListState extends ConsumerState<HomeSearchResultsList> {
                 onPressed: () => ref
                     .read(homeSearchResultsProvider.notifier)
                     .loadFirstPage(),
-                child: const Text('Retry'),
+                child: Text(context.tr(RemainingL10n.retry)),
               ),
             ],
           ),
@@ -108,7 +111,8 @@ class _HomeSearchResultsListState extends ConsumerState<HomeSearchResultsList> {
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.s24),
           child: Text(
-            meta.notice ?? 'No results for “$query”.',
+            meta.notice ??
+                context.tr(RemainingL10n.noResultsForQuery, {'query': query}),
             textAlign: TextAlign.center,
             style: AppTypography.body.copyWith(
               color: AppColors.textSecondary(context),

@@ -9,27 +9,28 @@ import '../../domain/models/delivery_address.dart';
 abstract final class CartMapper {
   static CartItem cartItemFromJson(Map<String, dynamic> json) {
     final product = json['product'];
-    final productMap =
-        product is Map<String, dynamic> ? product : const <String, dynamic>{};
+    final productMap = product is Map<String, dynamic>
+        ? product
+        : const <String, dynamic>{};
     final productType = _str(json['productType']) ?? '';
     final specsRaw = json['specifications'];
-    final specifications =
-        specsRaw is Map<String, dynamic> ? specsRaw : null;
+    final specifications = specsRaw is Map<String, dynamic> ? specsRaw : null;
 
     final meleeLine = MeleePurchaseMath.linePriceFromCartPayload(
       specifications: specifications,
       product: productMap,
     );
-    final lotPrice = _num(productMap['totalPrice']) ??
-        _num(productMap['price']) ??
-        0;
+    final lotPrice =
+        _num(productMap['totalPrice']) ?? _num(productMap['price']) ?? 0;
     final price = meleeLine ?? lotPrice;
 
-    final name = _str(productMap['name']) ??
+    final name =
+        _str(productMap['name']) ??
         _str(productMap['brand']) ??
         _str(productMap['stockNumber']) ??
         'Product';
-    final image = _str(productMap['image1']) ??
+    final image =
+        _str(productMap['image1']) ??
         _str(productMap['image']) ??
         _firstImage(productMap);
 
@@ -90,9 +91,8 @@ abstract final class CartMapper {
           promos.add(
             AppliedPromoCode(
               code: code,
-              discountAmount: _num(p['discountAmount']) ??
-                  _num(p['discount']) ??
-                  0,
+              discountAmount:
+                  _num(p['discountAmount']) ?? _num(p['discount']) ?? 0,
               sellerId: _str(p['sellerId']),
             ),
           );
@@ -108,9 +108,8 @@ abstract final class CartMapper {
         autos.add(
           AutomaticDiscount(
             label: _str(a['label']) ?? _str(a['name']) ?? 'Discount',
-            discountAmount: _num(a['discountAmount']) ??
-                _num(a['discount']) ??
-                0,
+            discountAmount:
+                _num(a['discountAmount']) ?? _num(a['discount']) ?? 0,
           ),
         );
       }
@@ -123,10 +122,12 @@ abstract final class CartMapper {
       promoDiscountTotal: _num(json['promoDiscountTotal']) ?? 0,
       totalDiscount: _num(json['totalDiscount']) ?? 0,
       discountedSubtotal: _num(json['discountedSubtotal']) ?? 0,
-      totalUsd: _num(json['totalUsd']) ??
+      totalUsd:
+          _num(json['totalUsd']) ??
           _num(json['grandTotalUsd']) ??
           _num(json['total']),
-      totalInr: _num(json['totalInr']) ??
+      totalInr:
+          _num(json['totalInr']) ??
           _num(json['grandTotalInr']) ??
           _num(json['estimatedTotalInr']),
       appliedPromoCodes: promos,
@@ -218,9 +219,7 @@ abstract final class CartMapper {
     CartSummary summary,
   ) {
     if (summary.items.isEmpty) return items;
-    final byCartId = {
-      for (final line in summary.items) line.cartId: line,
-    };
+    final byCartId = {for (final line in summary.items) line.cartId: line};
     return [
       for (final item in items)
         if (byCartId[item.cartId] case final line?)
@@ -314,8 +313,10 @@ abstract final class CartMapper {
     if (!changed) return summary;
 
     final subtotal = lines.fold<double>(0, (sum, line) => sum + line.lineTotal);
-    final discounted =
-        (subtotal - summary.totalDiscount).clamp(0.0, double.infinity);
+    final discounted = (subtotal - summary.totalDiscount).clamp(
+      0.0,
+      double.infinity,
+    );
     return CartSummary(
       items: lines,
       subtotal: subtotal,
@@ -373,11 +374,12 @@ abstract final class CartMapper {
       return (isAvailable: false, label: 'Unavailable');
     }
 
-    final status = (_str(row['status']) ??
-            _str(product['status']) ??
-            _str(product['productStatus']) ??
-            '')
-        .toLowerCase();
+    final status =
+        (_str(row['status']) ??
+                _str(product['status']) ??
+                _str(product['productStatus']) ??
+                '')
+            .toLowerCase();
     if (status == 'sold' ||
         status == 'unavailable' ||
         status == 'deleted' ||
@@ -388,14 +390,15 @@ abstract final class CartMapper {
       );
     }
 
-    final raw = (_str(row['available']) ??
-            _str(row['availability']) ??
-            _str(row['availabilityStatus']) ??
-            _str(product['available']) ??
-            _str(product['availability']) ??
-            _str(product['availabilityStatus']) ??
-            '')
-        .toLowerCase();
+    final raw =
+        (_str(row['available']) ??
+                _str(row['availability']) ??
+                _str(row['availabilityStatus']) ??
+                _str(product['available']) ??
+                _str(product['availability']) ??
+                _str(product['availabilityStatus']) ??
+                '')
+            .toLowerCase();
 
     if (CatalogPurchasePolicy.isOnHoldOrMemo(raw)) {
       return (
@@ -407,14 +410,10 @@ abstract final class CartMapper {
     }
 
     return switch (raw) {
-      'hold' ||
-      'on hold' ||
-      'memo' ||
-      'on memo' =>
-        (
-          isAvailable: false,
-          label: raw == 'memo' || raw == 'on memo' ? 'On memo' : 'On hold',
-        ),
+      'hold' || 'on hold' || 'memo' || 'on memo' => (
+        isAvailable: false,
+        label: raw == 'memo' || raw == 'on memo' ? 'On memo' : 'On hold',
+      ),
       'no' ||
       'sold' ||
       'unavailable' ||
@@ -423,8 +422,10 @@ abstract final class CartMapper {
       'n/a' ||
       'na' ||
       'out of stock' ||
-      'outofstock' =>
-        (isAvailable: false, label: raw == 'sold' ? 'Sold' : 'Unavailable'),
+      'outofstock' => (
+        isAvailable: false,
+        label: raw == 'sold' ? 'Sold' : 'Unavailable',
+      ),
       _ => (isAvailable: true, label: null),
     };
   }

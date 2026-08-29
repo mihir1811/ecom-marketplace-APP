@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -83,15 +84,16 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
   }
 
   Future<ProductShareLink?> _create(ProductShareChannel channel) async {
-    final result =
-        await ref.read(productShareControllerProvider.notifier).create(
-              productType: widget.productType,
-              productId: widget.productId,
-              channel: channel,
-              includePrice: _includePrice,
-              includeImages: _includeImages,
-              includeVideos: _includeVideos,
-            );
+    final result = await ref
+        .read(productShareControllerProvider.notifier)
+        .create(
+          productType: widget.productType,
+          productId: widget.productId,
+          channel: channel,
+          includePrice: _includePrice,
+          includeImages: _includeImages,
+          includeVideos: _includeVideos,
+        );
     switch (result) {
       case Success(value: final link):
         return link;
@@ -141,7 +143,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
     if (!opened && mounted) {
       await Clipboard.setData(ClipboardData(text: link.shareUrl));
       if (!mounted) return;
-      _notify('WhatsApp unavailable — share link copied');
+      _notify(context.tr(CatalogL10n.whatsAppUnavailableCopied));
     } else if (mounted) {
       Navigator.of(context).maybePop();
     }
@@ -150,7 +152,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
   Future<void> _shareEmail() async {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      _notify('Enter a valid email address');
+      _notify(context.tr(CatalogL10n.enterValidEmail));
       return;
     }
     if (_busy) return;
@@ -160,19 +162,20 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
       if (mounted) setState(() => _busy = false);
       return;
     }
-    final result =
-        await ref.read(productShareControllerProvider.notifier).sendEmail(
-              shareId: link.id,
-              email: email,
-              name: _nameController.text.trim().isEmpty
-                  ? null
-                  : _nameController.text.trim(),
-            );
+    final result = await ref
+        .read(productShareControllerProvider.notifier)
+        .sendEmail(
+          shareId: link.id,
+          email: email,
+          name: _nameController.text.trim().isEmpty
+              ? null
+              : _nameController.text.trim(),
+        );
     if (!mounted) return;
     setState(() => _busy = false);
     switch (result) {
       case Success():
-        _notify('Share email sent to $email');
+        _notify(context.tr(CatalogL10n.shareEmailSent, {'email': email}));
         Navigator.of(context).maybePop();
       case ResultFailure(failure: final failure):
         _notify(failure.message);
@@ -188,7 +191,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
     if (link == null) return;
     await Clipboard.setData(ClipboardData(text: link.shareUrl));
     if (!mounted) return;
-    _notify('Share link copied');
+    _notify(context.tr(CatalogL10n.shareLinkCopied));
     Navigator.of(context).maybePop();
   }
 
@@ -202,7 +205,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Share product',
+            context.tr(CatalogL10n.shareProduct),
             style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
@@ -221,7 +224,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
                 ? null
                 : (v) => setState(() => _includePrice = v ?? false),
             title: Text(
-              'Price',
+              context.tr(CatalogL10n.price),
               style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
             ),
             controlAffinity: ListTileControlAffinity.leading,
@@ -235,7 +238,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
                 ? null
                 : (v) => setState(() => _includeImages = v ?? false),
             title: Text(
-              'Images',
+              context.tr(CatalogL10n.images),
               style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
             ),
             controlAffinity: ListTileControlAffinity.leading,
@@ -249,7 +252,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
                 ? null
                 : (v) => setState(() => _includeVideos = v ?? false),
             title: Text(
-              'Videos / 360°',
+              context.tr(CatalogL10n.videos360),
               style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
             ),
             controlAffinity: ListTileControlAffinity.leading,
@@ -263,7 +266,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
             )
           else ...[
             Text(
-              'Share via',
+              context.tr(CatalogL10n.shareVia),
               style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.s12),
@@ -274,7 +277,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
                 children: [
                   _ShareChannelButton(
                     icon: Icons.share_outlined,
-                    label: 'Share',
+                    label: context.tr(CatalogL10n.share),
                     onTap: _shareNative,
                   ),
                   const SizedBox(width: AppSpacing.s12),
@@ -286,13 +289,13 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
                   const SizedBox(width: AppSpacing.s12),
                   _ShareChannelButton(
                     icon: Icons.link,
-                    label: 'Copy link',
+                    label: context.tr(CatalogL10n.copyLink),
                     onTap: _copyLink,
                   ),
                   const SizedBox(width: AppSpacing.s12),
                   _ShareChannelButton(
                     icon: Icons.email_outlined,
-                    label: 'Email',
+                    label: context.tr(CatalogL10n.email),
                     onTap: () => setState(() => _showEmailForm = true),
                   ),
                 ],
@@ -301,23 +304,25 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
             if (_showEmailForm) ...[
               const Divider(height: 24),
               Text(
-                'Email recipient',
-                style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
+                context.tr(CatalogL10n.emailRecipient),
+                style: AppTypography.label.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: AppSpacing.s8),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Recipient email',
+                decoration: InputDecoration(
+                  labelText: context.tr(CatalogL10n.recipientEmail),
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: AppSpacing.s8),
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Recipient name (optional)',
+                decoration: InputDecoration(
+                  labelText: context.tr(CatalogL10n.recipientNameOptional),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -325,7 +330,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
               FilledButton.icon(
                 onPressed: _shareEmail,
                 icon: const Icon(Icons.email_outlined),
-                label: const Text('Send email'),
+                label: Text(context.tr(CatalogL10n.sendEmail)),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.charcoal,
                   foregroundColor: AppColors.warmWhite,

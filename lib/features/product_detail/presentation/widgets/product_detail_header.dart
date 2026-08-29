@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -37,14 +38,12 @@ class ProductDetailHeader extends StatelessWidget {
           Wrap(
             spacing: AppSpacing.s8,
             runSpacing: AppSpacing.s8,
-            children: [
-              for (final badge in detail.badges) _Badge(badge: badge),
-            ],
+            children: [for (final badge in detail.badges) _Badge(badge: badge)],
           ),
         ],
         const SizedBox(height: AppSpacing.s16),
         _Reference(
-          label: detail.referenceLabel,
+          label: _catalogText(context, detail.referenceLabel),
           value: detail.referenceValue,
         ),
       ],
@@ -61,21 +60,21 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (background, foreground) = switch (badge.tone) {
       ProductBadgeTone.accent => (
-          AppColors.isDark(context) ? AppColors.slateBorder : AppColors.charcoal,
-          AppColors.warmWhite,
-        ),
+        AppColors.isDark(context) ? AppColors.slateBorder : AppColors.charcoal,
+        AppColors.warmWhite,
+      ),
       ProductBadgeTone.positive => (
-          AppColors.success.withValues(alpha: 0.12),
-          AppColors.success,
-        ),
+        AppColors.success.withValues(alpha: 0.12),
+        AppColors.success,
+      ),
       ProductBadgeTone.caution => (
-          AppColors.terracotta.withValues(alpha: 0.12),
-          AppColors.terracotta,
-        ),
+        AppColors.terracotta.withValues(alpha: 0.12),
+        AppColors.terracotta,
+      ),
       ProductBadgeTone.neutral => (
-          AppColors.surface(context),
-          AppColors.textSecondary(context),
-        ),
+        AppColors.surface(context),
+        AppColors.textSecondary(context),
+      ),
     };
 
     return Container(
@@ -88,7 +87,7 @@ class _Badge extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSpacing.circular),
       ),
       child: Text(
-        badge.label,
+        _catalogText(context, badge.label),
         style: AppTypography.caption.copyWith(
           color: foreground,
           fontWeight: FontWeight.w600,
@@ -97,6 +96,16 @@ class _Badge extends StatelessWidget {
       ),
     );
   }
+}
+
+String _catalogText(BuildContext context, String value) {
+  if (value.endsWith(' certified')) {
+    return context.tr(CatalogL10n.certified, {
+      'authority': value.substring(0, value.length - 10),
+    });
+  }
+  final key = catalogDisplayMessageKeys[value];
+  return key == null ? value : context.tr(key);
 }
 
 class _Reference extends StatelessWidget {
@@ -131,7 +140,7 @@ class _Reference extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: 'Copy $label',
+          tooltip: context.tr(CatalogL10n.copyValue, {'label': label}),
           visualDensity: VisualDensity.compact,
           padding: const EdgeInsets.all(AppSpacing.s8),
           constraints: const BoxConstraints(),
@@ -143,7 +152,9 @@ class _Reference extends StatelessWidget {
             messenger?.hideCurrentSnackBar();
             messenger?.showSnackBar(
               SnackBar(
-                content: Text('$label copied'),
+                content: Text(
+                  context.tr(CatalogL10n.valueCopied, {'label': label}),
+                ),
                 duration: const Duration(seconds: 1),
               ),
             );

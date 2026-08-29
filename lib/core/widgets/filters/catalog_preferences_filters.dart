@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -37,9 +38,9 @@ class CatalogPreferencesFilters extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderColor = AppColors.border(context);
-    final showRough = roughSourceOptions != null && onRoughSourceChanged != null;
-    final showRating =
-        minSellerRating != null && onSellerRatingChanged != null;
+    final showRough =
+        roughSourceOptions != null && onRoughSourceChanged != null;
+    final showRating = minSellerRating != null && onSellerRatingChanged != null;
 
     return RepaintBoundary(
       child: Column(
@@ -50,9 +51,9 @@ class CatalogPreferencesFilters extends StatelessWidget {
           originDropdown,
           if (showRough) ...[
             const SizedBox(height: AppSpacing.s24),
-            const FilterSectionHeader(
-              title: 'Rough Source',
-              infoText: 'Filter by the mine source or rough diamond holder.',
+            FilterSectionHeader(
+              title: context.tr(CatalogL10n.roughSource),
+              infoText: context.tr(CatalogL10n.roughSourceHelp),
             ),
             const SizedBox(height: AppSpacing.s8),
             Container(
@@ -64,13 +65,13 @@ class CatalogPreferencesFilters extends StatelessWidget {
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   isExpanded: true,
-                  hint: const Text('Select rough source'),
+                  hint: Text(context.tr(CatalogL10n.selectRoughSource)),
                   value: selectedRoughSource,
                   items: roughSourceOptions!
                       .map(
                         (src) => DropdownMenuItem<String>(
                           value: src,
-                          child: Text(src),
+                          child: Text(context.trCatalogValue(src)),
                         ),
                       )
                       .toList(),
@@ -81,9 +82,9 @@ class CatalogPreferencesFilters extends StatelessWidget {
           ],
           if (showRating) ...[
             const SizedBox(height: AppSpacing.s24),
-            const FilterSectionHeader(
-              title: 'Minimum Seller Rating',
-              infoText: 'Filter based on vendor rating stars.',
+            FilterSectionHeader(
+              title: context.tr(CatalogL10n.minimumSellerRating),
+              infoText: context.tr(CatalogL10n.sellerRatingHelp),
             ),
             const SizedBox(height: AppSpacing.s8),
             Row(
@@ -107,8 +108,10 @@ class CatalogPreferencesFilters extends StatelessWidget {
                       max: 5.0,
                       divisions: 10,
                       label: minSellerRating == 0.0
-                          ? 'Any'
-                          : '${minSellerRating!.toStringAsFixed(1)}★ & up',
+                          ? context.tr(CatalogL10n.any)
+                          : context.tr(CatalogL10n.ratingAndUp, {
+                              'rating': minSellerRating!.toStringAsFixed(1),
+                            }),
                       onChanged: onSellerRatingChanged,
                     ),
                   ),
@@ -117,7 +120,7 @@ class CatalogPreferencesFilters extends StatelessWidget {
                   width: 48,
                   child: Text(
                     minSellerRating == 0.0
-                        ? 'Any'
+                        ? context.tr(CatalogL10n.any)
                         : '${minSellerRating!.toStringAsFixed(1)}★',
                     style: AppTypography.label.copyWith(
                       fontWeight: FontWeight.bold,

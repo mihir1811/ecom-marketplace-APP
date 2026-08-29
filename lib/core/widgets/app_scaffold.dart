@@ -83,23 +83,26 @@ class AppScaffold extends ConsumerWidget {
     // When a bottomNavigationBar is present, only pad that bar — otherwise
     // body bottom padding would leave a gap above the bar.
     final bodySafeBottom = safeBottom && bottomNavigationBar == null;
-    final pending =
-        ref.watch(authProvider.select((s) => s.isVerificationPending));
-    final isAuthenticated =
-        ref.watch(authProvider.select((s) => s.isAuthenticated));
+    final pending = ref.watch(
+      authProvider.select((s) => s.isVerificationPending),
+    );
+    final isAuthenticated = ref.watch(
+      authProvider.select((s) => s.isAuthenticated),
+    );
     final content = body == null
         ? null
         : pending
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const VerificationPendingBanner(),
-                  Expanded(child: body!),
-                ],
-              )
-            : body;
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const VerificationPendingBanner(),
+              Expanded(child: body!),
+            ],
+          )
+        : body;
 
-    final resolvedDrawer = drawer ??
+    final resolvedDrawer =
+        drawer ??
         (enableAppDrawer && isAuthenticated && !_parentHasDrawer(context)
             ? const BuyerDrawer()
             : null);

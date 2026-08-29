@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -22,47 +25,49 @@ class BuyerWishlistScreen extends ConsumerWidget {
     final items = wishlist.items;
 
     return BuyerLayout(
-      title: 'My Wishlist',
+      title: context.tr(AccountCommerceL10n.myWishlist),
       child: wishlist.isLoading && items.isEmpty
-              ? const Center(child: CircularProgressIndicator())
-              : wishlist.errorMessage != null && items.isEmpty
-              ? CatalogErrorState(
-                  message: wishlist.errorMessage!,
-                  onRetry: () => ref.read(wishlistProvider.notifier).refresh(),
-                )
-              : items.isEmpty
-              ? const CatalogEmptyState(
-                  icon: Icons.favorite_border,
-                  title: 'Your wishlist is empty',
-                  message:
-                      'Tap the heart on diamonds, gemstones, jewelry, watches, or bullion to save them here.',
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.all(AppSpacing.s16),
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(height: AppSpacing.s12),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return _WishlistTile(
-                      key: ValueKey(item.id),
-                      item: item,
-                      onRemove: () async {
-                        await ref
-                            .read(wishlistProvider.notifier)
-                            .remove(item.id, productType: item.productType);
-                        if (!context.mounted) return;
-                        final error = ref.read(wishlistProvider).errorMessage;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(error ?? 'Removed from wishlist'),
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      },
+          ? const Center(child: CircularProgressIndicator())
+          : wishlist.errorMessage != null && items.isEmpty
+          ? CatalogErrorState(
+              message: wishlist.errorMessage!,
+              onRetry: () => ref.read(wishlistProvider.notifier).refresh(),
+            )
+          : items.isEmpty
+          ? CatalogEmptyState(
+              icon: Icons.favorite_border,
+              title: context.tr(AccountCommerceL10n.wishlistEmpty),
+              message: context.tr(AccountCommerceL10n.wishlistEmptyHint),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              itemCount: items.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.s12),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return _WishlistTile(
+                  key: ValueKey(item.id),
+                  item: item,
+                  onRemove: () async {
+                    await ref
+                        .read(wishlistProvider.notifier)
+                        .remove(item.id, productType: item.productType);
+                    if (!context.mounted) return;
+                    final error = ref.read(wishlistProvider).errorMessage;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          error ??
+                              context.tr(AccountCommerceL10n.removedWishlist),
+                        ),
+                        duration: const Duration(seconds: 1),
+                      ),
                     );
                   },
-                ),
+                );
+              },
+            ),
     );
   }
 }
@@ -106,9 +111,9 @@ class _WishlistTileState extends ConsumerState<_WishlistTile> {
       if (!mounted) return;
       if (detail == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open this product right now.'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(context.tr(AccountCommerceL10n.productOpenFailed)),
+            duration: const Duration(seconds: 2),
           ),
         );
         return;
@@ -219,7 +224,7 @@ class _WishlistTileState extends ConsumerState<_WishlistTile> {
                 )
               else
                 IconButton(
-                  tooltip: 'Remove from wishlist',
+                  tooltip: context.tr(AccountCommerceL10n.removeWishlist),
                   onPressed: widget.onRemove,
                   icon: const Icon(Icons.favorite, color: AppColors.error),
                 ),

@@ -10,6 +10,9 @@ import '../../../../core/widgets/app_top_bar.dart';
 import '../../data/policies_repository.dart';
 import '../../domain/models/policy_document.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Index of GemWorld Terms and marketplace policies (from JSON).
 class PoliciesHubScreen extends StatefulWidget {
   const PoliciesHubScreen({super.key});
@@ -19,7 +22,17 @@ class PoliciesHubScreen extends StatefulWidget {
 }
 
 class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
-  late final Future<List<PolicyDocument>> _future = PoliciesRepository.loadAll();
+  Locale? _loadedLocale;
+  late Future<List<PolicyDocument>> _future;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = Localizations.localeOf(context);
+    if (_loadedLocale?.languageCode == locale.languageCode) return;
+    _loadedLocale = locale;
+    _future = PoliciesRepository.loadAll(locale);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +43,7 @@ class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
       appBar: SimpleAppTopBar(
-        title: 'Policies & Legal',
+        title: context.tr(RemainingL10n.policiesLegal),
         backgroundColor: AppColors.bg(context),
       ),
       body: FutureBuilder<List<PolicyDocument>>(
@@ -42,7 +55,7 @@ class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
           if (snapshot.hasError || snapshot.data == null) {
             return Center(
               child: Text(
-                'Unable to load policies.',
+                context.tr(RemainingL10n.unableLoadPolicies),
                 style: AppTypography.body.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),
@@ -73,16 +86,14 @@ class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
                     ),
                     const SizedBox(height: AppSpacing.s8),
                     Text(
-                      'Policies & Legal',
+                      context.tr(RemainingL10n.policiesLegal),
                       style: AppTypography.headline.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.s12),
                     Text(
-                      'Read the Terms and category policies that govern buying, '
-                      'selling, and bidding on GemWorld. Continued use of the '
-                      'platform means acceptance of updated policies.',
+                      context.tr(RemainingL10n.readTheTermsAndCategoryPolicies),
                       style: AppTypography.body.copyWith(
                         color: AppColors.textSecondaryLight,
                         height: 1.55,

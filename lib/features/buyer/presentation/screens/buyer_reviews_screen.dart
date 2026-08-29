@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/error/failure.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
@@ -19,67 +22,72 @@ class BuyerReviewsScreen extends ConsumerWidget {
     final async = ref.watch(mySellerReviewsProvider);
 
     return BuyerLayout(
-      title: 'My Reviews',
+      title: context.tr(AccountCommerceL10n.myReviews),
       child: RefreshIndicator(
-          onRefresh: () async => ref.invalidate(mySellerReviewsProvider),
-          child: async.when(
-            loading: () => ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: const [
-                SizedBox(height: 120),
-                Center(child: CircularProgressIndicator()),
-              ],
-            ),
-            error: (e, _) => ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(AppSpacing.s24),
-              children: [
-                Text(
-                  e is Failure ? e.message : 'Could not load reviews.',
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppSpacing.s16),
-                Center(
-                  child: FilledButton(
-                    onPressed: () => ref.invalidate(mySellerReviewsProvider),
-                    child: const Text('Retry'),
-                  ),
-                ),
-              ],
-            ),
-            data: (reviews) {
-              if (reviews.isEmpty) {
-                return ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    const SizedBox(height: 120),
-                    Center(
-                      child: Text('No reviews yet', style: AppTypography.body),
-                    ),
-                    const SizedBox(height: 12),
-                    Center(
-                      child: TextButton(
-                        onPressed: () =>
-                            context.openRoute(AppRouteNames.buyerOrders),
-                        child: const Text('View orders'),
-                      ),
-                    ),
-                  ],
-                );
-              }
-              return ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.s16),
-                itemCount: reviews.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: AppSpacing.s12),
-                itemBuilder: (context, index) {
-                  return _ReviewCard(review: reviews[index]);
-                },
-              );
-            },
+        onRefresh: () async => ref.invalidate(mySellerReviewsProvider),
+        child: async.when(
+          loading: () => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: const [
+              SizedBox(height: 120),
+              Center(child: CircularProgressIndicator()),
+            ],
           ),
+          error: (e, _) => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(AppSpacing.s24),
+            children: [
+              Text(
+                e is Failure
+                    ? e.message
+                    : context.tr(AccountCommerceL10n.reviewsLoadFailed),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.s16),
+              Center(
+                child: FilledButton(
+                  onPressed: () => ref.invalidate(mySellerReviewsProvider),
+                  child: Text(context.tr(AccountCommerceL10n.retry)),
+                ),
+              ),
+            ],
+          ),
+          data: (reviews) {
+            if (reviews.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  const SizedBox(height: 120),
+                  Center(
+                    child: Text(
+                      context.tr(AccountCommerceL10n.noReviews),
+                      style: AppTypography.body,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: TextButton(
+                      onPressed: () =>
+                          context.openRoute(AppRouteNames.buyerOrders),
+                      child: Text(context.tr(AccountCommerceL10n.viewOrders)),
+                    ),
+                  ),
+                ],
+              );
+            }
+            return ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              itemCount: reviews.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.s12),
+              itemBuilder: (context, index) {
+                return _ReviewCard(review: reviews[index]);
+              },
+            );
+          },
         ),
+      ),
     );
   }
 }
@@ -99,8 +107,9 @@ class _ReviewCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () =>
-            context.openRoute(AppRouteNames.buyerOrderDetailPath(review.orderId)),
+        onTap: () => context.openRoute(
+          AppRouteNames.buyerOrderDetailPath(review.orderId),
+        ),
         borderRadius: BorderRadius.circular(14),
         child: Ink(
           padding: const EdgeInsets.all(AppSpacing.s16),
@@ -136,7 +145,9 @@ class _ReviewCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Order ${review.orderId}',
+                context.tr(AccountCommerceL10n.orderNumber, {
+                  'order': review.orderId,
+                }),
                 style: AppTypography.caption.copyWith(
                   color: AppColors.textMuted(context),
                 ),

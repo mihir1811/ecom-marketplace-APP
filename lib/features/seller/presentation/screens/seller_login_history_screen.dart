@@ -9,6 +9,9 @@ import '../../../../core/widgets/app_dialog.dart';
 import '../../../auth/application/login_history_providers.dart';
 import '../../../auth/domain/models/login_session.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerLoginHistoryScreen extends ConsumerWidget {
   const SellerLoginHistoryScreen({super.key});
 
@@ -20,36 +23,39 @@ class SellerLoginHistoryScreen extends ConsumerWidget {
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Revoke device?'),
-        content: const Text(
-          'This will sign out the selected session on that device.',
+        title: Text(context.tr(RemainingL10n.revokeDevice)),
+        content: Text(
+          context.tr(RemainingL10n.thisWillSignOutTheSelectedSession),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(RemainingL10n.cancel)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Revoke'),
+            child: Text(context.tr(RemainingL10n.revoke)),
           ),
         ],
       ),
     );
     if (confirmed != true) return;
 
-    final result =
-        await ref.read(loginHistoryProvider.notifier).revoke(sessionId);
+    final result = await ref
+        .read(loginHistoryProvider.notifier)
+        .revoke(sessionId);
     if (!context.mounted) return;
     switch (result) {
       case Success():
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Device session revoked')),
+          SnackBar(
+            content: Text(context.tr(RemainingL10n.deviceSessionRevoked)),
+          ),
         );
       case ResultFailure(:final failure):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -75,22 +81,23 @@ class SellerLoginHistoryScreen extends ConsumerWidget {
                   child: Center(child: CircularProgressIndicator()),
                 )
               else ...[
-                const _SectionHeader(title: 'Active seller devices'),
+                _SectionHeader(
+                  title: context.tr(RemainingL10n.activeSellerDevices),
+                ),
                 if (state.activeDevices.isEmpty)
-                  const _EmptyHint(text: 'No active seller dashboard devices.')
+                  _EmptyHint(text: 'No active seller dashboard devices.')
                 else
                   for (final device in state.activeDevices)
                     _DeviceTile(
                       title: device.deviceInfo,
-                      subtitle:
-                          '${device.ipAddress} · ${device.loginAtLabel}',
+                      subtitle: '${device.ipAddress} · ${device.loginAtLabel}',
                       trailing: device.isRemembered ? 'Remembered' : null,
                       onRevoke: state.isMutating
                           ? null
                           : () => _revoke(context, ref, device.id),
                     ),
                 const SizedBox(height: 24),
-                const _SectionHeader(title: 'Login history'),
+                _SectionHeader(title: context.tr(RemainingL10n.loginHistory)),
                 if (state.sessions.isEmpty)
                   const _EmptyHint(text: 'No login history yet.')
                 else
@@ -170,7 +177,10 @@ class _DeviceTile extends StatelessWidget {
         subtitle: Text(subtitle),
         trailing: onRevoke == null
             ? (trailing != null ? Text(trailing!) : null)
-            : TextButton(onPressed: onRevoke, child: const Text('Revoke')),
+            : TextButton(
+                onPressed: onRevoke,
+                child: Text(context.tr(RemainingL10n.revoke)),
+              ),
       ),
     );
   }
@@ -199,7 +209,10 @@ class _SessionTile extends StatelessWidget {
         isThreeLine: true,
         trailing: onRevoke == null
             ? null
-            : TextButton(onPressed: onRevoke, child: const Text('Revoke')),
+            : TextButton(
+                onPressed: onRevoke,
+                child: Text(context.tr(RemainingL10n.revoke)),
+              ),
       ),
     );
   }

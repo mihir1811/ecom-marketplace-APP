@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import '../l10n/translations/remaining_messages.dart';
+import '../l10n/app_localizations.dart';
 
 /// Single-select sort bottom sheet used by watches / jewelry / brand watches.
 Future<T?> showSimpleSortSheet<T>({
@@ -10,7 +12,7 @@ Future<T?> showSimpleSortSheet<T>({
   required List<T> options,
   required String Function(T) labelOf,
   required T current,
-  String title = 'Sort by',
+  String? title,
   ShapeBorder? shape,
 }) {
   return showModalBottomSheet<T>(
@@ -26,8 +28,10 @@ Future<T?> showSimpleSortSheet<T>({
             Padding(
               padding: const EdgeInsets.all(AppSpacing.s16),
               child: Text(
-                title,
-                style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+                title ?? context.tr(RemainingL10n.sortBy),
+                style: AppTypography.title.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             for (final option in options)

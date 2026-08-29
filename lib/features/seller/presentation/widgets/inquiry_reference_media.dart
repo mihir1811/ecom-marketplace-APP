@@ -6,6 +6,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import 'inquiry_form_fields.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Photo/video source toggles shared by every inquiry category form.
 class InquiryReferenceMedia extends StatelessWidget {
   const InquiryReferenceMedia({
@@ -37,42 +40,42 @@ class InquiryReferenceMedia extends StatelessWidget {
         final stacked = constraints.maxWidth < 640;
         final photo = _slot(
           context,
-          title: 'Photo',
+          title: context.tr(RemainingL10n.photo),
           fromUrl: _photoFromUrl,
           onSource: (v) {
             controller('photoSource').text = v;
             onChanged?.call(v);
           },
           urlField: InquiryTextField(
-            label: 'Photo URL',
+            label: context.tr(RemainingL10n.photoUrl),
             controller: controller(photoUrlKey),
             hint: 'https://example.com/image.jpg',
             onChanged: onChanged,
           ),
           fileField: InquiryImagePickerField(
-            label: 'Choose file',
-            helperText: 'JPEG, PNG, WebP, GIF, max 5MB',
+            label: context.tr(RemainingL10n.chooseFile),
+            helperText: context.tr(RemainingL10n.jpegPngWebpGifMax5Mb),
             images: referenceImages,
             onChanged: onReferenceImages,
           ),
         );
         final video = _slot(
           context,
-          title: 'Video',
+          title: context.tr(RemainingL10n.video),
           fromUrl: _videoFromUrl,
           onSource: (v) {
             controller('videoSource').text = v;
             onChanged?.call(v);
           },
           urlField: InquiryTextField(
-            label: 'Video URL',
+            label: context.tr(RemainingL10n.videoUrl),
             controller: controller(videoUrlKey),
             hint: 'https://example.com/video.mp4',
             onChanged: onChanged,
           ),
           fileField: InquiryVideoPickerField(
-            label: 'Choose file',
-            helperText: 'MP4, WebM, MOV, AVI — max 50MB',
+            label: context.tr(RemainingL10n.chooseFile),
+            helperText: context.tr(RemainingL10n.mp4WebmMovAviMax50Mb),
             fileName: controller('videoFileName').text,
             onPicked: (name) {
               controller('videoFileName').text = name;
@@ -95,7 +98,10 @@ class InquiryReferenceMedia extends StatelessWidget {
     );
 
     if (embedded) return body;
-    return InquirySectionCard(title: 'Reference media', child: body);
+    return InquirySectionCard(
+      title: context.tr(RemainingL10n.referenceMedia),
+      child: body,
+    );
   }
 
   Widget _slot(
@@ -121,9 +127,9 @@ class InquiryReferenceMedia extends StatelessWidget {
           const SizedBox(height: 6),
           InquirySegmentedField(
             value: fromUrl ? 'url' : 'device',
-            options: const [
-              (value: 'device', label: 'From device'),
-              (value: 'url', label: 'From URL'),
+            options: [
+              (value: 'device', label: context.tr(RemainingL10n.fromDevice)),
+              (value: 'url', label: context.tr(RemainingL10n.fromUrl)),
             ],
             onChanged: onSource,
           ),

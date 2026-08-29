@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
@@ -27,7 +28,7 @@ class DiamondListingStatsBar extends ConsumerWidget {
     if (diamonds == null || diamonds.isEmpty) return const SizedBox.shrink();
 
     final stats = DiamondListingSummaryStats.fromDiamonds(diamonds);
-    final tiles = _tiles(stats);
+    final tiles = _tiles(context, stats);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.s8),
@@ -47,28 +48,29 @@ class DiamondListingStatsBar extends ConsumerWidget {
   }
 
   static List<({String label, String value})> _tiles(
+    BuildContext context,
     DiamondListingSummaryStats stats,
   ) {
     return [
-      (label: 'PCS', value: '${stats.pcs}'),
+      (label: context.tr(CatalogL10n.pcsShort), value: '${stats.pcs}'),
       (
-        label: 'TOTAL CT',
+        label: context.tr(CatalogL10n.totalCtShort),
         value: '${stats.totalCarat.toStringAsFixed(2)} ct',
       ),
       (
-        label: 'P/CT',
+        label: context.tr(CatalogL10n.pricePerCtShort),
         value: AppCurrency.format(
           formatGroupedWhole(stats.pricePerCarat.roundToDouble()),
         ),
       ),
       (
-        label: 'TOTAL',
+        label: context.tr(CatalogL10n.total),
         value: AppCurrency.format(
           formatGroupedWhole(stats.totalPrice.roundToDouble()),
         ),
       ),
       (
-        label: 'AVG TOTAL',
+        label: context.tr(CatalogL10n.averageTotal),
         value: AppCurrency.format(
           formatGroupedWhole(stats.avgTotal.roundToDouble()),
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -112,7 +113,7 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
         children: [
           _section(
             'shape',
-            'Shape',
+            context.tr(CatalogL10n.shape),
             _chipGrid(
               BullionsFilterState.shapeOptions,
               draft.shapes,
@@ -121,9 +122,9 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
           ),
           _section(
             'price',
-            'Price Range',
+            context.tr(CatalogL10n.priceRange),
             _rangeInputs(
-              label: 'Current Range',
+              label: context.tr(CatalogL10n.currentRange),
               minKey: 'priceMin',
               maxKey: 'priceMax',
               minLabel: 'Min (\$)',
@@ -136,7 +137,7 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
           ),
           _section(
             'weight',
-            'Weight',
+            context.tr(CatalogL10n.weight),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -165,7 +166,7 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
                 ),
                 const SizedBox(height: AppSpacing.s12),
                 _rangeInputs(
-                  label: 'Current Range',
+                  label: context.tr(CatalogL10n.currentRange),
                   minKey: 'weightMin',
                   maxKey: 'weightMax',
                   minLabel: 'Min',
@@ -180,9 +181,9 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
           ),
           _section(
             'quantity',
-            'Quantity',
+            context.tr(CatalogL10n.quantity),
             _rangeInputs(
-              label: 'Current Range',
+              label: context.tr(CatalogL10n.currentRange),
               minKey: 'quantityMin',
               maxKey: 'quantityMax',
               minLabel: 'Min',
@@ -195,7 +196,7 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
           ),
           _section(
             'condition',
-            'Condition',
+            context.tr(CatalogL10n.condition),
             _chipGrid(
               BullionsFilterState.conditionOptions,
               draft.conditions,
@@ -213,7 +214,7 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
           ),
           _section(
             'mint',
-            'Mint Mark',
+            context.tr(CatalogL10n.mintMark),
             _chipGrid(
               BullionsFilterState.mintMarkOptions,
               draft.mintMarks,
@@ -222,12 +223,12 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
           ),
           _section(
             'dimensions',
-            'Dimensions',
+            context.tr(CatalogL10n.dimensions),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _rangeInputs(
-                  label: 'Length',
+                  label: context.tr(CatalogL10n.length),
                   minKey: 'lengthMin',
                   maxKey: 'lengthMax',
                   minLabel: 'Min',
@@ -238,7 +239,7 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
                   ),
                 ),
                 _rangeInputs(
-                  label: 'Width',
+                  label: context.tr(CatalogL10n.width),
                   minKey: 'widthMin',
                   maxKey: 'widthMax',
                   minLabel: 'Min',
@@ -249,7 +250,7 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
                   ),
                 ),
                 _rangeInputs(
-                  label: 'Height',
+                  label: context.tr(CatalogL10n.height),
                   minKey: 'heightMin',
                   maxKey: 'heightMax',
                   minLabel: 'Min',
@@ -384,10 +385,14 @@ class _SelectableChip extends StatelessWidget {
           vertical: AppSpacing.s8,
         ),
         decoration: BoxDecoration(
-          color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
+          color: selected
+              ? AppColors.selectedFill(context)
+              : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: selected ? AppColors.selectedFill(context) : AppColors.border(context),
+            color: selected
+                ? AppColors.selectedFill(context)
+                : AppColors.border(context),
           ),
         ),
         child: Text(
@@ -428,10 +433,14 @@ class _MiniChip extends StatelessWidget {
           vertical: AppSpacing.s8,
         ),
         decoration: BoxDecoration(
-          color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
+          color: selected
+              ? AppColors.selectedFill(context)
+              : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: selected ? AppColors.selectedFill(context) : AppColors.border(context),
+            color: selected
+                ? AppColors.selectedFill(context)
+                : AppColors.border(context),
           ),
         ),
         child: Text(

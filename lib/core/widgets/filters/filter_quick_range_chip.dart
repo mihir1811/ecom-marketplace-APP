@@ -19,8 +19,7 @@ class FilterQuickRangeChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final fill = AppColors.selectedFill(context);
     final onFill = AppColors.onSelected(context);
-    final containerBorderColor =
-        isSelected ? fill : AppColors.border(context);
+    final containerBorderColor = isSelected ? fill : AppColors.border(context);
 
     return GestureDetector(
       onTap: onTap,

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/catalog_listing_header_row.dart';
 import '../../../../core/widgets/catalog_screen_shell.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
-import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../application/watch_filter_provider.dart';
 import '../../application/watch_list_provider.dart';
 import '../../domain/models/watch_filter_state.dart';
@@ -64,7 +64,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
     return CatalogScreenShell(
       scaffoldKey: _scaffoldKey,
       endDrawer: const WatchFilterDrawer(),
-      title: 'Luxury Watches',
+      title: context.tr(CatalogL10n.luxuryWatches),
       child: ComparisonTrayHost(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -118,7 +118,7 @@ class _WatchSearchBar extends ConsumerWidget {
 
     return ListingSearchFilterBar(
       controller: searchController,
-      hintText: 'Search for luxury watches...',
+      hintText: context.tr(CatalogL10n.searchWatches),
       mutedColor: AppColors.textMuted(context),
       activeFilterCount: activeFilterCount,
       onFilterTap: onOpenFilters,
@@ -143,85 +143,31 @@ class _WatchHeaderRow extends ConsumerWidget {
       watchListProvider.select((value) {
         final listState = value.valueOrNull;
         return listState == null || listState.isInitialLoading
-            ? 'Loading…'
-            : 'Showing ${listState.totalCount} Products';
+            ? context.tr(CatalogL10n.loading)
+            : context.tr(CatalogL10n.showingProducts, {
+                'count': listState.totalCount,
+              });
       }),
     );
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.s8),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s8,
-              AppSpacing.s16,
-              AppSpacing.s4,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: TextButton.icon(
-                    onPressed: () =>
-                        showSimpleSortSheet<WatchSortOption>(
-                          context: context,
-                          options: WatchSortOption.values,
-                          labelOf: (o) => o.label,
-                          current: ref.read(watchSortProvider),
-                        ).then((selected) {
-                          if (selected != null) {
-                            ref.read(watchSortProvider.notifier).state =
-                                selected;
-                          }
-                        }),
-                    icon: const Icon(Icons.sort, size: 18),
-                    label: Text(
-                      'Sort by: $sortLabel',
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.caption.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary(context),
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary(context),
-                      padding: EdgeInsets.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                ),
-                ViewModeToggle(
-                  isGrid: isGrid,
-                  onGrid: () => ref.read(watchViewModeProvider.notifier).state =
-                      WatchViewMode.grid,
-                  onList: () => ref.read(watchViewModeProvider.notifier).state =
-                      WatchViewMode.list,
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              0,
-              AppSpacing.s16,
-              AppSpacing.s8,
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                countLabel,
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textMuted(context),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+    return CatalogListingHeaderRow(
+      sortLabel: sortLabel,
+      onSortTap: () => showSimpleSortSheet<WatchSortOption>(
+        context: context,
+        options: WatchSortOption.values,
+        labelOf: (o) => o.label,
+        current: ref.read(watchSortProvider),
+      ).then((selected) {
+        if (selected != null) {
+          ref.read(watchSortProvider.notifier).state = selected;
+        }
+      }),
+      isGrid: isGrid,
+      onGrid: () =>
+          ref.read(watchViewModeProvider.notifier).state = WatchViewMode.grid,
+      onList: () =>
+          ref.read(watchViewModeProvider.notifier).state = WatchViewMode.list,
+      countLabel: countLabel,
     );
   }
 }
@@ -257,9 +203,9 @@ class _WatchResultsSliver extends ConsumerWidget {
       return SliverFillRemaining(
         child: CatalogEmptyState(
           icon: Icons.watch_outlined,
-          title: 'No watches match your filters',
-          message: 'Try adjusting brand, price, or style filters.',
-          actionLabel: 'Clear filters',
+          title: context.tr(CatalogL10n.noWatches),
+          message: context.tr(CatalogL10n.adjustWatchFilters),
+          actionLabel: context.tr(CatalogL10n.clearAll),
           onAction: () {
             ref.read(watchFilterProvider.notifier).reset();
             searchController.clear();

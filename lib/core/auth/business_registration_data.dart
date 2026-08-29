@@ -1,16 +1,15 @@
 import 'package:image_picker/image_picker.dart';
 
+import '../l10n/translations/account_commerce_messages.dart';
+
 /// Account path chosen on the registration screen.
-enum RegistrationAccountType {
-  individual,
-  business,
-}
+enum RegistrationAccountType { individual, business }
 
 extension RegistrationAccountTypeApi on RegistrationAccountType {
   String get apiValue => switch (this) {
-        RegistrationAccountType.individual => 'individual',
-        RegistrationAccountType.business => 'business',
-      };
+    RegistrationAccountType.individual => 'individual',
+    RegistrationAccountType.business => 'business',
+  };
 }
 
 /// Seller catalogue categories accepted by `/auth/register` for business.
@@ -26,32 +25,33 @@ enum SellerType {
 extension SellerTypeApi on SellerType {
   String get apiValue => name;
 
-  String get label => switch (this) {
-        SellerType.naturalDiamond => 'Natural diamond',
-        SellerType.labGrownDiamond => 'Lab-grown diamond',
-        SellerType.jewellery => 'Jewellery',
-        SellerType.gemstone => 'Gemstone',
-        SellerType.bullion => 'Bullion',
-        SellerType.watch => 'Watch',
-      };
+  String get labelKey => switch (this) {
+    SellerType.naturalDiamond => AccountCommerceL10n.naturalDiamond,
+    SellerType.labGrownDiamond => AccountCommerceL10n.labGrownDiamond,
+    SellerType.jewellery => AccountCommerceL10n.jewellery,
+    SellerType.gemstone => AccountCommerceL10n.compareGemstone,
+    SellerType.bullion => AccountCommerceL10n.bullion,
+    SellerType.watch => AccountCommerceL10n.compareWatch,
+  };
+
+  String get label => AccountCommerceL10n.english(labelKey);
 }
 
 /// Bank account types accepted by business registration.
-enum BankAccountType {
-  savings,
-  current,
-}
+enum BankAccountType { savings, current }
 
 extension BankAccountTypeApi on BankAccountType {
   String get apiValue => switch (this) {
-        BankAccountType.savings => 'SAVINGS',
-        BankAccountType.current => 'CURRENT',
-      };
+    BankAccountType.savings => 'SAVINGS',
+    BankAccountType.current => 'CURRENT',
+  };
 
-  String get label => switch (this) {
-        BankAccountType.savings => 'Savings',
-        BankAccountType.current => 'Current',
-      };
+  String get labelKey => switch (this) {
+    BankAccountType.savings => AccountCommerceL10n.savings,
+    BankAccountType.current => AccountCommerceL10n.current,
+  };
+
+  String get label => AccountCommerceL10n.english(labelKey);
 }
 
 /// Extra fields required when [RegistrationAccountType.business] is selected.

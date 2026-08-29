@@ -43,19 +43,13 @@ class _HomeCategoryTileState extends State<HomeCategoryTile> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              AppNetworkImage(
-                url: widget.imageUrl,
-                memCacheWidth: 700,
-              ),
+              AppNetworkImage(url: widget.imageUrl, memCacheWidth: 700),
               const DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0x1A111827),
-                      Color(0xCC111827),
-                    ],
+                    colors: [Color(0x1A111827), Color(0xCC111827)],
                   ),
                 ),
               ),
@@ -81,7 +75,8 @@ class _HomeCategoryTileState extends State<HomeCategoryTile> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.warmWhite.withValues(alpha: 0.82),
+                        color: AppColors.warmWhite.withValues(alpha: 0.94),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

@@ -6,6 +6,8 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../domain/models/wallet.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 /// Balance summary for the wallet home screen.
 class WalletBalanceCard extends StatelessWidget {
@@ -16,7 +18,9 @@ class WalletBalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Wallet balance ${AppCurrency.inr(wallet.balance)}',
+      label: context.tr(RemainingL10n.walletBalanceAmount, {
+        'amount': AppCurrency.inr(wallet.balance),
+      }),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(AppSpacing.s24),
@@ -31,7 +35,7 @@ class WalletBalanceCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Available balance',
+              context.tr(RemainingL10n.availableBalance),
               style: AppTypography.caption.copyWith(
                 color: AppColors.warmWhite.withValues(alpha: 0.72),
               ),

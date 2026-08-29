@@ -30,9 +30,7 @@ class SearchActionBottomBar extends StatelessWidget {
         return Container(
           decoration: BoxDecoration(
             color: color,
-            border: Border(
-              top: BorderSide(color: AppColors.border(context)),
-            ),
+            border: Border(top: BorderSide(color: AppColors.border(context))),
             boxShadow: AppShadows.modalLight,
           ),
           padding: const EdgeInsets.symmetric(
@@ -51,7 +49,9 @@ class SearchActionBottomBar extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.textSecondary(context),
                   side: BorderSide(color: AppColors.border(context)),
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s8,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
@@ -79,7 +79,9 @@ class SearchActionBottomBar extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.charcoal,
                   foregroundColor: AppColors.warmWhite,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s8,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),

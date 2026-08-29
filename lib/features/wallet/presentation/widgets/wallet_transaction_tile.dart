@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -63,19 +65,19 @@ class WalletTransactionTile extends StatelessWidget {
                     transaction.note!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondary(context),
-                  ),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textSecondary(context),
+                    ),
                   ),
                 ],
                 if (dateLabel != null) ...[
                   const SizedBox(height: AppSpacing.s4),
                   Text(
-                dateLabel,
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textMuted(context),
-                ),
-              ),
+                    dateLabel,
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textMuted(context),
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -92,7 +94,9 @@ class WalletTransactionTile extends StatelessWidget {
                 ),
               ),
               Text(
-                'Bal ${AppCurrency.inr(transaction.balanceAfter)}',
+                context.tr(RemainingL10n.balanceAfterAmount, {
+                  'amount': AppCurrency.inr(transaction.balanceAfter),
+                }),
                 style: AppTypography.caption.copyWith(
                   color: AppColors.textMuted(context),
                 ),

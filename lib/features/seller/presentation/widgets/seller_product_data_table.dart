@@ -5,6 +5,9 @@ import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/seller_product.dart';
 import '../../domain/models/seller_product_column.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerProductDataTable extends StatefulWidget {
   const SellerProductDataTable({
     required this.products,
@@ -50,8 +53,10 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
     if (widget.columns.isEmpty) {
       return Center(
         child: Text(
-          'Select columns using the column picker.',
-          style: AppTypography.body.copyWith(color: AppColors.textMuted(context)),
+          context.tr(RemainingL10n.selectColumnsUsingTheColumnPicker),
+          style: AppTypography.body.copyWith(
+            color: AppColors.textMuted(context),
+          ),
         ),
       );
     }
@@ -59,7 +64,8 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
     final products = widget.products;
     final columns = widget.columns;
     final selectedIds = widget.selectedIds;
-    final allSelected = products.isNotEmpty &&
+    final allSelected =
+        products.isNotEmpty &&
         products.every((p) => selectedIds.contains(p.id));
     final someSelected = products.any((p) => selectedIds.contains(p.id));
 
@@ -106,8 +112,8 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
                                     value: allSelected
                                         ? true
                                         : someSelected
-                                            ? null
-                                            : false,
+                                        ? null
+                                        : false,
                                     onChanged: (v) =>
                                         widget.onToggleSelectAll(v ?? false),
                                   )
@@ -126,11 +132,7 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
                               DataCell(
                                 SizedBox(
                                   width: _widthFor(col.id),
-                                  child: _cellFor(
-                                    context,
-                                    col.id,
-                                    product,
-                                  ),
+                                  child: _cellFor(context, col.id, product),
                                 ),
                               ),
                           ],
@@ -155,8 +157,7 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
       'image3' ||
       'image4' ||
       'image5' ||
-      'image6' =>
-        _imageWidth,
+      'image6' => _imageWidth,
       'stock_number' => 130,
       'certificate_number' => 150,
       'updated_at' || 'created_at' => 150,
@@ -164,7 +165,11 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
     };
   }
 
-  Widget _cellFor(BuildContext context, String columnId, SellerProduct product) {
+  Widget _cellFor(
+    BuildContext context,
+    String columnId,
+    SellerProduct product,
+  ) {
     if (columnId == 'selection') {
       return Checkbox(
         value: widget.selectedIds.contains(product.id),
@@ -177,18 +182,19 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
         children: [
           _ActionIcon(
             icon: Icons.visibility_outlined,
-            tooltip: 'View',
+            tooltip: context.tr(RemainingL10n.view),
             onPressed: () {},
           ),
           _ActionIcon(
             icon: Icons.edit_outlined,
-            tooltip: 'Edit',
-            onPressed:
-                widget.onEdit == null ? null : () => widget.onEdit!(product),
+            tooltip: context.tr(RemainingL10n.edit),
+            onPressed: widget.onEdit == null
+                ? null
+                : () => widget.onEdit!(product),
           ),
           _ActionIcon(
             icon: Icons.delete_outline,
-            tooltip: 'Delete',
+            tooltip: context.tr(RemainingL10n.delete),
             color: AppColors.error,
             onPressed: widget.onDelete == null
                 ? null
@@ -217,7 +223,9 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
     if (columnId == 'is_on_auction' || columnId == 'is_sold') {
       final yes = product.field(columnId)?.toLowerCase() == 'yes';
       return _StatusPill(
-        label: yes ? 'Yes' : 'No',
+        label: yes
+            ? context.tr(RemainingL10n.yes)
+            : context.tr(RemainingL10n.no),
         highlighted: yes,
       );
     }
@@ -232,10 +240,11 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              foregroundColor:
-                  expired ? AppColors.textMuted(context) : AppColors.info,
+              foregroundColor: expired
+                  ? AppColors.textMuted(context)
+                  : AppColors.info,
             ),
-            child: const Text('Active'),
+            child: Text(context.tr(RemainingL10n.active)),
           ),
           TextButton(
             onPressed: expired ? () {} : null,
@@ -243,10 +252,11 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              foregroundColor:
-                  expired ? AppColors.textPrimary(context) : AppColors.textMuted(context),
+              foregroundColor: expired
+                  ? AppColors.textPrimary(context)
+                  : AppColors.textMuted(context),
             ),
-            child: const Text('Expire'),
+            child: Text(context.tr(RemainingL10n.expire)),
           ),
         ],
       );
@@ -289,7 +299,9 @@ class _StatusPill extends StatelessWidget {
         label,
         style: AppTypography.caption.copyWith(
           fontWeight: FontWeight.w600,
-          color: highlighted ? AppColors.info : AppColors.textSecondary(context),
+          color: highlighted
+              ? AppColors.info
+              : AppColors.textSecondary(context),
         ),
       ),
     );
@@ -313,7 +325,11 @@ class _ActionIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       tooltip: tooltip,
-      icon: Icon(icon, size: 18, color: color ?? AppColors.textPrimary(context)),
+      icon: Icon(
+        icon,
+        size: 18,
+        color: color ?? AppColors.textPrimary(context),
+      ),
       padding: const EdgeInsets.all(6),
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
       onPressed: onPressed,

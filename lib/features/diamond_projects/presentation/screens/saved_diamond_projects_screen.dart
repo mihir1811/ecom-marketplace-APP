@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -62,11 +63,13 @@ class _SavedDiamondProjectsScreenState
 
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
-      appBar: const SimpleAppTopBar(title: 'Saved projects'),
+      appBar: SimpleAppTopBar(title: context.tr(CatalogL10n.savedProjects)),
       body: async.when(
         loading: () => const CatalogListLoading(isGrid: false),
         error: (error, _) => CatalogErrorState(
-          message: error is Failure ? error.message : 'Could not load projects.',
+          message: error is Failure
+              ? error.message
+              : context.tr(CatalogL10n.loadProjectsError),
           onRetry: () =>
               ref.read(diamondProjectListProvider.notifier).loadFirstPage(),
         ),
@@ -82,11 +85,10 @@ class _SavedDiamondProjectsScreenState
             );
           }
           if (state.items.isEmpty) {
-            return const CatalogEmptyState(
+            return CatalogEmptyState(
               icon: Icons.folder_outlined,
-              title: 'No saved projects',
-              message:
-                  'Select the current listing page and tap Save now to keep a project.',
+              title: context.tr(CatalogL10n.noSavedProjects),
+              message: context.tr(CatalogL10n.savedProjectsHelp),
             );
           }
           return RefreshIndicator(
@@ -122,8 +124,9 @@ class _SavedDiamondProjectsScreenState
 
   Future<void> _open(DiamondProject project) async {
     setState(() => _openingId = project.id);
-    final result =
-        await ref.read(diamondProjectListProvider.notifier).fetchOne(project.id);
+    final result = await ref
+        .read(diamondProjectListProvider.notifier)
+        .fetchOne(project.id);
     if (!mounted) return;
     setState(() => _openingId = null);
     switch (result) {
@@ -131,9 +134,9 @@ class _SavedDiamondProjectsScreenState
         ref.read(diamondProjectSelectionProvider.notifier).hydrate(loaded);
         context.push(AppRouteNames.diamondProject);
       case ResultFailure(failure: final failure):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -141,16 +144,18 @@ class _SavedDiamondProjectsScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete project'),
-        content: Text('Delete ${project.name}? This cannot be undone.'),
+        title: Text(context.tr(CatalogL10n.deleteProject)),
+        content: Text(
+          context.tr(CatalogL10n.deleteProjectConfirm, {'name': project.name}),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(CatalogL10n.cancel)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: Text(context.tr(CatalogL10n.delete)),
           ),
         ],
       ),
@@ -160,10 +165,12 @@ class _SavedDiamondProjectsScreenState
       await ref.read(diamondProjectListProvider.notifier).remove(project.id);
     } catch (error) {
       if (!mounted) return;
-      final message = error is Failure ? error.message : 'Could not delete.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      final message = error is Failure
+          ? error.message
+          : context.tr(CatalogL10n.deleteProjectError);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 }
@@ -185,9 +192,9 @@ class _ProjectTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: ListTile(
         onTap: opening ? null : onOpen,
@@ -198,7 +205,11 @@ class _ProjectTile extends StatelessWidget {
           style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
         ),
         subtitle: Text(
-          '${project.itemCount} stones · ${project.totalCarat.toStringAsFixed(2)} ct · ${AppCurrency.usd(project.totalPrice, decimals: 0)}',
+          context.tr(CatalogL10n.projectSummary, {
+            'count': project.itemCount,
+            'carat': project.totalCarat.toStringAsFixed(2),
+            'price': AppCurrency.usd(project.totalPrice, decimals: 0),
+          }),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
@@ -213,7 +224,7 @@ class _ProjectTile extends StatelessWidget {
               )
             else
               IconButton(
-                tooltip: 'Delete project',
+                tooltip: context.tr(CatalogL10n.deleteProject),
                 onPressed: onDelete,
                 icon: const Icon(Icons.delete_outline),
               ),

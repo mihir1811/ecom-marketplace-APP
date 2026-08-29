@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^2.5.1
@@ -75,6 +77,8 @@ flutter:
     - public/images/watch_logo/
     - assets/shapes/
     - assets/policies/policies.json
+    - assets/policies/policies_hi.json
+    - assets/policies/policies_gu.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

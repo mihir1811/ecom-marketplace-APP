@@ -12,6 +12,9 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_thread.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerChatListScreen extends ConsumerStatefulWidget {
   const SellerChatListScreen({super.key});
 
@@ -72,7 +75,7 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
               onChanged: (v) => setState(() => _query = v.trim()),
               style: AppTypography.body,
               decoration: InputDecoration(
-                hintText: 'Search conversations',
+                hintText: context.tr(RemainingL10n.searchConversations),
                 hintStyle: AppTypography.body.copyWith(
                   color: AppColors.textMuted(context),
                 ),
@@ -95,8 +98,8 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
               ),
             ),
           ),
-            const SizedBox(height: AppSpacing.s12),
-            Expanded(child: _body(state, threads)),
+          const SizedBox(height: AppSpacing.s12),
+          Expanded(child: _body(state, threads)),
         ],
       ),
     );
@@ -115,10 +118,12 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
     if (threads.isEmpty) {
       return CatalogEmptyState(
         icon: Icons.forum_outlined,
-        title: _query.isEmpty ? 'No messages yet' : 'No matches',
+        title: _query.isEmpty
+            ? context.tr(RemainingL10n.noMessages)
+            : context.tr(RemainingL10n.noMatches),
         message: _query.isEmpty
-            ? 'Conversations about products will appear here.'
-            : 'Try a different name or product.',
+            ? context.tr(RemainingL10n.noMessagesBody)
+            : context.tr(RemainingL10n.differentSearch),
       );
     }
 
@@ -139,10 +144,7 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
           return _ThreadTile(
             thread: thread,
             onTap: () => context.openRoute(
-              chatDetailPathFor(
-                GoRouterState.of(context).uri.path,
-                thread.id,
-              ),
+              chatDetailPathFor(GoRouterState.of(context).uri.path, thread.id),
             ),
           );
         },
@@ -164,7 +166,9 @@ class _ThreadTile extends StatelessWidget {
         : thread.peerName.trim().characters.first.toUpperCase();
     final unread = thread.unreadCount > 0;
     final borderColor = unread
-        ? AppColors.bronze.withValues(alpha: AppColors.isDark(context) ? 0.7 : 0.45)
+        ? AppColors.bronze.withValues(
+            alpha: AppColors.isDark(context) ? 0.7 : 0.45,
+          )
         : AppColors.border(context);
 
     return Material(
@@ -214,7 +218,7 @@ class _ThreadTile extends StatelessWidget {
                         ),
                         const SizedBox(width: AppSpacing.s8),
                         Text(
-                          _relativeTime(thread.lastMessageAt),
+                          _relativeTime(context, thread.lastMessageAt),
                           style: AppTypography.caption.copyWith(
                             color: AppColors.textMuted(context),
                           ),
@@ -236,13 +240,16 @@ class _ThreadTile extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            thread.lastMessage.isEmpty ? '—' : thread.lastMessage,
+                            thread.lastMessage.isEmpty
+                                ? '—'
+                                : thread.lastMessage,
                             style: AppTypography.body.copyWith(
                               color: unread
                                   ? AppColors.textPrimary(context)
                                   : AppColors.textSecondary(context),
-                              fontWeight:
-                                  unread ? FontWeight.w600 : FontWeight.w400,
+                              fontWeight: unread
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
                               fontSize: 13,
                             ),
                             maxLines: 2,
@@ -259,8 +266,9 @@ class _ThreadTile extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.bronze,
-                              borderRadius:
-                                  BorderRadius.circular(AppSpacing.r16),
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.r16,
+                              ),
                             ),
                             child: Text(
                               thread.unreadCount > 99
@@ -288,11 +296,11 @@ class _ThreadTile extends StatelessWidget {
   }
 }
 
-String _relativeTime(DateTime date) {
+String _relativeTime(BuildContext context, DateTime date) {
   final local = date.toLocal();
   final now = DateTime.now();
   final diff = now.difference(local);
-  if (diff.inMinutes < 1) return 'Now';
+  if (diff.inMinutes < 1) return context.tr(RemainingL10n.now);
   if (diff.inHours < 1) return '${diff.inMinutes}m';
   if (diff.inHours < 24) return '${diff.inHours}h';
   if (diff.inDays < 7) return '${diff.inDays}d';

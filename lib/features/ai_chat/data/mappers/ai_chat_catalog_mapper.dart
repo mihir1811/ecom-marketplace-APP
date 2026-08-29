@@ -7,8 +7,7 @@ import '../../../jewelry/domain/models/jewelry.dart';
 abstract final class AiChatCatalogMapper {
   static Diamond toDiamond(AiChatProduct product) {
     final imageUrl = product.imageUrl?.trim();
-    final hasImage =
-        imageUrl != null && imageUrl.isNotEmpty;
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
     return Diamond(
       id: product.id,
       shape: product.shape?.trim().isNotEmpty == true
@@ -35,8 +34,7 @@ abstract final class AiChatCatalogMapper {
 
   static Gemstone toGemstone(AiChatProduct product) {
     final imageUrl = product.imageUrl?.trim();
-    final hasImage =
-        imageUrl != null && imageUrl.isNotEmpty;
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
     return Gemstone(
       id: product.id,
       type: product.title.trim().isEmpty ? 'Gemstone' : product.title.trim(),
@@ -92,7 +90,10 @@ abstract final class AiChatCatalogMapper {
   }
 
   static bool _isMelee(AiChatProduct product) {
-    final type = product.productType.toLowerCase().replaceAll(RegExp(r'[\s_-]'), '');
+    final type = product.productType.toLowerCase().replaceAll(
+      RegExp(r'[\s_-]'),
+      '',
+    );
     return type.contains('melee');
   }
 
@@ -105,8 +106,6 @@ abstract final class AiChatCatalogMapper {
   }
 
   static String normalizedType(AiChatProduct product) {
-    return product.productType
-        .toLowerCase()
-        .replaceAll(RegExp(r'[\s_-]'), '');
+    return product.productType.toLowerCase().replaceAll(RegExp(r'[\s_-]'), '');
   }
 }

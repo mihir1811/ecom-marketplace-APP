@@ -58,8 +58,7 @@ abstract final class AiChatListingNavigation {
             AiPendingDiamondFilters(filters: filters, isLabGrown: true);
       case AiChatListingKind.gemstone:
         ref.read(aiPendingDiamondFiltersProvider.notifier).state = null;
-        final filters =
-            inferred.gemstoneFilters ?? const GemstoneFilterState();
+        final filters = inferred.gemstoneFilters ?? const GemstoneFilterState();
         ref.read(gemstoneSearchProvider.notifier).replaceFilters(filters);
         ref.invalidate(gemstoneListProvider);
       case AiChatListingKind.jewelry:

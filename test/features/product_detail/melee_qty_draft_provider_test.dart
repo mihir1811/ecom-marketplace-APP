@@ -60,6 +60,26 @@ void main() {
     );
   });
 
+  test('pieces input clamps to total available', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final notifier = container.read(meleeQtyDraftProvider('p1').notifier);
+    notifier.setFromPieces(999, qty);
+    final draft = container.read(meleeQtyDraftProvider('p1'));
+    expect(draft?.pieces, 10);
+    expect(draft?.carat, closeTo(2.0, 0.0001));
+  });
+
+  test('carat input clamps to total available', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final notifier = container.read(meleeQtyDraftProvider('p1').notifier);
+    notifier.setFromCarat(99, qty);
+    final draft = container.read(meleeQtyDraftProvider('p1'));
+    expect(draft?.carat, closeTo(2.0, 0.0001));
+    expect(draft?.pieces, 10);
+  });
+
   test('resolvedCaratPerPcs prefers lot totals over stale per-pcs', () {
     const qty = ProductMeleeQty(
       totalPcs: 23,

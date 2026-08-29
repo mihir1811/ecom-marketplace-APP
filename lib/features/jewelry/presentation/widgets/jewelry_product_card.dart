@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -103,8 +104,7 @@ class JewelryProductCard extends ConsumerWidget {
     final specs = [
       item.metalType,
       if (item.metalPurity.trim().isNotEmpty) item.metalPurity,
-      if (item.stoneWeightCt > 0)
-        '${item.stoneWeightCt.toStringAsFixed(2)}ct',
+      if (item.stoneWeightCt > 0) '${item.stoneWeightCt.toStringAsFixed(2)}ct',
     ].join(' · ');
 
     return RecentlyViewedCardShell(
@@ -132,9 +132,7 @@ class JewelryProductCard extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: AvailabilityStatusBadge(
-                    status: item.availability,
-                  ),
+                  child: AvailabilityStatusBadge(status: item.availability),
                 ),
               ],
             ),
@@ -388,8 +386,7 @@ class JewelryProductCard extends ConsumerWidget {
                         if (item.reviewCount != null)
                           Text(
                             ' (${item.reviewCount})',
-                            style:
-                                AppTypography.caption.copyWith(color: muted),
+                            style: AppTypography.caption.copyWith(color: muted),
                           ),
                       ],
                     ),
@@ -401,19 +398,19 @@ class JewelryProductCard extends ConsumerWidget {
                         icon: wishlisted
                             ? Icons.favorite
                             : Icons.favorite_border,
-                        label: 'Wishlist',
+                        label: context.tr(CatalogL10n.wishlist),
                         onTap: () => _toggleWishlist(context, ref),
                       ),
                       const SizedBox(width: AppSpacing.s8),
                       _QuickAction(
                         icon: Icons.compare_arrows,
-                        label: 'Compare',
+                        label: context.tr(CatalogL10n.compare),
                         onTap: () {},
                       ),
                       const Spacer(),
                       _QuickAction(
                         icon: Icons.visibility_outlined,
-                        label: 'View',
+                        label: context.tr(CatalogL10n.view),
                         onTap: onTap,
                       ),
                     ],
@@ -541,9 +538,7 @@ class JewelryProductListCard extends ConsumerWidget {
                       url: item.displayImageUrl!,
                       fit: BoxFit.cover,
                       memCacheWidth: 320,
-                      error: const CatalogMissingImage(
-                        padding: AppSpacing.s16,
-                      ),
+                      error: const CatalogMissingImage(padding: AppSpacing.s16),
                     )
                   else
                     const CatalogMissingImage(padding: AppSpacing.s16),
@@ -553,13 +548,9 @@ class JewelryProductListCard extends ConsumerWidget {
                     child: InkWell(
                       onTap: () => _toggleWishlist(context, ref),
                       child: Icon(
-                        wishlisted
-                            ? Icons.favorite
-                            : Icons.favorite_border,
+                        wishlisted ? Icons.favorite : Icons.favorite_border,
                         size: 18,
-                        color: wishlisted
-                            ? AppColors.terracotta
-                            : secondary,
+                        color: wishlisted ? AppColors.terracotta : secondary,
                       ),
                     ),
                   ),
@@ -654,8 +645,7 @@ class JewelryProductListCard extends ConsumerWidget {
                           ),
                         _OutlineBadge(
                           label: purityLabel,
-                          borderColor:
-                              AppColors.bronze.withValues(alpha: 0.45),
+                          borderColor: AppColors.bronze.withValues(alpha: 0.45),
                           textColor: AppColors.bronze,
                         ),
                         if (item.stoneCount > 0)
@@ -792,11 +782,7 @@ class _StoneCountBadge extends StatelessWidget {
 }
 
 class _QuickAction extends StatelessWidget {
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
+  const _QuickAction({required this.icon, required this.label, this.onTap});
 
   final IconData icon;
   final String label;

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -27,11 +30,7 @@ class ComparisonBottomBar extends ConsumerWidget {
         top: false,
         child: Container(
           decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                color: AppColors.border(context),
-              ),
-            ),
+            border: Border(top: BorderSide(color: AppColors.border(context))),
             boxShadow: AppShadows.modalLight,
           ),
           padding: const EdgeInsets.symmetric(
@@ -40,11 +39,7 @@ class ComparisonBottomBar extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.check_circle,
-                size: 18,
-                color: AppColors.bronze,
-              ),
+              const Icon(Icons.check_circle, size: 18, color: AppColors.bronze),
               const SizedBox(width: AppSpacing.s8),
               Expanded(
                 child: Text(
@@ -84,7 +79,7 @@ class ComparisonBottomBar extends ConsumerWidget {
                     ? () => context.openRoute(AppRouteNames.comparison)
                     : null,
                 child: Text(
-                  'Compare',
+                  context.tr(AccountCommerceL10n.compare),
                   style: AppTypography.label.copyWith(
                     color: AppColors.warmWhite,
                     fontWeight: FontWeight.w700,
@@ -102,10 +97,7 @@ class ComparisonBottomBar extends ConsumerWidget {
 
 /// Wraps a listing body with bottom padding when the comparison tray is visible.
 class ComparisonTrayHost extends ConsumerWidget {
-  const ComparisonTrayHost({
-    required this.child,
-    super.key,
-  });
+  const ComparisonTrayHost({required this.child, super.key});
 
   final Widget child;
 

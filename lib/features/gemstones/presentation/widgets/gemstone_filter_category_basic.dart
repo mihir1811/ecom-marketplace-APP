@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -81,18 +82,18 @@ class _GemstoneFilterCategoryBasicState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const FilterSectionHeader(title: 'Stone Type'),
+                FilterSectionHeader(title: context.tr(CatalogL10n.stoneType)),
                 const SizedBox(height: AppSpacing.s8),
                 GemstoneSegmentedControl(
-                  options: const [
+                  options: [
                     SegmentOption(
                       value: 'Natural',
-                      label: 'Natural',
+                      label: context.tr(CatalogL10n.natural),
                       icon: Icons.wb_sunny_outlined,
                     ),
                     SegmentOption(
                       value: 'Lab Grown',
-                      label: 'Lab-Grown',
+                      label: context.tr(CatalogL10n.labGrown),
                       icon: Icons.science_outlined,
                     ),
                   ],
@@ -102,18 +103,18 @@ class _GemstoneFilterCategoryBasicState
                   isMelee: isMelee,
                 ),
                 const SizedBox(height: AppSpacing.s20),
-                const FilterSectionHeader(title: 'Lot Type'),
+                FilterSectionHeader(title: context.tr(CatalogL10n.lotType)),
                 const SizedBox(height: AppSpacing.s8),
                 GemstoneSegmentedControl(
-                  options: const [
+                  options: [
                     SegmentOption(
                       value: 'Single',
-                      label: 'Single',
+                      label: context.tr(CatalogL10n.single),
                       icon: Icons.star_border,
                     ),
                     SegmentOption(
                       value: 'Melee',
-                      label: 'Melee',
+                      label: context.tr(CatalogL10n.melee),
                       icon: Icons.grain,
                     ),
                   ],
@@ -131,14 +132,14 @@ class _GemstoneFilterCategoryBasicState
               children: [
                 if (isMelee) ...[
                   FilterBooleanCheckbox(
-                    label: 'Separable',
+                    label: context.tr(CatalogL10n.separable),
                     value: state.separable,
                     onChanged: (_) => notifier.toggleSeparable(),
                   ),
                   const SizedBox(height: AppSpacing.s12),
                 ],
                 FilterBooleanCheckbox(
-                  label: 'Filter by Media',
+                  label: context.tr(CatalogL10n.filterByMedia),
                   value: state.searchByMedia,
                   onChanged: (_) => notifier.toggleSearchByMedia(),
                 ),
@@ -150,15 +151,15 @@ class _GemstoneFilterCategoryBasicState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const FilterSectionHeader(title: 'Gemstone Type'),
+                FilterSectionHeader(
+                  title: context.tr(CatalogL10n.gemstoneType),
+                ),
                 const SizedBox(height: AppSpacing.s8),
                 Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    border: Border.all(
-                      color: AppColors.border(context),
-                    ),
+                    border: Border.all(color: AppColors.border(context)),
                   ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.s12,
@@ -168,7 +169,7 @@ class _GemstoneFilterCategoryBasicState
                     onChanged: (val) => setState(() => _typeSearchQuery = val),
                     scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                     decoration: InputDecoration(
-                      hintText: 'Search gemstone types...',
+                      hintText: context.tr(CatalogL10n.searchGemstoneTypes),
                       hintStyle: AppTypography.caption.copyWith(
                         color: AppColors.textMuted(context),
                       ),
@@ -200,13 +201,17 @@ class _GemstoneFilterCategoryBasicState
                       ...visibleTypes.map((type) {
                         return FilterChipWidget(
                           label: type,
-                          isSelected: state.selectedGemstoneTypes.contains(type),
+                          isSelected: state.selectedGemstoneTypes.contains(
+                            type,
+                          ),
                           onTap: () => notifier.toggleGemstoneType(type),
                         );
                       }),
                       if (hiddenTypeCount > 0)
                         FilterChipWidget(
-                          label: 'Others ($hiddenTypeCount)',
+                          label: context.tr(CatalogL10n.othersCount, {
+                            'count': hiddenTypeCount,
+                          }),
                           isSelected: false,
                           onTap: () => setState(
                             () => _isTypesExpanded = !_isTypesExpanded,
@@ -258,9 +263,9 @@ class _GemstoneFilterCategoryBasicState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const FilterSectionHeader(
-                  title: 'Birthstones',
-                  infoText: 'Filter gemstones by their associated birth month.',
+                FilterSectionHeader(
+                  title: context.tr(CatalogL10n.birthstones),
+                  infoText: context.tr(CatalogL10n.birthstonesHelp),
                 ),
                 const SizedBox(height: AppSpacing.s8),
                 GridView.builder(
@@ -274,14 +279,15 @@ class _GemstoneFilterCategoryBasicState
                     childAspectRatio: 1.5,
                   ),
                   itemBuilder: (context, index) {
-                    final month = GemstoneFilterState.birthstones.keys.elementAt(
-                      index,
-                    );
+                    final month = GemstoneFilterState.birthstones.keys
+                        .elementAt(index);
                     final gemstone = GemstoneFilterState.birthstones[month]!;
                     return BirthstoneMonthCard(
                       month: month,
                       gemstone: gemstone,
-                      isSelected: state.selectedBirthstoneMonths.contains(month),
+                      isSelected: state.selectedBirthstoneMonths.contains(
+                        month,
+                      ),
                       onTap: () => notifier.toggleBirthstoneMonth(month),
                     );
                   },
@@ -295,7 +301,7 @@ class _GemstoneFilterCategoryBasicState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const FilterSectionHeader(title: 'Shape'),
+                FilterSectionHeader(title: context.tr(CatalogL10n.shape)),
                 const SizedBox(height: AppSpacing.s8),
                 AnimatedSize(
                   duration: const Duration(milliseconds: 250),
@@ -307,11 +313,11 @@ class _GemstoneFilterCategoryBasicState
                     itemCount: shapesToShow,
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: _shapeGridColumns,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 1.35,
-                    ),
+                          crossAxisCount: _shapeGridColumns,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 1.35,
+                        ),
                     itemBuilder: (context, index) {
                       final name = shapeNames[index];
                       return FilterShapeGridCell(
@@ -444,8 +450,8 @@ class _GemstoneFilterCategoryBasicState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const FilterSectionHeader(
-                      title: 'Certification',
+                    FilterSectionHeader(
+                      title: context.tr(CatalogL10n.certification),
                       infoText:
                           'Filter by the gemological laboratory that certified the stone.',
                     ),
@@ -456,7 +462,9 @@ class _GemstoneFilterCategoryBasicState
                       children: GemstoneFilterState.certifications.map((cert) {
                         return FilterChipWidget(
                           label: cert,
-                          isSelected: state.selectedCertifications.contains(cert),
+                          isSelected: state.selectedCertifications.contains(
+                            cert,
+                          ),
                           onTap: () => notifier.toggleCertification(cert),
                         );
                       }).toList(),
@@ -466,11 +474,11 @@ class _GemstoneFilterCategoryBasicState
               ),
 
               FilterScrollableChips(
-                title: 'Cut Grade',
+                title: context.tr(CatalogL10n.cutGrade),
                 options: GemstoneFilterState.cutGrades,
                 selectedItems: state.selectedCutGrades,
                 onToggle: (val) => notifier.toggleCutGrade(val),
-                infoText: "Filter by the quality of the gemstone's cut.",
+                infoText: context.tr(CatalogL10n.gemstoneCutHelp),
               ),
               const SizedBox(height: AppSpacing.s20),
 
@@ -478,15 +486,13 @@ class _GemstoneFilterCategoryBasicState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const GemstoneFilterCategoryQuality(
-                      wrapWithCard: false,
-                    ),
+                    const GemstoneFilterCategoryQuality(wrapWithCard: false),
                     const SizedBox(height: AppSpacing.s20),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const FilterSectionHeader(
-                          title: 'Treatments',
+                        FilterSectionHeader(
+                          title: context.tr(CatalogL10n.treatments),
                           infoText:
                               'Filter by enhancement processes applied to the gemstone.',
                         ),
@@ -519,8 +525,7 @@ class _GemstoneFilterCategoryBasicState
                                   onTap: () {
                                     setState(() {
                                       _treatmentDisplayCount =
-                                          GemstoneFilterState
-                                              .treatments.length;
+                                          GemstoneFilterState.treatments.length;
                                     });
                                   },
                                   selectedColor: AppColors.surface(context),
@@ -539,9 +544,9 @@ class _GemstoneFilterCategoryBasicState
                                 setState(() {
                                   _treatmentDisplayCount =
                                       (_treatmentDisplayCount + 8).clamp(
-                                    0,
-                                    GemstoneFilterState.treatments.length,
-                                  );
+                                        0,
+                                        GemstoneFilterState.treatments.length,
+                                      );
                                 });
                               },
                               icon: const Icon(
@@ -550,7 +555,7 @@ class _GemstoneFilterCategoryBasicState
                                 size: 18,
                               ),
                               label: Text(
-                                'View More',
+                                context.tr(CatalogL10n.viewMore),
                                 style: AppTypography.caption.copyWith(
                                   color: AppColors.bronze,
                                   fontWeight: FontWeight.bold,
@@ -571,7 +576,7 @@ class _GemstoneFilterCategoryBasicState
                                 size: 18,
                               ),
                               label: Text(
-                                'View Less',
+                                context.tr(CatalogL10n.viewLess),
                                 style: AppTypography.caption.copyWith(
                                   color: AppColors.bronze,
                                   fontWeight: FontWeight.bold,

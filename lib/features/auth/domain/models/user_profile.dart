@@ -74,10 +74,7 @@ class UserProfile {
 
   bool get isSeller => role.toLowerCase() == 'seller';
 
-  UserProfile copyWith({
-    String? fullName,
-    String? username,
-  }) {
+  UserProfile copyWith({String? fullName, String? username}) {
     return UserProfile(
       id: id,
       fullName: fullName ?? this.fullName,

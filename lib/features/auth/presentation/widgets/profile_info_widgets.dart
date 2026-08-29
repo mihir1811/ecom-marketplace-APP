@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -113,7 +116,7 @@ class ProfileInfoRow extends StatelessWidget {
   }
 }
 
-String profileDisplay(String? value) {
+String profileDisplay(BuildContext context, String? value) {
   final v = value?.trim() ?? '';
-  return v.isEmpty ? 'Not provided' : v;
+  return v.isEmpty ? context.tr(AccountCommerceL10n.notProvided) : v;
 }

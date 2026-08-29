@@ -45,8 +45,7 @@ abstract final class SellerProductMapper {
     final nestedSellerId = seller is Map<String, dynamic>
         ? seller['id']?.toString()
         : null;
-    final sellerId =
-        json['sellerId']?.toString() ?? nestedSellerId ?? '';
+    final sellerId = json['sellerId']?.toString() ?? nestedSellerId ?? '';
     final stock = fields['stock_number'] ?? '';
 
     return SellerProduct(
@@ -86,8 +85,18 @@ abstract final class SellerProductMapper {
     final dt = DateTime.tryParse(raw)?.toLocal();
     if (dt == null) return raw;
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     String two(int v) => v.toString().padLeft(2, '0');
     return '${dt.day} ${months[dt.month - 1]} ${dt.year}, '

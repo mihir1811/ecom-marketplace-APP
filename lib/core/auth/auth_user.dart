@@ -72,7 +72,8 @@ class AuthUser {
       isVerified: parseAccountVerified(json),
       isBlocked: json['isBlocked'] == true,
       isDeleted: json['isDeleted'] == true,
-      sellerAccount: SellerAccountSnapshot.tryParse(json['sellerData']) ??
+      sellerAccount:
+          SellerAccountSnapshot.tryParse(json['sellerData']) ??
           SellerAccountSnapshot.tryParse(json['seller']) ??
           SellerAccountSnapshot.tryParse(json['business']),
     );
@@ -159,18 +160,16 @@ class AuthUser {
 ///
 /// Login sets `user.isVerified` after email OTP. Admin KYC for sellers lives
 /// on `sellerData.isVerified` / JWT `seller.isVerified`.
-bool parseAccountVerified(
-  Map<String, dynamic> json, {
-  bool fallback = true,
-}) {
+bool parseAccountVerified(Map<String, dynamic> json, {bool fallback = true}) {
   final seller = _asMap(json['sellerData']) ?? _asMap(json['seller']);
   if (seller != null) {
     return _readFlag(seller['isVerified']) ?? false;
   }
 
   final role = '${json['role'] ?? ''}'.trim().toLowerCase();
-  final registrationType =
-      '${json['registrationType'] ?? ''}'.trim().toLowerCase();
+  final registrationType = '${json['registrationType'] ?? ''}'
+      .trim()
+      .toLowerCase();
   if (role == 'seller' || registrationType == 'business') {
     return false;
   }

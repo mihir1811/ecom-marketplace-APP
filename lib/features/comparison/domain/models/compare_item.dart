@@ -65,10 +65,7 @@ class CompareItem {
         'fluorescence': DiamondDisplay.text(d.fluorescence, uppercase: true),
         'lab': DiamondDisplay.text(d.lab ?? d.certificate, uppercase: true),
       },
-      numericValues: {
-        'price': d.price,
-        'carat': d.carat,
-      },
+      numericValues: {'price': d.price, 'carat': d.carat},
     );
   }
 
@@ -122,10 +119,7 @@ class CompareItem {
         'gender': w.gender,
         'year': '${w.year}',
       },
-      numericValues: {
-        'price': w.price,
-        'year': w.year.toDouble(),
-      },
+      numericValues: {'price': w.price, 'year': w.year.toDouble()},
     );
   }
 

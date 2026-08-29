@@ -82,8 +82,9 @@ abstract final class AiChatProductNavigation {
 
     try {
       if (type.contains('gem')) {
-        final result =
-            await ref.read(gemstoneRepositoryProvider).getGemstoneById(id: id);
+        final result = await ref
+            .read(gemstoneRepositoryProvider)
+            .getGemstoneById(id: id);
         return switch (result) {
           Success(value: final gem) => gemstoneProductDetail(gem),
           ResultFailure() => null,
@@ -104,9 +105,8 @@ abstract final class AiChatProductNavigation {
         return _getByPath(
           ref,
           ApiEndpoints.watchById(id),
-          (json) => watchProductDetail(
-            WatchMapper.toDomain(WatchDto.fromJson(json)),
-          ),
+          (json) =>
+              watchProductDetail(WatchMapper.toDomain(WatchDto.fromJson(json))),
         );
       }
 

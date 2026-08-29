@@ -38,7 +38,11 @@ final homeSearchRepositoryProvider = Provider<HomeSearchRepository>(
 );
 
 class _CatalogBatch {
-  const _CatalogBatch({required this.items, required this.hasMore, required this.total});
+  const _CatalogBatch({
+    required this.items,
+    required this.hasMore,
+    required this.total,
+  });
 
   final List<HomeSearchResult> items;
   final bool hasMore;
@@ -52,7 +56,7 @@ class _CatalogBatch {
 /// Fetches one `page`/`limit` from each catalog API in parallel, then merges
 /// and ranks. Infinite scroll advances [page] — never loads the full catalog.
 class HomeSearchRepositoryImpl implements HomeSearchRepository {
-  HomeSearchRepositoryImpl(this._dio);
+  const HomeSearchRepositoryImpl(this._dio);
 
   final Dio _dio;
 
@@ -83,7 +87,8 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
       final corrected = HomeSearchSpelling.correct(original);
       final spellingChanged = HomeSearchSpelling.didChange(original, corrected);
       final effectiveQuery = corrected;
-      final targetCarat = HomeSearchCaratParser.parse(original) ??
+      final targetCarat =
+          HomeSearchCaratParser.parse(original) ??
           HomeSearchCaratParser.parse(corrected);
 
       // Pagination continuation after an approximate first page.
@@ -110,7 +115,8 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
         );
       }
 
-      final caratDominant = targetCarat != null &&
+      final caratDominant =
+          targetCarat != null &&
           (HomeSearchCaratParser.isCaratDominant(original) ||
               HomeSearchCaratParser.isCaratDominant(corrected));
 
@@ -140,10 +146,7 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
         );
       }
 
-      final merged = _dedupeResults([
-        ...textBatch.items,
-        ...caratBatch.items,
-      ]);
+      final merged = _dedupeResults([...textBatch.items, ...caratBatch.items]);
       final hasMore = textBatch.hasMore || caratBatch.hasMore;
       final totalCount = textBatch.total + caratBatch.total;
 
@@ -259,9 +262,7 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
           totalCount: totalCount,
           page: safePage,
           correctedQuery: spellingChanged ? corrected : null,
-          notice: spellingChanged
-              ? 'Showing results for “$corrected”.'
-              : null,
+          notice: spellingChanged ? 'Showing results for “$corrected”.' : null,
         ),
       );
     } on DioException catch (e) {
@@ -311,17 +312,9 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
 
     final items = ranked.isNotEmpty || merged.isEmpty
         ? ranked
-        : HomeSearchRelevance.sort(
-            merged,
-            rankQuery,
-            requireTextMatch: false,
-          );
+        : HomeSearchRelevance.sort(merged, rankQuery, requireTextMatch: false);
 
-    return _CatalogBatch(
-      items: items,
-      hasMore: hasMore,
-      total: totalCount,
-    );
+    return _CatalogBatch(items: items, hasMore: hasMore, total: totalCount);
   }
 
   Future<_CatalogBatch> _caratRangeSearch({
@@ -386,11 +379,7 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
       return da.compareTo(db);
     });
 
-    return _CatalogBatch(
-      items: merged,
-      hasMore: hasMore,
-      total: totalCount,
-    );
+    return _CatalogBatch(items: merged, hasMore: hasMore, total: totalCount);
   }
 
   Future<_CatalogBatch> _postDiamondCarat({
@@ -481,8 +470,10 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
   }
 
   static double _caratDistance(HomeSearchResult item, double target) {
-    final match = RegExp(r'(\d+(?:\.\d+)?)\s*ct', caseSensitive: false)
-        .firstMatch('${item.title} ${item.subtitle}');
+    final match = RegExp(
+      r'(\d+(?:\.\d+)?)\s*ct',
+      caseSensitive: false,
+    ).firstMatch('${item.title} ${item.subtitle}');
     if (match == null) return 999;
     final value = double.tryParse(match.group(1)!);
     if (value == null) return 999;
@@ -525,11 +516,7 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
     if (mode == HomeSearchMode.freeText) {
       response = await _dio.get<Map<String, dynamic>>(
         ApiEndpoints.diamondSearch,
-        queryParameters: {
-          'search': query,
-          'page': page,
-          'limit': limit,
-        },
+        queryParameters: {'search': query, 'page': page, 'limit': limit},
         cancelToken: cancelToken,
       );
     } else {
@@ -812,9 +799,9 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
       final caratLabel = d.carat > 0 ? '${formatDecimal(d.carat)}ct' : null;
       final title = isMelee
           ? '${d.isLabGrown ? 'Lab ' : ''}${d.shape} Melee'
-              '${caratLabel != null ? ' $caratLabel' : ''}'
+                '${caratLabel != null ? ' $caratLabel' : ''}'
           : '${d.isLabGrown ? 'Lab ' : ''}${d.shape}'
-              '${caratLabel != null ? ' $caratLabel' : ''}';
+                '${caratLabel != null ? ' $caratLabel' : ''}';
 
       out.add(
         HomeSearchResult(
@@ -846,11 +833,7 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
   }
 
   static ({List<Map<String, dynamic>> items, bool hasMore, int total})
-      _parseListResponse(
-    Object? root, {
-    required int limit,
-    required int page,
-  }) {
+  _parseListResponse(Object? root, {required int limit, required int page}) {
     final items = _extractItems(root);
     final meta = _extractMeta(root);
     final total = _asInt(meta['total']) ?? items.length;
@@ -885,9 +868,7 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
     if (data is Map) {
       final nested = data['data'];
       if (nested is List) {
-        return nested
-            .whereType<Map<String, dynamic>>()
-            .toList(growable: false);
+        return nested.whereType<Map<String, dynamic>>().toList(growable: false);
       }
     }
     return const [];

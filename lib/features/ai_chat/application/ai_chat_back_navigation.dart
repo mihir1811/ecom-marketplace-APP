@@ -13,8 +13,9 @@ abstract final class AiChatBackNavigation {
     final expectedRoute = ref.read(aiResumeChatFromRouteProvider);
     if (expectedRoute == null) return false;
 
-    final currentPath =
-        GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+    final currentPath = GoRouter.of(
+      context,
+    ).routerDelegate.currentConfiguration.uri.path;
     if (currentPath != expectedRoute) {
       ref.read(aiResumeChatFromRouteProvider.notifier).state = null;
       return false;

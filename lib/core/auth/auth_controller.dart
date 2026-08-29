@@ -1,3 +1,4 @@
+import '../l10n/translations/account_commerce_messages.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -102,21 +103,27 @@ class AuthController extends Notifier<AuthState> {
     final u = username.trim();
     if (u.isEmpty) {
       state = state.copyWith(
-        errorMessage: 'Username is required.',
+        errorMessage: AccountCommerceL10n.english(
+          AccountCommerceL10n.usernameRequired,
+        ),
         isLoading: false,
       );
       return false;
     }
     if (password.isEmpty) {
       state = state.copyWith(
-        errorMessage: 'Password is required.',
+        errorMessage: AccountCommerceL10n.english(
+          AccountCommerceL10n.passwordRequired,
+        ),
         isLoading: false,
       );
       return false;
     }
     if (password.length < 6) {
       state = state.copyWith(
-        errorMessage: 'Password must be at least 6 characters.',
+        errorMessage: AccountCommerceL10n.english(
+          AccountCommerceL10n.passwordMin6,
+        ),
         isLoading: false,
       );
       return false;
@@ -159,7 +166,9 @@ class AuthController extends Notifier<AuthState> {
       return _fail('Full name is required.');
     }
     if (u.isEmpty) {
-      return _fail('Username is required.');
+      return _fail(
+        AccountCommerceL10n.english(AccountCommerceL10n.usernameRequired),
+      );
     }
     if (!isValidEmail(e)) {
       return _fail('Enter a valid email address.');
@@ -170,7 +179,7 @@ class AuthController extends Notifier<AuthState> {
     }
     if (!acceptTerms) {
       return _fail(
-        'Please agree to the Terms of Service (including chatbot data use) and Ethical Sourcing Policy.',
+        AccountCommerceL10n.english(AccountCommerceL10n.termsAgreement),
       );
     }
 
@@ -196,13 +205,13 @@ class AuthController extends Notifier<AuthState> {
     );
     return switch (result) {
       Success(:final value) => () {
-          state = state.copyWith(
-            isLoading: false,
-            pendingVerificationEmail: value.email,
-            errorMessage: null,
-          );
-          return true;
-        }(),
+        state = state.copyWith(
+          isLoading: false,
+          pendingVerificationEmail: value.email,
+          errorMessage: null,
+        );
+        return true;
+      }(),
       ResultFailure(:final failure) => _fail(failure.message),
     };
   }
@@ -268,10 +277,7 @@ class AuthController extends Notifier<AuthState> {
     return null;
   }
 
-  Future<bool> verifyOtp({
-    required String email,
-    required String otp,
-  }) async {
+  Future<bool> verifyOtp({required String email, required String otp}) async {
     _setLoading();
     state = state.copyWith(errorMessage: null);
 
@@ -281,15 +287,12 @@ class AuthController extends Notifier<AuthState> {
       return _fail('Enter a valid email address.');
     }
     if (code.length != 6) {
-      return _fail('Enter the 6-digit OTP.');
+      return _fail(AccountCommerceL10n.english(AccountCommerceL10n.enterOtp));
     }
 
     final result = await _repo.verifyOtp(email: e, otp: code);
     return switch (result) {
-      Success(:final value) => _applySession(
-          value,
-          clearPendingEmail: true,
-        ),
+      Success(:final value) => _applySession(value, clearPendingEmail: true),
       ResultFailure(:final failure) => _fail(failure.message),
     };
   }
@@ -306,23 +309,20 @@ class AuthController extends Notifier<AuthState> {
     final result = await _repo.resendOtp(email: e);
     return switch (result) {
       Success(:final value) => () {
-          state = state.copyWith(
-            isLoading: false,
-            pendingVerificationEmail: value.email,
-            errorMessage: null,
-          );
-          return true;
-        }(),
+        state = state.copyWith(
+          isLoading: false,
+          pendingVerificationEmail: value.email,
+          errorMessage: null,
+        );
+        return true;
+      }(),
       ResultFailure(:final failure) => _fail(failure.message),
     };
   }
 
   Future<bool> sendResetLink({required String email}) async {
     _setLoading();
-    state = state.copyWith(
-      errorMessage: null,
-      resetLinkSent: false,
-    );
+    state = state.copyWith(errorMessage: null, resetLinkSent: false);
 
     final e = email.trim();
     if (!isValidEmail(e)) {
@@ -332,13 +332,13 @@ class AuthController extends Notifier<AuthState> {
     final result = await _repo.forgetPassword(email: e);
     return switch (result) {
       Success() => () {
-          state = state.copyWith(
-            isLoading: false,
-            resetLinkSent: true,
-            errorMessage: null,
-          );
-          return true;
-        }(),
+        state = state.copyWith(
+          isLoading: false,
+          resetLinkSent: true,
+          errorMessage: null,
+        );
+        return true;
+      }(),
       ResultFailure(:final failure) => _fail(failure.message),
     };
   }
@@ -348,10 +348,7 @@ class AuthController extends Notifier<AuthState> {
     required String newPassword,
   }) async {
     _setLoading();
-    state = state.copyWith(
-      errorMessage: null,
-      passwordResetSuccess: false,
-    );
+    state = state.copyWith(errorMessage: null, passwordResetSuccess: false);
 
     final token = resetToken.trim();
     if (token.isEmpty) {
@@ -368,13 +365,13 @@ class AuthController extends Notifier<AuthState> {
     );
     return switch (result) {
       Success() => () {
-          state = state.copyWith(
-            isLoading: false,
-            passwordResetSuccess: true,
-            errorMessage: null,
-          );
-          return true;
-        }(),
+        state = state.copyWith(
+          isLoading: false,
+          passwordResetSuccess: true,
+          errorMessage: null,
+        );
+        return true;
+      }(),
       ResultFailure(:final failure) => _fail(failure.message),
     };
   }
@@ -399,13 +396,13 @@ class AuthController extends Notifier<AuthState> {
     final result = await _repo.requestAccountDeletion(password: password);
     return switch (result) {
       Success(:final value) => () {
-          state = AuthState(
-            isLoading: false,
-            accountDeletionMessage: value.message,
-            accountDeletionRecoverUntil: value.recoverUntil,
-          );
-          return true;
-        }(),
+        state = AuthState(
+          isLoading: false,
+          accountDeletionMessage: value.message,
+          accountDeletionRecoverUntil: value.recoverUntil,
+        );
+        return true;
+      }(),
       ResultFailure(:final failure) => _fail(failure.message),
     };
   }
@@ -417,15 +414,13 @@ class AuthController extends Notifier<AuthState> {
     String? password,
   }) async {
     _setLoading();
-    state = state.copyWith(
-      errorMessage: null,
-      accountRecovered: false,
-    );
+    state = state.copyWith(errorMessage: null, accountRecovered: false);
 
     final tokenValue = token?.trim() ?? '';
     final emailValue = email?.trim() ?? '';
     final hasToken = tokenValue.isNotEmpty;
-    final hasCredentials = emailValue.isNotEmpty && (password?.isNotEmpty ?? false);
+    final hasCredentials =
+        emailValue.isNotEmpty && (password?.isNotEmpty ?? false);
 
     if (!hasToken && !hasCredentials) {
       return _fail(
@@ -443,13 +438,13 @@ class AuthController extends Notifier<AuthState> {
     );
     return switch (result) {
       Success() => () {
-          state = state.copyWith(
-            isLoading: false,
-            accountRecovered: true,
-            errorMessage: null,
-          );
-          return true;
-        }(),
+        state = state.copyWith(
+          isLoading: false,
+          accountRecovered: true,
+          errorMessage: null,
+        );
+        return true;
+      }(),
       ResultFailure(:final failure) => _fail(failure.message),
     };
   }
@@ -509,17 +504,15 @@ class AuthController extends Notifier<AuthState> {
     );
   }
 
-  bool _applySession(
-    AuthSession session, {
-    bool clearPendingEmail = false,
-  }) {
+  bool _applySession(AuthSession session, {bool clearPendingEmail = false}) {
     state = AuthState(
       user: session.user,
       sellerId: session.sellerId,
       rememberDevice: session.rememberDevice,
       isLoading: false,
-      pendingVerificationEmail:
-          clearPendingEmail ? null : state.pendingVerificationEmail,
+      pendingVerificationEmail: clearPendingEmail
+          ? null
+          : state.pendingVerificationEmail,
     );
     _scheduleExpiryLogout(session.accessToken);
     return true;
@@ -562,10 +555,7 @@ class AuthController extends Notifier<AuthState> {
   }
 
   void _setLoading() {
-    state = state.copyWith(
-      isLoading: true,
-      errorMessage: null,
-    );
+    state = state.copyWith(isLoading: true, errorMessage: null);
   }
 
   void _clearEphemeralFlags() {

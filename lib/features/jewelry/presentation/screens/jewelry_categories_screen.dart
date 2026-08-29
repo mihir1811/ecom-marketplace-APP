@@ -4,6 +4,7 @@ import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
@@ -28,28 +29,29 @@ class JewelryCategoriesScreen extends ConsumerWidget {
     return _buildScreen(context, ref, categories);
   }
 
-  Widget _buildScreen(BuildContext context, WidgetRef ref, AsyncValue<List<JewelleryCategoryAdmin>> categories) {
+  Widget _buildScreen(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<JewelleryCategoryAdmin>> categories,
+  ) {
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
-      appBar: const AppTopBar(
-        title: 'Fine Jewelry',
-      ),
+      appBar: AppTopBar(title: context.tr(CatalogL10n.fineJewelry)),
       body: categories.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
+        loading: () =>
+            const Center(child: CircularProgressIndicator(strokeWidth: 2)),
         error: (error, _) => CatalogErrorState(
           message: error is Failure
               ? error.message
-              : 'Could not load jewelry categories.',
+              : context.tr(CatalogL10n.loadJewelryCategoriesError),
           onRetry: () => ref.invalidate(jewelleryCategoriesProvider),
         ),
         data: (items) {
           if (items.isEmpty) {
-            return const CatalogEmptyState(
+            return CatalogEmptyState(
               icon: Icons.diamond_outlined,
-              title: 'No categories yet',
-              message: 'Jewelry categories will appear here when available.',
+              title: context.tr(CatalogL10n.noCategories),
+              message: context.tr(CatalogL10n.categoriesComing),
             );
           }
           return CustomScrollView(
@@ -63,7 +65,7 @@ class JewelryCategoriesScreen extends ConsumerWidget {
                     AppSpacing.s16,
                   ),
                   child: Text(
-                    'Shop by category',
+                    context.tr(CatalogL10n.shopByCategory),
                     style: AppTypography.title.copyWith(
                       color: AppColors.textPrimary(context),
                       fontWeight: FontWeight.w700,
@@ -81,18 +83,15 @@ class JewelryCategoriesScreen extends ConsumerWidget {
                     mainAxisSpacing: AppSpacing.s12,
                     childAspectRatio: 0.78,
                   ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final category = items[index];
-                      return _CategoryCard(
-                        category: category,
-                        onTap: () => context.push(
-                          '${AppRouteNames.jewelryListing}?category=${Uri.encodeComponent(category.name)}',
-                        ),
-                      );
-                    },
-                    childCount: items.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final category = items[index];
+                    return _CategoryCard(
+                      category: category,
+                      onTap: () => context.push(
+                        '${AppRouteNames.jewelryListing}?category=${Uri.encodeComponent(category.name)}',
+                      ),
+                    );
+                  }, childCount: items.length),
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
@@ -105,10 +104,7 @@ class JewelryCategoriesScreen extends ConsumerWidget {
 }
 
 class _CategoryCard extends StatelessWidget {
-  const _CategoryCard({
-    required this.category,
-    required this.onTap,
-  });
+  const _CategoryCard({required this.category, required this.onTap});
 
   final JewelleryCategoryAdmin category;
   final VoidCallback onTap;
@@ -119,8 +115,7 @@ class _CategoryCard extends StatelessWidget {
     final bg = AppColors.card(context);
     final border = AppColors.border(context);
     final muted = AppColors.textMuted(context);
-    final styleCount =
-        category.subcategories.where((s) => s.isActive).length;
+    final styleCount = category.subcategories.where((s) => s.isActive).length;
     final asset = JewelleryCategoryImages.assetFor(category.name);
     final networkUrl = JewelleryCategoryImages.absoluteUrl(category.imageUrl);
 

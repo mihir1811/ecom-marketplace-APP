@@ -11,6 +11,9 @@ import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../domain/models/seller_product.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerProductCardsView extends StatelessWidget {
   const SellerProductCardsView({
     required this.products,
@@ -49,9 +52,7 @@ class SellerProductCardsView extends StatelessWidget {
                   children: [
                     for (var col = 0; col < crossAxisCount; col++) ...[
                       if (col > 0) const SizedBox(width: AppSpacing.s12),
-                      Expanded(
-                        child: _cell(rowIndex * crossAxisCount + col),
-                      ),
+                      Expanded(child: _cell(rowIndex * crossAxisCount + col)),
                     ],
                   ],
                 ),
@@ -127,7 +128,9 @@ class _ProductCard extends StatelessWidget {
                         value: selected,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         visualDensity: VisualDensity.compact,
-                        semanticLabel: 'Select ${product.stockNumber}',
+                        semanticLabel: context.tr(RemainingL10n.selectProduct, {
+                          'stockNumber': product.stockNumber,
+                        }),
                         onChanged: (v) => onSelected(v ?? false),
                       ),
                     ),
@@ -137,7 +140,7 @@ class _ProductCard extends StatelessWidget {
                   top: AppSpacing.s4,
                   right: AppSpacing.s4,
                   child: PopupMenuButton<_CardAction>(
-                    tooltip: 'Actions',
+                    tooltip: context.tr(RemainingL10n.actions),
                     padding: EdgeInsets.zero,
                     icon: Container(
                       width: 32,
@@ -164,26 +167,26 @@ class _ProductCard extends StatelessWidget {
                           onDelete?.call();
                       }
                     },
-                    itemBuilder: (context) => const [
+                    itemBuilder: (context) => [
                       PopupMenuItem(
                         value: _CardAction.quickView,
                         child: _MenuRow(
                           icon: Icons.visibility_outlined,
-                          label: 'Quick View',
+                          label: context.tr(RemainingL10n.quickView),
                         ),
                       ),
                       PopupMenuItem(
                         value: _CardAction.edit,
                         child: _MenuRow(
                           icon: Icons.edit_outlined,
-                          label: 'Edit Product',
+                          label: context.tr(RemainingL10n.editProduct),
                         ),
                       ),
                       PopupMenuItem(
                         value: _CardAction.delete,
                         child: _MenuRow(
                           icon: Icons.delete_outline,
-                          label: 'Delete Product',
+                          label: context.tr(RemainingL10n.deleteProduct),
                           danger: true,
                         ),
                       ),
@@ -200,13 +203,13 @@ class _ProductCard extends StatelessWidget {
                       runSpacing: AppSpacing.s4,
                       children: [
                         if (product.isOnAuction)
-                          const _StatusBadge(
-                            label: 'ON AUCTION',
+                          _StatusBadge(
+                            label: context.tr(RemainingL10n.onAuction),
                             color: AppColors.terracotta,
                           ),
                         if (product.isSold)
-                          const _StatusBadge(
-                            label: 'SOLD',
+                          _StatusBadge(
+                            label: context.tr(RemainingL10n.sold),
                             color: AppColors.error,
                           ),
                       ],

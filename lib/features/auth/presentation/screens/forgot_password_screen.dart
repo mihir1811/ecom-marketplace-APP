@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
@@ -20,8 +23,7 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
       _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState
-    extends ConsumerState<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _didAutoRedirect = false;
@@ -67,14 +69,14 @@ class _ForgotPasswordScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Forgot Password',
+                        context.tr(AccountCommerceL10n.forgotPassword),
                         style: AppTypography.display.copyWith(
                           color: AppColors.textPrimary(context),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.s12),
                       Text(
-                        'Enter your registered email and we will send you a reset link.',
+                        context.tr(AccountCommerceL10n.forgotInstructions),
                         style: AppTypography.body.copyWith(
                           color: AppColors.textSecondary(context),
                         ),
@@ -89,15 +91,23 @@ class _ForgotPasswordScreenState
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               textInputAction: TextInputAction.done,
-                              decoration: const InputDecoration(
-                                labelText: 'Email',
-                                prefixIcon: Icon(Icons.mail_outline),
+                              decoration: InputDecoration(
+                                labelText: context.tr(
+                                  AccountCommerceL10n.email,
+                                ),
+                                prefixIcon: const Icon(Icons.mail_outline),
                               ),
                               validator: (value) {
                                 final v = value?.trim() ?? '';
-                                if (v.isEmpty) return 'Email is required';
+                                if (v.isEmpty) {
+                                  return context.tr(
+                                    AccountCommerceL10n.emailRequired,
+                                  );
+                                }
                                 if (!isValidEmail(v)) {
-                                  return 'Enter a valid email address';
+                                  return context.tr(
+                                    AccountCommerceL10n.validEmail,
+                                  );
                                 }
                                 return null;
                               },
@@ -115,8 +125,8 @@ class _ForgotPasswordScreenState
                                             .read(authProvider.notifier)
                                             .clearError();
 
-                                        final ok = _formKey.currentState
-                                                ?.validate() ??
+                                        final ok =
+                                            _formKey.currentState?.validate() ??
                                             false;
                                         if (!ok) return;
 
@@ -129,7 +139,11 @@ class _ForgotPasswordScreenState
                                 style: authFilledButtonStyle(context),
                                 child: authState.isLoading
                                     ? authButtonSpinner(context)
-                                    : const Text('Send Reset Link'),
+                                    : Text(
+                                        context.tr(
+                                          AccountCommerceL10n.sendResetLink,
+                                        ),
+                                      ),
                               ),
                             ),
 
@@ -147,7 +161,7 @@ class _ForgotPasswordScreenState
                             if (authState.resetLinkSent) ...[
                               const SizedBox(height: AppSpacing.s16),
                               Text(
-                                'Reset link sent. Please check your email.',
+                                context.tr(AccountCommerceL10n.resetLinkSent),
                                 style: AppTypography.caption.copyWith(
                                   color: AppColors.success,
                                 ),
@@ -165,7 +179,7 @@ class _ForgotPasswordScreenState
                               ? null
                               : () => context.go(AppRouteNames.login),
                           child: Text(
-                            'Back to login',
+                            context.tr(AccountCommerceL10n.backToLogin),
                             style: AppTypography.label.copyWith(
                               color: AppColors.textPrimary(context),
                               decoration: TextDecoration.underline,
@@ -184,4 +198,3 @@ class _ForgotPasswordScreenState
     );
   }
 }
-

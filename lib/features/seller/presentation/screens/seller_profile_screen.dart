@@ -18,6 +18,9 @@ import '../../../auth/presentation/widgets/seller_business_profile_cards.dart';
 import '../../../user_bank_account/application/user_bank_account_providers.dart';
 import '../../../user_bank_account/domain/models/user_bank_account.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Seller account profile (read-only).
 class SellerProfileScreen extends ConsumerWidget {
   const SellerProfileScreen({super.key});
@@ -33,10 +36,13 @@ class SellerProfileScreen extends ConsumerWidget {
       children: [
         Expanded(
           child: authUser == null
-              ? const Center(child: Text('Sign in to view your profile.'))
+              ? Center(
+                  child: Text(
+                    context.tr(RemainingL10n.signInToViewYourProfile),
+                  ),
+                )
               : profileAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
+                  loading: () => Center(child: CircularProgressIndicator()),
                   error: (e, _) {
                     final fallback = userProfileFromAuth(authUser);
                     return _SellerProfileBody(
@@ -70,24 +76,25 @@ class SellerProfileScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (!ok) {
-      final message = ref.read(authProvider).errorMessage ??
+      final message =
+          ref.read(authProvider).errorMessage ??
           'Could not delete account. Please try again.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
       return;
     }
 
     final deletion = ref.read(authProvider);
     final until = deletion.accountDeletionRecoverUntil;
-    final base = deletion.accountDeletionMessage ??
+    final base =
+        deletion.accountDeletionMessage ??
         'Your account is scheduled for deletion.';
-    final detail =
-        until == null ? base : '$base Recover by ${until.toLocal()}.';
+    final detail = until == null
+        ? base
+        : '$base Recover by ${until.toLocal()}.';
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(detail)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(detail)));
     context.resetTo(AppRouteNames.recoverAccount);
   }
 }
@@ -126,35 +133,38 @@ class _SellerProfileBody extends StatelessWidget {
         if (loadError != null) ...[
           const SizedBox(height: AppSpacing.s12),
           Text(
-            'Showing signed-in account details. Full profile could not load: '
-            '$loadError',
+            context.tr(RemainingL10n.showingSignedInAccountDetailsFullProfile) +
+                '$loadError',
             style: AppTypography.caption.copyWith(color: AppColors.error),
           ),
           if (onRetry != null)
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            TextButton(
+              onPressed: onRetry,
+              child: Text(context.tr(RemainingL10n.retry)),
+            ),
         ],
         const SizedBox(height: AppSpacing.s16),
         ProfileInfoCard(
-          title: 'Personal details',
+          title: context.tr(RemainingL10n.personalDetails),
           rows: [
             ProfileInfoRow(
               icon: Icons.badge_outlined,
-              label: 'Full name',
-              value: profileDisplay(profile.fullName),
+              label: context.tr(RemainingL10n.fullName),
+              value: profileDisplay(context, profile.fullName),
             ),
             ProfileInfoRow(
               icon: Icons.alternate_email,
-              label: 'Username',
-              value: profileDisplay(profile.username),
+              label: context.tr(RemainingL10n.username),
+              value: profileDisplay(context, profile.username),
             ),
             ProfileInfoRow(
               icon: Icons.mail_outline,
-              label: 'Email',
-              value: profileDisplay(profile.email),
+              label: context.tr(RemainingL10n.email),
+              value: profileDisplay(context, profile.email),
             ),
             ProfileInfoRow(
               icon: Icons.verified_outlined,
-              label: 'Verification',
+              label: context.tr(RemainingL10n.verification),
               value: profile.isVerified
                   ? 'Verified'
                   : 'Verification is pending',
@@ -176,44 +186,43 @@ class _SellerProfileBody extends StatelessWidget {
           )
         else
           ProfileInfoCard(
-            title: 'Bank details',
+            title: context.tr(RemainingL10n.bankDetails),
             rows: [
               ProfileInfoRow(
                 icon: Icons.account_circle_outlined,
-                label: 'Account holder',
-                value: profileDisplay(accountHolder),
+                label: context.tr(RemainingL10n.accountHolder),
+                value: profileDisplay(context, accountHolder),
               ),
               ProfileInfoRow(
                 icon: Icons.account_balance_outlined,
-                label: 'Account number',
-                value: profileDisplay(accountNumber),
+                label: context.tr(RemainingL10n.accountNumber),
+                value: profileDisplay(context, accountNumber),
               ),
               ProfileInfoRow(
                 icon: Icons.qr_code_outlined,
-                label: 'IFSC code',
-                value: profileDisplay(ifsc),
+                label: context.tr(RemainingL10n.ifscCode),
+                value: profileDisplay(context, ifsc),
               ),
               ProfileInfoRow(
                 icon: Icons.account_balance,
-                label: 'Bank name',
-                value: profileDisplay(bankName),
+                label: context.tr(RemainingL10n.bankName),
+                value: profileDisplay(context, bankName),
               ),
               ProfileInfoRow(
                 icon: Icons.savings_outlined,
-                label: 'Account type',
-                value: profileDisplay(accountType),
+                label: context.tr(RemainingL10n.accountType),
+                value: profileDisplay(context, accountType),
               ),
               ProfileInfoRow(
                 icon: Icons.payment_outlined,
-                label: 'UPI ID',
-                value: profileDisplay(upi),
+                label: context.tr(RemainingL10n.upiId),
+                value: profileDisplay(context, upi),
               ),
             ],
           ),
         const SizedBox(height: AppSpacing.s12),
         Text(
-          'Profile details are read-only. Contact support if you need '
-          'corrections.',
+          context.tr(RemainingL10n.profileDetailsAreReadOnlyContact),
           style: AppTypography.caption.copyWith(
             color: AppColors.textMuted(context),
           ),
@@ -231,17 +240,17 @@ class _SellerProfileBody extends StatelessWidget {
               ),
             ),
             icon: const Icon(Icons.delete_forever_outlined),
-            label: const Text('Delete account'),
+            label: Text(context.tr(RemainingL10n.deleteAccount)),
           ),
         ],
-        const SizedBox(height: AppSpacing.s24),
+        SizedBox(height: AppSpacing.s24),
       ],
     );
   }
 }
 
 class _SellerHero extends StatelessWidget {
-  const _SellerHero({required this.user, required this.profile});
+  _SellerHero({required this.user, required this.profile});
 
   final AuthUser user;
   final UserProfile profile;

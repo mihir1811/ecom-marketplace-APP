@@ -11,8 +11,8 @@ import '../domain/repositories/fees_repository.dart';
 /// Active checkout fee rules for the signed-in session.
 final activeFeesProvider =
     AsyncNotifierProvider<ActiveFeesNotifier, FeeRulesCatalog>(
-  ActiveFeesNotifier.new,
-);
+      ActiveFeesNotifier.new,
+    );
 
 class ActiveFeesNotifier extends AsyncNotifier<FeeRulesCatalog> {
   CancelToken? _cancelToken;

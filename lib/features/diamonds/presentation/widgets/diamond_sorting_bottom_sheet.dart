@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
@@ -46,22 +47,26 @@ class _DiamondSortingBottomSheetState
     final selectedKeys = _tempSelected.map((s) => s.fieldKey).toSet();
     return DiamondSortingFields.all
         .where((f) => !selectedKeys.contains(f.key))
-        .map((f) => SortingCriteria(
-              fieldKey: f.key,
-              displayName: f.displayName,
-              priority: 0,
-            ))
+        .map(
+          (f) => SortingCriteria(
+            fieldKey: f.key,
+            displayName: f.displayName,
+            priority: 0,
+          ),
+        )
         .toList();
   }
 
   void _addField(String fieldKey, String displayName) {
     setState(() {
-      _tempSelected.add(SortingCriteria(
-        fieldKey: fieldKey,
-        displayName: displayName,
-        direction: SortDirection.ascending,
-        priority: _tempSelected.length + 1,
-      ));
+      _tempSelected.add(
+        SortingCriteria(
+          fieldKey: fieldKey,
+          displayName: displayName,
+          direction: SortDirection.ascending,
+          priority: _tempSelected.length + 1,
+        ),
+      );
       _recalculatePriorities();
     });
   }
@@ -146,7 +151,11 @@ class _DiamondSortingBottomSheetState
                     children: [
                       _buildSelectedSection(textColor, mutedColor, borderColor),
                       const SizedBox(height: AppSpacing.s20),
-                      _buildAvailableSection(textColor, mutedColor, borderColor),
+                      _buildAvailableSection(
+                        textColor,
+                        mutedColor,
+                        borderColor,
+                      ),
                       const SizedBox(height: AppSpacing.s24),
                     ],
                   ),
@@ -177,8 +186,7 @@ class _DiamondSortingBottomSheetState
     );
   }
 
-  Widget _buildHeader(
-      BuildContext context, Color textColor, Color mutedColor) {
+  Widget _buildHeader(BuildContext context, Color textColor, Color mutedColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s16,
@@ -188,7 +196,7 @@ class _DiamondSortingBottomSheetState
         children: [
           Expanded(
             child: Text(
-              'Sorting',
+              context.tr(CatalogL10n.sorting),
               style: AppTypography.headline.copyWith(
                 color: textColor,
                 fontSize: 20,
@@ -203,11 +211,7 @@ class _DiamondSortingBottomSheetState
                 shape: BoxShape.circle,
                 color: mutedColor.withValues(alpha: 0.1),
               ),
-              child: Icon(
-                Icons.close,
-                size: 18,
-                color: mutedColor,
-              ),
+              child: Icon(Icons.close, size: 18, color: mutedColor),
             ),
           ),
         ],
@@ -216,12 +220,15 @@ class _DiamondSortingBottomSheetState
   }
 
   Widget _buildSelectedSection(
-      Color textColor, Color mutedColor, Color borderColor) {
+    Color textColor,
+    Color mutedColor,
+    Color borderColor,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Selected Sorting Filters',
+          context.tr(CatalogL10n.selectedSortingFilters),
           style: AppTypography.label.copyWith(
             color: textColor,
             fontWeight: FontWeight.w600,
@@ -253,19 +260,15 @@ class _DiamondSortingBottomSheetState
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.sort,
-            size: 32,
-            color: mutedColor.withValues(alpha: 0.4),
-          ),
+          Icon(Icons.sort, size: 32, color: mutedColor.withValues(alpha: 0.4)),
           const SizedBox(height: AppSpacing.s8),
           Text(
-            'No sorting criteria selected',
+            context.tr(CatalogL10n.noSortingCriteria),
             style: AppTypography.body.copyWith(color: mutedColor),
           ),
           const SizedBox(height: AppSpacing.s4),
           Text(
-            'Add fields from below to start sorting',
+            context.tr(CatalogL10n.addSortingFields),
             style: AppTypography.caption.copyWith(color: mutedColor),
           ),
         ],
@@ -274,7 +277,10 @@ class _DiamondSortingBottomSheetState
   }
 
   Widget _buildSelectedList(
-      Color textColor, Color mutedColor, Color borderColor) {
+    Color textColor,
+    Color mutedColor,
+    Color borderColor,
+  ) {
     return ReorderableListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -343,11 +349,7 @@ class _DiamondSortingBottomSheetState
               index: index,
               child: Container(
                 padding: const EdgeInsets.all(AppSpacing.s4),
-                child: Icon(
-                  Icons.drag_handle,
-                  color: mutedColor,
-                  size: 20,
-                ),
+                child: Icon(Icons.drag_handle, color: mutedColor, size: 20),
               ),
             ),
             const SizedBox(width: AppSpacing.s4),
@@ -417,14 +419,17 @@ class _DiamondSortingBottomSheetState
   }
 
   Widget _buildAvailableSection(
-      Color textColor, Color mutedColor, Color borderColor) {
+    Color textColor,
+    Color mutedColor,
+    Color borderColor,
+  ) {
     final available = _availableFields;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Available Sorting Fields',
+          context.tr(CatalogL10n.availableSortingFields),
           style: AppTypography.label.copyWith(
             color: textColor,
             fontWeight: FontWeight.w600,
@@ -434,12 +439,14 @@ class _DiamondSortingBottomSheetState
         if (available.isEmpty)
           _buildEmptyAvailable(mutedColor)
         else
-          ...available.map((field) => _buildAvailableRow(
-                field: field,
-                textColor: textColor,
-                mutedColor: mutedColor,
-                borderColor: borderColor,
-              )),
+          ...available.map(
+            (field) => _buildAvailableRow(
+              field: field,
+              textColor: textColor,
+              mutedColor: mutedColor,
+              borderColor: borderColor,
+            ),
+          ),
       ],
     );
   }
@@ -449,7 +456,7 @@ class _DiamondSortingBottomSheetState
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.s20),
       child: Text(
-        'All fields are already selected',
+        context.tr(CatalogL10n.allSortingFieldsSelected),
         style: AppTypography.body.copyWith(color: mutedColor),
         textAlign: TextAlign.center,
       ),
@@ -533,7 +540,7 @@ class _DiamondSortingBottomSheetState
             elevation: 0,
           ),
           child: Text(
-            'Apply',
+            context.tr(CatalogL10n.apply),
             style: AppTypography.label.copyWith(
               color: AppColors.warmWhite,
               fontWeight: FontWeight.w600,

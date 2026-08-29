@@ -25,26 +25,26 @@ class HomeSearchMeta {
   final String? correctedQuery;
 }
 
-final homeSearchMetaProvider =
-    StateProvider<HomeSearchMeta>((ref) => const HomeSearchMeta());
+final homeSearchMetaProvider = StateProvider<HomeSearchMeta>(
+  (ref) => const HomeSearchMeta(),
+);
 
 typedef HomeSearchListState = PaginatedListState<HomeSearchResult>;
 
 /// Infinite-scroll results for debounced [homeSearchQueryProvider].
 final homeSearchResultsProvider =
     AsyncNotifierProvider<HomeSearchListNotifier, HomeSearchListState>(
-  HomeSearchListNotifier.new,
-);
+      HomeSearchListNotifier.new,
+    );
 
-class HomeSearchListNotifier
-    extends PaginatedAsyncNotifier<HomeSearchResult> {
+class HomeSearchListNotifier extends PaginatedAsyncNotifier<HomeSearchResult> {
   CancelToken? _cancelToken;
   bool _usingSimilar = false;
 
   @override
   Iterable<ProviderListenable<Object?>> get reloadTriggers => [
-        homeSearchQueryProvider,
-      ];
+    homeSearchQueryProvider,
+  ];
 
   @override
   void onResetPagination() {
@@ -76,7 +76,9 @@ class HomeSearchListNotifier
     if (page == 1) _usingSimilar = false;
 
     _cancelToken ??= CancelToken();
-    final result = await ref.read(homeSearchRepositoryProvider).search(
+    final result = await ref
+        .read(homeSearchRepositoryProvider)
+        .search(
           query,
           page: page,
           pageSize: HomeSearchPageSize.defaultSize,

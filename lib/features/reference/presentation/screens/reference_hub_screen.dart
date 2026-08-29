@@ -12,6 +12,9 @@ import '../../../../core/utils/app_currency.dart';
 import '../../application/reference_providers.dart';
 import '../../domain/models/reference_models.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 enum _ReferenceMetricTab { accepted, pending, commission }
 
 /// Shared buyer/seller hub for referral code, inbound/outbound, and purchases.
@@ -59,7 +62,7 @@ class _ReferenceHubScreenState extends ConsumerState<ReferenceHubScreen> {
                   child: FilledButton(
                     onPressed: () =>
                         ref.read(referenceHubProvider.notifier).refresh(),
-                    child: const Text('Retry'),
+                    child: Text(context.tr(RemainingL10n.retry)),
                   ),
                 ),
               ],
@@ -84,7 +87,7 @@ class _ReferenceHubScreenState extends ConsumerState<ReferenceHubScreen> {
                 ),
                 children: [
                   Text(
-                    'My Reference',
+                    context.tr(RemainingL10n.myReference),
                     style: AppTypography.headline.copyWith(
                       color: AppColors.textPrimary(context),
                       fontWeight: FontWeight.w800,
@@ -92,8 +95,7 @@ class _ReferenceHubScreenState extends ConsumerState<ReferenceHubScreen> {
                   ),
                   const SizedBox(height: AppSpacing.s8),
                   Text(
-                    'Share your email or code. Accept people who add you. '
-                    'Earn 0.25% when they buy diamonds or melee.',
+                    context.tr(RemainingL10n.referenceIntro),
                     style: AppTypography.body.copyWith(
                       color: AppColors.textSecondary(context),
                       fontSize: 14,
@@ -133,8 +135,7 @@ class _ReferenceHubScreenState extends ConsumerState<ReferenceHubScreen> {
     final value = _requestController.text.trim();
     if (value.isEmpty || _requestBusy) return;
     setState(() => _requestBusy = true);
-    final result =
-        await ref.read(referenceHubProvider.notifier).request(value);
+    final result = await ref.read(referenceHubProvider.notifier).request(value);
     if (!mounted) return;
     setState(() => _requestBusy = false);
     final messenger = ScaffoldMessenger.of(context);
@@ -142,7 +143,7 @@ class _ReferenceHubScreenState extends ConsumerState<ReferenceHubScreen> {
       case Success():
         _requestController.clear();
         messenger.showSnackBar(
-          const SnackBar(content: Text('Reference request sent')),
+          SnackBar(content: Text(context.tr(RemainingL10n.referenceSent))),
         );
       case ResultFailure(failure: final failure):
         messenger.showSnackBar(SnackBar(content: Text(failure.message)));
@@ -169,21 +170,21 @@ class _MetricRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final cards = [
       _MetricCard(
-        label: 'Accepted',
+        label: context.tr(RemainingL10n.accepted),
         value: '$acceptedCount',
         icon: Icons.people_outline,
         selected: selected == _ReferenceMetricTab.accepted,
         onTap: () => onSelect(_ReferenceMetricTab.accepted),
       ),
       _MetricCard(
-        label: 'Pending',
+        label: context.tr(RemainingL10n.pending),
         value: '$pendingCount',
         icon: Icons.schedule_outlined,
         selected: selected == _ReferenceMetricTab.pending,
         onTap: () => onSelect(_ReferenceMetricTab.pending),
       ),
       _MetricCard(
-        label: 'Commission',
+        label: context.tr(RemainingL10n.commission),
         value: AppCurrency.inr(commission, decimals: 0),
         icon: Icons.currency_rupee,
         selected: selected == _ReferenceMetricTab.commission,
@@ -220,11 +221,11 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = selected
-        ? AppColors.bronze
-        : AppColors.border(context);
+    final borderColor = selected ? AppColors.bronze : AppColors.border(context);
     final fill = selected
-        ? AppColors.bronze.withValues(alpha: AppColors.isDark(context) ? 0.16 : 0.06)
+        ? AppColors.bronze.withValues(
+            alpha: AppColors.isDark(context) ? 0.16 : 0.06,
+          )
         : AppColors.card(context);
 
     return Material(
@@ -236,10 +237,7 @@ class _MetricCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: fill,
             borderRadius: BorderRadius.circular(AppSpacing.r16),
-            border: Border.all(
-              color: borderColor,
-              width: selected ? 1.5 : 1,
-            ),
+            border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
             boxShadow: AppColors.isDark(context) ? null : AppShadows.cardLight,
           ),
           padding: const EdgeInsets.all(AppSpacing.s12),
@@ -309,20 +307,18 @@ class _TabPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return switch (tab) {
       _ReferenceMetricTab.accepted => _SectionCard(
-          title: 'Accepted references',
-          child: _buildAccepted(context),
-        ),
+        title: context.tr(RemainingL10n.acceptedReferences),
+        child: _buildAccepted(context),
+      ),
       _ReferenceMetricTab.pending => _SectionCard(
-          title: 'Requests to accept',
-          child: _buildPending(context, ref),
-        ),
+        title: context.tr(RemainingL10n.requestsToAccept),
+        child: _buildPending(context, ref),
+      ),
       _ReferenceMetricTab.commission => _SectionCard(
-          title: 'Purchases from my referrals',
-          subtitle:
-              'Diamond and melee orders that earned you commission. '
-              'Seller rejections reverse commission with a new entry.',
-          child: _buildPurchases(context),
-        ),
+        title: context.tr(RemainingL10n.referralPurchases),
+        subtitle: context.tr(RemainingL10n.diamondAndMeleeOrdersThatEarned),
+        child: _buildPurchases(context),
+      ),
     };
   }
 
@@ -331,7 +327,7 @@ class _TabPanel extends ConsumerWidget {
         .where((r) => r.status == ReferenceStatus.accepted)
         .toList(growable: false);
     if (items.isEmpty) {
-      return const _EmptyNote('No accepted references yet.');
+      return _EmptyNote(context.tr(RemainingL10n.noAcceptedReferences));
     }
     return Column(
       children: [
@@ -352,7 +348,7 @@ class _TabPanel extends ConsumerWidget {
         .where((r) => r.status == ReferenceStatus.pending)
         .toList(growable: false);
     if (items.isEmpty) {
-      return const _EmptyNote('No pending requests.');
+      return _EmptyNote(context.tr(RemainingL10n.noPendingRequests));
     }
     return Column(
       children: [
@@ -367,7 +363,7 @@ class _TabPanel extends ConsumerWidget {
 
   Widget _buildPurchases(BuildContext context) {
     if (purchases.isEmpty) {
-      return const _EmptyNote('No commission purchases yet.');
+      return _EmptyNote(context.tr(RemainingL10n.noCommissionPurchases));
     }
     return Column(
       children: [
@@ -410,7 +406,9 @@ class _PendingRequestCard extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.s4),
           Text(
-            'Requested ${request.createdAtLabel}',
+            context.tr(RemainingL10n.requestedDate, {
+              'date': request.createdAtLabel,
+            }),
             style: AppTypography.caption.copyWith(
               color: AppColors.textMuted(context),
             ),
@@ -425,9 +423,13 @@ class _PendingRequestCard extends ConsumerWidget {
                         .read(referenceHubProvider.notifier)
                         .reject(request.id);
                     if (!context.mounted) return;
-                    _toast(context, result, 'Request rejected');
+                    _toast(
+                      context,
+                      result,
+                      context.tr(RemainingL10n.requestRejected),
+                    );
                   },
-                  child: const Text('Reject'),
+                  child: Text(context.tr(RemainingL10n.reject)),
                 ),
               ),
               const SizedBox(width: AppSpacing.s8),
@@ -438,9 +440,13 @@ class _PendingRequestCard extends ConsumerWidget {
                         .read(referenceHubProvider.notifier)
                         .accept(request.id);
                     if (!context.mounted) return;
-                    _toast(context, result, 'Request accepted');
+                    _toast(
+                      context,
+                      result,
+                      context.tr(RemainingL10n.requestAccepted),
+                    );
                   },
-                  child: const Text('Accept'),
+                  child: Text(context.tr(RemainingL10n.accept)),
                 ),
               ),
             ],
@@ -521,17 +527,25 @@ class _ShareCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SectionCard(
-      title: 'Share your reference',
+      title: context.tr(RemainingL10n.shareReference),
       titleIcon: Icons.person_add_alt_1_outlined,
-      subtitle:
-          'Others can use your email or code when registering or from this page.',
+      subtitle: context.tr(RemainingL10n.othersCanUseYourEmailOrCode),
       child: Column(
         children: [
-          _CopyField(label: 'Your email', value: profile.email),
+          _CopyField(
+            label: context.tr(RemainingL10n.yourEmail),
+            value: profile.email,
+          ),
           const SizedBox(height: AppSpacing.s12),
-          _CopyField(label: 'Your code', value: profile.referralCode),
+          _CopyField(
+            label: context.tr(RemainingL10n.yourCode),
+            value: profile.referralCode,
+          ),
           const SizedBox(height: AppSpacing.s12),
-          _CopyField(label: 'Share link', value: profile.shareRegisterUrl),
+          _CopyField(
+            label: context.tr(RemainingL10n.shareLink),
+            value: profile.shareRegisterUrl,
+          ),
         ],
       ),
     );
@@ -587,12 +601,12 @@ class _CopyField extends StatelessWidget {
                   : () async {
                       await Clipboard.setData(ClipboardData(text: value));
                       if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('$label copied')),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('$label copied')));
                     },
               icon: const Icon(Icons.copy_outlined, size: 16),
-              label: const Text('Copy'),
+              label: Text(context.tr(RemainingL10n.copy)),
             ),
           ],
         ),
@@ -620,7 +634,7 @@ class _MyReferenceCard extends StatelessWidget {
     final history = profile?.outboundHistory ?? const <ReferenceRequest>[];
 
     return _SectionCard(
-      title: 'My reference',
+      title: context.tr(RemainingL10n.myReference2),
       titleIcon: Icons.person_add_alt_1_outlined,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -642,13 +656,14 @@ class _MyReferenceCard extends StatelessWidget {
                       ),
                       children: [
                         TextSpan(
-                          text: 'Referrer: ',
+                          text: context.tr(RemainingL10n.referrer),
                           style: AppTypography.label.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         TextSpan(
-                          text: active.party?.nameWithEmail ?? active.partyLabel,
+                          text:
+                              active.party?.nameWithEmail ?? active.partyLabel,
                         ),
                       ],
                     ),
@@ -661,7 +676,7 @@ class _MyReferenceCard extends StatelessWidget {
                       ),
                       children: [
                         TextSpan(
-                          text: 'Status: ',
+                          text: context.tr(RemainingL10n.status),
                           style: AppTypography.label.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -675,7 +690,7 @@ class _MyReferenceCard extends StatelessWidget {
             )
           else ...[
             Text(
-              'Add someone as your reference using their email or code.',
+              context.tr(RemainingL10n.addSomeoneAsYourReferenceUsingTheir),
               style: AppTypography.caption.copyWith(
                 color: AppColors.textSecondary(context),
               ),
@@ -690,8 +705,8 @@ class _MyReferenceCard extends StatelessWidget {
                     enabled: !requestBusy,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => onSubmitRequest(),
-                    decoration: const InputDecoration(
-                      hintText: 'Email or referral code',
+                    decoration: InputDecoration(
+                      hintText: context.tr(RemainingL10n.emailReferralCode),
                     ),
                   ),
                 ),
@@ -704,7 +719,7 @@ class _MyReferenceCard extends StatelessWidget {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Request'),
+                      : Text(context.tr(RemainingL10n.request)),
                 ),
               ],
             ),
@@ -712,7 +727,7 @@ class _MyReferenceCard extends StatelessWidget {
           if (history.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.s20),
             Text(
-              'REQUEST HISTORY',
+              context.tr(RemainingL10n.requestHistory),
               style: AppTypography.caption.copyWith(
                 color: AppColors.textMuted(context),
                 fontWeight: FontWeight.w700,

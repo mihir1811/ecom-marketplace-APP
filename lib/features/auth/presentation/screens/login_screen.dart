@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
@@ -68,9 +71,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const AuthBrandHeader(
-                        eyebrow: 'WELCOME BACK',
-                        subtitle: 'Sign in to GemWorld',
+                      AuthBrandHeader(
+                        eyebrow: context.tr(AccountCommerceL10n.welcomeBack),
+                        subtitle: context.tr(
+                          AccountCommerceL10n.signInToGemWorld,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.s24),
                       Text(
@@ -89,15 +94,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               controller: _usernameController,
                               keyboardType: TextInputType.emailAddress,
                               textInputAction: TextInputAction.next,
-                              decoration: const InputDecoration(
-                                labelText: 'Username',
-                                prefixIcon: Icon(Icons.person_outline),
+                              decoration: InputDecoration(
+                                labelText: context.tr(
+                                  AccountCommerceL10n.username,
+                                ),
+                                prefixIcon: const Icon(Icons.person_outline),
                               ),
                               validator: (value) {
                                 final v = value?.trim() ?? '';
-                                if (v.isEmpty) return 'Enter username';
+                                if (v.isEmpty) {
+                                  return context.tr(
+                                    AccountCommerceL10n.enterUsername,
+                                  );
+                                }
                                 if (v.contains('@') && !isValidEmail(v)) {
-                                  return 'Enter a valid email or username';
+                                  return context.tr(
+                                    AccountCommerceL10n.validEmailOrUsername,
+                                  );
                                 }
                                 return null;
                               },
@@ -108,12 +121,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               obscureText: _obscurePassword,
                               textInputAction: TextInputAction.done,
                               decoration: InputDecoration(
-                                labelText: 'Password',
+                                labelText: context.tr(
+                                  AccountCommerceL10n.password,
+                                ),
                                 prefixIcon: const Icon(Icons.lock_outline),
                                 suffixIcon: IconButton(
                                   tooltip: _obscurePassword
-                                      ? 'Show password'
-                                      : 'Hide password',
+                                      ? context.tr(
+                                          AccountCommerceL10n.showPassword,
+                                        )
+                                      : context.tr(
+                                          AccountCommerceL10n.hidePassword,
+                                        ),
                                   icon: Icon(
                                     _obscurePassword
                                         ? Icons.visibility_off_outlined
@@ -128,9 +147,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               validator: (value) {
                                 final v = value ?? '';
-                                if (v.isEmpty) return 'Enter password';
+                                if (v.isEmpty) {
+                                  return context.tr(
+                                    AccountCommerceL10n.enterPassword,
+                                  );
+                                }
                                 if (v.length < 6) {
-                                  return 'Password must be at least 6 characters.';
+                                  return context.tr(
+                                    AccountCommerceL10n.passwordMin6,
+                                  );
                                 }
                                 return null;
                               },
@@ -143,10 +168,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 onPressed: authState.isLoading
                                     ? null
                                     : () => context.go(
-                                      AppRouteNames.forgotPassword,
-                                    ),
+                                        AppRouteNames.forgotPassword,
+                                      ),
                                 child: Text(
-                                  'Forgot password?',
+                                  context.tr(
+                                    AccountCommerceL10n.forgotPasswordAction,
+                                  ),
                                   style: AppTypography.label.copyWith(
                                     color: AppColors.textPrimary(context),
                                     decoration: TextDecoration.underline,
@@ -160,10 +187,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 onPressed: authState.isLoading
                                     ? null
                                     : () => context.go(
-                                      AppRouteNames.recoverAccount,
-                                    ),
+                                        AppRouteNames.recoverAccount,
+                                      ),
                                 child: Text(
-                                  'Recover deleted account',
+                                  context.tr(
+                                    AccountCommerceL10n.recoverDeletedAccount,
+                                  ),
                                   style: AppTypography.label.copyWith(
                                     color: AppColors.textPrimary(context),
                                     decoration: TextDecoration.underline,
@@ -194,7 +223,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                             .read(authProvider.notifier)
                                             .clearError();
 
-                                        final ok = _formKey.currentState?.validate() ??
+                                        final ok =
+                                            _formKey.currentState?.validate() ??
                                             false;
                                         if (!ok) return;
 
@@ -227,7 +257,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     ? null
                                     : () => context.go(AppRouteNames.register),
                                 child: Text(
-                                  'New to GemWorld? Create an account',
+                                  context.tr(
+                                    AccountCommerceL10n.createAccountPrompt,
+                                  ),
                                   style: AppTypography.label.copyWith(
                                     color: AppColors.textPrimary(context),
                                   ),
@@ -248,4 +280,3 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
-

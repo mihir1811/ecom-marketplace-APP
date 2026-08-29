@@ -47,7 +47,8 @@ class FilterChipWidget extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: padding ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding:
+            padding ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         alignment: centerLabel ? Alignment.center : null,
         decoration: BoxDecoration(
           color: isSelected ? fill : defaultUnselectedBg,
@@ -59,7 +60,8 @@ class FilterChipWidget extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: textStyle ??
+          style:
+              textStyle ??
               AppTypography.caption.copyWith(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected ? onFill : defaultUnselectedText,

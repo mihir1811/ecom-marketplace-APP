@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import '../theme/theme_preference_provider.dart';
 
 /// Global dark mode toggle button for the app bar.
@@ -16,7 +17,9 @@ class ThemeToggleButton extends ConsumerWidget {
     final dark = ref.watch(themePreferenceProvider);
 
     return IconButton(
-      tooltip: dark ? 'Switch to light mode' : 'Switch to dark mode',
+      tooltip: context.tr(
+        dark ? CoreL10n.switchToLightMode : CoreL10n.switchToDarkMode,
+      ),
       icon: Icon(
         dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
         size: size,

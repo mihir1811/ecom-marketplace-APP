@@ -40,8 +40,9 @@ abstract final class WalletMapper {
     Map<String, dynamic> root,
   ) {
     final data = root['data'];
-    final dataMap =
-        data is Map<String, dynamic> ? data : const <String, dynamic>{};
+    final dataMap = data is Map<String, dynamic>
+        ? data
+        : const <String, dynamic>{};
     final listJson = dataMap['transactions'];
     final txns = <WalletTransaction>[];
     if (listJson is List) {
@@ -69,8 +70,9 @@ abstract final class WalletMapper {
 
   static WalletTopUpSession topUpSessionFromJson(Map<String, dynamic> json) {
     final user = json['user'];
-    final userMap =
-        user is Map<String, dynamic> ? user : const <String, dynamic>{};
+    final userMap = user is Map<String, dynamic>
+        ? user
+        : const <String, dynamic>{};
     return WalletTopUpSession(
       razorpayOrderId: _str(json['razorpayOrderId']) ?? '',
       amountPaise: _int(json['amount']) ?? 0,

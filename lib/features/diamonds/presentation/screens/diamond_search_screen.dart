@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -142,99 +143,99 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     final sections = <CatalogSearchNavSection<Section>>[
       CatalogSearchNavSection(
         id: Section.basic,
-        label: 'Basic',
+        label: context.tr(CatalogL10n.basic),
         icon: Icons.diamond_outlined,
         key: _basicKey,
       ),
       CatalogSearchNavSection(
         id: Section.preferences,
-        label: 'PREF',
+        label: context.tr(CatalogL10n.prefShort),
         icon: Icons.tune,
         key: _prefKey,
       ),
       CatalogSearchNavSection(
         id: Section.measurements,
-        label: 'MEAS',
+        label: context.tr(CatalogL10n.measurementsShort),
         icon: Icons.straighten,
         key: _measKey,
       ),
       if (!useMeleeFilters)
         CatalogSearchNavSection(
           id: Section.advanced,
-          label: 'ADV',
+          label: context.tr(CatalogL10n.advancedShort),
           icon: Icons.add,
           key: _advancedKey,
         ),
     ];
 
     return CatalogSearchFilterShell(
-        title: widget.title,
-        isMelee: useMeleeFilters,
-        meleeFamily: widget.catalog.isLabGrown
-            ? MeleeBgFamily.labGrown
-            : MeleeBgFamily.natural,
-        onScrollNotification: catalogHandleScrollNotification,
-        stickyNav: CatalogSearchSectionNav<Section>(
-          navKey: catalogNavKey,
-          sections: sections,
-          activeId: _activeSection,
-          onSectionTap: (section) {
-            setState(() {
-              _activeSection = section.id;
-              if (section.id == Section.advanced) {
-                _expandAdvanced = true;
-              }
-            });
-            catalogScrollToSection(section.key);
+      title: widget.title,
+      isMelee: useMeleeFilters,
+      meleeFamily: widget.catalog.isLabGrown
+          ? MeleeBgFamily.labGrown
+          : MeleeBgFamily.natural,
+      onScrollNotification: catalogHandleScrollNotification,
+      stickyNav: CatalogSearchSectionNav<Section>(
+        navKey: catalogNavKey,
+        sections: sections,
+        activeId: _activeSection,
+        onSectionTap: (section) {
+          setState(() {
+            _activeSection = section.id;
             if (section.id == Section.advanced) {
-              Future.delayed(const Duration(milliseconds: 350), () {
-                if (mounted) setState(() => _expandAdvanced = false);
-              });
+              _expandAdvanced = true;
             }
-          },
-        ),
-        scrollController: catalogScrollController,
-        primaryLabel: 'SHOW DIAMONDS',
-        onPrimary: _onShowDiamonds,
-        onClear: () {
-          ref.read(diamondSearchProvider.notifier).reset();
-          _companyController.clear();
-          _locationController.clear();
+          });
+          catalogScrollToSection(section.key);
+          if (section.id == Section.advanced) {
+            Future.delayed(const Duration(milliseconds: 350), () {
+              if (mounted) setState(() => _expandAdvanced = false);
+            });
+          }
         },
-        bodyChildren: [
-          _buildShapeCarousel(),
-          const SizedBox(height: AppSpacing.s24),
-          CatalogSearchSection(
-            sectionKey: _basicKey,
-            title: 'Basic',
-            child: FilterCategoryBasic(
-              sectionTitle: widget.catalog.label,
-              showOriginToggle: widget.catalog == DiamondCatalogType.natural,
-              isLabCatalog: widget.catalog == DiamondCatalogType.labGrown,
-            ),
+      ),
+      scrollController: catalogScrollController,
+      primaryLabel: context.tr(CatalogL10n.showDiamonds),
+      onPrimary: _onShowDiamonds,
+      onClear: () {
+        ref.read(diamondSearchProvider.notifier).reset();
+        _companyController.clear();
+        _locationController.clear();
+      },
+      bodyChildren: [
+        _buildShapeCarousel(),
+        const SizedBox(height: AppSpacing.s24),
+        CatalogSearchSection(
+          sectionKey: _basicKey,
+          title: context.tr(CatalogL10n.basic),
+          child: FilterCategoryBasic(
+            sectionTitle: widget.catalog.label,
+            showOriginToggle: widget.catalog == DiamondCatalogType.natural,
+            isLabCatalog: widget.catalog == DiamondCatalogType.labGrown,
           ),
+        ),
+        const SizedBox(height: AppSpacing.s32),
+        CatalogSearchSection(
+          sectionKey: _prefKey,
+          title: context.tr(CatalogL10n.preferences),
+          child: _buildPreferenceFilters(),
+        ),
+        const SizedBox(height: AppSpacing.s32),
+        CatalogSearchSection(
+          sectionKey: _measKey,
+          title: context.tr(CatalogL10n.measurements),
+          child: _buildMeasurementFilters(),
+        ),
+        if (!useMeleeFilters) ...[
           const SizedBox(height: AppSpacing.s32),
           CatalogSearchSection(
-            sectionKey: _prefKey,
-            title: 'Preferences',
-            child: _buildPreferenceFilters(),
+            sectionKey: _advancedKey,
+            title: context.tr(CatalogL10n.advanced),
+            child: _buildAdvancedFilters(),
           ),
-          const SizedBox(height: AppSpacing.s32),
-          CatalogSearchSection(
-            sectionKey: _measKey,
-            title: 'Measurements',
-            child: _buildMeasurementFilters(),
-          ),
-          if (!useMeleeFilters) ...[
-            const SizedBox(height: AppSpacing.s32),
-            CatalogSearchSection(
-              sectionKey: _advancedKey,
-              title: 'Advanced',
-              child: _buildAdvancedFilters(),
-            ),
-          ],
-          const SizedBox(height: AppSpacing.s32),
         ],
+        const SizedBox(height: AppSpacing.s32),
+      ],
     );
   }
 
@@ -243,7 +244,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     final notifier = ref.read(diamondSearchProvider.notifier);
 
     return PairedShowcaseCarousel(
-      title: 'Select Diamond\nShapes',
+      title: context.tr(CatalogL10n.selectDiamondShapes),
       itemCount: kAllShapes.length,
       itemBuilder: (context, index) {
         final item = kAllShapes[index];
@@ -278,10 +279,10 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
 
     return CatalogPreferencesFilters(
       locationField: CatalogSearchAddField(
-        title: "Vendor's Location",
+        title: context.tr(CatalogL10n.vendorLocation),
         infoText:
             'Search for diamonds located in a specific city, state, or region.',
-        hintText: 'Search by location (City, State, Country)',
+        hintText: context.tr(CatalogL10n.searchLocation),
         controller: _locationController,
         clearOnAdd: true,
         values: state.vendorLocations,
@@ -298,9 +299,9 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       minSellerRating: state.minSellerRating,
       onSellerRatingChanged: notifier.updateSellerRating,
       companyField: CatalogSearchAddField(
-        title: 'Company Name',
-        infoText: 'Search for diamonds supplied by a specific company name.',
-        hintText: 'Search by company name',
+        title: context.tr(CatalogL10n.companyName),
+        infoText: context.tr(CatalogL10n.diamondCompanyHelp),
+        hintText: context.tr(CatalogL10n.searchCompany),
         controller: _companyController,
         clearOnAdd: true,
         values: state.companyNames,
@@ -342,7 +343,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       expandAdvanced: _expandAdvanced,
       ranges: [
         CatalogAdvancedRangeSpec(
-          title: 'Table Percentage',
+          title: context.tr(CatalogL10n.tablePercentage),
           currentMin: state.minTable,
           currentMax: state.maxTable,
           unit: '%',
@@ -352,7 +353,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           onMaxChanged: (v) => notifier.updateTableRange(state.minTable, v),
         ),
         CatalogAdvancedRangeSpec(
-          title: 'Depth Percentage',
+          title: context.tr(CatalogL10n.depthPercentage),
           currentMin: state.minDepth,
           currentMax: state.maxDepth,
           unit: '%',
@@ -362,44 +363,44 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           onMaxChanged: (v) => notifier.updateDepthRange(state.minDepth, v),
         ),
         CatalogAdvancedRangeSpec(
-          title: 'Crown Angle Range',
+          title: context.tr(CatalogL10n.crownAngleRange),
           currentMin: state.minCrownAngle,
           currentMax: state.maxCrownAngle,
           unit: '°',
-          infoText: 'Filter by average crown facet angle.',
+          infoText: context.tr(CatalogL10n.crownAngleHelp),
           onMinChanged: (v) =>
               notifier.updateCrownAngleRange(v, state.maxCrownAngle),
           onMaxChanged: (v) =>
               notifier.updateCrownAngleRange(state.minCrownAngle, v),
         ),
         CatalogAdvancedRangeSpec(
-          title: 'Crown Height Range',
+          title: context.tr(CatalogL10n.crownHeightRange),
           currentMin: state.minCrownHeight,
           currentMax: state.maxCrownHeight,
           unit: '%',
-          infoText: 'Filter by crown height relative to total depth.',
+          infoText: context.tr(CatalogL10n.crownHeightHelp),
           onMinChanged: (v) =>
               notifier.updateCrownHeightRange(v, state.maxCrownHeight),
           onMaxChanged: (v) =>
               notifier.updateCrownHeightRange(state.minCrownHeight, v),
         ),
         CatalogAdvancedRangeSpec(
-          title: 'Pavilion Angle Range',
+          title: context.tr(CatalogL10n.pavilionAngleRange),
           currentMin: state.minPavilionAngle,
           currentMax: state.maxPavilionAngle,
           unit: '°',
-          infoText: 'Filter by average pavilion facet angle.',
+          infoText: context.tr(CatalogL10n.pavilionAngleHelp),
           onMinChanged: (v) =>
               notifier.updatePavilionAngleRange(v, state.maxPavilionAngle),
           onMaxChanged: (v) =>
               notifier.updatePavilionAngleRange(state.minPavilionAngle, v),
         ),
         CatalogAdvancedRangeSpec(
-          title: 'Pavilion Depth Range',
+          title: context.tr(CatalogL10n.pavilionDepthRange),
           currentMin: state.minPavilionDepth,
           currentMax: state.maxPavilionDepth,
           unit: '%',
-          infoText: 'Filter by pavilion depth relative to total depth.',
+          infoText: context.tr(CatalogL10n.pavilionDepthHelp),
           onMinChanged: (v) =>
               notifier.updatePavilionDepthRange(v, state.maxPavilionDepth),
           onMaxChanged: (v) =>
@@ -408,18 +409,18 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       ],
       chipSections: [
         CatalogAdvancedChipSpec(
-          title: 'Girdle',
+          title: context.tr(CatalogL10n.girdle),
           options: DiamondFilterState.girdles,
           selectedItems: state.selectedGirdles,
           onToggle: notifier.toggleGirdle,
-          infoText: 'Filter by thickness of the girdle rim.',
+          infoText: context.tr(CatalogL10n.girdleHelp),
         ),
         CatalogAdvancedChipSpec(
-          title: 'Culet Size',
+          title: context.tr(CatalogL10n.culetSize),
           options: DiamondFilterState.culets,
           selectedItems: state.selectedCulets,
           onToggle: notifier.toggleCulet,
-          infoText: 'Filter by size of the culet facet.',
+          infoText: context.tr(CatalogL10n.culetHelp),
         ),
       ],
     );

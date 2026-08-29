@@ -120,10 +120,8 @@ class _PairedShowcaseCarouselState extends State<PairedShowcaseCarousel>
                   controller: _pageController,
                   itemBuilder: (context, pageIndex) {
                     final pairIndex = pageIndex % _pairCount;
-                    final leftIndex =
-                        (pairIndex * 2) % widget.itemCount;
-                    final rightIndex =
-                        (leftIndex + 1) % widget.itemCount;
+                    final leftIndex = (pairIndex * 2) % widget.itemCount;
+                    final rightIndex = (leftIndex + 1) % widget.itemCount;
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(

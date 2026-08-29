@@ -28,10 +28,7 @@ class RecentlyViewedRepositoryImpl implements RecentlyViewedRepository {
     try {
       await _dio.post<Map<String, dynamic>>(
         ApiEndpoints.recentlyViewed,
-        data: {
-          'productId': productId,
-          'productType': productType,
-        },
+        data: {'productId': productId, 'productType': productType},
         cancelToken: cancelToken,
       );
       return Result.success(null);

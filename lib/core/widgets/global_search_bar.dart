@@ -3,6 +3,9 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
+import '../l10n/app_localizations.dart';
+import '../l10n/translations/remaining_messages.dart';
+
 class GlobalSearchBar extends StatelessWidget {
   const GlobalSearchBar({super.key});
 
@@ -23,10 +26,8 @@ class GlobalSearchBar extends StatelessWidget {
         ),
         child: TextField(
           decoration: InputDecoration(
-            hintText: 'Search by shape, carat, certificate...',
-            hintStyle: AppTypography.body.copyWith(
-              color: mutedColor,
-            ),
+            hintText: context.tr(RemainingL10n.searchCatalogHint),
+            hintStyle: AppTypography.body.copyWith(color: mutedColor),
             filled: false,
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
@@ -40,11 +41,7 @@ class GlobalSearchBar extends StatelessWidget {
                 left: AppSpacing.s12,
                 right: AppSpacing.s8,
               ),
-              child: Icon(
-                Icons.search,
-                color: mutedColor,
-                size: 20,
-              ),
+              child: Icon(Icons.search, color: mutedColor, size: 20),
             ),
             prefixIconConstraints: const BoxConstraints(
               minWidth: 0,

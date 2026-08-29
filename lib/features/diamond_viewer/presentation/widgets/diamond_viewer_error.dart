@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -54,7 +55,7 @@ class DiamondViewerErrorView extends StatelessWidget {
                     backgroundColor: AppColors.bronze,
                     foregroundColor: AppColors.warmWhite,
                   ),
-                  child: const Text('Try again'),
+                  child: Text(context.tr(CatalogL10n.tryAgain)),
                 ),
               ],
             ],

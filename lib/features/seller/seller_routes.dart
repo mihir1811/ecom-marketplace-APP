@@ -29,10 +29,7 @@ import '../wallet/presentation/screens/seller_wallet_screen.dart';
 final List<RouteBase> sellerRoutes = [
   ShellRoute(
     builder: (context, state, child) {
-      return SellerLayout(
-        selectedRoute: state.uri.path,
-        child: child,
-      );
+      return SellerLayout(selectedRoute: state.uri.path, child: child);
     },
     routes: [
       GoRoute(
@@ -59,9 +56,8 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: '/seller/orders/:orderId',
-        builder: (context, state) => SellerOrderDetailScreen(
-          orderId: state.pathParameters['orderId']!,
-        ),
+        builder: (context, state) =>
+            SellerOrderDetailScreen(orderId: state.pathParameters['orderId']!),
       ),
       GoRoute(
         path: AppRouteNames.sellerInquiries,
@@ -97,9 +93,8 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: '/seller/chat/:chatId',
-        builder: (context, state) => SellerChatDetailScreen(
-          chatId: state.pathParameters['chatId']!,
-        ),
+        builder: (context, state) =>
+            SellerChatDetailScreen(chatId: state.pathParameters['chatId']!),
       ),
       GoRoute(
         path: AppRouteNames.sellerHelpCenter,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_spacing.dart';
 import 'filter_advanced_range_input.dart';
 
@@ -56,51 +57,48 @@ class CatalogMeasurementFilters extends StatelessWidget {
       child: Column(
         children: [
           FilterAdvancedRangeInput(
-            title: 'Length Range',
+            title: context.tr(CatalogL10n.lengthRange),
             currentMin: lengthMin,
             currentMax: lengthMax,
             minLimit: dimensionLimits.$1,
             maxLimit: dimensionLimits.$2,
             unit: 'mm',
-            infoText:
-                'Filter by the physical length of the stone in millimeters.',
+            infoText: context.tr(CatalogL10n.lengthHelp),
             onMinChanged: onLengthMinChanged,
             onMaxChanged: onLengthMaxChanged,
           ),
           const SizedBox(height: AppSpacing.s16),
           FilterAdvancedRangeInput(
-            title: 'Width Range',
+            title: context.tr(CatalogL10n.widthRange),
             currentMin: widthMin,
             currentMax: widthMax,
             minLimit: dimensionLimits.$1,
             maxLimit: dimensionLimits.$2,
             unit: 'mm',
-            infoText:
-                'Filter by the physical width of the stone in millimeters.',
+            infoText: context.tr(CatalogL10n.widthHelp),
             onMinChanged: onWidthMinChanged,
             onMaxChanged: onWidthMaxChanged,
           ),
           const SizedBox(height: AppSpacing.s16),
           FilterAdvancedRangeInput(
-            title: 'Height Range',
+            title: context.tr(CatalogL10n.heightRange),
             currentMin: heightMin,
             currentMax: heightMax,
             minLimit: dimensionLimits.$1,
             maxLimit: dimensionLimits.$2,
             unit: 'mm',
-            infoText:
-                'Filter by the physical height of the stone in millimeters.',
+            infoText: context.tr(CatalogL10n.heightHelp),
             onMinChanged: onHeightMinChanged,
             onMaxChanged: onHeightMaxChanged,
           ),
           const SizedBox(height: AppSpacing.s16),
           FilterAdvancedRangeInput(
-            title: 'Length to Width Ratio Range',
+            title: context.tr(CatalogL10n.ratioRange),
             currentMin: ratioMin,
             currentMax: ratioMax,
             minLimit: ratioLimits.$1,
             maxLimit: ratioLimits.$2,
-            infoText: 'Filter by the ratio of length divided by width.',
+            infoText: context.tr(CatalogL10n.ratioHelp),
             onMinChanged: onRatioMinChanged,
             onMaxChanged: onRatioMaxChanged,
           ),

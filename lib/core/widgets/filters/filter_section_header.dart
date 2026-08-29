@@ -3,11 +3,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 
 class FilterSectionHeader extends StatelessWidget {
-  const FilterSectionHeader({
-    required this.title,
-    this.infoText,
-    super.key,
-  });
+  const FilterSectionHeader({required this.title, this.infoText, super.key});
 
   final String title;
   final String? infoText;

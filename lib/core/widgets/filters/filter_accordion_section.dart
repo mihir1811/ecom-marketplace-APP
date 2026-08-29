@@ -37,7 +37,8 @@ class FilterAccordionSection extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: titleStyle ??
+                    style:
+                        titleStyle ??
                         AppTypography.label.copyWith(
                           fontWeight: FontWeight.w700,
                         ),

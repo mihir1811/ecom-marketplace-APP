@@ -19,30 +19,30 @@ abstract final class FavoriteProductType {
   static const String bullion = 'bullion';
 
   static String fromCategory(WishlistCategory category) => switch (category) {
-        WishlistCategory.diamond => diamond,
-        WishlistCategory.gemstone => gemstone,
-        WishlistCategory.jewelry => jewellery,
-        WishlistCategory.watch => watch,
-        WishlistCategory.bullion => bullion,
-      };
+    WishlistCategory.diamond => diamond,
+    WishlistCategory.gemstone => gemstone,
+    WishlistCategory.jewelry => jewellery,
+    WishlistCategory.watch => watch,
+    WishlistCategory.bullion => bullion,
+  };
 
   static WishlistCategory toCategory(String type) => switch (type) {
-        gemstone => WishlistCategory.gemstone,
-        jewellery => WishlistCategory.jewelry,
-        watch => WishlistCategory.watch,
-        bullion => WishlistCategory.bullion,
-        _ => WishlistCategory.diamond,
-      };
+    gemstone => WishlistCategory.gemstone,
+    jewellery => WishlistCategory.jewelry,
+    watch => WishlistCategory.watch,
+    bullion => WishlistCategory.bullion,
+    _ => WishlistCategory.diamond,
+  };
 
   static String label(String type) => switch (type) {
-        diamond => 'Diamond',
-        meleeDiamond => 'Melee Diamond',
-        gemstone => 'Gemstone',
-        jewellery => 'Jewelry',
-        watch => 'Watch',
-        bullion => 'Bullion',
-        _ => type,
-      };
+    diamond => 'Diamond',
+    meleeDiamond => 'Melee Diamond',
+    gemstone => 'Gemstone',
+    jewellery => 'Jewelry',
+    watch => 'Watch',
+    bullion => 'Bullion',
+    _ => type,
+  };
 }
 
 /// Paginated GET `/favorites/all` payload.
@@ -94,8 +94,7 @@ class WishlistItem {
           ? FavoriteProductType.meleeDiamond
           : FavoriteProductType.diamond,
       title: '${d.carat}ct ${DiamondDisplay.shape(d.shape)}',
-      subtitle:
-          '${d.isLabGrown ? 'Lab Grown' : 'Natural'} · $color $clarity',
+      subtitle: '${d.isLabGrown ? 'Lab Grown' : 'Natural'} · $color $clarity',
       priceLabel: AppCurrency.format(formatCatalogPrice(d.price)),
       imageUrl: d.imageUrl,
     );

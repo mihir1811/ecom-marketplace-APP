@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -13,10 +14,7 @@ import '../../domain/models/gemstone_filter_state.dart';
 /// Color and quality gemstone filters: color swatches, intensity, modifier,
 /// fluorescence, clarity, and quality grade.
 class GemstoneFilterCategoryQuality extends ConsumerWidget {
-  const GemstoneFilterCategoryQuality({
-    super.key,
-    this.wrapWithCard = true,
-  });
+  const GemstoneFilterCategoryQuality({super.key, this.wrapWithCard = true});
 
   final bool wrapWithCard;
 
@@ -44,7 +42,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const FilterSectionHeader(title: 'Color'),
+            FilterSectionHeader(title: context.tr(CatalogL10n.color)),
             const SizedBox(height: AppSpacing.s8),
             SizedBox(
               height: 96,
@@ -72,12 +70,11 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
         // === COLOR INTENSITY ===
         FilterScrollableChips(
           wrapWithCard: false,
-          title: 'Color Intensity',
+          title: context.tr(CatalogL10n.colorIntensity),
           options: GemstoneFilterState.colorIntensities,
           selectedItems: state.selectedIntensities,
           onToggle: (val) => notifier.toggleIntensity(val),
-          infoText:
-              'Filter by the saturation strength of the gemstone color.',
+          infoText: context.tr(CatalogL10n.colorIntensityHelp),
         ),
 
         const SizedBox(height: AppSpacing.s20),
@@ -85,11 +82,11 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
         // === MODIFIER ===
         FilterScrollableChips(
           wrapWithCard: false,
-          title: 'Modifier',
+          title: context.tr(CatalogL10n.modifier),
           options: GemstoneFilterState.modifiers,
           selectedItems: state.selectedModifiers,
           onToggle: (val) => notifier.toggleModifier(val),
-          infoText: 'Filter by secondary color tints in the gemstone.',
+          infoText: context.tr(CatalogL10n.modifierHelp),
         ),
 
         const SizedBox(height: AppSpacing.s20),
@@ -97,11 +94,11 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
         // === FLUORESCENCE INTENSITY ===
         FilterScrollableChips(
           wrapWithCard: false,
-          title: 'Fluorescence Intensity',
+          title: context.tr(CatalogL10n.fluorescenceIntensity),
           options: GemstoneFilterState.fluorescenceGrades,
           selectedItems: state.selectedFluorescence,
           onToggle: (val) => notifier.toggleFluorescence(val),
-          infoText: 'Filter by the strength of fluorescence under UV light.',
+          infoText: context.tr(CatalogL10n.fluorescenceHelp),
         ),
 
         const SizedBox(height: AppSpacing.s20),
@@ -110,22 +107,20 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const FilterSectionHeader(title: 'Fluorescence Color'),
+            FilterSectionHeader(
+              title: context.tr(CatalogL10n.fluorescenceColor),
+            ),
             const SizedBox(height: AppSpacing.s8),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: GemstoneFilterState.fluorescenceColors
-                    .map((name) {
-                  final isSelected =
-                      state.selectedFluorescenceColor == name;
-                  final hex =
-                      GemstoneFilterState.fluorescenceColorsHex[name]!;
+                children: GemstoneFilterState.fluorescenceColors.map((name) {
+                  final isSelected = state.selectedFluorescenceColor == name;
+                  final hex = GemstoneFilterState.fluorescenceColorsHex[name]!;
                   return Padding(
                     padding: const EdgeInsets.only(right: 12.0),
                     child: GestureDetector(
-                      onTap: () =>
-                          notifier.updateFluorescenceColor(name),
+                      onTap: () => notifier.updateFluorescenceColor(name),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         padding: const EdgeInsets.symmetric(
@@ -183,12 +178,11 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
         // === CLARITY ===
         FilterScrollableChips(
           wrapWithCard: false,
-          title: 'Clarity',
+          title: context.tr(CatalogL10n.clarity),
           options: GemstoneFilterState.clarities,
           selectedItems: state.selectedClarities,
           onToggle: (val) => notifier.toggleClarity(val),
-          infoText:
-              'Filter by the visibility of inclusions in the gemstone.',
+          infoText: context.tr(CatalogL10n.clarityHelp),
         ),
 
         const SizedBox(height: AppSpacing.s20),
@@ -197,10 +191,9 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const FilterSectionHeader(
-              title: 'Quality Grade',
-              infoText:
-                  'Overall commercial quality grade of the gemstone.',
+            FilterSectionHeader(
+              title: context.tr(CatalogL10n.qualityGrade),
+              infoText: context.tr(CatalogL10n.qualityGradeHelp),
             ),
             const SizedBox(height: AppSpacing.s8),
             Wrap(

@@ -18,7 +18,7 @@ final sellerProductRepositoryProvider = Provider<SellerProductRepository>(
 );
 
 class SellerProductRepositoryImpl implements SellerProductRepository {
-  SellerProductRepositoryImpl(this._dio);
+  const SellerProductRepositoryImpl(this._dio);
 
   final Dio _dio;
 
@@ -57,9 +57,7 @@ class SellerProductRepositoryImpl implements SellerProductRepository {
       final response = await _dio.patch<Map<String, dynamic>>(
         _itemPath(product),
         data: SellerProductRequestMapper.toUpdateFormData(product),
-        options: Options(
-          contentType: Headers.multipartFormDataContentType,
-        ),
+        options: Options(contentType: Headers.multipartFormDataContentType),
         cancelToken: cancelToken,
       );
       return _okOrMessage(
@@ -122,8 +120,9 @@ class SellerProductRepositoryImpl implements SellerProductRepository {
           : const <String, dynamic>{};
       final itemsJson = payload['data'];
       final metaJson = payload['meta'];
-      final meta =
-          metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+      final meta = metaJson is Map<String, dynamic>
+          ? metaJson
+          : const <String, dynamic>{};
       final list = itemsJson is List ? itemsJson : const [];
 
       for (final item in list) {

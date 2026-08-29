@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -56,7 +57,7 @@ class _DiamondViewerScreenState extends State<DiamondViewerScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: context.tr(CatalogL10n.close),
                     onPressed: () => context.goBack(),
                     icon: const Icon(Icons.close, color: AppColors.warmWhite),
                   ),
@@ -101,7 +102,7 @@ class _DiamondViewerScreenState extends State<DiamondViewerScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Drag to rotate · Pinch to zoom',
+                  context.tr(CatalogL10n.viewerGestureHint),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.bronzeLight,
                     fontWeight: FontWeight.w500,

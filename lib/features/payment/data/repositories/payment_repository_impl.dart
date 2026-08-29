@@ -149,9 +149,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
       final root = response.data ?? const <String, dynamic>{};
       final data = root['data'];
       if (data is! Map<String, dynamic>) {
-        return Result.failure(
-          const NetworkFailure('Order not found.'),
-        );
+        return Result.failure(const NetworkFailure('Order not found.'));
       }
       return Result.success(PaymentMapper.orderFromJson(data));
     } on DioException catch (e) {

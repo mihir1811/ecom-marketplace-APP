@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -97,8 +98,7 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
                     hintText: widget.hintText,
                     filled: true,
                     fillColor: AppColors.field(context),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 8),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -121,7 +121,7 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
                 ),
                 onPressed: _submit,
                 child: Text(
-                  'Add',
+                  context.tr(CatalogL10n.add),
                   style: AppTypography.caption.copyWith(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

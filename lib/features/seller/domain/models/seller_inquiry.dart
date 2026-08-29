@@ -13,12 +13,12 @@ enum InquiryCategory {
 
   /// API path segment, e.g. `diamond-inquiry`.
   String get apiSegment => switch (this) {
-        InquiryCategory.diamond => 'diamond-inquiry',
-        InquiryCategory.gemstone => 'gemstone-inquiry',
-        InquiryCategory.bullion => 'bullion-inquiry',
-        InquiryCategory.watch => 'watch-inquiry',
-        InquiryCategory.jewelry => 'jewellery-inquiry',
-      };
+    InquiryCategory.diamond => 'diamond-inquiry',
+    InquiryCategory.gemstone => 'gemstone-inquiry',
+    InquiryCategory.bullion => 'bullion-inquiry',
+    InquiryCategory.watch => 'watch-inquiry',
+    InquiryCategory.jewelry => 'jewellery-inquiry',
+  };
 
   /// Image field name on create/update (jewellery uses `referenceImage`).
   String get imageFieldKey =>

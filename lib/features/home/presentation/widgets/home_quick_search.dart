@@ -8,6 +8,9 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/home_search_provider.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Sticky home search field. Debounces input (280ms — web `useLiveSearchResults`).
 class HomeQuickSearch extends ConsumerStatefulWidget {
   const HomeQuickSearch({super.key});
@@ -94,7 +97,9 @@ class _HomeQuickSearchState extends ConsumerState<HomeQuickSearch> {
                 },
                 style: AppTypography.body.copyWith(fontSize: 15),
                 decoration: InputDecoration(
-                  hintText: 'Search diamonds, jewelry, watches…',
+                  hintText: context.tr(
+                    RemainingL10n.searchDiamondsJewelryWatches,
+                  ),
                   hintStyle: AppTypography.body.copyWith(
                     fontSize: 15,
                     color: AppColors.textSecondary(context),
@@ -112,7 +117,7 @@ class _HomeQuickSearchState extends ConsumerState<HomeQuickSearch> {
             ),
             if (hasText)
               IconButton(
-                tooltip: 'Clear',
+                tooltip: context.tr(RemainingL10n.clear),
                 onPressed: _clear,
                 icon: const Icon(Icons.close_rounded, size: 20),
                 color: AppColors.textSecondary(context),

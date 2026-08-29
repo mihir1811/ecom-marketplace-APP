@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -28,7 +29,8 @@ class FilterAdvancedRangeInput extends StatefulWidget {
   final ValueChanged<double> onMaxChanged;
 
   @override
-  State<FilterAdvancedRangeInput> createState() => _FilterAdvancedRangeInputState();
+  State<FilterAdvancedRangeInput> createState() =>
+      _FilterAdvancedRangeInputState();
 }
 
 class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
@@ -131,7 +133,9 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
           children: [
             Text(
               '${widget.title} ${widget.unit.isNotEmpty ? "(${widget.unit})" : ""}',
-              style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold),
+              style: AppTypography.caption.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(width: 6),
             Tooltip(
@@ -158,7 +162,13 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Minimum', style: TextStyle(fontSize: 11, color: AppColors.textMuted(context))),
+                  Text(
+                    context.tr(CatalogL10n.minimum),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMuted(context),
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   SizedBox(
                     height: 38,
@@ -170,16 +180,27 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                       },
                       child: TextFormField(
                         controller: _minController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        scrollPadding: const EdgeInsets.fromLTRB(
+                          20,
+                          20,
+                          20,
+                          80,
+                        ),
                         style: AppTypography.caption,
                         decoration: InputDecoration(
                           hintText: widget.minLimit.toStringAsFixed(1),
                           hintStyle: AppTypography.caption.copyWith(
                             color: AppColors.textMuted(context),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                           filled: true,
                           fillColor: AppColors.field(context),
                         ),
@@ -195,7 +216,13 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Maximum', style: TextStyle(fontSize: 11, color: AppColors.textMuted(context))),
+                  Text(
+                    context.tr(CatalogL10n.maximum),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMuted(context),
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   SizedBox(
                     height: 38,
@@ -207,16 +234,27 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                       },
                       child: TextFormField(
                         controller: _maxController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        scrollPadding: const EdgeInsets.fromLTRB(
+                          20,
+                          20,
+                          20,
+                          80,
+                        ),
                         style: AppTypography.caption,
                         decoration: InputDecoration(
                           hintText: widget.maxLimit.toStringAsFixed(1),
                           hintStyle: AppTypography.caption.copyWith(
                             color: AppColors.textMuted(context),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                           filled: true,
                           fillColor: AppColors.field(context),
                         ),

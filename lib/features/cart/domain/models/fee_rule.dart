@@ -109,8 +109,9 @@ class FeeRulesCatalog {
 
   /// Verification percent points from the active rule (`1` → 1%), else 0.
   double get gemworldVerificationPercent {
-    final rules = ofType(FeeType.gemworldVerification)
-        .where((r) => r.valueType.isPercentage);
+    final rules = ofType(
+      FeeType.gemworldVerification,
+    ).where((r) => r.valueType.isPercentage);
     if (rules.isEmpty) return 0;
     return rules.first.value;
   }

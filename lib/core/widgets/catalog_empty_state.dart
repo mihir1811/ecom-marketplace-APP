@@ -48,7 +48,8 @@ class CatalogEmptyState extends StatelessWidget {
             SizedBox(height: iconSize >= 64 ? AppSpacing.s24 : AppSpacing.s16),
             Text(
               title,
-              style: titleStyle ??
+              style:
+                  titleStyle ??
                   AppTypography.title.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
@@ -62,7 +63,9 @@ class CatalogEmptyState extends StatelessWidget {
               ),
             ),
             if (actionLabel != null && onAction != null) ...[
-              SizedBox(height: iconSize >= 64 ? AppSpacing.s24 : AppSpacing.s20),
+              SizedBox(
+                height: iconSize >= 64 ? AppSpacing.s24 : AppSpacing.s20,
+              ),
               if (actionIsOutlined)
                 actionIcon != null
                     ? OutlinedButton.icon(
@@ -75,10 +78,7 @@ class CatalogEmptyState extends StatelessWidget {
                         child: Text(actionLabel!),
                       )
               else
-                ElevatedButton(
-                  onPressed: onAction,
-                  child: Text(actionLabel!),
-                ),
+                ElevatedButton(onPressed: onAction, child: Text(actionLabel!)),
             ],
           ],
         ),

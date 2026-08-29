@@ -15,6 +15,9 @@ import '../../../refunds/domain/models/refund_request.dart';
 import '../../data/seller_orders_mock_data.dart';
 import '../../domain/models/seller_orders_models.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerOrdersScreen extends ConsumerStatefulWidget {
   const SellerOrdersScreen({super.key});
 
@@ -361,9 +364,7 @@ class _RefundsTab extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    'Review buyer refund requests for your orders. Accept to '
-                    'process a Razorpay refund, or reject with an optional note. '
-                    'Refunds are only allowed before delivery.',
+                    context.tr(RemainingL10n.reviewBuyerRefundRequestsForYour),
                     style: AppTypography.body.copyWith(
                       color: AppColors.textSecondary(context),
                       height: 1.4,
@@ -388,7 +389,7 @@ class _RefundsTab extends ConsumerWidget {
                     FilledButton(
                       onPressed: () =>
                           ref.read(sellerRefundListProvider.notifier).refresh(),
-                      child: const Text('Retry'),
+                      child: Text(context.tr(RemainingL10n.retry)),
                     ),
                   ],
                 ),
@@ -398,7 +399,7 @@ class _RefundsTab extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 48),
                 child: Center(
                   child: Text(
-                    'No refund requests yet',
+                    context.tr(RemainingL10n.noRefundRequestsYet),
                     style: AppTypography.body,
                   ),
                 ),
@@ -480,7 +481,7 @@ class _RefundCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: _InfoBlock(
-                  label: 'Buyer',
+                  label: context.tr(RemainingL10n.buyer),
                   child: Text(
                     refund.buyerLabel,
                     maxLines: 1,
@@ -494,7 +495,7 @@ class _RefundCard extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _InfoBlock(
-                  label: 'Order',
+                  label: context.tr(RemainingL10n.order),
                   child: GestureDetector(
                     onTap: () => context.openRoute(
                       AppRouteNames.sellerOrderDetailPath(refund.orderId),
@@ -515,7 +516,7 @@ class _RefundCard extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _InfoBlock(
-                  label: 'Requested',
+                  label: context.tr(RemainingL10n.requested),
                   child: Text(
                     refund.createdAtLabel,
                     maxLines: 2,
@@ -535,7 +536,7 @@ class _RefundCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: _InfoBlock(
-                  label: 'Buyer reason',
+                  label: context.tr(RemainingL10n.buyerReason),
                   child: Text(
                     refund.reason,
                     style: AppTypography.body.copyWith(
@@ -548,7 +549,7 @@ class _RefundCard extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _InfoBlock(
-                    label: 'Your note',
+                    label: context.tr(RemainingL10n.yourNote),
                     child: Text(
                       refund.sellerNote!,
                       style: AppTypography.body.copyWith(
@@ -569,7 +570,7 @@ class _RefundCard extends ConsumerWidget {
                     onPressed: mutating
                         ? null
                         : () => _rejectRefund(context, ref, refund.id),
-                    child: const Text('Reject'),
+                    child: Text(context.tr(RemainingL10n.reject)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -582,7 +583,7 @@ class _RefundCard extends ConsumerWidget {
                       backgroundColor: AppColors.charcoal,
                       foregroundColor: AppColors.warmWhite,
                     ),
-                    child: const Text('Accept'),
+                    child: Text(context.tr(RemainingL10n.accept)),
                   ),
                 ),
               ],
@@ -601,18 +602,18 @@ class _RefundCard extends ConsumerWidget {
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Accept refund?'),
-        content: const Text(
-          'This triggers a Razorpay refund for the seller portion.',
+        title: Text(context.tr(RemainingL10n.acceptRefund)),
+        content: Text(
+          context.tr(RemainingL10n.thisTriggersARazorpayRefundForThe),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(RemainingL10n.cancel)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Accept'),
+            child: Text(context.tr(RemainingL10n.accept)),
           ),
         ],
       ),
@@ -624,7 +625,7 @@ class _RefundCard extends ConsumerWidget {
     switch (result) {
       case Success():
         messenger.showSnackBar(
-          const SnackBar(content: Text('Refund accepted')),
+          SnackBar(content: Text(context.tr(RemainingL10n.refundAccepted))),
         );
       case ResultFailure(failure: final failure):
         messenger.showSnackBar(SnackBar(content: Text(failure.message)));
@@ -640,11 +641,11 @@ class _RefundCard extends ConsumerWidget {
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Reject refund'),
+        title: Text(context.tr(RemainingL10n.rejectRefund)),
         content: TextField(
           controller: noteController,
           maxLines: 3,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Note (optional)',
             border: OutlineInputBorder(),
           ),
@@ -652,11 +653,11 @@ class _RefundCard extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(RemainingL10n.cancel)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Reject'),
+            child: Text(context.tr(RemainingL10n.reject)),
           ),
         ],
       ),
@@ -672,7 +673,7 @@ class _RefundCard extends ConsumerWidget {
     switch (result) {
       case Success():
         messenger.showSnackBar(
-          const SnackBar(content: Text('Refund rejected')),
+          SnackBar(content: Text(context.tr(RemainingL10n.refundRejected))),
         );
       case ResultFailure(failure: final failure):
         messenger.showSnackBar(SnackBar(content: Text(failure.message)));
@@ -681,7 +682,7 @@ class _RefundCard extends ConsumerWidget {
 }
 
 class _InfoBlock extends StatelessWidget {
-  const _InfoBlock({required this.label, required this.child});
+  _InfoBlock({required this.label, required this.child});
 
   final String label;
   final Widget child;

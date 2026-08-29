@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -19,16 +22,17 @@ class CartAddressSection extends ConsumerWidget {
     // Blank form — never prefill from a selected address.
     final saved = await showDeliveryAddressSheet(context);
     if (saved == null) return;
-    final result =
-        await ref.read(cartProvider.notifier).saveAndSelectAddress(saved);
+    final result = await ref
+        .read(cartProvider.notifier)
+        .saveAndSelectAddress(saved);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Address saved')),
+        SnackBar(content: Text(context.tr(AccountCommerceL10n.addressSaved))),
       );
     }
   }
@@ -40,16 +44,17 @@ class CartAddressSection extends ConsumerWidget {
   ) async {
     final edited = await showDeliveryAddressSheet(context, initial: address);
     if (edited == null) return;
-    final result =
-        await ref.read(cartProvider.notifier).saveAndSelectAddress(edited);
+    final result = await ref
+        .read(cartProvider.notifier)
+        .saveAndSelectAddress(edited);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Address updated')),
+        SnackBar(content: Text(context.tr(AccountCommerceL10n.addressUpdated))),
       );
     }
   }
@@ -65,19 +70,19 @@ class CartAddressSection extends ConsumerWidget {
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete address?'),
+        title: Text(context.tr(AccountCommerceL10n.deleteAddressTitle)),
         content: Text(
           'Remove ${address.label?.isNotEmpty == true ? address.label! : address.fullName} from your saved addresses?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(CoreL10n.cancel)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Delete'),
+            child: Text(context.tr(CoreL10n.delete)),
           ),
         ],
       ),
@@ -87,12 +92,12 @@ class CartAddressSection extends ConsumerWidget {
     final result = await ref.read(cartProvider.notifier).deleteAddress(id);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Address deleted')),
+        SnackBar(content: Text(context.tr(AccountCommerceL10n.addressDeleted))),
       );
     }
   }
@@ -107,9 +112,9 @@ class CartAddressSection extends ConsumerWidget {
     final result = ref.read(cartProvider.notifier).selectExistingAddress(id);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
 
@@ -142,7 +147,7 @@ class CartAddressSection extends ConsumerWidget {
               ),
               const SizedBox(width: AppSpacing.s8),
               Text(
-                'Deliver to',
+                context.tr(AccountCommerceL10n.deliverTo),
                 style: AppTypography.label.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -152,16 +157,15 @@ class CartAddressSection extends ConsumerWidget {
           const SizedBox(height: AppSpacing.s12),
           if (list.isEmpty)
             Text(
-              'No delivery address yet. Add one to proceed to payment.',
-              style: AppTypography.caption.copyWith(
-                color: muted,
-                height: 1.4,
-              ),
+              context.tr(AccountCommerceL10n.noAddress),
+              style: AppTypography.caption.copyWith(color: muted, height: 1.4),
             )
           else ...[
             Text(
-              'Saved addresses',
-              style: AppTypography.caption.copyWith(fontWeight: FontWeight.w700),
+              context.tr(AccountCommerceL10n.savedAddresses),
+              style: AppTypography.caption.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: AppSpacing.s8),
             ...list.map((a) {
@@ -192,7 +196,7 @@ class CartAddressSection extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      tooltip: 'Edit address',
+                      tooltip: context.tr(AccountCommerceL10n.editAddress),
                       onPressed: mutating
                           ? null
                           : () => _editAddress(context, ref, a),
@@ -201,7 +205,7 @@ class CartAddressSection extends ConsumerWidget {
                       visualDensity: VisualDensity.compact,
                     ),
                     IconButton(
-                      tooltip: 'Delete address',
+                      tooltip: context.tr(AccountCommerceL10n.deleteAddress),
                       onPressed: mutating
                           ? null
                           : () => _deleteAddress(context, ref, a),
@@ -223,7 +227,7 @@ class CartAddressSection extends ConsumerWidget {
             child: OutlinedButton.icon(
               onPressed: mutating ? null : () => _addNewAddress(context, ref),
               icon: const Icon(Icons.add_location_alt_outlined, size: 18),
-              label: const Text('Add new address'),
+              label: Text(context.tr(AccountCommerceL10n.addAddress)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textPrimary(context),
                 side: BorderSide(color: AppColors.border(context)),

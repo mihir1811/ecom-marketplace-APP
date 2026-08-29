@@ -2,18 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 // import '../../../../core/utils/app_currency.dart'; // Metal prices (AURUM) disabled
 // import '../../../../core/utils/format_catalog_price.dart'; // Metal prices (AURUM) disabled
+import '../../../../core/widgets/catalog_listing_header_row.dart';
 import '../../../../core/widgets/catalog_screen_shell.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../../core/widgets/listing_search_filter_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
-import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
 // import '../../application/metal_prices_provider.dart'; // Metal prices (AURUM) disabled
@@ -129,36 +130,36 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
     return CatalogScreenShell(
       scaffoldKey: _scaffoldKey,
       endDrawer: const BullionsFilterDrawer(),
-      title: 'Bullions',
+      title: context.tr(CatalogL10n.bullions),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: AppSpacing.s8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-              child: _BullionsSearchBar(
-                searchController: _searchController,
-                onSearchChanged: _onSearchChanged,
-                onOpenFilters: _openFilters,
-              ),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: AppSpacing.s8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+            child: _BullionsSearchBar(
+              searchController: _searchController,
+              onSearchChanged: _onSearchChanged,
+              onOpenFilters: _openFilters,
             ),
-            const SizedBox(height: AppSpacing.s12),
-            Expanded(
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  const SliverToBoxAdapter(child: _BullionsPresetsSection()),
-                  const SliverToBoxAdapter(child: _BullionsHeaderRow()),
-                  _BullionsBody(
-                    onRetry: () =>
-                        ref.read(bullionsListProvider.notifier).refresh(),
-                    onClear: _clearFilters,
-                  ),
-                ],
-              ),
+          ),
+          const SizedBox(height: AppSpacing.s12),
+          Expanded(
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                const SliverToBoxAdapter(child: _BullionsPresetsSection()),
+                const SliverToBoxAdapter(child: _BullionsHeaderRow()),
+                _BullionsBody(
+                  onRetry: () =>
+                      ref.read(bullionsListProvider.notifier).refresh(),
+                  onClear: _clearFilters,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -193,9 +194,9 @@ class _BullionsBody extends ConsumerWidget {
       return SliverFillRemaining(
         child: CatalogEmptyState(
           icon: Icons.account_balance_wallet_outlined,
-          title: 'No bullions match your filters',
-          message: 'Try adjusting metal type or search keywords.',
-          actionLabel: 'Clear filters',
+          title: context.tr(CatalogL10n.noBullions),
+          message: context.tr(CatalogL10n.adjustBullionFilters),
+          actionLabel: context.tr(CatalogL10n.clearAll),
           onAction: onClear,
         ),
       );
@@ -239,7 +240,7 @@ class _BullionsSearchBar extends ConsumerWidget {
 
     return ListingSearchFilterBar(
       controller: searchController,
-      hintText: 'Search bullions...',
+      hintText: context.tr(CatalogL10n.searchBullions),
       mutedColor: muted,
       activeFilterCount: activeFilterCount,
       onFilterTap: onOpenFilters,
@@ -336,84 +337,31 @@ class _BullionsHeaderRow extends ConsumerWidget {
       bullionsListProvider.select((value) {
         final listState = value.valueOrNull;
         return listState == null || listState.isInitialLoading
-            ? 'Loading…'
-            : 'Showing ${listState.totalCount} Products';
+            ? context.tr(CatalogL10n.loading)
+            : context.tr(CatalogL10n.showingProducts, {
+                'count': listState.totalCount,
+              });
       }),
     );
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s16,
-            AppSpacing.s8,
-            AppSpacing.s16,
-            AppSpacing.s4,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: TextButton.icon(
-                  onPressed: () =>
-                      showSimpleSortSheet<BullionsSortOption>(
-                        context: context,
-                        options: BullionsSortOption.values,
-                        labelOf: (o) => o.label,
-                        current: ref.read(bullionsSortProvider),
-                      ).then((selected) {
-                        if (selected != null) {
-                          ref.read(bullionsSortProvider.notifier).state =
-                              selected;
-                        }
-                      }),
-                  icon: const Icon(Icons.sort, size: 18),
-                  label: Text(
-                    'Sort by: $sortLabel',
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.caption.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(context),
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary(context),
-                    padding: EdgeInsets.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ),
-              ViewModeToggle(
-                isGrid: isGrid,
-                onGrid: () =>
-                    ref.read(bullionsViewModeProvider.notifier).state =
-                        BullionsViewMode.grid,
-                onList: () =>
-                    ref.read(bullionsViewModeProvider.notifier).state =
-                        BullionsViewMode.list,
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s16,
-            0,
-            AppSpacing.s16,
-            AppSpacing.s8,
-          ),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              countLabel,
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textMuted(context),
-              ),
-            ),
-          ),
-        ),
-      ],
+    return CatalogListingHeaderRow(
+      sortLabel: sortLabel,
+      onSortTap: () => showSimpleSortSheet<BullionsSortOption>(
+        context: context,
+        options: BullionsSortOption.values,
+        labelOf: (o) => o.label,
+        current: ref.read(bullionsSortProvider),
+      ).then((selected) {
+        if (selected != null) {
+          ref.read(bullionsSortProvider.notifier).state = selected;
+        }
+      }),
+      isGrid: isGrid,
+      onGrid: () =>
+          ref.read(bullionsViewModeProvider.notifier).state = BullionsViewMode.grid,
+      onList: () =>
+          ref.read(bullionsViewModeProvider.notifier).state = BullionsViewMode.list,
+      countLabel: countLabel,
     );
   }
 }
@@ -486,7 +434,7 @@ class _MetalPricesTicker extends ConsumerWidget {
                                 .read(metalSpotPricesProvider.notifier)
                                 .retry(),
                             icon: const Icon(Icons.refresh, size: 16),
-                            label: const Text('Retry live prices'),
+                    label: Text(context.tr(CatalogL10n.retryLivePrices)),
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.bronze,
                               textStyle: AppTypography.caption.copyWith(
@@ -690,7 +638,9 @@ class _PresetChip extends StatelessWidget {
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
           decoration: BoxDecoration(
-            color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
+            color: selected
+                ? AppColors.selectedFill(context)
+                : AppColors.card(context),
             borderRadius: BorderRadius.circular(AppSpacing.r8),
             border: Border.all(
               color: selected ? accent : AppColors.border(context),
@@ -737,10 +687,14 @@ class _VariantFilterChip extends StatelessWidget {
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
           decoration: BoxDecoration(
-            color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
+            color: selected
+                ? AppColors.selectedFill(context)
+                : AppColors.card(context),
             borderRadius: BorderRadius.circular(AppSpacing.r8),
             border: Border.all(
-              color: selected ? AppColors.selectedFill(context) : AppColors.border(context),
+              color: selected
+                  ? AppColors.selectedFill(context)
+                  : AppColors.border(context),
             ),
           ),
           child: Text(

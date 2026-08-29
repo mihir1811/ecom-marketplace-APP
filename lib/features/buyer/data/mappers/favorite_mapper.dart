@@ -7,14 +7,17 @@ import '../../domain/models/wishlist_item.dart';
 abstract final class FavoriteMapper {
   static WishlistItem fromJson(Map<String, dynamic> json) {
     final product = json['product'];
-    final productMap =
-        product is Map<String, dynamic> ? product : const <String, dynamic>{};
-    final productType = _str(json['productType']) ??
+    final productMap = product is Map<String, dynamic>
+        ? product
+        : const <String, dynamic>{};
+    final productType =
+        _str(json['productType']) ??
         FavoriteProductType.fromCategory(WishlistCategory.diamond);
     final category = FavoriteProductType.toCategory(productType);
     final title = _title(productMap, productType);
     final subtitle = _subtitle(productMap, productType);
-    final price = _num(productMap['totalPrice']) ??
+    final price =
+        _num(productMap['totalPrice']) ??
         _num(productMap['price']) ??
         _variantNum(productMap, 'totalPrice') ??
         _variantNum(productMap, 'price');
@@ -39,12 +42,14 @@ abstract final class FavoriteMapper {
     required int limit,
   }) {
     final dataNode = root?['data'];
-    final payload =
-        dataNode is Map<String, dynamic> ? dataNode : const <String, dynamic>{};
+    final payload = dataNode is Map<String, dynamic>
+        ? dataNode
+        : const <String, dynamic>{};
     final itemsJson = payload['data'];
     final metaJson = payload['meta'];
-    final meta =
-        metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+    final meta = metaJson is Map<String, dynamic>
+        ? metaJson
+        : const <String, dynamic>{};
 
     final items = <WishlistItem>[];
     if (itemsJson is List) {
@@ -74,16 +79,15 @@ abstract final class FavoriteMapper {
   static String _title(Map<String, dynamic> product, String productType) {
     final built = switch (productType) {
       FavoriteProductType.diamond ||
-      FavoriteProductType.meleeDiamond =>
-        _diamondTitle(product),
+      FavoriteProductType.meleeDiamond => _diamondTitle(product),
       FavoriteProductType.gemstone => _gemstoneTitle(product),
       FavoriteProductType.jewellery => _jewelryTitle(product),
       FavoriteProductType.watch => _watchTitle(product),
       FavoriteProductType.bullion => _bullionTitle(product),
       _ => _joinWords([
-          _label(product['productTitle']),
-          _label(product['name']),
-        ]),
+        _label(product['productTitle']),
+        _label(product['name']),
+      ]),
     };
     if (built.isNotEmpty) return built;
     return FavoriteProductType.label(productType);
@@ -92,42 +96,39 @@ abstract final class FavoriteMapper {
   static String _subtitle(Map<String, dynamic> product, String productType) {
     return switch (productType) {
       FavoriteProductType.diamond ||
-      FavoriteProductType.meleeDiamond =>
-        _diamondSubtitle(product),
+      FavoriteProductType.meleeDiamond => _diamondSubtitle(product),
       FavoriteProductType.gemstone => _join([
-          _titleCase(product['origin']),
-          _titleCase(product['primaryColor']) ?? _titleCase(product['color']),
-        ]),
+        _titleCase(product['origin']),
+        _titleCase(product['primaryColor']) ?? _titleCase(product['color']),
+      ]),
       FavoriteProductType.jewellery => _join([
-          _jewelryCategory(product),
-          _titleCase(_variantLabel(product, 'metalType')) ??
-              _titleCase(product['metalType']),
-        ]),
+        _jewelryCategory(product),
+        _titleCase(_variantLabel(product, 'metalType')) ??
+            _titleCase(product['metalType']),
+      ]),
       FavoriteProductType.watch => _join([
-          _year(product['modelYear'] ?? product['year']),
-          _titleCase(product['caseMaterial']),
-        ]),
+        _year(product['modelYear'] ?? product['year']),
+        _titleCase(product['caseMaterial']),
+      ]),
       FavoriteProductType.bullion => _join([
-          _titleCase(product['metalShape']) ?? _titleCase(product['shape']),
-          _titleCase(product['condition']),
-        ]),
+        _titleCase(product['metalShape']) ?? _titleCase(product['shape']),
+        _titleCase(product['condition']),
+      ]),
       _ => _join([
-          _label(product['origin']),
-          _label(product['color']),
-          _label(product['model']),
-        ]),
+        _label(product['origin']),
+        _label(product['color']),
+        _label(product['model']),
+      ]),
     };
   }
 
   static String _diamondTitle(Map<String, dynamic> product) {
-    final carat = _num(product['caratWeight']) ??
+    final carat =
+        _num(product['caratWeight']) ??
         _num(product['totalCaratWeight']) ??
         _num(product['carat']);
     final shape = _diamondShape(product);
-    return _joinWords([
-      _caratText(carat),
-      shape,
-    ]);
+    return _joinWords([_caratText(carat), shape]);
   }
 
   static String _diamondSubtitle(Map<String, dynamic> product) {
@@ -142,7 +143,8 @@ abstract final class FavoriteMapper {
   }
 
   static String _gemstoneTitle(Map<String, dynamic> product) {
-    final carat = _num(product['totalCarat']) ??
+    final carat =
+        _num(product['totalCarat']) ??
         _num(product['caratWeight']) ??
         _num(product['carat']);
     return _joinWords([
@@ -159,10 +161,7 @@ abstract final class FavoriteMapper {
   }
 
   static String _watchTitle(Map<String, dynamic> product) {
-    return _joinWords([
-      _label(product['brand']),
-      _label(product['model']),
-    ]);
+    return _joinWords([_label(product['brand']), _label(product['model'])]);
   }
 
   static String _bullionTitle(Map<String, dynamic> product) {
@@ -179,9 +178,7 @@ abstract final class FavoriteMapper {
     String? raw;
     if (sub is Map) {
       final nested = sub['category'];
-      raw = nested is Map
-          ? _titleCase(nested['name'])
-          : _titleCase(nested);
+      raw = nested is Map ? _titleCase(nested['name']) : _titleCase(nested);
       raw ??= _titleCase(sub['name']);
     }
     raw ??= _titleCase(product['category']);
@@ -300,10 +297,13 @@ abstract final class FavoriteMapper {
   static String? _titleCase(Object? v) {
     final raw = _label(v);
     if (raw == null) return null;
-    return raw.split(RegExp(r'\s+')).map((word) {
-      if (word.isEmpty) return word;
-      return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
-    }).join(' ');
+    return raw
+        .split(RegExp(r'\s+'))
+        .map((word) {
+          if (word.isEmpty) return word;
+          return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+        })
+        .join(' ');
   }
 
   static String? _caratText(double? carat) {

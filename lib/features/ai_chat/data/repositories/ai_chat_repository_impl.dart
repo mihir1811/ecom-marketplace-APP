@@ -18,7 +18,7 @@ final aiChatRepositoryProvider = Provider<AiChatRepository>(
 );
 
 class AiChatRepositoryImpl implements AiChatRepository {
-  AiChatRepositoryImpl(this._dio);
+  const AiChatRepositoryImpl(this._dio);
 
   final Dio _dio;
 
@@ -34,9 +34,7 @@ class AiChatRepositoryImpl implements AiChatRepository {
     CancelToken? cancelToken,
   }) async {
     try {
-      final body = <String, dynamic>{
-        'language': language.apiValue,
-      };
+      final body = <String, dynamic>{'language': language.apiValue};
       final trimmed = message?.trim();
       if (trimmed != null && trimmed.isNotEmpty) {
         body['message'] = trimmed;
@@ -59,7 +57,9 @@ class AiChatRepositoryImpl implements AiChatRepository {
       );
       final data = response.data?['data'];
       if (data is! Map<String, dynamic>) {
-        return Result.failure(const UnknownFailure('Unexpected chat response.'));
+        return Result.failure(
+          const UnknownFailure('Unexpected chat response.'),
+        );
       }
       return Result.success(AiChatMapper.replyFromJson(data));
     } on DioException catch (e) {
@@ -88,7 +88,9 @@ class AiChatRepositoryImpl implements AiChatRepository {
       final data = response.data?['data'];
       final url = data is Map ? data['url']?.toString() : null;
       if (url == null || url.isEmpty) {
-        return Result.failure(const UnknownFailure('Unexpected upload response.'));
+        return Result.failure(
+          const UnknownFailure('Unexpected upload response.'),
+        );
       }
       return Result.success(url);
     } on DioException catch (e) {
@@ -105,9 +107,7 @@ class AiChatRepositoryImpl implements AiChatRepository {
     CancelToken? cancelToken,
   }) async {
     try {
-      final query = <String, dynamic>{
-        'limit': limit < 1 ? 30 : limit,
-      };
+      final query = <String, dynamic>{'limit': limit < 1 ? 30 : limit};
       if (sessionKeys.isNotEmpty) {
         query['sessionKeys'] = sessionKeys.join(',');
       }

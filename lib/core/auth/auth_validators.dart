@@ -1,3 +1,8 @@
+import 'package:flutter/widgets.dart';
+
+import '../l10n/app_localizations.dart';
+import '../l10n/translations/account_commerce_messages.dart';
+
 /// Basic email validation for UI forms (no backend call).
 bool isValidEmail(String value) {
   final v = value.trim();
@@ -9,8 +14,9 @@ bool isValidEmail(String value) {
 
 /// Indian PAN format: 5 letters + 4 digits + 1 letter.
 bool isValidPan(String value) {
-  return RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]$')
-      .hasMatch(value.trim().toUpperCase());
+  return RegExp(
+    r'^[A-Z]{5}[0-9]{4}[A-Z]$',
+  ).hasMatch(value.trim().toUpperCase());
 }
 
 /// Aadhaar: 12 digits.
@@ -20,8 +26,7 @@ bool isValidAadhaar(String value) {
 
 /// IFSC: 4 letters + 0 + 6 alphanumeric (e.g. HDFC0001234).
 bool isValidIfsc(String value) {
-  return RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$')
-      .hasMatch(value.trim().toUpperCase());
+  return RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$').hasMatch(value.trim().toUpperCase());
 }
 
 /// Bank account number: 8–20 digits.
@@ -33,10 +38,22 @@ class PasswordStrength {
   const PasswordStrength({
     required this.isStrong,
     required this.message,
+    this.missingRequirementKeys = const [],
   });
 
   final bool isStrong;
   final String message;
+  final List<String> missingRequirementKeys;
+}
+
+String localizePasswordStrength(
+  BuildContext context,
+  PasswordStrength strength,
+) {
+  final requirements = strength.missingRequirementKeys
+      .map(context.tr)
+      .join(', ');
+  return context.tr(strength.message, {'requirements': requirements});
 }
 
 /// Strength rules:
@@ -50,14 +67,14 @@ PasswordStrength evaluatePasswordStrength(String value) {
   if (v.isEmpty) {
     return const PasswordStrength(
       isStrong: false,
-      message: 'Password is required.',
+      message: AccountCommerceL10n.passwordRequired,
     );
   }
 
   if (v.length < 8) {
     return const PasswordStrength(
       isStrong: false,
-      message: 'Use at least 8 characters.',
+      message: AccountCommerceL10n.passwordUse8,
     );
   }
 
@@ -67,21 +84,22 @@ PasswordStrength evaluatePasswordStrength(String value) {
   final hasSymbol = RegExp(r'[^A-Za-z0-9]').hasMatch(v);
 
   final missing = <String>[
-    if (!hasUpper) 'an uppercase letter',
-    if (!hasLower) 'a lowercase letter',
-    if (!hasNumber) 'a number',
-    if (!hasSymbol) 'a symbol',
+    if (!hasUpper) AccountCommerceL10n.uppercaseLetter,
+    if (!hasLower) AccountCommerceL10n.lowercaseLetter,
+    if (!hasNumber) AccountCommerceL10n.numberRequirement,
+    if (!hasSymbol) AccountCommerceL10n.symbolRequirement,
   ];
 
   if (missing.isNotEmpty) {
     return PasswordStrength(
       isStrong: false,
-      message: 'Add ${missing.join(', ')} to strengthen your password.',
+      message: AccountCommerceL10n.passwordAddRequirements,
+      missingRequirementKeys: missing,
     );
   }
 
   return const PasswordStrength(
     isStrong: true,
-    message: 'Strong password.',
+    message: AccountCommerceL10n.passwordStrong,
   );
 }

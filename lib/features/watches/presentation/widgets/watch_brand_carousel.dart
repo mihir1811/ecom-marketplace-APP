@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -99,10 +100,26 @@ class WatchBrandCarousel extends ConsumerWidget {
                         ? ColorFiltered(
                             colorFilter: AppColors.isDark(context)
                                 ? const ColorFilter.matrix(<double>[
-                                    -1, 0, 0, 0, 255,
-                                    0, -1, 0, 0, 255,
-                                    0, 0, -1, 0, 255,
-                                    0, 0, 0, 1, 0,
+                                    -1,
+                                    0,
+                                    0,
+                                    0,
+                                    255,
+                                    0,
+                                    -1,
+                                    0,
+                                    0,
+                                    255,
+                                    0,
+                                    0,
+                                    -1,
+                                    0,
+                                    255,
+                                    0,
+                                    0,
+                                    0,
+                                    1,
+                                    0,
                                   ])
                                 : const ColorFilter.mode(
                                     Colors.transparent,
@@ -199,10 +216,14 @@ class _CategoryChip extends StatelessWidget {
           vertical: 8,
         ),
         decoration: BoxDecoration(
-          color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
+          color: selected
+              ? AppColors.selectedFill(context)
+              : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: selected ? AppColors.selectedFill(context) : AppColors.border(context),
+            color: selected
+                ? AppColors.selectedFill(context)
+                : AppColors.border(context),
           ),
         ),
         child: Center(
@@ -337,7 +358,7 @@ class _WatchBrandsDirectorySheetState
                         onChanged: (v) => setState(() => _query = v),
                         decoration: InputDecoration(
                           isDense: true,
-                          hintText: 'Search brands...',
+                          hintText: context.tr(CatalogL10n.searchBrands),
                           prefixIcon: Icon(
                             Icons.search,
                             color: muted,
@@ -392,7 +413,7 @@ class _WatchBrandsDirectorySheetState
                           onPressed: () => ref
                               .read(watchFilterProvider.notifier)
                               .clearBrands(),
-                          child: const Text('Clear'),
+                          child: Text(context.tr(CatalogL10n.clear)),
                         ),
                       ],
                     ),
@@ -478,8 +499,15 @@ class _WatchBrandsDirectorySheetState
                       onPressed: () => Navigator.pop(context),
                       child: Text(
                         selected.isEmpty
-                            ? 'Done'
-                            : 'Apply ${selected.length} brand${selected.length == 1 ? '' : 's'}',
+                            ? context.tr(CatalogL10n.done)
+                            : context.tr(CatalogL10n.applyBrandCount, {
+                                'count': selected.length,
+                                'brandLabel': context.tr(
+                                  selected.length == 1
+                                      ? CatalogL10n.brand
+                                      : CatalogL10n.brands,
+                                ),
+                              }),
                         style: AppTypography.label.copyWith(
                           color: AppColors.warmWhite,
                           fontWeight: FontWeight.w700,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -119,7 +120,12 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
     );
   }
 
-  Widget _buildTab(BuildContext context, String label, bool isActive, VoidCallback onTap) {
+  Widget _buildTab(
+    BuildContext context,
+    String label,
+    bool isActive,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -127,7 +133,9 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
         width: 64,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isActive ? AppColors.selectedFill(context) : AppColors.card(context),
+          color: isActive
+              ? AppColors.selectedFill(context)
+              : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8 - 2),
           border: isActive ? Border.all(color: _gold, width: 1) : null,
           boxShadow: isActive
@@ -157,7 +165,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
   List<Widget> _buildPcsFilters() {
     return [
       FilterRangeSlider(
-        title: 'Total Price',
+        title: context.tr(CatalogL10n.totalPrice),
         minLimit: widget.totalPriceLimits.$1,
         maxLimit: widget.totalPriceLimits.$2,
         currentMin: widget.totalPriceMin,
@@ -174,7 +182,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       _caratPerPcsSlider(),
       const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
-        title: 'Price / Pcs',
+        title: context.tr(CatalogL10n.pricePerPiece),
         minLimit: widget.pricePerUnitLimits.$1,
         maxLimit: widget.pricePerUnitLimits.$2,
         currentMin: widget.pricePerPcsMin,
@@ -189,7 +197,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       ),
       const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
-        title: 'Total Pcs',
+        title: context.tr(CatalogL10n.totalPieces),
         minLimit: widget.pcsLimits.$1,
         maxLimit: widget.pcsLimits.$2,
         currentMin: widget.totalPcsMin,
@@ -197,17 +205,15 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
         unitSuffix: 'pcs',
         isInteger: true,
         onChanged: widget.onTotalPcsChanged,
-        onClear: () => widget.onTotalPcsChanged(
-          widget.pcsLimits.$1,
-          widget.pcsLimits.$2,
-        ),
+        onClear: () =>
+            widget.onTotalPcsChanged(widget.pcsLimits.$1, widget.pcsLimits.$2),
       ),
     ];
   }
 
   Widget _caratPerPcsSlider() {
     return FilterRangeSlider(
-      title: 'Carat / Pcs',
+      title: context.tr(CatalogL10n.caratPerPiece),
       minLimit: widget.caratLimits.$1,
       maxLimit: widget.caratLimits.$2,
       currentMin: widget.caratPerPcsMin,
@@ -224,7 +230,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
   List<Widget> _buildCaratFilters() {
     return [
       FilterRangeSlider(
-        title: 'Total Price',
+        title: context.tr(CatalogL10n.totalPrice),
         minLimit: widget.totalPriceLimits.$1,
         maxLimit: widget.totalPriceLimits.$2,
         currentMin: widget.totalPriceMin,
@@ -241,7 +247,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       _caratPerPcsSlider(),
       const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
-        title: 'Price / Carat',
+        title: context.tr(CatalogL10n.pricePerCarat),
         minLimit: widget.pricePerUnitLimits.$1,
         maxLimit: widget.pricePerUnitLimits.$2,
         currentMin: widget.pricePerCaratMin,
@@ -256,7 +262,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       ),
       const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
-        title: 'Total Carat',
+        title: context.tr(CatalogL10n.totalCarat),
         minLimit: widget.caratLimits.$1,
         maxLimit: widget.caratLimits.$2,
         currentMin: widget.totalCaratMin,

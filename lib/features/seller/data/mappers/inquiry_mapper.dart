@@ -2,13 +2,7 @@ import '../../domain/models/seller_inquiry.dart';
 
 /// Maps live inquiry API JSON to [SellerInquiry].
 abstract final class InquiryMapper {
-  static const _metaKeys = {
-    'id',
-    'userId',
-    'createdAt',
-    'updatedAt',
-    'user',
-  };
+  static const _metaKeys = {'id', 'userId', 'createdAt', 'updatedAt', 'user'};
 
   static SellerInquiry fromJson(
     Map<String, dynamic> json, {
@@ -43,7 +37,10 @@ abstract final class InquiryMapper {
     );
   }
 
-  static String? _imageUrl(InquiryCategory category, Map<String, dynamic> json) {
+  static String? _imageUrl(
+    InquiryCategory category,
+    Map<String, dynamic> json,
+  ) {
     final key = category.imageFieldKey;
     final value = json[key];
     if (value == null) return null;
@@ -51,7 +48,10 @@ abstract final class InquiryMapper {
     return text.isEmpty ? null : text;
   }
 
-  static String _summaryFor(InquiryCategory category, Map<String, dynamic> json) {
+  static String _summaryFor(
+    InquiryCategory category,
+    Map<String, dynamic> json,
+  ) {
     String pick(List<String> keys) {
       for (final key in keys) {
         final v = json[key];
@@ -100,27 +100,27 @@ abstract final class InquiryMapper {
   }
 
   static String _month(int m) => const [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ][m - 1];
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ][m - 1];
 
   static String _weekday(int d) => const [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday',
-      ][d - 1];
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ][d - 1];
 }

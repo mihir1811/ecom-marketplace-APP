@@ -13,6 +13,9 @@ import '../../../../core/widgets/filters/filter_chip.dart';
 import '../../../api_share/application/api_share_providers.dart';
 import '../../../api_share/domain/models/api_share.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerApiKeysScreen extends ConsumerStatefulWidget {
   const SellerApiKeysScreen({super.key});
 
@@ -24,9 +27,9 @@ class SellerApiKeysScreen extends ConsumerStatefulWidget {
 class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
   void _snack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _showGenerateDialog() async {
@@ -35,11 +38,9 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
       barrierDismissible: false,
       builder: (dialogContext) => _GenerateApiKeyDialog(
         onGenerate: (name, email, permissions) {
-          return ref.read(apiShareProvider.notifier).generate(
-                name: name,
-                email: email,
-                permissions: permissions,
-              );
+          return ref
+              .read(apiShareProvider.notifier)
+              .generate(name: name, email: email, permissions: permissions);
         },
       ),
     );
@@ -52,21 +53,19 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
     await showAppDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('API key created'),
+        title: Text(context.tr(RemainingL10n.apiKeyCreated)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Copy this key now. It was also emailed to ${apiKey.email}.',
+              context.tr(RemainingL10n.apiKeyEmailed, {'email': apiKey.email}),
               style: AppTypography.body,
             ),
             const SizedBox(height: AppSpacing.s12),
             SelectableText(
               apiKey.apiKey,
-              style: AppTypography.caption.copyWith(
-                fontFamily: 'monospace',
-              ),
+              style: AppTypography.caption.copyWith(fontFamily: 'monospace'),
             ),
           ],
         ),
@@ -75,13 +74,13 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: apiKey.apiKey));
               if (!mounted) return;
-              _snack('API key copied');
+              _snack(context.tr(RemainingL10n.apiKeyCopied));
             },
-            child: const Text('Copy'),
+            child: Text(context.tr(RemainingL10n.copy)),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Done'),
+            child: Text(context.tr(RemainingL10n.done)),
           ),
         ],
       ),
@@ -92,20 +91,19 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
     final permissions = await showAppDialog<List<ApiSharePermission>>(
       context: context,
       builder: (context) => _EditPermissionsDialog(
-        title: 'Permissions · ${key.name}',
+        title: context.tr(RemainingL10n.permissionsForName, {'name': key.name}),
         initial: key.permissions,
       ),
     );
     if (permissions == null || !mounted) return;
 
-    final result = await ref.read(apiShareProvider.notifier).updatePermissions(
-          id: key.id,
-          permissions: permissions,
-        );
+    final result = await ref
+        .read(apiShareProvider.notifier)
+        .updatePermissions(id: key.id, permissions: permissions);
     if (!mounted) return;
     switch (result) {
       case Success():
-        _snack('Permissions updated');
+        _snack(context.tr(RemainingL10n.permissionsUpdated));
       case ResultFailure(failure: final failure):
         _snack(failure.message);
     }
@@ -115,18 +113,18 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Revoke API key?'),
+        title: Text(context.tr(RemainingL10n.revokeApiKey)),
         content: Text(
           '“${key.name}” will stop working immediately for partners using it.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(RemainingL10n.cancel)),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Revoke'),
+            child: Text(context.tr(RemainingL10n.revoke)),
           ),
         ],
       ),
@@ -137,7 +135,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
     if (!mounted) return;
     switch (result) {
       case Success():
-        _snack('API key revoked');
+        _snack(context.tr(RemainingL10n.apiKeyRevoked));
       case ResultFailure(failure: final failure):
         _snack(failure.message);
     }
@@ -156,7 +154,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
             children: [
               const Spacer(),
               IconButton(
-                tooltip: 'Refresh',
+                tooltip: context.tr(RemainingL10n.refresh),
                 onPressed: state.isLoading || state.isMutating
                     ? null
                     : () => ref.read(apiShareProvider.notifier).refresh(),
@@ -165,7 +163,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
               FilledButton.icon(
                 onPressed: state.isMutating ? null : _showGenerateDialog,
                 icon: const Icon(Icons.add),
-                label: const Text('Generate'),
+                label: Text(context.tr(RemainingL10n.generate)),
               ),
             ],
           ),
@@ -175,8 +173,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
             padding: const EdgeInsets.all(AppSpacing.s16),
             children: [
               Text(
-                'Create API keys for partners to pull your shared inventory. '
-                'Keys are emailed on generate; revoke any key to cut off access.',
+                context.tr(RemainingL10n.createApiKeysForPartnersTo),
                 style: AppTypography.body.copyWith(
                   color: AppColors.textSecondary(context),
                 ),
@@ -199,7 +196,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
                 )
               else if (state.keys.isEmpty)
                 Text(
-                  'No API keys yet. Generate one to get started.',
+                  context.tr(RemainingL10n.noApiKeysYetGenerateOneTo),
                   style: AppTypography.body.copyWith(
                     color: AppColors.textMuted(context),
                   ),
@@ -210,10 +207,8 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
                     apiKey: key,
                     busy: state.isMutating,
                     onCopy: () async {
-                      await Clipboard.setData(
-                        ClipboardData(text: key.apiKey),
-                      );
-                      _snack('API key copied');
+                      await Clipboard.setData(ClipboardData(text: key.apiKey));
+                      _snack(context.tr(RemainingL10n.apiKeyCopied));
                     },
                     onEdit: () => _editPermissions(key),
                     onRevoke: () => _revoke(key),
@@ -235,7 +230,8 @@ class _GenerateApiKeyDialog extends StatefulWidget {
     String name,
     String email,
     List<ApiSharePermission> permissions,
-  ) onGenerate;
+  )
+  onGenerate;
 
   @override
   State<_GenerateApiKeyDialog> createState() => _GenerateApiKeyDialogState();
@@ -267,7 +263,11 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
     });
     if (_formKey.currentState?.validate() != true) return;
     if (_selected.isEmpty) {
-      setState(() => _permissionError = 'Select at least one permission');
+      setState(
+        () => _permissionError = context.tr(
+          RemainingL10n.selectAtLeastOnePermission,
+        ),
+      );
       return;
     }
 
@@ -311,7 +311,7 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Generate API key',
+                            context.tr(RemainingL10n.generateApiKey),
                             style: AppTypography.title.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
@@ -330,13 +330,13 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
                       controller: _nameController,
                       enabled: !_saving,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Name',
+                      decoration: InputDecoration(
+                        labelText: context.tr(RemainingL10n.name),
                         prefixIcon: Icon(Icons.badge_outlined),
                       ),
                       validator: (value) {
                         if ((value ?? '').trim().isEmpty) {
-                          return 'Name is required';
+                          return context.tr(RemainingL10n.nameIsRequired);
                         }
                         return null;
                       },
@@ -347,22 +347,25 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
                       enabled: !_saving,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.done,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
+                      decoration: InputDecoration(
+                        labelText: context.tr(RemainingL10n.email),
                         prefixIcon: Icon(Icons.mail_outline),
                       ),
                       validator: (value) {
                         final v = value?.trim() ?? '';
-                        if (v.isEmpty) return 'Email is required';
+                        if (v.isEmpty)
+                          return context.tr(RemainingL10n.emailIsRequired);
                         if (!isValidEmail(v)) {
-                          return 'Enter a valid email address';
+                          return context.tr(
+                            RemainingL10n.enterAValidEmailAddress,
+                          );
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: AppSpacing.s16),
                     Text(
-                      'Permissions',
+                      context.tr(RemainingL10n.permissions),
                       style: AppTypography.label.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -420,7 +423,7 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
                       ),
                       const SizedBox(height: AppSpacing.s8),
                       Text(
-                        'Generating API key…',
+                        context.tr(RemainingL10n.generatingApiKey),
                         textAlign: TextAlign.center,
                         style: AppTypography.caption.copyWith(
                           color: AppColors.textSecondary(context),
@@ -435,7 +438,7 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
                           onPressed: _saving
                               ? null
                               : () => Navigator.of(context).pop(),
-                          child: const Text('Cancel'),
+                          child: Text(context.tr(RemainingL10n.cancel)),
                         ),
                         const SizedBox(width: 8),
                         FilledButton(
@@ -448,7 +451,7 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('Generate'),
+                              : Text(context.tr(RemainingL10n.generate)),
                         ),
                       ],
                     ),
@@ -464,10 +467,7 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
 }
 
 class _EditPermissionsDialog extends StatefulWidget {
-  const _EditPermissionsDialog({
-    required this.title,
-    required this.initial,
-  });
+  const _EditPermissionsDialog({required this.title, required this.initial});
 
   final String title;
   final List<ApiSharePermission> initial;
@@ -488,7 +488,11 @@ class _EditPermissionsDialogState extends State<_EditPermissionsDialog> {
 
   void _submit() {
     if (_selected.isEmpty) {
-      setState(() => _permissionError = 'Select at least one permission');
+      setState(
+        () => _permissionError = context.tr(
+          RemainingL10n.selectAtLeastOnePermission,
+        ),
+      );
       return;
     }
     Navigator.of(context).pop(_selected.toList());
@@ -548,9 +552,7 @@ class _EditPermissionsDialogState extends State<_EditPermissionsDialog> {
                 const SizedBox(height: AppSpacing.s8),
                 Text(
                   _permissionError!,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.error,
-                  ),
+                  style: AppTypography.caption.copyWith(color: AppColors.error),
                 ),
               ],
               const SizedBox(height: AppSpacing.s16),
@@ -559,12 +561,12 @@ class _EditPermissionsDialogState extends State<_EditPermissionsDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    child: Text(context.tr(RemainingL10n.cancel)),
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
                     onPressed: _submit,
-                    child: const Text('Save'),
+                    child: Text(context.tr(RemainingL10n.save)),
                   ),
                 ],
               ),
@@ -618,17 +620,17 @@ class _ApiKeyTile extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Copy key',
+                  tooltip: context.tr(RemainingL10n.copyKey),
                   onPressed: busy ? null : onCopy,
                   icon: const Icon(Icons.copy_outlined),
                 ),
                 IconButton(
-                  tooltip: 'Edit permissions',
+                  tooltip: context.tr(RemainingL10n.editPermissions),
                   onPressed: busy ? null : onEdit,
                   icon: const Icon(Icons.tune),
                 ),
                 IconButton(
-                  tooltip: 'Revoke',
+                  tooltip: context.tr(RemainingL10n.revoke),
                   onPressed: busy ? null : onRevoke,
                   icon: const Icon(Icons.delete_outline),
                 ),
@@ -644,9 +646,7 @@ class _ApiKeyTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               apiKey.maskedApiKey,
-              style: AppTypography.caption.copyWith(
-                fontFamily: 'monospace',
-              ),
+              style: AppTypography.caption.copyWith(fontFamily: 'monospace'),
             ),
             if (perms.isNotEmpty) ...[
               const SizedBox(height: 8),

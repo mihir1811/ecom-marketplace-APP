@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/auth/auth_providers.dart';
+import 'core/l10n/app_localizations.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_preference_provider.dart';
@@ -15,9 +16,13 @@ class GemWorldApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final darkMode = ref.watch(themePreferenceProvider);
+    final locale = ref.watch(localePreferenceProvider);
 
     return MaterialApp.router(
-      title: 'GemWorld Diamond Marketplace',
+      onGenerateTitle: (context) => context.tr(CoreL10n.appTitle),
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
@@ -31,7 +36,7 @@ class GemWorldApp extends ConsumerWidget {
               child ?? const SizedBox.shrink(),
               const Positioned.fill(child: GemAiOverlay()),
               const _AccountProfileSync(),
-              const _ThemeHydrator(child: SizedBox.shrink()),
+              const _PreferenceHydrator(child: SizedBox.shrink()),
             ],
           ),
         );
@@ -40,20 +45,22 @@ class GemWorldApp extends ConsumerWidget {
   }
 }
 
-class _ThemeHydrator extends ConsumerStatefulWidget {
-  const _ThemeHydrator({required this.child});
+class _PreferenceHydrator extends ConsumerStatefulWidget {
+  const _PreferenceHydrator({required this.child});
   final Widget child;
 
   @override
-  ConsumerState<_ThemeHydrator> createState() => _ThemeHydratorState();
+  ConsumerState<_PreferenceHydrator> createState() =>
+      _PreferenceHydratorState();
 }
 
-class _ThemeHydratorState extends ConsumerState<_ThemeHydrator> {
+class _PreferenceHydratorState extends ConsumerState<_PreferenceHydrator> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(themePreferenceProvider.notifier).hydrate();
+      ref.read(localePreferenceProvider.notifier).hydrate();
     });
   }
 

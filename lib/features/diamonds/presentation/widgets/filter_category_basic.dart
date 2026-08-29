@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../domain/models/sieve_size.dart';
 import '../../../../core/widgets/melee_background_shell.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -98,7 +99,9 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const FilterSectionHeader(title: 'Diamond Category'),
+                FilterSectionHeader(
+                  title: context.tr(CatalogL10n.diamondCategory),
+                ),
                 const SizedBox(height: AppSpacing.s8),
                 FilterTextSegmentedControl(
                   options: DiamondFilterState.labCategories,
@@ -113,8 +116,8 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const FilterSectionHeader(
-                  title: 'Growth Method (CVD / HPHT)',
+                FilterSectionHeader(
+                  title: context.tr(CatalogL10n.growthMethod),
                 ),
                 const SizedBox(height: AppSpacing.s8),
                 Row(
@@ -124,7 +127,9 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: FilterChipWidget(
                           label: method,
-                          isSelected: state.selectedGrowthMethods.contains(method),
+                          isSelected: state.selectedGrowthMethods.contains(
+                            method,
+                          ),
                           centerLabel: true,
                           onTap: () => notifier.toggleGrowthMethod(method),
                         ),
@@ -142,7 +147,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const FilterSectionHeader(title: 'Select Shape'),
+                FilterSectionHeader(title: context.tr(CatalogL10n.selectShape)),
                 const SizedBox(height: AppSpacing.s8),
                 AnimatedSize(
                   duration: const Duration(milliseconds: 250),
@@ -154,11 +159,11 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                     itemCount: shapesToShow,
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: _shapeGridColumns,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 1.35,
-                    ),
+                          crossAxisCount: _shapeGridColumns,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 1.35,
+                        ),
                     itemBuilder: (context, index) {
                       if (index >= totalShapes) {
                         return const SizedBox.shrink();
@@ -213,14 +218,14 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
               children: [
                 if (useMeleeFilters) ...[
                   FilterBooleanCheckbox(
-                    label: 'Separable',
+                    label: context.tr(CatalogL10n.separable),
                     value: state.separable,
                     onChanged: (_) => notifier.toggleSeparable(),
                   ),
                   const SizedBox(height: AppSpacing.s16),
                 ],
                 FilterBooleanCheckbox(
-                  label: 'Filter by Media',
+                  label: context.tr(CatalogL10n.filterByMedia),
                   value: state.searchByMedia,
                   onChanged: (_) => notifier.toggleSearchByMedia(),
                 ),
@@ -228,9 +233,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
             ),
           ),
 
-          if (showSieve) ...[
-            const FilterSieveSize(),
-          ],
+          if (showSieve) ...[const FilterSieveSize()],
 
           if (useMeleeFilters) ...[
             MeleeRangeFilters(
@@ -294,7 +297,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                             const FinishPresetsSection(wrapWithCard: false),
                             const SizedBox(height: AppSpacing.s20),
                             FilterScrollableChips(
-                              title: 'Cut Grade',
+                              title: context.tr(CatalogL10n.cutGrade),
                               options: DiamondFilterState.cuts,
                               selectedItems: state.selectedCuts,
                               onToggle: (val) => notifier.toggleCut(val),
@@ -304,7 +307,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                             ),
                             const SizedBox(height: AppSpacing.s20),
                             FilterScrollableChips(
-                              title: 'Polish',
+                              title: context.tr(CatalogL10n.polish),
                               options: DiamondFilterState.polishingGrades,
                               selectedItems: state.selectedPolish,
                               onToggle: (val) => notifier.togglePolish(val),
@@ -314,7 +317,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                             ),
                             const SizedBox(height: AppSpacing.s20),
                             FilterScrollableChips(
-                              title: 'Symmetry',
+                              title: context.tr(CatalogL10n.symmetry),
                               options: DiamondFilterState.symmetryGrades,
                               selectedItems: state.selectedSymmetry,
                               onToggle: (val) => notifier.toggleSymmetry(val),
@@ -324,7 +327,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                             ),
                             const SizedBox(height: AppSpacing.s20),
                             FilterScrollableChips(
-                              title: 'Certification',
+                              title: context.tr(CatalogL10n.certification),
                               options: DiamondFilterState.labs,
                               selectedItems: state.selectedLabs,
                               onToggle: (val) => notifier.toggleLab(val),
@@ -341,21 +344,19 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                         child: Column(
                           children: [
                             FilterBooleanCheckbox(
-                              label: 'No BGM (No Brown, Green, Milky tints)',
+                              label: context.tr(CatalogL10n.noBgmLong),
                               value: state.noBgm,
                               onChanged: (_) => notifier.toggleNoBgm(),
                             ),
                             FilterBooleanCheckbox(
-                              label:
-                                  'Eye Clean (No inclusions visible to naked eye)',
+                              label: context.tr(CatalogL10n.eyeCleanLong),
                               value: state.eyeClean,
                               onChanged: (_) => notifier.toggleEyeClean(),
                             ),
                             FilterBooleanCheckbox(
-                              label: 'Hearts & Arrows',
+                              label: context.tr(CatalogL10n.heartsAndArrows),
                               value: state.heartAndArrow,
-                              onChanged: (_) =>
-                                  notifier.toggleHeartAndArrow(),
+                              onChanged: (_) => notifier.toggleHeartAndArrow(),
                             ),
                           ],
                         ),
@@ -366,13 +367,16 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const FilterSectionHeader(title: 'Milky'),
+                            FilterSectionHeader(
+                              title: context.tr(CatalogL10n.milky),
+                            ),
                             const SizedBox(height: AppSpacing.s8),
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(
-                                children: DiamondFilterState.milkyGrades
-                                    .map((grade) {
+                                children: DiamondFilterState.milkyGrades.map((
+                                  grade,
+                                ) {
                                   final isSelected = state.selectedMilkyGrades
                                       .contains(grade);
                                   return Padding(
@@ -381,8 +385,9 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                       onTap: () =>
                                           notifier.toggleMilkyGrade(grade),
                                       child: AnimatedContainer(
-                                        duration:
-                                            const Duration(milliseconds: 150),
+                                        duration: const Duration(
+                                          milliseconds: 150,
+                                        ),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 14,
                                           vertical: 8,
@@ -396,21 +401,23 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                           ),
                                           border: Border.all(
                                             color: isSelected
-                                                ? AppColors.selectedFill(context)
+                                                ? AppColors.selectedFill(
+                                                    context,
+                                                  )
                                                 : borderColor,
                                           ),
                                         ),
                                         child: Text(
-                                          grade,
-                                          style:
-                                              AppTypography.caption.copyWith(
+                                          context.trCatalogValue(grade),
+                                          style: AppTypography.caption.copyWith(
                                             fontWeight: isSelected
                                                 ? FontWeight.bold
                                                 : FontWeight.w500,
                                             color: isSelected
                                                 ? AppColors.onSelected(context)
                                                 : (AppColors.textPrimary(
-                                                      context)),
+                                                    context,
+                                                  )),
                                           ),
                                         ),
                                       ),
@@ -419,143 +426,169 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                 }).toList(),
                               ),
                             ),
-                            const FilterSectionHeader(
-                              title: 'Fluorescence Intensity',
+                            FilterSectionHeader(
+                              title: context.tr(
+                                CatalogL10n.fluorescenceIntensity,
+                              ),
                             ),
                             const SizedBox(height: AppSpacing.s8),
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(
-                                children:
-                                    DiamondFilterState.fluorescenceGrades.map((
-                                  grade,
-                                ) {
-                                  final isSelected = state
-                                      .selectedFluorescence
-                                      .contains(grade);
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: GestureDetector(
-                                      onTap: () =>
-                                          notifier.toggleFluorescence(grade),
-                                      child: AnimatedContainer(
-                                        duration:
-                                            const Duration(milliseconds: 150),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 8,
+                                children: DiamondFilterState.fluorescenceGrades
+                                    .map((grade) {
+                                      final isSelected = state
+                                          .selectedFluorescence
+                                          .contains(grade);
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 8.0,
                                         ),
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? AppColors.selectedFill(context)
-                                              : AppColors.card(context),
-                                          borderRadius: BorderRadius.circular(
-                                            AppSpacing.r8,
-                                          ),
-                                          border: Border.all(
-                                            color: isSelected
-                                                ? AppColors.selectedFill(context)
-                                                : borderColor,
+                                        child: GestureDetector(
+                                          onTap: () => notifier
+                                              .toggleFluorescence(grade),
+                                          child: AnimatedContainer(
+                                            duration: const Duration(
+                                              milliseconds: 150,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 14,
+                                              vertical: 8,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? AppColors.selectedFill(
+                                                      context,
+                                                    )
+                                                  : AppColors.card(context),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    AppSpacing.r8,
+                                                  ),
+                                              border: Border.all(
+                                                color: isSelected
+                                                    ? AppColors.selectedFill(
+                                                        context,
+                                                      )
+                                                    : borderColor,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              context.trCatalogValue(grade),
+                                              style: AppTypography.caption
+                                                  .copyWith(
+                                                    fontWeight: isSelected
+                                                        ? FontWeight.bold
+                                                        : FontWeight.w500,
+                                                    color: isSelected
+                                                        ? AppColors.onSelected(
+                                                            context,
+                                                          )
+                                                        : (AppColors.textPrimary(
+                                                            context,
+                                                          )),
+                                                  ),
+                                            ),
                                           ),
                                         ),
-                                        child: Text(
-                                          grade,
-                                          style:
-                                              AppTypography.caption.copyWith(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.w500,
-                                            color: isSelected
-                                                ? AppColors.onSelected(context)
-                                                : (AppColors.textPrimary(
-                                                      context)),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
+                                      );
+                                    })
+                                    .toList(),
                               ),
                             ),
-                            const FilterSectionHeader(
-                              title: 'Fluorescence Color',
+                            FilterSectionHeader(
+                              title: context.tr(CatalogL10n.fluorescenceColor),
                             ),
                             const SizedBox(height: AppSpacing.s8),
                             Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               decoration: BoxDecoration(
                                 border: Border.all(color: borderColor),
-                                borderRadius:
-                                    BorderRadius.circular(AppSpacing.r8),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.r8,
+                                ),
                               ),
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
                                   isExpanded: true,
-                                  hint: const Text(
-                                    'Select fluorescence color',
+                                  hint: Text(
+                                    context.tr(
+                                      CatalogL10n.selectFluorescenceColor,
+                                    ),
                                   ),
                                   value: state.selectedFluorescenceColor,
                                   items: DiamondFilterState.fluorescenceColors
                                       .map((colorName) {
-                                    final hex = DiamondFilterState
-                                        .fluorescenceColorsHex[colorName]!;
-                                    return DropdownMenuItem<String>(
-                                      value: colorName,
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            width: 16,
-                                            height: 16,
-                                            decoration: BoxDecoration(
-                                              color: _parseHex(hex),
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: Colors.grey.shade400,
+                                        final hex = DiamondFilterState
+                                            .fluorescenceColorsHex[colorName]!;
+                                        return DropdownMenuItem<String>(
+                                          value: colorName,
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                width: 16,
+                                                height: 16,
+                                                decoration: BoxDecoration(
+                                                  color: _parseHex(hex),
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color: Colors.grey.shade400,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
+                                              const SizedBox(
+                                                width: AppSpacing.s12,
+                                              ),
+                                              Text(context.trCatalogValue(colorName)),
+                                              const Spacer(),
+                                              Text(
+                                                hex,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppColors.textMuted(
+                                                    context,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(
-                                            width: AppSpacing.s12,
-                                          ),
-                                          Text(colorName),
-                                          const Spacer(),
-                                          Text(
-                                            hex,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: AppColors.textMuted(context),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
+                                        );
+                                      })
+                                      .toList(),
                                   onChanged: (val) =>
                                       notifier.updateFluorescenceColor(val),
                                 ),
                               ),
                             ),
-                            const FilterSectionHeader(title: 'Enhancement'),
+                            FilterSectionHeader(
+                              title: context.tr(CatalogL10n.enhancement),
+                            ),
                             const SizedBox(height: AppSpacing.s8),
                             Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               decoration: BoxDecoration(
                                 border: Border.all(color: borderColor),
-                                borderRadius:
-                                    BorderRadius.circular(AppSpacing.r8),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.r8,
+                                ),
                               ),
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
                                   isExpanded: true,
-                                  hint: const Text('Select enhancement'),
+                                  hint: Text(
+                                    context.tr(CatalogL10n.selectEnhancement),
+                                  ),
                                   value: state.selectedEnhancement,
-                                  items: DiamondFilterState.enhancements
-                                      .map((enh) {
+                                  items: DiamondFilterState.enhancements.map((
+                                    enh,
+                                  ) {
                                     return DropdownMenuItem<String>(
                                       value: enh,
-                                      child: Text(enh),
+                                      child: Text(context.trCatalogValue(enh)),
                                     );
                                   }).toList(),
                                   onChanged: (val) =>
@@ -586,15 +619,13 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                 decoration: BoxDecoration(
                   color: AppColors.bg(context),
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
-                  border: Border.all(
-                    color: AppColors.border(context),
-                  ),
+                  border: Border.all(color: AppColors.border(context)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'View more filters',
+                      context.tr(CatalogL10n.viewMoreFilters),
                       style: AppTypography.caption.copyWith(
                         color: AppColors.bronze,
                         fontWeight: FontWeight.bold,
@@ -624,7 +655,8 @@ class ClarityCardsSection extends ConsumerStatefulWidget {
   const ClarityCardsSection({super.key});
 
   @override
-  ConsumerState<ClarityCardsSection> createState() => _ClarityCardsSectionState();
+  ConsumerState<ClarityCardsSection> createState() =>
+      _ClarityCardsSectionState();
 }
 
 class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
@@ -639,10 +671,8 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Clarity',
-            style: AppTypography.label.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            context.tr(CatalogL10n.clarity),
+            style: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: AppSpacing.s8),
           GridView.builder(
@@ -669,14 +699,17 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
                         : AppColors.card(context),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isSelected ? AppColors.selectedFill(context) : borderColor,
+                      color: isSelected
+                          ? AppColors.selectedFill(context)
+                          : borderColor,
                     ),
                   ),
                   child: Text(
                     grade,
                     style: AppTypography.caption.copyWith(
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
                       color: isSelected
                           ? AppColors.onSelected(context)
                           : (AppColors.textPrimary(context)),
@@ -693,10 +726,7 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
 }
 
 class FinishPresetsSection extends ConsumerWidget {
-  const FinishPresetsSection({
-    this.wrapWithCard = true,
-    super.key,
-  });
+  const FinishPresetsSection({this.wrapWithCard = true, super.key});
 
   final bool wrapWithCard;
 
@@ -708,83 +738,81 @@ class FinishPresetsSection extends ConsumerWidget {
     final presets = ['3X', 'EX-', 'VG+', 'VG-'];
 
     final content = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'Finish (Quick Select)',
-                style:
-                    AppTypography.label.copyWith(fontWeight: FontWeight.bold),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              context.tr(CatalogL10n.finishQuickSelect),
+              style: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 6),
+            Tooltip(
+              message:
+                  "Quickly select combined grades for Cut, Polish, and Symmetry.",
+              triggerMode: TooltipTriggerMode.tap,
+              preferBelow: false,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(6),
               ),
-              const SizedBox(width: 6),
-              Tooltip(
-                message:
-                    "Quickly select combined grades for Cut, Polish, and Symmetry.",
-                triggerMode: TooltipTriggerMode.tap,
-                preferBelow: false,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                textStyle: const TextStyle(color: Colors.white, fontSize: 13),
-                child: const Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: AppColors.bronze,
-                ),
+              textStyle: const TextStyle(color: Colors.white, fontSize: 13),
+              child: const Icon(
+                Icons.info_outline,
+                size: 16,
+                color: AppColors.bronze,
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: presets.map((preset) {
-              final isSelected = state.selectedFinishPreset.contains(preset);
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: GestureDetector(
-                    onTap: () => notifier.selectFinishPreset(preset),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      height: 38,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.s8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: presets.map((preset) {
+            final isSelected = state.selectedFinishPreset.contains(preset);
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: GestureDetector(
+                  onTap: () => notifier.selectFinishPreset(preset),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    height: 38,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.selectedFill(context)
+                          : AppColors.card(context),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
                         color: isSelected
                             ? AppColors.selectedFill(context)
-                            : AppColors.card(context),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color:
-                              isSelected ? AppColors.selectedFill(context) : borderColor,
-                        ),
+                            : borderColor,
                       ),
-                      child: Text(
-                        preset,
-                        style: AppTypography.caption.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isSelected
-                              ? AppColors.onSelected(context)
-                              : (AppColors.textPrimary(context)),
-                        ),
+                    ),
+                    child: Text(
+                      preset,
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isSelected
+                            ? AppColors.onSelected(context)
+                            : (AppColors.textPrimary(context)),
                       ),
                     ),
                   ),
                 ),
-              );
-            }).toList(),
-          ),
-        ],
-      );
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
 
     if (!wrapWithCard) {
       return content;
     }
 
-    return FilterGroupCard(
-      child: content,
-    );
+    return FilterGroupCard(child: content);
   }
 }
 
@@ -806,59 +834,62 @@ class FilterSegmentedControl extends StatelessWidget {
 
     return MeleeTintExtentAnchor(
       child: Container(
-      height: 42,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppSpacing.r8),
-        border: Border.all(color: borderColor),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Row(
-        children: options.map((opt) {
-          final isCurrent = opt == selected;
-          final splash = opt.usesMeleeFilters
-              ? AppColors.screenBgFor(
-                  context,
-                  melee: true,
-                  family: MeleeBgFamily.natural,
-                )
-              : AppColors.bronzeLight;
-          return Expanded(
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTapDown: (details) {
-                  MeleeRippleOriginNotification(details.globalPosition)
-                      .dispatch(context);
-                },
-                onTap: () => onSelected(opt),
-                splashColor: splash.withValues(alpha: 0.55),
-                highlightColor: splash.withValues(alpha: 0.22),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  decoration: BoxDecoration(
-                    color: isCurrent
-                        ? AppColors.selectedFill(context)
-                        : AppColors.card(context),
-                    borderRadius: BorderRadius.circular(AppSpacing.r8 - 1),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    opt.label,
-                    style: AppTypography.caption.copyWith(
-                      fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+        height: 42,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          border: Border.all(color: borderColor),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Row(
+          children: options.map((opt) {
+            final isCurrent = opt == selected;
+            final splash = opt.usesMeleeFilters
+                ? AppColors.screenBgFor(
+                    context,
+                    melee: true,
+                    family: MeleeBgFamily.natural,
+                  )
+                : AppColors.bronzeLight;
+            return Expanded(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTapDown: (details) {
+                    MeleeRippleOriginNotification(
+                      details.globalPosition,
+                    ).dispatch(context);
+                  },
+                  onTap: () => onSelected(opt),
+                  splashColor: splash.withValues(alpha: 0.55),
+                  highlightColor: splash.withValues(alpha: 0.22),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    decoration: BoxDecoration(
                       color: isCurrent
-                          ? AppColors.onSelected(context)
-                          : (AppColors.textPrimary(context)),
+                          ? AppColors.selectedFill(context)
+                          : AppColors.card(context),
+                      borderRadius: BorderRadius.circular(AppSpacing.r8 - 1),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      opt.label,
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: isCurrent
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: isCurrent
+                            ? AppColors.onSelected(context)
+                            : (AppColors.textPrimary(context)),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
-    ),
     );
   }
 }
@@ -887,11 +918,11 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const FilterSectionHeader(title: 'Sieve Size'),
+            FilterSectionHeader(title: context.tr(CatalogL10n.sieveSize)),
             const SizedBox(height: AppSpacing.s12),
 
             // ---- Lot Type Presets ----
-            const FilterSectionHeader(title: 'Lot Type Presets'),
+            FilterSectionHeader(title: context.tr(CatalogL10n.lotTypePresets)),
             const SizedBox(height: AppSpacing.s8),
             Row(
               children: SieveSize.lotTypePresets.keys.map((label) {
@@ -932,8 +963,7 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
                             sieve: sieve,
                             isSelected: isSelected,
                             borderColor: borderColor,
-                            onTap: () =>
-                                notifier.toggleSieveSize(sieve.index),
+                            onTap: () => notifier.toggleSieveSize(sieve.index),
                           );
                         },
                       ),
@@ -978,10 +1008,14 @@ class _CompactPresetChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.selectedFill(context) : AppColors.card(context),
+          color: isActive
+              ? AppColors.selectedFill(context)
+              : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: isActive ? AppColors.selectedFill(context) : AppColors.border(context),
+            color: isActive
+                ? AppColors.selectedFill(context)
+                : AppColors.border(context),
           ),
         ),
         child: Text(
@@ -993,7 +1027,9 @@ class _CompactPresetChip extends StatelessWidget {
             fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             fontSize: 11,
             height: 1.2,
-            color: isActive ? AppColors.onSelected(context) : (AppColors.textPrimary(context)),
+            color: isActive
+                ? AppColors.onSelected(context)
+                : (AppColors.textPrimary(context)),
           ),
         ),
       ),
@@ -1004,9 +1040,7 @@ class _CompactPresetChip extends StatelessWidget {
 class _SieveTableHeader extends StatelessWidget {
   final Color borderColor;
 
-  const _SieveTableHeader({
-    required this.borderColor,
-  });
+  const _SieveTableHeader({required this.borderColor});
 
   @override
   Widget build(BuildContext context) {
@@ -1014,23 +1048,15 @@ class _SieveTableHeader extends StatelessWidget {
       height: 32,
       decoration: BoxDecoration(
         color: AppColors.surface(context),
-        border: Border(
-          bottom: BorderSide(color: borderColor),
-        ),
+        border: Border(bottom: BorderSide(color: borderColor)),
       ),
       child: Row(
         children: [
-          const Expanded(
-            child: _HeaderCell(label: 'Sieve'),
-          ),
+          Expanded(child: _HeaderCell(label: context.tr(CatalogL10n.sieve))),
           Container(width: 1, color: borderColor),
-          const Expanded(
-            child: _HeaderCell(label: 'MM'),
-          ),
+          const Expanded(child: _HeaderCell(label: 'MM')),
           Container(width: 1, color: borderColor),
-          const Expanded(
-            child: _HeaderCell(label: 'Carat'),
-          ),
+          Expanded(child: _HeaderCell(label: context.tr(CatalogL10n.carat))),
         ],
       ),
     );
@@ -1075,23 +1101,21 @@ class _SieveTableRow extends StatelessWidget {
       child: Container(
         height: 36,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.selectedFill(context) : Colors.transparent,
-          border: Border(
-            bottom: BorderSide(color: borderColor, width: 0.5),
-          ),
+          color: isSelected
+              ? AppColors.selectedFill(context)
+              : Colors.transparent,
+          border: Border(bottom: BorderSide(color: borderColor, width: 0.5)),
         ),
         child: Row(
           children: [
             Expanded(
-              child: _DataCell(
-                text: sieve.sieve,
-                isSelected: isSelected,
-              ),
+              child: _DataCell(text: sieve.sieve, isSelected: isSelected),
             ),
             Container(width: 1, color: borderColor),
             Expanded(
               child: _DataCell(
-                text: '${sieve.mmMin.toStringAsFixed(2)}-${sieve.mmMax.toStringAsFixed(2)}',
+                text:
+                    '${sieve.mmMin.toStringAsFixed(2)}-${sieve.mmMax.toStringAsFixed(2)}',
                 isSelected: isSelected,
               ),
             ),
@@ -1112,10 +1136,7 @@ class _SieveTableRow extends StatelessWidget {
 class _DataCell extends StatelessWidget {
   final String text;
   final bool isSelected;
-  const _DataCell({
-    required this.text,
-    required this.isSelected,
-  });
+  const _DataCell({required this.text, required this.isSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -1159,13 +1180,13 @@ class _SelectionSummaryCard extends StatelessWidget {
           Icon(
             count > 0 ? Icons.check_circle : Icons.circle_outlined,
             size: 18,
-            color: count > 0 ? AppColors.bronze : (AppColors.textMuted(context)),
+            color: count > 0
+                ? AppColors.bronze
+                : (AppColors.textMuted(context)),
           ),
           const SizedBox(width: AppSpacing.s8),
           Text(
-            count == 0
-                ? '0 Selected'
-                : '$count Selected',
+            count == 0 ? '0 Selected' : '$count Selected',
             style: AppTypography.label.copyWith(
               fontWeight: FontWeight.bold,
               color: count > 0
@@ -1178,7 +1199,7 @@ class _SelectionSummaryCard extends StatelessWidget {
             GestureDetector(
               onTap: onClear,
               child: Text(
-                'Clear',
+                context.tr(CatalogL10n.clear),
                 style: AppTypography.caption.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.terracotta,
@@ -1191,4 +1212,3 @@ class _SelectionSummaryCard extends StatelessWidget {
     );
   }
 }
-

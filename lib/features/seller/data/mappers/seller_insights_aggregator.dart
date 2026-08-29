@@ -89,8 +89,9 @@ abstract final class SellerInsightsAggregator {
     final revenue = _sumUsd(currentPaid);
     final prevRevenue = _sumUsd(previousPaid);
     final aov = currentPaid.isEmpty ? 0.0 : revenue / currentPaid.length;
-    final prevAov =
-        previousPaid.isEmpty ? 0.0 : prevRevenue / previousPaid.length;
+    final prevAov = previousPaid.isEmpty
+        ? 0.0
+        : prevRevenue / previousPaid.length;
     final units = _unitsSold(currentPaid);
     final prevUnits = _unitsSold(previousPaid);
 
@@ -170,9 +171,7 @@ abstract final class SellerInsightsAggregator {
     List<PaymentOrder> orders,
     List<(String, DateTime, DateTime)> defs,
   ) {
-    return [
-      for (final def in defs) (def.$1, _inRange(orders, def.$2, def.$3)),
-    ];
+    return [for (final def in defs) (def.$1, _inRange(orders, def.$2, def.$3))];
   }
 
   static bool _isPaid(PaymentOrder order) =>
@@ -238,7 +237,8 @@ abstract final class SellerInsightsAggregator {
   }
 
   static List<DashboardRecentOrder> _recent(List<PaymentOrder> orders) {
-    final sorted = [...orders]..sort((a, b) {
+    final sorted = [...orders]
+      ..sort((a, b) {
         final aDate = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
         final bDate = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
         return bDate.compareTo(aDate);
@@ -255,13 +255,12 @@ abstract final class SellerInsightsAggregator {
     ];
   }
 
-  static List<AnalyticsCategorySlice> _categorySlices(
-    List<PaymentOrder> paid,
-  ) {
+  static List<AnalyticsCategorySlice> _categorySlices(List<PaymentOrder> paid) {
     final totals = <String, double>{};
     for (final order in paid) {
       if (order.items.isEmpty) {
-        totals['Other'] = (totals['Other'] ?? 0) +
+        totals['Other'] =
+            (totals['Other'] ?? 0) +
             (order.amountUsd > 0 ? order.amountUsd : order.amount);
         continue;
       }
@@ -358,8 +357,7 @@ abstract final class SellerInsightsAggregator {
   ) {
     return switch (params.range) {
       SalesRange.daily => _dayBuckets(start, end),
-      SalesRange.weekly =>
-        _fixedBuckets(end, days: 7, count: 7, prefix: 'W'),
+      SalesRange.weekly => _fixedBuckets(end, days: 7, count: 7, prefix: 'W'),
       SalesRange.monthly => _monthBuckets(clock, 7),
       SalesRange.quarterly => _quarterBuckets(clock, 7),
       SalesRange.yearly => _yearBuckets(clock, 7),
@@ -375,8 +373,12 @@ abstract final class SellerInsightsAggregator {
   ) {
     return switch (range) {
       AnalyticsRange.last7 => _dayBuckets(start, end),
-      AnalyticsRange.last30 =>
-        _fixedBuckets(end, days: 7, count: 5, prefix: 'W'),
+      AnalyticsRange.last30 => _fixedBuckets(
+        end,
+        days: 7,
+        count: 5,
+        prefix: 'W',
+      ),
       AnalyticsRange.last90 => _monthBuckets(clock, 6),
       AnalyticsRange.year => _monthBuckets(clock, 7),
     };
@@ -434,8 +436,18 @@ abstract final class SellerInsightsAggregator {
     int count,
   ) {
     const names = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return [
       for (var i = count - 1; i >= 0; i--)

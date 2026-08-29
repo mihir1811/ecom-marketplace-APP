@@ -146,9 +146,7 @@ List<SellerInquiry> inquiriesForCategory(
 }) {
   return kSellerInquiriesMock
       .where(
-        (i) =>
-            i.category == category &&
-            (sentBy == null || i.sentBy == sentBy),
+        (i) => i.category == category && (sentBy == null || i.sentBy == sentBy),
       )
       .toList();
 }

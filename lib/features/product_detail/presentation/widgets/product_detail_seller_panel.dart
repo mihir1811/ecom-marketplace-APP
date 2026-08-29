@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -16,13 +17,29 @@ class ProductDetailSellerPanel extends StatelessWidget {
     if (!seller.hasAnyData) return const SizedBox.shrink();
 
     final rows = <({String label, String value, IconData icon})>[
-      (label: 'Seller', value: seller.displayName, icon: Icons.storefront_outlined),
+      (
+        label: context.tr(CatalogL10n.seller),
+        value: seller.displayName,
+        icon: Icons.storefront_outlined,
+      ),
       if (!seller.isIndividual && seller.email != null)
-        (label: 'Email', value: seller.email!, icon: Icons.email_outlined),
+        (
+          label: context.tr(CatalogL10n.email),
+          value: seller.email!,
+          icon: Icons.email_outlined,
+        ),
       if (!seller.isIndividual && seller.phone != null)
-        (label: 'Phone', value: seller.phone!, icon: Icons.phone_outlined),
+        (
+          label: context.tr(CatalogL10n.phone),
+          value: seller.phone!,
+          icon: Icons.phone_outlined,
+        ),
       if (!seller.isIndividual && seller.location != null)
-        (label: 'Location', value: seller.location!, icon: Icons.location_on_outlined),
+        (
+          label: context.tr(CatalogL10n.location),
+          value: seller.location!,
+          icon: Icons.location_on_outlined,
+        ),
     ];
 
     return Column(
@@ -34,7 +51,7 @@ class ProductDetailSellerPanel extends StatelessWidget {
             bottom: AppSpacing.s12,
           ),
           child: Text(
-            'Seller information',
+            context.tr(CatalogL10n.sellerInformation),
             style: AppTypography.label.copyWith(
               color: AppColors.textSecondary(context),
               fontSize: 14,

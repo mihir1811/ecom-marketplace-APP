@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -15,12 +16,27 @@ class DiamondProjectKpiGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tiles = [
-      ('STONES', '${stats.stones}'),
-      ('TOTAL CARAT', '${stats.totalCarat.toStringAsFixed(2)} ct'),
-      ('AVG CARAT', '${stats.avgCarat.toStringAsFixed(2)} ct'),
-      ('TOTAL PRICE', AppCurrency.usd(stats.totalPrice, decimals: 0)),
-      ('AVG PRICE', AppCurrency.usd(stats.avgPrice, decimals: 0)),
-      ('AVG \$/CT', AppCurrency.usd(stats.avgPpc, decimals: 0)),
+      (context.tr(CatalogL10n.projectStonesKpi), '${stats.stones}'),
+      (
+        context.tr(CatalogL10n.projectTotalCaratKpi),
+        '${stats.totalCarat.toStringAsFixed(2)} ct',
+      ),
+      (
+        context.tr(CatalogL10n.projectAvgCaratKpi),
+        '${stats.avgCarat.toStringAsFixed(2)} ct',
+      ),
+      (
+        context.tr(CatalogL10n.projectTotalPriceKpi),
+        AppCurrency.usd(stats.totalPrice, decimals: 0),
+      ),
+      (
+        context.tr(CatalogL10n.projectAvgPriceKpi),
+        AppCurrency.usd(stats.avgPrice, decimals: 0),
+      ),
+      (
+        context.tr(CatalogL10n.projectAvgPpcKpi),
+        AppCurrency.usd(stats.avgPpc, decimals: 0),
+      ),
     ];
 
     return Column(
@@ -56,9 +72,9 @@ class _KpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -74,7 +90,7 @@ class _KpiCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMutedLight,
+                color: AppColors.textMuted(context),
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.4,
               ),
@@ -86,7 +102,7 @@ class _KpiCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: AppTypography.title.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.charcoal,
+                color: AppColors.textPrimary(context),
               ),
             ),
           ],

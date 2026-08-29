@@ -16,11 +16,7 @@ class DarkThemeScope extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dark =
-        ref.watch(themePreferenceProvider);
-    return Theme(
-      data: dark ? AppTheme.dark : AppTheme.light,
-      child: child,
-    );
+    final dark = ref.watch(themePreferenceProvider);
+    return Theme(data: dark ? AppTheme.dark : AppTheme.light, child: child);
   }
 }

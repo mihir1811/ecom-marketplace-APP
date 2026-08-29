@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/error/result.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
@@ -21,7 +24,7 @@ class BuyerRefundsScreen extends ConsumerWidget {
     final state = ref.watch(buyerRefundListProvider);
 
     return BuyerLayout(
-      title: 'Refunds',
+      title: context.tr(AccountCommerceL10n.refunds),
       child: RefreshIndicator(
         onRefresh: () => ref.read(buyerRefundListProvider.notifier).refresh(),
         child: state.isLoading && state.items.isEmpty
@@ -43,7 +46,7 @@ class BuyerRefundsScreen extends ConsumerWidget {
                     child: FilledButton(
                       onPressed: () =>
                           ref.read(buyerRefundListProvider.notifier).refresh(),
-                      child: const Text('Retry'),
+                      child: Text(context.tr(AccountCommerceL10n.retry)),
                     ),
                   ),
                 ],
@@ -55,7 +58,7 @@ class BuyerRefundsScreen extends ConsumerWidget {
                   const SizedBox(height: 120),
                   Center(
                     child: Text(
-                      'No refund requests yet',
+                      context.tr(AccountCommerceL10n.noRefunds),
                       style: AppTypography.body,
                     ),
                   ),
@@ -146,10 +149,13 @@ class _BuyerRefundCard extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           InkWell(
-            onTap: () =>
-                context.openRoute(AppRouteNames.buyerOrderDetailPath(refund.orderId)),
+            onTap: () => context.openRoute(
+              AppRouteNames.buyerOrderDetailPath(refund.orderId),
+            ),
             child: Text(
-              'Order ${refund.orderId}',
+              context.tr(AccountCommerceL10n.orderNumber, {
+                'order': refund.orderId,
+              }),
               style: AppTypography.body.copyWith(
                 color: AppColors.bronzeDark,
                 fontWeight: FontWeight.w700,
@@ -167,7 +173,9 @@ class _BuyerRefundCard extends ConsumerWidget {
           if (refund.sellerNote != null) ...[
             const SizedBox(height: 8),
             Text(
-              'Seller note: ${refund.sellerNote}',
+              context.tr(AccountCommerceL10n.sellerNote, {
+                'note': refund.sellerNote,
+              }),
               style: AppTypography.caption.copyWith(
                 color: AppColors.textMuted(context),
               ),
@@ -175,7 +183,9 @@ class _BuyerRefundCard extends ConsumerWidget {
           ],
           const SizedBox(height: 8),
           Text(
-            'Requested ${refund.createdAtLabel}',
+            context.tr(AccountCommerceL10n.requestedOn, {
+              'date': refund.createdAtLabel,
+            }),
             style: AppTypography.caption.copyWith(
               color: AppColors.textMuted(context),
             ),
@@ -194,8 +204,10 @@ class _BuyerRefundCard extends ConsumerWidget {
                       switch (result) {
                         case Success():
                           messenger.showSnackBar(
-                            const SnackBar(
-                              content: Text('Refund request cancelled'),
+                            SnackBar(
+                              content: Text(
+                                context.tr(AccountCommerceL10n.refundCancelled),
+                              ),
                             ),
                           );
                         case ResultFailure(failure: final failure):
@@ -204,7 +216,7 @@ class _BuyerRefundCard extends ConsumerWidget {
                           );
                       }
                     },
-              child: const Text('Cancel request'),
+              child: Text(context.tr(AccountCommerceL10n.cancelRequest)),
             ),
           ],
         ],

@@ -36,10 +36,7 @@ class CompareAddLimitReached extends CompareAddResult {
 
 /// Immutable comparison tray state (max 4 items, single category).
 class ComparisonState {
-  const ComparisonState({
-    this.items = const [],
-    this.category,
-  });
+  const ComparisonState({this.items = const [], this.category});
 
   static const int maxItems = 4;
 
@@ -122,15 +119,14 @@ class ComparisonNotifier extends Notifier<ComparisonState> {
     final next = [...items];
     final moved = next.removeAt(oldIndex);
     next.insert(newIndex, moved);
-    state = ComparisonState(
-      items: next,
-      category: state.category,
-    );
+    state = ComparisonState(items: next, category: state.category);
   }
 }
 
 final comparisonProvider =
-    NotifierProvider<ComparisonNotifier, ComparisonState>(ComparisonNotifier.new);
+    NotifierProvider<ComparisonNotifier, ComparisonState>(
+      ComparisonNotifier.new,
+    );
 
 /// Whether a specific product id is currently in the comparison tray.
 final isInComparisonProvider = Provider.family<bool, String>((ref, id) {

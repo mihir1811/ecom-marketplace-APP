@@ -72,7 +72,9 @@ abstract final class AiChatMapper {
     );
   }
 
-  static AiChatSessionSummary sessionSummaryFromJson(Map<String, dynamic> json) {
+  static AiChatSessionSummary sessionSummaryFromJson(
+    Map<String, dynamic> json,
+  ) {
     return AiChatSessionSummary(
       sessionId: json['sessionId']?.toString() ?? '',
       title: json['title']?.toString() ?? '',

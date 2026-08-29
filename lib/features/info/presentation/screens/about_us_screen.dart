@@ -10,50 +10,49 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/app_top_bar.dart';
 import '../../../home/presentation/home_network_images.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Public About Us page for GemWorld — mission, values, and marketplace overview.
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
 
-  static const _values = <_ValueItem>[
+  static List<_ValueItem> _values(BuildContext context) => <_ValueItem>[
     _ValueItem(
       icon: Icons.verified_outlined,
-      title: 'Quality you can verify',
-      body:
-          'Every listing highlights certification, grading, and seller '
-          'credentials — so you can buy with full confidence in authenticity '
-          'and quality.',
+      title: context.tr(RemainingL10n.qualityVerify),
+      body: context.tr(
+        RemainingL10n.everyListingHighlightsCertificationGradingAnd,
+      ),
     ),
     _ValueItem(
       icon: Icons.visibility_outlined,
-      title: 'Transparency at every step',
-      body:
-          'Clear pricing, detailed specifications, and rich product imagery '
-          'help you evaluate diamonds, gemstones, jewelry, watches, and '
-          'bullion before you commit — no hidden fees or opaque sourcing.',
+      title: context.tr(RemainingL10n.transparencyEveryStep),
+      body: context.tr(RemainingL10n.clearPricingDetailedSpecificationsAndRich),
     ),
     _ValueItem(
       icon: Icons.support_agent_outlined,
-      title: 'Expert guidance',
-      body:
-          'From comparing natural and lab-grown diamonds to evaluating '
-          'gemstones, fine jewelry, and timepieces, our tools and support '
-          'team help you make informed decisions at every stage.',
+      title: context.tr(RemainingL10n.expertGuidance),
+      body: context.tr(RemainingL10n.fromComparingNaturalAndLabGrown),
     ),
     _ValueItem(
       icon: Icons.handshake_outlined,
-      title: 'Built for buyers and sellers',
-      body:
-          'We connect verified Indian sellers with buyers who expect '
-          'professional service, secure transactions, and a marketplace '
-          'designed for high-value trade.',
+      title: context.tr(RemainingL10n.builtForBuyersSellers),
+      body: context.tr(RemainingL10n.weConnectVerifiedIndianSellersWith),
     ),
   ];
 
-  static const _stats = <_StatItem>[
-    _StatItem(value: '6', label: 'Core categories'),
-    _StatItem(value: 'Pan-India', label: 'Marketplace reach'),
-    _StatItem(value: 'GIA · IGI', label: 'Certification'),
-    _StatItem(value: '24/7', label: 'Support tickets'),
+  static List<_StatItem> _stats(BuildContext context) => <_StatItem>[
+    _StatItem(value: '6', label: context.tr(RemainingL10n.coreCategories)),
+    _StatItem(
+      value: 'Pan-India',
+      label: context.tr(RemainingL10n.marketplaceReach),
+    ),
+    _StatItem(
+      value: 'GIA · IGI',
+      label: context.tr(RemainingL10n.certification),
+    ),
+    _StatItem(value: '24/7', label: context.tr(RemainingL10n.supportTickets)),
   ];
 
   @override
@@ -64,7 +63,7 @@ class AboutUsScreen extends StatelessWidget {
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
       appBar: SimpleAppTopBar(
-        title: 'About GemWorld',
+        title: context.tr(RemainingL10n.aboutGemWorld),
         backgroundColor: AppColors.bg(context),
       ),
       body: CustomScrollView(
@@ -78,57 +77,43 @@ class AboutUsScreen extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 const SizedBox(height: AppSpacing.s32),
-                const _Section(
-                  eyebrow: 'Our story',
-                  title: 'India\'s trusted marketplace for fine goods',
-                  body:
-                      'GemWorld was built on a simple idea: buying natural '
-                      'diamonds, lab-grown diamonds, gemstones, fine jewelry, '
-                      'luxury watches, and bullion online should feel '
-                      'transparent, detailed, and free from storefront '
-                      'pressure.\n\n'
-                      'We built a multi-category marketplace for India where '
-                      'verified sellers, rich product detail, and direct buyer '
-                      'communication help you evaluate every piece before you '
-                      'buy.',
+                _Section(
+                  eyebrow: context.tr(RemainingL10n.ourStory),
+                  title: context.tr(RemainingL10n.trustedMarketplaceTitle),
+                  body: context.tr(RemainingL10n.gemworldWasBuiltOnASimple),
                 ),
                 const SizedBox(height: AppSpacing.s24),
                 const _PromiseSection(),
                 const SizedBox(height: AppSpacing.s32),
-                _StatsRow(stats: _stats, isWide: isWide),
+                _StatsRow(stats: _stats(context), isWide: isWide),
                 const SizedBox(height: AppSpacing.s32),
-                const _Section(
-                  eyebrow: 'What we do',
-                  title: 'One platform for the full trade',
-                  body:
-                      'GemWorld brings together natural diamonds, lab-grown '
-                      'diamonds, colored gemstones, fine jewelry, luxury '
-                      'watches, and precious bullion on a single platform. '
-                      'Whether you are sourcing certified stones, listing a '
-                      'designer collection, trading a luxury timepiece, or '
-                      'buying investment-grade gold, the experience is designed '
-                      'for how India\'s diamond, gemstone, jewelry, and bullion '
-                      'trade actually works.',
+                _Section(
+                  eyebrow: context.tr(RemainingL10n.whatWeDo),
+                  title: context.tr(RemainingL10n.onePlatformTrade),
+                  body: context.tr(
+                    RemainingL10n.gemworldBringsTogetherNaturalDiamondsLab,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.s20),
                 _CategoryChips(isWide: isWide),
                 const SizedBox(height: AppSpacing.s32),
                 Text(
-                  'Our values',
+                  context.tr(RemainingL10n.ourValues),
                   style: AppTypography.headline.copyWith(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.s16),
-                _ValuesGrid(values: _values, isWide: isWide),
+                _ValuesGrid(values: _values(context), isWide: isWide),
                 const SizedBox(height: AppSpacing.s32),
                 _AudienceCards(isWide: isWide),
                 const SizedBox(height: AppSpacing.s32),
                 _TrustCard(),
                 const SizedBox(height: AppSpacing.s32),
                 _ContactCard(
-                  onHelpTap: () => context.openRoute(AppRouteNames.buyerHelpCenter),
+                  onHelpTap: () =>
+                      context.openRoute(AppRouteNames.buyerHelpCenter),
                   onSellTap: () => context.openRoute(AppRouteNames.login),
                 ),
                 const SizedBox(height: AppSpacing.s48),
@@ -165,10 +150,7 @@ class _HeroBanner extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x66111827),
-                  Color(0xCC111827),
-                ],
+                colors: [Color(0x66111827), Color(0xCC111827)],
               ),
             ),
           ),
@@ -182,7 +164,9 @@ class _HeroBanner extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
-                  'Expert-driven marketplace\nfor luxury assets and fine goods',
+                  context.tr(
+                    RemainingL10n.expertDrivenMarketplaceForLuxuryAssetsAnd,
+                  ),
                   style: AppTypography.display.copyWith(
                     color: AppColors.warmWhite,
                     fontSize: isWide ? 34 : 28,
@@ -191,7 +175,9 @@ class _HeroBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.s12),
                 Text(
-                  'India\'s marketplace for diamonds, gemstones, jewelry, watches & bullion',
+                  context.tr(
+                    RemainingL10n.indiaSMarketplaceForDiamondsGemstonesJewelry,
+                  ),
                   style: AppTypography.body.copyWith(
                     color: AppColors.warmWhite.withValues(alpha: 0.88),
                     fontSize: 15,
@@ -254,25 +240,25 @@ class _Section extends StatelessWidget {
 class _PromiseSection extends StatelessWidget {
   const _PromiseSection();
 
-  static const _promises = [
+  static List<({IconData icon, String title, String body})> _promises(
+    BuildContext context,
+  ) => [
     (
       icon: Icons.diamond_outlined,
-      title: 'Certified quality',
-      body:
-          'GIA, IGI, and AGS-graded diamonds and gemstones with full '
-          'specification detail.',
+      title: context.tr(RemainingL10n.certifiedQuality),
+      body: context.tr(RemainingL10n.giaIgiAndAgsGradedDiamonds),
     ),
     (
       icon: Icons.compare_arrows_rounded,
-      title: 'Compare with confidence',
-      body:
-          'Side-by-side tools to evaluate diamonds, gemstones, jewelry, '
-          'and watches.',
+      title: context.tr(RemainingL10n.compareConfidence),
+      body: context.tr(RemainingL10n.sideBySideToolsToEvaluate),
     ),
     (
       icon: Icons.lock_outline,
-      title: 'Secure transactions',
-      body: 'Verified sellers, protected payments, and dedicated support.',
+      title: context.tr(RemainingL10n.secureTransactions),
+      body: context.tr(
+        RemainingL10n.verifiedSellersProtectedPaymentsAndDedicatedSupport,
+      ),
     ),
   ];
 
@@ -282,7 +268,7 @@ class _PromiseSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'OUR PROMISE',
+          context.tr(RemainingL10n.ourPromise),
           style: AppTypography.caption.copyWith(
             color: AppColors.bronze,
             fontWeight: FontWeight.w700,
@@ -291,14 +277,14 @@ class _PromiseSection extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.s8),
         Text(
-          'Shop with confidence',
+          context.tr(RemainingL10n.shopConfidence),
           style: AppTypography.headline.copyWith(
             fontSize: 22,
             fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: AppSpacing.s16),
-        for (final promise in _promises) ...[
+        for (final promise in _promises(context)) ...[
           _SurfaceCard(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,13 +377,13 @@ class _CategoryChips extends StatelessWidget {
 
   final bool isWide;
 
-  static const _categories = [
-    'Natural diamonds',
-    'Lab-grown diamonds',
-    'Colored gemstones',
-    'Fine jewelry',
-    'Luxury watches',
-    'Gold & silver bullion',
+  List<String> _categories(BuildContext context) => [
+    context.tr(RemainingL10n.naturalDiamonds),
+    context.tr(RemainingL10n.labGrown),
+    context.tr(RemainingL10n.gemstones),
+    context.tr(RemainingL10n.jewelry),
+    context.tr(RemainingL10n.watches),
+    context.tr(RemainingL10n.bullion),
   ];
 
   @override
@@ -406,7 +392,7 @@ class _CategoryChips extends StatelessWidget {
       spacing: AppSpacing.s8,
       runSpacing: AppSpacing.s8,
       children: [
-        for (final label in _categories)
+        for (final label in _categories(context))
           Chip(
             label: Text(label),
             backgroundColor: AppColors.sandSurface,
@@ -496,27 +482,27 @@ class _AudienceCards extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final children = [
-      const _SurfaceCard(
+      _SurfaceCard(
         child: _AudienceBlock(
           icon: Icons.shopping_bag_outlined,
-          title: 'For buyers',
+          title: context.tr(RemainingL10n.forBuyers),
           bullets: [
-            'Search, filter, and compare across every core category',
-            'Certification details and detailed product specifications',
-            'Direct inquiries and secure checkout',
-            'Pan-India delivery with order tracking',
+            context.tr(RemainingL10n.aboutBuyerSearchCompare),
+            context.tr(RemainingL10n.aboutBuyerCertificationDetails),
+            context.tr(RemainingL10n.aboutBuyerSecureCheckout),
+            context.tr(RemainingL10n.aboutBuyerTrackedDelivery),
           ],
         ),
       ),
-      const _SurfaceCard(
+      _SurfaceCard(
         child: _AudienceBlock(
           icon: Icons.storefront_outlined,
-          title: 'For sellers',
+          title: context.tr(RemainingL10n.forSellers),
           bullets: [
-            'List natural diamonds, lab-grown diamonds, gemstones, jewelry, watches, and bullion',
-            'Seller dashboard with analytics and order management',
-            'Inquiry inbox and direct buyer messaging',
-            'Verified seller onboarding with document review',
+            context.tr(RemainingL10n.aboutSellerCatalog),
+            context.tr(RemainingL10n.aboutSellerDashboard),
+            context.tr(RemainingL10n.aboutSellerMessaging),
+            context.tr(RemainingL10n.aboutSellerOnboarding),
           ],
         ),
       ),
@@ -573,11 +559,7 @@ class _AudienceBlock extends StatelessWidget {
             children: [
               const Padding(
                 padding: EdgeInsets.only(top: 6),
-                child: Icon(
-                  Icons.circle,
-                  size: 6,
-                  color: AppColors.bronze,
-                ),
+                child: Icon(Icons.circle, size: 6, color: AppColors.bronze),
               ),
               const SizedBox(width: AppSpacing.s8),
               Expanded(
@@ -608,7 +590,7 @@ class _TrustCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Trust & security',
+            context.tr(RemainingL10n.trustSecurity),
             style: AppTypography.title.copyWith(
               color: AppColors.warmWhite,
               fontWeight: FontWeight.w700,
@@ -616,11 +598,7 @@ class _TrustCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.s12),
           Text(
-            'High-value trade demands more than a shopping cart. GemWorld '
-            'pairs certification verification (GIA, IGI, AGS) with verified '
-            'seller checks, secure payment flows, and a dedicated help center — '
-            'giving buyers and sellers across India the confidence to transact '
-            'online.',
+            context.tr(RemainingL10n.highValueTradeDemandsMoreThan),
             style: AppTypography.body.copyWith(
               color: AppColors.bronzeLight,
               fontSize: 14,
@@ -634,10 +612,7 @@ class _TrustCard extends StatelessWidget {
 }
 
 class _ContactCard extends StatelessWidget {
-  const _ContactCard({
-    required this.onHelpTap,
-    required this.onSellTap,
-  });
+  const _ContactCard({required this.onHelpTap, required this.onSellTap});
 
   final VoidCallback onHelpTap;
   final VoidCallback onSellTap;
@@ -649,13 +624,14 @@ class _ContactCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Get in touch',
+            context.tr(RemainingL10n.getInTouch),
             style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: AppSpacing.s8),
           Text(
-            'Questions about sourcing, selling, or certification in India? '
-            'Our support team is here to help.',
+            context.tr(
+              RemainingL10n.questionsAboutSourcingSellingOrCertification,
+            ),
             style: AppTypography.body.copyWith(
               color: AppColors.textSecondaryLight,
               fontSize: 14,
@@ -663,7 +639,7 @@ class _ContactCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.s8),
           Text(
-            'support@gemworld.com',
+            context.tr(RemainingL10n.supportGemworldCom),
             style: AppTypography.label.copyWith(
               color: AppColors.bronze,
               fontWeight: FontWeight.w700,
@@ -677,7 +653,7 @@ class _ContactCard extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onHelpTap,
                 icon: const Icon(Icons.help_outline, size: 18),
-                label: const Text('Help center'),
+                label: Text(context.tr(RemainingL10n.helpCenter)),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.charcoal,
                   foregroundColor: AppColors.warmWhite,
@@ -686,7 +662,7 @@ class _ContactCard extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onSellTap,
                 icon: const Icon(Icons.storefront_outlined, size: 18),
-                label: const Text('Sell on GemWorld'),
+                label: Text(context.tr(RemainingL10n.sellOnGemWorld)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.charcoal,
                   side: const BorderSide(color: AppColors.charcoal),
@@ -701,10 +677,7 @@ class _ContactCard extends StatelessWidget {
 }
 
 class _SurfaceCard extends StatelessWidget {
-  const _SurfaceCard({
-    required this.child,
-    this.color,
-  });
+  const _SurfaceCard({required this.child, this.color});
 
   final Widget child;
   final Color? color;
@@ -718,7 +691,9 @@ class _SurfaceCard extends StatelessWidget {
         color: color ?? AppColors.warmWhite,
         borderRadius: BorderRadius.circular(AppSpacing.r16),
         border: color == null
-            ? const Border.fromBorderSide(BorderSide(color: AppColors.warmBorder))
+            ? const Border.fromBorderSide(
+                BorderSide(color: AppColors.warmBorder),
+              )
             : null,
       ),
       child: child,

@@ -8,6 +8,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Side drawer for seller workspace screens only.
 class SellerDrawer extends ConsumerWidget {
   const SellerDrawer({super.key, required this.selectedRoute});
@@ -20,89 +23,89 @@ class SellerDrawer extends ConsumerWidget {
       authProvider.select((s) => s.isVerificationPending),
     );
     final items = <_DrawerItem>[
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerDashboard,
-        label: 'Dashboard',
+        label: context.tr(RemainingL10n.dashboard),
         icon: Icons.dashboard_outlined,
         requiresVerified: true,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerProducts,
-        label: 'Products',
+        label: context.tr(RemainingL10n.products),
         icon: Icons.inventory_2_outlined,
         requiresVerified: true,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerOrders,
-        label: 'Orders',
+        label: context.tr(RemainingL10n.orders),
         icon: Icons.shopping_bag_outlined,
         requiresVerified: true,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerWallet,
-        label: 'Wallet',
+        label: context.tr(RemainingL10n.wallet),
         icon: Icons.account_balance_wallet_outlined,
         requiresVerified: true,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerInquiries,
-        label: 'Inquiries',
+        label: context.tr(RemainingL10n.inquiries),
         icon: Icons.mail_outline,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerOffers,
-        label: 'Offers',
+        label: context.tr(RemainingL10n.offers),
         icon: Icons.local_offer_outlined,
         requiresVerified: true,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerAuctions,
-        label: 'Auctions',
+        label: context.tr(RemainingL10n.auctions),
         icon: Icons.gavel_outlined,
         requiresVerified: true,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerAnalytics,
-        label: 'Analytics',
+        label: context.tr(RemainingL10n.analytics),
         icon: Icons.bar_chart_outlined,
         requiresVerified: true,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerChat,
-        label: 'Chat',
+        label: context.tr(RemainingL10n.chat),
         icon: Icons.chat_bubble_outline,
         requiresVerified: true,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerHelpCenter,
-        label: 'Help center',
+        label: context.tr(RemainingL10n.helpCenter),
         icon: Icons.help_outline,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerReferences,
-        label: 'References',
+        label: context.tr(RemainingL10n.references),
         icon: Icons.diversity_3_outlined,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerPromotions,
-        label: 'Promotions',
+        label: context.tr(RemainingL10n.promotions),
         icon: Icons.card_giftcard_outlined,
         requiresVerified: true,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerLoginHistory,
-        label: 'Login history',
+        label: context.tr(RemainingL10n.loginHistory),
         icon: Icons.devices_outlined,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerApiKeys,
-        label: 'API keys',
+        label: context.tr(RemainingL10n.apiKeys),
         icon: Icons.vpn_key_outlined,
         requiresVerified: true,
       ),
-      const _DrawerItem(
+      _DrawerItem(
         route: AppRouteNames.sellerProfile,
-        label: 'Profile',
+        label: context.tr(RemainingL10n.profile),
         icon: Icons.person_outline,
       ),
     ].where((item) => !pending || !item.requiresVerified).toList();
@@ -111,89 +114,92 @@ class SellerDrawer extends ConsumerWidget {
       width: 280,
       backgroundColor: AppColors.card(context),
       child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.s16),
-                child: Row(
-                  children: [
-                    Text('Seller workspace', style: AppTypography.title),
-                    const Spacer(),
-                    IconButton(
-                      tooltip: 'Close',
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).maybePop(),
-                    ),
-                  ],
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              child: Row(
+                children: [
+                  Text(
+                    context.tr(RemainingL10n.sellerWorkspace),
+                    style: AppTypography.title,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: context.tr(RemainingL10n.close),
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                  ),
+                ],
               ),
-              const Divider(height: 1),
-              Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.zero,
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    final isSelected =
-                        selectedRoute == item.route ||
-                        selectedRoute.startsWith('${item.route}/');
-                    final iconColor = isSelected
-                        ? AppColors.navOnSelected(context)
-                        : AppColors.textPrimary(context);
-                    return Material(
-                      color: isSelected
-                          ? AppColors.navSelectedFill(context)
-                          : Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.of(context).maybePop();
-                          // Replace, don't push — avoids blank screens when
-                          // popping through stacked shell peer routes.
-                          context.switchToRoute(item.route);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.s16,
-                            vertical: AppSpacing.s12,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(item.icon, color: iconColor),
-                              const SizedBox(width: AppSpacing.s16),
-                              Expanded(
-                                child: Text(
-                                  item.label,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: iconColor,
-                                  ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  final isSelected =
+                      selectedRoute == item.route ||
+                      selectedRoute.startsWith('${item.route}/');
+                  final iconColor = isSelected
+                      ? AppColors.navOnSelected(context)
+                      : AppColors.textPrimary(context);
+                  return Material(
+                    color: isSelected
+                        ? AppColors.navSelectedFill(context)
+                        : Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).maybePop();
+                        // Replace, don't push — avoids blank screens when
+                        // popping through stacked shell peer routes.
+                        context.switchToRoute(item.route);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s16,
+                          vertical: AppSpacing.s12,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(item.icon, color: iconColor),
+                            const SizedBox(width: AppSpacing.s16),
+                            Expanded(
+                              child: Text(
+                                item.label,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: iconColor,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.storefront_outlined),
-                title: Text(
-                  'Back to shop',
-                  style: AppTypography.label.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.of(context).maybePop();
-                  context.resetTo(AppRouteNames.home);
+                    ),
+                  );
                 },
               ),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.storefront_outlined),
+              title: Text(
+                'Back to shop',
+                style: AppTypography.label.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).maybePop();
+                context.resetTo(AppRouteNames.home);
+              },
+            ),
           ],
         ),
       ),

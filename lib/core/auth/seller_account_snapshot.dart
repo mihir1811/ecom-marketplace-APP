@@ -76,7 +76,8 @@ class SellerAccountSnapshot {
       state: _str(json['state']),
       country: _str(json['country']),
       zipCode: _str(json['zipCode']) ?? _str(json['zip']),
-      businessPhone1: _str(json['phone1']) ??
+      businessPhone1:
+          _str(json['phone1']) ??
           _str(json['phone']) ??
           _str(json['businessPhone1']),
       businessPhone2: _str(json['phone2']) ?? _str(json['businessPhone2']),
@@ -86,10 +87,8 @@ class SellerAccountSnapshot {
       aadhaarNumber: _str(json['aadhaarNumber']),
       iecNumber: _str(json['iecNumber']),
       gstNumber: _str(json['gstNumber']) ?? _str(json['gstin']),
-      companyLogoUrl:
-          _str(json['companyLogo']) ?? _str(json['companyLogoUrl']),
-      bannerImageUrl:
-          _str(json['bannerImage']) ?? _str(json['bannerImageUrl']),
+      companyLogoUrl: _str(json['companyLogo']) ?? _str(json['companyLogoUrl']),
+      bannerImageUrl: _str(json['bannerImage']) ?? _str(json['bannerImageUrl']),
       panCardUrl: _str(json['panCard']) ?? _str(json['panCardUrl']),
     );
   }
@@ -124,10 +123,14 @@ class SellerAccountSnapshot {
       state: _prefer(preferred.state, fallback.state),
       country: _prefer(preferred.country, fallback.country),
       zipCode: _prefer(preferred.zipCode, fallback.zipCode),
-      businessPhone1:
-          _prefer(preferred.businessPhone1, fallback.businessPhone1),
-      businessPhone2:
-          _prefer(preferred.businessPhone2, fallback.businessPhone2),
+      businessPhone1: _prefer(
+        preferred.businessPhone1,
+        fallback.businessPhone1,
+      ),
+      businessPhone2: _prefer(
+        preferred.businessPhone2,
+        fallback.businessPhone2,
+      ),
       representativeName1: _prefer(
         preferred.representativeName1,
         fallback.representativeName1,
@@ -140,10 +143,14 @@ class SellerAccountSnapshot {
       aadhaarNumber: _prefer(preferred.aadhaarNumber, fallback.aadhaarNumber),
       iecNumber: _prefer(preferred.iecNumber, fallback.iecNumber),
       gstNumber: _prefer(preferred.gstNumber, fallback.gstNumber),
-      companyLogoUrl:
-          _prefer(preferred.companyLogoUrl, fallback.companyLogoUrl),
-      bannerImageUrl:
-          _prefer(preferred.bannerImageUrl, fallback.bannerImageUrl),
+      companyLogoUrl: _prefer(
+        preferred.companyLogoUrl,
+        fallback.companyLogoUrl,
+      ),
+      bannerImageUrl: _prefer(
+        preferred.bannerImageUrl,
+        fallback.bannerImageUrl,
+      ),
       panCardUrl: _prefer(preferred.panCardUrl, fallback.panCardUrl),
     );
   }

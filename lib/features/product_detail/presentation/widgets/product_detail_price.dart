@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
@@ -44,7 +45,15 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
   Widget build(BuildContext context) {
     final detail = widget.detail;
     final price = detail.price;
-    final unit = price.unitDisplay;
+    final unitKey = price.unitLabel == null
+        ? null
+        : catalogDisplayMessageKeys[price.unitLabel!];
+    final localizedUnit = unitKey == null
+        ? price.unitLabel
+        : context.tr(unitKey);
+    final unit = price.unitAmountLabel == null || localizedUnit == null
+        ? null
+        : '${price.currencySymbol}${price.unitAmountLabel} $localizedUnit';
     final discount = price.discountPercent;
     final hasDiscount = price.hasDiscount;
     final formatAmount = price.displayAmountIsListPrice
@@ -141,8 +150,9 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
               children: [
                 _ActionIcon(
                   icon: wishlisted ? Icons.favorite : Icons.favorite_border,
-                  tooltip:
-                      wishlisted ? 'Remove from wishlist' : 'Save to wishlist',
+                  tooltip: wishlisted
+                      ? 'Remove from wishlist'
+                      : 'Save to wishlist',
                   tint: wishlisted
                       ? AppColors.terracotta
                       : AppColors.textPrimary(context),
@@ -160,7 +170,7 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
                   const SizedBox(width: AppSpacing.s8),
                   _ActionIcon(
                     icon: Icons.chat_bubble_outline,
-                    tooltip: 'Chat with seller',
+                    tooltip: context.tr(CatalogL10n.chatWithSeller),
                     loading: _openingChat,
                     onTap: _openChat,
                   ),
@@ -168,7 +178,7 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
                 const SizedBox(width: AppSpacing.s8),
                 _ActionIcon(
                   icon: Icons.share_outlined,
-                  tooltip: 'Share',
+                  tooltip: context.tr(CatalogL10n.share),
                   onTap: () => showProductShareSheet(
                     context: context,
                     ref: ref,

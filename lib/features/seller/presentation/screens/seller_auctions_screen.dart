@@ -6,6 +6,9 @@ import '../../../../core/theme/app_typography.dart';
 import '../../data/seller_orders_mock_data.dart';
 import '../../domain/models/seller_orders_models.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerAuctionsScreen extends StatefulWidget {
   const SellerAuctionsScreen({super.key});
 
@@ -45,7 +48,9 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
                       child: Icon(
                         Icons.gavel_outlined,
                         size: 56,
-                        color: AppColors.textMuted(context).withValues(alpha: 0.25),
+                        color: AppColors.textMuted(
+                          context,
+                        ).withValues(alpha: 0.25),
                       ),
                     ),
                     Column(
@@ -59,10 +64,12 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
                           decoration: BoxDecoration(
                             color: AppColors.card(context),
                             borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: AppColors.border(context)),
+                            border: Border.all(
+                              color: AppColors.border(context),
+                            ),
                           ),
                           child: Text(
-                            'Seller · Auctions',
+                            context.tr(RemainingL10n.sellerAuctions),
                             style: AppTypography.caption.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -70,8 +77,9 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          'Manage your live auctions, view all bids, and see '
-                          'winners when auctions close.',
+                          context.tr(
+                            RemainingL10n.manageYourLiveAuctionsViewAll,
+                          ),
                           style: AppTypography.body.copyWith(
                             color: AppColors.textSecondary(context),
                             height: 1.4,
@@ -88,24 +96,24 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
                 runSpacing: 8,
                 children: [
                   _FilterChip(
-                    label: 'All',
+                    label: context.tr(RemainingL10n.all),
                     selected: _filter == null,
                     onTap: () => setState(() => _filter = null),
                   ),
                   _FilterChip(
-                    label: 'Active',
+                    label: context.tr(RemainingL10n.active),
                     selected: _filter == SellerAuctionStatus.active,
                     onTap: () =>
                         setState(() => _filter = SellerAuctionStatus.active),
                   ),
                   _FilterChip(
-                    label: 'Upcoming',
+                    label: context.tr(RemainingL10n.upcoming),
                     selected: _filter == SellerAuctionStatus.upcoming,
                     onTap: () =>
                         setState(() => _filter = SellerAuctionStatus.upcoming),
                   ),
                   _FilterChip(
-                    label: 'Ended',
+                    label: context.tr(RemainingL10n.ended),
                     selected: _filter == SellerAuctionStatus.ended,
                     onTap: () =>
                         setState(() => _filter = SellerAuctionStatus.ended),
@@ -134,7 +142,7 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
                   padding: const EdgeInsets.only(top: 40),
                   child: Center(
                     child: Text(
-                      'No auctions in this filter.',
+                      context.tr(RemainingL10n.noAuctionsFilter),
                       style: AppTypography.body.copyWith(
                         color: AppColors.textMuted(context),
                       ),
@@ -205,11 +213,11 @@ class _AuctionCard extends StatelessWidget {
   final bool expanded;
   final VoidCallback onToggleBids;
 
-  String get _statusLabel => switch (auction.status) {
-        SellerAuctionStatus.active => 'Active',
-        SellerAuctionStatus.upcoming => 'Upcoming',
-        SellerAuctionStatus.ended => 'Ended',
-      };
+  String _statusLabel(BuildContext context) => switch (auction.status) {
+    SellerAuctionStatus.active => context.tr(RemainingL10n.active),
+    SellerAuctionStatus.upcoming => context.tr(RemainingL10n.upcoming),
+    SellerAuctionStatus.ended => context.tr(RemainingL10n.ended),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +236,7 @@ class _AuctionCard extends StatelessWidget {
               spacing: 8,
               children: [
                 _Pill(label: auction.category),
-                _Pill(label: _statusLabel),
+                _Pill(label: _statusLabel(context)),
               ],
             ),
             const SizedBox(height: 10),
@@ -238,7 +246,11 @@ class _AuctionCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Auction #${auction.id} · Min bid: ${auction.minBid} · Current: ${auction.currentBid}',
+              context.tr(RemainingL10n.auctionBidSummary, {
+                'id': auction.id,
+                'minBid': auction.minBid,
+                'currentBid': auction.currentBid,
+              }),
               style: AppTypography.caption.copyWith(
                 color: AppColors.textSecondary(context),
               ),
@@ -270,7 +282,7 @@ class _AuctionCard extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('View public page'),
+                  label: Text(context.tr(RemainingL10n.viewPublicPage)),
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.info,
                     padding: EdgeInsets.zero,
@@ -285,7 +297,7 @@ class _AuctionCard extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                   ),
                   child: Text(
-                    'View product',
+                    context.tr(RemainingL10n.viewProduct),
                     style: AppTypography.caption.copyWith(
                       decoration: TextDecoration.underline,
                       fontWeight: FontWeight.w600,
@@ -319,7 +331,7 @@ class _AuctionCard extends StatelessWidget {
               const SizedBox(height: 10),
               if (auction.bids.isEmpty)
                 Text(
-                  'No bids yet.',
+                  context.tr(RemainingL10n.noBids),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textMuted(context),
                   ),
@@ -388,14 +400,16 @@ class _BidTile extends StatelessWidget {
               if (bid.isHighest) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.success.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    'Highest',
+                    context.tr(RemainingL10n.highest),
                     style: AppTypography.caption.copyWith(
                       color: AppColors.success,
                       fontWeight: FontWeight.w700,

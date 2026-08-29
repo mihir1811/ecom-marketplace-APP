@@ -21,8 +21,7 @@ class RecentlyViewedIdsNotifier extends Notifier<Set<String>> {
       state = const {};
       return;
     }
-    final result =
-        await ref.read(recentlyViewedRepositoryProvider).listIds();
+    final result = await ref.read(recentlyViewedRepositoryProvider).listIds();
     switch (result) {
       case Success(:final value):
         state = {
@@ -45,10 +44,13 @@ class RecentlyViewedIdsNotifier extends Notifier<Set<String>> {
 
 final recentlyViewedIdsProvider =
     NotifierProvider<RecentlyViewedIdsNotifier, Set<String>>(
-  RecentlyViewedIdsNotifier.new,
-);
+      RecentlyViewedIdsNotifier.new,
+    );
 
-final isRecentlyViewedProvider = Provider.family<bool, String>((ref, productId) {
+final isRecentlyViewedProvider = Provider.family<bool, String>((
+  ref,
+  productId,
+) {
   final id = productId.trim();
   if (id.isEmpty) return false;
   return ref.watch(recentlyViewedIdsProvider.select((ids) => ids.contains(id)));
@@ -63,10 +65,9 @@ void recordRecentlyViewed(
   final id = productId.trim();
   if (id.isEmpty) return;
   ref.read(recentlyViewedIdsProvider.notifier).markViewed(id);
-  ref.read(recentlyViewedRepositoryProvider).record(
-        productId: id,
-        productType: productType,
-      );
+  ref
+      .read(recentlyViewedRepositoryProvider)
+      .record(productId: id, productType: productType);
 }
 
 /// Ensure IDs are refreshed when product lists are fetched.

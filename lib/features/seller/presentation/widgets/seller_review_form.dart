@@ -4,6 +4,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Star rating + optional comment form used after payment and on orders.
 class SellerReviewForm extends StatelessWidget {
   const SellerReviewForm({
@@ -38,7 +41,7 @@ class SellerReviewForm extends StatelessWidget {
           SizedBox(height: compact ? 8 : 12),
         ] else ...[
           Text(
-            'Rate your experience',
+            context.tr(RemainingL10n.rateYourExperience),
             style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
           ),
           SizedBox(height: compact ? 8 : 12),
@@ -67,8 +70,8 @@ class SellerReviewForm extends StatelessWidget {
             controller: titleController,
             enabled: enabled,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              labelText: 'Title (optional)',
+            decoration: InputDecoration(
+              labelText: context.tr(RemainingL10n.titleOptional),
               border: OutlineInputBorder(),
             ),
           ),
@@ -80,8 +83,8 @@ class SellerReviewForm extends StatelessWidget {
           minLines: compact ? 2 : 3,
           maxLines: 5,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            labelText: 'Write a review (optional)',
+          decoration: InputDecoration(
+            labelText: context.tr(RemainingL10n.reviewOptional),
             alignLabelWithHint: true,
             border: OutlineInputBorder(),
           ),

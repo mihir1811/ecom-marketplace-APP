@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -80,7 +83,7 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
   Future<void> _submit() async {
     final sellerId = _sellerId;
     if (sellerId == null || _rating < 1) {
-      setState(() => _error = 'Please select a star rating.');
+      setState(() => _error = context.tr(AccountCommerceL10n.selectStar));
       return;
     }
     setState(() {
@@ -133,7 +136,7 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
               ),
               const SizedBox(height: AppSpacing.s12),
               Text(
-                'Payment successful',
+                context.tr(AccountCommerceL10n.paymentSuccessful),
                 textAlign: TextAlign.center,
                 style: AppTypography.title.copyWith(
                   fontWeight: FontWeight.w800,
@@ -191,7 +194,7 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
                               color: AppColors.warmWhite,
                             ),
                           )
-                        : const Text('Submit review'),
+                        : Text(context.tr(AccountCommerceL10n.submitReview)),
                   ),
                 ),
               if (_canReview) const SizedBox(height: 8),
@@ -199,9 +202,14 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton(
-                  onPressed:
-                      _submitting ? null : () => Navigator.of(context).pop(true),
-                  child: Text(_canReview ? 'Skip & view orders' : 'View orders'),
+                  onPressed: _submitting
+                      ? null
+                      : () => Navigator.of(context).pop(true),
+                  child: Text(
+                    _canReview
+                        ? context.tr(AccountCommerceL10n.skipViewOrders)
+                        : context.tr(AccountCommerceL10n.viewOrders),
+                  ),
                 ),
               ),
             ],

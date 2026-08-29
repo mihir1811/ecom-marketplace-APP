@@ -279,7 +279,10 @@ abstract final class HomeSearchSpelling {
     var bestDistance = 1 << 30;
 
     for (final candidate in _dictionary) {
-      final cLower = candidate.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final cLower = candidate.toLowerCase().replaceAll(
+        RegExp(r'[^a-z0-9]'),
+        '',
+      );
       if (cLower.isEmpty) continue;
       if (cLower == lower) return _preserveCase(raw, candidate);
 
@@ -345,7 +348,18 @@ abstract final class HomeSearchSpelling {
       'Asscher', 'Marquise', 'Heart', 'Trilliant', 'Trillion', 'Baguette',
       // Colors / clarity / cut
       'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-      'FL', 'IF', 'VVS1', 'VVS2', 'VS1', 'VS2', 'SI1', 'SI2', 'SI3', 'I1', 'I2', 'I3',
+      'FL',
+      'IF',
+      'VVS1',
+      'VVS2',
+      'VS1',
+      'VS2',
+      'SI1',
+      'SI2',
+      'SI3',
+      'I1',
+      'I2',
+      'I3',
       'Excellent', 'Ideal', 'Very Good', 'Good', 'Fair', 'Poor',
       // Certs / metals / jewelry
       'GIA', 'IGI', 'HRD', 'AGS', 'GCAL', 'SSEF', 'AGL', 'GRS',
@@ -422,9 +436,6 @@ abstract final class HomeSearchCaratParser {
   /// Wider window used only when no exact carat hits exist.
   static (double min, double max) nearbyRange(double target) {
     final pad = target < 1 ? 0.12 : (target < 2 ? 0.18 : 0.25);
-    return (
-      (target - pad).clamp(0.0, 100.0),
-      (target + pad).clamp(0.0, 100.0),
-    );
+    return ((target - pad).clamp(0.0, 100.0), (target + pad).clamp(0.0, 100.0));
   }
 }

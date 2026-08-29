@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/app_localizations.dart';
 import '../../core/router/navigator_keys.dart';
 import '../../core/router/route_names.dart';
 import 'domain/models/diamond_viewer_args.dart';
@@ -21,13 +22,15 @@ final List<RouteBase> diamondViewerRoutes = [
         return DiamondViewerScreen(
           args: DiamondViewerArgs(
             viewerUrl: Uri.decodeComponent(queryUrl),
-            title: state.uri.queryParameters['title'] ?? '360° View',
+            title:
+                state.uri.queryParameters['title'] ??
+                context.tr(CatalogL10n.viewerTitle),
           ),
         );
       }
 
-      return const Scaffold(
-        body: Center(child: Text('Missing 360° viewer URL')),
+      return Scaffold(
+        body: Center(child: Text(context.tr(CatalogL10n.viewerMissingUrl))),
       );
     },
   ),

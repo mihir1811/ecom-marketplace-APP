@@ -73,7 +73,9 @@ abstract final class ReferenceMapper {
     required int limit,
   }) {
     final data = root?['data'];
-    final payload = data is Map<String, dynamic> ? data : const <String, dynamic>{};
+    final payload = data is Map<String, dynamic>
+        ? data
+        : const <String, dynamic>{};
     final purchasesRaw = payload['purchases'];
     final list = purchasesRaw is List ? purchasesRaw : const [];
     final items = <ReferencePurchase>[];
@@ -85,10 +87,13 @@ abstract final class ReferenceMapper {
     }
 
     final meta = root?['meta'];
-    final metaMap = meta is Map<String, dynamic> ? meta : const <String, dynamic>{};
+    final metaMap = meta is Map<String, dynamic>
+        ? meta
+        : const <String, dynamic>{};
     final pagination = metaMap['pagination'];
-    final pageMeta =
-        pagination is Map<String, dynamic> ? pagination : const <String, dynamic>{};
+    final pageMeta = pagination is Map<String, dynamic>
+        ? pagination
+        : const <String, dynamic>{};
 
     return ReferencePurchasePage(
       items: items,
@@ -100,12 +105,14 @@ abstract final class ReferenceMapper {
   }
 
   static ReferencePurchase purchaseFromJson(Map<String, dynamic> json) {
-    final id = json['id']?.toString() ??
+    final id =
+        json['id']?.toString() ??
         json['orderId']?.toString() ??
         json['purchaseId']?.toString() ??
         '';
     final productType = json['productType']?.toString();
-    final title = json['title']?.toString() ??
+    final title =
+        json['title']?.toString() ??
         json['productName']?.toString() ??
         json['name']?.toString() ??
         productType ??

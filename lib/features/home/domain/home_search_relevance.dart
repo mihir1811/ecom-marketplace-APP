@@ -77,7 +77,8 @@ abstract final class HomeSearchRelevance {
         continue;
       }
       if (titleWords.any(
-        (w) => w.startsWith(token) || (token.length >= 4 && token.startsWith(w)),
+        (w) =>
+            w.startsWith(token) || (token.length >= 4 && token.startsWith(w)),
       )) {
         score += 28;
         matchedTokens += 1;
@@ -105,8 +106,11 @@ abstract final class HomeSearchRelevance {
   }
 
   static double? _extractQueryCarat(String query) {
-    final match = RegExp(r'(\d+(?:\.\d+)?)\s*(?:ct|carats?)\b', caseSensitive: false)
-            .firstMatch(query) ??
+    final match =
+        RegExp(
+          r'(\d+(?:\.\d+)?)\s*(?:ct|carats?)\b',
+          caseSensitive: false,
+        ).firstMatch(query) ??
         RegExp(r'^(\d+(?:\.\d+)?)$').firstMatch(query.trim());
     if (match == null) return null;
     return double.tryParse(match.group(1)!);
@@ -134,9 +138,8 @@ abstract final class HomeSearchRelevance {
   }
 
   static List<String> _tokenize(String query) {
-    return _normalize(query)
-        .split(' ')
-        .where((t) => t.length >= 2)
-        .toList(growable: false);
+    return _normalize(
+      query,
+    ).split(' ').where((t) => t.length >= 2).toList(growable: false);
   }
 }

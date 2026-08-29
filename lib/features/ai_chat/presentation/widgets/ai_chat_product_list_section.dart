@@ -12,6 +12,9 @@ import '../../application/ai_chat_product_navigation.dart';
 import '../../data/mappers/ai_chat_catalog_mapper.dart';
 import '../../domain/models/ai_chat_product.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Renders Gem AI matches with the same list cards as catalog listing screens.
 class AiChatProductListSection extends ConsumerWidget {
   const AiChatProductListSection({
@@ -46,7 +49,7 @@ class AiChatProductListSection extends ConsumerWidget {
           child: Row(
             children: [
               Text(
-                'Matches',
+                context.tr(RemainingL10n.matches),
                 style: AppTypography.label.copyWith(
                   color: AppColors.textPrimary(context),
                   fontWeight: FontWeight.w700,
@@ -96,11 +99,11 @@ class AiChatProductListSection extends ConsumerWidget {
               ),
             ),
             child: Text(
-              'See more in listings',
+              context.tr(RemainingL10n.seeMoreListings),
               style: AppTypography.label.copyWith(
-                  color: AppColors.textPrimary(context),
-                  fontWeight: FontWeight.w700,
-                ),
+                color: AppColors.textPrimary(context),
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ),
@@ -110,10 +113,7 @@ class AiChatProductListSection extends ConsumerWidget {
 }
 
 class _AiChatCatalogListCard extends StatelessWidget {
-  const _AiChatCatalogListCard({
-    required this.product,
-    required this.onTap,
-  });
+  const _AiChatCatalogListCard({required this.product, required this.onTap});
 
   final AiChatProduct product;
   final VoidCallback onTap;

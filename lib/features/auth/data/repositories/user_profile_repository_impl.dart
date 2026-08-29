@@ -32,8 +32,8 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       final root = raw is Map<String, dynamic>
           ? raw
           : raw is Map
-              ? Map<String, dynamic>.from(raw)
-              : null;
+          ? Map<String, dynamic>.from(raw)
+          : null;
       final profile = UserProfileMapper.fromResponse(root);
       if (profile == null) {
         return Result.failure(

@@ -7,11 +7,11 @@ enum AiChatLanguage {
   String get apiValue => name;
 
   String get label => switch (this) {
-        AiChatLanguage.en => 'English',
-        AiChatLanguage.gu => 'Gujarati',
-        AiChatLanguage.hi => 'Hindi',
-        AiChatLanguage.mr => 'Marathi',
-      };
+    AiChatLanguage.en => 'English',
+    AiChatLanguage.gu => 'Gujarati',
+    AiChatLanguage.hi => 'Hindi',
+    AiChatLanguage.mr => 'Marathi',
+  };
 
   static AiChatLanguage fromApi(String? value) {
     return switch (value) {

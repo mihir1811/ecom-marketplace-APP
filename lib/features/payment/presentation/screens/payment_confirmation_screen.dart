@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
@@ -30,11 +33,15 @@ class PaymentConfirmationScreen extends ConsumerWidget {
 
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
-      appBar: const SimpleAppTopBar(title: 'Order confirmation'),
+      appBar: SimpleAppTopBar(
+        title: context.tr(AccountCommerceL10n.orderConfirmation),
+      ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) {
-          final message = e is Failure ? e.message : 'Could not load order.';
+          final message = e is Failure
+              ? e.message
+              : context.tr(AccountCommerceL10n.couldNotLoadOrder);
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.s24),
@@ -46,7 +53,7 @@ class PaymentConfirmationScreen extends ConsumerWidget {
                   FilledButton(
                     onPressed: () =>
                         ref.invalidate(orderDetailProvider(orderId)),
-                    child: const Text('Retry'),
+                    child: Text(context.tr(AccountCommerceL10n.retry)),
                   ),
                 ],
               ),
@@ -80,7 +87,7 @@ class _OrderBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.s12),
         Text(
           order.status.toUpperCase() == 'PAID'
-              ? 'Payment successful'
+              ? context.tr(AccountCommerceL10n.paymentSuccessful)
               : 'Order ${order.status}',
           textAlign: TextAlign.center,
           style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
@@ -100,15 +107,21 @@ class _OrderBody extends ConsumerWidget {
           _UsdPriceRow('Subtotal', pricing.subtotal),
           if (pricing.promotionDiscount > 0)
             _UsdPriceRow(
-              'Promo discount',
+              context.tr(AccountCommerceL10n.promoDiscount),
               -pricing.promotionDiscount,
             ),
           _InrPriceRow('GST', pricing.gst),
-          _InrPriceRow('Transaction fee', pricing.transactionFee),
-          _InrPriceRow('Platform fee', pricing.platformFee),
+          _InrPriceRow(
+            context.tr(AccountCommerceL10n.transactionFee),
+            pricing.transactionFee,
+          ),
+          _InrPriceRow(
+            context.tr(AccountCommerceL10n.platformFee),
+            pricing.platformFee,
+          ),
           if (pricing.gemworldVerificationCommission > 0)
             _InrPriceRow(
-              'GemWorld verification',
+              context.tr(AccountCommerceL10n.verificationFee),
               pricing.gemworldVerificationCommission,
             ),
           const Divider(height: 24),
@@ -164,7 +177,7 @@ class _OrderBody extends ConsumerWidget {
               ),
               onPressed: () => _downloadInvoice(context, order),
               icon: const Icon(Icons.download_outlined, size: 20),
-              label: const Text('Download invoice'),
+              label: Text(context.tr(AccountCommerceL10n.downloadInvoice)),
             ),
           ),
           const SizedBox(height: AppSpacing.s8),
@@ -175,12 +188,12 @@ class _OrderBody extends ConsumerWidget {
             ref.invalidate(buyerOrdersProvider);
             context.resetTo(AppRouteNames.buyerOrders);
           },
-          child: const Text('View my orders'),
+          child: Text(context.tr(AccountCommerceL10n.viewMyOrders)),
         ),
         const SizedBox(height: AppSpacing.s8),
         OutlinedButton(
           onPressed: () => context.resetTo(AppRouteNames.home),
-          child: const Text('Continue shopping'),
+          child: Text(context.tr(AccountCommerceL10n.continueShopping)),
         ),
       ],
     );
@@ -231,7 +244,9 @@ class _ItemTile extends StatelessWidget {
                 ),
                 if (item.quantity > 1)
                   Text(
-                    'Qty ${item.quantity}',
+                    context.tr(AccountCommerceL10n.quantity, {
+                      'count': item.quantity,
+                    }),
                     style: AppTypography.caption.copyWith(
                       color: AppColors.textMutedLight,
                     ),
@@ -273,9 +288,7 @@ class _UsdPriceRow extends StatelessWidget {
           ),
           Text(
             AppCurrency.usd(usdValue),
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -304,9 +317,7 @@ class _InrPriceRow extends StatelessWidget {
           ),
           Text(
             AppCurrency.inr(inrValue, decimals: 0),
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -330,12 +341,16 @@ Future<void> _downloadInvoice(BuildContext context, PaymentOrder order) async {
     );
     if (!ok) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Could not open the invoice.')),
+        SnackBar(
+          content: Text(context.tr(AccountCommerceL10n.invoiceOpenFailed)),
+        ),
       );
     }
   } catch (_) {
     messenger.showSnackBar(
-      const SnackBar(content: Text('Could not open the invoice.')),
+      SnackBar(
+        content: Text(context.tr(AccountCommerceL10n.invoiceOpenFailed)),
+      ),
     );
   }
 }

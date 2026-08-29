@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
@@ -75,8 +78,8 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account recovered. Please sign in.'),
+          SnackBar(
+            content: Text(context.tr(AccountCommerceL10n.accountRecovered)),
           ),
         );
         context.go(AppRouteNames.login);
@@ -97,7 +100,7 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Recover account',
+                        context.tr(AccountCommerceL10n.recoverAccount),
                         style: AppTypography.display.copyWith(
                           color: AppColors.textPrimary(context),
                         ),
@@ -113,16 +116,20 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                       ),
                       const SizedBox(height: AppSpacing.s24),
                       SegmentedButton<bool>(
-                        segments: const [
+                        segments: [
                           ButtonSegment(
                             value: true,
-                            label: Text('Email token'),
-                            icon: Icon(Icons.link),
+                            label: Text(
+                              context.tr(AccountCommerceL10n.emailToken),
+                            ),
+                            icon: const Icon(Icons.link),
                           ),
                           ButtonSegment(
                             value: false,
-                            label: Text('Email & password'),
-                            icon: Icon(Icons.lock_outline),
+                            label: Text(
+                              context.tr(AccountCommerceL10n.emailAndPassword),
+                            ),
+                            icon: const Icon(Icons.lock_outline),
                           ),
                         ],
                         selected: {_useToken},
@@ -142,14 +149,20 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                               TextFormField(
                                 controller: _tokenController,
                                 textInputAction: TextInputAction.done,
-                                decoration: const InputDecoration(
-                                  labelText: 'Recovery token',
-                                  prefixIcon: Icon(Icons.vpn_key_outlined),
+                                decoration: InputDecoration(
+                                  labelText: context.tr(
+                                    AccountCommerceL10n.recoveryToken,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.vpn_key_outlined,
+                                  ),
                                 ),
                                 validator: (value) {
                                   if (!_useToken) return null;
                                   if ((value?.trim() ?? '').isEmpty) {
-                                    return 'Recovery token is required';
+                                    return context.tr(
+                                      AccountCommerceL10n.recoveryTokenRequired,
+                                    );
                                   }
                                   return null;
                                 },
@@ -159,16 +172,24 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
-                                decoration: const InputDecoration(
-                                  labelText: 'Email',
-                                  prefixIcon: Icon(Icons.mail_outline),
+                                decoration: InputDecoration(
+                                  labelText: context.tr(
+                                    AccountCommerceL10n.email,
+                                  ),
+                                  prefixIcon: const Icon(Icons.mail_outline),
                                 ),
                                 validator: (value) {
                                   if (_useToken) return null;
                                   final v = value?.trim() ?? '';
-                                  if (v.isEmpty) return 'Email is required';
+                                  if (v.isEmpty) {
+                                    return context.tr(
+                                      AccountCommerceL10n.emailRequired,
+                                    );
+                                  }
                                   if (!isValidEmail(v)) {
-                                    return 'Enter a valid email address';
+                                    return context.tr(
+                                      AccountCommerceL10n.validEmail,
+                                    );
                                   }
                                   return null;
                                 },
@@ -179,12 +200,18 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                                 obscureText: _obscurePassword,
                                 textInputAction: TextInputAction.done,
                                 decoration: InputDecoration(
-                                  labelText: 'Password',
+                                  labelText: context.tr(
+                                    AccountCommerceL10n.password,
+                                  ),
                                   prefixIcon: const Icon(Icons.lock_outline),
                                   suffixIcon: IconButton(
                                     tooltip: _obscurePassword
-                                        ? 'Show password'
-                                        : 'Hide password',
+                                        ? context.tr(
+                                            AccountCommerceL10n.showPassword,
+                                          )
+                                        : context.tr(
+                                            AccountCommerceL10n.hidePassword,
+                                          ),
                                     onPressed: () => setState(
                                       () =>
                                           _obscurePassword = !_obscurePassword,
@@ -209,13 +236,15 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                             SizedBox(
                               width: double.infinity,
                               child: FilledButton(
-                                onPressed: authState.isLoading
-                                    ? null
-                                    : _submit,
+                                onPressed: authState.isLoading ? null : _submit,
                                 style: authFilledButtonStyle(context),
                                 child: authState.isLoading
                                     ? authButtonSpinner(context)
-                                    : const Text('Recover account'),
+                                    : Text(
+                                        context.tr(
+                                          AccountCommerceL10n.recoverAccount,
+                                        ),
+                                      ),
                               ),
                             ),
                             if (authState.errorMessage != null) ...[
@@ -237,7 +266,7 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                               ? null
                               : () => context.go(AppRouteNames.login),
                           child: Text(
-                            'Back to login',
+                            context.tr(AccountCommerceL10n.backToLogin),
                             style: AppTypography.label.copyWith(
                               color: AppColors.textPrimary(context),
                               decoration: TextDecoration.underline,
@@ -261,7 +290,9 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
     final ok = _formKey.currentState?.validate() ?? false;
     if (!ok) return;
 
-    await ref.read(authProvider.notifier).recoverAccount(
+    await ref
+        .read(authProvider.notifier)
+        .recoverAccount(
           token: _useToken ? _tokenController.text : null,
           email: _useToken ? null : _emailController.text,
           password: _useToken ? null : _passwordController.text,

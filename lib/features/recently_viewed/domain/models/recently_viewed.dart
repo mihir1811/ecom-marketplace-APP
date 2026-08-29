@@ -50,7 +50,8 @@ class RecentlyViewedEntry {
   String get displayTitle {
     final title = productTitle?.trim();
     final stock = _optional(stockNumber);
-    final titleIsStock = title != null &&
+    final titleIsStock =
+        title != null &&
         stock != null &&
         title.toLowerCase() == stock.toLowerCase();
     if (title != null && title.isNotEmpty && !titleIsStock) {
@@ -63,8 +64,9 @@ class RecentlyViewedEntry {
     }
     if (title != null && title.isNotEmpty) return title;
     if (_optional(stockNumber) != null) return stockNumber!;
-    final typeLabel =
-        productType.isNotEmpty ? _capitalizeType(productType) : null;
+    final typeLabel = productType.isNotEmpty
+        ? _capitalizeType(productType)
+        : null;
     if (typeLabel != null) return typeLabel;
     return 'Untitled product';
   }
@@ -88,10 +90,7 @@ class RecentlyViewedEntry {
 
   static String _capitalizeType(String type) {
     return type
-        .replaceAllMapped(
-          RegExp(r'([A-Z])'),
-          (m) => ' ${m.group(1)}',
-        )
+        .replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m.group(1)}')
         .trim()
         .split(' ')
         .map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
@@ -145,10 +144,7 @@ class RecentlyViewedEntry {
 }
 
 class RecentlyViewedId {
-  const RecentlyViewedId({
-    required this.productId,
-    required this.productType,
-  });
+  const RecentlyViewedId({required this.productId, required this.productType});
 
   final String productId;
   final String productType;

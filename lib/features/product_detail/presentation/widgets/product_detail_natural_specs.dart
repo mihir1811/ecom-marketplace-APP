@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/format_catalog_price.dart';
 import '../../application/melee_qty_draft_provider.dart';
 import '../../domain/models/product_detail.dart';
 
@@ -13,11 +15,15 @@ class ProductDetailNaturalSpecs extends StatefulWidget {
   const ProductDetailNaturalSpecs({
     required this.specs,
     required this.productId,
+    required this.lotPrice,
+    required this.currencySymbol,
     super.key,
   });
 
   final ProductTabbedSpecs specs;
   final String productId;
+  final double lotPrice;
+  final String currencySymbol;
 
   @override
   State<ProductDetailNaturalSpecs> createState() =>
@@ -106,6 +112,8 @@ class _ProductDetailNaturalSpecsState extends State<ProductDetailNaturalSpecs> {
           _MeleeQtyBar(
             productId: widget.productId,
             qty: widget.specs.meleeQty!,
+            lotPrice: widget.lotPrice,
+            currencySymbol: widget.currencySymbol,
           ),
         ],
       ],
@@ -149,10 +157,7 @@ class _TabLabel extends StatelessWidget {
           ),
           ColoredBox(
             color: selected ? AppColors.bronze : AppColors.border(context),
-            child: SizedBox(
-              height: selected ? 2 : 1,
-              width: double.infinity,
-            ),
+            child: SizedBox(height: selected ? 2 : 1, width: double.infinity),
           ),
         ],
       ),
@@ -176,7 +181,7 @@ class _SectionCard extends StatelessWidget {
             bottom: AppSpacing.s12,
           ),
           child: Text(
-            section.title,
+            _catalogText(context, section.title),
             style: AppTypography.label.copyWith(
               color: AppColors.textPrimary(context),
               fontSize: 14,
@@ -194,8 +199,7 @@ class _SectionCard extends StatelessWidget {
           child: Column(
             children: [
               for (var i = 0; i < section.rows.length; i++) ...[
-                if (i > 0)
-                  Divider(height: 1, color: AppColors.border(context)),
+                if (i > 0) Divider(height: 1, color: AppColors.border(context)),
                 _Row(spec: section.rows[i]),
               ],
             ],
@@ -224,7 +228,7 @@ class _Row extends StatelessWidget {
           Expanded(
             flex: 4,
             child: Text(
-              spec.label,
+              _catalogText(context, spec.label),
               style: AppTypography.caption.copyWith(
                 color: AppColors.textMuted(context),
                 fontSize: 13,
@@ -250,14 +254,23 @@ class _Row extends StatelessWidget {
   }
 }
 
+String _catalogText(BuildContext context, String value) {
+  final key = catalogDisplayMessageKeys[value];
+  return key == null ? value : context.tr(key);
+}
+
 class _MeleeQtyBar extends ConsumerStatefulWidget {
   const _MeleeQtyBar({
     required this.productId,
     required this.qty,
+    required this.lotPrice,
+    required this.currencySymbol,
   });
 
   final String productId;
   final ProductMeleeQty qty;
+  final double lotPrice;
+  final String currencySymbol;
 
   @override
   ConsumerState<_MeleeQtyBar> createState() => _MeleeQtyBarState();
@@ -273,9 +286,9 @@ class _MeleeQtyBarState extends ConsumerState<_MeleeQtyBar> {
     _controller = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(meleeQtyDraftProvider(widget.productId).notifier).ensureSeeded(
-            widget.qty,
-          );
+      ref
+          .read(meleeQtyDraftProvider(widget.productId).notifier)
+          .ensureSeeded(widget.qty);
       _writeFieldFromDraft();
     });
   }
@@ -307,19 +320,20 @@ class _MeleeQtyBarState extends ConsumerState<_MeleeQtyBar> {
     return asFixed.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
-  String _conversionHint(MeleeQtyDraft? draft, bool inCarat) {
+  String _proportionalPriceLabel(MeleeQtyDraft? draft) {
     if (draft == null) return '';
-    if (inCarat) {
-      if (draft.pieces <= 0) return '';
-      return '≈ ${draft.pieces} pcs';
-    }
-    if (draft.carat <= 0) return '';
-    return '≈ ${_formatCarat(draft.carat)} ct';
+    if (draft.pieces <= 0 && draft.carat <= 0) return '';
+    final amount = draft.proportionalPrice(widget.lotPrice, widget.qty);
+    if (amount <= 0) return '';
+    return '${widget.currencySymbol}${formatCatalogPrice(amount)}';
   }
 
   @override
   Widget build(BuildContext context) {
     final qty = widget.qty;
+    ref.listen(meleeQtyDraftProvider(widget.productId), (_, __) {
+      _writeFieldFromDraft();
+    });
     final draft = ref.watch(meleeQtyDraftProvider(widget.productId));
     final inCarat = draft?.inCarat ?? false;
     final pcs = qty.totalPcs;
@@ -327,7 +341,7 @@ class _MeleeQtyBarState extends ConsumerState<_MeleeQtyBar> {
     final ofLabel = inCarat
         ? (carat == null ? '' : 'of ${carat.toString()} ct')
         : (pcs == null ? '' : 'of $pcs pcs');
-    final convertLabel = _conversionHint(draft, inCarat);
+    final priceLabel = _proportionalPriceLabel(draft);
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card(context),
@@ -342,7 +356,7 @@ class _MeleeQtyBarState extends ConsumerState<_MeleeQtyBar> {
             children: [
               Expanded(
                 child: _UnitChip(
-                  label: 'Pieces',
+                  label: context.tr(CatalogL10n.pieces),
                   selected: !inCarat,
                   onTap: () {
                     ref
@@ -355,7 +369,7 @@ class _MeleeQtyBarState extends ConsumerState<_MeleeQtyBar> {
               const SizedBox(width: AppSpacing.s8),
               Expanded(
                 child: _UnitChip(
-                  label: 'Carat',
+                  label: context.tr(CatalogL10n.carat),
                   selected: inCarat,
                   onTap: () {
                     ref
@@ -373,8 +387,9 @@ class _MeleeQtyBarState extends ConsumerState<_MeleeQtyBar> {
               Expanded(
                 child: TextField(
                   controller: _controller,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(
                       inCarat ? RegExp(r'[0-9.]') : RegExp(r'[0-9]'),
@@ -386,15 +401,9 @@ class _MeleeQtyBarState extends ConsumerState<_MeleeQtyBar> {
                       meleeQtyDraftProvider(widget.productId).notifier,
                     );
                     if (inCarat) {
-                      notifier.setFromCarat(
-                        double.tryParse(raw) ?? 0,
-                        qty,
-                      );
+                      notifier.setFromCarat(double.tryParse(raw) ?? 0, qty);
                     } else {
-                      notifier.setFromPieces(
-                        int.tryParse(raw) ?? 0,
-                        qty,
-                      );
+                      notifier.setFromPieces(int.tryParse(raw) ?? 0, qty);
                     }
                   },
                   decoration: InputDecoration(
@@ -428,13 +437,13 @@ class _MeleeQtyBarState extends ConsumerState<_MeleeQtyBar> {
               ],
             ],
           ),
-          if (convertLabel.isNotEmpty) ...[
+          if (priceLabel.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.s8),
             Text(
-              convertLabel,
+              priceLabel,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMuted(context),
-                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary(context),
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -469,7 +478,9 @@ class _UnitChip extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: AppTypography.label.copyWith(
-              color: selected ? AppColors.warmWhite : AppColors.textPrimary(context),
+              color: selected
+                  ? AppColors.warmWhite
+                  : AppColors.textPrimary(context),
               fontWeight: FontWeight.w700,
             ),
           ),

@@ -105,10 +105,7 @@ class WishlistNotifier extends Notifier<WishlistUiState> {
     if (contains(item.id)) return;
     if (!ref.read(authProvider).isAuthenticated) return;
 
-    state = state.copyWith(
-      items: [...state.items, item],
-      clearError: true,
-    );
+    state = state.copyWith(items: [...state.items, item], clearError: true);
     final result = await _repo.add(
       productId: item.id,
       productType: item.productType,
@@ -165,7 +162,8 @@ class WishlistNotifier extends Notifier<WishlistUiState> {
       case Success():
         return;
       case ResultFailure(:final failure):
-        final missing = failure.message.toLowerCase().contains('not found') ||
+        final missing =
+            failure.message.toLowerCase().contains('not found') ||
             failure.message.toLowerCase().contains('not in favorites');
         if (missing) return;
         state = state.copyWith(
@@ -178,8 +176,9 @@ class WishlistNotifier extends Notifier<WishlistUiState> {
   void clear() => state = const WishlistUiState();
 }
 
-final wishlistProvider =
-    NotifierProvider<WishlistNotifier, WishlistUiState>(WishlistNotifier.new);
+final wishlistProvider = NotifierProvider<WishlistNotifier, WishlistUiState>(
+  WishlistNotifier.new,
+);
 
 final isInWishlistProvider = Provider.family<bool, String>((ref, id) {
   return ref.watch(

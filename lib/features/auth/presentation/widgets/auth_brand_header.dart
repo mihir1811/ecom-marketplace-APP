@@ -59,4 +59,3 @@ class AuthBrandHeader extends StatelessWidget {
     );
   }
 }
-

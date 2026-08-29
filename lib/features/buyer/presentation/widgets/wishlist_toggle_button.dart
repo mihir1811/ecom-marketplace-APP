@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -14,8 +16,8 @@ Future<bool?> toggleWishlistItem(
   WidgetRef ref,
   WishlistItem item, {
   VoidCallback? onAdded,
-  String addedMessage = 'Added to wishlist',
-  String removedMessage = 'Removed from wishlist',
+  String? addedMessage,
+  String? removedMessage,
 }) async {
   if (!ref.read(authProvider).isAuthenticated) {
     context.openRoute(AppRouteNames.login);
@@ -34,7 +36,11 @@ Future<bool?> toggleWishlistItem(
       content: Text(
         error != null && error.isNotEmpty
             ? error
-            : (added ? addedMessage : removedMessage),
+            : (added
+                  ? addedMessage ??
+                        context.tr(AccountCommerceL10n.addedWishlist)
+                  : removedMessage ??
+                        context.tr(AccountCommerceL10n.removedWishlist)),
       ),
       duration: const Duration(seconds: 1),
     ),
@@ -69,7 +75,11 @@ class WishlistToggleButton extends ConsumerWidget {
       onTap: () => toggleWishlistItem(context, ref, item, onAdded: onAdded),
       child: Semantics(
         button: true,
-        label: wishlisted ? 'Remove from wishlist' : 'Add to wishlist',
+        label: context.tr(
+          wishlisted
+              ? AccountCommerceL10n.removeWishlist
+              : AccountCommerceL10n.addWishlist,
+        ),
         child: Container(
           width: box,
           height: box,
@@ -82,7 +92,9 @@ class WishlistToggleButton extends ConsumerWidget {
           child: Icon(
             wishlisted ? Icons.favorite : Icons.favorite_border,
             size: size,
-            color: wishlisted ? AppColors.error : AppColors.textPrimary(context),
+            color: wishlisted
+                ? AppColors.error
+                : AppColors.textPrimary(context),
           ),
         ),
       ),

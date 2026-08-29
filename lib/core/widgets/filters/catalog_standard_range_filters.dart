@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_spacing.dart';
 import 'filter_group_card.dart';
 import 'filter_quick_range_chip.dart';
@@ -26,7 +27,7 @@ class CatalogStandardRangeFilters extends StatelessWidget {
     required this.pricePerCaratMax,
     required this.pricePerCaratLimits,
     required this.onPricePerCaratChanged,
-    this.pricePerCaratTitle = 'Price / Carat',
+    this.pricePerCaratTitle,
     super.key,
   });
 
@@ -48,7 +49,7 @@ class CatalogStandardRangeFilters extends StatelessWidget {
   final double pricePerCaratMax;
   final (double, double) pricePerCaratLimits;
   final void Function(double min, double max) onPricePerCaratChanged;
-  final String pricePerCaratTitle;
+  final String? pricePerCaratTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +58,7 @@ class CatalogStandardRangeFilters extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FilterRangeSlider(
-            title: 'Total Price',
+            title: context.tr(CatalogL10n.totalPrice),
             minLimit: totalPriceLimits.$1,
             maxLimit: totalPriceLimits.$2,
             currentMin: totalPriceMin,
@@ -65,24 +66,20 @@ class CatalogStandardRangeFilters extends StatelessWidget {
             unitSuffix: AppCurrency.symbol,
             isInteger: true,
             onChanged: onTotalPriceChanged,
-            onClear: () => onTotalPriceChanged(
-              totalPriceLimits.$1,
-              totalPriceLimits.$2,
-            ),
+            onClear: () =>
+                onTotalPriceChanged(totalPriceLimits.$1, totalPriceLimits.$2),
           ),
           const SizedBox(height: AppSpacing.s20),
           FilterRangeSlider(
-            title: 'Total Carat',
+            title: context.tr(CatalogL10n.totalCarat),
             minLimit: totalCaratLimits.$1,
             maxLimit: totalCaratLimits.$2,
             currentMin: totalCaratMin,
             currentMax: totalCaratMax,
             unitSuffix: ' ct',
             onChanged: onTotalCaratChanged,
-            onClear: () => onTotalCaratChanged(
-              totalCaratLimits.$1,
-              totalCaratLimits.$2,
-            ),
+            onClear: () =>
+                onTotalCaratChanged(totalCaratLimits.$1, totalCaratLimits.$2),
           ),
           const SizedBox(height: AppSpacing.s12),
           Wrap(
@@ -102,7 +99,7 @@ class CatalogStandardRangeFilters extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.s20),
           FilterRangeSlider(
-            title: pricePerCaratTitle,
+            title: pricePerCaratTitle ?? context.tr(CatalogL10n.pricePerCarat),
             minLimit: pricePerCaratLimits.$1,
             maxLimit: pricePerCaratLimits.$2,
             currentMin: pricePerCaratMin,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
@@ -52,7 +55,7 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
   Widget build(BuildContext context) {
     final targets = _sellerTargets;
     final orderAsync = ref.watch(orderSellerReviewsProvider(widget.order.id));
-    final orderReviews = orderAsync.asData?.value ?? const <SellerReview>[];
+    final orderReviews = orderAsync.asData?.value ?? <SellerReview>[];
     final reviewedSellerIds = <String>{
       ...orderReviews.map((r) => r.sellerId),
       ..._submittedLocally,
@@ -65,7 +68,7 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Seller Rating & review',
+          context.tr(AccountCommerceL10n.sellerRatingReview),
           style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 4),
@@ -87,7 +90,7 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
           Text(
             orderAsync.error is Failure
                 ? (orderAsync.error! as Failure).message
-                : 'Could not load reviews.',
+                : context.tr(AccountCommerceL10n.reviewsLoadFailed),
             style: AppTypography.caption.copyWith(color: AppColors.error),
           )
         else ...[
@@ -176,7 +179,7 @@ class _SellerReviewFormBlockState
 
   Future<void> _submit() async {
     if (_rating < 1) {
-      setState(() => _error = 'Please select a star rating.');
+      setState(() => _error = context.tr(AccountCommerceL10n.selectStar));
       return;
     }
     setState(() {
@@ -204,7 +207,11 @@ class _SellerReviewFormBlockState
         widget.onSubmitted();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Thanks for reviewing ${widget.sellerName}!'),
+            content: Text(
+              context.tr(AccountCommerceL10n.thanksReview, {
+                'seller': widget.sellerName,
+              }),
+            ),
           ),
         );
       case ResultFailure(:final failure):
@@ -257,7 +264,11 @@ class _SellerReviewFormBlockState
                       color: AppColors.warmWhite,
                     ),
                   )
-                : Text('Submit review for ${widget.sellerName}'),
+                : Text(
+                    context.tr(AccountCommerceL10n.submitReviewFor, {
+                      'seller': widget.sellerName,
+                    }),
+                  ),
           ),
         ),
       ],
@@ -274,13 +285,12 @@ class _ExistingReviewCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserId =
         ref.watch(authProvider.select((s) => s.user?.id)) ?? '';
-    final isMine =
-        currentUserId.isNotEmpty && review.userId == currentUserId;
+    final isMine = currentUserId.isNotEmpty && review.userId == currentUserId;
     final buyerLabel = isMine
         ? 'me'
         : (review.userName?.trim().isNotEmpty == true
-            ? review.userName!.trim()
-            : 'Buyer');
+              ? review.userName!.trim()
+              : 'Buyer');
 
     final date = review.createdAt;
     final dateLabel = date == null

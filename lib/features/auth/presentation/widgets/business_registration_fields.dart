@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -123,7 +126,11 @@ class BusinessRegistrationFieldsController {
   }
 
   String? missingCompanyLogoMessage() {
-    if (companyLogo == null) return 'Company logo is required.';
+    if (companyLogo == null) {
+      return AccountCommerceL10n.english(
+        AccountCommerceL10n.companyLogoRequired,
+      );
+    }
     return null;
   }
 
@@ -133,11 +140,11 @@ class BusinessRegistrationFieldsController {
 /// Seller registration step titles (steps 2–5; step 1 is basic details).
 abstract final class SellerRegistrationSteps {
   static const titles = <String>[
-    'Basic details',
-    'Company details',
-    'Address',
-    'Contacts & KYC',
-    'Bank account',
+    AccountCommerceL10n.basicDetails,
+    AccountCommerceL10n.companyDetails,
+    AccountCommerceL10n.addressLine1,
+    AccountCommerceL10n.contactsKyc,
+    AccountCommerceL10n.bankAccount,
   ];
 
   static const count = 5;
@@ -186,23 +193,28 @@ class BusinessCompanyStep extends StatelessWidget {
           controller: controller.companyName,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Company name',
-            prefixIcon: Icon(Icons.apartment_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.companyName),
+            prefixIcon: const Icon(Icons.apartment_outlined),
           ),
-          validator: _required('Company name is required'),
+          validator: _required(
+            context.tr(AccountCommerceL10n.companyNameRequired),
+          ),
         ),
         const SizedBox(height: AppSpacing.s16),
         DropdownButtonFormField<SellerType>(
           key: ValueKey(controller.sellerType),
           initialValue: controller.sellerType,
-          decoration: const InputDecoration(
-            labelText: 'Seller type',
-            prefixIcon: Icon(Icons.category_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.sellerType),
+            prefixIcon: const Icon(Icons.category_outlined),
           ),
           items: [
             for (final type in SellerType.values)
-              DropdownMenuItem(value: type, child: Text(type.label)),
+              DropdownMenuItem(
+                value: type,
+                child: Text(context.tr(type.labelKey)),
+              ),
           ],
           onChanged: enabled
               ? (value) {
@@ -214,14 +226,18 @@ class BusinessCompanyStep extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.s16),
         _FilePickButton(
-          label: controller.companyLogo?.name ?? 'Upload company logo *',
+          label:
+              controller.companyLogo?.name ??
+              context.tr(AccountCommerceL10n.uploadCompanyLogo),
           icon: Icons.add_photo_alternate_outlined,
           enabled: enabled,
           onPressed: _pickLogo,
         ),
         const SizedBox(height: AppSpacing.s16),
         _FilePickButton(
-          label: controller.bannerImage?.name ?? 'Upload banner image (optional)',
+          label:
+              controller.bannerImage?.name ??
+              context.tr(AccountCommerceL10n.uploadBanner),
           icon: Icons.image_outlined,
           enabled: enabled,
           onPressed: _pickBanner,
@@ -250,66 +266,70 @@ class BusinessAddressStep extends StatelessWidget {
           controller: controller.addressLine1,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Address line 1',
-            prefixIcon: Icon(Icons.home_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.addressLine1),
+            prefixIcon: const Icon(Icons.home_outlined),
           ),
-          validator: _required('Address line 1 is required'),
+          validator: _required(
+            context.tr(AccountCommerceL10n.address1Required),
+          ),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
           controller: controller.addressLine2,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Address line 2',
-            prefixIcon: Icon(Icons.home_work_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.addressLine2),
+            prefixIcon: const Icon(Icons.home_work_outlined),
           ),
-          validator: _required('Address line 2 is required'),
+          validator: _required(
+            context.tr(AccountCommerceL10n.address2Required),
+          ),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
           controller: controller.city,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'City',
-            prefixIcon: Icon(Icons.location_city_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.city),
+            prefixIcon: const Icon(Icons.location_city_outlined),
           ),
-          validator: _required('City is required'),
+          validator: _required(context.tr(AccountCommerceL10n.cityRequired)),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
           controller: controller.state,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'State / province',
-            prefixIcon: Icon(Icons.map_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.stateProvince),
+            prefixIcon: const Icon(Icons.map_outlined),
           ),
-          validator: _required('State is required'),
+          validator: _required(context.tr(AccountCommerceL10n.stateRequired)),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
           controller: controller.country,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Country',
-            prefixIcon: Icon(Icons.public_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.country),
+            prefixIcon: const Icon(Icons.public_outlined),
           ),
-          validator: _required('Country is required'),
+          validator: _required(context.tr(AccountCommerceL10n.countryRequired)),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
           controller: controller.zipCode,
           enabled: enabled,
           textInputAction: TextInputAction.done,
-          decoration: const InputDecoration(
-            labelText: 'ZIP / postal code',
-            prefixIcon: Icon(Icons.markunread_mailbox_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.postalCode),
+            prefixIcon: const Icon(Icons.markunread_mailbox_outlined),
           ),
-          validator: _required('ZIP / postal code is required'),
+          validator: _required(context.tr(AccountCommerceL10n.postalRequired)),
         ),
       ],
     );
@@ -349,11 +369,11 @@ class BusinessContactsKycStep extends StatelessWidget {
           enabled: enabled,
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Primary phone',
-            prefixIcon: Icon(Icons.phone_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.primaryPhone),
+            prefixIcon: const Icon(Icons.phone_outlined),
           ),
-          validator: _required('Primary phone is required'),
+          validator: _required(context.tr(AccountCommerceL10n.phone1Required)),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
@@ -361,33 +381,33 @@ class BusinessContactsKycStep extends StatelessWidget {
           enabled: enabled,
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Secondary phone',
-            prefixIcon: Icon(Icons.phone_android_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.secondaryPhone),
+            prefixIcon: const Icon(Icons.phone_android_outlined),
           ),
-          validator: _required('Secondary phone is required'),
+          validator: _required(context.tr(AccountCommerceL10n.phone2Required)),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
           controller: controller.representativeName1,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Representative name 1',
-            prefixIcon: Icon(Icons.badge_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.representative1),
+            prefixIcon: const Icon(Icons.badge_outlined),
           ),
-          validator: _required('Representative name 1 is required'),
+          validator: _required(context.tr(AccountCommerceL10n.rep1Required)),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
           controller: controller.representativeName2,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Representative name 2',
-            prefixIcon: Icon(Icons.badge_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.representative2),
+            prefixIcon: const Icon(Icons.badge_outlined),
           ),
-          validator: _required('Representative name 2 is required'),
+          validator: _required(context.tr(AccountCommerceL10n.rep2Required)),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
@@ -399,14 +419,14 @@ class BusinessContactsKycStep extends StatelessWidget {
             FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
             LengthLimitingTextInputFormatter(10),
           ],
-          decoration: const InputDecoration(
-            labelText: 'PAN number',
-            prefixIcon: Icon(Icons.credit_card_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.panNumber),
+            prefixIcon: const Icon(Icons.credit_card_outlined),
           ),
           validator: (value) {
             final v = value?.trim() ?? '';
-            if (v.isEmpty) return 'PAN number is required';
-            if (!isValidPan(v)) return 'Enter a valid PAN (e.g. ABCDE1234F)';
+            if (v.isEmpty) return context.tr(AccountCommerceL10n.panRequired);
+            if (!isValidPan(v)) return context.tr(AccountCommerceL10n.validPan);
             return null;
           },
         ),
@@ -427,14 +447,18 @@ class BusinessContactsKycStep extends StatelessWidget {
             FilteringTextInputFormatter.digitsOnly,
             LengthLimitingTextInputFormatter(12),
           ],
-          decoration: const InputDecoration(
-            labelText: 'Aadhaar number',
-            prefixIcon: Icon(Icons.fingerprint),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.aadhaarNumber),
+            prefixIcon: const Icon(Icons.fingerprint),
           ),
           validator: (value) {
             final v = value?.trim() ?? '';
-            if (v.isEmpty) return 'Aadhaar number is required';
-            if (!isValidAadhaar(v)) return 'Enter a valid 12-digit Aadhaar';
+            if (v.isEmpty) {
+              return context.tr(AccountCommerceL10n.aadhaarRequired);
+            }
+            if (!isValidAadhaar(v)) {
+              return context.tr(AccountCommerceL10n.validAadhaar);
+            }
             return null;
           },
         ),
@@ -443,11 +467,11 @@ class BusinessContactsKycStep extends StatelessWidget {
           controller: controller.iecNumber,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'IEC number',
-            prefixIcon: Icon(Icons.receipt_long_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.iecNumber),
+            prefixIcon: const Icon(Icons.receipt_long_outlined),
           ),
-          validator: _required('IEC number is required'),
+          validator: _required(context.tr(AccountCommerceL10n.iecRequired)),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
@@ -455,9 +479,9 @@ class BusinessContactsKycStep extends StatelessWidget {
           enabled: enabled,
           textCapitalization: TextCapitalization.characters,
           textInputAction: TextInputAction.done,
-          decoration: const InputDecoration(
-            labelText: 'GST number (optional)',
-            prefixIcon: Icon(Icons.receipt_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.gstNumber),
+            prefixIcon: const Icon(Icons.receipt_outlined),
           ),
         ),
       ],
@@ -486,11 +510,11 @@ class BusinessBankStep extends StatelessWidget {
           controller: controller.accountHolderName,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Account holder name',
-            prefixIcon: Icon(Icons.person_outline),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.accountHolderName),
+            prefixIcon: const Icon(Icons.person_outline),
           ),
-          validator: _required('Account holder name is required'),
+          validator: _required(context.tr(AccountCommerceL10n.holderRequired)),
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
@@ -502,13 +526,15 @@ class BusinessBankStep extends StatelessWidget {
             FilteringTextInputFormatter.digitsOnly,
             LengthLimitingTextInputFormatter(20),
           ],
-          decoration: const InputDecoration(
-            labelText: 'Account number',
-            prefixIcon: Icon(Icons.account_balance_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.accountNumber),
+            prefixIcon: const Icon(Icons.account_balance_outlined),
           ),
           validator: (value) {
             final v = value?.trim() ?? '';
-            if (v.isEmpty) return 'Account number is required';
+            if (v.isEmpty) {
+              return context.tr(AccountCommerceL10n.accountNumberRequired);
+            }
             if (!isValidBankAccountNumber(v)) {
               return 'Account number must be 8–20 digits';
             }
@@ -525,15 +551,15 @@ class BusinessBankStep extends StatelessWidget {
             FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
             LengthLimitingTextInputFormatter(11),
           ],
-          decoration: const InputDecoration(
-            labelText: 'IFSC code',
-            prefixIcon: Icon(Icons.qr_code_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.ifscCode),
+            prefixIcon: const Icon(Icons.qr_code_outlined),
           ),
           validator: (value) {
             final v = value?.trim() ?? '';
-            if (v.isEmpty) return 'IFSC code is required';
+            if (v.isEmpty) return context.tr(AccountCommerceL10n.ifscRequired);
             if (!isValidIfsc(v)) {
-              return 'Enter a valid IFSC (e.g. HDFC0001234)';
+              return context.tr(AccountCommerceL10n.validIfsc);
             }
             return null;
           },
@@ -543,23 +569,26 @@ class BusinessBankStep extends StatelessWidget {
           controller: controller.bankName,
           enabled: enabled,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Bank name',
-            prefixIcon: Icon(Icons.account_balance),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.bankName),
+            prefixIcon: const Icon(Icons.account_balance),
           ),
-          validator: _required('Bank name is required'),
+          validator: _required(context.tr(AccountCommerceL10n.bankRequired)),
         ),
         const SizedBox(height: AppSpacing.s16),
         DropdownButtonFormField<BankAccountType>(
           key: ValueKey(controller.accountType),
           initialValue: controller.accountType,
-          decoration: const InputDecoration(
-            labelText: 'Account type (optional)',
-            prefixIcon: Icon(Icons.savings_outlined),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.accountTypeOptional),
+            prefixIcon: const Icon(Icons.savings_outlined),
           ),
           items: [
             for (final type in BankAccountType.values)
-              DropdownMenuItem(value: type, child: Text(type.label)),
+              DropdownMenuItem(
+                value: type,
+                child: Text(context.tr(type.labelKey)),
+              ),
           ],
           onChanged: enabled
               ? (value) {
@@ -574,9 +603,9 @@ class BusinessBankStep extends StatelessWidget {
           controller: controller.upiId,
           enabled: enabled,
           textInputAction: TextInputAction.done,
-          decoration: const InputDecoration(
-            labelText: 'UPI ID (optional)',
-            prefixIcon: Icon(Icons.alternate_email),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.upiOptional),
+            prefixIcon: const Icon(Icons.alternate_email),
           ),
         ),
       ],
@@ -626,9 +655,7 @@ class _FilePickButton extends StatelessWidget {
           children: [
             Icon(icon),
             const SizedBox(width: AppSpacing.s12),
-            Flexible(
-              child: Text(label, overflow: TextOverflow.ellipsis),
-            ),
+            Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
           ],
         ),
       ),
@@ -638,21 +665,21 @@ class _FilePickButton extends StatelessWidget {
 
 /// Compact step progress for seller registration.
 class SellerRegistrationStepHeader extends StatelessWidget {
-  const SellerRegistrationStepHeader({
-    super.key,
-    required this.currentStep,
-  });
+  const SellerRegistrationStepHeader({super.key, required this.currentStep});
 
   final int currentStep;
 
   @override
   Widget build(BuildContext context) {
-    final title = SellerRegistrationSteps.titles[currentStep];
+    final title = context.tr(SellerRegistrationSteps.titles[currentStep]);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Step ${currentStep + 1} of ${SellerRegistrationSteps.count}',
+          context.tr(AccountCommerceL10n.stepOf, {
+            'current': currentStep + 1,
+            'total': SellerRegistrationSteps.count,
+          }),
           style: AppTypography.caption.copyWith(
             color: AppColors.textSecondary(context),
             fontWeight: FontWeight.w600,

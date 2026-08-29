@@ -52,7 +52,11 @@ final sellerInsightsRepositoryProvider = Provider<SellerInsightsRepository>(
 
 /// Loads seller orders/refunds and aggregates dashboard + analytics snapshots.
 class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
-  SellerInsightsRepositoryImpl(this._payments, this._refunds, this._cache);
+  const SellerInsightsRepositoryImpl(
+    this._payments,
+    this._refunds,
+    this._cache,
+  );
 
   final PaymentRepository _payments;
   final RefundRepository _refunds;
@@ -72,8 +76,8 @@ class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
     final ordersResult = await _loadOrders();
     return switch (ordersResult) {
       Success(:final value) => Result.success(
-          SellerInsightsAggregator.dashboard(orders: value, params: params),
-        ),
+        SellerInsightsAggregator.dashboard(orders: value, params: params),
+      ),
       ResultFailure(:final failure) => Result.failure(failure),
     };
   }
@@ -87,8 +91,7 @@ class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
     if (ordersResult is ResultFailure<List<PaymentOrder>, Failure>) {
       return Result.failure(ordersResult.failure);
     }
-    final orders =
-        (ordersResult as Success<List<PaymentOrder>, Failure>).value;
+    final orders = (ordersResult as Success<List<PaymentOrder>, Failure>).value;
 
     final refundsResult = await _loadRefunds();
     final refunds = switch (refundsResult) {
@@ -125,10 +128,7 @@ class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
     final all = <PaymentOrder>[];
     var page = 1;
     while (page <= _maxPages) {
-      final result = await _payments.listOrders(
-        page: page,
-        limit: _pageSize,
-      );
+      final result = await _payments.listOrders(page: page, limit: _pageSize);
       switch (result) {
         case ResultFailure(:final failure):
           return Result.failure(failure);

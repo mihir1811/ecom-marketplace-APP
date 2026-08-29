@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,7 +34,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   PasswordStrength _strength = const PasswordStrength(
     isStrong: false,
-    message: 'Password is required.',
+    message: AccountCommerceL10n.passwordRequired,
   );
 
   @override
@@ -69,7 +72,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Reset Password',
+                        context.tr(AccountCommerceL10n.resetPassword),
                         style: AppTypography.display.copyWith(
                           color: AppColors.textPrimary(context),
                         ),
@@ -77,8 +80,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       const SizedBox(height: AppSpacing.s12),
                       Text(
                         token.isEmpty
-                            ? 'This reset link is missing a token. Open the link from your email again.'
-                            : 'Choose a new password for your account.',
+                            ? context.tr(AccountCommerceL10n.missingResetToken)
+                            : context.tr(AccountCommerceL10n.chooseNewPassword),
                         style: AppTypography.body.copyWith(
                           color: AppColors.textSecondary(context),
                         ),
@@ -86,7 +89,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       const SizedBox(height: AppSpacing.s24),
                       if (authState.passwordResetSuccess) ...[
                         Text(
-                          'Password reset successfully. You can sign in now.',
+                          context.tr(AccountCommerceL10n.passwordResetSuccess),
                           style: AppTypography.caption.copyWith(
                             color: AppColors.success,
                           ),
@@ -97,7 +100,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           child: FilledButton(
                             onPressed: () => context.go(AppRouteNames.login),
                             style: authFilledButtonStyle(context),
-                            child: const Text('Go to login'),
+                            child: Text(
+                              context.tr(AccountCommerceL10n.goToLogin),
+                            ),
                           ),
                         ),
                       ] else
@@ -115,12 +120,18 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                   });
                                 },
                                 decoration: InputDecoration(
-                                  labelText: 'New password',
+                                  labelText: context.tr(
+                                    AccountCommerceL10n.newPassword,
+                                  ),
                                   prefixIcon: const Icon(Icons.lock_outline),
                                   suffixIcon: IconButton(
                                     tooltip: _obscurePassword
-                                        ? 'Show password'
-                                        : 'Hide password',
+                                        ? context.tr(
+                                            AccountCommerceL10n.showPassword,
+                                          )
+                                        : context.tr(
+                                            AccountCommerceL10n.hidePassword,
+                                          ),
                                     icon: Icon(
                                       _obscurePassword
                                           ? Icons.visibility_off_outlined
@@ -145,7 +156,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                               ),
                               const SizedBox(height: AppSpacing.s8),
                               Text(
-                                _strength.message,
+                                localizePasswordStrength(context, _strength),
                                 style: AppTypography.caption.copyWith(
                                   color: _strength.isStrong
                                       ? AppColors.success
@@ -158,12 +169,18 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                 obscureText: _obscureConfirm,
                                 textInputAction: TextInputAction.done,
                                 decoration: InputDecoration(
-                                  labelText: 'Confirm password',
+                                  labelText: context.tr(
+                                    AccountCommerceL10n.confirmPassword,
+                                  ),
                                   prefixIcon: const Icon(Icons.lock_outline),
                                   suffixIcon: IconButton(
                                     tooltip: _obscureConfirm
-                                        ? 'Show password'
-                                        : 'Hide password',
+                                        ? context.tr(
+                                            AccountCommerceL10n.showPassword,
+                                          )
+                                        : context.tr(
+                                            AccountCommerceL10n.hidePassword,
+                                          ),
                                     icon: Icon(
                                       _obscureConfirm
                                           ? Icons.visibility_off_outlined
@@ -178,7 +195,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                 ),
                                 validator: (value) {
                                   if (value != _passwordController.text) {
-                                    return 'Passwords do not match.';
+                                    return context.tr(
+                                      AccountCommerceL10n.passwordsDoNotMatch,
+                                    );
                                   }
                                   return null;
                                 },
@@ -196,14 +215,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                               SizedBox(
                                 width: double.infinity,
                                 child: FilledButton(
-                                  onPressed: authState.isLoading ||
-                                          token.isEmpty
+                                  onPressed:
+                                      authState.isLoading || token.isEmpty
                                       ? null
                                       : () async {
                                           ref
                                               .read(authProvider.notifier)
                                               .clearError();
-                                          final ok = _formKey.currentState
+                                          final ok =
+                                              _formKey.currentState
                                                   ?.validate() ??
                                               false;
                                           if (!ok) return;
@@ -218,7 +238,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                   style: authFilledButtonStyle(context),
                                   child: authState.isLoading
                                       ? authButtonSpinner(context)
-                                      : const Text('Reset password'),
+                                      : Text(
+                                          context.tr(
+                                            AccountCommerceL10n
+                                                .resetPasswordAction,
+                                          ),
+                                        ),
                                 ),
                               ),
                             ],
@@ -231,7 +256,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                               ? null
                               : () => context.go(AppRouteNames.login),
                           child: Text(
-                            'Back to login',
+                            context.tr(AccountCommerceL10n.backToLogin),
                             style: AppTypography.label.copyWith(
                               color: AppColors.textPrimary(context),
                               decoration: TextDecoration.underline,

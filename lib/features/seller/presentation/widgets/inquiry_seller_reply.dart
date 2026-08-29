@@ -7,6 +7,9 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import 'inquiry_form_fields.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Lightweight markdown-style display (**bold**, *italic*, - bullets).
 class InquiryReplyText extends StatelessWidget {
   const InquiryReplyText(this.text, {super.key});
@@ -27,7 +30,7 @@ class InquiryReplyText extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '•  ',
+                        context.tr(RemainingL10n.message2),
                         style: AppTypography.body.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary(context),
@@ -182,17 +185,17 @@ class _InquirySellerReplyComposerState
           child: Row(
             children: [
               IconButton(
-                tooltip: 'Bold',
+                tooltip: context.tr(RemainingL10n.bold),
                 onPressed: () => _wrapSelection('**', '**'),
                 icon: const Icon(Icons.format_bold, size: 20),
               ),
               IconButton(
-                tooltip: 'Italic',
+                tooltip: context.tr(RemainingL10n.italic),
                 onPressed: () => _wrapSelection('*', '*'),
                 icon: const Icon(Icons.format_italic, size: 20),
               ),
               IconButton(
-                tooltip: 'Bullet list',
+                tooltip: context.tr(RemainingL10n.bulletList),
                 onPressed: _insertBullet,
                 icon: const Icon(Icons.format_list_bulleted, size: 20),
               ),
@@ -200,7 +203,7 @@ class _InquirySellerReplyComposerState
               Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Text(
-                  'Rich reply',
+                  context.tr(RemainingL10n.richReply),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textMuted(context),
                     fontWeight: FontWeight.w600,
@@ -243,7 +246,7 @@ class _InquirySellerReplyComposerState
                 isDense: true,
                 filled: true,
                 fillColor: AppColors.card(context),
-                hintText: 'Write your answer to the buyer…',
+                hintText: context.tr(RemainingL10n.writeYourAnswerToTheBuyer),
                 hintMaxLines: 3,
                 hintStyle: AppTypography.body.copyWith(
                   color: AppColors.textMuted(context),
@@ -261,8 +264,8 @@ class _InquirySellerReplyComposerState
         ),
         const SizedBox(height: 12),
         InquiryImagePickerField(
-          label: 'Reference image',
-          helperText: 'Attach a photo of what you have for the sender',
+          label: context.tr(RemainingL10n.referenceImage),
+          helperText: context.tr(RemainingL10n.attachAPhotoOfWhatYouHave),
           images: widget.images,
           onChanged: widget.onImagesChanged,
           maxImages: 4,
@@ -278,7 +281,7 @@ class _InquirySellerReplyComposerState
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
             icon: const Icon(Icons.send, size: 18),
-            label: const Text('Send reply'),
+            label: Text(context.tr(RemainingL10n.sendReply)),
           ),
         ),
       ],

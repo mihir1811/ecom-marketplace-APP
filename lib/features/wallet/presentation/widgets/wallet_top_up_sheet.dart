@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/result.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -18,8 +20,6 @@ class WalletTopUpSheet extends ConsumerStatefulWidget {
     // Keep the sheet on the caller's theme (dark wallet → dark sheet) since
     // modal routes otherwise inherit the app-level light theme.
     final theme = Theme.of(context);
-
-    
 
     return showModalBottomSheet<void>(
       context: context,
@@ -59,7 +59,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
     FocusScope.of(context).unfocus();
     final amount = _parsedAmount;
     if (amount == null) {
-      setState(() => _fieldError = 'Enter an amount in INR.');
+      setState(() => _fieldError = context.tr(RemainingL10n.enterAmountInr));
       return;
     }
     final invalid = ref
@@ -78,7 +78,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
       case Success():
         Navigator.of(context).maybePop();
         messenger.showSnackBar(
-          const SnackBar(content: Text('Wallet topped up successfully')),
+          SnackBar(content: Text(context.tr(RemainingL10n.walletTopUpSuccess))),
         );
       case ResultFailure(:final failure):
         messenger.showSnackBar(SnackBar(content: Text(failure.message)));
@@ -114,12 +114,12 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
           ),
           const SizedBox(height: AppSpacing.s16),
           Text(
-            'Top up wallet',
+            context.tr(RemainingL10n.topUpWallet),
             style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: AppSpacing.s8),
           Text(
-            'Amount is in INR. Minimum ₹1.',
+            context.tr(RemainingL10n.topUpMinimum),
             style: AppTypography.caption.copyWith(
               color: AppColors.textMuted(context),
             ),
@@ -138,7 +138,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
             },
             onSubmitted: (_) => busy ? null : _submit(),
             decoration: InputDecoration(
-              labelText: 'Amount (INR)',
+              labelText: context.tr(RemainingL10n.amountInr),
               prefixText: '₹ ',
               errorText: _fieldError,
             ),
@@ -169,7 +169,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Continue to payment'),
+                : Text(context.tr(RemainingL10n.continuePayment)),
           ),
         ],
       ),

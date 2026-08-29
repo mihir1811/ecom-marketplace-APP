@@ -29,10 +29,7 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         ApiEndpoints.favorites,
-        data: {
-          'productId': productId,
-          'productType': productType,
-        },
+        data: {'productId': productId, 'productType': productType},
         cancelToken: cancelToken,
       );
       final data = response.data?['data'];
@@ -72,11 +69,7 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
         cancelToken: cancelToken,
       );
       return Result.success(
-        FavoriteMapper.pageFromJson(
-          response.data,
-          page: page,
-          limit: limit,
-        ),
+        FavoriteMapper.pageFromJson(response.data, page: page, limit: limit),
       );
     } on DioException catch (e) {
       return Result.failure(ApiError.fromDio(e));
@@ -99,9 +92,7 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
       );
       final data = response.data?['data'];
       if (data is! Map<String, dynamic>) {
-        return Result.failure(
-          const NetworkFailure('Favorite not found.'),
-        );
+        return Result.failure(const NetworkFailure('Favorite not found.'));
       }
       return Result.success(FavoriteMapper.fromJson(data));
     } on DioException catch (e) {
@@ -120,10 +111,7 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
     try {
       final response = await _dio.delete<Map<String, dynamic>>(
         ApiEndpoints.favoritesRemove,
-        data: {
-          'productId': productId,
-          'productType': productType,
-        },
+        data: {'productId': productId, 'productType': productType},
         cancelToken: cancelToken,
       );
       final root = response.data ?? const <String, dynamic>{};

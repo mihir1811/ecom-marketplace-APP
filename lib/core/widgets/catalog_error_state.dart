@@ -3,20 +3,22 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import '../l10n/translations/remaining_messages.dart';
+import '../l10n/app_localizations.dart';
 
 /// Parameterized error + retry state for catalog listing screens.
 class CatalogErrorState extends StatelessWidget {
   const CatalogErrorState({
     required this.message,
     required this.onRetry,
-    this.retryLabel = 'Retry',
+    this.retryLabel,
     this.padding = const EdgeInsets.all(AppSpacing.s32),
     super.key,
   });
 
   final String message;
   final VoidCallback onRetry;
-  final String retryLabel;
+  final String? retryLabel;
   final EdgeInsetsGeometry padding;
 
   @override
@@ -37,7 +39,7 @@ class CatalogErrorState extends StatelessWidget {
             const SizedBox(height: AppSpacing.s20),
             ElevatedButton(
               onPressed: onRetry,
-              child: Text(retryLabel),
+              child: Text(retryLabel ?? context.tr(RemainingL10n.retry)),
             ),
           ],
         ),

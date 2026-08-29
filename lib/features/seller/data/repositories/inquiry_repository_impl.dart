@@ -16,7 +16,7 @@ final inquiryRepositoryProvider = Provider<InquiryRepository>(
 );
 
 class InquiryRepositoryImpl implements InquiryRepository {
-  InquiryRepositoryImpl(this._dio);
+  const InquiryRepositoryImpl(this._dio);
 
   final Dio _dio;
 
@@ -44,8 +44,9 @@ class InquiryRepositoryImpl implements InquiryRepository {
           : const <String, dynamic>{};
       final itemsJson = payload['data'];
       final metaJson = payload['meta'];
-      final meta =
-          metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+      final meta = metaJson is Map<String, dynamic>
+          ? metaJson
+          : const <String, dynamic>{};
 
       final list = itemsJson is List ? itemsJson : const [];
       final items = <SellerInquiry>[];
@@ -95,9 +96,7 @@ class InquiryRepositoryImpl implements InquiryRepository {
       final root = response.data ?? const <String, dynamic>{};
       final data = root['data'];
       if (data is! Map<String, dynamic>) {
-        return Result.failure(
-          const ValidationFailure('Inquiry not found.'),
-        );
+        return Result.failure(const ValidationFailure('Inquiry not found.'));
       }
       return Result.success(InquiryMapper.fromJson(data, category: category));
     } on DioException catch (e) {
@@ -182,28 +181,28 @@ class InquiryRepositoryImpl implements InquiryRepository {
   }
 
   String _listPath(InquiryCategory category) => switch (category) {
-        InquiryCategory.diamond => ApiEndpoints.diamondInquiryAll,
-        InquiryCategory.gemstone => ApiEndpoints.gemstoneInquiryAll,
-        InquiryCategory.bullion => ApiEndpoints.bullionInquiryAll,
-        InquiryCategory.watch => ApiEndpoints.watchInquiryAll,
-        InquiryCategory.jewelry => ApiEndpoints.jewelleryInquiryAll,
-      };
+    InquiryCategory.diamond => ApiEndpoints.diamondInquiryAll,
+    InquiryCategory.gemstone => ApiEndpoints.gemstoneInquiryAll,
+    InquiryCategory.bullion => ApiEndpoints.bullionInquiryAll,
+    InquiryCategory.watch => ApiEndpoints.watchInquiryAll,
+    InquiryCategory.jewelry => ApiEndpoints.jewelleryInquiryAll,
+  };
 
   String _createPath(InquiryCategory category) => switch (category) {
-        InquiryCategory.diamond => ApiEndpoints.diamondInquiry,
-        InquiryCategory.gemstone => ApiEndpoints.gemstoneInquiry,
-        InquiryCategory.bullion => ApiEndpoints.bullionInquiry,
-        InquiryCategory.watch => ApiEndpoints.watchInquiry,
-        InquiryCategory.jewelry => ApiEndpoints.jewelleryInquiry,
-      };
+    InquiryCategory.diamond => ApiEndpoints.diamondInquiry,
+    InquiryCategory.gemstone => ApiEndpoints.gemstoneInquiry,
+    InquiryCategory.bullion => ApiEndpoints.bullionInquiry,
+    InquiryCategory.watch => ApiEndpoints.watchInquiry,
+    InquiryCategory.jewelry => ApiEndpoints.jewelleryInquiry,
+  };
 
   String _detailPath(InquiryCategory category, String id) => switch (category) {
-        InquiryCategory.diamond => ApiEndpoints.diamondInquiryById(id),
-        InquiryCategory.gemstone => ApiEndpoints.gemstoneInquiryById(id),
-        InquiryCategory.bullion => ApiEndpoints.bullionInquiryById(id),
-        InquiryCategory.watch => ApiEndpoints.watchInquiryById(id),
-        InquiryCategory.jewelry => ApiEndpoints.jewelleryInquiryById(id),
-      };
+    InquiryCategory.diamond => ApiEndpoints.diamondInquiryById(id),
+    InquiryCategory.gemstone => ApiEndpoints.gemstoneInquiryById(id),
+    InquiryCategory.bullion => ApiEndpoints.bullionInquiryById(id),
+    InquiryCategory.watch => ApiEndpoints.watchInquiryById(id),
+    InquiryCategory.jewelry => ApiEndpoints.jewelleryInquiryById(id),
+  };
 
   int? _asInt(Object? value) {
     if (value == null) return null;

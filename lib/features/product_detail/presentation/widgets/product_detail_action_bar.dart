@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -51,20 +52,18 @@ class ProductDetailActionBar extends ConsumerWidget {
     Map<String, dynamic>? specifications;
     final meleeQty = detail.naturalSpecTabs?.meleeQty;
     if (meleeQty != null) {
-      ref.read(meleeQtyDraftProvider(detail.id).notifier).ensureSeeded(meleeQty);
+      ref
+          .read(meleeQtyDraftProvider(detail.id).notifier)
+          .ensureSeeded(meleeQty);
       final draft = ref.read(meleeQtyDraftProvider(detail.id));
-      if (draft == null ||
-          (draft.pieces < 1 && draft.carat <= 0)) {
+      if (draft == null || (draft.pieces < 1 && draft.carat <= 0)) {
         _notify(context, 'Enter how many pieces or carats to add');
         return;
       }
       if (draft.inCarat) {
         final maxCt = meleeQty.totalCarat;
         if (maxCt != null && draft.carat > maxCt + 1e-9) {
-          _notify(
-            context,
-            'Only ${maxCt.toStringAsFixed(2)} ct available',
-          );
+          _notify(context, 'Only ${maxCt.toStringAsFixed(2)} ct available');
           return;
         }
       } else {
@@ -83,7 +82,9 @@ class ProductDetailActionBar extends ConsumerWidget {
       specifications = draft.toSpecifications(calculatedPrice: calculated);
     }
 
-    final result = await ref.read(cartProvider.notifier).addProduct(
+    final result = await ref
+        .read(cartProvider.notifier)
+        .addProduct(
           productId: detail.id,
           productType: detail.apiProductType,
           quantity: quantity,
@@ -118,17 +119,20 @@ class ProductDetailActionBar extends ConsumerWidget {
     final submitted = await showAppDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Make an offer'),
+        title: Text(context.tr(CatalogL10n.makeOffer)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: controller,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               autofocus: true,
               decoration: InputDecoration(
-                labelText: 'Your offer (${AppCurrency.code})',
+                labelText: context.tr(CatalogL10n.yourOffer, {
+                  'currency': AppCurrency.code,
+                }),
                 prefixText: AppCurrency.symbol,
                 helperText: minHint != null
                     ? 'Minimum ${AppCurrency.format(minHint)}'
@@ -142,7 +146,7 @@ class ProductDetailActionBar extends ConsumerWidget {
             TextField(
               controller: messageCtrl,
               decoration: InputDecoration(
-                labelText: 'Message (optional)',
+                labelText: context.tr(CatalogL10n.messageOptional),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
                 ),
@@ -154,11 +158,11 @@ class ProductDetailActionBar extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(CatalogL10n.cancel)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Submit offer'),
+            child: Text(context.tr(CatalogL10n.submitOffer)),
           ),
         ],
       ),
@@ -178,7 +182,9 @@ class ProductDetailActionBar extends ConsumerWidget {
     if (raw.isEmpty) return;
     final amount = raw.contains('.') ? raw : '$raw.00';
 
-    final result = await ref.read(productOfferMutationProvider.notifier).create(
+    final result = await ref
+        .read(productOfferMutationProvider.notifier)
+        .create(
           productId: detail.id,
           productType: detail.apiProductType,
           amount: amount,
@@ -220,15 +226,15 @@ class ProductDetailActionBar extends ConsumerWidget {
     final addLabel = ownListing
         ? 'Your listing'
         : blockMessage != null
-            ? (CatalogPurchasePolicy.isOnHoldOrMemo(detail.availabilityStatus) ||
-                    CatalogPurchasePolicy.isOnHoldOrMemo(
-                      detail.availability?.label,
-                    )
-                ? 'On hold / memo'
-                : 'Unavailable')
-            : inCart
-                ? 'View in cart'
-                : 'Add to cart';
+        ? (CatalogPurchasePolicy.isOnHoldOrMemo(detail.availabilityStatus) ||
+                  CatalogPurchasePolicy.isOnHoldOrMemo(
+                    detail.availability?.label,
+                  )
+              ? 'On hold / memo'
+              : 'Unavailable')
+        : inCart
+        ? 'View in cart'
+        : 'Add to cart';
 
     return Container(
       decoration: BoxDecoration(
@@ -244,14 +250,16 @@ class ProductDetailActionBar extends ConsumerWidget {
           if (showOffer) ...[
             Expanded(
               child: OutlinedButton(
-                onPressed: offerMutating ? null : () => _makeOffer(context, ref),
+                onPressed: offerMutating
+                    ? null
+                    : () => _makeOffer(context, ref),
                 child: offerMutating
                     ? const SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Make an offer'),
+                    : Text(context.tr(CatalogL10n.makeOffer)),
               ),
             ),
             const SizedBox(width: AppSpacing.s12),
@@ -262,8 +270,8 @@ class ProductDetailActionBar extends ConsumerWidget {
               onPressed: ownListing || !purchasable || mutating
                   ? null
                   : inCart
-                      ? () => context.push(AppRouteNames.cart)
-                      : () => _addToCart(context, ref),
+                  ? () => context.push(AppRouteNames.cart)
+                  : () => _addToCart(context, ref),
               child: mutating
                   ? const SizedBox(
                       width: 18,

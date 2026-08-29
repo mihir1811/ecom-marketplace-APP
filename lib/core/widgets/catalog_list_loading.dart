@@ -50,10 +50,7 @@ class CatalogListLoading extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AspectRatio(
-            aspectRatio: 1.0,
-            child: Container(color: highlight),
-          ),
+          AspectRatio(aspectRatio: 1.0, child: Container(color: highlight)),
           Padding(
             padding: const EdgeInsets.all(AppSpacing.s12),
             child: Column(

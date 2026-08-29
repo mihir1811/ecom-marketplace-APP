@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -19,11 +20,12 @@ class DiamondProjectHistogramCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final max = entries.fold<int>(0, (m, e) => e.count > m ? e.count : m);
+    final barColor = AppColors.textPrimary(context);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.warmWhite,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.warmBorder),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
@@ -34,15 +36,15 @@ class DiamondProjectHistogramCard extends StatelessWidget {
               title,
               style: AppTypography.label.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.charcoal,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: AppSpacing.s16),
             if (entries.isEmpty)
               Text(
-                'No data',
+                context.tr(CatalogL10n.projectNoData),
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textMutedLight,
+                  color: AppColors.textMuted(context),
                 ),
               )
             else
@@ -60,6 +62,7 @@ class DiamondProjectHistogramCard extends StatelessWidget {
                           child: _Bar(
                             entry: entry,
                             max: max == 0 ? 1 : max,
+                            barColor: barColor,
                           ),
                         ),
                       ),
@@ -74,10 +77,15 @@ class DiamondProjectHistogramCard extends StatelessWidget {
 }
 
 class _Bar extends StatelessWidget {
-  const _Bar({required this.entry, required this.max});
+  const _Bar({
+    required this.entry,
+    required this.max,
+    required this.barColor,
+  });
 
   final NamedCount entry;
   final int max;
+  final Color barColor;
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +95,10 @@ class _Bar extends StatelessWidget {
           '${entry.count}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+          style: AppTypography.caption.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary(context),
+          ),
         ),
         const SizedBox(height: AppSpacing.s4),
         Expanded(
@@ -98,7 +109,7 @@ class _Bar extends StatelessWidget {
               widthFactor: 0.7,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: AppColors.charcoal,
+                  color: barColor,
                   borderRadius: BorderRadius.circular(AppSpacing.r4),
                 ),
               ),
@@ -112,7 +123,7 @@ class _Bar extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: AppTypography.caption.copyWith(
-            color: AppColors.textMutedLight,
+            color: AppColors.textMuted(context),
             fontSize: 10,
           ),
         ),

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import '../l10n/translations/remaining_messages.dart';
+import '../l10n/app_localizations.dart';
 
 enum ViewModeToggleStyle { labeled, iconOnly }
 
@@ -13,8 +15,8 @@ class ViewModeToggle extends StatelessWidget {
     required this.onGrid,
     required this.onList,
     this.style = ViewModeToggleStyle.iconOnly,
-    this.gridLabel = 'Grid',
-    this.listLabel = 'List',
+    this.gridLabel,
+    this.listLabel,
     super.key,
   });
 
@@ -22,8 +24,8 @@ class ViewModeToggle extends StatelessWidget {
   final VoidCallback onGrid;
   final VoidCallback onList;
   final ViewModeToggleStyle style;
-  final String gridLabel;
-  final String listLabel;
+  final String? gridLabel;
+  final String? listLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -39,18 +41,14 @@ class ViewModeToggle extends StatelessWidget {
           children: [
             _LabeledBtn(
               icon: Icons.grid_view,
-              label: gridLabel,
+              label: gridLabel ?? context.tr(RemainingL10n.grid),
               isSelected: isGrid,
               onTap: onGrid,
             ),
-            Container(
-              width: 1,
-              height: 24,
-              color: AppColors.border(context),
-            ),
+            Container(width: 1, height: 24, color: AppColors.border(context)),
             _LabeledBtn(
               icon: Icons.view_list,
-              label: listLabel,
+              label: listLabel ?? context.tr(RemainingL10n.list),
               isSelected: !isGrid,
               onTap: onList,
             ),
@@ -111,8 +109,9 @@ class _LabeledBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.bronze : Colors.transparent,
-          borderRadius:
-              isSelected ? BorderRadius.circular(AppSpacing.r8) : null,
+          borderRadius: isSelected
+              ? BorderRadius.circular(AppSpacing.r8)
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -120,8 +119,9 @@ class _LabeledBtn extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color:
-                  isSelected ? AppColors.warmWhite : AppColors.textMuted(context),
+              color: isSelected
+                  ? AppColors.warmWhite
+                  : AppColors.textMuted(context),
             ),
             const SizedBox(width: 4),
             Text(

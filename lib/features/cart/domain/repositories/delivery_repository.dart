@@ -10,9 +10,13 @@ abstract class DeliveryRepository {
     CancelToken? cancelToken,
   });
 
-  Future<Result<DeliveryAddress, Failure>> createAddress(DeliveryAddress address);
+  Future<Result<DeliveryAddress, Failure>> createAddress(
+    DeliveryAddress address,
+  );
 
-  Future<Result<DeliveryAddress, Failure>> updateAddress(DeliveryAddress address);
+  Future<Result<DeliveryAddress, Failure>> updateAddress(
+    DeliveryAddress address,
+  );
 
   Future<Result<void, Failure>> deleteAddress(String addressId);
 

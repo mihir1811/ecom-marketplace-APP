@@ -324,18 +324,21 @@ abstract final class InquiryRequestMapper {
       'shapeFormat' when category != InquiryCategory.bullion => null,
       'weightMin' when category != InquiryCategory.bullion => null,
       'weightMax' when category != InquiryCategory.bullion => null,
-      'metalType' when category == InquiryCategory.bullion ||
-          category == InquiryCategory.jewelry =>
+      'metalType'
+          when category == InquiryCategory.bullion ||
+              category == InquiryCategory.jewelry =>
         'metalType',
       'metalType' => null,
       'metalPurity' when category != InquiryCategory.jewelry => null,
       'brand' when category != InquiryCategory.watch => null,
       'model' when category != InquiryCategory.watch => null,
-      'shape' when category == InquiryCategory.diamond ||
-          category == InquiryCategory.gemstone =>
+      'shape'
+          when category == InquiryCategory.diamond ||
+              category == InquiryCategory.gemstone =>
         'shape',
       'shape' => null,
-      'gemstoneType' when category == InquiryCategory.gemstone => 'gemstoneType',
+      'gemstoneType' when category == InquiryCategory.gemstone =>
+        'gemstoneType',
       'gemstoneType' => null,
       _ => _passthroughIfAllowed(category, formKey),
     };

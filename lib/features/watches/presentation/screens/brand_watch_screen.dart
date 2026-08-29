@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -177,7 +178,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                             _priceMinController.clear();
                             _priceMaxController.clear();
                           },
-                          child: const Text('Reset'),
+                          child: Text(context.tr(CatalogL10n.reset)),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.s12),
@@ -188,7 +189,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                             foregroundColor: AppColors.warmWhite,
                           ),
                           onPressed: () => Navigator.pop(context),
-                          child: const Text('Apply'),
+                          child: Text(context.tr(CatalogL10n.apply)),
                         ),
                       ),
                     ],
@@ -361,38 +362,37 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                   ? const Center(
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : listState.errorMessage != null &&
-                          listState.watches.isEmpty
-                      ? CatalogErrorState(
-                          message: listState.errorMessage!,
-                          onRetry: () =>
-                              ref.read(brandWatchListProvider.notifier).refresh(),
-                        )
-                      : listState.watches.isEmpty
-                          ? CatalogEmptyState(
-                              icon: Icons.watch_outlined,
-                              title:
-                                  'No ${widget.brandName} watches match your filters',
-                              message: 'Try adjusting style or price range.',
-                              actionLabel: 'Clear filters',
-                              onAction: () {
-                                ref.read(brandWatchFilterProvider.notifier).reset();
-                                _priceMinController.clear();
-                                _priceMaxController.clear();
-                              },
-                            )
-                          : CustomScrollView(
-                              controller: _scrollController,
-                              slivers: [
-                                WatchGridSliver(
-                                  watches: listState.watches,
-                                  isLoadingMore: listState.isLoadingMore,
-                                ),
-                                const SliverToBoxAdapter(
-                                  child: SizedBox(height: AppSpacing.s24),
-                                ),
-                              ],
-                            ),
+                  : listState.errorMessage != null && listState.watches.isEmpty
+                  ? CatalogErrorState(
+                      message: listState.errorMessage!,
+                      onRetry: () =>
+                          ref.read(brandWatchListProvider.notifier).refresh(),
+                    )
+                  : listState.watches.isEmpty
+                  ? CatalogEmptyState(
+                      icon: Icons.watch_outlined,
+                      title:
+                          'No ${widget.brandName} watches match your filters',
+                      message: context.tr(CatalogL10n.adjustStyleOrPrice),
+                      actionLabel: context.tr(CatalogL10n.clearAll),
+                      onAction: () {
+                        ref.read(brandWatchFilterProvider.notifier).reset();
+                        _priceMinController.clear();
+                        _priceMaxController.clear();
+                      },
+                    )
+                  : CustomScrollView(
+                      controller: _scrollController,
+                      slivers: [
+                        WatchGridSliver(
+                          watches: listState.watches,
+                          isLoadingMore: listState.isLoadingMore,
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: AppSpacing.s24),
+                        ),
+                      ],
+                    ),
             ),
           ],
         ),
@@ -423,10 +423,14 @@ class _StyleChip extends StatelessWidget {
           vertical: AppSpacing.s12,
         ),
         decoration: BoxDecoration(
-          color: selected ? AppColors.selectedFill(context) : AppColors.card(context),
+          color: selected
+              ? AppColors.selectedFill(context)
+              : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: selected ? AppColors.selectedFill(context) : AppColors.border(context),
+            color: selected
+                ? AppColors.selectedFill(context)
+                : AppColors.border(context),
           ),
         ),
         child: Text(

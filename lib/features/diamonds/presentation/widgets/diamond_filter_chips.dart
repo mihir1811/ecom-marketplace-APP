@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -135,7 +136,7 @@ class DiamondFilterChips extends ConsumerWidget {
     if (filters.noBgm) {
       chips.add(
         _FilterChipData(
-          label: 'No BGM',
+          label: context.tr(CatalogL10n.noBgm),
           onRemove: () => notifier.toggleNoBgm(),
         ),
       );
@@ -144,7 +145,7 @@ class DiamondFilterChips extends ConsumerWidget {
     if (filters.eyeClean) {
       chips.add(
         _FilterChipData(
-          label: 'Eye Clean',
+          label: context.tr(CatalogL10n.eyeClean),
           onRemove: () => notifier.toggleEyeClean(),
         ),
       );
@@ -197,7 +198,6 @@ class DiamondFilterChips extends ConsumerWidget {
       ],
     );
   }
-
 }
 
 class _FilterChipData {

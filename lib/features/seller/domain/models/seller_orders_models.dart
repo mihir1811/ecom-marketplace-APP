@@ -127,10 +127,7 @@ class SellerOffer {
   final String createdAt;
   final String? message;
 
-  SellerOffer copyWith({
-    SellerOfferStatus? status,
-    String? counterPrice,
-  }) {
+  SellerOffer copyWith({SellerOfferStatus? status, String? counterPrice}) {
     return SellerOffer(
       id: id,
       productLabel: productLabel,

@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'inquiry_form_fields.dart';
 import 'inquiry_reference_media.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Watch inquiry fields: brand/model, case specs, papers, and media.
 class WatchInquiryForm extends StatelessWidget {
   const WatchInquiryForm({
@@ -37,77 +40,77 @@ class WatchInquiryForm extends StatelessWidget {
             children: [
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Brand',
+                  label: context.tr(RemainingL10n.brand),
                   controller: controller('brand'),
                   hint: 'Rolex',
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Model',
+                  label: context.tr(RemainingL10n.model),
                   controller: controller('model'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryTextField(
-                label: 'Reference Number',
+                label: context.tr(RemainingL10n.referenceNumber),
                 controller: controller('referenceNumber'),
                 onChanged: onChanged,
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Year Min',
+                  label: context.tr(RemainingL10n.yearMin),
                   controller: controller('yearMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Year Max',
+                  label: context.tr(RemainingL10n.yearMax),
                   controller: controller('yearMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Total Price Min',
+                  label: context.tr(RemainingL10n.totalPriceMin),
                   controller: controller('totalPriceMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Total Price Max',
+                  label: context.tr(RemainingL10n.totalPriceMax),
                   controller: controller('totalPriceMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Case Material',
+                  label: context.tr(RemainingL10n.caseMaterial),
                   controller: controller('caseMaterial'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Dial Color',
+                  label: context.tr(RemainingL10n.dialColor),
                   controller: controller('dialColor'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: 'Case Size Min',
+                  label: context.tr(RemainingL10n.caseSizeMin),
                   controller: controller('caseSizeMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: 'Case Size Max',
+                  label: context.tr(RemainingL10n.caseSizeMax),
                   controller: controller('caseSizeMax'),
                   onChanged: onChanged,
                 ),
               ),
               InquiryTextField(
-                label: 'Strap Material',
+                label: context.tr(RemainingL10n.strapMaterial),
                 controller: controller('strapMaterial'),
                 onChanged: onChanged,
               ),
               InquiryDropdownField(
-                label: 'Movement',
+                label: context.tr(RemainingL10n.movement),
                 value: controller('movement', 'AUTOMATIC').text,
                 options: const ['AUTOMATIC', 'MANUAL', 'QUARTZ'],
                 optionLabels: const {
@@ -121,33 +124,33 @@ class WatchInquiryForm extends StatelessWidget {
                 },
               ),
               InquiryCheckboxField(
-                label: 'Has Original Box',
+                label: context.tr(RemainingL10n.originalBox),
                 value: flag('hasOriginalBox'),
                 onChanged: (v) => setFlag('hasOriginalBox', v),
               ),
               InquiryCheckboxField(
-                label: 'Has Warranty Papers',
+                label: context.tr(RemainingL10n.warrantyPapers),
                 value: flag('hasWarrantyPapers'),
                 onChanged: (v) => setFlag('hasWarrantyPapers', v),
               ),
               InquiryCheckboxField(
-                label: 'Has Manuals',
+                label: context.tr(RemainingL10n.manuals),
                 value: flag('hasManuals'),
                 onChanged: (v) => setFlag('hasManuals', v),
               ),
               InquiryTextField(
-                label: 'Condition',
+                label: context.tr(RemainingL10n.condition),
                 controller: controller('condition'),
                 hint: 'New / Used',
                 onChanged: onChanged,
               ),
               InquiryDateField(
-                label: 'Urgency',
+                label: context.tr(RemainingL10n.urgency),
                 value: urgency,
                 onPick: onPickUrgency,
               ),
               InquiryTextField(
-                label: 'Delivery Address',
+                label: context.tr(RemainingL10n.deliveryAddress),
                 controller: controller('deliveryLocation'),
                 onChanged: onChanged,
               ),
@@ -162,7 +165,7 @@ class WatchInquiryForm extends StatelessWidget {
         ),
         InquirySectionCard(
           child: InquiryTextField(
-            label: 'Description',
+            label: context.tr(RemainingL10n.description),
             controller: controller('description'),
             maxLines: 4,
             onChanged: onChanged,

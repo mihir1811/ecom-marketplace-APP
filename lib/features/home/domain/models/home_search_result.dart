@@ -1,15 +1,7 @@
 import '../../../product_detail/domain/models/product_detail.dart';
 
 /// Catalog bucket used for web-parity ranking (`useLiveSearchResults`).
-enum HomeSearchKind {
-  diamond,
-  lab,
-  melee,
-  gemstone,
-  watch,
-  jewelry,
-  bullion,
-}
+enum HomeSearchKind { diamond, lab, melee, gemstone, watch, jewelry, bullion }
 
 /// Unified row for home real-time search across marketplace catalogs.
 class HomeSearchResult {

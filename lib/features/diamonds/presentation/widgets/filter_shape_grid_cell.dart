@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -58,7 +60,7 @@ class FilterShapeGridCell extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.s4),
             Text(
-              name,
+              context.trCatalogValue(name),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.label.copyWith(

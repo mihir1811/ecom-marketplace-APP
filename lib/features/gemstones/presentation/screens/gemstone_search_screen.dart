@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -136,70 +137,70 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     final sections = <CatalogSearchNavSection<GemstoneSection>>[
       CatalogSearchNavSection(
         id: GemstoneSection.basic,
-        label: 'Basic',
+        label: context.tr(CatalogL10n.basic),
         icon: Icons.diamond_outlined,
         key: _basicKey,
       ),
       CatalogSearchNavSection(
         id: GemstoneSection.preferences,
-        label: 'PREF',
+        label: context.tr(CatalogL10n.prefShort),
         icon: Icons.tune,
         key: _prefKey,
       ),
       CatalogSearchNavSection(
         id: GemstoneSection.measurements,
-        label: 'MEAS',
+        label: context.tr(CatalogL10n.measurementsShort),
         icon: Icons.straighten,
         key: _measKey,
       ),
     ];
 
     return CatalogSearchFilterShell(
-      title: 'GEMSTONE FINDER',
-        isMelee: isMelee,
-        meleeFamily: meleeFamily,
-        onScrollNotification: catalogHandleScrollNotification,
-        stickyNav: CatalogSearchSectionNav<GemstoneSection>(
-          navKey: catalogNavKey,
-          sections: sections,
-          activeId: _activeSection,
-          onSectionTap: (section) {
-            setState(() => _activeSection = section.id);
-            catalogScrollToSection(section.key);
-          },
-        ),
-        scrollController: catalogScrollController,
-        primaryLabel: 'SEARCH GEMSTONES',
-        onPrimary: _onShowGemstones,
-        onClear: () {
-          ref.read(gemstoneSearchProvider.notifier).reset();
-          _companyController.clear();
-          _locationController.clear();
+      title: context.tr(CatalogL10n.gemstoneFinder),
+      isMelee: isMelee,
+      meleeFamily: meleeFamily,
+      onScrollNotification: catalogHandleScrollNotification,
+      stickyNav: CatalogSearchSectionNav<GemstoneSection>(
+        navKey: catalogNavKey,
+        sections: sections,
+        activeId: _activeSection,
+        onSectionTap: (section) {
+          setState(() => _activeSection = section.id);
+          catalogScrollToSection(section.key);
         },
-        bodyChildren: [
-          _buildShowcaseCarousel(),
-          const SizedBox(height: AppSpacing.s24),
-          const _GemstoneSearchCardHeader(),
-          const SizedBox(height: AppSpacing.s24),
-          CatalogSearchSection(
-            sectionKey: _basicKey,
-            title: 'Basic',
-            child: const GemstoneFilterCategoryBasic(),
-          ),
-          const SizedBox(height: AppSpacing.s32),
-          CatalogSearchSection(
-            sectionKey: _prefKey,
-            title: 'Preferences',
-            child: _buildPreferenceFilters(),
-          ),
-          const SizedBox(height: AppSpacing.s32),
-          CatalogSearchSection(
-            sectionKey: _measKey,
-            title: 'Measurements',
-            child: _buildMeasurementFilters(),
-          ),
-          const SizedBox(height: AppSpacing.s32),
-        ],
+      ),
+      scrollController: catalogScrollController,
+      primaryLabel: context.tr(CatalogL10n.searchGemstones),
+      onPrimary: _onShowGemstones,
+      onClear: () {
+        ref.read(gemstoneSearchProvider.notifier).reset();
+        _companyController.clear();
+        _locationController.clear();
+      },
+      bodyChildren: [
+        _buildShowcaseCarousel(),
+        const SizedBox(height: AppSpacing.s24),
+        const _GemstoneSearchCardHeader(),
+        const SizedBox(height: AppSpacing.s24),
+        CatalogSearchSection(
+          sectionKey: _basicKey,
+          title: context.tr(CatalogL10n.basic),
+          child: const GemstoneFilterCategoryBasic(),
+        ),
+        const SizedBox(height: AppSpacing.s32),
+        CatalogSearchSection(
+          sectionKey: _prefKey,
+          title: context.tr(CatalogL10n.preferences),
+          child: _buildPreferenceFilters(),
+        ),
+        const SizedBox(height: AppSpacing.s32),
+        CatalogSearchSection(
+          sectionKey: _measKey,
+          title: context.tr(CatalogL10n.measurements),
+          child: _buildMeasurementFilters(),
+        ),
+        const SizedBox(height: AppSpacing.s32),
+      ],
     );
   }
 
@@ -210,7 +211,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     final notifier = ref.read(gemstoneSearchProvider.notifier);
 
     return PairedShowcaseCarousel(
-      title: 'Explore Gemstone\nTypes',
+      title: context.tr(CatalogL10n.exploreGemstoneTypes),
       itemCount: _kFeaturedGemstones.length,
       itemBuilder: (context, index) {
         final name = _kFeaturedGemstones[index];
@@ -243,10 +244,10 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
 
     return CatalogPreferencesFilters(
       locationField: CatalogSearchAddField(
-        title: "Vendor's Location",
+        title: context.tr(CatalogL10n.vendorLocation),
         infoText:
             'Search for gemstones located in a specific city, state, or region.',
-        hintText: 'Search by location (City, State, Country)',
+        hintText: context.tr(CatalogL10n.searchLocation),
         controller: _locationController,
         clearOnAdd: true,
         values: state.vendorLocations,
@@ -254,20 +255,16 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
         onRemove: notifier.removeVendorLocation,
       ),
       originDropdown: FilterOriginDropdown(
-        title: 'Origin Country',
-        hint: 'Select origin country',
-        infoText: "Filter by the gemstone's origin country.",
-        pickerTitle: 'Select Origin Country',
+        useDiamondOriginHelp: false,
         options: GemstoneFilterState.origins,
         flags: GemstoneFilterState.originFlags,
-        showFlags: true,
         selectedOrigin: state.selectedOriginCountry,
         onSelected: notifier.updateOriginCountry,
       ),
       companyField: CatalogSearchAddField(
-        title: 'Company Name',
-        infoText: 'Search for gemstones supplied by a specific company name.',
-        hintText: 'Search by company name',
+        title: context.tr(CatalogL10n.companyName),
+        infoText: context.tr(CatalogL10n.gemstoneCompanyHelp),
+        hintText: context.tr(CatalogL10n.searchCompany),
         controller: _companyController,
         clearOnAdd: true,
         values: state.companyNames,
@@ -316,7 +313,7 @@ class _GemstoneSearchCardHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Gemstone Search',
+          context.tr(CatalogL10n.gemstoneSearch),
           style: AppTypography.headline.copyWith(
             fontSize: 22,
             fontWeight: FontWeight.bold,

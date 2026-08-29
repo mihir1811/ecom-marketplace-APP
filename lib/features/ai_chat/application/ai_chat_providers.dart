@@ -16,18 +16,12 @@ const _sessionPrefKey = 'gw.aiChat.sessionId';
 const _guestKeysPrefKey = 'gw.aiChat.guestSessionKeys';
 
 class AiChatUiState {
-  const AiChatUiState({
-    this.isOpen = false,
-    this.showHistory = false,
-  });
+  const AiChatUiState({this.isOpen = false, this.showHistory = false});
 
   final bool isOpen;
   final bool showHistory;
 
-  AiChatUiState copyWith({
-    bool? isOpen,
-    bool? showHistory,
-  }) {
+  AiChatUiState copyWith({bool? isOpen, bool? showHistory}) {
     return AiChatUiState(
       isOpen: isOpen ?? this.isOpen,
       showHistory: showHistory ?? this.showHistory,
@@ -50,8 +44,9 @@ class AiChatUiController extends Notifier<AiChatUiState> {
   void hideHistory() => state = state.copyWith(showHistory: false);
 }
 
-final aiChatUiProvider =
-    NotifierProvider<AiChatUiController, AiChatUiState>(AiChatUiController.new);
+final aiChatUiProvider = NotifierProvider<AiChatUiController, AiChatUiState>(
+  AiChatUiController.new,
+);
 
 class AiChatPanelState {
   const AiChatPanelState({
@@ -105,10 +100,12 @@ class AiChatPanelState {
       isLoadingHistory: isLoadingHistory ?? this.isLoadingHistory,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       sessions: sessions ?? this.sessions,
-      pendingImageUrl:
-          clearPendingImage ? null : (pendingImageUrl ?? this.pendingImageUrl),
-      pendingImageName:
-          clearPendingImage ? null : (pendingImageName ?? this.pendingImageName),
+      pendingImageUrl: clearPendingImage
+          ? null
+          : (pendingImageUrl ?? this.pendingImageUrl),
+      pendingImageName: clearPendingImage
+          ? null
+          : (pendingImageName ?? this.pendingImageName),
     );
   }
 }
@@ -141,7 +138,10 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
     final rand = Random.secure();
     String block(int len) {
       const chars = 'abcdef0123456789';
-      return List.generate(len, (_) => chars[rand.nextInt(chars.length)]).join();
+      return List.generate(
+        len,
+        (_) => chars[rand.nextInt(chars.length)],
+      ).join();
     }
 
     return 'gem-ai-${block(8)}-${block(4)}-${block(4)}-${block(4)}-${block(12)}';
@@ -177,10 +177,7 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
     _prefs ??= await SharedPreferences.getInstance();
     await _prefs!.setString(_sessionPrefKey, sessionId);
     await _rememberGuestKey(sessionId);
-    state = AiChatPanelState(
-      sessionId: sessionId,
-      language: state.language,
-    );
+    state = AiChatPanelState(sessionId: sessionId, language: state.language);
   }
 
   Future<void> pickAndUploadImage() async {
@@ -270,8 +267,9 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
 
     switch (result) {
       case Success(value: final reply):
-        final resolvedSession =
-            reply.sessionId.isNotEmpty ? reply.sessionId : sessionId;
+        final resolvedSession = reply.sessionId.isNotEmpty
+            ? reply.sessionId
+            : sessionId;
         if (resolvedSession != sessionId) {
           _prefs ??= await SharedPreferences.getInstance();
           await _prefs!.setString(_sessionPrefKey, resolvedSession);
@@ -293,10 +291,7 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
           isSending: false,
         );
       case ResultFailure(failure: final failure):
-        state = state.copyWith(
-          isSending: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isSending: false, errorMessage: failure.message);
     }
   }
 
@@ -306,10 +301,7 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
     final result = await _repo.listSessions(sessionKeys: keys, limit: 30);
     switch (result) {
       case Success(value: final sessions):
-        state = state.copyWith(
-          isLoadingHistory: false,
-          sessions: sessions,
-        );
+        state = state.copyWith(isLoadingHistory: false, sessions: sessions);
       case ResultFailure(failure: final failure):
         state = state.copyWith(
           isLoadingHistory: false,
@@ -344,5 +336,5 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
 
 final aiChatPanelProvider =
     NotifierProvider<AiChatPanelNotifier, AiChatPanelState>(
-  AiChatPanelNotifier.new,
-);
+      AiChatPanelNotifier.new,
+    );

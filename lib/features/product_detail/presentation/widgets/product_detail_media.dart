@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -110,7 +111,9 @@ class _ProductDetailMediaState extends State<ProductDetailMedia> {
                   Expanded(
                     child: _ViewCertificateButton(
                       url: widget.media.certificateUrl!,
-                      label: widget.media.certificateLabel ?? 'Certificate',
+                      label:
+                          widget.media.certificateLabel ??
+                          context.tr(CatalogL10n.certification),
                     ),
                   ),
                 ],
@@ -124,7 +127,9 @@ class _ProductDetailMediaState extends State<ProductDetailMedia> {
           else
             _ViewCertificateButton(
               url: widget.media.certificateUrl!,
-              label: widget.media.certificateLabel ?? 'Certificate',
+              label:
+                  widget.media.certificateLabel ??
+                  context.tr(CatalogL10n.certification),
             ),
         ],
         if (hasMultiple) ...[
@@ -212,7 +217,10 @@ class _Frame extends StatelessWidget {
     }
     if (image.path == CatalogMissingImage.assetPath ||
         image.path.toLowerCase().endsWith('.svg')) {
-      return const CatalogMissingImage(showLabel: false, padding: AppSpacing.s40);
+      return const CatalogMissingImage(
+        showLabel: false,
+        padding: AppSpacing.s40,
+      );
     }
     return Padding(
       padding: EdgeInsets.all(fit == BoxFit.contain ? AppSpacing.s40 : 0),
@@ -241,8 +249,9 @@ class _Thumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor =
-        isActive ? AppColors.textPrimary(context) : AppColors.border(context);
+    final borderColor = isActive
+        ? AppColors.textPrimary(context)
+        : AppColors.border(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -258,26 +267,26 @@ class _Thumb extends StatelessWidget {
           children: [
             switch (asset.type) {
               ProductShowcaseAssetType.image => () {
-                  final image = media.imageAt(asset.imageIndex ?? 0);
-                  if (image == null) return _Fallback(media: media);
-                  return _Frame(image: image, fit: BoxFit.cover);
-                }(),
+                final image = media.imageAt(asset.imageIndex ?? 0);
+                if (image == null) return _Fallback(media: media);
+                return _Frame(image: image, fit: BoxFit.cover);
+              }(),
               ProductShowcaseAssetType.certificate => const ColoredBox(
-                  color: AppColors.sandSurface,
-                  child: Icon(
-                    Icons.description_outlined,
-                    size: 24,
-                    color: AppColors.bronze,
-                  ),
+                color: AppColors.sandSurface,
+                child: Icon(
+                  Icons.description_outlined,
+                  size: 24,
+                  color: AppColors.bronze,
                 ),
+              ),
               ProductShowcaseAssetType.video => const ColoredBox(
-                  color: AppColors.charcoal,
-                  child: Icon(
-                    Icons.play_circle_outline,
-                    size: 24,
-                    color: AppColors.warmWhite,
-                  ),
+                color: AppColors.charcoal,
+                child: Icon(
+                  Icons.play_circle_outline,
+                  size: 24,
+                  color: AppColors.warmWhite,
                 ),
+              ),
             },
           ],
         ),
@@ -309,11 +318,7 @@ class _Fallback extends StatelessWidget {
           ),
         ),
         child: Center(
-          child: renderShapeSvg(
-            shape,
-            size: 96,
-            color: media.fallbackTint,
-          ),
+          child: renderShapeSvg(shape, size: 96, color: media.fallbackTint),
         ),
       );
     }
@@ -357,10 +362,7 @@ class _VideoFrame extends StatelessWidget {
         Positioned(
           left: AppSpacing.s12,
           bottom: AppSpacing.s12,
-          child: _MediaBadge(
-            icon: Icons.videocam_outlined,
-            label: label,
-          ),
+          child: _MediaBadge(icon: Icons.videocam_outlined, label: label),
         ),
         if (videoUrl != null)
           Positioned.fill(
@@ -400,11 +402,7 @@ class _MediaBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 14,
-            color: AppColors.warmWhite,
-          ),
+          Icon(icon, size: 14, color: AppColors.warmWhite),
           const SizedBox(width: AppSpacing.s8),
           Text(
             label,
@@ -420,10 +418,7 @@ class _MediaBadge extends StatelessWidget {
 }
 
 class _ViewCertificateButton extends StatelessWidget {
-  const _ViewCertificateButton({
-    required this.url,
-    required this.label,
-  });
+  const _ViewCertificateButton({required this.url, required this.label});
 
   final String url;
   final String label;
@@ -435,10 +430,7 @@ class _ViewCertificateButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppSpacing.r16),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppSpacing.r16),
-        onTap: () => openCertificateViewer(
-          url: url,
-          title: label,
-        ),
+        onTap: () => openCertificateViewer(url: url, title: label),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(
@@ -451,14 +443,11 @@ class _ViewCertificateButton extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.description_outlined,
-                color: AppColors.charcoal,
-              ),
+              const Icon(Icons.description_outlined, color: AppColors.charcoal),
               const SizedBox(width: AppSpacing.s12),
               Expanded(
                 child: Text(
-                  'Certificate',
+                  context.tr(CatalogL10n.certification),
                   style: AppTypography.label.copyWith(
                     color: AppColors.textPrimaryLight,
                     fontWeight: FontWeight.w700,

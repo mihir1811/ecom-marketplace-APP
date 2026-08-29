@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -72,19 +75,17 @@ class _BuyerRecentlyViewedScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Clear all recently viewed?'),
-        content: const Text(
-          'This will remove all items from your recently viewed history.',
-        ),
+        title: Text(context.tr(AccountCommerceL10n.clearRecentTitle)),
+        content: Text(context.tr(AccountCommerceL10n.clearRecentBody)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(CoreL10n.cancel)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Clear all'),
+            child: Text(context.tr(AccountCommerceL10n.clearAll)),
           ),
         ],
       ),
@@ -98,9 +99,9 @@ class _BuyerRecentlyViewedScreenState
       if (!mounted) return;
       ref.invalidate(recentlyViewedListProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Recently viewed items cleared'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Text(context.tr(AccountCommerceL10n.recentCleared)),
+          duration: const Duration(seconds: 1),
         ),
       );
     } finally {
@@ -114,7 +115,7 @@ class _BuyerRecentlyViewedScreenState
     final mutedColor = AppColors.textSecondary(context);
 
     return BuyerLayout(
-      title: 'Recently Viewed',
+      title: context.tr(AccountCommerceL10n.recentlyViewed),
       child: asyncItems.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -130,16 +131,17 @@ class _BuyerRecentlyViewedScreenState
                 ),
                 const SizedBox(height: AppSpacing.s24),
                 Text(
-                  'Failed to load recently viewed items.',
+                  context.tr(AccountCommerceL10n.recentLoadFailed),
                   textAlign: TextAlign.center,
-                  style: AppTypography.body
-                      .copyWith(color: AppColors.terracotta),
+                  style: AppTypography.body.copyWith(
+                    color: AppColors.terracotta,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.s24),
                 ElevatedButton.icon(
                   onPressed: () => ref.invalidate(recentlyViewedListProvider),
                   icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Retry'),
+                  label: Text(context.tr(AccountCommerceL10n.retry)),
                 ),
               ],
             ),
@@ -147,11 +149,10 @@ class _BuyerRecentlyViewedScreenState
         ),
         data: (page) {
           if (page.items.isEmpty) {
-            return const CatalogEmptyState(
+            return CatalogEmptyState(
               icon: Icons.history,
-              title: 'No recently viewed items',
-              message:
-                  'Items you view will appear here so you can find them again.',
+              title: context.tr(AccountCommerceL10n.noRecent),
+              message: context.tr(AccountCommerceL10n.noRecentHint),
             );
           }
           return Column(
@@ -208,7 +209,7 @@ class _BuyerRecentlyViewedScreenState
             TextButton.icon(
               onPressed: _clearAll,
               icon: const Icon(Icons.delete_outline, size: 16),
-              label: const Text('Clear all'),
+              label: Text(context.tr(AccountCommerceL10n.clearAll)),
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.error,
                 textStyle: AppTypography.caption.copyWith(
@@ -261,7 +262,7 @@ class _BuyerRecentlyViewedScreenState
                 ),
                 const SizedBox(width: AppSpacing.s12),
                 Text(
-                  'Loading more...',
+                  context.tr(AccountCommerceL10n.loadingMore),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textMuted(context),
                   ),
@@ -315,10 +316,7 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s4,
                   right: AppSpacing.s4,
-                  child: WishlistToggleButton(
-                    item: wishlistItem,
-                    size: 18,
-                  ),
+                  child: WishlistToggleButton(item: wishlistItem, size: 18),
                 ),
                 if (compareItem != null)
                   Positioned(
@@ -326,19 +324,14 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
                     right: AppSpacing.s8,
                     child: CompareAddButton(
                       isSelected: inCompare,
-                      onPressed: () => handleCompareToggle(
-                        context,
-                        ref,
-                        compareItem,
-                      ),
+                      onPressed: () =>
+                          handleCompareToggle(context, ref, compareItem),
                     ),
                   ),
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: AvailabilityStatusBadge(
-                    status: entry.availability,
-                  ),
+                  child: AvailabilityStatusBadge(status: entry.availability),
                 ),
               ],
             ),
@@ -467,17 +460,12 @@ class _RecentlyViewedListCard extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: AvailabilityStatusBadge(
-                    status: entry.availability,
-                  ),
+                  child: AvailabilityStatusBadge(status: entry.availability),
                 ),
                 Positioned(
                   top: AppSpacing.s8,
                   right: AppSpacing.s8,
-                  child: WishlistToggleButton(
-                    item: wishlistItem,
-                    size: 18,
-                  ),
+                  child: WishlistToggleButton(item: wishlistItem, size: 18),
                 ),
                 if (compareItem != null)
                   Positioned(
@@ -486,11 +474,8 @@ class _RecentlyViewedListCard extends ConsumerWidget {
                     child: CompareAddButton(
                       size: 32,
                       isSelected: inCompare,
-                      onPressed: () => handleCompareToggle(
-                        context,
-                        ref,
-                        compareItem,
-                      ),
+                      onPressed: () =>
+                          handleCompareToggle(context, ref, compareItem),
                     ),
                   ),
               ],
@@ -695,9 +680,9 @@ Future<void> _openProduct(
   if (!context.mounted) return;
   if (detail == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Could not open this product right now.'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(context.tr(AccountCommerceL10n.productOpenFailed)),
+        duration: const Duration(seconds: 2),
       ),
     );
     return;

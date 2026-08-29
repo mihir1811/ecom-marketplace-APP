@@ -7,8 +7,7 @@ import '../data/repositories/recently_viewed_repository_impl.dart';
 import '../domain/models/recently_viewed.dart';
 
 /// Paginated list of full [RecentlyViewedEntry] items for the dedicated screen.
-class RecentlyViewedListNotifier
-    extends AsyncNotifier<RecentlyViewedListPage> {
+class RecentlyViewedListNotifier extends AsyncNotifier<RecentlyViewedListPage> {
   @override
   Future<RecentlyViewedListPage> build() async {
     final authenticated = ref.watch(
@@ -67,7 +66,7 @@ class RecentlyViewedListNotifier
   }
 }
 
-final recentlyViewedListProvider = AsyncNotifierProvider<
-    RecentlyViewedListNotifier, RecentlyViewedListPage>(
-  RecentlyViewedListNotifier.new,
-);
+final recentlyViewedListProvider =
+    AsyncNotifierProvider<RecentlyViewedListNotifier, RecentlyViewedListPage>(
+      RecentlyViewedListNotifier.new,
+    );

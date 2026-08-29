@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -37,8 +40,7 @@ class CartTotalsSection extends ConsumerWidget {
     final useWallet = ref.watch(
       paymentCheckoutProvider.select((s) => s.useWallet),
     );
-    final walletBalance =
-        ref.watch(walletProvider).valueOrNull?.balance ?? 0;
+    final walletBalance = ref.watch(walletProvider).valueOrNull?.balance ?? 0;
 
     final lines = availableItems
         .map(
@@ -62,8 +64,7 @@ class CartTotalsSection extends ConsumerWidget {
     final walletAppliedInr = useWallet
         ? math.min(walletBalance, estimate.totalInr)
         : 0.0;
-    final remainingInr =
-        math.max(0.0, estimate.totalInr - walletAppliedInr);
+    final remainingInr = math.max(0.0, estimate.totalInr - walletAppliedInr);
 
     final unavailableCount = items.length - availableItems.length;
     final availableSubtotalUsd = availableItems.fold<double>(
@@ -71,7 +72,8 @@ class CartTotalsSection extends ConsumerWidget {
       (sum, e) => sum + e.displayPriceUsd,
     );
     // Prefer API subtotal when it already matches available merchandise.
-    final showItemsSubtotal = totals.subtotalUsd > merchandiseUsd &&
+    final showItemsSubtotal =
+        totals.subtotalUsd > merchandiseUsd &&
         totals.totalDiscountUsd > 0 &&
         unavailableCount == 0;
 
@@ -80,7 +82,7 @@ class CartTotalsSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'ORDER SUMMARY',
+            context.tr(AccountCommerceL10n.orderSummary),
             style: AppTypography.caption.copyWith(
               color: AppColors.textMuted(context),
               fontWeight: FontWeight.w700,
@@ -99,44 +101,56 @@ class CartTotalsSection extends ConsumerWidget {
             const SizedBox(height: AppSpacing.s12),
           ],
           if (showItemsSubtotal) ...[
-            _usdOnlyRow(context, 'Items subtotal', totals.subtotalUsd),
+            _usdOnlyRow(
+              context,
+              context.tr(AccountCommerceL10n.itemsSubtotal),
+              totals.subtotalUsd,
+            ),
             if (totals.automaticDiscountUsd > 0)
               _usdOnlyRow(
                 context,
-                'Automatic discount',
+                context.tr(AccountCommerceL10n.automaticDiscount),
                 -totals.automaticDiscountUsd,
               ),
             if (totals.promoDiscountUsd > 0)
-              _usdOnlyRow(context, 'Promo discount', -totals.promoDiscountUsd),
+              _usdOnlyRow(
+                context,
+                context.tr(AccountCommerceL10n.promoDiscount),
+                -totals.promoDiscountUsd,
+              ),
             if (totals.totalDiscountUsd > 0 &&
                 totals.promoDiscountUsd <= 0 &&
                 totals.automaticDiscountUsd <= 0)
               _usdOnlyRow(context, 'Discount', -totals.totalDiscountUsd),
           ] else if (unavailableCount > 0 &&
               availableSubtotalUsd > merchandiseUsd) ...[
-            _usdOnlyRow(context, 'Items subtotal', availableSubtotalUsd),
+            _usdOnlyRow(
+              context,
+              context.tr(AccountCommerceL10n.itemsSubtotal),
+              availableSubtotalUsd,
+            ),
           ],
           _subtotalRow(context, estimate),
           if (wantVerification && estimate.verificationUsd > 0)
             _inrRow(
               context,
               fees.ofType(FeeType.gemworldVerification).isNotEmpty
-                  ? (fees.ofType(FeeType.gemworldVerification).first.name.trim().isEmpty
-                      ? 'GemWorld verification'
-                      : fees.ofType(FeeType.gemworldVerification).first.name)
-                  : 'GemWorld verification',
+                  ? (fees
+                            .ofType(FeeType.gemworldVerification)
+                            .first
+                            .name
+                            .trim()
+                            .isEmpty
+                        ? context.tr(AccountCommerceL10n.verificationFee)
+                        : fees.ofType(FeeType.gemworldVerification).first.name)
+                  : context.tr(AccountCommerceL10n.verificationFee),
               estimate.verificationInr,
               fallbackUsd: estimate.verificationUsd,
               hasRate: estimate.hasLiveRate,
             ),
           if (estimate.hasLiveRate) ...[
             for (final fee in estimate.feeLines)
-              _inrRow(
-                context,
-                _feeLabel(fee),
-                fee.amountInr,
-                hasRate: true,
-              ),
+              _inrRow(context, _feeLabel(fee), fee.amountInr, hasRate: true),
           ] else if (feesAsync.isLoading) ...[
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.s8),
@@ -222,15 +236,12 @@ class CartTotalsSection extends ConsumerWidget {
           ),
           if (useWallet && estimate.hasLiveRate && walletAppliedInr > 0) ...[
             const SizedBox(height: AppSpacing.s12),
+            _inrRow(context, 'Wallet', -walletAppliedInr, hasRate: true),
             _inrRow(
               context,
-              'Wallet',
-              -walletAppliedInr,
-              hasRate: true,
-            ),
-            _inrRow(
-              context,
-              remainingInr <= 0.009 ? 'Amount to pay' : 'Pay via Razorpay',
+              remainingInr <= 0.009
+                  ? context.tr(AccountCommerceL10n.amountToPay)
+                  : context.tr(AccountCommerceL10n.payRazorpay),
               remainingInr,
               hasRate: true,
             ),
@@ -306,12 +317,8 @@ class CartTotalsSection extends ConsumerWidget {
             ),
           ),
           Text(
-            hasRate
-                ? _inrLabel(inrValue)
-                : AppCurrency.usd(fallbackUsd ?? 0),
-            style: AppTypography.label.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            hasRate ? _inrLabel(inrValue) : AppCurrency.usd(fallbackUsd ?? 0),
+            style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -332,9 +339,7 @@ class CartTotalsSection extends ConsumerWidget {
           ),
           Text(
             AppCurrency.usd(usdValue),
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),

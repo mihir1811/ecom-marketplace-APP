@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 
@@ -18,9 +21,7 @@ class CompareAddButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final border = isSelected
-        ? AppColors.bronze
-        : (AppColors.border(context));
+    final border = isSelected ? AppColors.bronze : (AppColors.border(context));
     final fill = isSelected
         ? AppColors.bronze.withValues(alpha: 0.12)
         : (AppColors.card(context));
@@ -35,7 +36,9 @@ class CompareAddButton extends StatelessWidget {
         customBorder: const CircleBorder(),
         child: Semantics(
           button: true,
-          label: isSelected ? 'Remove from comparison' : 'Add to comparison',
+          label: isSelected
+              ? context.tr(AccountCommerceL10n.removeComparison)
+              : context.tr(AccountCommerceL10n.addComparison),
           child: Container(
             width: size,
             height: size,
@@ -44,11 +47,7 @@ class CompareAddButton extends StatelessWidget {
               color: fill,
               border: Border.all(color: border),
             ),
-            child: Icon(
-              Icons.add,
-              size: size * 0.55,
-              color: ink,
-            ),
+            child: Icon(Icons.add, size: size * 0.55, color: ink),
           ),
         ),
       ),

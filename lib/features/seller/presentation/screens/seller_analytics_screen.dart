@@ -11,6 +11,9 @@ import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_insights_provider.dart';
 import '../../domain/models/seller_insights.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 /// Seller analytics screen: revenue trend, category mix, order status,
 /// top products, and engagement metrics.
 class SellerAnalyticsScreen extends ConsumerStatefulWidget {
@@ -24,31 +27,55 @@ class SellerAnalyticsScreen extends ConsumerStatefulWidget {
 class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
   AnalyticsRange _range = AnalyticsRange.last30;
 
-  static const _rangeLabels = {
-    AnalyticsRange.last7: 'Last 7 days',
-    AnalyticsRange.last30: 'Last 30 days',
-    AnalyticsRange.last90: 'Last 90 days',
-    AnalyticsRange.year: 'This year',
+  Map<AnalyticsRange, String> get _rangeLabels => {
+    AnalyticsRange.last7: context.tr(RemainingL10n.last7Days),
+    AnalyticsRange.last30: context.tr(RemainingL10n.last30Days),
+    AnalyticsRange.last90: context.tr(RemainingL10n.last90Days),
+    AnalyticsRange.year: context.tr(RemainingL10n.thisYear),
   };
 
-  static const _kpiMeta = <String, (IconData, Color)>{
-    'Revenue': (Icons.attach_money_outlined, AppColors.bronze),
-    'Orders': (Icons.shopping_cart_outlined, AppColors.info),
-    'Avg. Order Value': (Icons.payments_outlined, AppColors.success),
-    'Units Sold': (Icons.inventory_2_outlined, AppColors.bronzeDark),
+  Map<String, (IconData, Color)> get _kpiMeta => {
+    context.tr(RemainingL10n.revenue): (
+      Icons.attach_money_outlined,
+      AppColors.bronze,
+    ),
+    context.tr(RemainingL10n.orders): (
+      Icons.shopping_cart_outlined,
+      AppColors.info,
+    ),
+    context.tr(RemainingL10n.averageOrderValue): (
+      Icons.payments_outlined,
+      AppColors.success,
+    ),
+    context.tr(RemainingL10n.unitsSold): (
+      Icons.inventory_2_outlined,
+      AppColors.bronzeDark,
+    ),
   };
 
-  static const _engagementMeta = <String, (IconData, Color)>{
-    'Units Sold': (Icons.inventory_2_outlined, AppColors.bronzeDark),
-    'Refund Requests': (Icons.replay_outlined, AppColors.error),
-    'Paid Rate': (Icons.percent_outlined, AppColors.success),
-    'Unique Products': (Icons.category_outlined, AppColors.bronze),
+  Map<String, (IconData, Color)> get _engagementMeta => {
+    context.tr(RemainingL10n.unitsSold): (
+      Icons.inventory_2_outlined,
+      AppColors.bronzeDark,
+    ),
+    context.tr(RemainingL10n.refundRequests): (
+      Icons.replay_outlined,
+      AppColors.error,
+    ),
+    context.tr(RemainingL10n.paidRate): (
+      Icons.percent_outlined,
+      AppColors.success,
+    ),
+    context.tr(RemainingL10n.uniqueProducts): (
+      Icons.category_outlined,
+      AppColors.bronze,
+    ),
   };
 
-  static const _sliceColors = <Color>[
-    Color(0xFF5C7C9E),
+  static final _sliceColors = <Color>[
+    const Color(0xFF5C7C9E),
     AppColors.bronze,
-    Color(0xFF8E6C88),
+    const Color(0xFF8E6C88),
     AppColors.success,
     AppColors.charcoal,
     AppColors.info,
@@ -69,7 +96,9 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
           child: ListView(
             children: [
               Text(
-                'Performance insights across sales, orders, and traffic.',
+                context.tr(
+                  RemainingL10n.performanceInsightsAcrossSalesOrdersAndTraffic,
+                ),
                 style: AppTypography.body.copyWith(
                   color: AppColors.textSecondary(context),
                 ),
@@ -101,20 +130,30 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                         value: kpi.value,
                         delta: kpi.delta,
                         deltaUp: kpi.deltaUp,
-                        icon: (_kpiMeta[kpi.title] ??
-                            (Icons.insights_outlined, AppColors.textPrimary(context))).$1,
-                        color: (_kpiMeta[kpi.title] ??
-                            (Icons.insights_outlined, AppColors.textPrimary(context))).$2,
+                        icon:
+                            (_kpiMeta[kpi.title] ??
+                                    (
+                                      Icons.insights_outlined,
+                                      AppColors.textPrimary(context),
+                                    ))
+                                .$1,
+                        color:
+                            (_kpiMeta[kpi.title] ??
+                                    (
+                                      Icons.insights_outlined,
+                                      AppColors.textPrimary(context),
+                                    ))
+                                .$2,
                       ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.s16),
                 _AnalyticsCard(
-                  title: 'Revenue Trend',
-                  subtitle: 'Gross revenue over time',
+                  title: context.tr(RemainingL10n.revenueTrend),
+                  subtitle: context.tr(RemainingL10n.grossRevenueOverTime),
                   child: snapshot.revenueSeries.values.isEmpty
                       ? Text(
-                          'No revenue in this period.',
+                          context.tr(RemainingL10n.noRevenuePeriod),
                           style: AppTypography.body.copyWith(
                             color: AppColors.textMuted(context),
                           ),
@@ -129,20 +168,24 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                   builder: (context, constraints) {
                     final isWide = constraints.maxWidth >= 760;
                     final catMix = _AnalyticsCard(
-                      title: 'Sales by Category',
-                      subtitle: 'Revenue share per catalog',
+                      title: context.tr(RemainingL10n.salesByCategory),
+                      subtitle: context.tr(
+                        RemainingL10n.revenueSharePerCatalog,
+                      ),
                       child: snapshot.categorySlices.isEmpty
                           ? Text(
-                              'No category sales yet.',
+                              context.tr(RemainingL10n.noCategorySales),
                               style: AppTypography.body.copyWith(
                                 color: AppColors.textMuted(context),
                               ),
                             )
                           : _CategoryDonut(
                               slices: [
-                                for (var i = 0;
-                                    i < snapshot.categorySlices.length;
-                                    i++)
+                                for (
+                                  var i = 0;
+                                  i < snapshot.categorySlices.length;
+                                  i++
+                                )
                                   _CategorySlice(
                                     snapshot.categorySlices[i].label,
                                     snapshot.categorySlices[i].value,
@@ -152,20 +195,24 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                             ),
                     );
                     final orderStatus = _AnalyticsCard(
-                      title: 'Order Status',
-                      subtitle: 'Current pipeline breakdown',
+                      title: context.tr(RemainingL10n.orderStatus),
+                      subtitle: context.tr(
+                        RemainingL10n.currentPipelineBreakdown,
+                      ),
                       child: snapshot.orderStatus.isEmpty
                           ? Text(
-                              'No orders in this period.',
+                              context.tr(RemainingL10n.noOrdersPeriod),
                               style: AppTypography.body.copyWith(
                                 color: AppColors.textMuted(context),
                               ),
                             )
                           : _OrderStatusBars(
                               rows: [
-                                for (var i = 0;
-                                    i < snapshot.orderStatus.length;
-                                    i++)
+                                for (
+                                  var i = 0;
+                                  i < snapshot.orderStatus.length;
+                                  i++
+                                )
                                   _StatusRow(
                                     snapshot.orderStatus[i].label,
                                     snapshot.orderStatus[i].count,
@@ -198,8 +245,10 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s16),
                 _AnalyticsCard(
-                  title: 'Engagement Metrics',
-                  subtitle: 'Listing interest and catalog performance',
+                  title: context.tr(RemainingL10n.engagementMetrics),
+                  subtitle: context.tr(
+                    RemainingL10n.listingInterestAndCatalogPerformance,
+                  ),
                   child: _EngagementGrid(
                     metrics: [
                       for (final m in snapshot.engagement)
@@ -207,18 +256,20 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                           label: m.label,
                           value: m.value,
                           hint: m.hint,
-                          icon: (_engagementMeta[m.label] ??
-                                  (
-                                    Icons.insights_outlined,
-                                    AppColors.textPrimary(context)
-                                  ))
-                              .$1,
-                          color: (_engagementMeta[m.label] ??
-                                  (
-                                    Icons.insights_outlined,
-                                    AppColors.textPrimary(context)
-                                  ))
-                              .$2,
+                          icon:
+                              (_engagementMeta[m.label] ??
+                                      (
+                                        Icons.insights_outlined,
+                                        AppColors.textPrimary(context),
+                                      ))
+                                  .$1,
+                          color:
+                              (_engagementMeta[m.label] ??
+                                      (
+                                        Icons.insights_outlined,
+                                        AppColors.textPrimary(context),
+                                      ))
+                                  .$2,
                         ),
                     ],
                   ),
@@ -403,12 +454,11 @@ class _KpiGrid extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        kpi.deltaUp
-                            ? Icons.trending_up
-                            : Icons.trending_down,
+                        kpi.deltaUp ? Icons.trending_up : Icons.trending_down,
                         size: 14,
-                        color:
-                            kpi.deltaUp ? AppColors.success : AppColors.error,
+                        color: kpi.deltaUp
+                            ? AppColors.success
+                            : AppColors.error,
                       ),
                       const SizedBox(width: 4),
                       Flexible(
@@ -513,7 +563,7 @@ class _RevenueLineChart extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    for (final f in const [1.0, 0.75, 0.5, 0.25, 0.0])
+                    for (final f in [1.0, 0.75, 0.5, 0.25, 0.0])
                       Text(
                         _fmtShort(maxY * f),
                         style: AppTypography.caption.copyWith(
@@ -564,7 +614,8 @@ class _RevenueLineChart extends StatelessWidget {
   }
 
   static String _fmtShort(double v) {
-    if (v >= 1000) return '${AppCurrency.format((v / 1000).toStringAsFixed(1))}k';
+    if (v >= 1000)
+      return '${AppCurrency.format((v / 1000).toStringAsFixed(1))}k';
     return AppCurrency.format(v.toStringAsFixed(0));
   }
 }
@@ -589,7 +640,7 @@ class _LineChartPainter extends CustomPainter {
     final grid = Paint()
       ..color = gridColor
       ..strokeWidth = 1;
-    for (final f in const [0.0, 0.25, 0.5, 0.75, 1.0]) {
+    for (final f in [0.0, 0.25, 0.5, 0.75, 1.0]) {
       final y = size.height * f;
       canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
     }
@@ -669,7 +720,7 @@ class _CategoryDonut extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'of revenue',
+                    context.tr(RemainingL10n.ofRevenue),
                     style: AppTypography.caption.copyWith(
                       color: AppColors.textMuted(context),
                       fontSize: 10,
@@ -754,8 +805,9 @@ class _OrderStatusBars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxCount =
-        rows.fold<int>(0, (m, r) => math.max(m, r.count)).toDouble();
+    final maxCount = rows
+        .fold<int>(0, (m, r) => math.max(m, r.count))
+        .toDouble();
 
     return Column(
       children: [
@@ -812,7 +864,7 @@ class _OrderStatusBars extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 // class _TopProductsList extends StatelessWidget {
-//   const _TopProductsList({required this.products});
+//   _TopProductsList({required this.products});
 //
 //   final List<_TopProduct> products;
 //
@@ -846,7 +898,7 @@ class _OrderStatusBars extends StatelessWidget {
 //                     ),
 //                   ),
 //                 ),
-//                 const SizedBox(width: AppSpacing.s12),
+//                 SizedBox(width: AppSpacing.s12),
 //                 Expanded(
 //                   child: Column(
 //                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -860,7 +912,7 @@ class _OrderStatusBars extends StatelessWidget {
 //                         maxLines: 1,
 //                         overflow: TextOverflow.ellipsis,
 //                       ),
-//                       const SizedBox(height: 3),
+//                       SizedBox(height: 3),
 //                       ClipRRect(
 //                         borderRadius: BorderRadius.circular(3),
 //                         child: LinearProgressIndicator(
@@ -870,10 +922,10 @@ class _OrderStatusBars extends StatelessWidget {
 //                           minHeight: 6,
 //                           backgroundColor: AppColors.sandSurface,
 //                           valueColor:
-//                               const AlwaysStoppedAnimation(AppColors.bronze),
+//                               AlwaysStoppedAnimation(AppColors.bronze),
 //                         ),
 //                       ),
-//                       const SizedBox(height: 2),
+//                       SizedBox(height: 2),
 //                       Text(
 //                         '${products[i].category} · ${products[i].units} sold',
 //                         style: AppTypography.caption.copyWith(
@@ -884,7 +936,7 @@ class _OrderStatusBars extends StatelessWidget {
 //                     ],
 //                   ),
 //                 ),
-//                 const SizedBox(width: AppSpacing.s12),
+//                 SizedBox(width: AppSpacing.s12),
 //                 Text(
 //                   AppCurrency.format(products[i].revenue.toStringAsFixed(0)),
 //                   style: AppTypography.label.copyWith(

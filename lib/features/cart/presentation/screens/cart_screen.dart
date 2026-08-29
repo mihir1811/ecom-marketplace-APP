@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -50,7 +53,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         extraActions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+            tooltip: context.tr(AccountCommerceL10n.refresh),
             onPressed: () {
               ref
                   .read(cartProvider.notifier)
@@ -63,31 +66,31 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       body: isLoading && isEmpty
           ? const Center(child: CircularProgressIndicator())
           : error != null && isEmpty
-              ? _CartErrorState(
-                  message: error,
-                  onRetry: () {
-                    ref
-                        .read(cartProvider.notifier)
-                        .refresh(mode: CartLoadMode.full, force: true);
-                    ref.read(activeFeesProvider.notifier).refresh();
-                  },
-                )
-              : isEmpty
-                  ? const _CartEmptyState()
-                  : ListView(
-                      padding: const EdgeInsets.all(AppSpacing.s16),
-                      children: const [
-                        CartItemsSection(),
-                        CartAddressSection(),
-                        SizedBox(height: AppSpacing.s12),
-                        CartPromoSection(),
-                        SizedBox(height: AppSpacing.s16),
-                        CartTotalsSection(),
-                        SizedBox(height: AppSpacing.s24),
-                        CartCheckoutButton(),
-                        SizedBox(height: AppSpacing.s24),
-                      ],
-                    ),
+          ? _CartErrorState(
+              message: error,
+              onRetry: () {
+                ref
+                    .read(cartProvider.notifier)
+                    .refresh(mode: CartLoadMode.full, force: true);
+                ref.read(activeFeesProvider.notifier).refresh();
+              },
+            )
+          : isEmpty
+          ? const _CartEmptyState()
+          : ListView(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              children: const [
+                CartItemsSection(),
+                CartAddressSection(),
+                SizedBox(height: AppSpacing.s12),
+                CartPromoSection(),
+                SizedBox(height: AppSpacing.s16),
+                CartTotalsSection(),
+                SizedBox(height: AppSpacing.s24),
+                CartCheckoutButton(),
+                SizedBox(height: AppSpacing.s24),
+              ],
+            ),
     );
   }
 }
@@ -102,7 +105,7 @@ class _CartAppBarTitle extends ConsumerWidget {
     return Row(
       children: [
         Text(
-          'Your Cart',
+          context.tr(AccountCommerceL10n.yourCart),
           style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(width: AppSpacing.s8),
@@ -140,11 +143,14 @@ class _CartEmptyState extends StatelessWidget {
             color: AppColors.textMuted(context),
           ),
           const SizedBox(height: AppSpacing.s16),
-          Text('Your cart is empty', style: AppTypography.body),
+          Text(
+            context.tr(AccountCommerceL10n.cartEmpty),
+            style: AppTypography.body,
+          ),
           const SizedBox(height: AppSpacing.s16),
           FilledButton(
             onPressed: () => context.goBack(),
-            child: const Text('Continue shopping'),
+            child: Text(context.tr(AccountCommerceL10n.continueShopping)),
           ),
         ],
       ),
@@ -166,9 +172,16 @@ class _CartErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(message, textAlign: TextAlign.center, style: AppTypography.body),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTypography.body,
+            ),
             const SizedBox(height: AppSpacing.s16),
-            FilledButton(onPressed: onRetry, child: const Text('Retry')),
+            FilledButton(
+              onPressed: onRetry,
+              child: Text(context.tr(AccountCommerceL10n.retry)),
+            ),
           ],
         ),
       ),

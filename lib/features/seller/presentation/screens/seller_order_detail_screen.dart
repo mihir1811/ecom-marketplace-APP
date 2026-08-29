@@ -7,6 +7,9 @@ import '../../../../core/theme/app_typography.dart';
 import '../../data/seller_orders_mock_data.dart';
 import '../../domain/models/seller_orders_models.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerOrderDetailScreen extends StatefulWidget {
   const SellerOrderDetailScreen({required this.orderId, super.key});
 
@@ -72,9 +75,9 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
       ];
       _noteCtrl.clear();
     });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Tracking update saved')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.tr(RemainingL10n.trackingSaved))),
+    );
   }
 
   String _nowLabel() {
@@ -104,10 +107,10 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Order not found'),
+            Text(context.tr(RemainingL10n.orderNotFound)),
             TextButton(
               onPressed: () => context.goBack(),
-              child: const Text('Back to orders'),
+              child: Text(context.tr(RemainingL10n.backToOrders)),
             ),
           ],
         ),
@@ -166,13 +169,13 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Update tracking',
+                      context.tr(RemainingL10n.updateTracking),
                       style: AppTypography.title.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text('Status', style: _labelStyle),
+                    Text(context.tr(RemainingL10n.status2), style: _labelStyle),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
                       key: ValueKey(_status),
@@ -189,7 +192,10 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                       decoration: _fieldDecoration('Status'),
                     ),
                     const SizedBox(height: 12),
-                    Text('Current location', style: _labelStyle),
+                    Text(
+                      context.tr(RemainingL10n.currentLocation),
+                      style: _labelStyle,
+                    ),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _locationCtrl,
@@ -197,21 +203,31 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                       onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 12),
-                    Text('Carrier', style: _labelStyle),
+                    Text(context.tr(RemainingL10n.carrier), style: _labelStyle),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _carrierCtrl,
-                      decoration: _fieldDecoration('Carrier'),
+                      decoration: _fieldDecoration(
+                        context.tr(RemainingL10n.carrier),
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    Text('Tracking number', style: _labelStyle),
+                    Text(
+                      context.tr(RemainingL10n.trackingNumber),
+                      style: _labelStyle,
+                    ),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _trackingCtrl,
-                      decoration: _fieldDecoration('Tracking number'),
+                      decoration: _fieldDecoration(
+                        context.tr(RemainingL10n.trackingNumber),
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    Text('Update note', style: _labelStyle),
+                    Text(
+                      context.tr(RemainingL10n.updateNote),
+                      style: _labelStyle,
+                    ),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _noteCtrl,
@@ -233,7 +249,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                             vertical: 12,
                           ),
                         ),
-                        child: const Text('Save update'),
+                        child: Text(context.tr(RemainingL10n.saveUpdate)),
                       ),
                     ),
                   ],
@@ -249,7 +265,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                         const Icon(Icons.local_shipping_outlined, size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          'Timeline',
+                          context.tr(RemainingL10n.timeline),
                           style: AppTypography.title.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -276,7 +292,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                         const Icon(Icons.chat_bubble_outline, size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          'Comments',
+                          context.tr(RemainingL10n.comments),
                           style: AppTypography.title.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -285,7 +301,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No comments yet.',
+                      context.tr(RemainingL10n.noCommentsYet),
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textMuted(context),
                       ),
@@ -302,7 +318,11 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                         onPressed: () {
                           _commentCtrl.clear();
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Comment posted')),
+                            SnackBar(
+                              content: Text(
+                                context.tr(RemainingL10n.commentPosted),
+                              ),
+                            ),
                           );
                         },
                         style: FilledButton.styleFrom(
@@ -311,7 +331,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                           ),
                           foregroundColor: AppColors.warmWhite,
                         ),
-                        child: const Text('Post comment'),
+                        child: Text(context.tr(RemainingL10n.postComment)),
                       ),
                     ),
                   ],

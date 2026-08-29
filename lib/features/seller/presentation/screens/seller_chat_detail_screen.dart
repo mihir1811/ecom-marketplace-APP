@@ -14,6 +14,9 @@ import '../../../chat/domain/models/chat_message.dart';
 import '../../../chat/domain/models/chat_thread.dart';
 import '../../../chat/domain/models/product_chat_context.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerChatDetailScreen extends ConsumerStatefulWidget {
   const SellerChatDetailScreen({required this.chatId, super.key});
 
@@ -74,16 +77,16 @@ class _SellerChatDetailScreenState
     final args = _args;
     if (args == null) {
       return CatalogEmptyState(
-        title: 'Conversation not found',
-        message: 'This thread link is invalid or outdated.',
-        actionLabel: 'Back to messages',
+        title: context.tr(RemainingL10n.conversationNotFound),
+        message: context.tr(RemainingL10n.threadInvalid),
+        actionLabel: context.tr(RemainingL10n.backToMessages),
         onAction: () => context.goBack(),
       );
     }
 
     final state = ref.watch(chatThreadProvider(args));
-    final peerName = state.context?.sellerName.isNotEmpty == true &&
-            state.messages.isEmpty
+    final peerName =
+        state.context?.sellerName.isNotEmpty == true && state.messages.isEmpty
         ? state.context!.sellerName
         : _peerName(state.messages, args.peerUserId);
 
@@ -93,12 +96,12 @@ class _SellerChatDetailScreenState
         children: [
           _ThreadHeader(
             peerName: peerName,
-            productLabel: state.context?.productName ??
+            productLabel:
+                state.context?.productName ??
                 '${args.productTypeApi} · ${args.productId}',
             onBack: () => context.goBack(),
           ),
-          if (state.context != null)
-            _ProductStrip(contextData: state.context!),
+          if (state.context != null) _ProductStrip(contextData: state.context!),
           Expanded(child: _messagesBody(state, args)),
           _Composer(
             controller: _messageCtrl,
@@ -122,10 +125,10 @@ class _SellerChatDetailScreenState
       );
     }
     if (state.messages.isEmpty) {
-      return const CatalogEmptyState(
+      return CatalogEmptyState(
         icon: Icons.chat_bubble_outline_rounded,
-        title: 'Start the conversation',
-        message: 'Keep it short — ask about availability, specs, or shipping.',
+        title: context.tr(RemainingL10n.startConversation),
+        message: context.tr(RemainingL10n.keepItShortAskAboutAvailabilitySpecs),
       );
     }
 
@@ -141,7 +144,8 @@ class _SellerChatDetailScreenState
       itemBuilder: (context, index) {
         final msg = state.messages[index];
         final prev = index > 0 ? state.messages[index - 1] : null;
-        final showDate = prev == null ||
+        final showDate =
+            prev == null ||
             !_sameDay(prev.createdAt.toLocal(), msg.createdAt.toLocal());
         return Column(
           children: [
@@ -162,7 +166,7 @@ class _SellerChatDetailScreenState
         return m.to!.name;
       }
     }
-    return 'Conversation';
+    return context.tr(RemainingL10n.conversation);
   }
 }
 
@@ -189,7 +193,7 @@ class _ThreadHeader extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: onBack,
-                child: const Text('Inbox'),
+                child: Text(context.tr(RemainingL10n.inbox)),
               ),
               Expanded(
                 child: Column(
@@ -241,9 +245,7 @@ class _ProductStrip extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: AppColors.surface(context),
-        border: Border(
-          bottom: BorderSide(color: AppColors.border(context)),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.border(context))),
       ),
       child: Row(
         children: [
@@ -334,18 +336,21 @@ class _MessageBubble extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
           decoration: BoxDecoration(
             color: mine
-                ? (AppColors.isDark(context) ? AppColors.slateBorder : AppColors.charcoal)
+                ? (AppColors.isDark(context)
+                      ? AppColors.slateBorder
+                      : AppColors.charcoal)
                 : AppColors.card(context),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(AppSpacing.r16),
               topRight: const Radius.circular(AppSpacing.r16),
-              bottomLeft: Radius.circular(mine ? AppSpacing.r16 : AppSpacing.r4),
-              bottomRight:
-                  Radius.circular(mine ? AppSpacing.r4 : AppSpacing.r16),
+              bottomLeft: Radius.circular(
+                mine ? AppSpacing.r16 : AppSpacing.r4,
+              ),
+              bottomRight: Radius.circular(
+                mine ? AppSpacing.r4 : AppSpacing.r16,
+              ),
             ),
-            border: mine
-                ? null
-                : Border.all(color: AppColors.border(context)),
+            border: mine ? null : Border.all(color: AppColors.border(context)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -355,8 +360,8 @@ class _MessageBubble extends StatelessWidget {
                 child: Text(
                   message.body.isEmpty
                       ? (message.messageType == ChatMessageType.image
-                          ? 'Photo'
-                          : 'Attachment')
+                            ? context.tr(RemainingL10n.photo)
+                            : context.tr(RemainingL10n.attachment))
                       : message.body,
                   style: AppTypography.body.copyWith(
                     fontSize: 14,
@@ -395,7 +400,7 @@ class _DateChip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.s12),
       child: Text(
-        _label(date),
+        _label(context, date),
         style: AppTypography.caption.copyWith(
           color: AppColors.textMuted(context),
           fontSize: 11,
@@ -405,25 +410,26 @@ class _DateChip extends StatelessWidget {
     );
   }
 
-  String _label(DateTime date) {
+  String _label(BuildContext context, DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(date.year, date.month, date.day);
-    if (day == today) return 'Today';
-    if (day == today.subtract(const Duration(days: 1))) return 'Yesterday';
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+    if (day == today) return context.tr(RemainingL10n.today);
+    if (day == today.subtract(const Duration(days: 1)))
+      return context.tr(RemainingL10n.yesterday);
+    final months = [
+      context.tr(RemainingL10n.januaryShort),
+      context.tr(RemainingL10n.februaryShort),
+      context.tr(RemainingL10n.marchShort),
+      context.tr(RemainingL10n.aprilShort),
+      context.tr(RemainingL10n.mayShort),
+      context.tr(RemainingL10n.juneShort),
+      context.tr(RemainingL10n.julyShort),
+      context.tr(RemainingL10n.augustShort),
+      context.tr(RemainingL10n.septemberShort),
+      context.tr(RemainingL10n.octoberShort),
+      context.tr(RemainingL10n.novemberShort),
+      context.tr(RemainingL10n.decemberShort),
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
@@ -478,15 +484,14 @@ class _Composer extends StatelessWidget {
                       scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                       onSubmitted: (_) => onSend(),
                       decoration: InputDecoration(
-                        hintText: 'Write a message',
+                        hintText: context.tr(RemainingL10n.writeMessage),
                         hintStyle: AppTypography.body.copyWith(
                           color: AppColors.textMuted(context),
                         ),
                         filled: true,
                         fillColor: AppColors.surface(context),
                         border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.r16),
+                          borderRadius: BorderRadius.circular(AppSpacing.r16),
                           borderSide: BorderSide.none,
                         ),
                         contentPadding: const EdgeInsets.symmetric(
@@ -502,8 +507,9 @@ class _Composer extends StatelessWidget {
                     style: IconButton.styleFrom(
                       backgroundColor: AppColors.charcoal,
                       foregroundColor: AppColors.warmWhite,
-                      disabledBackgroundColor:
-                          AppColors.charcoal.withValues(alpha: 0.4),
+                      disabledBackgroundColor: AppColors.charcoal.withValues(
+                        alpha: 0.4,
+                      ),
                     ),
                     icon: isSending
                         ? const SizedBox(

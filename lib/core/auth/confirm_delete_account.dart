@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+import '../l10n/translations/account_commerce_messages.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/app_dialog.dart';
@@ -19,7 +22,7 @@ Future<String?> confirmDeleteAccount(BuildContext context) async {
         return StatefulBuilder(
           builder: (context, setLocal) {
             return AlertDialog(
-              title: const Text('Delete account?'),
+              title: Text(context.tr(AccountCommerceL10n.deleteAccountTitle)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,10 +41,14 @@ Future<String?> confirmDeleteAccount(BuildContext context) async {
                     obscureText: obscure,
                     autofocus: true,
                     decoration: InputDecoration(
-                      labelText: 'Current password',
+                      labelText: context.tr(
+                        AccountCommerceL10n.currentPassword,
+                      ),
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        tooltip: obscure ? 'Show password' : 'Hide password',
+                        tooltip: obscure
+                            ? context.tr(AccountCommerceL10n.showPassword)
+                            : context.tr(AccountCommerceL10n.hidePassword),
                         onPressed: () => setLocal(() => obscure = !obscure),
                         icon: Icon(
                           obscure
@@ -60,7 +67,7 @@ Future<String?> confirmDeleteAccount(BuildContext context) async {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
+                  child: Text(context.tr(CoreL10n.cancel)),
                 ),
                 FilledButton(
                   style: FilledButton.styleFrom(
@@ -71,7 +78,7 @@ Future<String?> confirmDeleteAccount(BuildContext context) async {
                     if (passwordController.text.trim().isEmpty) return;
                     Navigator.pop(context, true);
                   },
-                  child: const Text('Delete account'),
+                  child: Text(context.tr(AccountCommerceL10n.deleteAccount)),
                 ),
               ],
             );

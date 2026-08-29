@@ -12,6 +12,9 @@ import '../../application/inquiry_provider.dart';
 import '../../domain/models/seller_inquiry.dart';
 import '../widgets/seller_layout.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerInquiryInboxScreen extends ConsumerStatefulWidget {
   const SellerInquiryInboxScreen({super.key, this.showHeader = true});
 
@@ -64,7 +67,7 @@ class _SellerInquiryInboxScreenState
                   icon: const Icon(Icons.menu),
                 ),
                 Text(
-                  'Inquiries',
+                  context.tr(RemainingL10n.inquiries),
                   style: AppTypography.headline.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -127,7 +130,7 @@ class _SellerInquiryInboxScreenState
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'My inquiries',
+                            context.tr(RemainingL10n.myInquiries),
                             style: AppTypography.headline.copyWith(
                               fontWeight: FontWeight.w800,
                               fontSize: 22,
@@ -135,9 +138,9 @@ class _SellerInquiryInboxScreenState
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Inquiries you submit go directly to admin — not to '
-                            'other buyers or sellers. Open a row to see your '
-                            'submission and any admin reply.',
+                            context.tr(
+                              RemainingL10n.inquiriesYouSubmitGoDirectlyTo,
+                            ),
                             style: AppTypography.body.copyWith(
                               color: AppColors.textSecondary(context),
                               height: 1.4,
@@ -154,7 +157,7 @@ class _SellerInquiryInboxScreenState
                               minimumSize: const Size.fromHeight(44),
                               backgroundColor: AppColors.card(context),
                             ),
-                            child: const Text('New inquiry'),
+                            child: Text(context.tr(RemainingL10n.newInquiry)),
                           ),
                         ],
                       ),
@@ -163,14 +166,14 @@ class _SellerInquiryInboxScreenState
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Browse by type',
+                  context.tr(RemainingL10n.browseByType),
                   style: AppTypography.title.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Switch category — each type loads its own list.',
+                  context.tr(RemainingL10n.switchCategoryEachTypeLoadsItsOwn),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textSecondary(context),
                   ),
@@ -204,8 +207,10 @@ class _SellerInquiryInboxScreenState
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: _accentFor(context, _category)
-                              .withValues(alpha: 0.12),
+                          color: _accentFor(
+                            context,
+                            _category,
+                          ).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -307,7 +312,7 @@ class _SellerInquiryInboxScreenState
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Load more'),
+                        : Text(context.tr(RemainingL10n.loadMore)),
                   ),
                 ],
               ],
@@ -459,7 +464,7 @@ class _InquiryCard extends StatelessWidget {
               minimumSize: const Size.fromHeight(42),
               backgroundColor: AppColors.card(context),
             ),
-            child: const Text('View details'),
+            child: Text(context.tr(RemainingL10n.viewDetails)),
           ),
         ],
       ),

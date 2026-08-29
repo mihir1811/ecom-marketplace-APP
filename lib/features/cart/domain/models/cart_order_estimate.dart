@@ -10,10 +10,7 @@ abstract final class CartFeeConfig {
 }
 
 class CartLineForFees {
-  const CartLineForFees({
-    required this.productType,
-    required this.amountUsd,
-  });
+  const CartLineForFees({required this.productType, required this.amountUsd});
 
   final String productType;
   final double amountUsd;
@@ -94,22 +91,18 @@ class CartOrderEstimate {
     double? apiTotalUsd,
   }) {
     final catalog = fees ?? FeeRulesCatalog.empty;
-    final rate =
-        (exchangeRate != null && exchangeRate > 0) ? exchangeRate : null;
+    final rate = (exchangeRate != null && exchangeRate > 0)
+        ? exchangeRate
+        : null;
     final merchandiseInr = rate == null ? 0.0 : merchandiseUsd * rate;
 
     final verificationOffered = catalog.offersGemworldVerification;
     final verificationRate = verificationOffered
-        ? _percentageRate(
-            catalog,
-            FeeType.gemworldVerification,
-            fallback: 0,
-          )
+        ? _percentageRate(catalog, FeeType.gemworldVerification, fallback: 0)
         : 0.0;
-    final verificationUsd =
-        wantVerification && verificationOffered
-            ? merchandiseUsd * verificationRate
-            : 0.0;
+    final verificationUsd = wantVerification && verificationOffered
+        ? merchandiseUsd * verificationRate
+        : 0.0;
     final verificationInr = rate == null ? 0.0 : verificationUsd * rate;
     final taxableInr = merchandiseInr + verificationInr;
 
@@ -126,8 +119,7 @@ class CartOrderEstimate {
         ),
       );
 
-      final gstInr =
-          feeLines.fold<double>(0, (sum, l) => sum + l.amountInr);
+      final gstInr = feeLines.fold<double>(0, (sum, l) => sum + l.amountInr);
 
       feeLines.addAll(
         _percentageLines(
@@ -175,8 +167,7 @@ class CartOrderEstimate {
         .where((l) => l.feeType == FeeType.deliveryFee)
         .fold<double>(0, (sum, l) => sum + l.amountInr);
 
-    final feesInr =
-        feeLines.fold<double>(0, (sum, l) => sum + l.amountInr);
+    final feesInr = feeLines.fold<double>(0, (sum, l) => sum + l.amountInr);
     final calculatedTotalInr = taxableInr + feesInr;
     final calculatedTotalUsd = rate == null
         ? merchandiseUsd + verificationUsd
@@ -191,8 +182,8 @@ class CartOrderEstimate {
     final totalUsd = hasApiTotalUsd
         ? apiTotalUsd
         : (hasApiTotalInr && rate != null
-            ? apiTotalInr / rate
-            : calculatedTotalUsd);
+              ? apiTotalInr / rate
+              : calculatedTotalUsd);
 
     final txRules = feeLines.where((l) => l.feeType == FeeType.transactionFee);
     String? txLabel;
@@ -244,11 +235,9 @@ class CartOrderEstimate {
     required double fallbackRate,
     required String fallbackName,
   }) {
-    final rules = catalog
-        .ofType(type)
-        .where((r) => r.valueType.isPercentage)
-        .toList()
-      ..sort((a, b) => a.priority.compareTo(b.priority));
+    final rules =
+        catalog.ofType(type).where((r) => r.valueType.isPercentage).toList()
+          ..sort((a, b) => a.priority.compareTo(b.priority));
 
     if (rules.isEmpty) {
       if (catalog.isFromApi || fallbackRate <= 0 || baseInr <= 0) {
@@ -287,11 +276,9 @@ class CartOrderEstimate {
     required double? fallbackMin,
     required String fallbackName,
   }) {
-    final rules = catalog
-        .ofType(type)
-        .where((r) => r.valueType.isFixed)
-        .toList()
-      ..sort((a, b) => a.priority.compareTo(b.priority));
+    final rules =
+        catalog.ofType(type).where((r) => r.valueType.isFixed).toList()
+          ..sort((a, b) => a.priority.compareTo(b.priority));
 
     if (rules.isEmpty) {
       if (catalog.isFromApi) return const [];
@@ -324,15 +311,16 @@ class CartOrderEstimate {
     required double taxableInr,
     required double exchangeRate,
   }) {
-    final gstRules = catalog
-        .ofType(FeeType.gst)
-        .where((r) => r.valueType.isPercentage)
-        .toList()
-      ..sort((a, b) => a.priority.compareTo(b.priority));
+    final gstRules =
+        catalog
+            .ofType(FeeType.gst)
+            .where((r) => r.valueType.isPercentage)
+            .toList()
+          ..sort((a, b) => a.priority.compareTo(b.priority));
 
     if (gstRules.isEmpty) {
       if (catalog.isFromApi || taxableInr <= 0) return const [];
-      final pct = CartFeeConfig.gstRate * 100;
+      const pct = CartFeeConfig.gstRate * 100;
       return [
         CartFeeLine(
           feeType: FeeType.gst,
@@ -366,12 +354,14 @@ class CartOrderEstimate {
     } else {
       for (final line in lines) {
         final lineInr = line.amountUsd * exchangeRate;
-        final share =
-            merchandiseUsd <= 0 ? 0.0 : line.amountUsd / merchandiseUsd;
-        final lineTaxable = lineInr +
-            (taxableInr - (merchandiseUsd * exchangeRate)) * share;
-        final matching =
-            gstRules.where((r) => r.appliesToCategory(line.productType));
+        final share = merchandiseUsd <= 0
+            ? 0.0
+            : line.amountUsd / merchandiseUsd;
+        final lineTaxable =
+            lineInr + (taxableInr - (merchandiseUsd * exchangeRate)) * share;
+        final matching = gstRules.where(
+          (r) => r.appliesToCategory(line.productType),
+        );
         for (final rule in matching) {
           addRule(rule, lineTaxable);
         }
@@ -387,9 +377,7 @@ class CartOrderEstimate {
             amountInr: amounts[key]!,
             rateLabel: () {
               final pct = rates[key] ?? 0;
-              return pct.toStringAsFixed(
-                pct == pct.roundToDouble() ? 0 : 2,
-              );
+              return pct.toStringAsFixed(pct == pct.roundToDouble() ? 0 : 2);
             }(),
           ),
     ];
@@ -404,8 +392,9 @@ class CartOrderEstimate {
     FeeRulesCatalog catalog,
     List<CartLineForFees> lines,
   ) {
-    final gstRules =
-        catalog.ofType(FeeType.gst).where((r) => r.valueType.isPercentage);
+    final gstRules = catalog
+        .ofType(FeeType.gst)
+        .where((r) => r.valueType.isPercentage);
     if (gstRules.isEmpty) {
       return catalog.isFromApi
           ? null
@@ -419,8 +408,9 @@ class CartOrderEstimate {
     }
     final rates = <double>{};
     for (final line in lines) {
-      final matching =
-          gstRules.where((r) => r.appliesToCategory(line.productType));
+      final matching = gstRules.where(
+        (r) => r.appliesToCategory(line.productType),
+      );
       rates.add(matching.fold<double>(0, (sum, r) => sum + r.value));
     }
     if (rates.length == 1) {

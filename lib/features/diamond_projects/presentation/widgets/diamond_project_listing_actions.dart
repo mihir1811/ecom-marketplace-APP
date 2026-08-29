@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -24,7 +25,9 @@ class DiamondProjectListingActions extends ConsumerWidget {
     if (!canUse) return const SizedBox.shrink();
 
     final loadedCount = ref.watch(
-      diamondListProvider.select((async) => async.valueOrNull?.diamonds.length ?? 0),
+      diamondListProvider.select(
+        (async) => async.valueOrNull?.diamonds.length ?? 0,
+      ),
     );
 
     return Padding(
@@ -44,7 +47,7 @@ class DiamondProjectListingActions extends ConsumerWidget {
                 : () {
                     final diamonds =
                         ref.read(diamondListProvider).valueOrNull?.diamonds ??
-                            const [];
+                        const [];
                     if (diamonds.isEmpty) return;
                     ref
                         .read(diamondProjectSelectionProvider.notifier)
@@ -57,14 +60,12 @@ class DiamondProjectListingActions extends ConsumerWidget {
                   },
             icon: const Icon(Icons.analytics_outlined, size: 16),
             label: Text(
-              loadedCount == 0
-                  ? 'Select page'
-                  : 'Select page ($loadedCount)',
+              loadedCount == 0 ? 'Select page' : 'Select page ($loadedCount)',
               overflow: TextOverflow.ellipsis,
             ),
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.charcoal,
-              foregroundColor: AppColors.warmWhite,
+              backgroundColor: AppColors.selectedFill(context),
+              foregroundColor: AppColors.onSelected(context),
               visualDensity: VisualDensity.compact,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
@@ -72,7 +73,7 @@ class DiamondProjectListingActions extends ConsumerWidget {
           OutlinedButton.icon(
             onPressed: () => context.push(AppRouteNames.savedDiamondProjects),
             icon: const Icon(Icons.folder_outlined, size: 16),
-            label: const Text('Saved stats'),
+            label: Text(context.tr(CatalogL10n.savedStatistics)),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.textPrimary(context),
               visualDensity: VisualDensity.compact,

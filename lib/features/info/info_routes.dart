@@ -22,8 +22,7 @@ final List<RouteBase> infoRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.policyDetail,
-    builder: (context, state) => PolicyDetailScreen(
-      policyId: state.pathParameters['policyId'] ?? '',
-    ),
+    builder: (context, state) =>
+        PolicyDetailScreen(policyId: state.pathParameters['policyId'] ?? ''),
   ),
 ];

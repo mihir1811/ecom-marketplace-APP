@@ -39,7 +39,8 @@ final List<RouteBase> authRoutes = [
   GoRoute(
     path: AppRouteNames.resetPassword,
     builder: (context, state) {
-      final token = state.uri.queryParameters['token'] ??
+      final token =
+          state.uri.queryParameters['token'] ??
           state.uri.queryParameters['accessToken'];
       return ResetPasswordScreen(resetToken: token);
     },

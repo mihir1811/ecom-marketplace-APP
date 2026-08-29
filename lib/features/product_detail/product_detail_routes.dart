@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/app_localizations.dart';
 import '../../core/router/app_navigation.dart';
 import '../../core/router/route_names.dart';
 import '../../core/widgets/app_scaffold.dart';
@@ -25,9 +26,7 @@ final List<RouteBase> productDetailRoutes = [
         rememberProductDetail(detail);
         return ProductDetailScreen(detail: detail);
       }
-      return _ProductDetailUnavailable(
-        productId: productId,
-      );
+      return _ProductDetailUnavailable(productId: productId);
     },
   ),
 ];
@@ -43,16 +42,16 @@ class _ProductDetailUnavailable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const SimpleAppTopBar(
-        title: 'Product',
-      ),
+      appBar: SimpleAppTopBar(title: context.tr(CatalogL10n.product)),
       body: CatalogEmptyState(
         icon: Icons.search_off_outlined,
-        title: 'This product is no longer loaded',
+        title: context.tr(CatalogL10n.productUnavailable),
         message: productId.isEmpty
-            ? 'Open the product from a catalog listing to see its details.'
-            : 'Reopen $productId from a catalog listing to see its details.',
-        actionLabel: 'Browse catalog',
+            ? context.tr(CatalogL10n.openFromCatalog)
+            : context.tr(CatalogL10n.reopenFromCatalog, {
+                'productId': productId,
+              }),
+        actionLabel: context.tr(CatalogL10n.browseCatalog),
         onAction: () => context.resetTo(AppRouteNames.home),
       ),
     );

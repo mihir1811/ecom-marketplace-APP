@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/auth_providers.dart';
+import '../l10n/app_localizations.dart';
 import '../router/app_navigation.dart';
 import '../router/route_names.dart';
 import '../theme/app_colors.dart';
@@ -83,20 +84,19 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
     final walletEnabled = legacyTools ?? showWallet;
     final messagesEnabled = legacyTools ?? showMessages;
 
-    final liveCartCount = showCart && authState.isAuthenticated && cartCount == null
+    final liveCartCount =
+        showCart && authState.isAuthenticated && cartCount == null
         ? ref.watch(cartItemCountProvider)
         : (cartCount ?? 0);
 
-    final actions = <Widget>[
-      ...extraActions,
-    ];
+    final actions = <Widget>[...extraActions];
 
     if (authState.isAuthenticated) {
       // Fixed order: Cart → Wallet → Messages → Theme
       if (showCart) {
         actions.add(
           IconButton(
-            tooltip: 'Cart',
+            tooltip: context.tr(CoreL10n.cart),
             onPressed: () => context.openRoute(AppRouteNames.cart),
             icon: Badge(
               isLabelVisible: liveCartCount > 0,
@@ -111,13 +111,14 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
       if (walletEnabled) {
         actions.add(
           IconButton(
-            tooltip: 'Wallet',
-            onPressed: onSellerWalletTap ??
+            tooltip: context.tr(CoreL10n.wallet),
+            onPressed:
+                onSellerWalletTap ??
                 () => context.openRoute(
-                      authState.isSeller && authState.canTransact
-                          ? AppRouteNames.sellerWallet
-                          : AppRouteNames.buyerWallet,
-                    ),
+                  authState.isSeller && authState.canTransact
+                      ? AppRouteNames.sellerWallet
+                      : AppRouteNames.buyerWallet,
+                ),
             icon: const Icon(Icons.account_balance_wallet_outlined),
           ),
         );
@@ -127,13 +128,14 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
         final hasUnread = ref.watch(chatHasUnreadProvider);
         actions.add(
           IconButton(
-            tooltip: 'Messages',
-            onPressed: onSellerMessagesTap ??
+            tooltip: context.tr(CoreL10n.messages),
+            onPressed:
+                onSellerMessagesTap ??
                 () => context.openRoute(
-                      authState.isSeller && authState.canTransact
-                          ? AppRouteNames.sellerChat
-                          : AppRouteNames.buyerMessages,
-                    ),
+                  authState.isSeller && authState.canTransact
+                      ? AppRouteNames.sellerChat
+                      : AppRouteNames.buyerMessages,
+                ),
             icon: Badge(
               isLabelVisible: hasUnread,
               smallSize: 8,
@@ -154,14 +156,18 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
     );
 
     final location = GoRouterState.of(context).uri.path;
-    final showBack = leading == null &&
+    final showBack =
+        leading == null &&
         (GoRouter.of(context).canPop() || location != AppRouteNames.home);
-    final effectiveLeading = leading ??
+    final effectiveLeading =
+        leading ??
         (showBack
             ? BackButton(onPressed: () => context.goBack())
             : (showDrawerButton && authState.isAuthenticated
-                ? const AppDrawerButton()
-                : null));
+                  ? const AppDrawerButton()
+                  : null));
+
+    final hasBackButton = showBack || leading is BackButton;
 
     return AppBar(
       backgroundColor: transparent
@@ -170,8 +176,10 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
       surfaceTintColor: Colors.transparent,
       elevation: elevation,
       scrolledUnderElevation: scrolledUnderElevation,
-      centerTitle: centerTitle,
-      title: titleWidget ??
+      centerTitle: hasBackButton ? false : centerTitle,
+      titleSpacing: hasBackButton ? 0 : null,
+      title:
+          titleWidget ??
           Text(
             title,
             style: AppTypography.headline.copyWith(

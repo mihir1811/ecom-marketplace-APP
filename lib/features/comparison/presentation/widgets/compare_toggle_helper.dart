@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import '../../application/comparison_provider.dart';
 import '../../domain/models/compare_item.dart';
 import 'compare_add_button.dart';
@@ -13,13 +15,17 @@ void handleCompareToggle(
 ) {
   final result = ref.read(comparisonProvider.notifier).toggle(item);
   final message = switch (result) {
-    CompareAddSuccess() => 'Added to comparison',
-    CompareAddRemoved() => 'Removed from comparison',
-    CompareAddAlreadySelected() => 'Already selected',
-    CompareAddLimitReached() => 'You can compare up to 4 items',
+    CompareAddSuccess() => context.tr(AccountCommerceL10n.addedComparison),
+    CompareAddRemoved() => context.tr(AccountCommerceL10n.removedComparison),
+    CompareAddAlreadySelected() => context.tr(
+      AccountCommerceL10n.alreadySelected,
+    ),
+    CompareAddLimitReached() => context.tr(AccountCommerceL10n.compareLimit),
     CompareAddCategoryMismatch(:final existing, :final attempted) =>
-      'You can only compare ${existing.labelPlural} with ${existing.labelPlural}. '
-          'Clear the tray to compare ${attempted.labelPlural}.',
+      context.tr(AccountCommerceL10n.compareCategoryMismatch, {
+        'existing': context.tr(existing.labelPluralKey),
+        'attempted': context.tr(attempted.labelPluralKey),
+      }),
   };
   if (result is! CompareAddSuccess && result is! CompareAddRemoved) {
     showCompareFeedback(context, message);

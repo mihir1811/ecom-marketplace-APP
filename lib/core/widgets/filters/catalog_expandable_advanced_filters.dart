@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -86,7 +87,7 @@ class _CatalogExpandableAdvancedFiltersState
         children: [
           if (!_isExpanded)
             _ToggleBar(
-              label: 'View Advanced Filters',
+              label: context.tr(CatalogL10n.viewAdvancedFilters),
               icon: Icons.keyboard_arrow_down,
               fontSize: 15,
               onTap: () => setState(() => _isExpanded = true),
@@ -118,7 +119,7 @@ class _CatalogExpandableAdvancedFiltersState
             ],
             const SizedBox(height: AppSpacing.s16),
             _ToggleBar(
-              label: 'Hide Advanced Filters',
+              label: context.tr(CatalogL10n.hideAdvancedFilters),
               icon: Icons.keyboard_arrow_up,
               fontSize: 14,
               verticalPadding: 10,

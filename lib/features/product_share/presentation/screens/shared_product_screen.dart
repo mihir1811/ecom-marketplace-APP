@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -30,7 +31,7 @@ class SharedProductScreen extends ConsumerWidget {
       loading: () => AppScaffold(
         backgroundColor: AppColors.bg(context),
         appBar: SimpleAppTopBar(
-          title: 'Shared product',
+          title: context.tr(CatalogL10n.sharedProduct),
           backgroundColor: AppColors.bg(context),
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -38,18 +39,18 @@ class SharedProductScreen extends ConsumerWidget {
       error: (e, _) {
         final message = e is Failure
             ? e.message
-            : 'This share link is invalid or expired.';
+            : context.tr(CatalogL10n.shareInvalidOrExpired);
         return AppScaffold(
           backgroundColor: AppColors.bg(context),
           appBar: SimpleAppTopBar(
-            title: 'Shared product',
+            title: context.tr(CatalogL10n.sharedProduct),
             backgroundColor: AppColors.bg(context),
           ),
           body: CatalogEmptyState(
             icon: Icons.link_off_outlined,
-            title: 'Share link unavailable',
+            title: context.tr(CatalogL10n.shareUnavailable),
             message: message,
-            actionLabel: 'Browse catalog',
+            actionLabel: context.tr(CatalogL10n.browseCatalog),
             onAction: () => context.resetTo(AppRouteNames.home),
           ),
         );

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -23,7 +26,9 @@ class AvailabilityStatusBadge extends StatelessWidget {
   static Color statusColor(BuildContext context, String? status) {
     final label = status?.toLowerCase() ?? '';
     if (label == 'available' || label == 'yes') return AppColors.success;
-    if (label == 'sold' || label.contains('unavailable')) return AppColors.error;
+    if (label == 'sold' || label.contains('unavailable')) {
+      return AppColors.error;
+    }
     if (label.contains('hold') || label.contains('memo')) {
       return AppColors.warning;
     }
@@ -32,14 +37,21 @@ class AvailabilityStatusBadge extends StatelessWidget {
 
   Color _statusColor(BuildContext context) => statusColor(context, status);
 
-  String get _displayLabel {
+  String _displayLabel(BuildContext context) {
     final label = status?.toLowerCase() ?? '';
-    if (label == 'yes') return 'Available';
-    if (label == 'available') return 'Available';
-    if (label == 'hold' || label == 'on hold') return 'On Hold';
-    if (label == 'memo' || label == 'on memo') return 'On Memo';
-    if (label == 'sold') return 'Sold';
-    if (label.contains('unavailable')) return 'Unavailable';
+    if (label == 'yes' || label == 'available') {
+      return context.tr(AccountCommerceL10n.available);
+    }
+    if (label == 'hold' || label == 'on hold') {
+      return context.tr(AccountCommerceL10n.onHold);
+    }
+    if (label == 'memo' || label == 'on memo') {
+      return context.tr(AccountCommerceL10n.onMemo);
+    }
+    if (label == 'sold') return context.tr(AccountCommerceL10n.sold);
+    if (label.contains('unavailable')) {
+      return context.tr(AccountCommerceL10n.unavailable);
+    }
     return status ?? '';
   }
 
@@ -111,14 +123,11 @@ class AvailabilityStatusBadge extends StatelessWidget {
             Container(
               width: 8,
               height: 8,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 4),
             Text(
-              _displayLabel,
+              _displayLabel(context),
               style: AppTypography.caption.copyWith(
                 color: color,
                 fontWeight: FontWeight.w700,

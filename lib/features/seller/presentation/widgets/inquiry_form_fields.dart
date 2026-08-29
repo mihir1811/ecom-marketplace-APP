@@ -7,6 +7,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 InputDecoration inquiryInputDecoration(BuildContext context, [String? hint]) {
   return InputDecoration(
@@ -329,7 +331,8 @@ class _InquiryDropdownFieldState extends State<InquiryDropdownField> {
   @override
   void initState() {
     super.initState();
-    _otherMode = widget.allowOther &&
+    _otherMode =
+        widget.allowOther &&
         widget.value.isNotEmpty &&
         !widget.options.contains(widget.value);
     _custom = TextEditingController(text: _otherMode ? widget.value : '');
@@ -390,10 +393,10 @@ class _InquiryDropdownFieldState extends State<InquiryDropdownField> {
                   ),
                 ),
               if (widget.allowOther)
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: InquiryDropdownField.otherValue,
                   child: Text(
-                    'Others (specify manually)',
+                    context.tr(RemainingL10n.othersSpecifyManually),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -469,8 +472,8 @@ class InquirySegmentedField extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: value == option.value ? selected : null,
                     borderRadius: BorderRadius.circular(7),
-                    border: value == option.value &&
-                            selected == AppColors.bronze
+                    border:
+                        value == option.value && selected == AppColors.bronze
                         ? const Border.fromBorderSide(
                             BorderSide(color: AppColors.bronze),
                           )
@@ -604,15 +607,19 @@ class InquiryImagePickerField extends StatelessWidget {
   Future<void> _pick(BuildContext context) async {
     if (images.length >= maxImages) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('You can add up to $maxImages images')),
+        SnackBar(
+          content: Text(
+            context.tr(RemainingL10n.maxImagesAllowed, {'count': maxImages}),
+          ),
+        ),
       );
       return;
     }
 
     final remaining = maxImages - images.length;
     try {
-      const typeGroup = XTypeGroup(
-        label: 'images',
+      final typeGroup = XTypeGroup(
+        label: context.tr(RemainingL10n.images),
         extensions: <String>['jpg', 'jpeg', 'png', 'webp', 'heic'],
       );
       final files = remaining == 1
@@ -681,8 +688,10 @@ class InquiryImagePickerField extends StatelessWidget {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to open file picker. Please retry.'),
+        SnackBar(
+          content: Text(
+            context.tr(RemainingL10n.unableToOpenFilePickerPleaseRetry),
+          ),
         ),
       );
     }
@@ -773,7 +782,7 @@ class InquiryImagePickerField extends StatelessWidget {
   }
 }
 
-/// Single video file picker for inquiry "From device".
+/// Single video file picker for inquiry context.tr(RemainingL10n.fromDevice).
 class InquiryVideoPickerField extends StatelessWidget {
   const InquiryVideoPickerField({
     required this.label,
@@ -790,8 +799,8 @@ class InquiryVideoPickerField extends StatelessWidget {
 
   Future<void> _pick(BuildContext context) async {
     try {
-      const typeGroup = XTypeGroup(
-        label: 'videos',
+      final typeGroup = XTypeGroup(
+        label: context.tr(RemainingL10n.videos),
         extensions: <String>['mp4', 'webm', 'mov', 'avi'],
       );
       final file = await openFile(acceptedTypeGroups: [typeGroup]);
@@ -803,13 +812,19 @@ class InquiryVideoPickerField extends StatelessWidget {
 
       if (bytes.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not read the selected file')),
+          SnackBar(
+            content: Text(
+              context.tr(RemainingL10n.couldNotReadTheSelectedFile),
+            ),
+          ),
         );
         return;
       }
       if (bytes.length > maxBytes) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Video must be smaller than 50 MB')),
+          SnackBar(
+            content: Text(context.tr(RemainingL10n.videoMustBeSmallerThan50Mb)),
+          ),
         );
         return;
       }
@@ -818,8 +833,10 @@ class InquiryVideoPickerField extends StatelessWidget {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to open file picker. Please retry.'),
+        SnackBar(
+          content: Text(
+            context.tr(RemainingL10n.unableToOpenFilePickerPleaseRetry),
+          ),
         ),
       );
     }
@@ -852,7 +869,7 @@ class InquiryVideoPickerField extends StatelessWidget {
             ),
             icon: const Icon(Icons.video_file_outlined, size: 20),
             label: Text(
-              chosen.isEmpty ? 'Choose file' : chosen,
+              chosen.isEmpty ? context.tr(RemainingL10n.chooseFile) : chosen,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -871,7 +888,7 @@ class InquiryVideoPickerField extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: TextButton(
                 onPressed: () => onPicked(''),
-                child: const Text('Remove'),
+                child: Text(context.tr(RemainingL10n.remove)),
               ),
             ),
         ],
@@ -882,7 +899,7 @@ class InquiryVideoPickerField extends StatelessWidget {
 
 /// Read-only thumbnail strip for inquiry detail.
 class InquiryImageGallery extends StatelessWidget {
-  const InquiryImageGallery({required this.images, this.title, super.key});
+  InquiryImageGallery({required this.images, this.title, super.key});
 
   final List<Uint8List> images;
   final String? title;

@@ -10,6 +10,9 @@ import '../../../help_center/application/help_center_provider.dart';
 import '../../../help_center/domain/models/help_question.dart';
 import '../widgets/seller_layout.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/remaining_messages.dart';
+
 class SellerHelpCenterScreen extends ConsumerStatefulWidget {
   const SellerHelpCenterScreen({super.key, this.showHeader = true});
 
@@ -39,9 +42,9 @@ class _SellerHelpCenterScreenState
     final subject = _subjectCtrl.text.trim();
     final message = _messageCtrl.text.trim();
     if (_issueType == null || subject.isEmpty || message.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr(RemainingL10n.fillAllFields))),
+      );
       return;
     }
 
@@ -59,9 +62,9 @@ class _SellerHelpCenterScreenState
           _subjectCtrl.clear();
           _messageCtrl.clear();
         });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Question submitted')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr(RemainingL10n.questionSubmitted))),
+        );
       case ResultFailure(failure: final failure):
         ScaffoldMessenger.of(
           context,
@@ -73,18 +76,16 @@ class _SellerHelpCenterScreenState
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Close question?'),
-        content: const Text(
-          'This will mark the ticket as closed. You can still read it later.',
-        ),
+        title: Text(context.tr(RemainingL10n.closeQuestion)),
+        content: Text(context.tr(RemainingL10n.thisWillMarkTheTicketAsClosed)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(RemainingL10n.cancel)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Close'),
+            child: Text(context.tr(RemainingL10n.close)),
           ),
         ],
       ),
@@ -98,9 +99,9 @@ class _SellerHelpCenterScreenState
 
     switch (result) {
       case Success():
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Question closed')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr(RemainingL10n.questionClosed))),
+        );
       case ResultFailure(failure: final failure):
         ScaffoldMessenger.of(
           context,
@@ -138,7 +139,7 @@ class _SellerHelpCenterScreenState
                   icon: const Icon(Icons.menu),
                 ),
                 Text(
-                  'Help center',
+                  context.tr(RemainingL10n.helpCenter),
                   style: AppTypography.headline.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -154,8 +155,7 @@ class _SellerHelpCenterScreenState
               padding: const EdgeInsets.all(AppSpacing.s16),
               children: [
                 Text(
-                  'Ask our support team a question. Buyers and sellers can submit '
-                  'tickets here: an admin will reply when your question is reviewed.',
+                  context.tr(RemainingL10n.askOurSupportTeamAQuestion),
                   style: AppTypography.body.copyWith(
                     color: AppColors.textSecondary(context),
                     height: 1.4,
@@ -167,26 +167,28 @@ class _SellerHelpCenterScreenState
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'New question',
+                        context.tr(RemainingL10n.newQuestion),
                         style: AppTypography.title.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Include enough detail so we can help quickly — order IDs, '
-                        'product links, or screenshots help.',
+                        context.tr(RemainingL10n.includeEnoughDetailSoWeCan),
                         style: AppTypography.caption.copyWith(
                           color: AppColors.textSecondary(context),
                         ),
                       ),
                       const SizedBox(height: 14),
-                      Text('Issue type', style: _labelStyle(context)),
+                      Text(
+                        context.tr(RemainingL10n.issueType),
+                        style: _labelStyle(context),
+                      ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<HelpIssueType>(
                         key: ValueKey(_issueType?.name),
                         initialValue: _issueType,
-                        hint: const Text('Select an issue type'),
+                        hint: Text(context.tr(RemainingL10n.selectIssueType)),
                         items: [
                           for (final t in HelpIssueType.values)
                             DropdownMenuItem(value: t, child: Text(t.label)),
@@ -194,20 +196,28 @@ class _SellerHelpCenterScreenState
                         onChanged: _isSubmitting
                             ? null
                             : (v) => setState(() => _issueType = v),
-                        decoration: _fieldDecoration('Select an issue type'),
+                        decoration: _fieldDecoration(
+                          context.tr(RemainingL10n.selectIssueType),
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      Text('Subject', style: _labelStyle(context)),
+                      Text(
+                        context.tr(RemainingL10n.subject),
+                        style: _labelStyle(context),
+                      ),
                       const SizedBox(height: 6),
                       TextField(
                         controller: _subjectCtrl,
                         enabled: !_isSubmitting,
                         decoration: _fieldDecoration(
-                          'e.g. Payment issue, account help',
+                          context.tr(RemainingL10n.helpSubjectHint),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text('Message', style: _labelStyle(context)),
+                      Text(
+                        context.tr(RemainingL10n.message),
+                        style: _labelStyle(context),
+                      ),
                       const SizedBox(height: 6),
                       TextField(
                         controller: _messageCtrl,
@@ -215,7 +225,7 @@ class _SellerHelpCenterScreenState
                         maxLines: 4,
                         maxLength: 5000,
                         decoration: _fieldDecoration(
-                          'Describe your issue or question in detail...',
+                          context.tr(RemainingL10n.helpDescriptionHint),
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -236,7 +246,7 @@ class _SellerHelpCenterScreenState
                                     color: AppColors.warmWhite,
                                   ),
                                 )
-                              : const Text('Submit question'),
+                              : Text(context.tr(RemainingL10n.submitQuestion)),
                         ),
                       ),
                     ],
@@ -244,7 +254,7 @@ class _SellerHelpCenterScreenState
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Your questions',
+                  context.tr(RemainingL10n.yourQuestions),
                   style: AppTypography.title.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -265,7 +275,7 @@ class _SellerHelpCenterScreenState
                 else if (listState.items.isEmpty)
                   _Card(
                     child: Text(
-                      'No questions yet. Submit one above and we will get back to you.',
+                      context.tr(RemainingL10n.noQuestionsYetSubmitOneAboveAnd),
                       style: AppTypography.body.copyWith(
                         color: AppColors.textSecondary(context),
                       ),
@@ -291,7 +301,7 @@ class _SellerHelpCenterScreenState
                                 onPressed: () => ref
                                     .read(helpQuestionListProvider.notifier)
                                     .loadMore(),
-                                child: const Text('Load more'),
+                                child: Text(context.tr(RemainingL10n.loadMore)),
                               ),
                       ),
                     ),
@@ -348,7 +358,10 @@ class _ErrorCard extends StatelessWidget {
             style: AppTypography.body.copyWith(color: AppColors.error),
           ),
           const SizedBox(height: 12),
-          OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          OutlinedButton(
+            onPressed: onRetry,
+            child: Text(context.tr(RemainingL10n.retry)),
+          ),
         ],
       ),
     );
@@ -464,9 +477,9 @@ class _TicketCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'ADMIN REPLY'
-                    '${ticket.answeredAtLabel != null ? ' · ${ticket.answeredAtLabel}' : ''}'
-                    '${ticket.answeredBy?.name != null ? ' · ${ticket.answeredBy!.name}' : ''}',
+                    context.tr(RemainingL10n.adminReply) +
+                        '${ticket.answeredAtLabel != null ? ' · ${ticket.answeredAtLabel}' : ''}'
+                            '${ticket.answeredBy?.name != null ? ' · ${ticket.answeredBy!.name}' : ''}',
                     style: AppTypography.caption.copyWith(
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.3,
@@ -480,7 +493,7 @@ class _TicketCard extends StatelessWidget {
           ] else if (isOpen) ...[
             const SizedBox(height: 8),
             Text(
-              'Awaiting admin review',
+              context.tr(RemainingL10n.awaitingAdminReview),
               style: AppTypography.caption.copyWith(
                 color: AppColors.textMuted(context),
                 fontStyle: FontStyle.italic,
@@ -494,7 +507,7 @@ class _TicketCard extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: onClose,
                 icon: const Icon(Icons.close, size: 18),
-                label: const Text('Close question'),
+                label: Text(context.tr(RemainingL10n.closeQuestionAction)),
               ),
             ),
           ],

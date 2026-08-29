@@ -82,8 +82,7 @@ class AuthState {
       pendingVerificationEmail: clearPendingEmail
           ? null
           : (pendingVerificationEmail ?? this.pendingVerificationEmail),
-      passwordResetSuccess:
-          passwordResetSuccess ?? this.passwordResetSuccess,
+      passwordResetSuccess: passwordResetSuccess ?? this.passwordResetSuccess,
       accountDeletionMessage: clearAccountDeletion
           ? null
           : (accountDeletionMessage ?? this.accountDeletionMessage),

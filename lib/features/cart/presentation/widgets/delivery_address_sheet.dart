@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -110,10 +113,14 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.location_on, color: AppColors.bronze, size: 20),
+                  const Icon(
+                    Icons.location_on,
+                    color: AppColors.bronze,
+                    size: 20,
+                  ),
                   const SizedBox(width: AppSpacing.s8),
                   Text(
-                    'Deliver to',
+                    context.tr(AccountCommerceL10n.deliverTo),
                     style: AppTypography.title.copyWith(
                       color: AppColors.bronze,
                       fontWeight: FontWeight.w700,
@@ -133,21 +140,45 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
                 ],
               ),
               const SizedBox(height: AppSpacing.s16),
-              _field(_name, 'Full name', required: true),
+              _field(
+                _name,
+                context.tr(AccountCommerceL10n.fullNameField),
+                required: true,
+              ),
               _field(
                 _phone,
-                'Phone',
+                context.tr(AccountCommerceL10n.phone),
                 required: true,
                 keyboard: TextInputType.phone,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
-              _field(_line1, 'Address line 1', required: true),
-              _field(_line2, 'Address line 2'),
-              _field(_city, 'City', required: true),
-              _field(_state, 'State', required: true),
-              _field(_postal, 'ZIP / Postal code', required: true),
-              _field(_country, 'Country', required: true),
-              _field(_label, 'Label (Home, Office)'),
+              _field(
+                _line1,
+                context.tr(AccountCommerceL10n.addressLine1),
+                required: true,
+              ),
+              _field(_line2, context.tr(AccountCommerceL10n.addressLine2)),
+              _field(
+                _city,
+                context.tr(AccountCommerceL10n.city),
+                required: true,
+              ),
+              _field(
+                _state,
+                context.tr(AccountCommerceL10n.state),
+                required: true,
+              ),
+              _field(
+                _postal,
+                context.tr(AccountCommerceL10n.postalCodeCaps),
+                required: true,
+              ),
+              _field(
+                _country,
+                context.tr(AccountCommerceL10n.country),
+                required: true,
+              ),
+              _field(_label, context.tr(AccountCommerceL10n.addressLabel)),
               const SizedBox(height: AppSpacing.s16),
               SizedBox(
                 height: 52,
@@ -162,8 +193,8 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
                   onPressed: _save,
                   child: Text(
                     widget.initial?.id != null
-                        ? 'Update address'
-                        : 'Save address',
+                        ? context.tr(AccountCommerceL10n.updateAddress)
+                        : context.tr(AccountCommerceL10n.saveAddress),
                     style: AppTypography.label.copyWith(
                       color: AppColors.warmWhite,
                       fontWeight: FontWeight.w700,
@@ -193,8 +224,9 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
         keyboardType: keyboard,
         inputFormatters: inputFormatters,
         validator: required
-            ? (v) =>
-                (v == null || v.trim().isEmpty) ? 'Required' : null
+            ? (v) => (v == null || v.trim().isEmpty)
+                  ? context.tr(AccountCommerceL10n.required)
+                  : null
             : null,
         decoration: InputDecoration(
           hintText: hint,

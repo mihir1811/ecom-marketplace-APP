@@ -12,8 +12,9 @@ class VerificationPendingBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pending =
-        ref.watch(authProvider.select((s) => s.isVerificationPending));
+    final pending = ref.watch(
+      authProvider.select((s) => s.isVerificationPending),
+    );
     if (!pending) return const SizedBox.shrink();
 
     final dark = AppColors.isDark(context);

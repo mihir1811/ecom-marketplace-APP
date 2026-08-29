@@ -69,14 +69,14 @@ class CartTotals {
 
   @override
   int get hashCode => Object.hash(
-        subtotalUsd,
-        discountedSubtotalUsd,
-        totalDiscountUsd,
-        promoDiscountUsd,
-        automaticDiscountUsd,
-        estimatedTotalInr,
-        exchangeRate,
-      );
+    subtotalUsd,
+    discountedSubtotalUsd,
+    totalDiscountUsd,
+    promoDiscountUsd,
+    automaticDiscountUsd,
+    estimatedTotalInr,
+    exchangeRate,
+  );
 }
 
 /// Cart screen state backed by live cart/delivery APIs.
@@ -107,8 +107,7 @@ class CartState {
   bool get isEmpty => items.isEmpty;
   bool get hasAddress => address != null;
 
-  CartTotals get totals =>
-      CartTotals.fromSummary(summary, rate: exchangeRate);
+  CartTotals get totals => CartTotals.fromSummary(summary, rate: exchangeRate);
 
   ({String? code, bool applied}) get promo {
     final codes = summary.appliedPromoCodes;
@@ -375,7 +374,10 @@ class CartNotifier extends Notifier<CartState> {
         state = state.copyWith(isMutating: false);
         return Result.success(null);
       case ResultFailure(:final failure):
-        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        state = state.copyWith(
+          isMutating: false,
+          errorMessage: failure.message,
+        );
         return Result.failure(failure);
     }
   }
@@ -389,7 +391,10 @@ class CartNotifier extends Notifier<CartState> {
         state = state.copyWith(isMutating: false);
         return Result.success(null);
       case ResultFailure(:final failure):
-        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        state = state.copyWith(
+          isMutating: false,
+          errorMessage: failure.message,
+        );
         return Result.failure(failure);
     }
   }
@@ -409,7 +414,10 @@ class CartNotifier extends Notifier<CartState> {
         state = state.copyWith(isMutating: false);
         return Result.success(null);
       case ResultFailure(:final failure):
-        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        state = state.copyWith(
+          isMutating: false,
+          errorMessage: failure.message,
+        );
         return Result.failure(failure);
     }
   }
@@ -430,7 +438,10 @@ class CartNotifier extends Notifier<CartState> {
         );
         return Result.success(null);
       case ResultFailure(:final failure):
-        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        state = state.copyWith(
+          isMutating: false,
+          errorMessage: failure.message,
+        );
         return Result.failure(failure);
     }
   }
@@ -447,7 +458,10 @@ class CartNotifier extends Notifier<CartState> {
         );
         return Result.success(null);
       case ResultFailure(:final failure):
-        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        state = state.copyWith(
+          isMutating: false,
+          errorMessage: failure.message,
+        );
         return Result.failure(failure);
     }
   }
@@ -464,8 +478,10 @@ class CartNotifier extends Notifier<CartState> {
         case Success(:final value):
           addressId = value.id ?? draft.id!;
         case ResultFailure(:final failure):
-          state =
-              state.copyWith(isMutating: false, errorMessage: failure.message);
+          state = state.copyWith(
+            isMutating: false,
+            errorMessage: failure.message,
+          );
           return Result.failure(failure);
       }
     } else {
@@ -480,8 +496,10 @@ class CartNotifier extends Notifier<CartState> {
             );
           }
         case ResultFailure(:final failure):
-          state =
-              state.copyWith(isMutating: false, errorMessage: failure.message);
+          state = state.copyWith(
+            isMutating: false,
+            errorMessage: failure.message,
+          );
           return Result.failure(failure);
       }
     }
@@ -489,10 +507,10 @@ class CartNotifier extends Notifier<CartState> {
     final selected = await _delivery.selectAddress(addressId: addressId);
     switch (selected) {
       case Success(:final value):
-        final merged = _mergeAddresses(
-          [...state.addresses, value],
-          state.addresses,
-        );
+        final merged = _mergeAddresses([
+          ...state.addresses,
+          value,
+        ], state.addresses);
         state = state.copyWith(
           address: value,
           addresses: merged,
@@ -502,7 +520,10 @@ class CartNotifier extends Notifier<CartState> {
         unawaitedRefreshDelivery();
         return Result.success(value);
       case ResultFailure(:final failure):
-        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        state = state.copyWith(
+          isMutating: false,
+          errorMessage: failure.message,
+        );
         return Result.failure(failure);
     }
   }
@@ -527,11 +548,7 @@ class CartNotifier extends Notifier<CartState> {
         const NetworkFailure('Could not select the delivery address.'),
       );
     }
-    state = state.copyWith(
-      address: match,
-      canCheckout: true,
-      clearError: true,
-    );
+    state = state.copyWith(address: match, canCheckout: true, clearError: true);
     return Result.success(null);
   }
 
@@ -548,10 +565,7 @@ class CartNotifier extends Notifier<CartState> {
     final selected = await _delivery.selectAddress(addressId: id);
     switch (selected) {
       case Success(:final value):
-        state = state.copyWith(
-          address: value,
-          canCheckout: true,
-        );
+        state = state.copyWith(address: value, canCheckout: true);
         return Result.success(null);
       case ResultFailure(:final failure):
         return Result.failure(failure);
@@ -568,8 +582,9 @@ class CartNotifier extends Notifier<CartState> {
     final result = await _delivery.deleteAddress(addressId);
     switch (result) {
       case Success():
-        final remaining =
-            state.addresses.where((a) => a.id != addressId).toList();
+        final remaining = state.addresses
+            .where((a) => a.id != addressId)
+            .toList();
         final wasSelected = state.address?.id == addressId;
         state = state.copyWith(
           addresses: remaining,
@@ -581,7 +596,10 @@ class CartNotifier extends Notifier<CartState> {
         unawaitedRefreshDelivery();
         return Result.success(null);
       case ResultFailure(:final failure):
-        state = state.copyWith(isMutating: false, errorMessage: failure.message);
+        state = state.copyWith(
+          isMutating: false,
+          errorMessage: failure.message,
+        );
         return Result.failure(failure);
     }
   }
@@ -625,7 +643,9 @@ class CartNotifier extends Notifier<CartState> {
   }
 }
 
-final cartProvider = NotifierProvider<CartNotifier, CartState>(CartNotifier.new);
+final cartProvider = NotifierProvider<CartNotifier, CartState>(
+  CartNotifier.new,
+);
 
 final cartItemCountProvider = Provider<int>((ref) {
   return ref.watch(cartProvider.select((s) => s.count));
@@ -708,8 +728,6 @@ final cartSummaryProvider = Provider<CartSummary>((ref) {
 
 final isProductInCartProvider = Provider.family<bool, String>((ref, productId) {
   return ref.watch(
-    cartProvider.select(
-      (s) => s.items.any((e) => e.productId == productId),
-    ),
+    cartProvider.select((s) => s.items.any((e) => e.productId == productId)),
   );
 });

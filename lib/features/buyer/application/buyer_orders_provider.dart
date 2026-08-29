@@ -67,10 +67,9 @@ class BuyerOrdersNotifier extends Notifier<BuyerOrdersListState> {
 
   Future<void> loadInitial() async {
     state = state.copyWith(isLoading: true, clearError: true);
-    final result = await ref.read(paymentRepositoryProvider).listOrders(
-          page: 1,
-          limit: _pageSize,
-        );
+    final result = await ref
+        .read(paymentRepositoryProvider)
+        .listOrders(page: 1, limit: _pageSize);
     switch (result) {
       case Success(:final value):
         state = BuyerOrdersListState(
@@ -79,10 +78,7 @@ class BuyerOrdersNotifier extends Notifier<BuyerOrdersListState> {
           hasMore: value.hasMore,
         );
       case ResultFailure(:final failure):
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
     }
   }
 
@@ -90,17 +86,13 @@ class BuyerOrdersNotifier extends Notifier<BuyerOrdersListState> {
     if (!state.hasMore || state.isLoadingMore || state.isLoading) return;
     state = state.copyWith(isLoadingMore: true, clearError: true);
     final nextPage = state.page + 1;
-    final result = await ref.read(paymentRepositoryProvider).listOrders(
-          page: nextPage,
-          limit: _pageSize,
-        );
+    final result = await ref
+        .read(paymentRepositoryProvider)
+        .listOrders(page: nextPage, limit: _pageSize);
     switch (result) {
       case Success(:final value):
         state = state.copyWith(
-          orders: [
-            ...state.orders,
-            ...value.orders.map(buyerOrderFromPayment),
-          ],
+          orders: [...state.orders, ...value.orders.map(buyerOrderFromPayment)],
           page: value.page,
           hasMore: value.hasMore,
           isLoadingMore: false,
@@ -116,14 +108,16 @@ class BuyerOrdersNotifier extends Notifier<BuyerOrdersListState> {
 
 final buyerOrdersProvider =
     NotifierProvider<BuyerOrdersNotifier, BuyerOrdersListState>(
-  BuyerOrdersNotifier.new,
-);
+      BuyerOrdersNotifier.new,
+    );
 
-final buyerOrderDetailProvider =
-    FutureProvider.autoDispose.family<PaymentOrder, String>((ref, orderId) async {
-  final result = await ref.watch(paymentRepositoryProvider).getOrder(orderId);
-  return switch (result) {
-    Success(:final value) => value,
-    ResultFailure(:final failure) => throw failure,
-  };
-});
+final buyerOrderDetailProvider = FutureProvider.autoDispose
+    .family<PaymentOrder, String>((ref, orderId) async {
+      final result = await ref
+          .watch(paymentRepositoryProvider)
+          .getOrder(orderId);
+      return switch (result) {
+        Success(:final value) => value,
+        ResultFailure(:final failure) => throw failure,
+      };
+    });

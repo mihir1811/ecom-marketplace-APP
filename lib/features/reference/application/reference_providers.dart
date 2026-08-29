@@ -186,5 +186,5 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
 
 final referenceHubProvider =
     NotifierProvider<ReferenceHubNotifier, ReferenceHubState>(
-  ReferenceHubNotifier.new,
-);
+      ReferenceHubNotifier.new,
+    );
