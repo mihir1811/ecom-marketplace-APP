@@ -32,6 +32,7 @@ class Bullion {
     this.mintYear,
     this.imageUrl,
     this.imageUrls = const [],
+    this.sellerId,
   });
 
   final String id;
@@ -60,6 +61,7 @@ class Bullion {
   final int? mintYear;
   final String? imageUrl;
   final List<String> imageUrls;
+  final String? sellerId;
 
   String? get renderableImageUrl {
     final value = imageUrl;

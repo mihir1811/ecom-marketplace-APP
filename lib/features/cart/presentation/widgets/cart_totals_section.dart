@@ -17,7 +17,7 @@ import '../../domain/models/cart_order_estimate.dart';
 import '../../domain/models/fee_rule.dart';
 import 'cart_section_card.dart';
 
-/// Order summary card — merchandise from API, fees from `GET /fees` (+ fallbacks).
+/// Order summary card — merchandise from cart summary, fees from `GET /fees`.
 class CartTotalsSection extends ConsumerWidget {
   const CartTotalsSection({super.key});
 
@@ -55,6 +55,8 @@ class CartTotalsSection extends ConsumerWidget {
       wantVerification: wantVerification && fees.offersGemworldVerification,
       fees: fees,
       lines: lines,
+      apiTotalInr: summary.totalInr,
+      apiTotalUsd: summary.totalUsd,
     );
 
     final walletAppliedInr = useWallet
@@ -72,14 +74,6 @@ class CartTotalsSection extends ConsumerWidget {
     final showItemsSubtotal = totals.subtotalUsd > merchandiseUsd &&
         totals.totalDiscountUsd > 0 &&
         unavailableCount == 0;
-
-    final gstLabel = estimate.gstRateLabel == null ||
-            estimate.gstRateLabel == 'mixed'
-        ? 'GST'
-        : 'GST (${estimate.gstRateLabel}%)';
-    final txLabel = estimate.transactionFeeRateLabel == null
-        ? 'Transaction fee'
-        : 'Transaction fee (${estimate.transactionFeeRateLabel}%)';
 
     return CartSectionCard(
       child: Column(
@@ -126,25 +120,43 @@ class CartTotalsSection extends ConsumerWidget {
           if (wantVerification && estimate.verificationUsd > 0)
             _inrRow(
               context,
-              'GemWorld verification',
+              fees.ofType(FeeType.gemworldVerification).isNotEmpty
+                  ? (fees.ofType(FeeType.gemworldVerification).first.name.trim().isEmpty
+                      ? 'GemWorld verification'
+                      : fees.ofType(FeeType.gemworldVerification).first.name)
+                  : 'GemWorld verification',
               estimate.verificationInr,
               fallbackUsd: estimate.verificationUsd,
               hasRate: estimate.hasLiveRate,
             ),
           if (estimate.hasLiveRate) ...[
-            if (estimate.gstInr > 0)
-              _inrRow(context, gstLabel, estimate.gstInr, hasRate: true),
-            if (estimate.transactionFeeInr > 0)
-              _inrRow(context, txLabel, estimate.transactionFeeInr, hasRate: true),
-            if (estimate.platformFeeInr > 0)
-              _inrRow(context, 'Platform fee', estimate.platformFeeInr, hasRate: true),
-            if (estimate.deliveryFeeInr > 0)
+            for (final fee in estimate.feeLines)
               _inrRow(
                 context,
-                'Delivery fee',
-                estimate.deliveryFeeInr,
+                _feeLabel(fee),
+                fee.amountInr,
                 hasRate: true,
               ),
+          ] else if (feesAsync.isLoading) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+              child: Text(
+                'Loading fees…',
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textMuted(context),
+                ),
+              ),
+            ),
+          ] else if (merchandiseUsd > 0) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+              child: Text(
+                'Fees appear once the live exchange rate loads.',
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textMuted(context),
+                ),
+              ),
+            ),
           ],
           if (summary.appliedPromoCodes.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.s8),
@@ -195,6 +207,15 @@ class CartTotalsSection extends ConsumerWidget {
                       ),
                     ),
                   ],
+                  if (estimate.totalFromApi) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'From cart API',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textMuted(context),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -217,6 +238,13 @@ class CartTotalsSection extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _feeLabel(CartFeeLine fee) {
+    final rate = fee.rateLabel;
+    if (rate == null || rate.isEmpty) return fee.label;
+    if (fee.label.contains('%')) return fee.label;
+    return '${fee.label} ($rate%)';
   }
 
   Widget _subtotalRow(BuildContext context, CartOrderEstimate estimate) {
@@ -244,7 +272,7 @@ class CartTotalsSection extends ConsumerWidget {
                 ),
               ),
               if (estimate.hasLiveRate)
-                  Text(
+                Text(
                   AppCurrency.usd(estimate.merchandiseUsd),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textMuted(context),
@@ -270,7 +298,7 @@ class CartTotalsSection extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
-              child: Text(
+            child: Text(
               label,
               style: AppTypography.caption.copyWith(
                 color: AppColors.textSecondary(context),

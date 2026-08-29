@@ -57,7 +57,7 @@ final List<RouteBase> buyerRoutes = [
     path: AppRouteNames.buyerInquiryNew,
     builder: (context, state) => const BuyerLayout(
       title: 'New inquiry',
-      child: SellerInquiryFormScreen(showHeader: false),
+      child: SellerInquiryFormScreen(),
     ),
   ),
   GoRoute(
@@ -67,7 +67,6 @@ final List<RouteBase> buyerRoutes = [
       child: SellerInquiryDetailScreen(
         categoryName: state.pathParameters['category']!,
         inquiryId: state.pathParameters['inquiryId']!,
-        showHeader: false,
       ),
     ),
   ),
@@ -93,6 +92,7 @@ final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: AppRouteNames.buyerMessages,
     builder: (context, state) => const BuyerLayout(
+      title: 'Messages',
       child: VerifiedAccountGate(
         fallbackRoute: AppRouteNames.buyerProfile,
         child: SellerOnlyGate(
@@ -105,6 +105,7 @@ final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: '/buyer/messages/:chatId',
     builder: (context, state) => BuyerLayout(
+      title: 'Chat',
       child: VerifiedAccountGate(
         fallbackRoute: AppRouteNames.buyerProfile,
         child: SellerOnlyGate(

@@ -6,6 +6,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../watches/domain/models/watch.dart';
+import '../models/listing_seller_info.dart';
 import '../models/product_detail.dart';
 
 /// Maps a luxury watch onto the universal detail shape.
@@ -60,6 +61,9 @@ ProductDetail watchProductDetail(Watch w) {
       ProductHighlight('Year', '${w.year}'),
       ProductHighlight('Condition', w.condition),
     ],
+    availability: _availability(w),
+    availabilityStatus: _availabilityStatus(w.availabilityStatus),
+    listingSeller: listingSellerFromSellerId(w.sellerId),
     specSections: [
       specSection(ProductSpecGroup.essentials, {
         'Brand': w.brand,
@@ -207,4 +211,40 @@ String _na(String? value) {
     return '-';
   }
   return t;
+}
+
+ProductAvailability _availability(Watch w) {
+  final status = w.availabilityStatus.trim();
+  final normalized = status.toLowerCase();
+  if (normalized.contains('hold')) {
+    return const ProductAvailability(
+      label: 'On hold',
+      tone: ProductStockTone.unavailable,
+    );
+  }
+  if (normalized.contains('memo')) {
+    return const ProductAvailability(
+      label: 'On memo',
+      tone: ProductStockTone.unavailable,
+    );
+  }
+  if (!w.inStock || normalized.contains('sold')) {
+    return ProductAvailability(
+      label: status.isEmpty ? 'Unavailable' : status,
+      tone: ProductStockTone.unavailable,
+    );
+  }
+  return ProductAvailability(
+    label: status.isEmpty ? 'Available' : status,
+    tone: ProductStockTone.available,
+  );
+}
+
+String? _availabilityStatus(String status) {
+  final normalized = status.trim().toLowerCase();
+  if (normalized.contains('hold')) return 'hold';
+  if (normalized.contains('memo')) return 'memo';
+  if (normalized.contains('sold')) return 'sold';
+  if (normalized.contains('available') || normalized == 'yes') return 'yes';
+  return normalized.isEmpty ? null : normalized;
 }

@@ -90,9 +90,8 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
         // Apply brand-specific filters (style and price range)
         final filtered =
             _applyBrandFilters(response.watches, filterState);
-        final sorted = _applySort(filtered, filterState.sort);
         state = AsyncData(BrandWatchListState(
-          watches: sorted,
+          watches: filtered,
           hasMore: response.hasMore,
           totalCount: filtered.length,
         ));
@@ -126,9 +125,8 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
       case Success(value: final response):
         final filtered =
             _applyBrandFilters(response.watches, filterState);
-        final sorted = _applySort(filtered, filterState.sort);
         state = AsyncData(BrandWatchListState(
-          watches: [...current.watches, ...sorted],
+          watches: [...current.watches, ...filtered],
           hasMore: response.hasMore,
           totalCount: current.totalCount + filtered.length,
         ));
@@ -162,19 +160,6 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
 
       return true;
     }).toList();
-  }
-
-  List<Watch> _applySort(List<Watch> watches, BrandWatchSortOption sort) {
-    final sorted = List<Watch>.from(watches);
-    switch (sort) {
-      case BrandWatchSortOption.priceHighToLow:
-        sorted.sort((a, b) => b.price.compareTo(a.price));
-      case BrandWatchSortOption.priceLowToHigh:
-        sorted.sort((a, b) => a.price.compareTo(b.price));
-      case BrandWatchSortOption.newest:
-        sorted.sort((a, b) => b.year.compareTo(a.year));
-    }
-    return sorted;
   }
 
   WatchSortOption _mapSort(BrandWatchSortOption sort) {

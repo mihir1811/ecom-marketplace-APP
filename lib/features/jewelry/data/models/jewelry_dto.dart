@@ -12,6 +12,7 @@ class JewelryDto {
     this.tags,
     this.videoURL,
     this.isOnAuction,
+    this.sellerId,
     this.variants = const [],
     this.subcategory,
   });
@@ -27,6 +28,7 @@ class JewelryDto {
   final String? tags;
   final String? videoURL;
   final bool? isOnAuction;
+  final String? sellerId;
   final List<JewelryVariantDto> variants;
   final JewelrySubcategoryDto? subcategory;
 
@@ -54,6 +56,7 @@ class JewelryDto {
       tags: json['tags']?.toString(),
       videoURL: json['videoURL']?.toString(),
       isOnAuction: json['isOnAuction'] as bool?,
+      sellerId: json['sellerId']?.toString(),
       variants: variants,
       subcategory: subJson is Map<String, dynamic>
           ? JewelrySubcategoryDto.fromJson(subJson)

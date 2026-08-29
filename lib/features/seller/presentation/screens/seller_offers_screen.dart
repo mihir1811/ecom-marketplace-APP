@@ -9,7 +9,6 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
 import '../../../product_offer/data/mappers/product_offer_mapper.dart';
 import '../../../product_offer/domain/models/product_offer.dart';
-import '../widgets/seller_layout.dart';
 
 class SellerOffersScreen extends ConsumerStatefulWidget {
   const SellerOffersScreen({super.key});
@@ -72,31 +71,18 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
+        if (state.isLoading)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(8, 8, 16, 0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              Expanded(
-                child: Text(
-                  'Offers',
-                  style: AppTypography.headline.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              if (state.isLoading)
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-            ],
+            ),
           ),
-        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.s16),

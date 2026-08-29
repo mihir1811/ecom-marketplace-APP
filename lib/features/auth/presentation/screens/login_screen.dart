@@ -154,6 +154,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                             ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: authState.isLoading
+                                    ? null
+                                    : () => context.go(
+                                      AppRouteNames.recoverAccount,
+                                    ),
+                                child: Text(
+                                  'Recover deleted account',
+                                  style: AppTypography.label.copyWith(
+                                    color: AppColors.textPrimary(context),
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ),
 
                             if (authState.errorMessage != null) ...[
                               const SizedBox(height: AppSpacing.s16),

@@ -4,6 +4,7 @@ import '../../core/router/route_names.dart';
 import '../../core/auth/business_registration_data.dart';
 import 'presentation/screens/forgot_password_screen.dart';
 import 'presentation/screens/login_screen.dart';
+import 'presentation/screens/recover_account_screen.dart';
 import 'presentation/screens/register_screen.dart';
 import 'presentation/screens/reset_password_screen.dart';
 import 'presentation/screens/verify_otp_screen.dart';
@@ -41,6 +42,13 @@ final List<RouteBase> authRoutes = [
       final token = state.uri.queryParameters['token'] ??
           state.uri.queryParameters['accessToken'];
       return ResetPasswordScreen(resetToken: token);
+    },
+  ),
+  GoRoute(
+    path: AppRouteNames.recoverAccount,
+    builder: (context, state) {
+      final token = state.uri.queryParameters['token'];
+      return RecoverAccountScreen(recoveryToken: token);
     },
   ),
 ];

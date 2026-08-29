@@ -47,6 +47,21 @@ class ListingSellerInfo {
 
 enum ListingSellerRegistrationType { individual, business, unknown }
 
+ListingSellerInfo? listingSellerFromSellerId(String? sellerId) {
+  final id = sellerId?.trim();
+  if (id == null || id.isEmpty) return null;
+  return ListingSellerInfo(id: id, displayName: 'Seller');
+}
+
+ListingSellerInfo? listingSellerFromListingPayload({
+  Object? sellerRaw,
+  String? sellerId,
+}) {
+  final parsed = listingSellerFromMap(sellerRaw);
+  if (parsed != null) return parsed;
+  return listingSellerFromSellerId(sellerId);
+}
+
 ListingSellerInfo? listingSellerFromMap(Object? raw) {
   if (raw is! Map) return null;
 

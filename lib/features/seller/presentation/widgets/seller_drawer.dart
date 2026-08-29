@@ -148,7 +148,9 @@ class SellerDrawer extends ConsumerWidget {
                       child: InkWell(
                         onTap: () {
                           Navigator.of(context).maybePop();
-                          context.openRoute(item.route);
+                          // Replace, don't push — avoids blank screens when
+                          // popping through stacked shell peer routes.
+                          context.switchToRoute(item.route);
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(

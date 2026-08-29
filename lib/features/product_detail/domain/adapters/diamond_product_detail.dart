@@ -399,12 +399,12 @@ ProductAvailability _availability(Diamond d) {
   return switch ((d.available ?? '').toLowerCase()) {
     'hold' => const ProductAvailability(
         label: 'On hold',
-        tone: ProductStockTone.limited,
+        tone: ProductStockTone.unavailable,
         detail: 'This stone is currently on hold with another buyer.',
       ),
     'memo' => const ProductAvailability(
         label: 'On memo',
-        tone: ProductStockTone.limited,
+        tone: ProductStockTone.unavailable,
       ),
     'yes' => const ProductAvailability(
         label: 'Available',

@@ -14,7 +14,6 @@ import '../../../refunds/application/refund_providers.dart';
 import '../../../refunds/domain/models/refund_request.dart';
 import '../../data/seller_orders_mock_data.dart';
 import '../../domain/models/seller_orders_models.dart';
-import '../widgets/seller_layout.dart';
 
 class SellerOrdersScreen extends ConsumerStatefulWidget {
   const SellerOrdersScreen({super.key});
@@ -51,24 +50,6 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-                tooltip: 'Open menu',
-              ),
-              Text(
-                'Orders',
-                style: AppTypography.headline.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
         TabBar(
           controller: _tabController,
           labelColor: accent,

@@ -18,6 +18,12 @@ abstract final class AuthApiError {
         serverMessage ?? 'Please check your details and try again.',
       );
     }
+    if (status == 404) {
+      return const NetworkFailure(
+        'Account deletion is not available on the server yet. '
+        'Please try again later or contact support.',
+      );
+    }
     if (serverMessage != null && serverMessage.isNotEmpty) {
       if (status != null && status >= 500) {
         return NetworkFailure(serverMessage);

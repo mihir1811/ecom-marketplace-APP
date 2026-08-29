@@ -9,6 +9,10 @@ abstract final class ApiEndpoints {
   static const String authForgetPassword = '/auth/forget-password';
   static const String authResetPassword = '/auth/reset-password';
 
+  // Account deletion (7-day recovery window)
+  static const String accountDeletionRequest = '/account-deletion/request';
+  static const String accountDeletionRecover = '/account-deletion/recover';
+
   /// List + autocomplete (`search` / `searchBy` query params).
   static const String diamondProjects = '/diamond-projects';
   static String diamondProjectById(String id) => '/diamond-projects/$id';

@@ -1,3 +1,4 @@
+import '../../../../core/catalog/catalog_purchase_policy.dart';
 import '../../../../core/utils/melee_purchase_math.dart';
 import '../../domain/models/cart_item.dart';
 import '../../domain/models/cart_product_type.dart';
@@ -122,6 +123,12 @@ abstract final class CartMapper {
       promoDiscountTotal: _num(json['promoDiscountTotal']) ?? 0,
       totalDiscount: _num(json['totalDiscount']) ?? 0,
       discountedSubtotal: _num(json['discountedSubtotal']) ?? 0,
+      totalUsd: _num(json['totalUsd']) ??
+          _num(json['grandTotalUsd']) ??
+          _num(json['total']),
+      totalInr: _num(json['totalInr']) ??
+          _num(json['grandTotalInr']) ??
+          _num(json['estimatedTotalInr']),
       appliedPromoCodes: promos,
       automaticDiscounts: autos,
     );
@@ -316,6 +323,8 @@ abstract final class CartMapper {
       promoDiscountTotal: summary.promoDiscountTotal,
       totalDiscount: summary.totalDiscount,
       discountedSubtotal: discounted,
+      totalUsd: summary.totalUsd,
+      totalInr: summary.totalInr,
       appliedPromoCodes: summary.appliedPromoCodes,
       automaticDiscounts: summary.automaticDiscounts,
     );
@@ -381,12 +390,31 @@ abstract final class CartMapper {
 
     final raw = (_str(row['available']) ??
             _str(row['availability']) ??
+            _str(row['availabilityStatus']) ??
             _str(product['available']) ??
             _str(product['availability']) ??
+            _str(product['availabilityStatus']) ??
             '')
         .toLowerCase();
 
+    if (CatalogPurchasePolicy.isOnHoldOrMemo(raw)) {
+      return (
+        isAvailable: false,
+        label: CatalogPurchasePolicy.normalizeCode(raw) == 'memo'
+            ? 'On memo'
+            : 'On hold',
+      );
+    }
+
     return switch (raw) {
+      'hold' ||
+      'on hold' ||
+      'memo' ||
+      'on memo' =>
+        (
+          isAvailable: false,
+          label: raw == 'memo' || raw == 'on memo' ? 'On memo' : 'On hold',
+        ),
       'no' ||
       'sold' ||
       'unavailable' ||

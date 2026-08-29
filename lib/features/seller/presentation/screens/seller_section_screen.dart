@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../widgets/seller_layout.dart';
 
 /// Placeholder for seller sections that are not yet fully implemented.
 class SellerSectionScreen extends StatelessWidget {
@@ -19,18 +18,9 @@ class SellerSectionScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-                tooltip: 'Open menu',
-              ),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-            ],
+          Text(
+            title,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 16),
           Text(

@@ -6,7 +6,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/seller_orders_mock_data.dart';
 import '../../domain/models/seller_orders_models.dart';
-import '../widgets/seller_layout.dart';
 
 class SellerOrderDetailScreen extends StatefulWidget {
   const SellerOrderDetailScreen({required this.orderId, super.key});
@@ -117,23 +116,6 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(4, 8, 16, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-              ),
-              Text(
-                'Order details',
-                style: AppTypography.title.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.s16),

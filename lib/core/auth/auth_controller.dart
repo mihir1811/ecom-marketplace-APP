@@ -386,6 +386,74 @@ class AuthController extends Notifier<AuthState> {
     state = const AuthState();
   }
 
+  /// Schedules account deletion; clears session on success.
+  Future<bool> requestAccountDeletion({required String password}) async {
+    _cancelExpiryTimer();
+    _setLoading();
+    _clearEphemeralFlags();
+
+    if (password.isEmpty) {
+      return _fail('Password is required to delete your account.');
+    }
+
+    final result = await _repo.requestAccountDeletion(password: password);
+    return switch (result) {
+      Success(:final value) => () {
+          state = AuthState(
+            isLoading: false,
+            accountDeletionMessage: value.message,
+            accountDeletionRecoverUntil: value.recoverUntil,
+          );
+          return true;
+        }(),
+      ResultFailure(:final failure) => _fail(failure.message),
+    };
+  }
+
+  /// Recovers a scheduled-for-deletion account (public).
+  Future<bool> recoverAccount({
+    String? token,
+    String? email,
+    String? password,
+  }) async {
+    _setLoading();
+    state = state.copyWith(
+      errorMessage: null,
+      accountRecovered: false,
+    );
+
+    final tokenValue = token?.trim() ?? '';
+    final emailValue = email?.trim() ?? '';
+    final hasToken = tokenValue.isNotEmpty;
+    final hasCredentials = emailValue.isNotEmpty && (password?.isNotEmpty ?? false);
+
+    if (!hasToken && !hasCredentials) {
+      return _fail(
+        'Enter the recovery token from your email, or your email and password.',
+      );
+    }
+    if (!hasToken && !isValidEmail(emailValue)) {
+      return _fail('Enter a valid email address.');
+    }
+
+    final result = await _repo.recoverAccount(
+      token: hasToken ? tokenValue : null,
+      email: hasToken ? null : emailValue,
+      password: hasToken ? null : password,
+    );
+    return switch (result) {
+      Success() => () {
+          state = state.copyWith(
+            isLoading: false,
+            accountRecovered: true,
+            errorMessage: null,
+          );
+          return true;
+        }(),
+      ResultFailure(:final failure) => _fail(failure.message),
+    };
+  }
+
   void clearError() {
     state = state.copyWith(errorMessage: null);
   }
@@ -504,6 +572,8 @@ class AuthController extends Notifier<AuthState> {
     state = state.copyWith(
       resetLinkSent: false,
       passwordResetSuccess: false,
+      accountRecovered: false,
+      clearAccountDeletion: true,
       errorMessage: null,
     );
   }

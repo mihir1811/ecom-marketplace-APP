@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/auth/confirm_delete_account.dart';
 import '../../../../core/auth/confirm_sign_out.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
@@ -97,7 +98,8 @@ class BuyerSettingsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.description_outlined),
                 title: const Text('Terms & Conditions'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.openRoute(AppRouteNames.termsAndConditions),
+                onTap: () =>
+                    context.openRoute(AppRouteNames.termsAndConditions),
               ),
               const Divider(height: 1),
               ListTile(
@@ -117,11 +119,64 @@ class BuyerSettingsScreen extends ConsumerWidget {
                   context.resetTo(AppRouteNames.home);
                 },
               ),
+              const Divider(height: 1),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(
+                  Icons.delete_forever_outlined,
+                  color: AppColors.error,
+                ),
+                title: Text(
+                  'Delete account',
+                  style: AppTypography.label.copyWith(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                subtitle: Text(
+                  'Schedules deletion with a 7-day recovery window.',
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textMuted(context),
+                  ),
+                ),
+                onTap: () => _onDeleteAccount(context, ref),
+              ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _onDeleteAccount(BuildContext context, WidgetRef ref) async {
+    final password = await confirmDeleteAccount(context);
+    if (password == null || !context.mounted) return;
+
+    final ok = await ref
+        .read(authProvider.notifier)
+        .requestAccountDeletion(password: password);
+    if (!context.mounted) return;
+
+    if (!ok) {
+      final message = ref.read(authProvider).errorMessage ??
+          'Could not delete account. Please try again.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+      return;
+    }
+
+    final deletion = ref.read(authProvider);
+    final until = deletion.accountDeletionRecoverUntil;
+    final base = deletion.accountDeletionMessage ??
+        'Your account is scheduled for deletion.';
+    final detail =
+        until == null ? base : '$base Recover by ${until.toLocal()}.';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(detail)),
+    );
+    context.resetTo(AppRouteNames.recoverAccount);
   }
 }
 

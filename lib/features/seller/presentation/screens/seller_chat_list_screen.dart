@@ -9,10 +9,8 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
-import '../../../buyer/presentation/widgets/buyer_layout.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_thread.dart';
-import '../widgets/seller_layout.dart';
 
 class SellerChatListScreen extends ConsumerStatefulWidget {
   const SellerChatListScreen({super.key});
@@ -49,46 +47,24 @@ class _SellerChatListScreenState extends ConsumerState<SellerChatListScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s8,
-              AppSpacing.s12,
-              AppSpacing.s16,
-              AppSpacing.s8,
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    final path = GoRouterState.of(context).uri.path;
-                    if (isBuyerPath(path)) {
-                      openBuyerDrawer(context);
-                    } else {
-                      openSellerDrawer(context);
-                    }
-                  },
-                  icon: const Icon(Icons.menu_rounded),
-                  tooltip: 'Menu',
-                ),
-                Expanded(
-                  child: Text(
-                    'Messages',
-                    style: AppTypography.headline.copyWith(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                ),
-                if (state.threads.isNotEmpty)
-                  Text(
-                    '${state.threads.length}',
+          if (state.threads.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s16,
+                AppSpacing.s8,
+                AppSpacing.s16,
+                AppSpacing.s4,
+              ),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '${state.threads.length}',
                   style: AppTypography.caption.copyWith(
-                  color: AppColors.textMuted(context),
-                ),
+                    color: AppColors.textMuted(context),
                   ),
-              ],
+                ),
+              ),
             ),
-          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
             child: TextField(

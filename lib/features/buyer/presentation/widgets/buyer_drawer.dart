@@ -186,7 +186,7 @@ class BuyerDrawer extends ConsumerWidget {
                       child: InkWell(
                         onTap: () {
                           Navigator.of(context).maybePop();
-                          context.openRoute(item.route);
+                          context.switchToRoute(item.route);
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(

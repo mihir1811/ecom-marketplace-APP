@@ -10,7 +10,6 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_insights_provider.dart';
 import '../../domain/models/seller_insights.dart';
-import '../widgets/seller_layout.dart';
 
 /// Seller analytics screen: revenue trend, category mix, order status,
 /// top products, and engagement metrics.
@@ -69,28 +68,6 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
           child: ListView(
             children: [
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () => openSellerDrawer(context),
-                    icon: const Icon(Icons.menu),
-                    color: AppColors.textPrimary(context),
-                    tooltip: 'Open menu',
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 40, minHeight: 40),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Analytics',
-                      style: AppTypography.headline.copyWith(
-                        color: AppColors.textPrimary(context),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.s8),
               Text(
                 'Performance insights across sales, orders, and traffic.',
                 style: AppTypography.body.copyWith(

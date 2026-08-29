@@ -188,11 +188,11 @@ ProductAvailability _availability(Gemstone g) {
   return switch ((g.availability ?? '').toLowerCase()) {
     'hold' => const ProductAvailability(
       label: 'On hold',
-      tone: ProductStockTone.limited,
+      tone: ProductStockTone.unavailable,
     ),
     'memo' => const ProductAvailability(
       label: 'On memo',
-      tone: ProductStockTone.limited,
+      tone: ProductStockTone.unavailable,
     ),
     'yes' => const ProductAvailability(
       label: 'Available',

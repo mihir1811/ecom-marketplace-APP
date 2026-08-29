@@ -8,7 +8,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../auth/application/login_history_providers.dart';
 import '../../../auth/domain/models/login_session.dart';
-import '../widgets/seller_layout.dart';
 
 class SellerLoginHistoryScreen extends ConsumerWidget {
   const SellerLoginHistoryScreen({super.key});
@@ -61,23 +60,6 @@ class SellerLoginHistoryScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-              ),
-              Text(
-                'Login history & devices',
-                style: AppTypography.headline.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.s16),

@@ -12,6 +12,9 @@ class AuthState {
     this.resetLinkSent = false,
     this.pendingVerificationEmail,
     this.passwordResetSuccess = false,
+    this.accountDeletionMessage,
+    this.accountDeletionRecoverUntil,
+    this.accountRecovered = false,
   });
 
   final AuthUser? user;
@@ -27,6 +30,15 @@ class AuthState {
 
   /// True after a successful reset-password call.
   final bool passwordResetSuccess;
+
+  /// Server message after scheduling account deletion.
+  final String? accountDeletionMessage;
+
+  /// End of the 7-day recovery window (ISO from API).
+  final DateTime? accountDeletionRecoverUntil;
+
+  /// True after a successful recover-account call.
+  final bool accountRecovered;
 
   bool get isAuthenticated =>
       user != null && !user!.isBlocked && !user!.isDeleted;
@@ -51,9 +63,13 @@ class AuthState {
     bool? resetLinkSent,
     String? pendingVerificationEmail,
     bool? passwordResetSuccess,
+    String? accountDeletionMessage,
+    DateTime? accountDeletionRecoverUntil,
+    bool? accountRecovered,
     bool clearUser = false,
     bool clearSellerId = false,
     bool clearPendingEmail = false,
+    bool clearAccountDeletion = false,
   }) {
     return AuthState(
       user: clearUser ? null : (user ?? this.user),
@@ -68,6 +84,13 @@ class AuthState {
           : (pendingVerificationEmail ?? this.pendingVerificationEmail),
       passwordResetSuccess:
           passwordResetSuccess ?? this.passwordResetSuccess,
+      accountDeletionMessage: clearAccountDeletion
+          ? null
+          : (accountDeletionMessage ?? this.accountDeletionMessage),
+      accountDeletionRecoverUntil: clearAccountDeletion
+          ? null
+          : (accountDeletionRecoverUntil ?? this.accountDeletionRecoverUntil),
+      accountRecovered: accountRecovered ?? this.accountRecovered,
     );
   }
 }

@@ -7,6 +7,8 @@ class CartSummary {
     this.promoDiscountTotal = 0,
     this.totalDiscount = 0,
     this.discountedSubtotal = 0,
+    this.totalUsd,
+    this.totalInr,
     this.appliedPromoCodes = const [],
     this.automaticDiscounts = const [],
   });
@@ -17,10 +19,21 @@ class CartSummary {
   final double promoDiscountTotal;
   final double totalDiscount;
   final double discountedSubtotal;
+
+  /// Optional grand total from API (USD). When set, order summary prefers it.
+  final double? totalUsd;
+
+  /// Optional grand total from API (INR). When set, order summary prefers it.
+  final double? totalInr;
+
   final List<AppliedPromoCode> appliedPromoCodes;
   final List<AutomaticDiscount> automaticDiscounts;
 
   bool get isEmpty => items.isEmpty && subtotal <= 0;
+
+  bool get hasApiTotal =>
+      (totalUsd != null && totalUsd! > 0) ||
+      (totalInr != null && totalInr! > 0);
 
   static const empty = CartSummary();
 }

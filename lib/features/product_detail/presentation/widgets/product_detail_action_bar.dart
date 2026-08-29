@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/account_access.dart';
+import '../../../../core/catalog/catalog_purchase_policy.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/router/route_names.dart';
@@ -36,8 +37,13 @@ class ProductDetailActionBar extends ConsumerWidget {
       return;
     }
     if (!AccountAccess.guard(context, ref)) return;
-    if (_isOwnListing(ref)) {
-      _notify(context, 'You cannot purchase your own listing');
+    final auth = ref.read(authProvider);
+    final blockMessage = detail.addToCartBlockMessage(
+      userId: auth.user?.id,
+      sellerId: auth.sellerId,
+    );
+    if (blockMessage != null) {
+      _notify(context, blockMessage);
       return;
     }
 
@@ -206,7 +212,23 @@ class ProductDetailActionBar extends ConsumerWidget {
       userId: auth.user?.id,
       sellerId: auth.sellerId,
     );
+    final blockMessage = detail.addToCartBlockMessage(
+      userId: auth.user?.id,
+      sellerId: auth.sellerId,
+    );
     final showOffer = detail.canMakeAnOffer && !ownListing;
+    final addLabel = ownListing
+        ? 'Your listing'
+        : blockMessage != null
+            ? (CatalogPurchasePolicy.isOnHoldOrMemo(detail.availabilityStatus) ||
+                    CatalogPurchasePolicy.isOnHoldOrMemo(
+                      detail.availability?.label,
+                    )
+                ? 'On hold / memo'
+                : 'Unavailable')
+            : inCart
+                ? 'View in cart'
+                : 'Add to cart';
 
     return Container(
       decoration: BoxDecoration(
@@ -248,15 +270,7 @@ class ProductDetailActionBar extends ConsumerWidget {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(
-                      ownListing
-                          ? 'Your listing'
-                          : !purchasable
-                              ? 'Unavailable'
-                              : inCart
-                                  ? 'View in cart'
-                                  : 'Add to cart',
-                    ),
+                  : Text(addLabel),
             ),
           ),
         ],

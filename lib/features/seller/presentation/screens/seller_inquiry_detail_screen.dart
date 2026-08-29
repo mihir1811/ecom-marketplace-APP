@@ -13,19 +13,16 @@ import '../../application/inquiry_provider.dart';
 import '../../domain/models/seller_inquiry.dart';
 import '../widgets/inquiry_form_fields.dart';
 import '../widgets/inquiry_seller_reply.dart';
-import '../widgets/seller_layout.dart';
 
 class SellerInquiryDetailScreen extends ConsumerWidget {
   const SellerInquiryDetailScreen({
     required this.categoryName,
     required this.inquiryId,
-    this.showHeader = true,
     super.key,
   });
 
   final String categoryName;
   final String inquiryId;
-  final bool showHeader;
 
   Future<void> _confirmDelete(
     BuildContext context,
@@ -113,7 +110,6 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
       data: (inquiry) => _InquiryDetailBody(
         inquiry: inquiry,
         category: category,
-        showHeader: showHeader,
         onDelete: () => _confirmDelete(context, ref, category),
       ),
     );
@@ -124,13 +120,11 @@ class _InquiryDetailBody extends StatelessWidget {
   const _InquiryDetailBody({
     required this.inquiry,
     required this.category,
-    required this.showHeader,
     required this.onDelete,
   });
 
   final SellerInquiry inquiry;
   final InquiryCategory category;
-  final bool showHeader;
   final VoidCallback onDelete;
 
   bool _isImageFieldKey(String key) {
@@ -167,30 +161,13 @@ class _InquiryDetailBody extends StatelessWidget {
 
     return Column(
       children: [
-        if (showHeader)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 8, 8, 0),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => openSellerDrawer(context),
-                  icon: const Icon(Icons.menu),
-                ),
-                TextButton(
-                  onPressed: () => context.goBack(),
-                  child: const Text('All inquiries'),
-                ),
-              ],
-            ),
-          )
-        else
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () => context.goBack(),
-              child: const Text('All inquiries'),
-            ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: () => context.goBack(),
+            child: const Text('All inquiries'),
           ),
+        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.s16),

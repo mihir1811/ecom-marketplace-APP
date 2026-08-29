@@ -44,6 +44,7 @@ abstract final class BullionMapper {
       mintYear: dto.mintYear,
       imageUrl: images.isEmpty ? null : images.first,
       imageUrls: images,
+      sellerId: _clean(dto.sellerId),
     );
   }
 

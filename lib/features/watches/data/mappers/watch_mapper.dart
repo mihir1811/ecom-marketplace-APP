@@ -60,6 +60,7 @@ abstract final class WatchMapper {
       papersIncluded: dto.papersIncluded ?? false,
       warrantyCardIncluded: dto.warrantyCardIncluded ?? false,
       inStock: _mapAvailability(dto.availabilityStatus) == 'Available',
+      sellerId: _clean(dto.sellerId),
     );
   }
 

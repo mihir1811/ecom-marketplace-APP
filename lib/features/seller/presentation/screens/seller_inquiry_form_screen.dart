@@ -19,20 +19,15 @@ import '../widgets/gemstone_inquiry_form.dart';
 import '../widgets/inquiry_category_picker.dart';
 import '../widgets/inquiry_form_fields.dart';
 import '../widgets/jewelry_inquiry_form.dart';
-import '../widgets/seller_layout.dart';
 import '../widgets/watch_inquiry_form.dart';
 
 class SellerInquiryFormScreen extends ConsumerStatefulWidget {
   const SellerInquiryFormScreen({
     super.key,
     this.initialCategory,
-    this.showHeader = true,
   });
 
   final InquiryCategory? initialCategory;
-
-  /// When false, the parent shell already provides the title/menu app bar.
-  final bool showHeader;
 
   @override
   ConsumerState<SellerInquiryFormScreen> createState() =>
@@ -213,34 +208,13 @@ class _SellerInquiryFormScreenState
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (widget.showHeader)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 8, 8, 0),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => openSellerDrawer(context),
-                  icon: const Icon(Icons.menu),
-                ),
-                Expanded(
-                  child: Text(
-                    'Product inquiry',
-                    style: AppTypography.title.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )
-        else
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () => context.goBack(),
-              child: const Text('All inquiries'),
-            ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: () => context.goBack(),
+            child: const Text('All inquiries'),
           ),
+        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.s16),

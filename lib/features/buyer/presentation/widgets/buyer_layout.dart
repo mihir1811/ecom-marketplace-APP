@@ -43,20 +43,17 @@ class BuyerLayout extends ConsumerWidget {
       appBar: hasAppBar
           ? AppTopBar(
               title: title!,
-              leading: IconButton(
-                tooltip: 'Menu',
-                icon: const Icon(Icons.menu),
-                onPressed: () => openBuyerDrawer(context),
-              ),
+              leading: const AppDrawerButton(),
               showDrawerButton: false,
               // Cart → Wallet → Messages → Theme (AppTopBar fixed order)
               showCart: true,
               showWallet: true,
               showMessages: true,
               showThemeToggle: true,
-              onSellerWalletTap: () => context.openRoute(AppRouteNames.buyerWallet),
+              onSellerWalletTap: () =>
+                  context.switchToRoute(AppRouteNames.buyerWallet),
               onSellerMessagesTap: () =>
-                  context.openRoute(AppRouteNames.buyerMessages),
+                  context.switchToRoute(AppRouteNames.buyerMessages),
             )
           : null,
       body: child,

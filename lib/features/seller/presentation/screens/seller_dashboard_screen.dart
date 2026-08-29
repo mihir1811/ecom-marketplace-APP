@@ -13,7 +13,6 @@ import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_insights_provider.dart';
 import '../../domain/models/seller_insights.dart';
-import '../widgets/seller_layout.dart';
 
 /// Seller dashboard screen shown after login.
 class SellerDashboardScreen extends ConsumerStatefulWidget {
@@ -530,37 +529,11 @@ class _TopHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            IconButton(
-              onPressed: () => openSellerDrawer(context),
-              icon: const Icon(Icons.menu),
-              color: AppColors.textPrimary(context),
-              tooltip: 'Open menu',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-            ),
-            Expanded(
-              child: Text(
-                'Dashboard',
-                style: AppTypography.headline.copyWith(
-                  color: AppColors.textPrimary(context),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s8),
-        Text(
-          subtitle,
-          style: AppTypography.body.copyWith(
-            color: AppColors.textSecondary(context),
-          ),
-        ),
-      ],
+    return Text(
+      subtitle,
+      style: AppTypography.body.copyWith(
+        color: AppColors.textSecondary(context),
+      ),
     );
   }
 }

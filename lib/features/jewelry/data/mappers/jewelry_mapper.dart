@@ -74,6 +74,7 @@ abstract final class JewelryMapper {
       imageAsset: null,
       discount: discountPct,
       hasMedia: images.isNotEmpty || (_clean(dto.videoURL) != null),
+      sellerId: _clean(dto.sellerId),
     );
   }
 

@@ -6,6 +6,9 @@ import 'route_names.dart';
 /// App-wide navigation using only GoRouter push/pop/go (never [Navigator.removeRoute]).
 abstract final class AppNavigation {
   /// Opens [location], reusing an existing stack entry when that path is already open.
+  ///
+  /// Use for detail / flow screens that should stack. Prefer [switchTo] for
+  /// drawer / shell peer destinations so back never walks blank intermediate pages.
   static void open(
     BuildContext context,
     String location, {
@@ -28,6 +31,21 @@ abstract final class AppNavigation {
     }
 
     router.push(location, extra: extra);
+  }
+
+  /// Replaces the current location without pushing (drawer / tab / shell peers).
+  static void switchTo(
+    BuildContext context,
+    String location, {
+    Object? extra,
+  }) {
+    final router = GoRouter.of(context);
+    final target = canonicalPath(location);
+    final current = canonicalPath(
+      router.routerDelegate.currentConfiguration.uri.toString(),
+    );
+    if (target == current) return;
+    router.go(location, extra: extra);
   }
 
   /// Pops the current screen, or returns home when there is nothing to pop.
@@ -92,6 +110,9 @@ abstract final class AppNavigation {
 extension AppNavContext on BuildContext {
   void openRoute(String location, {Object? extra}) =>
       AppNavigation.open(this, location, extra: extra);
+
+  void switchToRoute(String location, {Object? extra}) =>
+      AppNavigation.switchTo(this, location, extra: extra);
 
   void goBack() => AppNavigation.back(this);
 

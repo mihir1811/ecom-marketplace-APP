@@ -36,6 +36,7 @@ class Jewelry {
     this.rating,
     this.reviewCount,
     this.wishlisted = false,
+    this.sellerId,
   });
 
   final String id;
@@ -74,6 +75,7 @@ class Jewelry {
   final double? rating;
   final int? reviewCount;
   final bool wishlisted;
+  final String? sellerId;
 
   /// Prefer network image when present; otherwise local asset fallback.
   String? get displayImageUrl {

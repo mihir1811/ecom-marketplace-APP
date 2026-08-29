@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_user.dart';
+import '../../../../core/auth/confirm_delete_account.dart';
 import '../../../../core/error/failure.dart';
+import '../../../../core/router/app_navigation.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -14,7 +17,6 @@ import '../../../auth/presentation/widgets/profile_info_widgets.dart';
 import '../../../auth/presentation/widgets/seller_business_profile_cards.dart';
 import '../../../user_bank_account/application/user_bank_account_providers.dart';
 import '../../../user_bank_account/domain/models/user_bank_account.dart';
-import '../widgets/seller_layout.dart';
 
 /// Seller account profile (read-only).
 class SellerProfileScreen extends ConsumerWidget {
@@ -29,23 +31,6 @@ class SellerProfileScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-              ),
-              Text(
-                'Profile',
-                style: AppTypography.headline.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
         Expanded(
           child: authUser == null
               ? const Center(child: Text('Sign in to view your profile.'))
@@ -60,17 +45,50 @@ class SellerProfileScreen extends ConsumerWidget {
                       bankState: bankState,
                       onRetry: () => ref.invalidate(userProfileProvider),
                       loadError: e is Failure ? e.message : e.toString(),
+                      onDeleteAccount: () => _onDeleteAccount(context, ref),
                     );
                   },
                   data: (profile) => _SellerProfileBody(
                     profile: profile,
                     authUser: authUser,
                     bankState: bankState,
+                    onDeleteAccount: () => _onDeleteAccount(context, ref),
                   ),
                 ),
         ),
       ],
     );
+  }
+
+  Future<void> _onDeleteAccount(BuildContext context, WidgetRef ref) async {
+    final password = await confirmDeleteAccount(context);
+    if (password == null || !context.mounted) return;
+
+    final ok = await ref
+        .read(authProvider.notifier)
+        .requestAccountDeletion(password: password);
+    if (!context.mounted) return;
+
+    if (!ok) {
+      final message = ref.read(authProvider).errorMessage ??
+          'Could not delete account. Please try again.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+      return;
+    }
+
+    final deletion = ref.read(authProvider);
+    final until = deletion.accountDeletionRecoverUntil;
+    final base = deletion.accountDeletionMessage ??
+        'Your account is scheduled for deletion.';
+    final detail =
+        until == null ? base : '$base Recover by ${until.toLocal()}.';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(detail)),
+    );
+    context.resetTo(AppRouteNames.recoverAccount);
   }
 }
 
@@ -81,6 +99,7 @@ class _SellerProfileBody extends StatelessWidget {
     required this.bankState,
     this.onRetry,
     this.loadError,
+    this.onDeleteAccount,
   });
 
   final UserProfile profile;
@@ -88,6 +107,7 @@ class _SellerProfileBody extends StatelessWidget {
   final UserBankAccountState bankState;
   final VoidCallback? onRetry;
   final String? loadError;
+  final VoidCallback? onDeleteAccount;
 
   @override
   Widget build(BuildContext context) {
@@ -198,6 +218,22 @@ class _SellerProfileBody extends StatelessWidget {
             color: AppColors.textMuted(context),
           ),
         ),
+        if (onDeleteAccount != null) ...[
+          const SizedBox(height: AppSpacing.s24),
+          OutlinedButton.icon(
+            onPressed: onDeleteAccount,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.error,
+              side: const BorderSide(color: AppColors.error),
+              padding: const EdgeInsets.symmetric(
+                vertical: AppSpacing.s16,
+                horizontal: AppSpacing.s16,
+              ),
+            ),
+            icon: const Icon(Icons.delete_forever_outlined),
+            label: const Text('Delete account'),
+          ),
+        ],
         const SizedBox(height: AppSpacing.s24),
       ],
     );

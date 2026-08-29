@@ -10,7 +10,6 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../promotions/application/promotions_providers.dart';
 import '../../../promotions/domain/models/promotion.dart';
-import '../widgets/seller_layout.dart';
 
 enum _PromoTab { discounts, promoCodes }
 
@@ -105,31 +104,18 @@ class _SellerPromotionsScreenState extends ConsumerState<SellerPromotionsScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
+        if (state.isLoading || state.isMutating)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(8, 8, 16, 0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              Text(
-                'Promotions Management',
-                style: AppTypography.headline.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (state.isLoading || state.isMutating) ...[
-                const Spacer(),
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ],
-            ],
+            ),
           ),
-        ),
         if (state.errorMessage != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),

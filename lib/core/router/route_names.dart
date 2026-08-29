@@ -47,6 +47,7 @@ class AppRouteNames {
   static const String forgotPassword = '/forgot-password';
   static const String verifyOtp = '/verify-otp';
   static const String resetPassword = '/reset-password';
+  static const String recoverAccount = '/recover-account';
 
   // Buyer (home drawer) — buyer paths; shared UI widgets may be reused
   static const String buyerProfile = '/buyer/profile';

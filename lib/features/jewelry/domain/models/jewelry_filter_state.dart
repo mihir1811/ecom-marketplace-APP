@@ -484,24 +484,12 @@ class JewelryFilterState {
 enum JewelrySortOption {
   featured,
   newest,
-  priceLowToHigh,
-  priceHighToLow,
-  popularity,
-  highestRated,
-  bestSelling,
-  discount,
 }
 
 extension JewelrySortOptionLabel on JewelrySortOption {
   String get label => switch (this) {
         JewelrySortOption.featured => 'Featured',
         JewelrySortOption.newest => 'Newest',
-        JewelrySortOption.priceLowToHigh => 'Price Low to High',
-        JewelrySortOption.priceHighToLow => 'Price High to Low',
-        JewelrySortOption.popularity => 'Popularity',
-        JewelrySortOption.highestRated => 'Highest Rated',
-        JewelrySortOption.bestSelling => 'Best Selling',
-        JewelrySortOption.discount => 'Discount',
       };
 }
 

@@ -25,7 +25,6 @@ abstract class PaginatedAsyncNotifier<T>
     extends AsyncNotifier<PaginatedListState<T>> {
   int _currentPage = 1;
   int _epoch = 0;
-  bool _listenersRegistered = false;
   Future<void>? _inFlightNextPage;
 
   /// Providers that should trigger a fresh first-page load.
@@ -39,10 +38,12 @@ abstract class PaginatedAsyncNotifier<T>
 
   @override
   PaginatedListState<T> build() {
+    for (final trigger in reloadTriggers) {
+      ref.watch(trigger);
+    }
     _currentPage = 1;
     _epoch = 0;
     _inFlightNextPage = null;
-    _registerReloadListeners();
     ref.onDispose(() {
       _epoch++;
       onResetPagination();
@@ -144,16 +145,6 @@ abstract class PaginatedAsyncNotifier<T>
     final current = state.valueOrNull;
     if (current == null) return;
     state = AsyncData(current.copyWith(errorMessage: null));
-  }
-
-  void _registerReloadListeners() {
-    if (_listenersRegistered) return;
-    _listenersRegistered = true;
-    for (final trigger in reloadTriggers) {
-      ref.listen<Object?>(trigger, (_, __) {
-        loadFirstPage();
-      });
-    }
   }
 
   void _setFirstPage(Result<PaginatedPage<T>, Failure> result) {

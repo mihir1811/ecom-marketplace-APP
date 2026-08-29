@@ -51,6 +51,30 @@ abstract class AuthRepository {
     required String resetToken,
     required String newPassword,
   });
+
+  /// Schedules account deletion (Bearer). Clears local session on success.
+  Future<Result<AccountDeletionScheduled, Failure>> requestAccountDeletion({
+    required String password,
+  });
+
+  /// Recovers a scheduled-for-deletion account (public).
+  /// Send [token] **or** [email] + [password].
+  Future<Result<void, Failure>> recoverAccount({
+    String? token,
+    String? email,
+    String? password,
+  });
+}
+
+/// Result of a successful account-deletion request.
+class AccountDeletionScheduled {
+  const AccountDeletionScheduled({
+    required this.message,
+    this.recoverUntil,
+  });
+
+  final String message;
+  final DateTime? recoverUntil;
 }
 
 /// Register succeeded; OTP must be verified before a session exists.
@@ -365,6 +389,76 @@ class AuthRepositoryImpl implements AuthRepository {
         options: Options(
           headers: {'Authorization': 'Bearer $resetToken'},
         ),
+      );
+      return Result.success(null);
+    } on DioException catch (e) {
+      return Result.failure(AuthApiError.fromDio(e));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<AccountDeletionScheduled, Failure>> requestAccountDeletion({
+    required String password,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiEndpoints.accountDeletionRequest,
+        data: {'password': password},
+      );
+      final root = response.data ?? const <String, dynamic>{};
+      final message = (root['message'] as String?)?.trim().isNotEmpty == true
+          ? (root['message'] as String).trim()
+          : 'Your account is scheduled for deletion. You have 7 days to recover it.';
+      final data = root['data'];
+      final payload = data is Map<String, dynamic>
+          ? data
+          : data is Map
+              ? Map<String, dynamic>.from(data)
+              : const <String, dynamic>{};
+      final untilRaw = payload['recoverUntil'];
+      DateTime? recoverUntil;
+      if (untilRaw is String && untilRaw.trim().isNotEmpty) {
+        recoverUntil = DateTime.tryParse(untilRaw.trim());
+      }
+      await _tokenStore.clear();
+      return Result.success(
+        AccountDeletionScheduled(
+          message: message,
+          recoverUntil: recoverUntil,
+        ),
+      );
+    } on DioException catch (e) {
+      return Result.failure(AuthApiError.fromDio(e));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<void, Failure>> recoverAccount({
+    String? token,
+    String? email,
+    String? password,
+  }) async {
+    try {
+      final body = <String, dynamic>{};
+      final tokenValue = token?.trim();
+      if (tokenValue != null && tokenValue.isNotEmpty) {
+        body['token'] = tokenValue;
+      }
+      final emailValue = email?.trim();
+      if (emailValue != null && emailValue.isNotEmpty) {
+        body['email'] = emailValue;
+      }
+      final passwordValue = password;
+      if (passwordValue != null && passwordValue.isNotEmpty) {
+        body['password'] = passwordValue;
+      }
+      await _dio.post<Map<String, dynamic>>(
+        ApiEndpoints.accountDeletionRecover,
+        data: body,
       );
       return Result.success(null);
     } on DioException catch (e) {

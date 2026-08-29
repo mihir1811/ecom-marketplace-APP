@@ -10,7 +10,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_products_provider.dart';
 import '../../domain/models/seller_product.dart';
-import '../widgets/seller_layout.dart';
 import '../widgets/seller_product_cards_view.dart';
 import '../widgets/seller_product_column_picker.dart';
 import '../widgets/seller_product_data_table.dart';
@@ -145,24 +144,6 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-                tooltip: 'Open menu',
-              ),
-              Text(
-                'Products',
-                style: AppTypography.headline.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
         TabBar(
           controller: _tabController,
           labelColor: AppColors.info,

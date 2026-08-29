@@ -6,6 +6,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../jewelry/domain/models/jewelry.dart';
+import '../models/listing_seller_info.dart';
 import '../models/product_detail.dart';
 
 /// Maps a fine jewelry product onto the universal detail shape.
@@ -66,6 +67,8 @@ ProductDetail jewelryProductDetail(Jewelry j) {
       referenceValue: j.sku,
     ),
     availability: _availability(j.availability),
+    availabilityStatus: _availabilityStatus(j.availability),
+    listingSeller: listingSellerFromSellerId(j.sellerId),
     specSections: [
       specSection(ProductSpecGroup.essentials, {
         'Category': j.category,
@@ -108,12 +111,34 @@ ProductDetail jewelryProductDetail(Jewelry j) {
 
 ProductAvailability _availability(String status) {
   final normalized = status.toLowerCase();
+  if (normalized.contains('sold') || normalized.contains('out of stock')) {
+    return ProductAvailability(label: status, tone: ProductStockTone.unavailable);
+  }
+  if (normalized.contains('hold')) {
+    return const ProductAvailability(
+      label: 'On hold',
+      tone: ProductStockTone.unavailable,
+    );
+  }
+  if (normalized.contains('memo')) {
+    return const ProductAvailability(
+      label: 'On memo',
+      tone: ProductStockTone.unavailable,
+    );
+  }
   final tone = switch (normalized) {
-    final s when s.contains('out of stock') || s.contains('sold') =>
-      ProductStockTone.unavailable,
     final s when s.contains('made to order') || s.contains('limited') =>
       ProductStockTone.limited,
     _ => ProductStockTone.available,
   };
   return ProductAvailability(label: status, tone: tone);
+}
+
+String? _availabilityStatus(String status) {
+  final normalized = status.trim().toLowerCase();
+  if (normalized.contains('hold')) return 'hold';
+  if (normalized.contains('memo')) return 'memo';
+  if (normalized.contains('sold')) return 'sold';
+  if (normalized.contains('in stock') || normalized == 'available') return 'yes';
+  return normalized.isEmpty ? null : normalized;
 }

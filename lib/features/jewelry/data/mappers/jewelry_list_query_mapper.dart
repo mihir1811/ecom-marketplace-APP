@@ -40,17 +40,12 @@ abstract final class JewelryListQueryMapper {
     return query;
   }
 
+  /// Parent-model scalars only. Nested variant fields (price, discount) are
+  /// rejected by `GET /jewellery` with HTTP 400.
   static String? _sortField(JewelrySortOption sort) {
     return switch (sort) {
+      JewelrySortOption.featured => '-isOnAuction',
       JewelrySortOption.newest => '-createdAt',
-      JewelrySortOption.featured => '-createdAt',
-      JewelrySortOption.priceLowToHigh => 'createdAt',
-      JewelrySortOption.priceHighToLow => '-createdAt',
-      JewelrySortOption.popularity ||
-      JewelrySortOption.bestSelling ||
-      JewelrySortOption.highestRated ||
-      JewelrySortOption.discount =>
-        '-createdAt',
     };
   }
 

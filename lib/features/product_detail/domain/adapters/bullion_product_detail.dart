@@ -7,6 +7,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../bullions/domain/models/billion.dart';
 import '../../../cart/domain/models/cart_product_type.dart';
+import '../models/listing_seller_info.dart';
 import '../models/product_detail.dart';
 
 /// Maps a bullion bar/coin onto the universal detail shape.
@@ -67,17 +68,9 @@ ProductDetail bullionProductDetail(Bullion b) {
       referenceLabel: 'Mint',
       referenceValue: b.mintMark,
     ),
-    availability: ProductAvailability(
-      label: b.availability,
-      tone: switch (b.quantityAvailable) {
-        0 => ProductStockTone.unavailable,
-        < 5 => ProductStockTone.limited,
-        _ => ProductStockTone.available,
-      },
-      detail: b.quantityAvailable > 0
-          ? '${b.quantityAvailable} units available'
-          : null,
-    ),
+    availability: _availability(b),
+    availabilityStatus: _availabilityStatus(b.availability),
+    listingSeller: listingSellerFromSellerId(b.sellerId),
     specSections: [
       specSection(ProductSpecGroup.essentials, {
         'Metal': metalLabel,
@@ -145,4 +138,42 @@ IconData _metalIcon(BullionMetal metal) {
     BullionMetal.platinum || BullionMetal.palladium => Icons.hexagon_outlined,
     BullionMetal.copper => Icons.hardware_outlined,
   };
+}
+
+ProductAvailability _availability(Bullion b) {
+  final normalized = b.availability.trim().toLowerCase();
+  if (normalized.contains('hold')) {
+    return const ProductAvailability(
+      label: 'On hold',
+      tone: ProductStockTone.unavailable,
+    );
+  }
+  if (normalized.contains('memo')) {
+    return const ProductAvailability(
+      label: 'On memo',
+      tone: ProductStockTone.unavailable,
+    );
+  }
+  if (b.quantityAvailable <= 0) {
+    return ProductAvailability(
+      label: b.availability,
+      tone: ProductStockTone.unavailable,
+    );
+  }
+  return ProductAvailability(
+    label: b.availability,
+    tone: b.quantityAvailable < 5
+        ? ProductStockTone.limited
+        : ProductStockTone.available,
+    detail: '${b.quantityAvailable} units available',
+  );
+}
+
+String? _availabilityStatus(String status) {
+  final normalized = status.trim().toLowerCase();
+  if (normalized.contains('hold')) return 'hold';
+  if (normalized.contains('memo')) return 'memo';
+  if (normalized.contains('sold')) return 'sold';
+  if (normalized.contains('available') || normalized == 'yes') return 'yes';
+  return normalized.isEmpty ? null : normalized;
 }

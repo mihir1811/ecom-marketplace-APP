@@ -41,6 +41,7 @@ class Watch {
     this.warrantyCardIncluded = false,
     this.discount,
     this.inStock = true,
+    this.sellerId,
   });
 
   final String id;
@@ -83,6 +84,7 @@ class Watch {
   final bool warrantyCardIncluded;
   final double? discount;
   final bool inStock;
+  final String? sellerId;
 
   String? get renderableImageUrl {
     final value = imageUrl;

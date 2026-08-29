@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../../../core/catalog/catalog_purchase_policy.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../models/listing_seller_info.dart';
 
@@ -462,7 +463,23 @@ class ProductDetail {
         .toList(growable: false);
   }
 
-  bool get isPurchasable => availability?.tone != ProductStockTone.unavailable;
+  bool get isPurchasable => CatalogPurchasePolicy.canAddToCart(
+        availabilityStatus: availabilityStatus,
+        availability: availability,
+      );
+
+  String? addToCartBlockMessage({
+    required String? userId,
+    required String? sellerId,
+  }) =>
+      CatalogPurchasePolicy.addToCartBlockMessage(
+        ownListing: isOwnedByCurrentAccount(
+          userId: userId,
+          sellerId: sellerId,
+        ),
+        availabilityStatus: availabilityStatus,
+        availability: availability,
+      );
 
   bool isOwnedByCurrentAccount({
     required String? userId,

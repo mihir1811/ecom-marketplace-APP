@@ -48,6 +48,7 @@ class WatchDto {
     this.image6,
     this.videoURL,
     this.description,
+    this.sellerId,
   });
 
   final String id;
@@ -97,6 +98,7 @@ class WatchDto {
   final String? image6;
   final String? videoURL;
   final String? description;
+  final String? sellerId;
 
   factory WatchDto.fromJson(Map<String, dynamic> json) {
     return WatchDto(
@@ -147,6 +149,7 @@ class WatchDto {
       image6: json['image6']?.toString(),
       videoURL: json['videoURL']?.toString(),
       description: json['description']?.toString(),
+      sellerId: json['sellerId']?.toString(),
     );
   }
 

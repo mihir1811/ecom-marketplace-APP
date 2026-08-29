@@ -12,7 +12,6 @@ import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/filters/filter_chip.dart';
 import '../../../api_share/application/api_share_providers.dart';
 import '../../../api_share/domain/models/api_share.dart';
-import '../widgets/seller_layout.dart';
 
 class SellerApiKeysScreen extends ConsumerStatefulWidget {
   const SellerApiKeysScreen({super.key});
@@ -155,18 +154,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
           padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
           child: Row(
             children: [
-              IconButton(
-                onPressed: () => openSellerDrawer(context),
-                icon: const Icon(Icons.menu),
-              ),
-              Expanded(
-                child: Text(
-                  'API keys',
-                  style: AppTypography.headline.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+              const Spacer(),
               IconButton(
                 tooltip: 'Refresh',
                 onPressed: state.isLoading || state.isMutating
