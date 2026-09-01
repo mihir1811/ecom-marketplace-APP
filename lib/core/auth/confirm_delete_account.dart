@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
-import '../l10n/translations/account_commerce_messages.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';

@@ -10,7 +10,6 @@ import '../../../auth/application/login_history_providers.dart';
 import '../../../auth/domain/models/login_session.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerLoginHistoryScreen extends ConsumerWidget {
   const SellerLoginHistoryScreen({super.key});
@@ -85,7 +84,7 @@ class SellerLoginHistoryScreen extends ConsumerWidget {
                   title: context.tr(RemainingL10n.activeSellerDevices),
                 ),
                 if (state.activeDevices.isEmpty)
-                  _EmptyHint(text: 'No active seller dashboard devices.')
+                  const _EmptyHint(text: 'No active seller dashboard devices.')
                 else
                   for (final device in state.activeDevices)
                     _DeviceTile(

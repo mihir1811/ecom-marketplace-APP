@@ -11,7 +11,6 @@ import '../../data/policies_repository.dart';
 import '../../domain/models/policy_document.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Index of GemWorld Terms and marketplace policies (from JSON).
 class PoliciesHubScreen extends StatefulWidget {

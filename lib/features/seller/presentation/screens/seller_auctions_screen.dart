@@ -7,7 +7,6 @@ import '../../data/seller_orders_mock_data.dart';
 import '../../domain/models/seller_orders_models.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerAuctionsScreen extends StatefulWidget {
   const SellerAuctionsScreen({super.key});

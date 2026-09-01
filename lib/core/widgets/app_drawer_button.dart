@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
-import '../l10n/translations/remaining_messages.dart';
 
 /// Opens the nearest [Scaffold] drawer (parent shell preferred).
 void openAppDrawer(BuildContext context) {

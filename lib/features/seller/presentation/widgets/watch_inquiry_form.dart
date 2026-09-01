@@ -6,7 +6,6 @@ import 'inquiry_form_fields.dart';
 import 'inquiry_reference_media.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Watch inquiry fields: brand/model, case specs, papers, and media.
 class WatchInquiryForm extends StatelessWidget {

@@ -315,7 +315,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: context.tr(CatalogL10n.recipientEmail),
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: AppSpacing.s8),
@@ -323,7 +323,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: context.tr(CatalogL10n.recipientNameOptional),
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: AppSpacing.s12),

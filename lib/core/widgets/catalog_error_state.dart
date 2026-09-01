@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
-import '../l10n/translations/remaining_messages.dart';
 import '../l10n/app_localizations.dart';
 
 /// Parameterized error + retry state for catalog listing screens.

@@ -19,7 +19,6 @@ import '../../../user_bank_account/application/user_bank_account_providers.dart'
 import '../../../user_bank_account/domain/models/user_bank_account.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Seller account profile (read-only).
 class SellerProfileScreen extends ConsumerWidget {
@@ -42,7 +41,8 @@ class SellerProfileScreen extends ConsumerWidget {
                   ),
                 )
               : profileAsync.when(
-                  loading: () => Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (e, _) {
                     final fallback = userProfileFromAuth(authUser);
                     return _SellerProfileBody(
@@ -133,8 +133,7 @@ class _SellerProfileBody extends StatelessWidget {
         if (loadError != null) ...[
           const SizedBox(height: AppSpacing.s12),
           Text(
-            context.tr(RemainingL10n.showingSignedInAccountDetailsFullProfile) +
-                '$loadError',
+            '${context.tr(RemainingL10n.showingSignedInAccountDetailsFullProfile)}$loadError',
             style: AppTypography.caption.copyWith(color: AppColors.error),
           ),
           if (onRetry != null)
@@ -243,14 +242,14 @@ class _SellerProfileBody extends StatelessWidget {
             label: Text(context.tr(RemainingL10n.deleteAccount)),
           ),
         ],
-        SizedBox(height: AppSpacing.s24),
+        const SizedBox(height: AppSpacing.s24),
       ],
     );
   }
 }
 
 class _SellerHero extends StatelessWidget {
-  _SellerHero({required this.user, required this.profile});
+  const _SellerHero({required this.user, required this.profile});
 
   final AuthUser user;
   final UserProfile profile;

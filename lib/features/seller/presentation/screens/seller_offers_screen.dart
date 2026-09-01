@@ -11,7 +11,6 @@ import '../../../product_offer/data/mappers/product_offer_mapper.dart';
 import '../../../product_offer/domain/models/product_offer.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerOffersScreen extends ConsumerStatefulWidget {
   const SellerOffersScreen({super.key});

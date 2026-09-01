@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/account_commerce_messages.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/error/failure.dart';

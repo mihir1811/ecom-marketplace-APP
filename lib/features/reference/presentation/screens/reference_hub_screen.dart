@@ -13,7 +13,6 @@ import '../../application/reference_providers.dart';
 import '../../domain/models/reference_models.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 enum _ReferenceMetricTab { accepted, pending, commission }
 

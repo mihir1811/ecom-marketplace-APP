@@ -15,7 +15,6 @@ import '../../../chat/domain/models/chat_thread.dart';
 import '../../../chat/domain/models/product_chat_context.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerChatDetailScreen extends ConsumerStatefulWidget {
   const SellerChatDetailScreen({required this.chatId, super.key});
@@ -415,8 +414,9 @@ class _DateChip extends StatelessWidget {
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(date.year, date.month, date.day);
     if (day == today) return context.tr(RemainingL10n.today);
-    if (day == today.subtract(const Duration(days: 1)))
+    if (day == today.subtract(const Duration(days: 1))) {
       return context.tr(RemainingL10n.yesterday);
+    }
     final months = [
       context.tr(RemainingL10n.januaryShort),
       context.tr(RemainingL10n.februaryShort),

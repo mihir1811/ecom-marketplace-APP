@@ -13,7 +13,6 @@ import '../../domain/models/ai_chat_reply.dart';
 import 'ai_chat_product_list_section.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class GemAiChatPanel extends ConsumerStatefulWidget {
   const GemAiChatPanel({super.key, required this.onClose});

@@ -20,7 +20,6 @@ import '../widgets/home_quick_search.dart';
 import '../widgets/home_search_results_list.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// GemWorld marketplace landing — minimal, image-led, one-tap catalog access.
 class HomeScreen extends ConsumerWidget {
@@ -83,7 +82,7 @@ class HomeScreen extends ConsumerWidget {
 
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
-      drawer: auth.isAuthenticated ? BuyerDrawer() : null,
+      drawer: auth.isAuthenticated ? const BuyerDrawer() : null,
       appBar: AppTopBar(
         title: 'GemWorld',
         showThemeToggle: true,

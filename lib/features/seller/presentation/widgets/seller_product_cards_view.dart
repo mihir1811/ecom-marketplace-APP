@@ -12,7 +12,6 @@ import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../domain/models/seller_product.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerProductCardsView extends StatelessWidget {
   const SellerProductCardsView({

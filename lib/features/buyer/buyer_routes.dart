@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/auth/seller_only_gate.dart';
 import '../../core/auth/verified_account_gate.dart';
 import '../../core/l10n/app_localizations.dart';
-import '../../core/l10n/translations/account_commerce_messages.dart';
 import '../../core/router/route_names.dart';
 import '../seller/presentation/screens/seller_chat_detail_screen.dart';
 import '../seller/presentation/screens/seller_chat_list_screen.dart';

@@ -7,12 +7,12 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/chart_value_tooltip.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_insights_provider.dart';
 import '../../domain/models/seller_insights.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Seller analytics screen: revenue trend, category mix, order status,
 /// top products, and engagement metrics.
@@ -538,22 +538,37 @@ class _AnalyticsCard extends StatelessWidget {
 // Revenue line chart
 // ---------------------------------------------------------------------------
 
-class _RevenueLineChart extends StatelessWidget {
+class _RevenueLineChart extends StatefulWidget {
   const _RevenueLineChart({required this.values, required this.labels});
 
   final List<double> values;
   final List<String> labels;
 
-  static const _height = 220.0;
+  static const height = 220.0;
+
+  @override
+  State<_RevenueLineChart> createState() => _RevenueLineChartState();
+}
+
+class _RevenueLineChartState extends State<_RevenueLineChart> {
+  int? _selectedIndex;
+
+  @override
+  void didUpdateWidget(covariant _RevenueLineChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.values != widget.values) {
+      _selectedIndex = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final maxY = values.reduce(math.max) * 1.15;
+    final maxY = widget.values.reduce(math.max) * 1.15;
 
     return Column(
       children: [
         SizedBox(
-          height: _height,
+          height: _RevenueLineChart.height,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -576,15 +591,46 @@ class _RevenueLineChart extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.s8),
               Expanded(
-                child: CustomPaint(
-                  painter: _LineChartPainter(
-                    values: values,
-                    maxY: maxY,
-                    lineColor: AppColors.bronze,
-                    fillColor: AppColors.bronze.withValues(alpha: 0.12),
-                    gridColor: AppColors.border(context).withValues(alpha: 0.6),
-                  ),
-                  child: const SizedBox.expand(),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return GestureDetector(
+                      onTapDown: (details) {
+                        if (widget.values.length < 2 || maxY <= 0) return;
+                        final stepX =
+                            constraints.maxWidth / (widget.values.length - 1);
+                        final index = ((details.localPosition.dx / stepX)
+                                .round())
+                            .clamp(0, widget.values.length - 1);
+                        setState(() {
+                          _selectedIndex = _selectedIndex == index ? null : index;
+                        });
+                      },
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          CustomPaint(
+                            painter: _LineChartPainter(
+                              values: widget.values,
+                              maxY: maxY,
+                              lineColor: AppColors.bronze,
+                              fillColor:
+                                  AppColors.bronze.withValues(alpha: 0.12),
+                              gridColor: AppColors.border(context)
+                                  .withValues(alpha: 0.6),
+                              selectedIndex: _selectedIndex,
+                            ),
+                            child: const SizedBox.expand(),
+                          ),
+                          if (_selectedIndex != null)
+                            _lineChartTooltip(
+                              constraints.maxWidth,
+                              _selectedIndex!,
+                              maxY,
+                            ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -594,7 +640,7 @@ class _RevenueLineChart extends StatelessWidget {
         Row(
           children: [
             const SizedBox(width: 54),
-            for (final label in labels)
+            for (final label in widget.labels)
               Expanded(
                 child: Text(
                   label,
@@ -613,9 +659,25 @@ class _RevenueLineChart extends StatelessWidget {
     );
   }
 
+  Widget _lineChartTooltip(double width, int index, double maxY) {
+    if (widget.values.length < 2) return const SizedBox.shrink();
+    final stepX = width / (widget.values.length - 1);
+    final x = stepX * index;
+    final y = _RevenueLineChart.height * (1 - widget.values[index] / maxY);
+    return Positioned(
+      left: (x - 48).clamp(0.0, width - 96),
+      top: (y - 52).clamp(0.0, _RevenueLineChart.height - 48),
+      child: ChartValueTooltip(
+        label: widget.labels[index],
+        value: AppCurrency.format(widget.values[index].toStringAsFixed(2)),
+      ),
+    );
+  }
+
   static String _fmtShort(double v) {
-    if (v >= 1000)
+    if (v >= 1000) {
       return '${AppCurrency.format((v / 1000).toStringAsFixed(1))}k';
+    }
     return AppCurrency.format(v.toStringAsFixed(0));
   }
 }
@@ -627,6 +689,7 @@ class _LineChartPainter extends CustomPainter {
     required this.lineColor,
     required this.fillColor,
     required this.gridColor,
+    this.selectedIndex,
   });
 
   final List<double> values;
@@ -634,6 +697,7 @@ class _LineChartPainter extends CustomPainter {
   final Color lineColor;
   final Color fillColor;
   final Color gridColor;
+  final int? selectedIndex;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -678,56 +742,124 @@ class _LineChartPainter extends CustomPainter {
 
     final dotPaint = Paint()..color = lineColor;
     final dotRing = Paint()..color = Colors.white;
-    for (final p in points) {
-      canvas.drawCircle(p, 4.5, dotRing);
-      canvas.drawCircle(p, 3, dotPaint);
+    for (var i = 0; i < points.length; i++) {
+      final p = points[i];
+      final selected = selectedIndex == i;
+      canvas.drawCircle(p, selected ? 6.5 : 4.5, dotRing);
+      canvas.drawCircle(p, selected ? 4.5 : 3, dotPaint);
     }
   }
 
   @override
   bool shouldRepaint(covariant _LineChartPainter oldDelegate) =>
-      oldDelegate.values != values || oldDelegate.maxY != maxY;
+      oldDelegate.values != values ||
+      oldDelegate.maxY != maxY ||
+      oldDelegate.selectedIndex != selectedIndex;
 }
 
 // ---------------------------------------------------------------------------
 // Category donut
 // ---------------------------------------------------------------------------
 
-class _CategoryDonut extends StatelessWidget {
+class _CategoryDonut extends StatefulWidget {
   const _CategoryDonut({required this.slices});
 
   final List<_CategorySlice> slices;
 
   @override
+  State<_CategoryDonut> createState() => _CategoryDonutState();
+}
+
+class _CategoryDonutState extends State<_CategoryDonut> {
+  int? _selectedIndex;
+
+  @override
+  void didUpdateWidget(covariant _CategoryDonut oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.slices != widget.slices) {
+      _selectedIndex = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final total = slices.fold<double>(0, (s, e) => s + e.value);
+    final total = widget.slices.fold<double>(0, (s, e) => s + e.value);
 
     return Column(
       children: [
         SizedBox(
           height: 180,
-          child: CustomPaint(
-            painter: _DonutPainter(slices: slices, total: total),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${total.toStringAsFixed(0)}%',
-                    style: AppTypography.headline.copyWith(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
+          child: GestureDetector(
+            onTapDown: (details) {
+              final box = context.findRenderObject() as RenderBox?;
+              if (box == null || total <= 0) return;
+              final local = box.globalToLocal(details.globalPosition);
+              final center = Offset(box.size.width / 2, 90);
+              final dx = local.dx - center.dx;
+              final dy = local.dy - center.dy;
+              final distance = math.sqrt(dx * dx + dy * dy);
+              final radius = math.min(box.size.width, 180) / 2 - 6;
+              if (distance < radius - 26 || distance > radius + 6) {
+                setState(() => _selectedIndex = null);
+                return;
+              }
+              var angle = math.atan2(dy, dx) + math.pi / 2;
+              if (angle < 0) angle += 2 * math.pi;
+              var cursor = 0.0;
+              for (var i = 0; i < widget.slices.length; i++) {
+                final sweep = (widget.slices[i].value / total) * 2 * math.pi;
+                if (angle >= cursor && angle < cursor + sweep) {
+                  setState(() {
+                    _selectedIndex = _selectedIndex == i ? null : i;
+                  });
+                  return;
+                }
+                cursor += sweep;
+              }
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                CustomPaint(
+                  size: const Size(double.infinity, 180),
+                  painter: _DonutPainter(
+                    slices: widget.slices,
+                    total: total,
+                    selectedIndex: _selectedIndex,
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${total.toStringAsFixed(0)}%',
+                          style: AppTypography.headline.copyWith(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          context.tr(RemainingL10n.ofRevenue),
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textMuted(context),
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    context.tr(RemainingL10n.ofRevenue),
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.textMuted(context),
-                      fontSize: 10,
+                ),
+                if (_selectedIndex != null)
+                  Positioned(
+                    top: 0,
+                    child: ChartValueTooltip(
+                      label: widget.slices[_selectedIndex!].label,
+                      value:
+                          '${widget.slices[_selectedIndex!].value.toStringAsFixed(1)}%',
                     ),
                   ),
-                ],
-              ),
+              ],
             ),
           ),
         ),
@@ -736,24 +868,38 @@ class _CategoryDonut extends StatelessWidget {
           spacing: AppSpacing.s16,
           runSpacing: AppSpacing.s8,
           children: [
-            for (final s in slices)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: s.color,
-                      shape: BoxShape.circle,
+            for (var i = 0; i < widget.slices.length; i++)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedIndex = _selectedIndex == i ? null : i;
+                  });
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: widget.slices[i].color,
+                        shape: BoxShape.circle,
+                        border: _selectedIndex == i
+                            ? Border.all(color: AppColors.info, width: 2)
+                            : null,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${s.label} ${s.value.toStringAsFixed(0)}%',
-                    style: AppTypography.caption.copyWith(fontSize: 11),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Text(
+                      '${widget.slices[i].label} ${widget.slices[i].value.toStringAsFixed(0)}%',
+                      style: AppTypography.caption.copyWith(
+                        fontSize: 11,
+                        fontWeight:
+                            _selectedIndex == i ? FontWeight.w700 : null,
+                      ),
+                    ),
+                  ],
+                ),
               ),
           ],
         ),
@@ -763,10 +909,15 @@ class _CategoryDonut extends StatelessWidget {
 }
 
 class _DonutPainter extends CustomPainter {
-  const _DonutPainter({required this.slices, required this.total});
+  const _DonutPainter({
+    required this.slices,
+    required this.total,
+    this.selectedIndex,
+  });
 
   final List<_CategorySlice> slices;
   final double total;
+  final int? selectedIndex;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -781,9 +932,15 @@ class _DonutPainter extends CustomPainter {
       ..strokeCap = StrokeCap.butt;
 
     var start = -math.pi / 2;
-    for (final s in slices) {
+    for (var i = 0; i < slices.length; i++) {
+      final s = slices[i];
       final sweep = (s.value / total) * 2 * math.pi;
       paint.color = s.color;
+      if (selectedIndex == i) {
+        paint.strokeWidth = stroke + 4;
+      } else {
+        paint.strokeWidth = stroke;
+      }
       canvas.drawArc(rect, start, sweep - 0.03, false, paint);
       start += sweep;
     }
@@ -791,67 +948,101 @@ class _DonutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DonutPainter oldDelegate) =>
-      oldDelegate.slices != slices;
+      oldDelegate.slices != slices || oldDelegate.selectedIndex != selectedIndex;
 }
 
 // ---------------------------------------------------------------------------
 // Order status horizontal bars
 // ---------------------------------------------------------------------------
 
-class _OrderStatusBars extends StatelessWidget {
+class _OrderStatusBars extends StatefulWidget {
   const _OrderStatusBars({required this.rows});
 
   final List<_StatusRow> rows;
 
   @override
+  State<_OrderStatusBars> createState() => _OrderStatusBarsState();
+}
+
+class _OrderStatusBarsState extends State<_OrderStatusBars> {
+  int? _selectedIndex;
+
+  @override
   Widget build(BuildContext context) {
-    final maxCount = rows
+    final maxCount = widget.rows
         .fold<int>(0, (m, r) => math.max(m, r.count))
         .toDouble();
 
     return Column(
       children: [
-        for (final row in rows)
+        for (var i = 0; i < widget.rows.length; i++)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 84,
-                  child: Text(
-                    row.label,
-                    style: AppTypography.caption.copyWith(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedIndex = _selectedIndex == i ? null : i;
+                });
+              },
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 84,
+                        child: Text(
+                          widget.rows[i].label,
+                          style: AppTypography.caption.copyWith(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: _selectedIndex == i
+                                ? AppColors.info
+                                : null,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: maxCount > 0
+                                ? widget.rows[i].count / maxCount
+                                : 0,
+                            minHeight: 10,
+                            backgroundColor: AppColors.surface(context),
+                            valueColor:
+                                AlwaysStoppedAnimation(widget.rows[i].color),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.s12),
+                      SizedBox(
+                        width: 28,
+                        child: Text(
+                          '${widget.rows[i].count}',
+                          textAlign: TextAlign.right,
+                          style: AppTypography.label.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: maxCount > 0 ? row.count / maxCount : 0,
-                      minHeight: 10,
-                      backgroundColor: AppColors.surface(context),
-                      valueColor: AlwaysStoppedAnimation(row.color),
+                  if (_selectedIndex == i)
+                    Positioned(
+                      top: -40,
+                      left: 84,
+                      child: ChartValueTooltip(
+                        label: widget.rows[i].label,
+                        value: '${widget.rows[i].count}',
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.s12),
-                SizedBox(
-                  width: 28,
-                  child: Text(
-                    '${row.count}',
-                    textAlign: TextAlign.right,
-                    style: AppTypography.label.copyWith(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
       ],

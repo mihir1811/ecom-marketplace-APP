@@ -156,7 +156,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.fromLTRB(
+                        padding: const EdgeInsets.fromLTRB(
                           AppSpacing.s16,
                           0,
                           AppSpacing.s16,
@@ -172,7 +172,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                         n.toggleMetalType,
                       ),
                       Padding(
-                        padding: EdgeInsets.fromLTRB(
+                        padding: const EdgeInsets.fromLTRB(
                           AppSpacing.s16,
                           AppSpacing.s12,
                           AppSpacing.s16,
@@ -205,7 +205,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.fromLTRB(
+                        padding: const EdgeInsets.fromLTRB(
                           AppSpacing.s16,
                           AppSpacing.s16,
                           AppSpacing.s16,
@@ -259,7 +259,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                       ),
                       if (_metalAdvancedOpen) ...[
                         Padding(
-                          padding: EdgeInsets.fromLTRB(
+                          padding: const EdgeInsets.fromLTRB(
                             AppSpacing.s16,
                             0,
                             AppSpacing.s16,
@@ -275,7 +275,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                           n.toggleMetalFinish,
                         ),
                         Padding(
-                          padding: EdgeInsets.fromLTRB(
+                          padding: const EdgeInsets.fromLTRB(
                             AppSpacing.s16,
                             0,
                             AppSpacing.s16,
@@ -329,7 +329,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.fromLTRB(
+                        padding: const EdgeInsets.fromLTRB(
                           AppSpacing.s16,
                           0,
                           AppSpacing.s16,
@@ -376,7 +376,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                         n.toggleStoneCategory,
                       ),
                       Padding(
-                        padding: EdgeInsets.fromLTRB(
+                        padding: const EdgeInsets.fromLTRB(
                           AppSpacing.s16,
                           AppSpacing.s12,
                           AppSpacing.s16,
@@ -429,7 +429,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                       ),
                       if (_stoneAdvancedOpen) ...[
                         Padding(
-                          padding: EdgeInsets.fromLTRB(
+                          padding: const EdgeInsets.fromLTRB(
                             AppSpacing.s16,
                             0,
                             AppSpacing.s16,
@@ -445,7 +445,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                           n.toggleStoneColor,
                         ),
                         Padding(
-                          padding: EdgeInsets.fromLTRB(
+                          padding: const EdgeInsets.fromLTRB(
                             AppSpacing.s16,
                             0,
                             AppSpacing.s16,
@@ -461,7 +461,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
                           n.toggleStoneClarity,
                         ),
                         Padding(
-                          padding: EdgeInsets.fromLTRB(
+                          padding: const EdgeInsets.fromLTRB(
                             AppSpacing.s16,
                             0,
                             AppSpacing.s16,

@@ -13,7 +13,6 @@ import '../../domain/models/seller_inquiry.dart';
 import '../widgets/seller_layout.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerInquiryInboxScreen extends ConsumerStatefulWidget {
   const SellerInquiryInboxScreen({super.key, this.showHeader = true});

@@ -7,7 +7,6 @@ import 'app_top_bar.dart';
 import 'global_search_bar.dart';
 import 'melee_background_shell.dart';
 import 'search_action_bottom_bar.dart';
-import '../l10n/translations/remaining_messages.dart';
 import '../l10n/app_localizations.dart';
 
 /// Shared chrome for diamond/gemstone finder screens:

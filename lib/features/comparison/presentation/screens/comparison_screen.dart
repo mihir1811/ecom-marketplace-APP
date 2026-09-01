@@ -3,7 +3,6 @@ import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/account_commerce_messages.dart';
 
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';

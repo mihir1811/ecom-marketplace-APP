@@ -16,7 +16,6 @@ import '../widgets/seller_product_data_table.dart';
 import 'seller_product_edit_screen.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerProductsScreen extends ConsumerStatefulWidget {
   const SellerProductsScreen({super.key});
@@ -165,7 +164,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
           labelStyle: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
           tabs: [
             Tab(text: context.tr(RemainingL10n.naturalDiamonds)),
-            Tab(text: 'Melee Diamonds'),
+            const Tab(text: 'Melee Diamonds'),
           ],
         ),
         Padding(
@@ -476,7 +475,7 @@ class _PaginationBar extends StatelessWidget {
           const SizedBox(width: 8),
           DropdownButton<int>(
             value: rowsPerPage,
-            underline: SizedBox.shrink(),
+            underline: const SizedBox.shrink(),
             items: [
               DropdownMenuItem(
                 value: 10,
@@ -495,7 +494,7 @@ class _PaginationBar extends StatelessWidget {
               if (v != null) onRowsPerPageChanged(v);
             },
           ),
-          Spacer(),
+          const Spacer(),
           Text(
             total == 0 ? '0 of 0' : '$start–$end of $total',
             style: AppTypography.caption.copyWith(

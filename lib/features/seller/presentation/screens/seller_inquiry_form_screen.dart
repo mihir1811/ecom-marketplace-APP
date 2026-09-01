@@ -22,7 +22,6 @@ import '../widgets/jewelry_inquiry_form.dart';
 import '../widgets/watch_inquiry_form.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerInquiryFormScreen extends ConsumerStatefulWidget {
   const SellerInquiryFormScreen({super.key, this.initialCategory});

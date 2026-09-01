@@ -15,7 +15,6 @@ import '../widgets/inquiry_form_fields.dart';
 import '../widgets/inquiry_seller_reply.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerInquiryDetailScreen extends ConsumerWidget {
   const SellerInquiryDetailScreen({
@@ -48,7 +47,7 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
             onPressed: () => Navigator.of(ctx).pop(true),
             child: Text(
               context.tr(RemainingL10n.delete),
-              style: TextStyle(color: AppColors.error),
+              style: const TextStyle(color: AppColors.error),
             ),
           ),
         ],
@@ -417,7 +416,7 @@ class _InquiryDetailBody extends StatelessWidget {
                           children: [
                             Text(
                               context.tr(RemainingL10n.adminReply) +
-                                  '${inquiry.adminReplyAt != null ? ' · ${inquiry.adminReplyAt}' : ''}',
+                                  (inquiry.adminReplyAt != null ? ' · ${inquiry.adminReplyAt}' : ''),
                               style: AppTypography.caption.copyWith(
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.3,

@@ -9,7 +9,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Side drawer for seller workspace screens only.
 class SellerDrawer extends ConsumerWidget {

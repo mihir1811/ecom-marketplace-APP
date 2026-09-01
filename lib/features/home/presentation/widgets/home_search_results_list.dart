@@ -10,7 +10,6 @@ import '../../application/home_search_provider.dart';
 import '../../domain/models/home_search_result.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Real-time search hits under the sticky home search bar (infinite scroll).
 class HomeSearchResultsList extends ConsumerStatefulWidget {

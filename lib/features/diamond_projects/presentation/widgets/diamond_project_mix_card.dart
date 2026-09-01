@@ -4,10 +4,11 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/chart_value_tooltip.dart';
 import '../../domain/models/diamond_project_stats.dart';
 
 /// Horizontal bar mix (shape / color / clarity).
-class DiamondProjectMixCard extends StatelessWidget {
+class DiamondProjectMixCard extends StatefulWidget {
   const DiamondProjectMixCard({
     required this.title,
     required this.entries,
@@ -18,11 +19,29 @@ class DiamondProjectMixCard extends StatelessWidget {
   final List<NamedCount> entries;
 
   @override
+  State<DiamondProjectMixCard> createState() => _DiamondProjectMixCardState();
+}
+
+class _DiamondProjectMixCardState extends State<DiamondProjectMixCard> {
+  int? _selectedIndex;
+
+  @override
+  void didUpdateWidget(covariant DiamondProjectMixCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.entries != widget.entries) {
+      _selectedIndex = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final max = entries.fold<int>(0, (m, e) => e.count > m ? e.count : m);
+    final max = widget.entries.fold<int>(
+      0,
+      (m, e) => e.count > m ? e.count : m,
+    );
     return _ProjectCard(
-      title: title,
-      child: entries.isEmpty
+      title: widget.title,
+      child: widget.entries.isEmpty
           ? Text(
               context.tr(CatalogL10n.projectNoData),
               style: AppTypography.caption.copyWith(
@@ -31,8 +50,18 @@ class DiamondProjectMixCard extends StatelessWidget {
             )
           : Column(
               children: [
-                for (final entry in entries) ...[
-                  _MixRow(entry: entry, max: max == 0 ? 1 : max),
+                for (var i = 0; i < widget.entries.length; i++) ...[
+                  _MixRow(
+                    entry: widget.entries[i],
+                    max: max == 0 ? 1 : max,
+                    selected: _selectedIndex == i,
+                    showTooltip: _selectedIndex == i,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = _selectedIndex == i ? null : i;
+                      });
+                    },
+                  ),
                   const SizedBox(height: AppSpacing.s8),
                 ],
               ],
@@ -42,47 +71,78 @@ class DiamondProjectMixCard extends StatelessWidget {
 }
 
 class _MixRow extends StatelessWidget {
-  const _MixRow({required this.entry, required this.max});
+  const _MixRow({
+    required this.entry,
+    required this.max,
+    required this.selected,
+    required this.showTooltip,
+    required this.onTap,
+  });
 
   final NamedCount entry;
   final int max;
+  final bool selected;
+  final bool showTooltip;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 56,
-          child: Text(
-            entry.label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary(context),
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 56,
+                child: Text(
+                  entry.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.caption.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: selected
+                        ? AppColors.info
+                        : AppColors.textPrimary(context),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppSpacing.r4),
+                  child: LinearProgressIndicator(
+                    value: entry.count / max,
+                    minHeight: 10,
+                    backgroundColor: AppColors.surface(context),
+                    color: selected
+                        ? AppColors.info
+                        : AppColors.textPrimary(context),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.s8),
+              Text(
+                '${entry.count}',
+                style: AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary(context),
+                ),
+              ),
+            ],
+          ),
+          if (showTooltip)
+            Positioned(
+              top: -40,
+              left: 56,
+              child: ChartValueTooltip(
+                label: entry.label,
+                value: '${entry.count}',
+              ),
             ),
-          ),
-        ),
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppSpacing.r4),
-            child: LinearProgressIndicator(
-              value: entry.count / max,
-              minHeight: 10,
-              backgroundColor: AppColors.surface(context),
-              color: AppColors.textPrimary(context),
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.s8),
-        Text(
-          '${entry.count}',
-          style: AppTypography.caption.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary(context),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

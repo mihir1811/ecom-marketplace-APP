@@ -13,7 +13,6 @@ import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_thread.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerChatListScreen extends ConsumerStatefulWidget {
   const SellerChatListScreen({super.key});

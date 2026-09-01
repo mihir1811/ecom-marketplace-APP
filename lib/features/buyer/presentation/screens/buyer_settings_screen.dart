@@ -5,7 +5,6 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/confirm_delete_account.dart';
 import '../../../../core/auth/confirm_sign_out.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';

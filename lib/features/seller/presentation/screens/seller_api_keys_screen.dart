@@ -14,7 +14,6 @@ import '../../../api_share/application/api_share_providers.dart';
 import '../../../api_share/domain/models/api_share.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerApiKeysScreen extends ConsumerStatefulWidget {
   const SellerApiKeysScreen({super.key});
@@ -208,6 +207,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
                     busy: state.isMutating,
                     onCopy: () async {
                       await Clipboard.setData(ClipboardData(text: key.apiKey));
+                      // ignore: use_build_context_synchronously
                       _snack(context.tr(RemainingL10n.apiKeyCopied));
                     },
                     onEdit: () => _editPermissions(key),
@@ -332,7 +332,7 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         labelText: context.tr(RemainingL10n.name),
-                        prefixIcon: Icon(Icons.badge_outlined),
+                        prefixIcon: const Icon(Icons.badge_outlined),
                       ),
                       validator: (value) {
                         if ((value ?? '').trim().isEmpty) {
@@ -349,12 +349,13 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
                       textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
                         labelText: context.tr(RemainingL10n.email),
-                        prefixIcon: Icon(Icons.mail_outline),
+                        prefixIcon: const Icon(Icons.mail_outline),
                       ),
                       validator: (value) {
                         final v = value?.trim() ?? '';
-                        if (v.isEmpty)
+                        if (v.isEmpty) {
                           return context.tr(RemainingL10n.emailIsRequired);
+                        }
                         if (!isValidEmail(v)) {
                           return context.tr(
                             RemainingL10n.enterAValidEmailAddress,

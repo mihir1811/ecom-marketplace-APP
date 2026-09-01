@@ -4,7 +4,6 @@ import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
 import '../l10n/app_localizations.dart';
-import '../l10n/translations/remaining_messages.dart';
 
 class GlobalSearchBar extends StatelessWidget {
   const GlobalSearchBar({super.key});

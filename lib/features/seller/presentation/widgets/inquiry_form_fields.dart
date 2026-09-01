@@ -7,7 +7,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_dialog.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 InputDecoration inquiryInputDecoration(BuildContext context, [String? hint]) {
@@ -620,7 +619,7 @@ class InquiryImagePickerField extends StatelessWidget {
     try {
       final typeGroup = XTypeGroup(
         label: context.tr(RemainingL10n.images),
-        extensions: <String>['jpg', 'jpeg', 'png', 'webp', 'heic'],
+        extensions: const <String>['jpg', 'jpeg', 'png', 'webp', 'heic'],
       );
       final files = remaining == 1
           ? [
@@ -801,7 +800,7 @@ class InquiryVideoPickerField extends StatelessWidget {
     try {
       final typeGroup = XTypeGroup(
         label: context.tr(RemainingL10n.videos),
-        extensions: <String>['mp4', 'webm', 'mov', 'avi'],
+        extensions: const <String>['mp4', 'webm', 'mov', 'avi'],
       );
       final file = await openFile(acceptedTypeGroups: [typeGroup]);
       if (file == null) return;
@@ -899,7 +898,7 @@ class InquiryVideoPickerField extends StatelessWidget {
 
 /// Read-only thumbnail strip for inquiry detail.
 class InquiryImageGallery extends StatelessWidget {
-  InquiryImageGallery({required this.images, this.title, super.key});
+  const InquiryImageGallery({required this.images, this.title, super.key});
 
   final List<Uint8List> images;
   final String? title;

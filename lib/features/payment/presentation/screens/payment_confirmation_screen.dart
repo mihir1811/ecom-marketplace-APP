@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
@@ -342,6 +341,7 @@ Future<void> _downloadInvoice(BuildContext context, PaymentOrder order) async {
     if (!ok) {
       messenger.showSnackBar(
         SnackBar(
+          // ignore: use_build_context_synchronously
           content: Text(context.tr(AccountCommerceL10n.invoiceOpenFailed)),
         ),
       );
@@ -349,6 +349,7 @@ Future<void> _downloadInvoice(BuildContext context, PaymentOrder order) async {
   } catch (_) {
     messenger.showSnackBar(
       SnackBar(
+        // ignore: use_build_context_synchronously
         content: Text(context.tr(AccountCommerceL10n.invoiceOpenFailed)),
       ),
     );

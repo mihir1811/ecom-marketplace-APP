@@ -13,7 +13,6 @@ import '../../application/seller_products_provider.dart';
 import '../../domain/models/seller_product.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class _EditField {
   const _EditField(this.id, {this.fullWidth = false, this.required = false});
@@ -37,13 +36,13 @@ const _kEditInputMinHeight = 52.0;
 
 /// Categorized editable fields for the seller product edit form.
 const kSellerEditSections = <_EditSection>[
-  const _EditSection('Basic', [
+  _EditSection('Basic', [
     _EditField('stock_number', required: true),
     _EditField('available'),
     _EditField('tags'),
     _EditField('origin'),
   ]),
-  const _EditSection('Diamond specs', [
+  _EditSection('Diamond specs', [
     _EditField('shape'),
     _EditField('carat_weight'),
     _EditField('color'),
@@ -53,13 +52,13 @@ const kSellerEditSections = <_EditSection>[
     _EditField('symmetry'),
     _EditField('eye_clean'),
   ]),
-  const _EditSection('Pricing', [
+  _EditSection('Pricing', [
     _EditField('rap'),
     _EditField('discount'),
     _EditField('price_per_carat'),
     _EditField('total_price', required: true),
   ]),
-  const _EditSection('Measurements', [
+  _EditSection('Measurements', [
     _EditField('measurement'),
     _EditField('ratio'),
     _EditField('table'),
@@ -73,13 +72,13 @@ const kSellerEditSections = <_EditSection>[
     _EditField('pavilion_depth'),
     _EditField('culet_size'),
   ]),
-  const _EditSection('Certificate', [
+  _EditSection('Certificate', [
     _EditField('certificate_company_name'),
     _EditField('certificate_number'),
     _EditField('certification'),
     _EditField('laser_inscription'),
   ]),
-  const _EditSection('Appearance', [
+  _EditSection('Appearance', [
     _EditField('fluorescence_intensity'),
     _EditField('fluorescence_color'),
     _EditField('shade'),
@@ -95,7 +94,7 @@ const kSellerEditSections = <_EditSection>[
     _EditField('growth_type'),
     _EditField('inclusions_type'),
   ]),
-  const _EditSection('Notes', [
+  _EditSection('Notes', [
     _EditField('comment', fullWidth: true),
     _EditField('cert_comment', fullWidth: true),
     _EditField('key_to_symbols', fullWidth: true),
@@ -269,7 +268,7 @@ class _SellerProductEditScreenState
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: EdgeInsets.fromLTRB(
+          padding: const EdgeInsets.fromLTRB(
             AppSpacing.s16,
             AppSpacing.s12,
             AppSpacing.s16,

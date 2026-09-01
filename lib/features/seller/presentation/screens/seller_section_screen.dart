@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 /// Placeholder for seller sections that are not yet fully implemented.

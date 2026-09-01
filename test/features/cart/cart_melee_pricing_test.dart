@@ -98,8 +98,8 @@ void main() {
         'totalCaratWeight': 234.34,
       },
     });
-    final summary = CartSummary(
-      items: const [
+    const summary = CartSummary(
+      items: [
         CartSummaryLine(
           cartId: 'cart-1',
           productId: 'prod-1',

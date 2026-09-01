@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
@@ -194,6 +193,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                         messenger.showSnackBar(
                                           SnackBar(
                                             content: Text(
+                                              // ignore: use_build_context_synchronously
                                               context.tr(
                                                 AccountCommerceL10n.otpSent,
                                               ),

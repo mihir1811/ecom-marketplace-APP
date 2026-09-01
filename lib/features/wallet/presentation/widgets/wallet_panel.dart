@@ -12,7 +12,6 @@ import '../widgets/wallet_top_up_sheet.dart';
 import '../widgets/wallet_transaction_tile.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Shared wallet body used by buyer and seller shells.
 class WalletPanel extends ConsumerWidget {

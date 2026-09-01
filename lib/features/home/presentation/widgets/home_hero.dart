@@ -4,7 +4,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 /// Full-bleed marketplace hero — brand, one line, two CTAs, network image.

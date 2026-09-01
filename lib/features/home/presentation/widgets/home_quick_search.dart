@@ -9,7 +9,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../application/home_search_provider.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Sticky home search field. Debounces input (280ms — web `useLiveSearchResults`).
 class HomeQuickSearch extends ConsumerStatefulWidget {

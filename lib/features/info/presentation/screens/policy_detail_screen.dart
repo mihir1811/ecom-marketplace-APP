@@ -12,7 +12,6 @@ import '../../data/policies_repository.dart';
 import '../../domain/models/policy_document.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Renders any policy by [policyId] from [assets/policies/policies.json].
 class PolicyDetailScreen extends StatefulWidget {

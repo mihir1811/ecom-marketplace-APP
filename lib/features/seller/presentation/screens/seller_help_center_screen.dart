@@ -11,7 +11,6 @@ import '../../../help_center/domain/models/help_question.dart';
 import '../widgets/seller_layout.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerHelpCenterScreen extends ConsumerStatefulWidget {
   const SellerHelpCenterScreen({super.key, this.showHeader = true});
@@ -477,9 +476,7 @@ class _TicketCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    context.tr(RemainingL10n.adminReply) +
-                        '${ticket.answeredAtLabel != null ? ' · ${ticket.answeredAtLabel}' : ''}'
-                            '${ticket.answeredBy?.name != null ? ' · ${ticket.answeredBy!.name}' : ''}',
+                    '${context.tr(RemainingL10n.adminReply)}${ticket.answeredAtLabel != null ? ' · ${ticket.answeredAtLabel}' : ''}${ticket.answeredBy?.name != null ? ' · ${ticket.answeredBy!.name}' : ''}',
                     style: AppTypography.caption.copyWith(
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.3,

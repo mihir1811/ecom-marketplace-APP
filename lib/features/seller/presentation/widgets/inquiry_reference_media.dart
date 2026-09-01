@@ -7,7 +7,6 @@ import '../../../../core/theme/app_typography.dart';
 import 'inquiry_form_fields.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Photo/video source toggles shared by every inquiry category form.
 class InquiryReferenceMedia extends StatelessWidget {

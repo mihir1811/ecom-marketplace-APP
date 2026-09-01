@@ -6,7 +6,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/seller_product_column.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Scrollable column visibility picker (search, show/hide all, reset).
 class SellerProductColumnPickerPanel extends StatefulWidget {

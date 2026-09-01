@@ -35,6 +35,32 @@ class InsightsChartSeries {
   final DateTime? endDate;
 }
 
+/// One time bucket with values for every dashboard metric.
+class InsightsChartBucket {
+  const InsightsChartBucket({
+    required this.label,
+    required this.totalSales,
+    required this.productsSold,
+    required this.orders,
+    this.inventoryValue = 0,
+  });
+
+  final String label;
+  final double totalSales;
+  final double productsSold;
+  final double orders;
+  final double inventoryValue;
+
+  double valueFor(DashboardMetric metric) {
+    return switch (metric) {
+      DashboardMetric.totalSales => totalSales,
+      DashboardMetric.productsSold => productsSold,
+      DashboardMetric.orders => orders,
+      DashboardMetric.inventoryValue => inventoryValue,
+    };
+  }
+}
+
 /// Compact recent-order row on the dashboard.
 class DashboardRecentOrder {
   const DashboardRecentOrder({
@@ -65,17 +91,27 @@ class DashboardUploadStatus {
 class SellerDashboardSnapshot {
   const SellerDashboardSnapshot({
     required this.metrics,
-    required this.chart,
+    required this.chartBuckets,
+    this.chartEndDate,
     required this.recentOrders,
     this.uploadStatus = const DashboardUploadStatus(),
     required this.fetchedAt,
   });
 
   final List<DashboardMetricCard> metrics;
-  final InsightsChartSeries chart;
+  final List<InsightsChartBucket> chartBuckets;
+  final DateTime? chartEndDate;
   final List<DashboardRecentOrder> recentOrders;
   final DashboardUploadStatus uploadStatus;
   final DateTime fetchedAt;
+
+  InsightsChartSeries chartFor(DashboardMetric metric) {
+    return InsightsChartSeries(
+      values: [for (final bucket in chartBuckets) bucket.valueFor(metric)],
+      labels: [for (final bucket in chartBuckets) bucket.label],
+      endDate: chartEndDate,
+    );
+  }
 }
 
 /// Analytics KPI with period-over-period change.
@@ -138,17 +174,15 @@ class SellerAnalyticsSnapshot {
   final DateTime fetchedAt;
 }
 
-/// Dashboard fetch arguments (range + optional custom dates + chart metric).
+/// Dashboard fetch arguments (range + optional custom dates).
 class SellerDashboardParams {
   const SellerDashboardParams({
     this.range = SalesRange.monthly,
-    this.metric = DashboardMetric.totalSales,
     this.customStart,
     this.customEnd,
   });
 
   final SalesRange range;
-  final DashboardMetric metric;
   final DateTime? customStart;
   final DateTime? customEnd;
 
@@ -156,11 +190,10 @@ class SellerDashboardParams {
   bool operator ==(Object other) {
     return other is SellerDashboardParams &&
         other.range == range &&
-        other.metric == metric &&
         other.customStart == customStart &&
         other.customEnd == customEnd;
   }
 
   @override
-  int get hashCode => Object.hash(range, metric, customStart, customEnd);
+  int get hashCode => Object.hash(range, customStart, customEnd);
 }

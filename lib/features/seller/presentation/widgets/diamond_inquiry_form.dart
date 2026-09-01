@@ -8,7 +8,6 @@ import 'inquiry_form_fields.dart';
 import 'inquiry_reference_media.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Diamond inquiry field groups for single/parcel, natural/lab, and fancy color.
 class DiamondInquiryForm extends StatelessWidget {

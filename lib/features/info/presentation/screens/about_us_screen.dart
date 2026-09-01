@@ -11,7 +11,6 @@ import '../../../../core/widgets/app_top_bar.dart';
 import '../../../home/presentation/home_network_images.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Public About Us page for GemWorld — mission, values, and marketplace overview.
 class AboutUsScreen extends StatelessWidget {

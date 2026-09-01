@@ -6,7 +6,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../domain/models/wallet.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 /// Balance summary for the wallet home screen.

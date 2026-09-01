@@ -16,7 +16,6 @@ import '../../data/seller_orders_mock_data.dart';
 import '../../domain/models/seller_orders_models.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerOrdersScreen extends ConsumerStatefulWidget {
   const SellerOrdersScreen({super.key});
@@ -645,7 +644,7 @@ class _RefundCard extends ConsumerWidget {
         content: TextField(
           controller: noteController,
           maxLines: 3,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Note (optional)',
             border: OutlineInputBorder(),
           ),
@@ -682,7 +681,7 @@ class _RefundCard extends ConsumerWidget {
 }
 
 class _InfoBlock extends StatelessWidget {
-  _InfoBlock({required this.label, required this.child});
+  const _InfoBlock({required this.label, required this.child});
 
   final String label;
   final Widget child;

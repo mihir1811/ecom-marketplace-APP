@@ -6,7 +6,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Circular Gem AI launcher — drag to reposition; tap to open/close.
 class GemAiFab extends StatefulWidget {

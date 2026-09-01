@@ -12,7 +12,6 @@ import '../../../promotions/application/promotions_providers.dart';
 import '../../../promotions/domain/models/promotion.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 enum _PromoTab { discounts, promoCodes }
 
@@ -506,7 +505,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 _LabeledField(
                   label: context.tr(RemainingL10n.discountName),
                   child: TextField(
@@ -617,7 +616,7 @@ class _AddDiscountDialogState extends State<_AddDiscountDialog> {
 }
 
 class _AddPromoCodeDialog extends StatefulWidget {
-  _AddPromoCodeDialog({required this.onSave});
+  const _AddPromoCodeDialog({required this.onSave});
 
   final _PromoCodeSave onSave;
 
@@ -718,7 +717,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 _LabeledField(
                   label: context.tr(RemainingL10n.promoCode),
                   child: TextField(
@@ -837,7 +836,7 @@ class _AddPromoCodeDialogState extends State<_AddPromoCodeDialog> {
 }
 
 class _LabeledField extends StatelessWidget {
-  _LabeledField({required this.label, required this.child});
+  const _LabeledField({required this.label, required this.child});
 
   final String label;
   final Widget child;

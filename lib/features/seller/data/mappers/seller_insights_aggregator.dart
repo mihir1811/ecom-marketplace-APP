@@ -58,13 +58,16 @@ abstract final class SellerInsightsAggregator {
           subtitle: 'Listing inventory is not on the orders API',
         ),
       ],
-      chart: InsightsChartSeries(
-        values: [
-          for (final bucket in buckets) _metricValue(params.metric, bucket.$2),
-        ],
-        labels: [for (final bucket in buckets) bucket.$1],
-        endDate: window.$2,
-      ),
+      chartBuckets: [
+        for (final bucket in buckets)
+          InsightsChartBucket(
+            label: bucket.$1,
+            totalSales: _sumUsd(bucket.$2.where(_isPaid)),
+            productsSold: _unitsSold(bucket.$2.where(_isPaid)).toDouble(),
+            orders: bucket.$2.length.toDouble(),
+          ),
+      ],
+      chartEndDate: window.$2,
       recentOrders: _recent(orders),
       fetchedAt: clock,
     );
@@ -207,19 +210,6 @@ abstract final class SellerInsightsAggregator {
       }
     }
     return ids.length;
-  }
-
-  static double _metricValue(
-    DashboardMetric metric,
-    List<PaymentOrder> bucket,
-  ) {
-    final paid = bucket.where(_isPaid).toList();
-    return switch (metric) {
-      DashboardMetric.totalSales => _sumUsd(paid),
-      DashboardMetric.productsSold => _unitsSold(paid).toDouble(),
-      DashboardMetric.orders => bucket.length.toDouble(),
-      DashboardMetric.inventoryValue => 0,
-    };
   }
 
   static List<PaymentOrder> _inRange(

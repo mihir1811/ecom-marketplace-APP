@@ -10,12 +10,12 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/widgets/chart_value_tooltip.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_insights_provider.dart';
 import '../../domain/models/seller_insights.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Seller dashboard screen shown after login.
 class SellerDashboardScreen extends ConsumerStatefulWidget {
@@ -47,7 +47,6 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
 
   SellerDashboardParams get _params => SellerDashboardParams(
     range: _range,
-    metric: _metric,
     customStart: _customStart,
     customEnd: _customEnd,
   );
@@ -72,7 +71,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                 ),
               ),
               if (state.errorMessage != null && snapshot == null) ...[
-                SizedBox(height: AppSpacing.s16),
+                const SizedBox(height: AppSpacing.s16),
                 CatalogErrorState(
                   message: state.errorMessage!,
                   onRetry: () => ref
@@ -161,14 +160,14 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                       const SizedBox(height: AppSpacing.s16),
                       _DashboardBarChart(
                         metric: _metric,
-                        values: snapshot.chart.values,
-                        labels: snapshot.chart.labels,
+                        values: snapshot.chartFor(_metric).values,
+                        labels: snapshot.chartFor(_metric).labels,
                       ),
                       const SizedBox(height: AppSpacing.s12),
                       Text(
-                        snapshot.chart.endDate != null
+                        snapshot.chartEndDate != null
                             ? context.tr(RemainingL10n.throughDate, {
-                                'date': _fmtDate(snapshot.chart.endDate!),
+                                'date': _fmtDate(snapshot.chartEndDate!),
                               })
                             : '',
                         style: AppTypography.caption.copyWith(
@@ -219,37 +218,6 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                           ],
                         ),
                 ),
-                const SizedBox(height: AppSpacing.s16),
-                _CardSection(
-                  title: context.tr(RemainingL10n.productUploadStatus),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _UploadStatusRow(
-                        label: context.tr(RemainingL10n.successful),
-                        value: '${snapshot.uploadStatus.successful}',
-                        icon: Icons.check_circle_outline,
-                        color: AppColors.success,
-                      ),
-                      const SizedBox(height: 12),
-                      _UploadStatusRow(
-                        label: context.tr(RemainingL10n.onHold),
-                        value: '${snapshot.uploadStatus.onHold}',
-                        icon: Icons.pause_circle_outline,
-                        color: AppColors.warning,
-                      ),
-                      const SizedBox(height: 12),
-                      _UploadStatusRow(
-                        label: context.tr(RemainingL10n.failed),
-                        value: '${snapshot.uploadStatus.failed}',
-                        icon: Icons.cancel_outlined,
-                        color: AppColors.error,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s12),
-                const _QuickActionsSection(),
               ],
             ],
           ),
@@ -645,7 +613,7 @@ class _SalesRangeDropdown extends StatelessWidget {
   }
 }
 
-class _DashboardBarChart extends StatelessWidget {
+class _DashboardBarChart extends StatefulWidget {
   const _DashboardBarChart({
     required this.metric,
     required this.values,
@@ -656,24 +624,93 @@ class _DashboardBarChart extends StatelessWidget {
   final List<double> values;
   final List<String> labels;
 
-  static const _chartHeight = 240.0;
+  static const chartHeight = 240.0;
+
+  static Color barColor(DashboardMetric metric) {
+    return switch (metric) {
+      DashboardMetric.totalSales => AppColors.bronze,
+      DashboardMetric.productsSold => AppColors.success,
+      DashboardMetric.orders => AppColors.info,
+      DashboardMetric.inventoryValue => AppColors.bronzeDark,
+    };
+  }
+
+  static double niceMax(List<double> values) {
+    if (values.isEmpty) return 1;
+    final raw = values.reduce((a, b) => a > b ? a : b);
+    if (raw <= 0) return 1;
+    final magnitude = pow10((math.log(raw) / math.ln10).floor());
+    final normalized = raw / magnitude;
+    final nice = normalized <= 1
+        ? 1
+        : normalized <= 2
+        ? 2
+        : normalized <= 5
+        ? 5
+        : 10;
+    return nice * magnitude;
+  }
+
+  static double pow10(int exp) {
+    var result = 1.0;
+    for (var i = 0; i < exp.abs(); i++) {
+      result *= 10;
+    }
+    return exp < 0 ? 1 / result : result;
+  }
+
+  static List<double> yTicks(double maxY) {
+    return [0, maxY * 0.25, maxY * 0.5, maxY * 0.75, maxY];
+  }
+
+  static String Function(double) yFormatter(DashboardMetric metric) {
+    return switch (metric) {
+      DashboardMetric.totalSales => (v) => AppCurrency.format(
+        v.toStringAsFixed(2),
+      ),
+      DashboardMetric.productsSold => (v) => v.toStringAsFixed(0),
+      DashboardMetric.orders => (v) => v.toStringAsFixed(0),
+      DashboardMetric.inventoryValue => (v) {
+        if (v >= 1000) {
+          return '${AppCurrency.format((v / 1000).toStringAsFixed(0))}k';
+        }
+        return AppCurrency.format(v.toStringAsFixed(0));
+      },
+    };
+  }
+
+  @override
+  State<_DashboardBarChart> createState() => _DashboardBarChartState();
+}
+
+class _DashboardBarChartState extends State<_DashboardBarChart> {
+  int? _selectedIndex;
+
+  @override
+  void didUpdateWidget(covariant _DashboardBarChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.metric != widget.metric ||
+        oldWidget.values != widget.values) {
+      _selectedIndex = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final series = values.isEmpty ? const <double>[0] : values;
-    final xLabels = labels.isEmpty ? ['—'] : labels;
-    final maxY = _niceMax(series);
-    final yTicks = _yTicks(maxY);
-    final formatY = _yFormatter(metric);
+    final series = widget.values.isEmpty ? const <double>[0] : widget.values;
+    final xLabels = widget.labels.isEmpty ? ['—'] : widget.labels;
+    final maxY = _DashboardBarChart.niceMax(series);
+    final yTicks = _DashboardBarChart.yTicks(maxY);
+    final formatY = _DashboardBarChart.yFormatter(widget.metric);
 
     return SizedBox(
-      height: _chartHeight + 36,
+      height: _DashboardBarChart.chartHeight + 36,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 52,
-            height: _chartHeight,
+            height: _DashboardBarChart.chartHeight,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -694,14 +731,16 @@ class _DashboardBarChart extends StatelessWidget {
             child: Column(
               children: [
                 SizedBox(
-                  height: _chartHeight,
+                  height: _DashboardBarChart.chartHeight,
                   child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
                       for (var i = 0; i < yTicks.length; i++)
                         Positioned(
                           left: 0,
                           right: 0,
-                          top: _chartHeight * (1 - yTicks[i] / maxY),
+                          top: _DashboardBarChart.chartHeight *
+                              (1 - yTicks[i] / maxY),
                           child: Container(
                             height: 1,
                             color: AppColors.border(
@@ -721,8 +760,23 @@ class _DashboardBarChart extends StatelessWidget {
                                 child: _BarColumn(
                                   value: series[i],
                                   maxY: maxY,
-                                  height: _chartHeight,
-                                  color: _barColor(metric),
+                                  height: _DashboardBarChart.chartHeight,
+                                  color: _DashboardBarChart.barColor(
+                                    widget.metric,
+                                  ),
+                                  selected: _selectedIndex == i,
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedIndex =
+                                          _selectedIndex == i ? null : i;
+                                    });
+                                  },
+                                  tooltip: _selectedIndex == i
+                                      ? ChartValueTooltip(
+                                          label: xLabels[i],
+                                          value: formatY(series[i]),
+                                        )
+                                      : null,
                                 ),
                               ),
                             ),
@@ -756,59 +810,6 @@ class _DashboardBarChart extends StatelessWidget {
       ),
     );
   }
-
-  static Color _barColor(DashboardMetric metric) {
-    return switch (metric) {
-      DashboardMetric.totalSales => AppColors.bronze,
-      DashboardMetric.productsSold => AppColors.success,
-      DashboardMetric.orders => AppColors.info,
-      DashboardMetric.inventoryValue => AppColors.bronzeDark,
-    };
-  }
-
-  static double _niceMax(List<double> values) {
-    if (values.isEmpty) return 1;
-    final raw = values.reduce((a, b) => a > b ? a : b);
-    if (raw <= 0) return 1;
-    final magnitude = _pow10((math.log(raw) / math.ln10).floor());
-    final normalized = raw / magnitude;
-    final nice = normalized <= 1
-        ? 1
-        : normalized <= 2
-        ? 2
-        : normalized <= 5
-        ? 5
-        : 10;
-    return nice * magnitude;
-  }
-
-  static double _pow10(int exp) {
-    var result = 1.0;
-    for (var i = 0; i < exp.abs(); i++) {
-      result *= 10;
-    }
-    return exp < 0 ? 1 / result : result;
-  }
-
-  static List<double> _yTicks(double maxY) {
-    return [0, maxY * 0.25, maxY * 0.5, maxY * 0.75, maxY];
-  }
-
-  static String Function(double) _yFormatter(DashboardMetric metric) {
-    return switch (metric) {
-      DashboardMetric.totalSales => (v) => AppCurrency.format(
-        v.toStringAsFixed(2),
-      ),
-      DashboardMetric.productsSold => (v) => v.toStringAsFixed(0),
-      DashboardMetric.orders => (v) => v.toStringAsFixed(0),
-      DashboardMetric.inventoryValue => (v) {
-        if (v >= 1000) {
-          return '${AppCurrency.format((v / 1000).toStringAsFixed(0))}k';
-        }
-        return AppCurrency.format(v.toStringAsFixed(0));
-      },
-    };
-  }
 }
 
 class _BarColumn extends StatelessWidget {
@@ -817,27 +818,55 @@ class _BarColumn extends StatelessWidget {
     required this.maxY,
     required this.height,
     required this.color,
+    this.selected = false,
+    this.onTap,
+    this.tooltip,
   });
 
   final double value;
   final double maxY;
   final double height;
   final Color color;
+  final bool selected;
+  final VoidCallback? onTap;
+  final Widget? tooltip;
 
   @override
   Widget build(BuildContext context) {
     final barHeight = maxY > 0 ? (value / maxY) * height : 0.0;
     return SizedBox(
       height: height,
-      child: Align(
+      child: Stack(
+        clipBehavior: Clip.none,
         alignment: Alignment.bottomCenter,
-        child: Container(
-          height: barHeight.clamp(0, height),
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+        children: [
+          GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                width: double.infinity,
+                height: barHeight.clamp(0, height),
+                decoration: BoxDecoration(
+                  color: selected ? color.withValues(alpha: 0.85) : color,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(4)),
+                  border: selected
+                      ? Border.all(color: AppColors.info, width: 2)
+                      : null,
+                ),
+              ),
+            ),
           ),
-        ),
+          if (tooltip != null)
+            Positioned(
+              bottom: barHeight.clamp(0, height) + 8,
+              left: 0,
+              right: 0,
+              child: Center(child: tooltip),
+            ),
+        ],
       ),
     );
   }
@@ -922,124 +951,3 @@ class _OrderRow extends StatelessWidget {
   }
 }
 
-class _UploadStatusRow extends StatelessWidget {
-  const _UploadStatusRow({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: color),
-        const SizedBox(width: AppSpacing.s12),
-        Expanded(
-          child: Text(
-            label,
-            style: AppTypography.body.copyWith(
-              color: AppColors.textSecondary(context),
-            ),
-          ),
-        ),
-        Text(
-          value,
-          style: AppTypography.title.copyWith(
-            color: AppColors.textPrimary(context),
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _QuickActionsSection extends StatelessWidget {
-  const _QuickActionsSection();
-
-  List<(IconData, String, String)> _actions(BuildContext context) => [
-    (
-      Icons.receipt_long_outlined,
-      context.tr(RemainingL10n.viewOrders),
-      AppRouteNames.sellerOrders,
-    ),
-    (
-      Icons.inventory_2_outlined,
-      context.tr(RemainingL10n.products),
-      AppRouteNames.sellerProducts,
-    ),
-    (
-      Icons.analytics_outlined,
-      context.tr(RemainingL10n.diamondProjects),
-      AppRouteNames.savedDiamondProjects,
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.tr(RemainingL10n.quickActions),
-          style: AppTypography.title.copyWith(
-            color: AppColors.textPrimary(context),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.s12),
-        GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: _actions(context).length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: AppSpacing.s12,
-            mainAxisSpacing: AppSpacing.s12,
-            childAspectRatio: 3.2,
-          ),
-          itemBuilder: (context, index) {
-            final (icon, label, route) = _actions(context)[index];
-            return FilledButton(
-              onPressed: () {
-                context.openRoute(route);
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.bronze,
-                foregroundColor: AppColors.warmWhite,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s12,
-                  vertical: AppSpacing.s12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 18),
-                  const SizedBox(width: AppSpacing.s8),
-                  Flexible(
-                    child: Text(
-                      label,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-}

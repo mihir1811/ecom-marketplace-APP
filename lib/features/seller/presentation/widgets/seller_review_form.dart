@@ -5,7 +5,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Star rating + optional comment form used after payment and on orders.
 class SellerReviewForm extends StatelessWidget {
@@ -72,7 +71,7 @@ class SellerReviewForm extends StatelessWidget {
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
               labelText: context.tr(RemainingL10n.titleOptional),
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
           ),
         ],
@@ -86,7 +85,7 @@ class SellerReviewForm extends StatelessWidget {
           decoration: InputDecoration(
             labelText: context.tr(RemainingL10n.reviewOptional),
             alignLabelWithHint: true,
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
           ),
         ),
       ],

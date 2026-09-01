@@ -6,7 +6,6 @@ import '../../domain/models/seller_product.dart';
 import '../../domain/models/seller_product_column.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 class SellerProductDataTable extends StatefulWidget {
   const SellerProductDataTable({

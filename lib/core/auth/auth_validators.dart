@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 
 import '../l10n/app_localizations.dart';
-import '../l10n/translations/account_commerce_messages.dart';
 
 /// Basic email validation for UI forms (no backend call).
 bool isValidEmail(String value) {

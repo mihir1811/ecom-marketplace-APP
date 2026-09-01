@@ -8,7 +8,6 @@ import '../../../../core/theme/app_typography.dart';
 import 'inquiry_form_fields.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/l10n/translations/remaining_messages.dart';
 
 /// Lightweight markdown-style display (**bold**, *italic*, - bullets).
 class InquiryReplyText extends StatelessWidget {
