@@ -78,7 +78,7 @@ class SellerProfileScreen extends ConsumerWidget {
     if (!ok) {
       final message =
           ref.read(authProvider).errorMessage ??
-          'Could not delete account. Please try again.';
+          context.tr(RemainingL10n.couldNotDeleteAccount);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
@@ -89,10 +89,12 @@ class SellerProfileScreen extends ConsumerWidget {
     final until = deletion.accountDeletionRecoverUntil;
     final base =
         deletion.accountDeletionMessage ??
-        'Your account is scheduled for deletion.';
+        context.tr(RemainingL10n.accountScheduledForDeletion);
     final detail = until == null
         ? base
-        : '$base Recover by ${until.toLocal()}.';
+        : '$base ${context.tr(RemainingL10n.recoverByDate, {
+            'date': until.toLocal().toString(),
+          })}';
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(detail)));
     context.resetTo(AppRouteNames.recoverAccount);
@@ -165,8 +167,8 @@ class _SellerProfileBody extends StatelessWidget {
               icon: Icons.verified_outlined,
               label: context.tr(RemainingL10n.verification),
               value: profile.isVerified
-                  ? 'Verified'
-                  : 'Verification is pending',
+                  ? context.tr(RemainingL10n.verified)
+                  : context.tr(AccountCommerceL10n.verificationPending),
             ),
           ],
         ),
@@ -316,8 +318,8 @@ class _SellerHero extends StatelessWidget {
                 const SizedBox(height: AppSpacing.s8),
                 Text(
                   profile.isVerified
-                      ? 'Verified seller account'
-                      : 'Verification is pending',
+                      ? context.tr(RemainingL10n.verifiedSellerAccount)
+                      : context.tr(AccountCommerceL10n.verificationPending),
                   style: AppTypography.caption.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary(context),

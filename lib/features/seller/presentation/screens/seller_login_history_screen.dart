@@ -84,13 +84,17 @@ class SellerLoginHistoryScreen extends ConsumerWidget {
                   title: context.tr(RemainingL10n.activeSellerDevices),
                 ),
                 if (state.activeDevices.isEmpty)
-                  const _EmptyHint(text: 'No active seller dashboard devices.')
+                  _EmptyHint(
+                    text: context.tr(RemainingL10n.noActiveSellerDevicesEmpty),
+                  )
                 else
                   for (final device in state.activeDevices)
                     _DeviceTile(
                       title: device.deviceInfo,
                       subtitle: '${device.ipAddress} · ${device.loginAtLabel}',
-                      trailing: device.isRemembered ? 'Remembered' : null,
+                      trailing: device.isRemembered
+                          ? context.tr(RemainingL10n.remembered)
+                          : null,
                       onRevoke: state.isMutating
                           ? null
                           : () => _revoke(context, ref, device.id),
@@ -98,7 +102,7 @@ class SellerLoginHistoryScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 _SectionHeader(title: context.tr(RemainingL10n.loginHistory)),
                 if (state.sessions.isEmpty)
-                  const _EmptyHint(text: 'No login history yet.')
+                  _EmptyHint(text: context.tr(RemainingL10n.noLoginHistoryYet))
                 else
                   for (final session in state.sessions)
                     _SessionTile(
@@ -203,7 +207,7 @@ class _SessionTile extends StatelessWidget {
         title: Text(session.deviceInfo),
         subtitle: Text(
           '${session.ipAddress}\n${session.loginAtLabel}'
-          '${session.isActive ? ' · Active' : ''}',
+          '${session.isActive ? ' · ${context.tr(RemainingL10n.active)}' : ''}',
         ),
         isThreeLine: true,
         trailing: onRevoke == null

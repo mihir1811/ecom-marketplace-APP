@@ -705,6 +705,92 @@ abstract final class RemainingL10n {
   static const deletedProduct = 'remaining.deletedProduct';
   static const maxImagesAllowed = 'remaining.maxImagesAllowed';
   static const selectProduct = 'remaining.selectProduct';
+
+  // Seller leftover UI strings
+  static const productInquiry = 'remaining.productInquiry';
+  static const myAuctions = 'remaining.myAuctions';
+  static const noActiveSellerDevicesEmpty =
+      'remaining.noActiveSellerDevicesEmpty';
+  static const remembered = 'remaining.remembered';
+  static const noLoginHistoryYet = 'remaining.noLoginHistoryYet';
+  static const offerAccepted = 'remaining.offerAccepted';
+  static const offerRejected = 'remaining.offerRejected';
+  static const stockWithNumber = 'remaining.stockWithNumber';
+  static const statusUpdated = 'remaining.statusUpdated';
+  static const optionalNoteForTimeline = 'remaining.optionalNoteForTimeline';
+  static const replyToBuyerHint = 'remaining.replyToBuyerHint';
+  static const verified = 'remaining.verified';
+  static const verifiedSellerAccount = 'remaining.verifiedSellerAccount';
+  static const couldNotDeleteAccount = 'remaining.couldNotDeleteAccount';
+  static const accountScheduledForDeletion =
+      'remaining.accountScheduledForDeletion';
+  static const recoverByDate = 'remaining.recoverByDate';
+  static const loadingEllipsis = 'remaining.loadingEllipsis';
+  static const showingZeroOfZero = 'remaining.showingZeroOfZero';
+  static const showingRangeOfTotal = 'remaining.showingRangeOfTotal';
+  static const noCategoryInquiries = 'remaining.noCategoryInquiries';
+  static const adminReplied = 'remaining.adminReplied';
+  static const awaitingAdmin = 'remaining.awaitingAdmin';
+  static const quickViewForStock = 'remaining.quickViewForStock';
+  static const uploadReferenceImageHelper =
+      'remaining.uploadReferenceImageHelper';
+  static const imageMustBeSmallerThan5Mb = 'remaining.imageMustBeSmallerThan5Mb';
+  static const couldNotReadSelectedFile = 'remaining.couldNotReadSelectedFile';
+  static const noImageSelected = 'remaining.noImageSelected';
+  static const someImagesSkippedMax5Mb = 'remaining.someImagesSkippedMax5Mb';
+  static const someImagesCouldNotBeRead = 'remaining.someImagesCouldNotBeRead';
+  static const uploadReferenceImage = 'remaining.uploadReferenceImage';
+  static const addAnotherImage = 'remaining.addAnotherImage';
+  static const noFileChosen = 'remaining.noFileChosen';
+  static const enterCertificateNameHint = 'remaining.enterCertificateNameHint';
+  static const diamondSpecs = 'remaining.diamondSpecs';
+  static const pricing = 'remaining.pricing';
+  static const certificateSection = 'remaining.certificateSection';
+  static const notesSection = 'remaining.notesSection';
+  static const removeStockConfirm = 'remaining.removeStockConfirm';
+  static const tags = 'remaining.tags';
+  static const cut = 'remaining.cut';
+  static const rap = 'remaining.rap';
+  static const discount = 'remaining.discount';
+  static const tablePercent = 'remaining.tablePercent';
+  static const depthPercent = 'remaining.depthPercent';
+  static const girdleMin = 'remaining.girdleMin';
+  static const girdleMax = 'remaining.girdleMax';
+  static const girdlePercent = 'remaining.girdlePercent';
+  static const crownHeight = 'remaining.crownHeight';
+  static const crownAngle = 'remaining.crownAngle';
+  static const pavilionAngle = 'remaining.pavilionAngle';
+  static const pavilionDepth = 'remaining.pavilionDepth';
+  static const lab = 'remaining.lab';
+  static const laserInscription = 'remaining.laserInscription';
+  static const tinge = 'remaining.tinge';
+  static const luster = 'remaining.luster';
+  static const ha = 'remaining.ha';
+  static const fancyIntensity = 'remaining.fancyIntensity';
+  static const fancyOvertone = 'remaining.fancyOvertone';
+  static const enhancement = 'remaining.enhancement';
+  static const growthType = 'remaining.growthType';
+  static const inclusions = 'remaining.inclusions';
+  static const certComment = 'remaining.certComment';
+  static const keyToSymbols = 'remaining.keyToSymbols';
+  static const stockNumberLabel = 'remaining.stockNumberLabel';
+  static const cutGradeExcellent = 'remaining.cutGradeExcellent';
+  static const cutGradeVeryGood = 'remaining.cutGradeVeryGood';
+  static const cutGradeGood = 'remaining.cutGradeGood';
+  static const cutGradeFair = 'remaining.cutGradeFair';
+  static const videoHelperText = 'remaining.videoHelperText';
+  static const activeDiscounts = 'remaining.activeDiscounts';
+  static const meleeDiamonds = 'remaining.meleeDiamonds';
+  static const naturalDiamond = 'remaining.naturalDiamond';
+  static const meleeDiamond = 'remaining.meleeDiamond';
+  static const orderStatusProcessing = 'remaining.orderStatusProcessing';
+  static const orderStatusShipped = 'remaining.orderStatusShipped';
+  static const orderStatusOutForDelivery =
+      'remaining.orderStatusOutForDelivery';
+  static const orderStatusDelivered = 'remaining.orderStatusDelivered';
+  static const orderStatusCancelled = 'remaining.orderStatusCancelled';
+  static const orderWithId = 'remaining.orderWithId';
+  static const shipmentWithStatus = 'remaining.shipmentWithStatus';
 }
 
 const remainingMessages = <String, LocalizedMessage>{
@@ -4015,5 +4101,408 @@ const remainingMessages = <String, LocalizedMessage>{
     english: 'Select {stockNumber}',
     hindi: '{stockNumber} चुनें',
     gujarati: '{stockNumber} પસંદ કરો',
+  ),
+  RemainingL10n.productInquiry: LocalizedMessage(
+    english: 'Product inquiry',
+    hindi: 'उत्पाद पूछताछ',
+    gujarati: 'ઉત્પાદન પૂછપરછ',
+  ),
+  RemainingL10n.myAuctions: LocalizedMessage(
+    english: 'My Auctions',
+    hindi: 'मेरी नीलामी',
+    gujarati: 'મારી હરાજી',
+  ),
+  RemainingL10n.noActiveSellerDevicesEmpty: LocalizedMessage(
+    english: 'No active seller dashboard devices.',
+    hindi: 'कोई सक्रिय विक्रेता डैशबोर्ड डिवाइस नहीं।',
+    gujarati: 'કોઈ સક્રિય વિક્રેતા ડેશબોર્ડ ડિવાઇસ નથી.',
+  ),
+  RemainingL10n.remembered: LocalizedMessage(
+    english: 'Remembered',
+    hindi: 'याद रखा गया',
+    gujarati: 'યાદ રાખ્યું',
+  ),
+  RemainingL10n.noLoginHistoryYet: LocalizedMessage(
+    english: 'No login history yet.',
+    hindi: 'अभी तक कोई लॉगिन इतिहास नहीं।',
+    gujarati: 'હજુ સુધી કોઈ લૉગિન ઇતિહાસ નથી.',
+  ),
+  RemainingL10n.offerAccepted: LocalizedMessage(
+    english: 'Offer accepted',
+    hindi: 'ऑफ़र स्वीकार किया गया',
+    gujarati: 'ઓફર સ્વીકારાઈ',
+  ),
+  RemainingL10n.offerRejected: LocalizedMessage(
+    english: 'Offer rejected',
+    hindi: 'ऑफ़र अस्वीकार किया गया',
+    gujarati: 'ઓફર નકારાઈ',
+  ),
+  RemainingL10n.stockWithNumber: LocalizedMessage(
+    english: 'Stock {stockNumber}',
+    hindi: 'स्टॉक {stockNumber}',
+    gujarati: 'સ્ટોક {stockNumber}',
+  ),
+  RemainingL10n.statusUpdated: LocalizedMessage(
+    english: 'Status updated',
+    hindi: 'स्थिति अपडेट की गई',
+    gujarati: 'સ્થિતિ અપડેટ થઈ',
+  ),
+  RemainingL10n.optionalNoteForTimeline: LocalizedMessage(
+    english: 'Optional note for the timeline',
+    hindi: 'टाइमलाइन के लिए वैकल्पिक नोट',
+    gujarati: 'ટાઇમલાઇન માટે વૈકલ્પિક નોંધ',
+  ),
+  RemainingL10n.replyToBuyerHint: LocalizedMessage(
+    english: 'Reply to the buyer...',
+    hindi: 'खरीदार को जवाब दें...',
+    gujarati: 'ખરીદદારને જવાબ આપો...',
+  ),
+  RemainingL10n.verified: LocalizedMessage(
+    english: 'Verified',
+    hindi: 'सत्यापित',
+    gujarati: 'ચકાસાયેલ',
+  ),
+  RemainingL10n.verifiedSellerAccount: LocalizedMessage(
+    english: 'Verified seller account',
+    hindi: 'सत्यापित विक्रेता खाता',
+    gujarati: 'ચકાસાયેલ વિક્રેતા ખાતું',
+  ),
+  RemainingL10n.couldNotDeleteAccount: LocalizedMessage(
+    english: 'Could not delete account. Please try again.',
+    hindi: 'खाता हटाया नहीं जा सका। कृपया पुनः प्रयास करें।',
+    gujarati: 'ખાતું કાઢી શકાયું નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.',
+  ),
+  RemainingL10n.accountScheduledForDeletion: LocalizedMessage(
+    english: 'Your account is scheduled for deletion.',
+    hindi: 'आपका खाता हटाने के लिए निर्धारित है।',
+    gujarati: 'તમારું ખાતું કાઢી નાખવા માટે સુનિશ્ચિત છે.',
+  ),
+  RemainingL10n.recoverByDate: LocalizedMessage(
+    english: 'Recover by {date}.',
+    hindi: '{date} तक पुनर्प्राप्त करें।',
+    gujarati: '{date} સુધી પુનઃપ્રાપ્ત કરો.',
+  ),
+  RemainingL10n.loadingEllipsis: LocalizedMessage(
+    english: 'Loading…',
+    hindi: 'लोड हो रहा है…',
+    gujarati: 'લોડ થઈ રહ્યું છે…',
+  ),
+  RemainingL10n.showingZeroOfZero: LocalizedMessage(
+    english: 'Showing 0 of 0',
+    hindi: '0 में से 0 दिखा रहा है',
+    gujarati: '0 માંથી 0 બતાવી રહ્યું છે',
+  ),
+  RemainingL10n.showingRangeOfTotal: LocalizedMessage(
+    english: 'Showing {from}–{to} of {total}',
+    hindi: '{total} में से {from}–{to} दिखा रहा है',
+    gujarati: '{total} માંથી {from}–{to} બતાવી રહ્યું છે',
+  ),
+  RemainingL10n.noCategoryInquiries: LocalizedMessage(
+    english: 'No {category} inquiries.',
+    hindi: 'कोई {category} पूछताछ नहीं।',
+    gujarati: 'કોઈ {category} પૂછપરછ નથી.',
+  ),
+  RemainingL10n.adminReplied: LocalizedMessage(
+    english: 'Admin replied',
+    hindi: 'एडमिन ने जवाब दिया',
+    gujarati: 'એડમિને જવાબ આપ્યો',
+  ),
+  RemainingL10n.awaitingAdmin: LocalizedMessage(
+    english: 'Awaiting admin',
+    hindi: 'एडमिन की प्रतीक्षा',
+    gujarati: 'એડમિનની રાહ',
+  ),
+  RemainingL10n.quickViewForStock: LocalizedMessage(
+    english: 'Quick view for {stockNumber}',
+    hindi: '{stockNumber} का त्वरित दृश्य',
+    gujarati: '{stockNumber} નું ઝડપી દૃશ્ય',
+  ),
+  RemainingL10n.uploadReferenceImageHelper: LocalizedMessage(
+    english: 'Upload a reference image of what you want',
+    hindi: 'आप जो चाहते हैं उसकी संदर्भ छवि अपलोड करें',
+    gujarati: 'તમે જે ઇચ્છો તેની સંદર્ભ છબી અપલોડ કરો',
+  ),
+  RemainingL10n.imageMustBeSmallerThan5Mb: LocalizedMessage(
+    english: 'Image must be smaller than 5 MB',
+    hindi: 'छवि 5 MB से छोटी होनी चाहिए',
+    gujarati: 'છબી 5 MB કરતાં નાની હોવી જોઈએ',
+  ),
+  RemainingL10n.couldNotReadSelectedFile: LocalizedMessage(
+    english: 'Could not read the selected file',
+    hindi: 'चयनित फ़ाइल पढ़ी नहीं जा सकी',
+    gujarati: 'પસંદ કરેલી ફાઇલ વાંચી શકાઈ નહીં',
+  ),
+  RemainingL10n.noImageSelected: LocalizedMessage(
+    english: 'No image selected',
+    hindi: 'कोई छवि चयनित नहीं',
+    gujarati: 'કોઈ છબી પસંદ નથી',
+  ),
+  RemainingL10n.someImagesSkippedMax5Mb: LocalizedMessage(
+    english: 'Some images were skipped (max 5 MB each)',
+    hindi: 'कुछ छवियाँ छोड़ दी गईं (प्रत्येक अधिकतम 5 MB)',
+    gujarati: 'કેટલીક છબીઓ છોડી દેવાઈ (દરેક મહત્તમ 5 MB)',
+  ),
+  RemainingL10n.someImagesCouldNotBeRead: LocalizedMessage(
+    english: 'Some images could not be read',
+    hindi: 'कुछ छवियाँ पढ़ी नहीं जा सकीं',
+    gujarati: 'કેટલીક છબીઓ વાંચી શકાઈ નહીં',
+  ),
+  RemainingL10n.uploadReferenceImage: LocalizedMessage(
+    english: 'Upload reference image',
+    hindi: 'संदर्भ छवि अपलोड करें',
+    gujarati: 'સંદર્ભ છબી અપલોડ કરો',
+  ),
+  RemainingL10n.addAnotherImage: LocalizedMessage(
+    english: 'Add another image',
+    hindi: 'एक और छवि जोड़ें',
+    gujarati: 'બીજી છબી ઉમેરો',
+  ),
+  RemainingL10n.noFileChosen: LocalizedMessage(
+    english: 'No file chosen',
+    hindi: 'कोई फ़ाइल चुनी नहीं गई',
+    gujarati: 'કોઈ ફાઇલ પસંદ નથી',
+  ),
+  RemainingL10n.enterCertificateNameHint: LocalizedMessage(
+    english: 'Enter certificate name (e.g. GIA)',
+    hindi: 'प्रमाणपत्र का नाम दर्ज करें (जैसे GIA)',
+    gujarati: 'પ્રમાણપત્રનું નામ દાખલ કરો (જેમ કે GIA)',
+  ),
+  RemainingL10n.diamondSpecs: LocalizedMessage(
+    english: 'Diamond specs',
+    hindi: 'हीरा विनिर्देश',
+    gujarati: 'હીરા સ્પેક્સ',
+  ),
+  RemainingL10n.pricing: LocalizedMessage(
+    english: 'Pricing',
+    hindi: 'मूल्य निर्धारण',
+    gujarati: 'કિંમત નિર્ધારણ',
+  ),
+  RemainingL10n.certificateSection: LocalizedMessage(
+    english: 'Certificate',
+    hindi: 'प्रमाणपत्र',
+    gujarati: 'પ્રમાણપત્ર',
+  ),
+  RemainingL10n.notesSection: LocalizedMessage(
+    english: 'Notes',
+    hindi: 'नोट्स',
+    gujarati: 'નોંધો',
+  ),
+  RemainingL10n.removeStockConfirm: LocalizedMessage(
+    english:
+        'Remove stock {stockNumber} from your active listings? This cannot be undone from this screen.',
+    hindi:
+        'स्टॉक {stockNumber} को अपनी सक्रिय लिस्टिंग से हटाएँ? इस स्क्रीन से इसे पूर्ववत नहीं किया जा सकता।',
+    gujarati:
+        'સ્ટોક {stockNumber}ને તમારી સક્રિય યાદીઓમાંથી કાઢી નાખો? આ સ્ક્રીનથી આ પૂર્વવત્ કરી શકાતું નથી.',
+  ),
+  RemainingL10n.tags: LocalizedMessage(
+    english: 'Tags',
+    hindi: 'टैग',
+    gujarati: 'ટૅગ્સ',
+  ),
+  RemainingL10n.cut: LocalizedMessage(
+    english: 'Cut',
+    hindi: 'कट',
+    gujarati: 'કટ',
+  ),
+  RemainingL10n.rap: LocalizedMessage(
+    english: 'Rap',
+    hindi: 'रैप',
+    gujarati: 'રેપ',
+  ),
+  RemainingL10n.discount: LocalizedMessage(
+    english: 'Discount',
+    hindi: 'छूट',
+    gujarati: 'ડિસ્કાઉન્ટ',
+  ),
+  RemainingL10n.tablePercent: LocalizedMessage(
+    english: 'Table %',
+    hindi: 'टेबल %',
+    gujarati: 'ટેબલ %',
+  ),
+  RemainingL10n.depthPercent: LocalizedMessage(
+    english: 'Depth %',
+    hindi: 'गहराई %',
+    gujarati: 'ઊંડાઈ %',
+  ),
+  RemainingL10n.girdleMin: LocalizedMessage(
+    english: 'Girdle min',
+    hindi: 'गर्डल न्यूनतम',
+    gujarati: 'ગર્ડલ ન્યૂનતમ',
+  ),
+  RemainingL10n.girdleMax: LocalizedMessage(
+    english: 'Girdle max',
+    hindi: 'गर्डल अधिकतम',
+    gujarati: 'ગર્ડલ મહત્તમ',
+  ),
+  RemainingL10n.girdlePercent: LocalizedMessage(
+    english: 'Girdle %',
+    hindi: 'गर्डल %',
+    gujarati: 'ગર્ડલ %',
+  ),
+  RemainingL10n.crownHeight: LocalizedMessage(
+    english: 'Crown height',
+    hindi: 'क्राउन ऊँचाई',
+    gujarati: 'ક્રાઉન ઊંચાઈ',
+  ),
+  RemainingL10n.crownAngle: LocalizedMessage(
+    english: 'Crown angle',
+    hindi: 'क्राउन कोण',
+    gujarati: 'ક્રાઉન કોણ',
+  ),
+  RemainingL10n.pavilionAngle: LocalizedMessage(
+    english: 'Pavilion angle',
+    hindi: 'पवेलियन कोण',
+    gujarati: 'પેવેલિયન કોણ',
+  ),
+  RemainingL10n.pavilionDepth: LocalizedMessage(
+    english: 'Pavilion depth',
+    hindi: 'पवेलियन गहराई',
+    gujarati: 'પેવેલિયન ઊંડાઈ',
+  ),
+  RemainingL10n.lab: LocalizedMessage(
+    english: 'Lab',
+    hindi: 'लैब',
+    gujarati: 'લેબ',
+  ),
+  RemainingL10n.laserInscription: LocalizedMessage(
+    english: 'Laser inscription',
+    hindi: 'लेज़र उत्कीर्णन',
+    gujarati: 'લેસર ઉત્કીર્ણન',
+  ),
+  RemainingL10n.tinge: LocalizedMessage(
+    english: 'Tinge',
+    hindi: 'टिंट',
+    gujarati: 'ટિંજ',
+  ),
+  RemainingL10n.luster: LocalizedMessage(
+    english: 'Luster',
+    hindi: 'चमक',
+    gujarati: 'ચમક',
+  ),
+  RemainingL10n.ha: LocalizedMessage(
+    english: 'H&A',
+    hindi: 'H&A',
+    gujarati: 'H&A',
+  ),
+  RemainingL10n.fancyIntensity: LocalizedMessage(
+    english: 'Fancy intensity',
+    hindi: 'फैंसी तीव्रता',
+    gujarati: 'ફેન્સી તીવ્રતા',
+  ),
+  RemainingL10n.fancyOvertone: LocalizedMessage(
+    english: 'Fancy overtone',
+    hindi: 'फैंसी ओवरटोन',
+    gujarati: 'ફેન્સી ઓવરટોન',
+  ),
+  RemainingL10n.enhancement: LocalizedMessage(
+    english: 'Enhancement',
+    hindi: 'एन्हांसमेंट',
+    gujarati: 'એન્હાન્સમેન્ટ',
+  ),
+  RemainingL10n.growthType: LocalizedMessage(
+    english: 'Growth type',
+    hindi: 'वृद्धि प्रकार',
+    gujarati: 'ગ્રોથ પ્રકાર',
+  ),
+  RemainingL10n.inclusions: LocalizedMessage(
+    english: 'Inclusions',
+    hindi: 'समावेशन',
+    gujarati: 'ઇન્ક્લુઝન્સ',
+  ),
+  RemainingL10n.certComment: LocalizedMessage(
+    english: 'Cert comment',
+    hindi: 'प्रमाणपत्र टिप्पणी',
+    gujarati: 'પ્રમાણપત્ર ટિપ્પણી',
+  ),
+  RemainingL10n.keyToSymbols: LocalizedMessage(
+    english: 'Key to symbols',
+    hindi: 'प्रतीकों की कुंजी',
+    gujarati: 'પ્રતીકોની કી',
+  ),
+  RemainingL10n.stockNumberLabel: LocalizedMessage(
+    english: 'Stock number',
+    hindi: 'स्टॉक नंबर',
+    gujarati: 'સ્ટોક નંબર',
+  ),
+  RemainingL10n.cutGradeExcellent: LocalizedMessage(
+    english: 'Excellent',
+    hindi: 'उत्कृष्ट',
+    gujarati: 'ઉત્તમ',
+  ),
+  RemainingL10n.cutGradeVeryGood: LocalizedMessage(
+    english: 'Very Good',
+    hindi: 'बहुत अच्छा',
+    gujarati: 'ખૂબ સારું',
+  ),
+  RemainingL10n.cutGradeGood: LocalizedMessage(
+    english: 'Good',
+    hindi: 'अच्छा',
+    gujarati: 'સારું',
+  ),
+  RemainingL10n.cutGradeFair: LocalizedMessage(
+    english: 'Fair',
+    hindi: 'औसत',
+    gujarati: 'મધ્યમ',
+  ),
+  RemainingL10n.videoHelperText: LocalizedMessage(
+    english: 'MP4, WebM, MOV, AVI — max 50MB',
+    hindi: 'MP4, WebM, MOV, AVI — अधिकतम 50MB',
+    gujarati: 'MP4, WebM, MOV, AVI — મહત્તમ 50MB',
+  ),
+  RemainingL10n.activeDiscounts: LocalizedMessage(
+    english: 'Active Discounts',
+    hindi: 'सक्रिय छूट',
+    gujarati: 'સક્રિય ડિસ્કાઉન્ટ',
+  ),
+  RemainingL10n.meleeDiamonds: LocalizedMessage(
+    english: 'Melee Diamonds',
+    hindi: 'मीली डायमंड',
+    gujarati: 'મીલી ડાયમંડ',
+  ),
+  RemainingL10n.naturalDiamond: LocalizedMessage(
+    english: 'Natural Diamond',
+    hindi: 'प्राकृतिक हीरा',
+    gujarati: 'કુદરતી હીરો',
+  ),
+  RemainingL10n.meleeDiamond: LocalizedMessage(
+    english: 'Melee Diamond',
+    hindi: 'मीली हीरा',
+    gujarati: 'મીલી હીરો',
+  ),
+  RemainingL10n.orderStatusProcessing: LocalizedMessage(
+    english: 'Processing',
+    hindi: 'प्रसंस्करण',
+    gujarati: 'પ્રક્રિયા',
+  ),
+  RemainingL10n.orderStatusShipped: LocalizedMessage(
+    english: 'Shipped',
+    hindi: 'भेज दिया गया',
+    gujarati: 'મોકલાયું',
+  ),
+  RemainingL10n.orderStatusOutForDelivery: LocalizedMessage(
+    english: 'Out For Delivery',
+    hindi: 'डिलीवरी के लिए निकल चुका',
+    gujarati: 'ડિલિવરી માટે નીકળ્યું',
+  ),
+  RemainingL10n.orderStatusDelivered: LocalizedMessage(
+    english: 'Delivered',
+    hindi: 'वितरित',
+    gujarati: 'ડિલિવર થયું',
+  ),
+  RemainingL10n.orderStatusCancelled: LocalizedMessage(
+    english: 'Cancelled',
+    hindi: 'रद्द',
+    gujarati: 'રદ થયું',
+  ),
+  RemainingL10n.orderWithId: LocalizedMessage(
+    english: 'Order {id}',
+    hindi: 'ऑर्डर {id}',
+    gujarati: 'ઓર્ડર {id}',
+  ),
+  RemainingL10n.shipmentWithStatus: LocalizedMessage(
+    english: 'Shipment · {status}',
+    hindi: 'शिपमेंट · {status}',
+    gujarati: 'શિપમેન્ટ · {status}',
   ),
 };

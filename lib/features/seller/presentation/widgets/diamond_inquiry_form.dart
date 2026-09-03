@@ -93,7 +93,7 @@ class DiamondInquiryForm extends StatelessWidget {
                 InquiryTextField(
                   label: context.tr(RemainingL10n.certificateName),
                   controller: controller('certificateName'),
-                  hint: 'Enter certificate name (e.g. GIA)',
+                  hint: context.tr(RemainingL10n.enterCertificateNameHint),
                   onChanged: onChanged,
                 ),
               InquiryTextField(

@@ -66,8 +66,11 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
     setState(() {
       _timeline = [
         SellerOrderTimelineEntry(
-          title: '$_status · ${_locationCtrl.text.trim()}',
-          subtitle: note.isEmpty ? 'Status updated' : note,
+          title:
+              '${_statusLabel(context, _status)} · ${_locationCtrl.text.trim()}',
+          subtitle: note.isEmpty
+              ? context.tr(RemainingL10n.statusUpdated)
+              : note,
           at: _nowLabel(),
         ),
         ..._timeline,
@@ -79,10 +82,24 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
     );
   }
 
+  static const _statusLabelKeys = <String, String>{
+    'Processing': RemainingL10n.orderStatusProcessing,
+    'Shipped': RemainingL10n.orderStatusShipped,
+    'Out For Delivery': RemainingL10n.orderStatusOutForDelivery,
+    'Delivered': RemainingL10n.orderStatusDelivered,
+    'Cancelled': RemainingL10n.orderStatusCancelled,
+  };
+
+  static String _statusLabel(BuildContext context, String status) {
+    final key = _statusLabelKeys[status];
+    return key == null ? status : context.tr(key);
+  }
+
   String _nowLabel() {
     final n = DateTime.now();
     String two(int v) => v.toString().padLeft(2, '0');
-    return '${two(n.day)}/${two(n.month)}/${n.year}, ${two(n.hour)}:${two(n.minute)}:${two(n.second)}';
+    return '${two(n.day)}/${two(n.month)}/${n.year}, '
+        '${two(n.hour)}:${two(n.minute)}:${two(n.second)}';
   }
 
   InputDecoration _fieldDecoration(String hint) {
@@ -127,7 +144,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Order ${order.id}',
+                      context.tr(RemainingL10n.orderWithId, {'id': order.id}),
                       style: AppTypography.headline.copyWith(
                         fontWeight: FontWeight.w800,
                         fontSize: 22,
@@ -135,7 +152,9 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Shipment · $_status',
+                      context.tr(RemainingL10n.shipmentWithStatus, {
+                        'status': _statusLabel(context, _status),
+                      }),
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textSecondary(context),
                       ),
@@ -183,12 +202,17 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                           : _statusOptions.first,
                       items: [
                         for (final s in _statusOptions)
-                          DropdownMenuItem(value: s, child: Text(s)),
+                          DropdownMenuItem(
+                            value: s,
+                            child: Text(_statusLabel(context, s)),
+                          ),
                       ],
                       onChanged: (v) {
                         if (v != null) setState(() => _status = v);
                       },
-                      decoration: _fieldDecoration('Status'),
+                      decoration: _fieldDecoration(
+                        context.tr(RemainingL10n.status2),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -232,7 +256,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                       controller: _noteCtrl,
                       maxLines: 3,
                       decoration: _fieldDecoration(
-                        'Optional note for the timeline',
+                        context.tr(RemainingL10n.optionalNoteForTimeline),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -308,7 +332,9 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: _commentCtrl,
-                      decoration: _fieldDecoration('Reply to the buyer...'),
+                      decoration: _fieldDecoration(
+                        context.tr(RemainingL10n.replyToBuyerHint),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Align(

@@ -172,7 +172,9 @@ class _SellerPromotionsScreenState
                         children: [
                           Expanded(
                             child: Text(
-                              isDiscounts ? 'Active Discounts' : 'Promo Codes',
+                              isDiscounts
+                                  ? context.tr(RemainingL10n.activeDiscounts)
+                                  : context.tr(RemainingL10n.promoCodes),
                               style: AppTypography.title.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -185,7 +187,9 @@ class _SellerPromotionsScreenState
                                 ? _openAddDiscount
                                 : _openAddPromoCode,
                             child: Text(
-                              isDiscounts ? 'Add Discount' : 'Add Promo Code',
+                              isDiscounts
+                                  ? context.tr(RemainingL10n.addDiscount)
+                                  : context.tr(RemainingL10n.addPromoCode),
                             ),
                           ),
                         ],

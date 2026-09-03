@@ -151,12 +151,7 @@ class SellerDrawer extends ConsumerWidget {
                         ? AppColors.navSelectedFill(context)
                         : Colors.transparent,
                     child: InkWell(
-                      onTap: () {
-                        Navigator.of(context).maybePop();
-                        // Replace, don't push — avoids blank screens when
-                        // popping through stacked shell peer routes.
-                        context.switchToRoute(item.route);
-                      },
+                      onTap: () => _go(context, item.route),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.s16,
@@ -189,20 +184,31 @@ class SellerDrawer extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.storefront_outlined),
               title: Text(
-                'Back to shop',
+                context.tr(RemainingL10n.backToShop),
                 style: AppTypography.label.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              onTap: () {
-                Navigator.of(context).maybePop();
-                context.resetTo(AppRouteNames.home);
-              },
+              onTap: () => _goHome(context),
             ),
           ],
         ),
       ),
     );
+  }
+
+  static Future<void> _go(BuildContext context, String route) async {
+    await Navigator.of(context).maybePop();
+    if (!context.mounted) return;
+    // Replace, don't push — avoids blank screens when
+    // popping through stacked shell peer routes.
+    context.switchToRoute(route);
+  }
+
+  static Future<void> _goHome(BuildContext context) async {
+    await Navigator.of(context).maybePop();
+    if (!context.mounted) return;
+    context.resetTo(AppRouteNames.home);
   }
 }
 

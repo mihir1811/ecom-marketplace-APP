@@ -101,7 +101,7 @@ class _ProductCard extends StatelessWidget {
     final mutedColor = AppColors.textSecondary(context);
     final title = _gridTitle(product);
     final gradesLine = _gridGradesLine(product);
-    final metaLine = _gridMetaLine(product);
+    final metaLine = _gridMetaLine(context, product);
     final priceLabel = _priceLabel(product.field('total_price'));
 
     return MarketplaceProductCardShell(
@@ -156,7 +156,9 @@ class _ProductCard extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                'Quick view for ${product.stockNumber}',
+                                context.tr(RemainingL10n.quickViewForStock, {
+                                  'stockNumber': product.stockNumber,
+                                }),
                               ),
                             ),
                           );
@@ -413,7 +415,7 @@ String? _gridGradesLine(SellerProduct product) {
   return parts.join(' · ');
 }
 
-String? _gridMetaLine(SellerProduct product) {
+String? _gridMetaLine(BuildContext context, SellerProduct product) {
   final parts = <String>[];
   final ppc = _parseAmount(product.field('price_per_carat'));
   if (ppc != null && ppc > 0) {
@@ -422,7 +424,11 @@ String? _gridMetaLine(SellerProduct product) {
   final dims = _optionalText(product.field('measurement'));
   if (dims != null) parts.add(dims);
   if (parts.isEmpty) {
-    parts.add(product.isNatural ? 'Natural Diamond' : 'Melee Diamond');
+    parts.add(
+      product.isNatural
+          ? context.tr(RemainingL10n.naturalDiamond)
+          : context.tr(RemainingL10n.meleeDiamond),
+    );
   }
   return parts.join(' · ');
 }

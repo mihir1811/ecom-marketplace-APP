@@ -164,7 +164,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
           labelStyle: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
           tabs: [
             Tab(text: context.tr(RemainingL10n.naturalDiamonds)),
-            const Tab(text: 'Melee Diamonds'),
+            Tab(text: context.tr(RemainingL10n.meleeDiamonds)),
           ],
         ),
         Padding(

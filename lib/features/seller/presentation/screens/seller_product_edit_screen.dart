@@ -23,9 +23,9 @@ class _EditField {
 }
 
 class _EditSection {
-  const _EditSection(this.title, this.fields);
+  const _EditSection(this.titleKey, this.fields);
 
-  final String title;
+  final String titleKey;
   final List<_EditField> fields;
 }
 
@@ -36,13 +36,13 @@ const _kEditInputMinHeight = 52.0;
 
 /// Categorized editable fields for the seller product edit form.
 const kSellerEditSections = <_EditSection>[
-  _EditSection('Basic', [
+  _EditSection(CatalogL10n.basic, [
     _EditField('stock_number', required: true),
     _EditField('available'),
     _EditField('tags'),
     _EditField('origin'),
   ]),
-  _EditSection('Diamond specs', [
+  _EditSection(RemainingL10n.diamondSpecs, [
     _EditField('shape'),
     _EditField('carat_weight'),
     _EditField('color'),
@@ -52,13 +52,13 @@ const kSellerEditSections = <_EditSection>[
     _EditField('symmetry'),
     _EditField('eye_clean'),
   ]),
-  _EditSection('Pricing', [
+  _EditSection(RemainingL10n.pricing, [
     _EditField('rap'),
     _EditField('discount'),
     _EditField('price_per_carat'),
     _EditField('total_price', required: true),
   ]),
-  _EditSection('Measurements', [
+  _EditSection(CatalogL10n.measurements, [
     _EditField('measurement'),
     _EditField('ratio'),
     _EditField('table'),
@@ -72,13 +72,13 @@ const kSellerEditSections = <_EditSection>[
     _EditField('pavilion_depth'),
     _EditField('culet_size'),
   ]),
-  _EditSection('Certificate', [
+  _EditSection(RemainingL10n.certificateSection, [
     _EditField('certificate_company_name'),
     _EditField('certificate_number'),
     _EditField('certification'),
     _EditField('laser_inscription'),
   ]),
-  _EditSection('Appearance', [
+  _EditSection(CoreL10n.appearance, [
     _EditField('fluorescence_intensity'),
     _EditField('fluorescence_color'),
     _EditField('shade'),
@@ -94,7 +94,7 @@ const kSellerEditSections = <_EditSection>[
     _EditField('growth_type'),
     _EditField('inclusions_type'),
   ]),
-  _EditSection('Notes', [
+  _EditSection(RemainingL10n.notesSection, [
     _EditField('comment', fullWidth: true),
     _EditField('cert_comment', fullWidth: true),
     _EditField('key_to_symbols', fullWidth: true),
@@ -107,56 +107,61 @@ List<String> get kSellerEditableFieldIds => [
     for (final field in section.fields) field.id,
 ];
 
-final _fieldLabels = <String, String>{
-  'stock_number': 'Stock number',
-  'available': 'Available',
-  'tags': 'Tags',
-  'origin': 'Origin',
-  'shape': 'Shape',
-  'carat_weight': 'Carat weight',
-  'color': 'Color',
-  'clarity': 'Clarity',
-  'cut': 'Cut',
-  'polish': 'Polish',
-  'symmetry': 'Symmetry',
-  'eye_clean': 'Eye clean',
-  'rap': 'Rap',
-  'discount': 'Discount',
-  'price_per_carat': 'Price / ct',
-  'total_price': 'Total price',
-  'measurement': 'Measurement',
-  'ratio': 'Ratio',
-  'table': 'Table %',
-  'depth': 'Depth %',
-  'gridle_min': 'Girdle min',
-  'gridle_max': 'Girdle max',
-  'gridle_percentage': 'Girdle %',
-  'crown_height': 'Crown height',
-  'crown_angle': 'Crown angle',
-  'pavilion_angle': 'Pavilion angle',
-  'pavilion_depth': 'Pavilion depth',
-  'culet_size': 'Culet size',
-  'certificate_company_name': 'Lab',
-  'certificate_number': 'Certificate #',
-  'certification': 'Certification',
-  'laser_inscription': 'Laser inscription',
-  'fluorescence_intensity': 'Fluorescence',
-  'fluorescence_color': 'Fluor. color',
-  'shade': 'Shade',
-  'tinge': 'Tinge',
-  'luster': 'Luster',
-  'milky': 'Milky',
-  'bgm': 'BGM',
-  'ha': 'H&A',
-  'fancy_color': 'Fancy color',
-  'fancy_intensity': 'Fancy intensity',
-  'fancy_overtone': 'Fancy overtone',
-  'enhancement': 'Enhancement',
-  'growth_type': 'Growth type',
-  'inclusions_type': 'Inclusions',
-  'comment': 'Comment',
-  'cert_comment': 'Cert comment',
-  'key_to_symbols': 'Key to symbols',
+String _fieldLabel(BuildContext context, String fieldId) {
+  final key = _fieldLabelKeys[fieldId];
+  return key == null ? fieldId : context.tr(key);
+}
+
+final _fieldLabelKeys = <String, String>{
+  'stock_number': RemainingL10n.stockNumberLabel,
+  'available': CatalogL10n.available,
+  'tags': RemainingL10n.tags,
+  'origin': CatalogL10n.origin,
+  'shape': CatalogL10n.shape,
+  'carat_weight': CatalogL10n.caratWeight,
+  'color': CatalogL10n.color,
+  'clarity': CatalogL10n.clarity,
+  'cut': RemainingL10n.cut,
+  'polish': CatalogL10n.polish,
+  'symmetry': CatalogL10n.symmetry,
+  'eye_clean': CatalogL10n.eyeClean,
+  'rap': RemainingL10n.rap,
+  'discount': RemainingL10n.discount,
+  'price_per_carat': CatalogL10n.pricePerCarat,
+  'total_price': CatalogL10n.totalPrice,
+  'measurement': CatalogL10n.measurement,
+  'ratio': CatalogL10n.ratio,
+  'table': RemainingL10n.tablePercent,
+  'depth': RemainingL10n.depthPercent,
+  'gridle_min': RemainingL10n.girdleMin,
+  'gridle_max': RemainingL10n.girdleMax,
+  'gridle_percentage': RemainingL10n.girdlePercent,
+  'crown_height': RemainingL10n.crownHeight,
+  'crown_angle': RemainingL10n.crownAngle,
+  'pavilion_angle': RemainingL10n.pavilionAngle,
+  'pavilion_depth': RemainingL10n.pavilionDepth,
+  'culet_size': CatalogL10n.culetSize,
+  'certificate_company_name': RemainingL10n.lab,
+  'certificate_number': CatalogL10n.certificateHash,
+  'certification': CatalogL10n.certification,
+  'laser_inscription': RemainingL10n.laserInscription,
+  'fluorescence_intensity': CatalogL10n.fluorescenceIntensity,
+  'fluorescence_color': CatalogL10n.fluorescenceColor,
+  'shade': CatalogL10n.shade,
+  'tinge': RemainingL10n.tinge,
+  'luster': RemainingL10n.luster,
+  'milky': CatalogL10n.milky,
+  'bgm': CatalogL10n.bgmLabel,
+  'ha': RemainingL10n.ha,
+  'fancy_color': CatalogL10n.fancyColors,
+  'fancy_intensity': RemainingL10n.fancyIntensity,
+  'fancy_overtone': RemainingL10n.fancyOvertone,
+  'enhancement': RemainingL10n.enhancement,
+  'growth_type': RemainingL10n.growthType,
+  'inclusions_type': RemainingL10n.inclusions,
+  'comment': CatalogL10n.comment,
+  'cert_comment': RemainingL10n.certComment,
+  'key_to_symbols': RemainingL10n.keyToSymbols,
 };
 
 /// Full-screen editor for an existing seller product (no create flow).
@@ -276,12 +281,15 @@ class _SellerProductEditScreenState
           ),
           children: [
             Text(
-              'Stock ${_product!.stockNumber} · ID ${_product!.id}',
+              context.tr(RemainingL10n.stockWithNumber, {
+                'stockNumber':
+                    '${_product!.stockNumber} · ID ${_product!.id}',
+              }),
               style: AppTypography.body.copyWith(color: muted, fontSize: 15),
             ),
             const SizedBox(height: AppSpacing.s12),
             for (final section in kSellerEditSections) ...[
-              _SectionHeader(title: section.title),
+              _SectionHeader(title: context.tr(section.titleKey)),
               const SizedBox(height: AppSpacing.s8),
               _FieldGrid(fields: section.fields, controllers: _controllers),
               const SizedBox(height: AppSpacing.s16),
@@ -442,7 +450,7 @@ class _EditTextField extends StatelessWidget {
         height: 1.35,
       ),
       decoration: InputDecoration(
-        labelText: _fieldLabels[field.id] ?? field.id,
+        labelText: _fieldLabel(context, field.id),
         floatingLabelStyle: AppTypography.label.copyWith(
           fontSize: _kEditLabelFontSize,
           fontWeight: FontWeight.w600,
@@ -478,8 +486,9 @@ Future<bool> confirmDeleteSellerProduct(
     builder: (context) => AlertDialog(
       title: Text(context.tr(RemainingL10n.deleteProduct2)),
       content: Text(
-        'Remove stock ${product.stockNumber} from your active listings? '
-        'This cannot be undone from this screen.',
+        context.tr(RemainingL10n.removeStockConfirm, {
+          'stockNumber': product.stockNumber,
+        }),
       ),
       actions: [
         TextButton(

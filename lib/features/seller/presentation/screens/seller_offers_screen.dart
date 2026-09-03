@@ -54,8 +54,8 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
           SnackBar(
             content: Text(
               status == ProductOfferStatus.accepted
-                  ? 'Offer accepted'
-                  : 'Offer rejected',
+                  ? context.tr(RemainingL10n.offerAccepted)
+                  : context.tr(RemainingL10n.offerRejected),
             ),
           ),
         );
@@ -292,7 +292,9 @@ class _OfferCard extends StatelessWidget {
             if (offer.stockNumber != null) ...[
               const SizedBox(height: 4),
               Text(
-                'Stock ${offer.stockNumber}',
+                context.tr(RemainingL10n.stockWithNumber, {
+                  'stockNumber': offer.stockNumber!,
+                }),
                 style: AppTypography.caption.copyWith(
                   color: AppColors.textSecondary(context),
                 ),

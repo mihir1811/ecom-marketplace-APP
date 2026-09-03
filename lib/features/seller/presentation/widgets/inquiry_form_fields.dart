@@ -592,7 +592,7 @@ class InquiryImagePickerField extends StatelessWidget {
     required this.label,
     required this.images,
     required this.onChanged,
-    this.helperText = 'Upload a reference image of what you want',
+    this.helperText,
     this.maxImages = 4,
     super.key,
   });
@@ -600,7 +600,7 @@ class InquiryImagePickerField extends StatelessWidget {
   final String label;
   final List<Uint8List> images;
   final ValueChanged<List<Uint8List>> onChanged;
-  final String helperText;
+  final String? helperText;
   final int maxImages;
 
   Future<void> _pick(BuildContext context) async {
@@ -661,10 +661,10 @@ class InquiryImagePickerField extends StatelessWidget {
           SnackBar(
             content: Text(
               skippedLarge
-                  ? 'Image must be smaller than 5 MB'
+                  ? context.tr(RemainingL10n.imageMustBeSmallerThan5Mb)
                   : skippedUnreadable
-                  ? 'Could not read the selected file'
-                  : 'No image selected',
+                  ? context.tr(RemainingL10n.couldNotReadSelectedFile)
+                  : context.tr(RemainingL10n.noImageSelected),
             ),
           ),
         );
@@ -678,8 +678,8 @@ class InquiryImagePickerField extends StatelessWidget {
           SnackBar(
             content: Text(
               skippedLarge
-                  ? 'Some images were skipped (max 5 MB each)'
-                  : 'Some images could not be read',
+                  ? context.tr(RemainingL10n.someImagesSkippedMax5Mb)
+                  : context.tr(RemainingL10n.someImagesCouldNotBeRead),
             ),
           ),
         );
@@ -704,7 +704,8 @@ class InquiryImagePickerField extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            helperText,
+            helperText ??
+                context.tr(RemainingL10n.uploadReferenceImageHelper),
             style: AppTypography.caption.copyWith(
               color: AppColors.textMuted(context),
             ),
@@ -772,7 +773,9 @@ class InquiryImagePickerField extends StatelessWidget {
             ),
             icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
             label: Text(
-              images.isEmpty ? 'Upload reference image' : 'Add another image',
+              images.isEmpty
+                  ? context.tr(RemainingL10n.uploadReferenceImage)
+                  : context.tr(RemainingL10n.addAnotherImage),
             ),
           ),
         ],
@@ -781,20 +784,20 @@ class InquiryImagePickerField extends StatelessWidget {
   }
 }
 
-/// Single video file picker for inquiry context.tr(RemainingL10n.fromDevice).
+/// Single video file picker for inquiry attachments.
 class InquiryVideoPickerField extends StatelessWidget {
   const InquiryVideoPickerField({
     required this.label,
     required this.fileName,
     required this.onPicked,
-    this.helperText = 'MP4, WebM, MOV, AVI — max 50MB',
+    this.helperText,
     super.key,
   });
 
   final String label;
   final String fileName;
   final ValueChanged<String> onPicked;
-  final String helperText;
+  final String? helperText;
 
   Future<void> _pick(BuildContext context) async {
     try {
@@ -850,7 +853,7 @@ class InquiryVideoPickerField extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            helperText,
+            helperText ?? context.tr(RemainingL10n.videoHelperText),
             style: AppTypography.caption.copyWith(
               color: AppColors.textMuted(context),
             ),
@@ -875,7 +878,9 @@ class InquiryVideoPickerField extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            chosen.isEmpty ? 'No file chosen' : chosen,
+            chosen.isEmpty
+                ? context.tr(RemainingL10n.noFileChosen)
+                : chosen,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTypography.caption.copyWith(

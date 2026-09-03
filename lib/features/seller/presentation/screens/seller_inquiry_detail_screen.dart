@@ -647,18 +647,7 @@ List<_FieldSection> _groupFields(
       }
     }
     if (matched.isNotEmpty) {
-      final title = switch (group.key) {
-        'General' => context.tr(RemainingL10n.general),
-        'Certification' => context.tr(RemainingL10n.certification),
-        'Stone details' => context.tr(RemainingL10n.stoneDetails),
-        'Parcel sizing' => context.tr(RemainingL10n.parcelSizing),
-        'Quality / specifications' => context.tr(RemainingL10n.qualitySpecs),
-        'Commercial' => context.tr(RemainingL10n.commercial),
-        'Dimensions' => context.tr(RemainingL10n.dimensions),
-        'Logistics & notes' => context.tr(RemainingL10n.logisticsAndNotes),
-        _ => group.key,
-      };
-      result.add(_FieldSection(title, matched));
+      result.add(_FieldSection(_sectionTitleFor(context, group.key), matched));
     }
   }
 
@@ -667,6 +656,22 @@ List<_FieldSection> _groupFields(
     result.add(_FieldSection(context.tr(RemainingL10n.other), remaining));
   }
   return result;
+}
+
+String _sectionTitleFor(BuildContext context, String groupKey) {
+  const titles = <String, String>{
+    'General': RemainingL10n.general,
+    'Certification': RemainingL10n.certification,
+    'Stone details': RemainingL10n.stoneDetails,
+    'Parcel sizing': RemainingL10n.parcelSizing,
+    'Quality & specs': RemainingL10n.qualitySpecs,
+    'Quality / specifications': RemainingL10n.qualitySpecs,
+    'Commercial': RemainingL10n.commercial,
+    'Dimensions': RemainingL10n.dimensions,
+    'Logistics & notes': RemainingL10n.logisticsAndNotes,
+  };
+  final key = titles[groupKey];
+  return key == null ? groupKey : context.tr(key);
 }
 
 class _TwoColGrid extends StatelessWidget {

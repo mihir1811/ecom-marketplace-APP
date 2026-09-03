@@ -28,6 +28,19 @@ const _dashboardCutGrades = [
   'Poor',
 ];
 
+const _dashboardCutGradeKeys = <String, String>{
+  'Excellent': RemainingL10n.cutGradeExcellent,
+  'Very Good': RemainingL10n.cutGradeVeryGood,
+  'Good': RemainingL10n.cutGradeGood,
+  'Fair': RemainingL10n.cutGradeFair,
+  'Poor': CatalogL10n.cutGradePoor,
+};
+
+String _cutGradeLabel(BuildContext context, String grade) {
+  final key = _dashboardCutGradeKeys[grade];
+  return key == null ? grade : context.tr(key);
+}
+
 const _dashboardCertLabs = ['GIA', 'IGI', 'AGS', 'HRD'];
 
 /// Seller dashboard diamond-projects panel: filter dialog, inventory, analytics.
@@ -365,7 +378,7 @@ class _SellerDiamondProjectFiltersLeft extends StatelessWidget {
           children: [
             for (final item in kAllShapes)
               FilterChipWidget(
-                label: item['name']!,
+                label: context.trCatalogValue(item['name']!),
                 isSelected: state.shapes.contains(item['name']),
                 onTap: () => notifier.toggleShape(item['name']!),
               ),
@@ -407,9 +420,7 @@ class _SellerDiamondProjectFiltersLeft extends StatelessWidget {
           children: _dashboardCutGrades.map((grade) {
             final selected = state.selectedCuts.contains(grade);
             return FilterChipWidget(
-              label: grade == 'Poor'
-                  ? context.tr(CatalogL10n.cutGradePoor)
-                  : grade,
+              label: _cutGradeLabel(context, grade),
               isSelected: selected,
               onTap: () => notifier.toggleCut(grade),
             );

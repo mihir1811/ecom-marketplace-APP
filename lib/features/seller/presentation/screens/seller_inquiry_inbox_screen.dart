@@ -230,10 +230,17 @@ class _SellerInquiryInboxScreenState
                             ),
                             Text(
                               listState.isLoading
-                                  ? 'Loading…'
+                                  ? context.tr(RemainingL10n.loadingEllipsis)
                                   : listState.items.isEmpty
-                                  ? 'Showing 0 of 0'
-                                  : 'Showing 1–${listState.items.length} of ${listState.total}',
+                                  ? context.tr(RemainingL10n.showingZeroOfZero)
+                                  : context.tr(
+                                      RemainingL10n.showingRangeOfTotal,
+                                      {
+                                        'from': '1',
+                                        'to': '${listState.items.length}',
+                                        'total': '${listState.total}',
+                                      },
+                                    ),
                               style: AppTypography.caption.copyWith(
                                 color: AppColors.textMuted(context),
                               ),
@@ -274,7 +281,9 @@ class _SellerInquiryInboxScreenState
                     padding: const EdgeInsets.symmetric(vertical: 32),
                     child: Center(
                       child: Text(
-                        'No ${_category.label.toLowerCase()} inquiries.',
+                        context.tr(RemainingL10n.noCategoryInquiries, {
+                          'category': _category.label.toLowerCase(),
+                        }),
                         style: AppTypography.body.copyWith(
                           color: AppColors.textMuted(context),
                         ),
@@ -445,7 +454,9 @@ class _InquiryCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
-                inquiry.hasAdminReply ? 'Admin replied' : 'Awaiting admin',
+                inquiry.hasAdminReply
+                    ? context.tr(RemainingL10n.adminReplied)
+                    : context.tr(RemainingL10n.awaitingAdmin),
                 style: AppTypography.caption.copyWith(
                   fontWeight: FontWeight.w700,
                   fontSize: 11,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -34,6 +35,13 @@ class SellerLayout extends ConsumerWidget {
   final Widget child;
   final String selectedRoute;
 
+  static const _pendingAllowedExact = <String>{
+    AppRouteNames.sellerHelpCenter,
+    AppRouteNames.sellerReferences,
+    AppRouteNames.sellerLoginHistory,
+    AppRouteNames.sellerInquiries,
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
@@ -43,30 +51,15 @@ class SellerLayout extends ConsumerWidget {
     }
 
     if (!authState.isSeller) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        context.resetTo(AppRouteNames.home);
-      });
+      _redirectHome(context);
       return const AppScaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    final onOwnProfile =
-        selectedRoute == AppRouteNames.sellerProfile ||
-        selectedRoute.startsWith('${AppRouteNames.sellerProfile}/');
-    final allowedWhenPending =
-        onOwnProfile ||
-        selectedRoute == AppRouteNames.sellerHelpCenter ||
-        selectedRoute == AppRouteNames.sellerReferences ||
-        selectedRoute == AppRouteNames.sellerLoginHistory ||
-        selectedRoute == AppRouteNames.sellerInquiries ||
-        selectedRoute.startsWith('${AppRouteNames.sellerInquiries}/');
-    if (authState.isVerificationPending && !allowedWhenPending) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        context.resetTo(AppRouteNames.home);
-      });
+    if (authState.isVerificationPending &&
+        !_isAllowedWhilePending(selectedRoute)) {
+      _redirectHome(context);
       return AppScaffold(
         body: Center(
           child: Padding(
@@ -84,7 +77,6 @@ class SellerLayout extends ConsumerWidget {
     // Product edit uses its own AppScaffold + AppTopBar (already includes theme).
     final ownsOwnAppBar = _ownsOwnAppBar(selectedRoute);
     final isDetail = _isDetailRoute(selectedRoute);
-    final title = _shellTitleFor(selectedRoute);
 
     return AppScaffold(
       drawer: SellerDrawer(selectedRoute: selectedRoute),
@@ -92,7 +84,7 @@ class SellerLayout extends ConsumerWidget {
       appBar: ownsOwnAppBar
           ? null
           : AppTopBar(
-              title: title,
+              title: _shellTitleFor(context, selectedRoute),
               leading: isDetail
                   ? BackButton(onPressed: () => context.goBack())
                   // AppDrawerButton uses its own context (under Scaffold).
@@ -113,58 +105,78 @@ class SellerLayout extends ConsumerWidget {
     );
   }
 
-  /// Nested screens that render their own [AppScaffold] app bar.
-  static bool _ownsOwnAppBar(String route) {
-    return route.contains('/products/') && route.endsWith('/edit');
+  static void _redirectHome(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      context.resetTo(AppRouteNames.home);
+    });
   }
+
+  static bool _isAllowedWhilePending(String route) {
+    if (route == AppRouteNames.sellerProfile ||
+        route.startsWith('${AppRouteNames.sellerProfile}/')) {
+      return true;
+    }
+    if (_pendingAllowedExact.contains(route)) return true;
+    return route.startsWith('${AppRouteNames.sellerInquiries}/');
+  }
+
+  /// Nested screens that render their own [AppScaffold] app bar.
+  static bool _ownsOwnAppBar(String route) => _isProductEditRoute(route);
 
   /// Stacked detail/flow routes (back button instead of drawer menu).
   static bool _isDetailRoute(String route) {
     if (route == AppRouteNames.sellerInquiryNew) return true;
-    if (route.startsWith('${AppRouteNames.sellerOrders}/') &&
-        route != AppRouteNames.sellerOrders) {
-      return true;
-    }
-    if (route.startsWith('${AppRouteNames.sellerChat}/') &&
-        route != AppRouteNames.sellerChat) {
-      return true;
-    }
-    if (route.startsWith('${AppRouteNames.sellerInquiries}/') &&
-        route != AppRouteNames.sellerInquiries &&
-        route != AppRouteNames.sellerInquiryNew) {
-      return true;
-    }
-    if (route.contains('/products/') && route.endsWith('/edit')) return true;
-    return false;
+    if (_isProductEditRoute(route)) return true;
+    return _isNestedUnder(route, AppRouteNames.sellerOrders) ||
+        _isNestedUnder(route, AppRouteNames.sellerChat) ||
+        (_isNestedUnder(route, AppRouteNames.sellerInquiries) &&
+            route != AppRouteNames.sellerInquiryNew);
   }
 
-  static String _shellTitleFor(String route) {
-    if (route == AppRouteNames.sellerDashboard) return 'Dashboard';
-    if (route == AppRouteNames.sellerProducts) return 'Products';
-    if (route == AppRouteNames.sellerOrders) return 'Orders';
-    if (route == AppRouteNames.sellerWallet) return 'Wallet';
-    if (route == AppRouteNames.sellerInquiries) return 'Inquiries';
-    if (route == AppRouteNames.sellerInquiryNew) return 'Product inquiry';
-    if (route.startsWith('${AppRouteNames.sellerInquiries}/')) {
-      return 'Inquiry details';
+  static bool _isProductEditRoute(String route) {
+    return route.contains('/products/') && route.endsWith('/edit');
+  }
+
+  static bool _isNestedUnder(String route, String parent) {
+    return route.startsWith('$parent/') && route != parent;
+  }
+
+  static String _shellTitleFor(BuildContext context, String route) {
+    const exactTitles = <String, String>{
+      AppRouteNames.sellerDashboard: RemainingL10n.dashboard,
+      AppRouteNames.sellerProducts: RemainingL10n.products,
+      AppRouteNames.sellerOrders: RemainingL10n.orders,
+      AppRouteNames.sellerWallet: RemainingL10n.wallet,
+      AppRouteNames.sellerInquiries: RemainingL10n.inquiries,
+      AppRouteNames.sellerInquiryNew: RemainingL10n.productInquiry,
+      AppRouteNames.sellerOffers: RemainingL10n.offers,
+      AppRouteNames.sellerAuctions: RemainingL10n.myAuctions,
+      AppRouteNames.sellerAnalytics: RemainingL10n.analytics,
+      AppRouteNames.sellerChat: CoreL10n.messages,
+      AppRouteNames.sellerHelpCenter: RemainingL10n.helpCenter,
+      AppRouteNames.sellerReferences: RemainingL10n.references,
+      AppRouteNames.sellerPromotions: RemainingL10n.promotions,
+      AppRouteNames.sellerProfile: RemainingL10n.profile,
+      AppRouteNames.sellerLoginHistory: RemainingL10n.loginHistory,
+      AppRouteNames.sellerApiKeys: RemainingL10n.apiKeys,
+    };
+
+    final exactKey = exactTitles[route];
+    if (exactKey != null) return context.tr(exactKey);
+
+    if (_isNestedUnder(route, AppRouteNames.sellerInquiries)) {
+      return context.tr(RemainingL10n.inquiryDetails);
     }
-    if (route == AppRouteNames.sellerOffers) return 'Offers';
-    if (route == AppRouteNames.sellerAuctions) return 'My Auctions';
-    if (route == AppRouteNames.sellerAnalytics) return 'Analytics';
-    if (route == AppRouteNames.sellerChat) return 'Messages';
-    if (route.startsWith('${AppRouteNames.sellerChat}/')) return 'Chat';
-    if (route == AppRouteNames.sellerHelpCenter) return 'Help center';
-    if (route == AppRouteNames.sellerReferences) return 'References';
-    if (route == AppRouteNames.sellerPromotions) return 'Promotions';
-    if (route == AppRouteNames.sellerProfile) return 'Profile';
-    if (route == AppRouteNames.sellerLoginHistory) return 'Login history';
-    if (route == AppRouteNames.sellerApiKeys) return 'API keys';
-    if (route.startsWith('${AppRouteNames.sellerOrders}/')) {
-      return 'Order details';
+    if (_isNestedUnder(route, AppRouteNames.sellerChat)) {
+      return context.tr(RemainingL10n.chat);
     }
-    if (route.contains('/products/') && route.endsWith('/edit')) {
-      return 'Edit product';
+    if (_isNestedUnder(route, AppRouteNames.sellerOrders)) {
+      return context.tr(AccountCommerceL10n.orderDetails);
     }
-    return 'Seller';
+    if (_isProductEditRoute(route)) {
+      return context.tr(RemainingL10n.editProduct);
+    }
+    return context.tr(CatalogL10n.seller);
   }
 }
