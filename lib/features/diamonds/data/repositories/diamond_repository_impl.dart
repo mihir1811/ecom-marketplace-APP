@@ -13,6 +13,7 @@ import '../../domain/models/sorting_criteria.dart';
 import '../../domain/repositories/diamond_repository.dart';
 import '../mappers/diamond_mapper.dart';
 import '../mappers/diamond_search_request_mapper.dart';
+import '../mappers/seller_diamond_project_search_mapper.dart';
 import '../models/diamond_dto.dart';
 
 final diamondRepositoryProvider = Provider<DiamondRepository>(
@@ -90,6 +91,72 @@ class DiamondRepositoryImpl implements DiamondRepository {
       return Result.success(
         DiamondListResponse(
           diamonds: sorted,
+          totalCount: total,
+          hasMore: hasMore,
+          page: currentPage,
+        ),
+      );
+    } on DioException catch (e) {
+      return Result.failure(NetworkFailure.fromDioException(e));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<DiamondListResponse, Failure>> searchSellerInventory({
+    required String sellerId,
+    required DiamondFilterState filters,
+    required int page,
+    int pageSize = 100,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final limit = pageSize < 1 ? 100 : pageSize;
+      final body = SellerDiamondProjectSearchMapper.toBody(
+        sellerId: sellerId,
+        filters: filters,
+        page: page,
+        pageSize: limit,
+      );
+
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiEndpoints.diamondSearch,
+        data: body,
+        cancelToken: cancelToken,
+      );
+
+      final root = response.data ?? const <String, dynamic>{};
+      final dataNode = root['data'];
+      final payload = dataNode is Map<String, dynamic>
+          ? dataNode
+          : const <String, dynamic>{};
+      final itemsJson = payload['data'];
+      final metaJson = payload['meta'];
+      final meta =
+          metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+
+      final list = itemsJson is List ? itemsJson : const [];
+      final diamonds = <Diamond>[];
+      for (final item in list) {
+        if (item is! Map<String, dynamic>) continue;
+        final dto = DiamondDto.fromJson(item, isMelee: false);
+        if (dto.id.isEmpty) continue;
+        diamonds.add(DiamondMapper.toDomain(dto, isLabGrown: false));
+      }
+
+      final total = _asInt(meta['total']) ?? diamonds.length;
+      final currentPage = _asInt(meta['currentPage']) ?? page;
+      final lastPage = _asInt(meta['lastPage']);
+      final hasMore = meta.containsKey('next')
+          ? meta['next'] != null
+          : (lastPage != null
+              ? currentPage < lastPage
+              : diamonds.length >= limit);
+
+      return Result.success(
+        DiamondListResponse(
+          diamonds: diamonds,
           totalCount: total,
           hasMore: hasMore,
           page: currentPage,

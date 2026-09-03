@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -175,7 +176,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                   widget.onClear();
                 },
                 child: Text(
-                  'Clear',
+                  context.tr(CatalogL10n.clear),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.bronze,
                     fontWeight: FontWeight.bold,
@@ -194,7 +195,11 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Minimum (${widget.unitSuffix.isEmpty ? 'value' : widget.unitSuffix.trim()})',
+                    _rangeBoundLabel(
+                      context,
+                      CatalogL10n.minimum,
+                      widget.unitSuffix,
+                    ),
                     style: AppTypography.caption.copyWith(
                       color: AppColors.textSecondary(context),
                     ),
@@ -265,7 +270,11 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Maximum (${widget.unitSuffix.isEmpty ? 'value' : widget.unitSuffix.trim()})',
+                    _rangeBoundLabel(
+                      context,
+                      CatalogL10n.maximum,
+                      widget.unitSuffix,
+                    ),
                     style: AppTypography.caption.copyWith(
                       color: AppColors.textSecondary(context),
                     ),
@@ -335,4 +344,16 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
       ],
     );
   }
+}
+
+String _rangeBoundLabel(
+  BuildContext context,
+  String boundKey,
+  String unitSuffix,
+) {
+  final bound = context.tr(boundKey);
+  final unit = unitSuffix.isEmpty
+      ? context.tr(CatalogL10n.rangeValue)
+      : unitSuffix.trim();
+  return '$bound ($unit)';
 }

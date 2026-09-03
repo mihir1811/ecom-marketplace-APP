@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../diamonds/data/mappers/diamond_search_request_mapper.dart';
+import '../../diamonds/data/mappers/seller_diamond_project_search_mapper.dart';
 import '../../diamonds/domain/models/diamond.dart';
 import '../../diamonds/domain/models/diamond_catalog_type.dart';
 import '../../diamonds/domain/models/diamond_filter_state.dart';
@@ -50,6 +51,32 @@ class DiamondProjectSelectionNotifier
     extends Notifier<DiamondProjectSelection> {
   @override
   DiamondProjectSelection build() => const DiamondProjectSelection();
+
+  /// Replaces the selection with seller-dashboard inventory results.
+  void selectInventory({
+    required List<DiamondProjectItem> items,
+    required DiamondFilterState filters,
+    String? sellerId,
+    String? name,
+  }) {
+    final body = SellerDiamondProjectSearchMapper.toBody(
+      sellerId: sellerId ?? '',
+      filters: filters,
+      page: 1,
+    )
+      ..remove('page')
+      ..remove('limit');
+    if (sellerId == null || sellerId.isEmpty) {
+      body.remove('seller_id');
+    }
+
+    state = DiamondProjectSelection(
+      name: name ?? _defaultName(),
+      diamondType: 'NATURAL',
+      filters: body,
+      items: List<DiamondProjectItem>.unmodifiable(items),
+    );
+  }
 
   /// Replaces the selection with diamonds already loaded in the listing.
   void selectLoadedPage({

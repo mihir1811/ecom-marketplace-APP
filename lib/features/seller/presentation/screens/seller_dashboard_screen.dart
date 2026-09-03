@@ -13,6 +13,7 @@ import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/chart_value_tooltip.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_insights_provider.dart';
+import '../widgets/seller_dashboard_diamond_projects_section.dart';
 import '../../domain/models/seller_insights.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
@@ -177,6 +178,8 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: AppSpacing.s16),
+                const SellerDashboardDiamondProjectsSection(),
                 const SizedBox(height: AppSpacing.s16),
                 _CardSection(
                   title: context.tr(RemainingL10n.recentOrders),

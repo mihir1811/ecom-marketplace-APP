@@ -849,8 +849,8 @@ const remainingMessages = <String, LocalizedMessage>{
   ),
   RemainingL10n.labGrown: LocalizedMessage(
     english: 'Lab Grown',
-    hindi: 'Lab Grown',
-    gujarati: 'Lab Grown',
+    hindi: 'लैब ग्रोन',
+    gujarati: 'લેબ ગ્રોન',
   ),
   RemainingL10n.gemstones: LocalizedMessage(
     english: 'Gemstones',
@@ -2850,8 +2850,8 @@ const remainingMessages = <String, LocalizedMessage>{
   ),
   RemainingL10n.cvdHpht: LocalizedMessage(
     english: 'CVD & HPHT',
-    hindi: 'CVD & HPHT',
-    gujarati: 'CVD & HPHT',
+    hindi: 'CVD और HPHT',
+    gujarati: 'CVD અને HPHT',
   ),
   RemainingL10n.rubyToTanzanite: LocalizedMessage(
     english: 'Ruby to tanzanite',

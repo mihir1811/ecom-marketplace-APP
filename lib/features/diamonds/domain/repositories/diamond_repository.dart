@@ -19,6 +19,15 @@ abstract class DiamondRepository {
     CancelToken? cancelToken,
   });
 
+  /// Active natural inventory for the signed-in seller (dashboard diamond projects).
+  Future<Result<DiamondListResponse, Failure>> searchSellerInventory({
+    required String sellerId,
+    required DiamondFilterState filters,
+    required int page,
+    int pageSize = 100,
+    CancelToken? cancelToken,
+  });
+
   Future<Result<Diamond, Failure>> getDiamondById({
     required String id,
     required bool isMelee,

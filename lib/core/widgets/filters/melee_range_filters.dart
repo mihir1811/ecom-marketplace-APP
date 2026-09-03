@@ -81,7 +81,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Range Filters',
+                context.tr(CatalogL10n.rangeFilters),
                 style: AppTypography.label.copyWith(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -109,10 +109,10 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       padding: const EdgeInsets.all(3),
       child: Row(
         children: [
-          _buildTab(context, 'Pcs', _isPcsMode, () {
+          _buildTab(context, context.tr(CatalogL10n.pieces), _isPcsMode, () {
             setState(() => _isPcsMode = true);
           }),
-          _buildTab(context, 'Carat', !_isPcsMode, () {
+          _buildTab(context, context.tr(CatalogL10n.carat), !_isPcsMode, () {
             setState(() => _isPcsMode = false);
           }),
         ],

@@ -27,6 +27,8 @@ abstract final class CatalogL10n {
   static const hideAdvancedFilters = 'catalog.filters.advanced.hide';
   static const minimum = 'catalog.range.minimum';
   static const maximum = 'catalog.range.maximum';
+  static const rangeValue = 'catalog.range.value';
+  static const rangeFilters = 'catalog.range.filters';
   static const currentRange = 'catalog.range.current';
   static const any = 'catalog.value.any';
   static const pieces = 'catalog.unit.pieces';
@@ -315,6 +317,8 @@ abstract final class CatalogL10n {
   static const growth = 'catalog.product.growth';
   static const growthType = 'catalog.product.growthType';
   static const totalPiecesLabel = 'catalog.product.totalPieces';
+  static const weightPerPieceLabel = 'catalog.product.weightPerPiece';
+  static const totalWeightLabel = 'catalog.product.totalWeight';
   static const tablePercent = 'catalog.product.tablePercent';
   static const depthPercent = 'catalog.product.depthPercent';
   static const crown = 'catalog.product.crown';
@@ -399,6 +403,22 @@ abstract final class CatalogL10n {
   static const outlierLow = 'catalog.project.outlierLow';
   static const diamondsSelectedSummary =
       'catalog.project.diamondsSelectedSummary';
+  static const sellerDiamondProjectsTitle =
+      'catalog.sellerDashboard.diamondProjectsTitle';
+  static const sellerDiamondProjectsSubtitle =
+      'catalog.sellerDashboard.diamondProjectsSubtitle';
+  static const filtersToOpenDiamondProject =
+      'catalog.sellerDashboard.filtersToOpenDiamondProject';
+  static const clearFilters = 'catalog.sellerDashboard.clearFilters';
+  static const applyFilters = 'catalog.sellerDashboard.applyFilters';
+  static const openProjectAllMatching =
+      'catalog.sellerDashboard.openProjectAllMatching';
+  static const matchingStonesCount =
+      'catalog.sellerDashboard.matchingStonesCount';
+  static const allShapes = 'catalog.sellerDashboard.allShapes';
+  static const allFancyColors = 'catalog.sellerDashboard.allFancyColors';
+  static const cutGradePoor = 'catalog.sellerDashboard.cutGradePoor';
+  static const certOther = 'catalog.sellerDashboard.certOther';
 }
 
 class _M extends LocalizedMessage {
@@ -444,6 +464,12 @@ const catalogMessages = <String, LocalizedMessage>{
   ),
   CatalogL10n.minimum: _M('Minimum', 'न्यूनतम', 'ન્યૂનતમ'),
   CatalogL10n.maximum: _M('Maximum', 'अधिकतम', 'મહત્તમ'),
+  CatalogL10n.rangeValue: _M('value', 'मान', 'મૂલ્ય'),
+  CatalogL10n.rangeFilters: _M(
+    'Range Filters',
+    'सीमा फ़िल्टर',
+    'શ્રેણી ફિલ્ટર',
+  ),
   CatalogL10n.currentRange: _M(
     'Current Range',
     'वर्तमान सीमा',
@@ -649,13 +675,13 @@ const catalogMessages = <String, LocalizedMessage>{
   ),
   CatalogL10n.labGrownResults: _M(
     'Lab Grown Results',
-    'Lab Grown Results',
-    'Lab Grown Results',
+    'लैब ग्रोन परिणाम',
+    'લેબ ગ્રોન પરિણામો',
   ),
   CatalogL10n.labGrownFinder: _M(
     'LAB GROWN FINDER',
-    'LAB GROWN FINDER',
-    'LAB GROWN FINDER',
+    'लैब ग्रोन खोज',
+    'લેબ ગ્રોન શોધ',
   ),
   CatalogL10n.pcsShort: _M('PCS', 'नग', 'નંગ'),
   CatalogL10n.totalCtShort: _M('TOTAL CT', 'कुल कैरेट', 'કુલ કેરેટ'),
@@ -677,7 +703,7 @@ const catalogMessages = <String, LocalizedMessage>{
   ),
   CatalogL10n.stoneType: _M('Stone Type', 'पत्थर का प्रकार', 'પથ્થરનો પ્રકાર'),
   CatalogL10n.natural: _M('Natural', 'प्राकृतिक', 'કુદરતી'),
-  CatalogL10n.labGrown: _M('Lab Grown', 'Lab Grown', 'Lab Grown'),
+  CatalogL10n.labGrown: _M('Lab Grown', 'लैब ग्रोन', 'લેબ ગ્રોન'),
   CatalogL10n.lotType: _M('Lot Type', 'लॉट प्रकार', 'લોટ પ્રકાર'),
   CatalogL10n.single: _M('Single', 'एकल', 'એકલ'),
   CatalogL10n.melee: _M('Melee', 'मेली', 'મેલી'),
@@ -1308,6 +1334,16 @@ const catalogMessages = <String, LocalizedMessage>{
   CatalogL10n.growth: _M('Growth', 'विकास', 'વિકાસ'),
   CatalogL10n.growthType: _M('Growth Type', 'विकास प्रकार', 'વિકાસ પ્રકાર'),
   CatalogL10n.totalPiecesLabel: _M('Total pieces', 'कुल नग', 'કુલ નંગ'),
+  CatalogL10n.weightPerPieceLabel: _M(
+    'Weight per piece',
+    'प्रति नग वजन',
+    'પ્રતિ નંગ વજન',
+  ),
+  CatalogL10n.totalWeightLabel: _M(
+    'Total Weight',
+    'कुल वजन',
+    'કુલ વજન',
+  ),
   CatalogL10n.tablePercent: _M('Table Percent', 'टेबल प्रतिशत', 'ટેબલ ટકાવારી'),
   CatalogL10n.depthPercent: _M(
     'Depth Percent',
@@ -1507,6 +1543,45 @@ const catalogMessages = <String, LocalizedMessage>{
     '{count} हीरे चुने गए · {id}',
     '{count} હીરા પસંદ · {id}',
   ),
+  CatalogL10n.sellerDiamondProjectsTitle: _M(
+    'Diamond projects',
+    'डायमंड प्रोजेक्ट',
+    'ડાયમંડ પ્રોજેક્ટ',
+  ),
+  CatalogL10n.sellerDiamondProjectsSubtitle: _M(
+    'Filter your active natural inventory (not sold / not expired / not deleted), select stones, open analytics, and share Excel.',
+    'अपनी सक्रिय प्राकृतिक इन्वेंटरी (बिकी नहीं / समाप्त नहीं / हटाई नहीं) फ़िल्टर करें, पत्थर चुनें, एनालिटिक्स खोलें और Excel साझा करें।',
+    'તમારી સક્રિય કુદરતી ઇન્વેન્ટરી (વેચાયેલ નહીં / સમાપ્ત નહીં / કાઢી નાખેલ નહીં) ફિલ્ટર કરો, પથ્થરો પસંદ કરો, એનાલિટિક્સ ખોલો અને Excel શેર કરો.',
+  ),
+  CatalogL10n.filtersToOpenDiamondProject: _M(
+    'Filters to open diamond project',
+    'डायमंड प्रोजेक्ट खोलने के लिए फ़िल्टर',
+    'ડાયમંડ પ્રોજેક્ટ ખોલવા માટે ફિલ્ટર',
+  ),
+  CatalogL10n.clearFilters: _M(
+    'Clear filters',
+    'फ़िल्टर साफ़ करें',
+    'ફિલ્ટર સાફ કરો',
+  ),
+  CatalogL10n.applyFilters: _M(
+    'Apply filters',
+    'फ़िल्टर लागू करें',
+    'ફિલ્ટર લાગુ કરો',
+  ),
+  CatalogL10n.openProjectAllMatching: _M(
+    'Open project — all active matching filters',
+    'प्रोजेक्ट खोलें — सभी सक्रिय मिलान फ़िल्टर',
+    'પ્રોજેક્ટ ખોલો — બધા સક્રિય મેળ ખાતા ફિલ્ટર',
+  ),
+  CatalogL10n.matchingStonesCount: _M(
+    '{count} matching stones',
+    '{count} मिलान वाले पत्थर',
+    '{count} મેળ ખાતા પથ્થર',
+  ),
+  CatalogL10n.allShapes: _M('All', 'सभी', 'બધા'),
+  CatalogL10n.allFancyColors: _M('All', 'सभी', 'બધા'),
+  CatalogL10n.cutGradePoor: _M('Poor', 'खराब', 'નબળું'),
+  CatalogL10n.certOther: _M('Other', 'अन्य', 'અન્ય'),
 };
 
 /// Maps adapter-owned static English labels to stable localization keys.
@@ -1568,6 +1643,8 @@ const catalogDisplayMessageKeys = <String, String>{
   'Growth Type': CatalogL10n.growthType,
   'Rough Source': CatalogL10n.roughSource,
   'Total pieces': CatalogL10n.totalPiecesLabel,
+  'Weight per piece': CatalogL10n.weightPerPieceLabel,
+  'Total Weight': CatalogL10n.totalWeightLabel,
   'Table Percent': CatalogL10n.tablePercent,
   'Depth Percent': CatalogL10n.depthPercent,
   'Crown': CatalogL10n.crown,
