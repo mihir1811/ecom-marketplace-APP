@@ -123,6 +123,13 @@ class JewelryVariantDto {
     this.chainLength,
     this.discount,
     this.totalPrice,
+    this.totalMetalPrice,
+    this.totalStonePrice,
+    this.totalMakingCharge,
+    this.metalPricePerGram,
+    this.stonePricePerCarat,
+    this.makingPricePerGram,
+    this.totalJewelryWeight,
     this.condition,
     this.available,
     this.isSold,
@@ -151,6 +158,13 @@ class JewelryVariantDto {
   final String? chainLength;
   final double? discount;
   final double? totalPrice;
+  final double? totalMetalPrice;
+  final double? totalStonePrice;
+  final double? totalMakingCharge;
+  final double? metalPricePerGram;
+  final double? stonePricePerCarat;
+  final double? makingPricePerGram;
+  final double? totalJewelryWeight;
   final String? condition;
   final String? available;
   final bool? isSold;
@@ -190,6 +204,13 @@ class JewelryVariantDto {
       chainLength: json['chainLength']?.toString(),
       discount: _toDouble(json['discount']),
       totalPrice: _toDouble(json['totalPrice']),
+      totalMetalPrice: _toDouble(json['totalMetalPrice']),
+      totalStonePrice: _toDouble(json['totalStonePrice']),
+      totalMakingCharge: _toDouble(json['totalMakingCharge']),
+      metalPricePerGram: _toDouble(json['metalPricePerGram']),
+      stonePricePerCarat: _toDouble(json['stonePricePerCarat']),
+      makingPricePerGram: _toDouble(json['makingPricePerGram']),
+      totalJewelryWeight: _toDouble(json['totalJewelryWeight']),
       condition: json['condition']?.toString(),
       available: json['available']?.toString(),
       isSold: json['isSold'] as bool?,

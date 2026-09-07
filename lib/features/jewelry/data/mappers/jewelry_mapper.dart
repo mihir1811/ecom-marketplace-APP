@@ -42,6 +42,13 @@ abstract final class JewelryMapper {
 
     final stoneTypeRaw = _clean(stone?.centerStoneType);
     final availability = _mapAvailability(variant?.available);
+    final metalWeight = variant?.metalWeight ?? 0;
+    final stoneWeight =
+        variant?.totalStoneCarat ?? stone?.centerStoneWeight ?? 0;
+    final stones = _stones(variant);
+    final variants = dto.variants.map(_variantOption).toList(growable: false);
+    final totalWeight =
+        variant?.totalJewelryWeight ?? _totalWeightG(metalWeight, stoneWeight);
 
     return Jewelry(
       id: dto.id,
@@ -61,8 +68,8 @@ abstract final class JewelryMapper {
       stoneCategory: _clean(stone?.centerStoneCategory) ?? '',
       stoneShape: _clean(stone?.centerStoneShape) ?? '',
       certification: _clean(variant?.certificateCompanyName) ?? '',
-      metalWeightG: variant?.metalWeight ?? 0,
-      stoneWeightCt: variant?.totalStoneCarat ?? stone?.centerStoneWeight ?? 0,
+      metalWeightG: metalWeight,
+      stoneWeightCt: stoneWeight,
       stoneCount: variant?.totalStonePcs ?? stone?.centerStonePcs ?? 0,
       colorVariants: colorVariants,
       sizeOptions: sizeOptions.toList(),
@@ -73,9 +80,86 @@ abstract final class JewelryMapper {
       imageUrl: images.isEmpty ? null : images.first,
       imageAsset: null,
       discount: discountPct,
+      discountAmount: discountAmount,
+      metalPrice: variant?.totalMetalPrice,
+      stonePrice: variant?.totalStonePrice,
+      makingCharge: variant?.totalMakingCharge,
       hasMedia: images.isNotEmpty || (_clean(dto.videoURL) != null),
       sellerId: _clean(dto.sellerId),
+      description: _clean(dto.description),
+      metalFinish: _clean(variant?.metalFinish),
+      style: _clean(dto.style),
+      totalWeightG: totalWeight,
+      stones: stones,
+      variants: variants,
     );
+  }
+
+  static JewelryVariantOption _variantOption(JewelryVariantDto v) {
+    final price = v.totalPrice ?? 0;
+    final discountAmount = v.discount;
+    final discountPct = (discountAmount != null &&
+            discountAmount > 0 &&
+            price > 0)
+        ? ((discountAmount / (price + discountAmount)) * 100)
+        : null;
+    final sizeLabel =
+        _clean(v.ringSize) ?? _clean(v.braceletSize) ?? _clean(v.chainLength);
+    final metalWeight = v.metalWeight;
+    final stoneWeight = v.totalStoneCarat ??
+        (v.stones.isNotEmpty ? v.stones.first.centerStoneWeight : null);
+
+    return JewelryVariantOption(
+      id: v.id,
+      price: price,
+      sku: _clean(v.stockNumber),
+      metalPurity: _clean(v.metalPurity),
+      sizeLabel: sizeLabel,
+      stoneWeightCt: stoneWeight,
+      metalWeightG: metalWeight,
+      totalWeightG: v.totalJewelryWeight ??
+          (metalWeight == null
+              ? null
+              : _totalWeightG(metalWeight, stoneWeight ?? 0)),
+      discountAmount: discountAmount,
+      discountPercent: discountPct,
+      metalPrice: v.totalMetalPrice,
+      stonePrice: v.totalStonePrice,
+      makingCharge: v.totalMakingCharge,
+      metalType: _clean(v.metalType),
+      metalColor: _clean(v.metalColor),
+      metalFinish: _clean(v.metalFinish),
+      braceletSize: _clean(v.braceletSize),
+      ringSize: _clean(v.ringSize),
+      chainLength: _clean(v.chainLength),
+      stoneCount: v.totalStonePcs ??
+          (v.stones.isNotEmpty ? v.stones.first.centerStonePcs : null),
+      stones: _stones(v),
+    );
+  }
+
+  static List<JewelryStone> _stones(JewelryVariantDto? variant) {
+    if (variant == null || variant.stones.isEmpty) return const [];
+    return variant.stones
+        .map(
+          (s) => JewelryStone(
+            type: _mapStoneType(_clean(s.centerStoneType)),
+            category: _clean(s.centerStoneCategory),
+            shape: _clean(s.centerStoneShape),
+            color: _clean(s.centerStoneColor),
+            clarity: _clean(s.centerStoneClarity),
+            weightCt: s.centerStoneWeight,
+            pieces: s.centerStonePcs,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  /// Approximate finished weight when API does not send a total.
+  static double? _totalWeightG(double metalWeightG, double stoneWeightCt) {
+    if (metalWeightG <= 0 && stoneWeightCt <= 0) return null;
+    // 1 carat ≈ 0.2 g
+    return metalWeightG + (stoneWeightCt * 0.2);
   }
 
   static String _mapCategoryToUi(String? apiName) {

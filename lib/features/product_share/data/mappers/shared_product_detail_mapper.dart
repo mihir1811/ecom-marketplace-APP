@@ -85,6 +85,10 @@ abstract final class SharedProductDetailMapper {
       isMakeAnOfferAllowed: detail.isMakeAnOfferAllowed,
       minimumOfferPrice: detail.minimumOfferPrice,
       naturalSpecTabs: detail.naturalSpecTabs,
+      jewelryDetail: detail.jewelryDetail,
+      bullionDetail: detail.bullionDetail,
+      availabilityStatus: detail.availabilityStatus,
+      listingSeller: detail.listingSeller,
     );
   }
 
@@ -115,6 +119,7 @@ abstract final class SharedProductDetailMapper {
             priceUsd: 0,
             priceInr: 0,
             displayAmount: 0,
+            isOnRequest: true,
           );
 
     final media = ProductMedia(
@@ -151,6 +156,10 @@ abstract final class SharedProductDetailMapper {
       isMakeAnOfferAllowed: detail.isMakeAnOfferAllowed,
       minimumOfferPrice: detail.minimumOfferPrice,
       naturalSpecTabs: detail.naturalSpecTabs,
+      jewelryDetail: detail.jewelryDetail,
+      bullionDetail: detail.bullionDetail,
+      availabilityStatus: detail.availabilityStatus,
+      listingSeller: detail.listingSeller,
     );
   }
 }

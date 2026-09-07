@@ -218,7 +218,27 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                               : TextDecoration.lineThrough,
                         ),
                       ),
-                      if (item.quantity > 1) ...[
+                      if (item.quantityEditable) ...[
+                        const SizedBox(height: AppSpacing.s12),
+                        _CartQuantityStepper(
+                          quantity: item.quantity,
+                          enabled: available && !mutating && !_opening,
+                          onChanged: (next) async {
+                            final result = await ref
+                                .read(cartProvider.notifier)
+                                .updateQuantity(
+                                  cartId: item.cartId,
+                                  quantity: next,
+                                );
+                            if (!context.mounted) return;
+                            if (result case ResultFailure(:final failure)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(failure.message)),
+                              );
+                            }
+                          },
+                        ),
+                      ] else if (item.quantity > 1) ...[
                         const SizedBox(height: AppSpacing.s4),
                         Text(
                           context.tr(AccountCommerceL10n.quantity, {
@@ -235,6 +255,80 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CartQuantityStepper extends StatelessWidget {
+  const _CartQuantityStepper({
+    required this.quantity,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final int quantity;
+  final bool enabled;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface(context),
+        borderRadius: BorderRadius.circular(AppSpacing.r32),
+        border: Border.all(color: AppColors.border(context)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _QtyIconButton(
+            icon: Icons.remove,
+            onTap: enabled && quantity > 1
+                ? () => onChanged(quantity - 1)
+                : null,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+            child: Text(
+              '$quantity',
+              style: AppTypography.label.copyWith(
+                color: AppColors.textPrimary(context),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          _QtyIconButton(
+            icon: Icons.add,
+            onTap: enabled ? () => onChanged(quantity + 1) : null,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QtyIconButton extends StatelessWidget {
+  const _QtyIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSpacing.r32),
+      child: SizedBox(
+        width: 36,
+        height: 36,
+        child: Icon(
+          icon,
+          size: 16,
+          color: onTap == null
+              ? AppColors.textMuted(context)
+              : AppColors.textPrimary(context),
         ),
       ),
     );

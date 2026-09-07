@@ -8,9 +8,19 @@ import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../jewelry/domain/models/jewelry.dart';
 import '../models/listing_seller_info.dart';
 import '../models/product_detail.dart';
+import '../models/product_jewelry_detail.dart';
+import '../models/jewelry_unit_pricing.dart';
 
 /// Maps a fine jewelry product onto the universal detail shape.
 ProductDetail jewelryProductDetail(Jewelry j) {
+  final jewelryDetail = _jewelryDetail(j);
+  final pricing = JewelryUnitPricing.from(
+    metalPrice: j.metalPrice,
+    stonePrice: j.stonePrice,
+    makingCharge: j.makingCharge,
+    discountAmount: j.discountAmount,
+    totalPrice: j.price,
+  );
   return ProductDetail(
     id: j.id,
     segment: ProductSegment.jewelry,
@@ -29,11 +39,6 @@ ProductDetail jewelryProductDetail(Jewelry j) {
         ProductBadge(
           '★ ${j.rating}${j.reviewCount == null ? '' : ' · ${j.reviewCount} reviews'}',
         ),
-      if (j.discount != null && j.discount! > 0)
-        ProductBadge(
-          '${formatDiscountPercent(j.discount!)}% off',
-          tone: ProductBadgeTone.caution,
-        ),
     ],
     media: ProductMedia(
       images: [
@@ -48,19 +53,16 @@ ProductDetail jewelryProductDetail(Jewelry j) {
     ),
     price: ProductPrice(
       currencySymbol: AppCurrency.symbol,
-      amountLabel: formatInrPrice(j.price),
-      priceUsd: inrToUsd(j.price),
-      priceInr: j.price,
-      displayAmount: j.price,
-      discountPercent: j.discount,
-      displayAmountIsListPrice: true,
+      amountLabel: formatInrPrice(pricing.netPrice),
+      priceUsd: inrToUsd(pricing.netPrice),
+      priceInr: pricing.netPrice,
+      // Net unit sell price — discount UI lives in Choose your details.
+      displayAmount: pricing.netPrice,
+      discountPercent:
+          pricing.hasDiscount ? pricing.discountPercent : null,
+      displayAmountIsListPrice: false,
     ),
-    highlights: [
-      ProductHighlight('Purity', j.metalPurity),
-      ProductHighlight('Metal weight', '${formatDecimal(j.metalWeightG)} g'),
-      ProductHighlight('Stone weight', '${formatDecimal(j.stoneWeightCt)} ct'),
-      ProductHighlight('Stones', '${j.stoneCount}'),
-    ],
+    highlights: const [],
     certification: ProductCertification(
       authority: j.certification,
       referenceLabel: 'SKU',
@@ -69,44 +71,146 @@ ProductDetail jewelryProductDetail(Jewelry j) {
     availability: _availability(j.availability),
     availabilityStatus: _availabilityStatus(j.availability),
     listingSeller: listingSellerFromSellerId(j.sellerId),
-    specSections: [
-      specSection(ProductSpecGroup.essentials, {
-        'Category': j.category,
-        'Sub category': j.subCategory,
-        'Worn by': j.gender,
-        'Occasion': j.occasion,
-        'Condition': j.condition,
-      }),
-      specSection(ProductSpecGroup.material, {
-        'Metal': j.metalType,
-        'Metal color': j.metalColor,
-        'Purity': j.metalPurity,
-        'Stone type': j.stoneType,
-        'Stone category': j.stoneCategory,
-        'Stone shape': j.stoneShape,
-      }),
-      specSection(ProductSpecGroup.measurements, {
-        'Metal weight': '${formatDecimal(j.metalWeightG)} g',
-        'Stone weight': '${formatDecimal(j.stoneWeightCt)} ct',
-        'Stone count': '${j.stoneCount}',
-        'Ring size': j.ringSize,
-        'Bracelet size': j.braceletSize,
-        'Bracelet length': j.braceletLength,
-        'Chain length': j.chainLength,
-        'Necklace length': j.necklaceLength,
-      }),
-      specSection(ProductSpecGroup.provenance, {
-        'Certification': j.certification,
-        'SKU': j.sku,
-      }),
-      specSection(ProductSpecGroup.inclusions, {
-        'Metal color options': j.colorVariants.join(' · '),
-        'Size options': j.sizeOptions.join(' · '),
-      }),
-    ],
-    note: 'Making charges and applicable taxes are calculated at checkout. '
-        'Metal weight may vary marginally by finished size.',
+    specSections: const [],
+    jewelryDetail: jewelryDetail,
   );
+}
+
+ProductJewelryDetail _jewelryDetail(Jewelry j) {
+  final pricing = JewelryUnitPricing.from(
+    metalPrice: j.metalPrice,
+    stonePrice: j.stonePrice,
+    makingCharge: j.makingCharge,
+    discountAmount: j.discountAmount,
+    totalPrice: j.price,
+  );
+  final purityOptions = <String>{
+    if (j.metalPurity.trim().isNotEmpty) j.metalPurity.trim(),
+    for (final v in j.variants)
+      if ((v.metalPurity ?? '').trim().isNotEmpty) v.metalPurity!.trim(),
+  }.toList();
+
+  final sizeOptions = <String>{
+    ...j.sizeOptions.where((s) => s.trim().isNotEmpty),
+    for (final v in j.variants)
+      if ((v.sizeLabel ?? '').trim().isNotEmpty) v.sizeLabel!.trim(),
+  }.toList();
+
+  final stoneWeightOptions = <String>{
+    if (j.stoneWeightCt > 0) _formatCt(j.stoneWeightCt),
+    for (final v in j.variants)
+      if (v.stoneWeightCt != null && v.stoneWeightCt! > 0)
+        _formatCt(v.stoneWeightCt!),
+  }.toList();
+
+  final materialBits = [
+    if (j.metalPurity.trim().isNotEmpty) j.metalPurity.trim(),
+    if (j.metalType.trim().isNotEmpty) j.metalType.trim(),
+    if (j.metalColor.trim().isNotEmpty) j.metalColor.trim(),
+  ];
+
+  return ProductJewelryDetail(
+    description: (j.description?.trim().isNotEmpty ?? false)
+        ? j.description!.trim()
+        : 'A timeless ${j.metalType.toLowerCase()} ${j.category.toLowerCase()} '
+            'set with ${j.stoneShape.toLowerCase()} ${j.stoneType.toLowerCase()} '
+            'diamonds.',
+    category: j.category,
+    gender: j.gender,
+    occasion: j.occasion,
+    styleNo: j.sku,
+    metalType: j.metalType,
+    metalColor: j.metalColor,
+    metalPurity: j.metalPurity,
+    metalFinish: j.metalFinish,
+    style: j.style,
+    metalWeightG: j.metalWeightG,
+    totalWeightG: j.totalWeightG,
+    stoneWeightCt: j.stoneWeightCt,
+    stoneCount: j.stoneCount,
+    braceletSize: j.braceletSize,
+    ringSize: j.ringSize,
+    chainLength: j.chainLength,
+    price: pricing.netPrice,
+    currencySymbol: AppCurrency.symbol,
+    discountAmount: pricing.hasDiscount ? pricing.discount : null,
+    discountPercent: pricing.hasDiscount ? pricing.discountPercent : null,
+    metalPrice: pricing.metal > 0 ? pricing.metal : null,
+    stonePrice: pricing.stone > 0 ? pricing.stone : null,
+    makingCharge: pricing.making > 0 ? pricing.making : null,
+    purityOptions: purityOptions,
+    sizeOptions: sizeOptions,
+    stoneWeightOptions: stoneWeightOptions,
+    stones: j.stones
+        .map(
+          (s) => ProductJewelryStone(
+            type: s.type,
+            category: s.category,
+            shape: s.shape,
+            color: s.color,
+            clarity: s.clarity,
+            weightCt: s.weightCt,
+            pieces: s.pieces,
+            setting: s.setting,
+          ),
+        )
+        .toList(growable: false),
+    variants: j.variants
+        .map((v) {
+          final vp = JewelryUnitPricing.from(
+            metalPrice: v.metalPrice,
+            stonePrice: v.stonePrice,
+            makingCharge: v.makingCharge,
+            discountAmount: v.discountAmount,
+            totalPrice: v.price,
+          );
+          return ProductJewelryVariant(
+            id: v.id,
+            price: vp.netPrice,
+            sku: v.sku,
+            metalPurity: v.metalPurity,
+            sizeLabel: v.sizeLabel,
+            stoneWeightCt: v.stoneWeightCt,
+            metalWeightG: v.metalWeightG,
+            totalWeightG: v.totalWeightG,
+            discountAmount: vp.hasDiscount ? vp.discount : null,
+            discountPercent: vp.hasDiscount ? vp.discountPercent : null,
+            metalPrice: vp.metal > 0 ? vp.metal : null,
+            stonePrice: vp.stone > 0 ? vp.stone : null,
+            makingCharge: vp.making > 0 ? vp.making : null,
+            metalType: v.metalType,
+            metalColor: v.metalColor,
+            metalFinish: v.metalFinish,
+            braceletSize: v.braceletSize,
+            ringSize: v.ringSize,
+            chainLength: v.chainLength,
+            stoneCount: v.stoneCount,
+            stones: v.stones
+                .map(
+                  (s) => ProductJewelryStone(
+                    type: s.type,
+                    category: s.category,
+                    shape: s.shape,
+                    color: s.color,
+                    clarity: s.clarity,
+                    weightCt: s.weightCt,
+                    pieces: s.pieces,
+                    setting: s.setting,
+                  ),
+                )
+                .toList(growable: false),
+          );
+        })
+        .toList(growable: false),
+    materialLabel: materialBits.isEmpty ? null : materialBits.join(' '),
+  );
+}
+
+String _formatCt(double ct) {
+  final fixed = ct == ct.roundToDouble()
+      ? ct.toStringAsFixed(0)
+      : ct.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
+  return '${fixed}ct';
 }
 
 ProductAvailability _availability(String status) {

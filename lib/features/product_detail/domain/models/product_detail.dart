@@ -2,7 +2,9 @@ import 'package:flutter/widgets.dart';
 
 import '../../../../core/catalog/catalog_purchase_policy.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
-import '../models/listing_seller_info.dart';
+import 'listing_seller_info.dart';
+import 'product_jewelry_detail.dart';
+import 'product_bullion_detail.dart';
 
 /// Marketplace segments that share the single product detail presentation.
 enum ProductSegment {
@@ -158,6 +160,7 @@ class ProductPrice {
     this.unitAmountLabel,
     this.discountPercent,
     this.displayAmountIsListPrice = false,
+    this.isOnRequest = false,
   });
 
   final String currencySymbol;
@@ -177,14 +180,20 @@ class ProductPrice {
   /// When false (diamonds), [displayAmount] is already the net sale price.
   final bool displayAmountIsListPrice;
 
-  String get display => '$currencySymbol$amountLabel';
+  /// Share / catalog hide-price: show [amountLabel] instead of a numeric amount.
+  final bool isOnRequest;
+
+  String get display =>
+      isOnRequest ? amountLabel : '$currencySymbol$amountLabel';
 
   String? get unitDisplay {
+    if (isOnRequest) return null;
     if (unitAmountLabel == null || unitLabel == null) return null;
     return '$currencySymbol$unitAmountLabel $unitLabel';
   }
 
   bool get hasDiscount {
+    if (isOnRequest) return false;
     final d = discountPercent;
     return d != null && d > 0 && d < 100 && displayAmount > 0;
   }
@@ -380,6 +389,8 @@ class ProductDetail {
     this.isMakeAnOfferAllowed = false,
     this.minimumOfferPrice,
     this.naturalSpecTabs,
+    this.jewelryDetail,
+    this.bullionDetail,
   });
 
   final String id;
@@ -417,6 +428,12 @@ class ProductDetail {
 
   /// Overview / Advance for singles; Summary / Details for melee (natural + lab).
   final ProductTabbedSpecs? naturalSpecTabs;
+
+  /// Jewelry layout: choose-details + Details / Specifications / Care tabs.
+  final ProductJewelryDetail? jewelryDetail;
+
+  /// Bullion layout: Overview / Specifications / Seller tabs.
+  final ProductBullionDetail? bullionDetail;
 
   bool get canMakeAnOffer =>
       isMakeAnOfferAllowed &&

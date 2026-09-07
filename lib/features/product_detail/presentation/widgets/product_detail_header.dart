@@ -1,20 +1,114 @@
 import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../buyer/application/wishlist_provider.dart';
+import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
+import '../../../chat/presentation/open_product_seller_chat.dart';
+import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../domain/models/product_detail.dart';
 
 /// Identity block: what the product is, how it is qualified, and its reference.
-class ProductDetailHeader extends StatelessWidget {
+class ProductDetailHeader extends ConsumerStatefulWidget {
   const ProductDetailHeader({required this.detail, super.key});
 
   final ProductDetail detail;
 
   @override
+  ConsumerState<ProductDetailHeader> createState() =>
+      _ProductDetailHeaderState();
+}
+
+class _ProductDetailHeaderState extends ConsumerState<ProductDetailHeader> {
+  bool _openingChat = false;
+
+  Future<void> _openChat() async {
+    if (_openingChat) return;
+    setState(() => _openingChat = true);
+    try {
+      await openProductSellerChat(
+        context,
+        ref,
+        productId: widget.detail.id,
+        apiProductType: widget.detail.apiProductType,
+      );
+    } finally {
+      if (mounted) setState(() => _openingChat = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final detail = widget.detail;
+    final isJewelry = detail.jewelryDetail != null;
+    final wishlisted = ref.watch(isInWishlistProvider(detail.id));
+    final canChat = ref.watch(authProvider.select((s) => s.isSeller));
+
+    final actions = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _ActionIcon(
+          icon: wishlisted ? Icons.favorite : Icons.favorite_border,
+          tooltip: wishlisted ? 'Remove from wishlist' : 'Save to wishlist',
+          tint: wishlisted
+              ? AppColors.terracotta
+              : AppColors.textPrimary(context),
+          onTap: () {
+            toggleWishlistItem(
+              context,
+              ref,
+              detail.toWishlistItem(),
+              addedMessage: 'Saved to wishlist',
+              removedMessage: 'Removed from wishlist',
+            );
+          },
+        ),
+        if (canChat) ...[
+          const SizedBox(width: AppSpacing.s8),
+          _ActionIcon(
+            icon: Icons.chat_bubble_outline,
+            tooltip: context.tr(CatalogL10n.chatWithSeller),
+            loading: _openingChat,
+            onTap: _openChat,
+          ),
+        ],
+        const SizedBox(width: AppSpacing.s8),
+        _ActionIcon(
+          icon: Icons.share_outlined,
+          tooltip: context.tr(CatalogL10n.share),
+          onTap: () => showProductShareSheet(
+            context: context,
+            ref: ref,
+            productId: detail.id,
+            productType: detail.apiProductType,
+            productTitle: detail.title,
+          ),
+        ),
+      ],
+    );
+
+    final meta = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (detail.badges.isNotEmpty)
+          Wrap(
+            spacing: AppSpacing.s8,
+            runSpacing: AppSpacing.s8,
+            children: [for (final badge in detail.badges) _Badge(badge: badge)],
+          ),
+        if (detail.badges.isNotEmpty) const SizedBox(height: AppSpacing.s12),
+        _Reference(
+          label: _catalogText(context, detail.referenceLabel),
+          value: detail.referenceValue,
+        ),
+      ],
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -33,20 +127,79 @@ class ProductDetailHeader extends StatelessWidget {
             fontSize: 14,
           ),
         ),
-        if (detail.badges.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.s16),
-          Wrap(
-            spacing: AppSpacing.s8,
-            runSpacing: AppSpacing.s8,
-            children: [for (final badge in detail.badges) _Badge(badge: badge)],
+        const SizedBox(height: AppSpacing.s16),
+        if (isJewelry)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: meta),
+              const SizedBox(width: AppSpacing.s12),
+              actions,
+            ],
+          )
+        else ...[
+          if (detail.badges.isNotEmpty) ...[
+            Wrap(
+              spacing: AppSpacing.s8,
+              runSpacing: AppSpacing.s8,
+              children: [
+                for (final badge in detail.badges) _Badge(badge: badge),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.s16),
+          ],
+          _Reference(
+            label: _catalogText(context, detail.referenceLabel),
+            value: detail.referenceValue,
           ),
         ],
-        const SizedBox(height: AppSpacing.s16),
-        _Reference(
-          label: _catalogText(context, detail.referenceLabel),
-          value: detail.referenceValue,
-        ),
       ],
+    );
+  }
+}
+
+class _ActionIcon extends StatelessWidget {
+  const _ActionIcon({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.tint,
+    this.loading = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final Color? tint;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor = tint ?? AppColors.textPrimary(context);
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: loading ? null : onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.r8),
+        child: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: AppColors.card(context),
+            borderRadius: BorderRadius.circular(AppSpacing.r8),
+            border: Border.all(color: AppColors.border(context)),
+          ),
+          child: loading
+              ? Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: iconColor,
+                  ),
+                )
+              : Icon(icon, size: 18, color: iconColor),
+        ),
+      ),
     );
   }
 }

@@ -51,6 +51,7 @@ abstract final class CartMapper {
       shape: _str(productMap['shape']),
       seller: _str(json['seller']) ?? _str(productMap['sellerName']),
       sellerId: _str(json['sellerId']),
+      // Backend `/cart/update` rejects qty changes for jewellery and most types.
       quantityEditable: false,
       isAvailable: availability.isAvailable,
       availabilityLabel: availability.label,
@@ -205,6 +206,7 @@ abstract final class CartMapper {
             lineTotalUsd: line.lineTotal,
             imageUrl: line.image,
             sellerId: line.sellerId,
+            quantityEditable: false,
           ),
     ];
   }

@@ -40,6 +40,7 @@ abstract final class BullionMapper {
       heightMm: 0,
       stockNumber: stock,
       demention: _clean(dto.demention),
+      certificateNumber: _clean(dto.certificateNumber),
       availability: _mapAvailability(dto.availability),
       mintYear: dto.mintYear,
       imageUrl: images.isEmpty ? null : images.first,

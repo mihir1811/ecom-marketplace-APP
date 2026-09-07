@@ -14,6 +14,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../cart/application/cart_provider.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
+import '../../application/jewelry_config_draft_provider.dart';
 import '../../application/melee_qty_draft_provider.dart';
 import '../../domain/models/product_detail.dart';
 
@@ -50,6 +51,21 @@ class ProductDetailActionBar extends ConsumerWidget {
 
     var quantity = 1;
     Map<String, dynamic>? specifications;
+    final jewelryDetail = detail.jewelryDetail;
+    if (jewelryDetail != null) {
+      ref
+          .read(jewelryConfigDraftProvider(detail.id).notifier)
+          .ensureSeeded(jewelryDetail);
+      final draft = ref.read(jewelryConfigDraftProvider(detail.id));
+      quantity = draft?.quantity ?? 1;
+      specifications = {
+        if (draft?.purity != null) 'purity': draft!.purity,
+        if (draft?.size != null) 'size': draft!.size,
+        if (draft?.stoneWeightLabel != null)
+          'stoneWeight': draft!.stoneWeightLabel,
+        if (draft?.sku != null) 'sku': draft!.sku,
+      };
+    }
     final meleeQty = detail.naturalSpecTabs?.meleeQty;
     if (meleeQty != null) {
       ref

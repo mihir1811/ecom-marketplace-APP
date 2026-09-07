@@ -11,8 +11,10 @@ import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../domain/models/product_detail.dart';
 import '../widgets/product_detail_action_bar.dart';
 import '../widgets/product_detail_assurance.dart';
+import '../widgets/product_detail_bullion_section.dart';
 import '../widgets/product_detail_header.dart';
 import '../widgets/product_detail_highlights.dart';
+import '../widgets/product_detail_jewelry_section.dart';
 import '../widgets/product_detail_media.dart';
 import '../widgets/product_detail_natural_specs.dart';
 import '../widgets/product_detail_price.dart';
@@ -59,15 +61,21 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }) {
     return [
       ProductDetailHeader(detail: detail),
+      if (detail.jewelryDetail == null) ...[
+        const SizedBox(height: AppSpacing.s24),
+        ProductDetailPrice(detail: detail),
+      ],
       const SizedBox(height: AppSpacing.s24),
-      ProductDetailPrice(detail: detail),
-      const SizedBox(height: AppSpacing.s24),
-      if (detail.naturalSpecTabs == null) ...[
+      if (detail.naturalSpecTabs == null &&
+          detail.jewelryDetail == null &&
+          detail.bullionDetail == null) ...[
         ProductDetailHighlights(highlights: detail.highlights),
         const SizedBox(height: AppSpacing.s16),
       ],
       ProductDetailAssurance(certification: detail.certification),
-      if (isSeller && detail.listingSeller != null) ...[
+      if (isSeller &&
+          detail.listingSeller != null &&
+          detail.bullionDetail == null) ...[
         const SizedBox(height: AppSpacing.s24),
         ProductDetailSellerPanel(seller: detail.listingSeller!),
       ],
@@ -153,7 +161,19 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ..._summaryBlocks(detail, isSeller: auth.isSeller),
                   ],
                   const SizedBox(height: AppSpacing.s40),
-                  if (detail.naturalSpecTabs != null) ...[
+                  if (detail.jewelryDetail != null) ...[
+                    ProductDetailJewelrySection(
+                      detail: detail,
+                      jewelry: detail.jewelryDetail!,
+                    ),
+                    const SizedBox(height: AppSpacing.s32),
+                  ] else if (detail.bullionDetail != null) ...[
+                    ProductDetailBullionSection(
+                      detail: detail,
+                      bullion: detail.bullionDetail!,
+                    ),
+                    const SizedBox(height: AppSpacing.s32),
+                  ] else if (detail.naturalSpecTabs != null) ...[
                     ProductDetailNaturalSpecs(
                       specs: detail.naturalSpecTabs!,
                       productId: detail.id,

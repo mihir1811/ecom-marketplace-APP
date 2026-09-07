@@ -8,6 +8,7 @@ import '../../../../core/utils/format_catalog_price.dart';
 import '../../../bullions/domain/models/billion.dart';
 import '../../../cart/domain/models/cart_product_type.dart';
 import '../models/listing_seller_info.dart';
+import '../models/product_bullion_detail.dart';
 import '../models/product_detail.dart';
 
 /// Maps a bullion bar/coin onto the universal detail shape.
@@ -57,12 +58,7 @@ ProductDetail bullionProductDetail(Bullion b) {
       unitLabel: 'per gram',
       unitAmountLabel: perGram?.toStringAsFixed(2),
     ),
-    highlights: [
-      ProductHighlight('Weight', b.weightLabel),
-      ProductHighlight('Purity', purity),
-      ProductHighlight('Metal', metalLabel),
-      ProductHighlight('Condition', b.condition),
-    ],
+    highlights: const [],
     certification: ProductCertification(
       authority: b.certification,
       referenceLabel: 'Mint',
@@ -71,45 +67,70 @@ ProductDetail bullionProductDetail(Bullion b) {
     availability: _availability(b),
     availabilityStatus: _availabilityStatus(b.availability),
     listingSeller: listingSellerFromSellerId(b.sellerId),
-    specSections: [
-      specSection(ProductSpecGroup.essentials, {
-        'Metal': metalLabel,
-        'Form': b.shape,
-        'Weight': b.weightLabel,
-        'Purity grade': b.presetVariant,
-        'Condition': b.condition,
-        'Price per gram':
-            perGram == null ? null : AppCurrency.format(perGram.toStringAsFixed(2)),
-      }),
-      specSection(ProductSpecGroup.quality, {
-        'Fineness': purity.isEmpty ? null : '$purity / 1000',
-        'Purity grade': b.presetVariant,
-      }),
-      specSection(ProductSpecGroup.material, {
-        'Metal': metalLabel,
-        'Net metal weight': b.weightGrams > 0
-            ? '${formatDecimal(b.weightGrams)} g'
-            : null,
-      }),
-      specSection(ProductSpecGroup.measurements, {
-        if (b.demention != null && b.demention!.isNotEmpty)
-          'Dimensions': b.demention,
-        if (b.lengthMm > 0) 'Length': '${formatDecimal(b.lengthMm)} mm',
-        if (b.widthMm > 0) 'Width': '${formatDecimal(b.widthMm)} mm',
-        if (b.heightMm > 0) 'Thickness': '${formatDecimal(b.heightMm)} mm',
-      }),
-      specSection(ProductSpecGroup.provenance, {
-        'Certification': b.certification,
-        'Mint mark': b.mintMark,
-        if (b.mintYear != null) 'Mint year': '${b.mintYear}',
-      }),
-      specSection(ProductSpecGroup.inclusions, {
-        'Units available': '${b.quantityAvailable}',
-      }),
-    ],
-    note: 'Bullion is priced against the live spot rate for $metalLabel plus a '
-        'mint premium. Fineness and mint mark determine buy-back value.',
+    specSections: const [],
+    bullionDetail: _bullionDetail(b, metalLabel: metalLabel),
   );
+}
+
+ProductBullionDetail _bullionDetail(
+  Bullion b, {
+  required String metalLabel,
+}) {
+  final metalUpper = metalLabel.toUpperCase();
+  final shapeUpper = b.shape.trim().isEmpty ? 'BAR' : b.shape.toUpperCase();
+  final weightValue = () {
+    if (b.weightGrams > 0) {
+      if (b.weightGrams == b.weightGrams.roundToDouble()) {
+        return b.weightGrams.round().toString();
+      }
+      return formatDecimal(b.weightGrams);
+    }
+    final label = b.weightLabel.trim();
+    if (label.isEmpty) return '';
+    return label.replaceAll(RegExp(r'\s*g$', caseSensitive: false), '');
+  }();
+  final mint = b.mintMark.trim().isNotEmpty ? b.mintMark.trim() : 'the mint';
+  final condition =
+      b.condition.trim().isNotEmpty ? b.condition.trim() : 'as listed';
+
+  final overview =
+      'This ${weightValue.isEmpty ? metalUpper : '$weightValue $metalUpper'} '
+      '$shapeUpper from $mint is a premium investment grade bullion. '
+      'Featuring the ${b.name} design. Condition: $condition.';
+
+  final dimensions = () {
+    final free = b.demention?.trim();
+    if (free != null && free.isNotEmpty) return free;
+    final parts = <String>[
+      if (b.lengthMm > 0) formatDecimal(b.lengthMm),
+      if (b.widthMm > 0) formatDecimal(b.widthMm),
+      if (b.heightMm > 0) formatDecimal(b.heightMm),
+    ];
+    if (parts.isEmpty) return null;
+    return '${parts.join(' x ')} mm';
+  }();
+
+  final rows = <ProductBullionSpecRow>[
+    if ((b.stockNumber ?? '').trim().isNotEmpty)
+      ProductBullionSpecRow('Stock Number', b.stockNumber!.trim()),
+    ProductBullionSpecRow('Metal Type', metalUpper),
+    if (b.shape.trim().isNotEmpty)
+      ProductBullionSpecRow('Shape', shapeUpper),
+    if (weightValue.isNotEmpty)
+      ProductBullionSpecRow('Weight', weightValue),
+    if (b.mintMark.trim().isNotEmpty)
+      ProductBullionSpecRow('Mint Mark', b.mintMark.trim()),
+    if (b.mintYear != null) ProductBullionSpecRow('Mint Year', '${b.mintYear}'),
+    if (b.condition.trim().isNotEmpty)
+      ProductBullionSpecRow('Condition', b.condition.trim()),
+    if (dimensions != null) ProductBullionSpecRow('Dimensions', dimensions),
+    if ((b.certificateNumber ?? '').trim().isNotEmpty)
+      ProductBullionSpecRow('Certificate', b.certificateNumber!.trim()),
+    if (b.certification.trim().isNotEmpty)
+      ProductBullionSpecRow('Certification', b.certification.trim()),
+  ];
+
+  return ProductBullionDetail(overview: overview, specRows: rows);
 }
 
 String _metalLabel(BullionMetal metal) {

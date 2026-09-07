@@ -28,6 +28,7 @@ class Bullion {
     required this.heightMm,
     this.stockNumber,
     this.demention,
+    this.certificateNumber,
     this.availability = 'Available',
     this.mintYear,
     this.imageUrl,
@@ -57,6 +58,7 @@ class Bullion {
 
   /// API field spelling (`demention`) — free-text dimensions.
   final String? demention;
+  final String? certificateNumber;
   final String availability;
   final int? mintYear;
   final String? imageUrl;

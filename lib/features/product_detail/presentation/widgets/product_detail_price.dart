@@ -44,6 +44,10 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
   @override
   Widget build(BuildContext context) {
     final detail = widget.detail;
+    // Jewelry shows wishlist/share beside badges in the header.
+    if (detail.jewelryDetail != null) {
+      return const SizedBox.shrink();
+    }
     final price = detail.price;
     final unitKey = price.unitLabel == null
         ? null
@@ -51,7 +55,9 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
     final localizedUnit = unitKey == null
         ? price.unitLabel
         : context.tr(unitKey);
-    final unit = price.unitAmountLabel == null || localizedUnit == null
+    final unit = price.isOnRequest ||
+            price.unitAmountLabel == null ||
+            localizedUnit == null
         ? null
         : '${price.currencySymbol}${price.unitAmountLabel} $localizedUnit';
     final discount = price.discountPercent;
@@ -65,7 +71,10 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
 
     late final String saleLabel;
     late final String? listLabel;
-    if (!hasDiscount) {
+    if (price.isOnRequest) {
+      saleLabel = price.display;
+      listLabel = null;
+    } else if (!hasDiscount) {
       saleLabel = '${price.currencySymbol}${formatAmount(amount)}';
       listLabel = null;
     } else if (price.displayAmountIsListPrice) {
