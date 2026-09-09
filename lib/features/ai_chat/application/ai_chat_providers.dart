@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/auth/auth_providers.dart';
+import '../../../core/auth/user_local_data_cleaner.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/ai_chat_repository_impl.dart';
 import '../domain/models/ai_chat_language.dart';
@@ -12,8 +14,8 @@ import '../domain/models/ai_chat_message.dart';
 import '../domain/models/ai_chat_reply.dart';
 import '../domain/repositories/ai_chat_repository.dart';
 
-const _sessionPrefKey = 'gw.aiChat.sessionId';
-const _guestKeysPrefKey = 'gw.aiChat.guestSessionKeys';
+const _sessionPrefKey = UserLocalDataCleaner.aiChatSessionId;
+const _guestKeysPrefKey = UserLocalDataCleaner.aiChatGuestSessionKeys;
 
 class AiChatUiState {
   const AiChatUiState({this.isOpen = false, this.showHistory = false});
@@ -116,7 +118,10 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
 
   @override
   AiChatPanelState build() {
+    ref.watch(authProvider.select((s) => s.user?.id));
     ref.onDispose(() => _cancelToken?.cancel());
+    _cancelToken?.cancel('auth-user-changed');
+    _cancelToken = null;
     Future.microtask(_bootstrap);
     return const AiChatPanelState();
   }

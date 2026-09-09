@@ -10,10 +10,8 @@ import '../domain/models/recently_viewed.dart';
 class RecentlyViewedListNotifier extends AsyncNotifier<RecentlyViewedListPage> {
   @override
   Future<RecentlyViewedListPage> build() async {
-    final authenticated = ref.watch(
-      authProvider.select((s) => s.isAuthenticated),
-    );
-    if (!authenticated) {
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId == null || userId.isEmpty) {
       return const RecentlyViewedListPage(
         items: [],
         total: 0,

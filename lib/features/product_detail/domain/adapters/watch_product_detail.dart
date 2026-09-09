@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/catalog/catalog_purchase_policy.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/app_currency.dart';
@@ -240,11 +241,5 @@ ProductAvailability _availability(Watch w) {
   );
 }
 
-String? _availabilityStatus(String status) {
-  final normalized = status.trim().toLowerCase();
-  if (normalized.contains('hold')) return 'hold';
-  if (normalized.contains('memo')) return 'memo';
-  if (normalized.contains('sold')) return 'sold';
-  if (normalized.contains('available') || normalized == 'yes') return 'yes';
-  return normalized.isEmpty ? null : normalized;
-}
+String? _availabilityStatus(String status) =>
+    CatalogPurchasePolicy.normalizeCode(status);

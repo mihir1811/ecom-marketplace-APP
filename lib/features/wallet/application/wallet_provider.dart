@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_providers.dart';
+import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/wallet_repository_impl.dart';
 import '../domain/models/wallet.dart';
@@ -14,8 +16,16 @@ class WalletNotifier extends AsyncNotifier<Wallet> {
   WalletRepository get _repo => ref.read(walletRepositoryProvider);
 
   @override
-  Future<Wallet> build() => _fetch();
-
+  Future<Wallet> build() {
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId == null || userId.isEmpty) {
+      return Future.error(
+        const AuthFailure('Sign in to view your wallet.'),
+        StackTrace.current,
+      );
+    }
+    return _fetch();
+  }
   Future<Wallet> _fetch() async {
     final result = await _repo.getWallet();
     return switch (result) {
@@ -74,6 +84,10 @@ class WalletTransactionsNotifier extends Notifier<WalletTransactionsState> {
 
   @override
   WalletTransactionsState build() {
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId == null || userId.isEmpty) {
+      return const WalletTransactionsState();
+    }
     Future.microtask(loadInitial);
     return const WalletTransactionsState(isLoading: true);
   }

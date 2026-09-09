@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/login_history_repository_impl.dart';
@@ -44,6 +45,10 @@ class LoginHistoryNotifier extends Notifier<LoginHistoryState> {
 
   @override
   LoginHistoryState build() {
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId == null || userId.isEmpty) {
+      return const LoginHistoryState();
+    }
     Future.microtask(refresh);
     return const LoginHistoryState(isLoading: true);
   }

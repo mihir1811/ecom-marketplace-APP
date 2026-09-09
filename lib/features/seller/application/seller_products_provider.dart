@@ -90,7 +90,12 @@ class SellerProductsCatalogNotifier
 
   @override
   SellerProductsCatalogState build() {
+    // Rebuild on account switch so loadIfNeeded cannot keep the prior catalog.
+    ref.watch(authProvider.select((s) => s.user?.id));
     ref.onDispose(() => _cancelToken?.cancel());
+    _hasLoaded = false;
+    _cancelToken?.cancel('auth-user-changed');
+    _cancelToken = null;
     return const SellerProductsCatalogState(isLoading: true);
   }
 

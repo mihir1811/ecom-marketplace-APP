@@ -49,16 +49,21 @@ class ChatInboxNotifier extends Notifier<ChatInboxState> {
     });
 
     final userId = ref.watch(authProvider.select((s) => s.user?.id));
-    if (userId != null && userId.isNotEmpty) {
-      Future.microtask(() async {
-        await ref.read(chatRepositoryProvider).connectSocket(userId: userId);
-        await refresh();
-      });
+    if (userId == null || userId.isEmpty) {
+      _cancelToken?.cancel('signed-out');
       _socketSub?.cancel();
-      _socketSub = ref.read(chatRepositoryProvider).incomingMessages.listen((_) {
-        refresh();
-      });
+      _socketSub = null;
+      return const ChatInboxState();
     }
+
+    Future.microtask(() async {
+      await ref.read(chatRepositoryProvider).connectSocket(userId: userId);
+      await refresh();
+    });
+    _socketSub?.cancel();
+    _socketSub = ref.read(chatRepositoryProvider).incomingMessages.listen((_) {
+      refresh();
+    });
 
     return const ChatInboxState(isLoading: true);
   }

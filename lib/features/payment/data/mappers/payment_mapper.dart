@@ -96,7 +96,11 @@ abstract final class PaymentMapper {
       amount: _num(json['amount']) ?? 0,
       amountUsd: _num(json['amountUsd']) ?? 0,
       currency: _str(json['currency']) ?? 'INR',
-      createdAt: _date(json['createdAt']),
+      createdAt:
+          _date(json['createdAt']) ??
+          _date(json['created_at']) ??
+          _date(json['updatedAt']) ??
+          _date(json['updated_at']),
       receipt: _str(json['receipt']),
       invoiceNumber: _str(json['invoiceNumber']),
       invoiceUrl: _str(json['invoiceUrl']),
@@ -130,13 +134,23 @@ abstract final class PaymentMapper {
     final data = root['data'];
     final dataMap = data is Map<String, dynamic>
         ? data
+        : data is Map
+        ? Map<String, dynamic>.from(data)
         : const <String, dynamic>{};
-    final ordersJson = dataMap['orders'] ?? data;
+    final ordersJson =
+        dataMap['orders'] ??
+        dataMap['items'] ??
+        dataMap['results'] ??
+        dataMap['docs'] ??
+        data;
     final orders = <PaymentOrder>[];
     if (ordersJson is List) {
       for (final o in ordersJson) {
-        if (o is! Map<String, dynamic>) continue;
-        final order = orderFromJson(o);
+        if (o is! Map) continue;
+        final map = o is Map<String, dynamic>
+            ? o
+            : Map<String, dynamic>.from(o);
+        final order = orderFromJson(map);
         if (order.id.isEmpty) continue;
         orders.add(order);
       }
@@ -145,10 +159,14 @@ abstract final class PaymentMapper {
     final meta = root['meta'];
     final metaMap = meta is Map<String, dynamic>
         ? meta
+        : meta is Map
+        ? Map<String, dynamic>.from(meta)
         : const <String, dynamic>{};
-    final pagination = metaMap['pagination'];
+    final pagination = metaMap['pagination'] ?? dataMap['pagination'];
     final pageMap = pagination is Map<String, dynamic>
         ? pagination
+        : pagination is Map
+        ? Map<String, dynamic>.from(pagination)
         : const <String, dynamic>{};
 
     return PaymentOrdersPage(
@@ -181,6 +199,27 @@ abstract final class PaymentMapper {
 
   static DateTime? _date(Object? v) {
     if (v == null) return null;
-    return DateTime.tryParse(v.toString());
+    if (v is DateTime) return v;
+    if (v is int) {
+      // Heuristic: seconds vs milliseconds since epoch.
+      return v > 9999999999
+          ? DateTime.fromMillisecondsSinceEpoch(v)
+          : DateTime.fromMillisecondsSinceEpoch(v * 1000);
+    }
+    if (v is num) {
+      final n = v.toInt();
+      return n > 9999999999
+          ? DateTime.fromMillisecondsSinceEpoch(n)
+          : DateTime.fromMillisecondsSinceEpoch(n * 1000);
+    }
+    final raw = v.toString().trim();
+    if (raw.isEmpty) return null;
+    final asInt = int.tryParse(raw);
+    if (asInt != null) {
+      return asInt > 9999999999
+          ? DateTime.fromMillisecondsSinceEpoch(asInt)
+          : DateTime.fromMillisecondsSinceEpoch(asInt * 1000);
+    }
+    return DateTime.tryParse(raw);
   }
 }

@@ -11,11 +11,17 @@ abstract final class SellerInsightsAggregator {
     'SUCCESS',
     'COMPLETED',
     'DELIVERED',
+    'SHIPPED',
+    'OUT FOR DELIVERY',
+    'OUT_FOR_DELIVERY',
+    'PROCESSING',
+    'CONFIRMED',
   };
 
   static SellerDashboardSnapshot dashboard({
     required List<PaymentOrder> orders,
     required SellerDashboardParams params,
+    double inventoryValue = 0,
     DateTime? now,
   }) {
     final clock = now ?? DateTime.now();
@@ -54,8 +60,10 @@ abstract final class SellerInsightsAggregator {
         DashboardMetricCard(
           metric: DashboardMetric.inventoryValue,
           title: 'Inventory Value',
-          value: AppCurrency.usd(0),
-          subtitle: 'Listing inventory is not on the orders API',
+          value: AppCurrency.usd(inventoryValue),
+          subtitle: inventoryValue > 0
+              ? 'Active listing inventory'
+              : 'No priced active listings',
         ),
       ],
       chartBuckets: [
@@ -65,10 +73,11 @@ abstract final class SellerInsightsAggregator {
             totalSales: _sumUsd(bucket.$2.where(_isPaid)),
             productsSold: _unitsSold(bucket.$2.where(_isPaid)).toDouble(),
             orders: bucket.$2.length.toDouble(),
+            inventoryValue: inventoryValue,
           ),
       ],
       chartEndDate: window.$2,
-      recentOrders: _recent(orders),
+      recentOrders: const [],
       fetchedAt: clock,
     );
   }
@@ -177,15 +186,33 @@ abstract final class SellerInsightsAggregator {
     return [for (final def in defs) (def.$1, _inRange(orders, def.$2, def.$3))];
   }
 
-  static bool _isPaid(PaymentOrder order) =>
-      _paidStatuses.contains(order.status.toUpperCase());
+  static bool _isPaid(PaymentOrder order) {
+    final status = order.status.toUpperCase().trim();
+    if (_paidStatuses.contains(status)) return true;
+    // Fulfillment-style labels still mean the order was paid.
+    if (status.contains('DELIVER') ||
+        status.contains('SHIP') ||
+        status.contains('PAID') ||
+        status.contains('SUCCESS') ||
+        status.contains('COMPLETE')) {
+      return true;
+    }
+    return false;
+  }
 
   static double _sumUsd(Iterable<PaymentOrder> orders) {
     var total = 0.0;
     for (final order in orders) {
-      total += order.amountUsd > 0 ? order.amountUsd : order.amount;
+      total += _orderUsd(order);
     }
     return total;
+  }
+
+  static double _orderUsd(PaymentOrder order) {
+    if (order.amountUsd > 0) return order.amountUsd;
+    final pricingUsd = order.pricing?.totalUsd ?? 0;
+    if (pricingUsd > 0) return pricingUsd;
+    return order.amount;
   }
 
   static int _unitsSold(Iterable<PaymentOrder> orders) {
@@ -219,47 +246,35 @@ abstract final class SellerInsightsAggregator {
   ) {
     return [
       for (final order in orders)
-        if (order.createdAt != null &&
-            !order.createdAt!.isBefore(start) &&
-            !order.createdAt!.isAfter(end))
+        if (_orderDate(order) case final date?
+            when !date.isBefore(start) && !date.isAfter(end))
           order,
     ];
   }
 
-  static List<DashboardRecentOrder> _recent(List<PaymentOrder> orders) {
-    final sorted = [...orders]
-      ..sort((a, b) {
-        final aDate = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final bDate = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-        return bDate.compareTo(aDate);
-      });
-    return [
-      for (final order in sorted.take(5))
-        DashboardRecentOrder(
-          id: order.receipt ?? order.id,
-          amountLabel: AppCurrency.usd(
-            order.amountUsd > 0 ? order.amountUsd : order.amount,
-          ),
-          status: _titleCase(order.status),
-        ),
-    ];
-  }
+  static DateTime? _orderDate(PaymentOrder order) => order.createdAt;
 
   static List<AnalyticsCategorySlice> _categorySlices(List<PaymentOrder> paid) {
     final totals = <String, double>{};
     for (final order in paid) {
       if (order.items.isEmpty) {
-        totals['Other'] =
-            (totals['Other'] ?? 0) +
-            (order.amountUsd > 0 ? order.amountUsd : order.amount);
+        totals['Other'] = (totals['Other'] ?? 0) + _orderUsd(order);
         continue;
       }
       for (final item in order.items) {
         final label = _categoryLabel(item.productType);
-        totals[label] = (totals[label] ?? 0) + item.lineTotal;
+        final line = item.lineTotal > 0 ? item.lineTotal : 0.0;
+        totals[label] = (totals[label] ?? 0) + line;
       }
     }
-    final sum = totals.values.fold<double>(0, (a, b) => a + b);
+    var sum = totals.values.fold<double>(0, (a, b) => a + b);
+    if (sum <= 0) {
+      totals.clear();
+      for (final order in paid) {
+        totals['Other'] = (totals['Other'] ?? 0) + _orderUsd(order);
+      }
+      sum = totals.values.fold<double>(0, (a, b) => a + b);
+    }
     if (sum <= 0) return const [];
     final slices = [
       for (final entry in totals.entries)

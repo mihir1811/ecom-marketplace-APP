@@ -4,6 +4,7 @@ class JewelleryCategoryAdmin {
     required this.name,
     required this.isActive,
     this.imageUrl,
+    this.productCount,
     this.subcategories = const [],
   });
 
@@ -11,7 +12,15 @@ class JewelleryCategoryAdmin {
   final String name;
   final bool isActive;
   final String? imageUrl;
+  /// Backend product/style count when the API provides it (`productCount` / `_count`).
+  final int? productCount;
   final List<JewellerySubcategoryAdmin> subcategories;
+
+  /// Styles shown on shopper category tiles — prefers API count, else active subs.
+  int get styleCount {
+    if (productCount != null) return productCount!;
+    return subcategories.where((s) => s.isActive).length;
+  }
 }
 
 class JewellerySubcategoryAdmin {
@@ -54,7 +63,8 @@ abstract final class JewelleryCategoryMatch {
       'Rings' || 'Ring' => 'Ring',
       'Earrings' || 'Earring' => 'Earring',
       'Bracelets' || 'Bracelet' => 'Bracelet',
-      'Necklaces' || 'Necklace' || 'Chains' => 'Necklace',
+      'Necklaces' || 'Necklace' || 'Chains' || 'Chain' => 'Necklace',
+      'Accessories' => 'Accessories',
       _ => value,
     };
   }

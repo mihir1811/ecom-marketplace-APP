@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
@@ -77,31 +78,43 @@ class SellerLayout extends ConsumerWidget {
     // Product edit uses its own AppScaffold + AppTopBar (already includes theme).
     final ownsOwnAppBar = _ownsOwnAppBar(selectedRoute);
     final isDetail = _isDetailRoute(selectedRoute);
+    final router = GoRouter.of(context);
+    final canPop = router.canPop();
 
-    return AppScaffold(
-      drawer: SellerDrawer(selectedRoute: selectedRoute),
-      backgroundColor: AppColors.bg(context),
-      appBar: ownsOwnAppBar
-          ? null
-          : AppTopBar(
-              title: _shellTitleFor(context, selectedRoute),
-              leading: isDetail
-                  ? BackButton(onPressed: () => context.goBack())
-                  // AppDrawerButton uses its own context (under Scaffold).
-                  // SellerLayout's context is an ancestor of the Scaffold and
-                  // cannot open the drawer.
-                  : const AppDrawerButton(),
-              showDrawerButton: false,
-              showCart: true,
-              showWallet: true,
-              showMessages: true,
-              showThemeToggle: true,
-              onSellerWalletTap: () =>
-                  context.switchToRoute(AppRouteNames.sellerWallet),
-              onSellerMessagesTap: () =>
-                  context.switchToRoute(AppRouteNames.sellerChat),
-            ),
-      body: child,
+    return PopScope(
+      // Drawer peers use `go` (no stack). Intercept system back so the app
+      // returns home instead of exiting.
+      canPop: canPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (!context.mounted) return;
+        context.goBack();
+      },
+      child: AppScaffold(
+        drawer: SellerDrawer(selectedRoute: selectedRoute),
+        backgroundColor: AppColors.bg(context),
+        appBar: ownsOwnAppBar
+            ? null
+            : AppTopBar(
+                title: _shellTitleFor(context, selectedRoute),
+                leading: isDetail
+                    ? BackButton(onPressed: () => context.goBack())
+                    // AppDrawerButton uses its own context (under Scaffold).
+                    // SellerLayout's context is an ancestor of the Scaffold and
+                    // cannot open the drawer.
+                    : const AppDrawerButton(),
+                showDrawerButton: false,
+                showCart: true,
+                showWallet: true,
+                showMessages: true,
+                showThemeToggle: true,
+                onSellerWalletTap: () =>
+                    context.switchToRoute(AppRouteNames.sellerWallet),
+                onSellerMessagesTap: () =>
+                    context.switchToRoute(AppRouteNames.sellerChat),
+              ),
+        body: child,
+      ),
     );
   }
 

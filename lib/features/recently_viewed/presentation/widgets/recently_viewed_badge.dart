@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/catalog/catalog_purchase_policy.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -10,6 +11,7 @@ import '../../application/recently_viewed_providers.dart';
 
 /// Availability status dot for listing card images.
 /// Color-coded: green=Available, yellow=On Hold/Memo, red=Sold/Unavailable.
+/// Accepts raw API codes (`yes`/`hold`) and display labels (`In Stock`/`On Hold`).
 class AvailabilityStatusBadge extends StatelessWidget {
   const AvailabilityStatusBadge({
     required this.status,
@@ -23,35 +25,25 @@ class AvailabilityStatusBadge extends StatelessWidget {
   final bool dotOnly;
 
   static Color statusColor(BuildContext context, String? status) {
-    final label = status?.toLowerCase() ?? '';
-    if (label == 'available' || label == 'yes') return AppColors.success;
-    if (label == 'sold' || label.contains('unavailable')) {
-      return AppColors.error;
-    }
-    if (label.contains('hold') || label.contains('memo')) {
-      return AppColors.warning;
-    }
-    return AppColors.textMuted(context);
+    return switch (CatalogPurchasePolicy.normalizeCode(status)) {
+      'yes' => AppColors.success,
+      'sold' || 'unavailable' || 'no' => AppColors.error,
+      'hold' || 'memo' => AppColors.warning,
+      _ => AppColors.textMuted(context),
+    };
   }
 
   Color _statusColor(BuildContext context) => statusColor(context, status);
 
   String _displayLabel(BuildContext context) {
-    final label = status?.toLowerCase() ?? '';
-    if (label == 'yes' || label == 'available') {
-      return context.tr(AccountCommerceL10n.available);
-    }
-    if (label == 'hold' || label == 'on hold') {
-      return context.tr(AccountCommerceL10n.onHold);
-    }
-    if (label == 'memo' || label == 'on memo') {
-      return context.tr(AccountCommerceL10n.onMemo);
-    }
-    if (label == 'sold') return context.tr(AccountCommerceL10n.sold);
-    if (label.contains('unavailable')) {
-      return context.tr(AccountCommerceL10n.unavailable);
-    }
-    return status ?? '';
+    return switch (CatalogPurchasePolicy.normalizeCode(status)) {
+      'yes' => context.tr(AccountCommerceL10n.available),
+      'hold' => context.tr(AccountCommerceL10n.onHold),
+      'memo' => context.tr(AccountCommerceL10n.onMemo),
+      'sold' => context.tr(AccountCommerceL10n.sold),
+      'unavailable' || 'no' => context.tr(AccountCommerceL10n.unavailable),
+      _ => status ?? '',
+    };
   }
 
   @override

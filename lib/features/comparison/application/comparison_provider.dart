@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_providers.dart';
 import '../domain/models/compare_category.dart';
 import '../domain/models/compare_item.dart';
 
@@ -63,8 +64,10 @@ class ComparisonState {
 
 class ComparisonNotifier extends Notifier<ComparisonState> {
   @override
-  ComparisonState build() => const ComparisonState();
-
+  ComparisonState build() {
+    ref.watch(authProvider.select((s) => s.user?.id));
+    return const ComparisonState();
+  }
   /// Toggles [item] in the tray. Returns a result describing the outcome.
   CompareAddResult toggle(CompareItem item) {
     if (state.containsId(item.id)) {

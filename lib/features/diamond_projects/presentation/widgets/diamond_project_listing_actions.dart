@@ -30,6 +30,9 @@ class DiamondProjectListingActions extends ConsumerWidget {
       ),
     );
 
+    final selectLabel =
+        loadedCount == 0 ? 'Select page' : 'Select page ($loadedCount)';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.s16,
@@ -37,47 +40,76 @@ class DiamondProjectListingActions extends ConsumerWidget {
         AppSpacing.s16,
         AppSpacing.s8,
       ),
-      child: Wrap(
-        spacing: AppSpacing.s8,
-        runSpacing: AppSpacing.s8,
+      child: Row(
         children: [
-          FilledButton.icon(
-            onPressed: loadedCount == 0
-                ? null
-                : () {
-                    final diamonds =
-                        ref.read(diamondListProvider).valueOrNull?.diamonds ??
-                        const [];
-                    if (diamonds.isEmpty) return;
-                    ref
-                        .read(diamondProjectSelectionProvider.notifier)
-                        .selectLoadedPage(
-                          diamonds: diamonds,
-                          filters: ref.read(diamondSearchProvider),
-                          catalog: ref.read(diamondCatalogTypeProvider),
-                        );
-                    context.push(AppRouteNames.diamondProject);
-                  },
-            icon: const Icon(Icons.analytics_outlined, size: 16),
-            label: Text(
-              loadedCount == 0 ? 'Select page' : 'Select page ($loadedCount)',
-              overflow: TextOverflow.ellipsis,
-            ),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.selectedFill(context),
-              foregroundColor: AppColors.onSelected(context),
-              visualDensity: VisualDensity.compact,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: loadedCount == 0
+                  ? null
+                  : () {
+                      final diamonds =
+                          ref.read(diamondListProvider).valueOrNull?.diamonds ??
+                          const [];
+                      if (diamonds.isEmpty) return;
+                      ref
+                          .read(diamondProjectSelectionProvider.notifier)
+                          .selectLoadedPage(
+                            diamonds: diamonds,
+                            filters: ref.read(diamondSearchProvider),
+                            catalog: ref.read(diamondCatalogTypeProvider),
+                          );
+                      context.push(AppRouteNames.diamondProject);
+                    },
+              icon: const Icon(Icons.analytics_outlined, size: 14),
+              label: Text(
+                selectLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.onSelected(context),
+                  fontSize: 12,
+                ),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.selectedFill(context),
+                foregroundColor: AppColors.onSelected(context),
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s8,
+                  vertical: AppSpacing.s8,
+                ),
+                minimumSize: const Size(0, 36),
+              ),
             ),
           ),
-          OutlinedButton.icon(
-            onPressed: () => context.push(AppRouteNames.savedDiamondProjects),
-            icon: const Icon(Icons.folder_outlined, size: 16),
-            label: Text(context.tr(CatalogL10n.savedStatistics)),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.textPrimary(context),
-              visualDensity: VisualDensity.compact,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          const SizedBox(width: AppSpacing.s8),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () =>
+                  context.push(AppRouteNames.savedDiamondProjects),
+              icon: const Icon(Icons.folder_outlined, size: 14),
+              label: Text(
+                context.tr(CatalogL10n.savedStatistics),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary(context),
+                  fontSize: 12,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textPrimary(context),
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s8,
+                  vertical: AppSpacing.s8,
+                ),
+                minimumSize: const Size(0, 36),
+              ),
             ),
           ),
         ],

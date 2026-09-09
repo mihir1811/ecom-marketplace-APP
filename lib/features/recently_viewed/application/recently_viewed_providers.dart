@@ -8,10 +8,8 @@ import '../data/repositories/recently_viewed_repository_impl.dart';
 class RecentlyViewedIdsNotifier extends Notifier<Set<String>> {
   @override
   Set<String> build() {
-    final authenticated = ref.watch(
-      authProvider.select((s) => s.isAuthenticated),
-    );
-    if (!authenticated) return const {};
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId == null || userId.isEmpty) return const {};
     Future.microtask(refresh);
     return const {};
   }

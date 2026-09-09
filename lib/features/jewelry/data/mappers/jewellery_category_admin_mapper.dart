@@ -17,6 +17,7 @@ abstract final class JewelleryCategoryAdminMapper {
       name: json['name']?.toString() ?? '',
       isActive: json['isActive'] != false,
       imageUrl: _nullableString(json['imageUrl']),
+      productCount: _readProductCount(json),
       subcategories: subs,
     );
   }
@@ -89,6 +90,24 @@ abstract final class JewelleryCategoryAdminMapper {
     if (value is int) return value;
     if (value is num) return value.toInt();
     return int.tryParse(value.toString());
+  }
+
+  static int? _readProductCount(Map<String, dynamic> json) {
+    final direct = _asInt(json['productCount']) ??
+        _asInt(json['styleCount']) ??
+        _asInt(json['stylesCount']) ??
+        _asInt(json['jewelleryCount']);
+    if (direct != null) return direct;
+
+    final countNode = json['_count'];
+    if (countNode is Map) {
+      return _asInt(countNode['jewelleries']) ??
+          _asInt(countNode['jewellery']) ??
+          _asInt(countNode['products']) ??
+          _asInt(countNode['styles']) ??
+          _asInt(countNode['items']);
+    }
+    return null;
   }
 
   static String? _nullableString(Object? raw) {

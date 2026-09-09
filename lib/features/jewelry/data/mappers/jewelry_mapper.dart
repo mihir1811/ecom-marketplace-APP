@@ -190,7 +190,8 @@ abstract final class JewelryMapper {
     return switch (v) {
       'yes' || 'available' || 'in stock' => 'In Stock',
       'hold' || 'on hold' => 'On Hold',
-      'memo' => 'Memo',
+      'memo' || 'on memo' => 'Memo',
+      'sold' || 'unavailable' || 'no' || 'out of stock' => 'Unavailable',
       _ => raw?.trim().isNotEmpty == true ? raw!.trim() : 'In Stock',
     };
   }

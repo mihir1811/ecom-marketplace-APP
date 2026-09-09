@@ -461,6 +461,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   Future<void> _persist(AuthSession session) async {
+    final previousUserId = await _tokenStore.readUserId();
+    if (previousUserId != null &&
+        previousUserId.isNotEmpty &&
+        previousUserId != session.user.id) {
+      // Full wipe before writing the new account so no identity key can linger.
+      await _tokenStore.clear();
+    }
     await _tokenStore.saveSession(
       accessToken: session.accessToken,
       userId: session.user.id,

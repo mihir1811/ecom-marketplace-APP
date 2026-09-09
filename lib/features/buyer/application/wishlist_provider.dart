@@ -40,18 +40,11 @@ class WishlistNotifier extends Notifier<WishlistUiState> {
 
   @override
   WishlistUiState build() {
-    ref.listen(authProvider, (prev, next) {
-      if (next.isAuthenticated) {
-        refresh();
-      } else if (prev?.isAuthenticated == true && !next.isAuthenticated) {
-        state = const WishlistUiState();
-      }
-    });
-    Future.microtask(() {
-      if (ref.read(authProvider).isAuthenticated) {
-        refresh();
-      }
-    });
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId == null || userId.isEmpty) {
+      return const WishlistUiState();
+    }
+    Future.microtask(refresh);
     return const WishlistUiState(isLoading: true);
   }
 

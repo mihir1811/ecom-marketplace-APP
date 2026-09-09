@@ -7,6 +7,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/listing_seller_info.dart';
 import '../../domain/models/product_bullion_detail.dart';
 import '../../domain/models/product_detail.dart';
+import 'product_detail_spec_chrome.dart';
 
 /// Bullion content: Overview / Specifications / Seller tabs.
 class ProductDetailBullionSection extends StatefulWidget {
@@ -28,93 +29,25 @@ class _ProductDetailBullionSectionState
     extends State<ProductDetailBullionSection> {
   int _tabIndex = 0;
 
-  static const _tabs = <({String label, IconData icon})>[
-    (label: 'Overview', icon: Icons.visibility_outlined),
-    (label: 'Specifications', icon: Icons.bookmark_border_rounded),
-    (label: 'Seller', icon: Icons.star_border_rounded),
-  ];
+  static const _tabs = ['Overview', 'Specifications', 'Seller'];
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            for (var i = 0; i < _tabs.length; i++) ...[
-              if (i > 0) const SizedBox(width: AppSpacing.s24),
-              _TabChip(
-                label: _tabs[i].label,
-                icon: _tabs[i].icon,
-                selected: i == _tabIndex,
-                onTap: () => setState(() => _tabIndex = i),
-              ),
-            ],
-          ],
+        ProductDetailSpecTabBar(
+          titles: _tabs,
+          selectedIndex: _tabIndex,
+          onSelected: (i) => setState(() => _tabIndex = i),
         ),
-        Divider(height: 1, thickness: 1, color: AppColors.border(context)),
-        const SizedBox(height: AppSpacing.s24),
+        const SizedBox(height: AppSpacing.s12),
         switch (_tabIndex) {
           0 => _OverviewTab(text: widget.bullion.overview),
           1 => _SpecificationsTab(rows: widget.bullion.specRows),
           _ => _SellerTab(seller: widget.detail.listingSeller),
         },
       ],
-    );
-  }
-}
-
-class _TabChip extends StatelessWidget {
-  const _TabChip({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = selected
-        ? AppColors.textPrimary(context)
-        : AppColors.textMuted(context);
-    return InkWell(
-      onTap: onTap,
-      child: IntrinsicWidth(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: 18, color: color),
-                  const SizedBox(width: AppSpacing.s8),
-                  Text(
-                    label,
-                    style: AppTypography.label.copyWith(
-                      color: color,
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ColoredBox(
-              color: selected
-                  ? AppColors.textPrimary(context)
-                  : Colors.transparent,
-              child: const SizedBox(height: 2),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -126,12 +59,20 @@ class _OverviewTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: AppTypography.body.copyWith(
-        color: AppColors.textSecondary(context),
-        height: 1.55,
-        fontSize: 14,
+    final body = text.trim().isEmpty ? 'No overview available' : text;
+    return ProductDetailSpecPanel(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s16,
+        vertical: AppSpacing.s32,
+      ),
+      child: Text(
+        body,
+        textAlign: text.trim().isEmpty ? TextAlign.center : TextAlign.start,
+        style: AppTypography.body.copyWith(
+          color: AppColors.textMuted(context),
+          height: 1.55,
+          fontSize: 14,
+        ),
       ),
     );
   }
@@ -145,59 +86,27 @@ class _SpecificationsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (rows.isEmpty) {
-      return Text(
-        'No specifications available.',
-        style: AppTypography.body.copyWith(
-          color: AppColors.textMuted(context),
+      return ProductDetailSpecPanel(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.s16,
+          vertical: AppSpacing.s32,
+        ),
+        child: Text(
+          'No specifications available.',
+          textAlign: TextAlign.center,
+          style: AppTypography.body.copyWith(
+            color: AppColors.textMuted(context),
+            fontSize: 14,
+          ),
         ),
       );
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r20),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0) Divider(height: 1, color: AppColors.border(context)),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.s16,
-                vertical: AppSpacing.s16,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      rows[i].label,
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.textMuted(context),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.s16),
-                  Flexible(
-                    child: Text(
-                      rows[i].value,
-                      textAlign: TextAlign.right,
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.textPrimary(context),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
+    return ProductDetailSpecTable(
+      rows: [
+        for (final row in rows)
+          ProductDetailSpecKv(row.label, productDetailSpecDash(row.value)),
+      ],
     );
   }
 }
@@ -211,89 +120,44 @@ class _SellerTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final info = seller;
     if (info == null || !info.hasAnyData) {
-      return Text(
-        'Seller information is not available for this listing.',
-        style: AppTypography.body.copyWith(
-          color: AppColors.textMuted(context),
+      return ProductDetailSpecPanel(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.s16,
+          vertical: AppSpacing.s32,
+        ),
+        child: Text(
+          'Seller information is not available for this listing.',
+          textAlign: TextAlign.center,
+          style: AppTypography.body.copyWith(
+            color: AppColors.textMuted(context),
+            fontSize: 14,
+          ),
         ),
       );
     }
 
-    final rows = <({String label, String value, IconData icon})>[
-      (
-        label: context.tr(CatalogL10n.seller),
-        value: info.displayName,
-        icon: Icons.storefront_outlined,
+    final rows = <ProductDetailSpecKv>[
+      ProductDetailSpecKv(
+        context.tr(CatalogL10n.seller),
+        productDetailSpecDash(info.displayName),
       ),
       if (!info.isIndividual && info.email != null)
-        (
-          label: context.tr(CatalogL10n.email),
-          value: info.email!,
-          icon: Icons.email_outlined,
+        ProductDetailSpecKv(
+          context.tr(CatalogL10n.email),
+          productDetailSpecDash(info.email),
         ),
       if (!info.isIndividual && info.phone != null)
-        (
-          label: context.tr(CatalogL10n.phone),
-          value: info.phone!,
-          icon: Icons.phone_outlined,
+        ProductDetailSpecKv(
+          context.tr(CatalogL10n.phone),
+          productDetailSpecDash(info.phone),
         ),
       if (!info.isIndividual && info.location != null)
-        (
-          label: context.tr(CatalogL10n.location),
-          value: info.location!,
-          icon: Icons.location_on_outlined,
+        ProductDetailSpecKv(
+          context.tr(CatalogL10n.location),
+          productDetailSpecDash(info.location),
         ),
     ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r20),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0) Divider(height: 1, color: AppColors.border(context)),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.s16,
-                vertical: AppSpacing.s12,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(rows[i].icon, size: 18, color: AppColors.bronze),
-                  const SizedBox(width: AppSpacing.s12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          rows[i].label,
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textMuted(context),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          rows[i].value,
-                          style: AppTypography.label.copyWith(
-                            color: AppColors.textPrimary(context),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
+    return ProductDetailSpecTable(rows: rows);
   }
 }

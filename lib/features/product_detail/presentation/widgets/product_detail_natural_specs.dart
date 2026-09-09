@@ -9,6 +9,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../application/melee_qty_draft_provider.dart';
 import '../../domain/models/product_detail.dart';
+import 'product_detail_spec_chrome.dart';
 
 /// Spec tabs for natural and lab-grown diamonds. Melee qty when separable.
 class ProductDetailNaturalSpecs extends StatefulWidget {
@@ -43,39 +44,24 @@ class _ProductDetailNaturalSpecsState extends State<ProductDetailNaturalSpecs> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            for (var i = 0; i < tabs.length; i++)
-              Expanded(
-                child: _TabLabel(
-                  title: tabs[i].title,
-                  selected: i == index,
-                  onTap: () => setState(() => _tabIndex = i),
-                ),
-              ),
-          ],
+        ProductDetailSpecTabBar(
+          titles: [for (final t in tabs) t.title],
+          selectedIndex: index,
+          onSelected: (i) => setState(() => _tabIndex = i),
         ),
         const SizedBox(height: AppSpacing.s12),
         if (tab.isComment)
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.card(context),
-              borderRadius: BorderRadius.circular(AppSpacing.r20),
-              border: Border.all(color: AppColors.border(context)),
+          ProductDetailSpecPanel(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.s16,
+              vertical: AppSpacing.s32,
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.s16,
-                vertical: AppSpacing.s32,
-              ),
-              child: Text(
-                tab.commentBody ?? 'No Comment Available',
-                textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(
-                  color: AppColors.textMuted(context),
-                  fontSize: 14,
-                ),
+            child: Text(
+              tab.commentBody ?? 'No Comment Available',
+              textAlign: TextAlign.center,
+              style: AppTypography.body.copyWith(
+                color: AppColors.textMuted(context),
+                fontSize: 14,
               ),
             ),
           )
@@ -85,27 +71,22 @@ class _ProductDetailNaturalSpecsState extends State<ProductDetailNaturalSpecs> {
             children: [
               for (var i = 0; i < tab.sections.length; i++) ...[
                 if (i > 0) const SizedBox(height: AppSpacing.s24),
-                _SectionCard(section: tab.sections[i]),
+                ProductDetailSpecSection(
+                  title: tab.sections[i].title,
+                  rows: [
+                    for (final spec in tab.sections[i].rows)
+                      ProductDetailSpecKv(spec.label, spec.value),
+                  ],
+                ),
               ],
             ],
           )
         else
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.card(context),
-              borderRadius: BorderRadius.circular(AppSpacing.r20),
-              border: Border.all(color: AppColors.border(context)),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                for (var i = 0; i < tab.rows.length; i++) ...[
-                  if (i > 0)
-                    Divider(height: 1, color: AppColors.border(context)),
-                  _Row(spec: tab.rows[i]),
-                ],
-              ],
-            ),
+          ProductDetailSpecTable(
+            rows: [
+              for (final spec in tab.rows)
+                ProductDetailSpecKv(spec.label, spec.value),
+            ],
           ),
         if (widget.specs.meleeQty != null) ...[
           const SizedBox(height: AppSpacing.s16),
@@ -119,144 +100,6 @@ class _ProductDetailNaturalSpecsState extends State<ProductDetailNaturalSpecs> {
       ],
     );
   }
-}
-
-class _TabLabel extends StatelessWidget {
-  const _TabLabel({
-    required this.title,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String title;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.s12),
-            child: Text(
-              title.toUpperCase(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: AppTypography.label.copyWith(
-                color: selected
-                    ? AppColors.textPrimary(context)
-                    : AppColors.textMuted(context),
-                fontSize: 12,
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ),
-          ColoredBox(
-            color: selected ? AppColors.bronze : AppColors.border(context),
-            child: SizedBox(height: selected ? 2 : 1, width: double.infinity),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.section});
-
-  final ProductSpecTabSection section;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(
-            left: AppSpacing.s4,
-            bottom: AppSpacing.s12,
-          ),
-          child: Text(
-            _catalogText(context, section.title),
-            style: AppTypography.label.copyWith(
-              color: AppColors.textPrimary(context),
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.card(context),
-            borderRadius: BorderRadius.circular(AppSpacing.r20),
-            border: Border.all(color: AppColors.border(context)),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              for (var i = 0; i < section.rows.length; i++) ...[
-                if (i > 0) Divider(height: 1, color: AppColors.border(context)),
-                _Row(spec: section.rows[i]),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Row extends StatelessWidget {
-  const _Row({required this.spec});
-
-  final ProductSpec spec;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s16,
-        vertical: AppSpacing.s16,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 4,
-            child: Text(
-              _catalogText(context, spec.label),
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textMuted(context),
-                fontSize: 13,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.s16),
-          Expanded(
-            flex: 5,
-            child: Text(
-              spec.value,
-              textAlign: TextAlign.right,
-              style: AppTypography.label.copyWith(
-                color: AppColors.textPrimary(context),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-String _catalogText(BuildContext context, String value) {
-  final key = catalogDisplayMessageKeys[value];
-  return key == null ? value : context.tr(key);
 }
 
 class _MeleeQtyBar extends ConsumerStatefulWidget {

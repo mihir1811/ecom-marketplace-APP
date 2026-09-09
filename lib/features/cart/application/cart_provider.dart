@@ -171,15 +171,10 @@ class CartNotifier extends Notifier<CartState> {
       _inFlightMode = null;
     });
 
-    ref.listen(authProvider, (prev, next) {
-      if (next.isAuthenticated) {
-        // Prefer light only when coming from signed-out; avoid stacking a
-        // second fetch if a full/merchandise load is already running.
-        refresh(mode: CartLoadMode.light);
-      } else if (prev?.isAuthenticated == true && !next.isAuthenticated) {
-        state = const CartState();
-      }
-    });
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId == null || userId.isEmpty) {
+      return const CartState();
+    }
 
     // Defer light bootstrap one event-loop turn so CartScreen's full refresh
     // microtask (scheduled in initState) can claim in-flight first.

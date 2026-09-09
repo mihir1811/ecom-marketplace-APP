@@ -113,7 +113,10 @@ class SellerDiamondProjectInventoryNotifier
 
   @override
   Future<SellerDiamondProjectInventoryState> build() async {
+    ref.watch(authProvider.select((s) => s.user?.id));
     ref.onDispose(() => _cancelToken?.cancel());
+    _cancelToken?.cancel('auth-user-changed');
+    _cancelToken = null;
     return const SellerDiamondProjectInventoryState();
   }
 

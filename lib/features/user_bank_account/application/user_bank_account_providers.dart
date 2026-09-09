@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/user_bank_account_repository_impl.dart';
@@ -49,6 +50,10 @@ class UserBankAccountNotifier extends Notifier<UserBankAccountState> {
 
   @override
   UserBankAccountState build() {
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId == null || userId.isEmpty) {
+      return const UserBankAccountState();
+    }
     Future.microtask(load);
     return const UserBankAccountState(isLoading: true);
   }

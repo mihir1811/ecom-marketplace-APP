@@ -72,6 +72,7 @@ class InquiryListNotifier
 
   @override
   InquiryListState build(InquiryCategory category) {
+    ref.watch(authProvider.select((s) => s.user?.id));
     ref.onDispose(() => _cancelToken?.cancel());
     Future.microtask(refresh);
     return const InquiryListState(isLoading: true);

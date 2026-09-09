@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'user_local_data_cleaner.dart';
 /// Persists auth secrets across app launches.
 abstract class AuthTokenStore {
   Future<void> saveSession({
@@ -74,6 +75,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
     bool? isVerified,
     required bool rememberDevice,
   }) async {
+    final switchingUser = _cachedUserId != null && _cachedUserId != userId;
     _cachedAccessToken = accessToken;
     _cachedUserId = userId;
     _cachedSellerId = sellerId != null && sellerId.isNotEmpty ? sellerId : null;
@@ -81,6 +83,10 @@ class SecureAuthTokenStore implements AuthTokenStore {
     _cachedRole = role != null && role.isNotEmpty ? role : null;
     if (isVerified != null) {
       _cachedIsVerified = isVerified;
+    }
+    if (switchingUser) {
+      // Drop previous account's seller snapshot immediately on account switch.
+      _cachedSellerSnapshot = null;
     }
     _cachedRememberDevice = true;
     _hydrated = true;
@@ -95,6 +101,9 @@ class SecureAuthTokenStore implements AuthTokenStore {
       isVerified: _cachedIsVerified,
       rememberDevice: true,
     );
+    if (switchingUser) {
+      await _writeSellerSnapshot(null);
+    }
   }
 
   @override
@@ -165,6 +174,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
     _cachedRememberDevice = null;
     _hydrated = true;
     await _clearPersisted();
+    await UserLocalDataCleaner.clearUserScopedPrefs();
   }
 
   Future<void> _ensureHydrated() async {
@@ -192,15 +202,24 @@ class SecureAuthTokenStore implements AuthTokenStore {
   ) {
     final secureToken = secure[_accessToken];
     if (secureToken != null && secureToken.isNotEmpty) {
-      if (prefs == null) return secure;
-      // Prefer secure session keys, but fill blanks from prefs (seller snapshot
-      // may land in prefs when Keychain rejects a large value).
-      return {
-        for (final key in {...secure.keys, ...prefs.keys})
-          key: (secure[key] != null && secure[key]!.isNotEmpty)
-              ? secure[key]
-              : prefs[key],
-      };
+      // Never blend identity fields across stores — a prior account's sellerId
+      // / userName can linger in prefs after a secure-only write and poison
+      // the next login. Only allow seller-snapshot prefs fallback when userIds
+      // match (large snapshots sometimes fail Keychain writes).
+      final merged = Map<String, String?>.from(secure);
+      final secureSnap = merged[_sellerSnapshot];
+      final prefsSnap = prefs?[_sellerSnapshot];
+      final sameUser =
+          prefs != null &&
+          (prefs[_userId] ?? '').isNotEmpty &&
+          prefs[_userId] == secure[_userId];
+      if ((secureSnap == null || secureSnap.isEmpty) &&
+          sameUser &&
+          prefsSnap != null &&
+          prefsSnap.isNotEmpty) {
+        merged[_sellerSnapshot] = prefsSnap;
+      }
+      return merged;
     }
     if (prefs != null) {
       final prefsToken = prefs[_accessToken];
@@ -253,6 +272,17 @@ class SecureAuthTokenStore implements AuthTokenStore {
         else
           _storage.delete(key: _isVerified),
       ]);
+      // Keep SharedPreferences in lockstep so a later secure→prefs merge
+      // cannot revive a previous account's sellerId / userId.
+      await _writePrefs(
+        accessToken: accessToken,
+        userId: userId,
+        sellerId: sellerId,
+        userName: userName,
+        role: role,
+        isVerified: isVerified,
+        rememberDevice: rememberDevice,
+      );
     } catch (e, st) {
       assert(() {
         debugPrint('AuthTokenStore.secure write failed: $e\n$st');

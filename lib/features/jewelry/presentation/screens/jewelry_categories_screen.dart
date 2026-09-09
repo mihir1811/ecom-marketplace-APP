@@ -115,7 +115,10 @@ class _CategoryCard extends StatelessWidget {
     final bg = AppColors.card(context);
     final border = AppColors.border(context);
     final muted = AppColors.textMuted(context);
-    final styleCount = category.subcategories.where((s) => s.isActive).length;
+    final styleCount = category.styleCount;
+    final styleLabel = styleCount <= 0
+        ? context.tr(RemainingL10n.comingSoon).replaceAll('.', '')
+        : '$styleCount ${styleCount == 1 ? 'style' : 'styles'}';
     final asset = JewelleryCategoryImages.assetFor(category.name);
     final networkUrl = JewelleryCategoryImages.absoluteUrl(category.imageUrl);
 
@@ -184,7 +187,7 @@ class _CategoryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '$styleCount ${styleCount == 1 ? 'style' : 'styles'}',
+                    styleLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,

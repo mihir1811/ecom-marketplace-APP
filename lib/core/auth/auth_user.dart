@@ -105,9 +105,9 @@ class AuthUser {
         fallback: cachedIsVerified ?? true,
       ),
       sellerAccount: SellerAccountSnapshot.merge(
-        cachedSellerAccount,
         SellerAccountSnapshot.tryParse(claims['sellerData']) ??
             SellerAccountSnapshot.tryParse(claims['seller']),
+        cachedSellerAccount,
       ),
     );
   }

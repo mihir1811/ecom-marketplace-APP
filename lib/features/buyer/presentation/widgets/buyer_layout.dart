@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/app_navigation.dart';
@@ -36,27 +37,38 @@ class BuyerLayout extends ConsumerWidget {
     }
 
     final hasAppBar = title != null;
+    final canPop = GoRouter.of(context).canPop();
 
-    return AppScaffold(
-      backgroundColor: AppColors.bg(context),
-      drawer: const BuyerDrawer(),
-      appBar: hasAppBar
-          ? AppTopBar(
-              title: title!,
-              leading: const AppDrawerButton(),
-              showDrawerButton: false,
-              // Cart → Wallet → Messages → Theme (AppTopBar fixed order)
-              showCart: true,
-              showWallet: true,
-              showMessages: true,
-              showThemeToggle: true,
-              onSellerWalletTap: () =>
-                  context.switchToRoute(AppRouteNames.buyerWallet),
-              onSellerMessagesTap: () =>
-                  context.switchToRoute(AppRouteNames.buyerMessages),
-            )
-          : null,
-      body: child,
+    return PopScope(
+      // Drawer destinations use `go` (no stack). Intercept system back so the
+      // app returns home instead of exiting.
+      canPop: canPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (!context.mounted) return;
+        context.goBack();
+      },
+      child: AppScaffold(
+        backgroundColor: AppColors.bg(context),
+        drawer: const BuyerDrawer(),
+        appBar: hasAppBar
+            ? AppTopBar(
+                title: title!,
+                leading: const AppDrawerButton(),
+                showDrawerButton: false,
+                // Cart → Wallet → Messages → Theme (AppTopBar fixed order)
+                showCart: true,
+                showWallet: true,
+                showMessages: true,
+                showThemeToggle: true,
+                onSellerWalletTap: () =>
+                    context.switchToRoute(AppRouteNames.buyerWallet),
+                onSellerMessagesTap: () =>
+                    context.switchToRoute(AppRouteNames.buyerMessages),
+              )
+            : null,
+        body: child,
+      ),
     );
   }
 }

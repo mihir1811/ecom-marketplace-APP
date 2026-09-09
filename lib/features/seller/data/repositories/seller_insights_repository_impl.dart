@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../payment/data/repositories/payment_repository_impl.dart';
@@ -10,10 +11,13 @@ import '../../../refunds/data/repositories/refund_repository_impl.dart';
 import '../../../refunds/domain/models/refund_request.dart';
 import '../../../refunds/domain/repositories/refund_repository.dart';
 import '../../domain/models/seller_insights.dart';
+import '../../domain/models/seller_product.dart';
 import '../../domain/repositories/seller_insights_repository.dart';
+import '../../domain/repositories/seller_product_repository.dart';
 import '../mappers/seller_insights_aggregator.dart';
+import 'seller_product_repository_impl.dart';
 
-/// Session-scoped orders/refunds cache so dashboard + analytics share one fetch.
+/// Session-scoped orders/refunds/inventory cache for dashboard + analytics.
 class SellerInsightsFetchCache {
   List<PaymentOrder>? orders;
   DateTime? ordersAt;
@@ -22,6 +26,10 @@ class SellerInsightsFetchCache {
   List<RefundRequest>? refunds;
   DateTime? refundsAt;
   Future<Result<List<RefundRequest>, Failure>>? refundsInFlight;
+
+  double? inventoryValue;
+  DateTime? inventoryAt;
+  Future<Result<double, Failure>>? inventoryInFlight;
 
   static const ttl = Duration(minutes: 5);
 
@@ -35,32 +43,47 @@ class SellerInsightsFetchCache {
     refunds = null;
     refundsAt = null;
     refundsInFlight = null;
+    inventoryValue = null;
+    inventoryAt = null;
+    inventoryInFlight = null;
   }
 }
 
-final sellerInsightsFetchCacheProvider = Provider<SellerInsightsFetchCache>(
-  (ref) => SellerInsightsFetchCache(),
-);
+final sellerInsightsFetchCacheProvider = Provider<SellerInsightsFetchCache>((
+  ref,
+) {
+  ref.watch(authProvider.select((s) => s.user?.id));
+  final cache = SellerInsightsFetchCache();
+  ref.onDispose(cache.clear);
+  return cache;
+});
 
 final sellerInsightsRepositoryProvider = Provider<SellerInsightsRepository>(
   (ref) => SellerInsightsRepositoryImpl(
     ref.watch(paymentRepositoryProvider),
     ref.watch(refundRepositoryProvider),
+    ref.watch(sellerProductRepositoryProvider),
     ref.watch(sellerInsightsFetchCacheProvider),
+    () =>
+        ref.read(authProvider).sellerId ?? ref.read(authProvider).user?.id,
   ),
 );
 
-/// Loads seller orders/refunds and aggregates dashboard + analytics snapshots.
+/// Loads seller orders/refunds/inventory and aggregates dashboard snapshots.
 class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
   const SellerInsightsRepositoryImpl(
     this._payments,
     this._refunds,
+    this._products,
     this._cache,
+    this._sellerId,
   );
 
   final PaymentRepository _payments;
   final RefundRepository _refunds;
+  final SellerProductRepository _products;
   final SellerInsightsFetchCache _cache;
+  final String? Function() _sellerId;
 
   static const _pageSize = 50;
   static const _maxPages = 6;
@@ -74,9 +97,19 @@ class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
     CancelToken? cancelToken,
   }) async {
     final ordersResult = await _loadOrders();
+    final inventoryResult = await _loadInventoryValue(cancelToken: cancelToken);
+    final inventory = switch (inventoryResult) {
+      Success(:final value) => value,
+      ResultFailure() => _cache.inventoryValue ?? 0,
+    };
+
     return switch (ordersResult) {
       Success(:final value) => Result.success(
-        SellerInsightsAggregator.dashboard(orders: value, params: params),
+        SellerInsightsAggregator.dashboard(
+          orders: value,
+          params: params,
+          inventoryValue: inventory,
+        ),
       ),
       ResultFailure(:final failure) => Result.failure(failure),
     };
@@ -145,6 +178,62 @@ class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
     _cache.orders = all;
     _cache.ordersAt = DateTime.now();
     return Result.success(all);
+  }
+
+  Future<Result<double, Failure>> _loadInventoryValue({
+    CancelToken? cancelToken,
+  }) {
+    if (_cache.inventoryValue != null && _cache.isFresh(_cache.inventoryAt)) {
+      return Future.value(Result.success(_cache.inventoryValue!));
+    }
+    final existing = _cache.inventoryInFlight;
+    if (existing != null) return existing;
+
+    final future = _fetchInventoryValue(cancelToken: cancelToken);
+    _cache.inventoryInFlight = future;
+    return future.whenComplete(() {
+      if (identical(_cache.inventoryInFlight, future)) {
+        _cache.inventoryInFlight = null;
+      }
+    });
+  }
+
+  Future<Result<double, Failure>> _fetchInventoryValue({
+    CancelToken? cancelToken,
+  }) async {
+    final sellerId = _sellerId()?.trim() ?? '';
+    if (sellerId.isEmpty) {
+      _cache.inventoryValue = 0;
+      _cache.inventoryAt = DateTime.now();
+      return Result.success(0);
+    }
+
+    final result = await _products.listProducts(
+      sellerId: sellerId,
+      cancelToken: cancelToken,
+    );
+    switch (result) {
+      case Success(value: final List<SellerProduct> products):
+        var total = 0.0;
+        for (final product in products) {
+          if (product.isDeleted || product.isExpired || product.isSold) {
+            continue;
+          }
+          total += _productPrice(product);
+        }
+        _cache.inventoryValue = total;
+        _cache.inventoryAt = DateTime.now();
+        return Result.success(total);
+      case ResultFailure(:final failure):
+        return Result.failure(failure);
+    }
+  }
+
+  static double _productPrice(SellerProduct product) {
+    final raw =
+        product.field('total_price') ?? product.field('price_per_carat') ?? '';
+    final cleaned = raw.replaceAll(RegExp(r'[^0-9.\-]'), '');
+    return double.tryParse(cleaned) ?? 0;
   }
 
   Future<Result<List<RefundRequest>, Failure>> _loadRefunds() {

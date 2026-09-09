@@ -3,8 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/router/app_navigation.dart';
-import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -46,22 +44,32 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
     ),
   };
 
-  SellerDashboardParams get _params => SellerDashboardParams(
-    range: _range,
-    customStart: _customStart,
-    customEnd: _customEnd,
-  );
+  Future<void> _applyRange(SalesRange range, {DateTime? start, DateTime? end}) {
+    setState(() {
+      _range = range;
+      _customStart = start;
+      _customEnd = end;
+    });
+    return ref
+        .read(sellerDashboardProvider.notifier)
+        .setParams(
+          SellerDashboardParams(
+            range: range,
+            customStart: start,
+            customEnd: end,
+          ),
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(sellerDashboardProvider(_params));
+    final state = ref.watch(sellerDashboardProvider);
     final snapshot = state.snapshot;
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.s20),
       child: RefreshIndicator(
-        onRefresh: () =>
-            ref.read(sellerDashboardProvider(_params).notifier).refresh(),
+        onRefresh: () => ref.read(sellerDashboardProvider.notifier).refresh(),
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
           child: ListView(
@@ -75,9 +83,8 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                 const SizedBox(height: AppSpacing.s16),
                 CatalogErrorState(
                   message: state.errorMessage!,
-                  onRetry: () => ref
-                      .read(sellerDashboardProvider(_params).notifier)
-                      .refresh(),
+                  onRetry: () =>
+                      ref.read(sellerDashboardProvider.notifier).refresh(),
                 ),
               ] else if (state.isLoading && snapshot == null) ...[
                 const SizedBox(height: 80),
@@ -133,18 +140,14 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                           if (v == SalesRange.custom) {
                             final picked = await _pickCustomDateRange(context);
                             if (picked == null) return;
-                            setState(() {
-                              _range = SalesRange.custom;
-                              _customStart = picked.$1;
-                              _customEnd = picked.$2;
-                            });
+                            await _applyRange(
+                              SalesRange.custom,
+                              start: picked.$1,
+                              end: picked.$2,
+                            );
                             return;
                           }
-                          setState(() {
-                            _range = v;
-                            _customStart = null;
-                            _customEnd = null;
-                          });
+                          await _applyRange(v);
                         },
                       ),
                       if (_range == SalesRange.custom &&
@@ -159,10 +162,31 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                         ),
                       ],
                       const SizedBox(height: AppSpacing.s16),
-                      _DashboardBarChart(
-                        metric: _metric,
-                        values: snapshot.chartFor(_metric).values,
-                        labels: snapshot.chartFor(_metric).labels,
+                      Stack(
+                        children: [
+                          _DashboardBarChart(
+                            metric: _metric,
+                            values: snapshot.chartFor(_metric).values,
+                            labels: snapshot.chartFor(_metric).labels,
+                          ),
+                          if (state.isRefreshing)
+                            Positioned.fill(
+                              child: ColoredBox(
+                                color: AppColors.bg(
+                                  context,
+                                ).withValues(alpha: 0.35),
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 28,
+                                    height: 28,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: AppSpacing.s12),
                       Text(
@@ -180,67 +204,12 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s16),
                 const SellerDashboardDiamondProjectsSection(),
-                const SizedBox(height: AppSpacing.s16),
-                _CardSection(
-                  title: context.tr(RemainingL10n.recentOrders),
-                  trailing: TextButton(
-                    onPressed: () =>
-                        context.openRoute(AppRouteNames.sellerOrders),
-                    child: Text(
-                      context.tr(RemainingL10n.viewAll),
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.textPrimary(context),
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                  child: snapshot.recentOrders.isEmpty
-                      ? Text(
-                          context.tr(RemainingL10n.noOrdersYet),
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.textMuted(context),
-                          ),
-                        )
-                      : Column(
-                          children: [
-                            for (
-                              var i = 0;
-                              i < snapshot.recentOrders.length;
-                              i++
-                            ) ...[
-                              if (i > 0) const SizedBox(height: AppSpacing.s12),
-                              _OrderRow(
-                                orderId: '#${snapshot.recentOrders[i].id}',
-                                amount: snapshot.recentOrders[i].amountLabel,
-                                status: snapshot.recentOrders[i].status,
-                                statusColor: _statusColor(
-                                  snapshot.recentOrders[i].status,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                ),
               ],
             ],
           ),
         ),
       ),
     );
-  }
-
-  Color _statusColor(String status) {
-    final s = status.toUpperCase();
-    if (s.contains('PAID') ||
-        s.contains('DELIVER') ||
-        s.contains('SUCCESS') ||
-        s.contains('COMPLETE')) {
-      return AppColors.success;
-    }
-    if (s.contains('CANCEL') || s.contains('FAIL') || s.contains('REFUND')) {
-      return AppColors.error;
-    }
-    return AppColors.warning;
   }
 
   String _chartSectionTitle(DashboardMetric metric) {
@@ -526,10 +495,9 @@ class _TopHeader extends StatelessWidget {
 }
 
 class _CardSection extends StatelessWidget {
-  const _CardSection({required this.title, this.trailing, required this.child});
+  const _CardSection({required this.title, required this.child});
 
   final String title;
-  final Widget? trailing;
   final Widget child;
 
   @override
@@ -540,19 +508,12 @@ class _CardSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: AppTypography.title.copyWith(
-                      color: AppColors.textPrimary(context),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                if (trailing != null) trailing!,
-              ],
+            Text(
+              title,
+              style: AppTypography.title.copyWith(
+                color: AppColors.textPrimary(context),
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: AppSpacing.s12),
             child,
@@ -870,85 +831,6 @@ class _BarColumn extends StatelessWidget {
               child: Center(child: tooltip),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _OrderRow extends StatelessWidget {
-  const _OrderRow({
-    required this.orderId,
-    required this.amount,
-    required this.status,
-    required this.statusColor,
-  });
-
-  final String orderId;
-  final String amount;
-  final String status;
-  final Color statusColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.surface(context),
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s16),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.card(context),
-                border: Border.all(color: AppColors.border(context), width: 1),
-                borderRadius: BorderRadius.circular(AppSpacing.r12),
-              ),
-              child: const Icon(Icons.receipt_long_outlined),
-            ),
-            const SizedBox(width: AppSpacing.s16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    orderId,
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.textPrimary(context),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.s12,
-                      vertical: AppSpacing.s8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    ),
-                    child: Text(
-                      status,
-                      style: AppTypography.caption.copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              amount,
-              style: AppTypography.title.copyWith(
-                color: AppColors.textPrimary(context),
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -5,17 +5,27 @@ abstract final class CatalogPurchasePolicy {
   static String? normalizeCode(String? raw) {
     final value = raw?.trim().toLowerCase() ?? '';
     if (value.isEmpty) return null;
-    if (value == 'yes' || value == 'available' || value == 'in stock') {
+    if (value == 'yes' ||
+        value == 'available' ||
+        value == 'in stock' ||
+        value.contains('in stock')) {
       return 'yes';
     }
-    if (value == 'hold' || value == 'on hold') return 'hold';
-    if (value == 'memo' || value == 'on memo') return 'memo';
-    if (value == 'sold' || value.contains('sold')) return 'sold';
+    // Check unavailable before `available` substring matches.
     if (value == 'no' ||
         value == 'unavailable' ||
+        value.contains('unavailable') ||
         value.contains('out of stock')) {
       return 'unavailable';
     }
+    if (value.contains('available')) return 'yes';
+    if (value == 'hold' || value == 'on hold' || value.contains('hold')) {
+      return 'hold';
+    }
+    if (value == 'memo' || value == 'on memo' || value.contains('memo')) {
+      return 'memo';
+    }
+    if (value == 'sold' || value.contains('sold')) return 'sold';
     return value;
   }
 

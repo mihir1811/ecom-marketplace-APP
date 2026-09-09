@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/result.dart';
 import '../../payment/data/repositories/payment_repository_impl.dart';
 import '../../payment/domain/models/payment_models.dart';
@@ -61,6 +62,10 @@ class BuyerOrdersNotifier extends Notifier<BuyerOrdersListState> {
 
   @override
   BuyerOrdersListState build() {
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    if (userId == null || userId.isEmpty) {
+      return const BuyerOrdersListState();
+    }
     Future.microtask(loadInitial);
     return const BuyerOrdersListState(isLoading: true);
   }

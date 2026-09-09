@@ -33,6 +33,7 @@ class AuthController extends Notifier<AuthState> {
     ref.listen<int>(authSessionInvalidatorProvider, (prev, next) {
       if (prev != next) {
         _cancelExpiryTimer();
+        // Storage is already cleared by AuthInterceptor; reset auth UI state.
         state = const AuthState();
       }
     });
@@ -51,7 +52,7 @@ class AuthController extends Notifier<AuthState> {
 
       final claims = JwtUtils.decodePayload(token);
       if (claims == null || JwtUtils.isExpired(token)) {
-        await _store.clear();
+        await _clearLocalSession();
         state = const AuthState(isBootstrapping: false);
         return;
       }
@@ -65,21 +66,51 @@ class AuthController extends Notifier<AuthState> {
         await _store.readSellerAccountSnapshot(),
       );
 
+      // Only trust disk identity fields when they belong to this JWT subject.
+      // Stale sellerId / snapshot from a prior account causes "not found" on
+      // seller/buyer protected screens after account switch on device.
+      final jwtUserId = _jwtSubject(claims);
+      final cacheMatches =
+          cachedUserId != null &&
+          cachedUserId.isNotEmpty &&
+          (jwtUserId == null ||
+              jwtUserId.isEmpty ||
+              cachedUserId == jwtUserId);
+
       final user = AuthUser.fromJwtClaims(
         claims,
-        cachedUserId: cachedUserId,
-        cachedUserName: cachedUserName,
-        cachedRole: cachedRole,
-        cachedIsVerified: cachedIsVerified,
-        cachedSellerAccount: cachedSellerAccount,
+        cachedUserId: cacheMatches ? cachedUserId : null,
+        cachedUserName: cacheMatches ? cachedUserName : null,
+        cachedRole: cacheMatches ? cachedRole : null,
+        cachedIsVerified: cacheMatches ? cachedIsVerified : null,
+        cachedSellerAccount: cacheMatches ? cachedSellerAccount : null,
       );
       if (user.id.isEmpty) {
-        await _store.clear();
+        await _clearLocalSession();
         state = const AuthState(isBootstrapping: false);
         return;
       }
 
-      final sellerId = cachedSellerId ?? JwtUtils.readSellerId(claims);
+      final sellerId =
+          JwtUtils.readSellerId(claims) ??
+          (cacheMatches ? cachedSellerId : null);
+
+      // Drop mismatched leftovers so the next cold start cannot revive them.
+      if (!cacheMatches) {
+        await _store.saveSession(
+          accessToken: token,
+          userId: user.id,
+          sellerId: sellerId,
+          userName: user.username.isEmpty ? null : user.username,
+          role: user.role.isEmpty ? null : user.role,
+          isVerified: user.isVerified,
+          rememberDevice: true,
+        );
+        final snap = user.sellerAccount;
+        await _store.saveSellerAccountSnapshot(
+          snap == null || !snap.hasAnyField ? null : jsonEncode(snap.toJson()),
+        );
+      }
 
       state = AuthState(
         user: user,
@@ -91,6 +122,14 @@ class AuthController extends Notifier<AuthState> {
     } catch (_) {
       state = const AuthState(isBootstrapping: false);
     }
+  }
+
+  String? _jwtSubject(Map<String, dynamic> claims) {
+    final sub = claims['sub'];
+    if (sub is String && sub.trim().isNotEmpty) return sub.trim();
+    final id = claims['id'];
+    if (id is String && id.trim().isNotEmpty) return id.trim();
+    return null;
   }
 
   Future<bool> login({
@@ -380,6 +419,8 @@ class AuthController extends Notifier<AuthState> {
     _cancelExpiryTimer();
     _setLoading();
     await _repo.logout();
+    // Guarantee local wipe even if repository clear was skipped.
+    await _clearLocalSession();
     state = const AuthState();
   }
 
@@ -505,6 +546,15 @@ class AuthController extends Notifier<AuthState> {
   }
 
   bool _applySession(AuthSession session, {bool clearPendingEmail = false}) {
+    final previousUserId = state.user?.id;
+    final nextUserId = session.user.id;
+    // New account after another session: drop in-memory identity immediately
+    // so seller/buyer screens cannot keep using the prior sellerId/userId.
+    if (previousUserId != null &&
+        previousUserId.isNotEmpty &&
+        previousUserId != nextUserId) {
+      state = const AuthState(isLoading: true);
+    }
     state = AuthState(
       user: session.user,
       sellerId: session.sellerId,
@@ -540,8 +590,16 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> _expireSession() async {
     _cancelExpiryTimer();
-    await _store.clear();
+    await _clearLocalSession();
     state = const AuthState();
+  }
+
+  Future<void> _clearLocalSession() async {
+    try {
+      await _store.clear();
+    } catch (_) {
+      // Best-effort; UI must still sign out.
+    }
   }
 
   void _cancelExpiryTimer() {

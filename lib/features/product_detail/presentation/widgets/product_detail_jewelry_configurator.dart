@@ -107,48 +107,62 @@ class ProductDetailJewelryConfigurator extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.s16),
         _Card(
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _UnitPriceBlock(
-                symbol: symbol,
-                pricing: JewelryUnitPricing.from(
-                  metalPrice: draft?.metalPrice ?? jewelry.metalPrice,
-                  stonePrice: draft?.stonePrice ?? jewelry.stonePrice,
-                  makingCharge: draft?.makingCharge ?? jewelry.makingCharge,
-                  discountAmount:
-                      draft?.discountAmount ?? jewelry.discountAmount,
-                  totalPrice: draft?.price ?? jewelry.price,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _UnitPriceBlock(
+                      symbol: symbol,
+                      pricing: JewelryUnitPricing.from(
+                        metalPrice: draft?.metalPrice ?? jewelry.metalPrice,
+                        stonePrice: draft?.stonePrice ?? jewelry.stonePrice,
+                        makingCharge:
+                            draft?.makingCharge ?? jewelry.makingCharge,
+                        discountAmount:
+                            draft?.discountAmount ?? jewelry.discountAmount,
+                        totalPrice: draft?.price ?? jewelry.price,
+                      ),
+                      priceOnRequest: priceOnRequest,
+                    ),
+                    const SizedBox(height: AppSpacing.s8),
+                    Text(
+                      'Including all taxes and charges',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textMuted(context),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.s4),
+                    Text(
+                      'SKU: $sku',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textMuted(context),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
-                priceOnRequest: priceOnRequest,
               ),
-              const SizedBox(height: AppSpacing.s8),
-              Text(
-                'Including all taxes and charges',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textMuted(context),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s4),
-              Text(
-                'SKU: $sku',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textMuted(context),
-                  fontSize: 11,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s24),
-              Text(
-                'Quantity',
-                style: AppTypography.body.copyWith(
-                  color: AppColors.textPrimary(context),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s12),
-              _QuantityStepper(
-                quantity: qty,
-                onChanged: notifier.setQuantity,
+              const SizedBox(width: AppSpacing.s16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Quantity',
+                    style: AppTypography.body.copyWith(
+                      color: AppColors.textPrimary(context),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s12),
+                  _QuantityStepper(
+                    quantity: qty,
+                    onChanged: notifier.setQuantity,
+                  ),
+                ],
               ),
             ],
           ),

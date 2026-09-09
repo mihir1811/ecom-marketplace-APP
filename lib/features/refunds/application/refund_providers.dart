@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/refund_repository_impl.dart';
@@ -61,6 +62,7 @@ abstract class _RefundListNotifier extends Notifier<RefundListState> {
 
   @override
   RefundListState build() {
+    ref.watch(authProvider.select((s) => s.user?.id));
     ref.onDispose(() => _cancelToken?.cancel());
     Future.microtask(refresh);
     return const RefundListState(isLoading: true);
