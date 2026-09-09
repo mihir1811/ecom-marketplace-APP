@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/router/app_navigation.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_top_bar.dart';
@@ -61,21 +60,6 @@ class ComparisonScreen extends ConsumerWidget {
         title: context.tr(AccountCommerceL10n.compareTitle, {
           'category': context.tr(category.labelPluralKey),
         }),
-        extraActions: [
-          TextButton(
-            onPressed: () {
-              ref.read(comparisonProvider.notifier).clear();
-              context.goBack();
-            },
-            child: Text(
-              context.tr(AccountCommerceL10n.startNew),
-              style: AppTypography.caption.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.bronze,
-              ),
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -97,8 +81,6 @@ class ComparisonScreen extends ConsumerWidget {
             ),
           ),
           ComparisonFooterBar(
-            count: items.length,
-            labelPlural: category.labelPlural,
             onBrowse: () => context.goBack(),
             onClear: () {
               ref.read(comparisonProvider.notifier).clear();

@@ -183,15 +183,11 @@ class _ComparisonTableState extends State<ComparisonTable> {
 
 class ComparisonFooterBar extends StatelessWidget {
   const ComparisonFooterBar({
-    required this.count,
-    required this.labelPlural,
     required this.onBrowse,
     required this.onClear,
     super.key,
   });
 
-  final int count;
-  final String labelPlural;
   final VoidCallback onBrowse;
   final VoidCallback onClear;
 
@@ -210,15 +206,6 @@ class ComparisonFooterBar extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Expanded(
-              child: Text(
-                '$count $labelPlural selected',
-                style: AppTypography.caption.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary(context),
-                ),
-              ),
-            ),
             TextButton(
               onPressed: onBrowse,
               child: Text(
@@ -229,6 +216,7 @@ class ComparisonFooterBar extends StatelessWidget {
                 ),
               ),
             ),
+            const Spacer(),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.isDark(context)
@@ -329,7 +317,7 @@ class _SpecLabelCell extends StatelessWidget {
         vertical: AppSpacing.s12,
       ),
       child: Text(
-        label,
+        context.tr(label),
         style: AppTypography.caption.copyWith(
           fontWeight: FontWeight.w600,
           color: muted,
