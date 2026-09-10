@@ -48,10 +48,15 @@ final watchSortProvider =
 final watchViewModeProvider =
     StateProvider<WatchViewMode>((ref) => WatchViewMode.grid);
 
-/// Draft filters edited inside the side drawer before "SHOW RESULTS".
+/// Draft filters edited on the full-screen filter sheet before "SHOW RESULTS".
 class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
   @override
-  WatchFilterState build() => ref.watch(watchFilterProvider);
+  WatchFilterState build() {
+    // Seed once from applied filters. Do not `watch` applied state — that
+    // would overwrite draft edits (including Reset) whenever applied notifies.
+    // Opening the sheet always calls [syncFromApplied].
+    return ref.read(watchFilterProvider);
+  }
 
   void syncFromApplied() {
     state = ref.read(watchFilterProvider);
@@ -162,13 +167,9 @@ class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
   void setFullSetIncluded(bool v) =>
       state = state.copyWith(fullSetIncluded: v);
 
-  /// Clears drawer filters only; keeps search, brands, and category chips.
+  /// Clears all draft filter fields (keeps listing search query only).
   void reset() {
-    state = WatchFilterState(
-      searchQuery: state.searchQuery,
-      brands: state.brands,
-      categories: state.categories,
-    );
+    state = WatchFilterState(searchQuery: state.searchQuery);
   }
 
   void apply() {

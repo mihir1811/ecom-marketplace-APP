@@ -58,9 +58,10 @@ class BuyerLayout extends ConsumerWidget {
                 leading: const AppDrawerButton(),
                 showDrawerButton: false,
                 // Cart → Wallet → Messages → Theme (AppTopBar fixed order)
+                // Messages only for business/seller accounts (not individual).
                 showCart: true,
                 showWallet: true,
-                showMessages: true,
+                showMessages: authState.isSeller,
                 showThemeToggle: true,
                 onSellerWalletTap: () =>
                     context.switchToRoute(AppRouteNames.buyerWallet),

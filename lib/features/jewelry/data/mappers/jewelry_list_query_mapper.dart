@@ -14,6 +14,7 @@ abstract final class JewelryListQueryMapper {
     int pageSize = JewelryPageSize.defaultSize,
     JewelrySortOption sort = JewelrySortOption.featured,
     List<String> subcategoryIds = const [],
+    String? sellerId,
   }) {
     final query = <String, dynamic>{
       'page': page < 1 ? 1 : page,
@@ -32,6 +33,7 @@ abstract final class JewelryListQueryMapper {
     final prismaFilters = _buildFilters(
       filters,
       subcategoryIds: subcategoryIds,
+      sellerId: sellerId,
     );
     if (prismaFilters.isNotEmpty) {
       query['filters'] = jsonEncode(prismaFilters);
@@ -52,8 +54,14 @@ abstract final class JewelryListQueryMapper {
   static Map<String, dynamic> _buildFilters(
     JewelryFilterState f, {
     List<String> subcategoryIds = const [],
+    String? sellerId,
   }) {
     final filters = <String, dynamic>{};
+
+    final sid = sellerId?.trim();
+    if (sid != null && sid.isNotEmpty) {
+      filters['sellerId'] = {'equals': sid};
+    }
 
     final ids = subcategoryIds
         .map((id) => id.trim())

@@ -40,20 +40,32 @@ class AppColors {
   static const slateSurface = Color(0xFF16181B);
   static const slateBorder = Color(0xFF2E3035);
 
-  /// Catalog-specific Single/Melee screen background families.
-  /// Warm sand / bronze tints aligned with the core brown theme.
-  static const labGrownSingleBg = Color(0xFFF3F0EB);
-  static const labGrownMeleeBg = Color(0xFFEBE4DA);
-  static const naturalSingleBg = Color(0xFFF6F2ED);
-  static const naturalMeleeBg = Color(0xFFEDE4D8);
+  /// Catalog Single/Melee screen backgrounds — distinct pastels (never white/black).
+  /// Natural diamond finder
+  static const naturalSingleBg = Color(0xFFEEDFCC); // warm sand (default)
+  static const naturalMeleeBg = Color(0xFFD9B894); // apricot clay
 
-  /// Gemstone Natural — warm sand (single) → deeper sand (melee).
-  static const gemstoneNaturalSingleBg = Color(0xFFF5F0EB);
-  static const gemstoneNaturalMeleeBg = Color(0xFFEBE3D8);
+  /// Lab-grown diamond finder
+  static const labGrownSingleBg = Color(0xFFD7E8E0); // mint (default)
+  static const labGrownMeleeBg = Color(0xFFB8D4C8); // sage
 
-  /// Gemstone Lab Grown — neutral warm sand variants.
-  static const gemstoneLabSingleBg = Color(0xFFF2EFEA);
-  static const gemstoneLabMeleeBg = Color(0xFFEAE3D8);
+  /// Gemstone — Natural stone type
+  static const gemstoneNaturalSingleBg = Color(0xFFEBD2B8); // peach (default)
+  static const gemstoneNaturalMeleeBg = Color(0xFFD4AE8C); // clay blush
+
+  /// Gemstone — Lab Grown stone type
+  static const gemstoneLabSingleBg = Color(0xFFD6E0EC); // cool pearl (default)
+  static const gemstoneLabMeleeBg = Color(0xFFB7C8DC); // steel mist
+
+  /// Dark-mode tinted bands — warm/cool charcoal tints (never pure black).
+  static const naturalSingleBgDark = Color(0xFF1E1914);
+  static const naturalMeleeBgDark = Color(0xFF2A221A);
+  static const labGrownSingleBgDark = Color(0xFF161E1A);
+  static const labGrownMeleeBgDark = Color(0xFF1C2822);
+  static const gemstoneNaturalSingleBgDark = Color(0xFF1F1A15);
+  static const gemstoneNaturalMeleeBgDark = Color(0xFF2A2118);
+  static const gemstoneLabSingleBgDark = Color(0xFF171B22);
+  static const gemstoneLabMeleeBgDark = Color(0xFF1C2430);
 
   /// Resolves gemstone finder palette from Natural / Lab Grown stone type.
   /// Defaults to Natural when unset so Single/Melee still have a stable tint.
@@ -62,10 +74,7 @@ class AppColors {
     return MeleeBgFamily.gemstoneNatural;
   }
 
-  /// Soft melee tint of the screen background (same family as [creamBg]/[obsidianBg]).
-  ///
-  /// Light mode by [family]:
-  /// - All families use warm sand / bronze-tinted backgrounds.
+  /// Soft melee tint of the screen background (light-mode pastels).
   static Color screenBg({
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
@@ -91,20 +100,36 @@ class AppColors {
     return screenBg(melee: melee, family: family);
   }
 
+  static Color _screenBgDark({
+    required bool melee,
+    required MeleeBgFamily family,
+  }) {
+    switch (family) {
+      case MeleeBgFamily.labGrown:
+        return melee ? labGrownMeleeBgDark : labGrownSingleBgDark;
+      case MeleeBgFamily.natural:
+        return melee ? naturalMeleeBgDark : naturalSingleBgDark;
+      case MeleeBgFamily.gemstoneNatural:
+        return melee ? gemstoneNaturalMeleeBgDark : gemstoneNaturalSingleBgDark;
+      case MeleeBgFamily.gemstoneLabGrown:
+        return melee ? gemstoneLabMeleeBgDark : gemstoneLabSingleBgDark;
+    }
+  }
+
   /// Melee-family screen tint that adapts to the active theme.
-  /// In dark mode every family flattens to the obsidian base so the tinted
-  /// band never fights the dark surfaces.
   static Color screenBgFor(
     BuildContext context, {
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
   }) {
-    if (isDark(context)) return obsidianBg;
+    if (isDark(context)) {
+      return _screenBgDark(melee: melee, family: family);
+    }
     return screenBg(melee: melee, family: family);
   }
 
   /// Shared duration for melee background color transitions.
-  static const Duration meleeBgDuration = Duration(milliseconds: 1200);
+  static const Duration meleeBgDuration = Duration(milliseconds: 900);
 
   // Text colors (Light mode)
   static const textPrimaryLight = Color(0xFF111827);

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -111,13 +113,13 @@ class _SpecificationsTab extends StatelessWidget {
   }
 }
 
-class _SellerTab extends StatelessWidget {
+class _SellerTab extends ConsumerWidget {
   const _SellerTab({required this.seller});
 
   final ListingSellerInfo? seller;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final info = seller;
     if (info == null || !info.hasAnyData) {
       return ProductDetailSpecPanel(
@@ -136,22 +138,25 @@ class _SellerTab extends StatelessWidget {
       );
     }
 
+    final viewerIsSeller = ref.watch(authProvider.select((s) => s.isSeller));
+    final showContact = viewerIsSeller && !info.isIndividual;
+
     final rows = <ProductDetailSpecKv>[
       ProductDetailSpecKv(
         context.tr(CatalogL10n.seller),
         productDetailSpecDash(info.displayName),
       ),
-      if (!info.isIndividual && info.email != null)
+      if (showContact && info.email != null)
         ProductDetailSpecKv(
           context.tr(CatalogL10n.email),
           productDetailSpecDash(info.email),
         ),
-      if (!info.isIndividual && info.phone != null)
+      if (showContact && info.phone != null)
         ProductDetailSpecKv(
           context.tr(CatalogL10n.phone),
           productDetailSpecDash(info.phone),
         ),
-      if (!info.isIndividual && info.location != null)
+      if (showContact && info.location != null)
         ProductDetailSpecKv(
           context.tr(CatalogL10n.location),
           productDetailSpecDash(info.location),

@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/filters/filter_accordion_section.dart';
-import '../../../../core/widgets/filters/filter_end_drawer_shell.dart';
+import '../../../../core/widgets/filters/filter_full_screen_shell.dart';
 import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
 import '../../domain/models/bullions_filter_state.dart';
 
+/// Full-screen bullion filters (same chrome as jewelry filters).
 class BullionsFilterDrawer extends ConsumerStatefulWidget {
   const BullionsFilterDrawer({super.key});
 
@@ -97,16 +99,22 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
     _syncControllers(draft);
 
     final notifier = ref.read(bullionsFilterDraftProvider.notifier);
+    final resultCount = ref.watch(
+      bullionsListProvider.select((v) => v.valueOrNull?.totalCount),
+    );
 
-    return FilterEndDrawerShell(
+    return FilterFullScreenShell(
       onReset: () {
         notifier.reset();
         _syncControllers(ref.read(bullionsFilterDraftProvider));
       },
+      showResultsLabel: resultCount == null
+          ? context.tr(CatalogL10n.showResults)
+          : '${context.tr(CatalogL10n.showResults)} ($resultCount)',
       onShowResults: () {
         notifier.apply();
         ref.read(bullionsListProvider.notifier).refresh();
-        Navigator.of(context).maybePop();
+        context.goBack();
       },
       body: ListView(
         padding: const EdgeInsets.only(bottom: AppSpacing.s24),

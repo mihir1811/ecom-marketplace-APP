@@ -68,9 +68,8 @@ class _MeleeTintExtentAnchorState extends State<MeleeTintExtentAnchor> {
 }
 
 /// Background that tints from the top down to the Single/Melee switch
-/// ([MeleeTintExtentAnchor]), crossfades colors, and plays a water-drop
-/// reveal when [isMelee] changes. Content below the switch uses the
-/// theme default background.
+/// ([MeleeTintExtentAnchor]) and reveals the next color with a water-drop
+/// circle. Content below the switch uses the theme default background.
 class MeleeBackgroundShell extends StatefulWidget {
   const MeleeBackgroundShell({
     required this.isMelee,
@@ -88,48 +87,65 @@ class MeleeBackgroundShell extends StatefulWidget {
 }
 
 class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late Color _fromColor;
   late Color _toColor;
-  late final AnimationController _colorController;
-  late final AnimationController _rippleController;
-  late final Animation<double> _colorT;
-  late final Animation<double> _rippleT;
+  late final AnimationController _controller;
+  late final Animation<double> _reveal;
 
   final GlobalKey _stackKey = GlobalKey();
   Offset? _pendingGlobalOrigin;
   Offset _rippleOrigin = Offset.zero;
   Size _lastSize = Size.zero;
   double? _tintGlobalBottomY;
+  bool _animating = false;
+  bool _themeResolved = false;
 
   @override
   void initState() {
     super.initState();
-    _fromColor = AppColors.screenBg(
+    // Theme-aware colors are resolved in [didChangeDependencies].
+    _fromColor = AppColors.naturalSingleBg;
+    _toColor = _fromColor;
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppColors.meleeBgDuration,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed && mounted) {
+          setState(() {
+            _fromColor = _toColor;
+            _animating = false;
+          });
+        }
+      });
+
+    _reveal = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
+    _controller.value = 1;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final next = AppColors.screenBgFor(
+      context,
       melee: widget.isMelee,
       family: widget.family,
     );
-    _toColor = _fromColor;
-
-    _colorController = AnimationController(
-      vsync: this,
-      duration: AppColors.meleeBgDuration,
-    );
-    _rippleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 950),
-    );
-
-    _colorT = CurvedAnimation(
-      parent: _colorController,
-      curve: Curves.easeInOutCubic,
-    );
-    _rippleT = CurvedAnimation(
-      parent: _rippleController,
-      curve: Curves.easeOutCubic,
-    );
-
-    _colorController.value = 1;
+    if (!_themeResolved) {
+      _themeResolved = true;
+      _fromColor = next;
+      _toColor = next;
+      return;
+    }
+    // Keep resting colors in sync when theme flips without a mode change.
+    if (!_animating && !_controller.isAnimating && next != _toColor) {
+      _fromColor = next;
+      _toColor = next;
+    }
   }
 
   Offset _resolveOrigin(Size size) {
@@ -140,7 +156,7 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
         return box.globalToLocal(global);
       }
     }
-    return Offset(size.width * 0.5, size.height * 0.5);
+    return Offset(size.width * 0.5, size.height * 0.42);
   }
 
   double _tintHeight(Size size) {
@@ -149,45 +165,65 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
     final box = _stackKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize) return size.height;
     final localY = box.globalToLocal(Offset(0, globalBottom)).dy;
-    return localY.clamp(0.0, size.height);
+    // Soft pad past the switch so the fade never clips mid-control.
+    return (localY + 12).clamp(0.0, size.height);
+  }
+
+  void _startTransition(Color next) {
+    final progress = _controller.isAnimating ? _reveal.value : 1.0;
+    _fromColor = Color.lerp(_fromColor, _toColor, progress) ?? _toColor;
+    _toColor = next;
+    _animating = true;
+    // Hold at 0 so the first painted frame is still [_fromColor] only.
+    _controller.value = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _rippleOrigin = _resolveOrigin(
+          Size(_lastSize.width, _tintHeight(_lastSize)),
+        );
+      });
+      _controller.forward(from: 0);
+    });
   }
 
   @override
   void didUpdateWidget(covariant MeleeBackgroundShell oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final next = AppColors.screenBg(
+    final changedMode = oldWidget.isMelee != widget.isMelee;
+    final changedFamily = oldWidget.family != widget.family;
+    if (!changedMode && !changedFamily) return;
+
+    final next = AppColors.screenBgFor(
+      context,
       melee: widget.isMelee,
       family: widget.family,
     );
-    final changedMode = oldWidget.isMelee != widget.isMelee;
-    final changedFamily = oldWidget.family != widget.family;
-
-    if (changedMode || changedFamily) {
-      _fromColor = Color.lerp(_fromColor, _toColor, _colorT.value) ?? _toColor;
-      _toColor = next;
-      _colorController.forward(from: 0);
-      // Ripple on Single/Melee and on Natural/Lab Grown family switches.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        setState(() {
-          _rippleOrigin = _resolveOrigin(_lastSize);
-        });
-        _rippleController.forward(from: 0);
-      });
-    }
+    if (next == _toColor && !_animating) return;
+    _startTransition(next);
   }
 
   @override
   void dispose() {
-    _colorController.dispose();
-    _rippleController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final dark = AppColors.isDark(context);
-    final baseBg = dark ? AppColors.obsidianBg : AppColors.creamBg;
+    // Soft themed underlay below the switch — not plain white/black.
+    final baseBg = dark ? AppColors.slateSurface : AppColors.sandSurface;
+    final accent = widget.isMelee
+        ? (dark ? AppColors.bronzeLight : AppColors.bronze)
+        : (dark ? AppColors.bronze : AppColors.bronzeDark);
+    final restingTint = AppColors.screenBgFor(
+      context,
+      melee: widget.isMelee,
+      family: widget.family,
+    );
+    final from = _animating ? _fromColor : restingTint;
+    final to = _animating ? _toColor : restingTint;
 
     return NotificationListener<Notification>(
       onNotification: (notification) {
@@ -204,19 +240,18 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
         return false;
       },
       child: AnimatedBuilder(
-        animation: Listenable.merge([_colorController, _rippleController]),
+        animation: _controller,
         builder: (context, child) {
-          final tint = dark
-              ? AppColors.obsidianBg
-              : (Color.lerp(_fromColor, _toColor, _colorT.value) ?? _toColor);
-          final showRipple =
-              !dark &&
-              (_rippleController.isAnimating ||
-                  (_rippleT.value > 0 && _rippleT.value < 1));
           return LayoutBuilder(
             builder: (context, constraints) {
               _lastSize = constraints.biggest;
               final height = _tintHeight(_lastSize);
+              final bandSize = Size(_lastSize.width, height);
+              final origin = _rippleOrigin == Offset.zero
+                  ? _resolveOrigin(bandSize)
+                  : _rippleOrigin;
+              final progress = _animating ? _reveal.value : 1.0;
+
               return Stack(
                 key: _stackKey,
                 fit: StackFit.expand,
@@ -230,41 +265,30 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
                     child: ShaderMask(
                       blendMode: BlendMode.dstIn,
                       shaderCallback: (bounds) {
+                        // Keep tint strong through most of the band; soft
+                        // blend only near the switch.
                         return const LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
                             Color(0xFFFFFFFF),
+                            Color(0xFFFFFFFF),
                             Color(0xE6FFFFFF),
                             Color(0x66FFFFFF),
-                            Color(0x00FFFFFF),
                           ],
-                          stops: [0.0, 0.42, 0.78, 1.0],
+                          stops: [0.0, 0.78, 0.94, 1.0],
                         ).createShader(bounds);
                       },
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          ColoredBox(color: tint),
-                          if (showRipple)
-                            IgnorePointer(
-                              child: CustomPaint(
-                                painter: _WaterDropPainter(
-                                  progress: _rippleT.value,
-                                  fillColor: _toColor,
-                                  accent: widget.isMelee
-                                      ? AppColors.bronzeLight
-                                      : AppColors.bronze,
-                                  origin: _rippleOrigin == Offset.zero
-                                      ? _resolveOrigin(
-                                          Size(_lastSize.width, height),
-                                        )
-                                      : _rippleOrigin,
-                                ),
-                                size: Size.infinite,
-                              ),
-                            ),
-                        ],
+                      child: CustomPaint(
+                        painter: _WaterRevealPainter(
+                          progress: progress,
+                          fromColor: from,
+                          toColor: to,
+                          accent: accent,
+                          origin: origin,
+                          dark: dark,
+                        ),
+                        size: Size.infinite,
                       ),
                     ),
                   ),
@@ -280,21 +304,29 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
   }
 }
 
-class _WaterDropPainter extends CustomPainter {
-  const _WaterDropPainter({
+/// Expanding circle reveal of [toColor] over [fromColor], with soft rings.
+class _WaterRevealPainter extends CustomPainter {
+  const _WaterRevealPainter({
     required this.progress,
-    required this.fillColor,
+    required this.fromColor,
+    required this.toColor,
     required this.accent,
     required this.origin,
+    required this.dark,
   });
 
   final double progress;
-  final Color fillColor;
+  final Color fromColor;
+  final Color toColor;
   final Color accent;
   final Offset origin;
+  final bool dark;
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Always paint the resting / source color full-bleed in the band.
+    canvas.drawRect(Offset.zero & size, Paint()..color = fromColor);
+
     if (progress <= 0) return;
 
     final center = origin;
@@ -305,49 +337,59 @@ class _WaterDropPainter extends CustomPainter {
               math.max(center.dy, size.height - center.dy) *
                   math.max(center.dy, size.height - center.dy),
         ) *
-        1.15;
-    final radius = maxRadius * progress;
+        1.2;
 
-    final fill = Paint()
-      ..color = fillColor.withValues(
-        alpha: (0.55 + 0.45 * progress).clamp(0.0, 1.0),
-      );
-    canvas.drawCircle(center, radius, fill);
+    // Ease the cover so the last 8% finishes solid (no abrupt cut-off).
+    final coverT = progress >= 0.92
+        ? 1.0
+        : (progress / 0.92).clamp(0.0, 1.0);
+    final radius = maxRadius * Curves.easeOutCubic.transform(coverT);
 
-    final ringAlpha = (1.0 - progress).clamp(0.0, 1.0);
-    if (ringAlpha > 0.02) {
+    canvas.save();
+    canvas.clipPath(
+      Path()..addOval(Rect.fromCircle(center: center, radius: radius)),
+    );
+    canvas.drawRect(Offset.zero & size, Paint()..color = toColor);
+    canvas.restore();
+
+    // Soft water rings while the reveal is in flight (fade out near the end).
+    final ringFade = (1.0 - progress).clamp(0.0, 1.0);
+    if (ringFade > 0.04 && progress < 0.98) {
+      final ringBoost = dark ? 0.55 : 1.0;
       canvas.drawCircle(
         center,
-        radius * 0.88,
+        radius * 0.92,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 28 * ringAlpha
-          ..color = accent.withValues(alpha: 0.28 * ringAlpha),
+          ..strokeWidth = 22 * ringFade
+          ..color = accent.withValues(alpha: 0.22 * ringFade * ringBoost),
       );
       canvas.drawCircle(
         center,
-        radius * 1.02,
+        radius * 1.04,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 14 * ringAlpha
-          ..color = fillColor.withValues(alpha: 0.35 * ringAlpha),
+          ..strokeWidth = 10 * ringFade
+          ..color = toColor.withValues(alpha: 0.40 * ringFade * ringBoost),
       );
       canvas.drawCircle(
         center,
-        radius * 1.12,
+        radius * 1.14,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 6 * ringAlpha
-          ..color = accent.withValues(alpha: 0.18 * ringAlpha),
+          ..strokeWidth = 5 * ringFade
+          ..color = accent.withValues(alpha: 0.14 * ringFade * ringBoost),
       );
     }
   }
 
   @override
-  bool shouldRepaint(covariant _WaterDropPainter oldDelegate) {
+  bool shouldRepaint(covariant _WaterRevealPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-        oldDelegate.fillColor != fillColor ||
+        oldDelegate.fromColor != fromColor ||
+        oldDelegate.toColor != toColor ||
         oldDelegate.accent != accent ||
-        oldDelegate.origin != origin;
+        oldDelegate.origin != origin ||
+        oldDelegate.dark != dark;
   }
 }

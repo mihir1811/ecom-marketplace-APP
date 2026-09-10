@@ -18,6 +18,7 @@ abstract class BullionsRepository {
     required int page,
     int pageSize = BullionPageSize.defaultSize,
     BullionsSortOption sort = BullionsSortOption.featured,
+    String? sellerId,
     CancelToken? cancelToken,
   });
 }

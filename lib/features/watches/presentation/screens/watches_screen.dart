@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/catalog_listing_header_row.dart';
@@ -14,7 +16,6 @@ import '../../application/watch_filter_provider.dart';
 import '../../application/watch_list_provider.dart';
 import '../../domain/models/watch_filter_state.dart';
 import '../widgets/watch_brand_carousel.dart';
-import '../widgets/watch_filter_drawer.dart';
 import '../widgets/watch_grid_view.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 
@@ -26,7 +27,6 @@ class WatchesScreen extends ConsumerStatefulWidget {
 }
 
 class _WatchesScreenState extends ConsumerState<WatchesScreen> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _scrollController = ScrollController();
   final _searchController = TextEditingController();
 
@@ -56,14 +56,12 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen> {
 
   void _openFilters() {
     ref.read(watchFilterDraftProvider.notifier).syncFromApplied();
-    _scaffoldKey.currentState?.openEndDrawer();
+    context.push(AppRouteNames.watchesFilters);
   }
 
   @override
   Widget build(BuildContext context) {
     return CatalogScreenShell(
-      scaffoldKey: _scaffoldKey,
-      endDrawer: const WatchFilterDrawer(),
       title: context.tr(CatalogL10n.luxuryWatches),
       child: ComparisonTrayHost(
         child: Column(

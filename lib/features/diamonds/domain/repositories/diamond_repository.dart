@@ -16,6 +16,7 @@ abstract class DiamondRepository {
     required int page,
     int pageSize = DiamondPageSize.defaultSize,
     List<SortingCriteria> sorting = const [],
+    String? sellerId,
     CancelToken? cancelToken,
   });
 

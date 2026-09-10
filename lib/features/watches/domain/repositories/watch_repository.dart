@@ -17,6 +17,7 @@ abstract class WatchRepository {
     required int page,
     int pageSize = WatchPageSize.defaultSize,
     WatchSortOption sort = WatchSortOption.featured,
+    String? sellerId,
     CancelToken? cancelToken,
   });
 }

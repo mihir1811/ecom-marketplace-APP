@@ -17,6 +17,7 @@ abstract class GemstoneRepository {
     required int page,
     int pageSize = GemstonePageSize.defaultSize,
     String? sortBy,
+    String? sellerId,
     CancelToken? cancelToken,
   });
 

@@ -33,6 +33,7 @@ class JewelryRepositoryImpl implements JewelryRepository {
     required int page,
     int pageSize = JewelryPageSize.defaultSize,
     JewelrySortOption sort = JewelrySortOption.featured,
+    String? sellerId,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -48,6 +49,7 @@ class JewelryRepositoryImpl implements JewelryRepository {
         pageSize: limit,
         sort: sort,
         subcategoryIds: subcategoryIds,
+        sellerId: sellerId,
       );
 
       final response = await _dio.get<Map<String, dynamic>>(

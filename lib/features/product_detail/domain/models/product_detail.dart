@@ -449,8 +449,9 @@ class ProductDetail {
 
   /// Specs shown to the current viewer.
   ///
-  /// Seller identity / contact rows are seller-account-only. Individual listing
-  /// sellers expose name only; business sellers include contact fields.
+  /// Seller contact rows are business-account-only. Individual viewers never
+  /// see seller contact fields. Business viewers see name-only for individual
+  /// listing sellers, and contact fields for business listing sellers.
   List<ProductSpecSection> specsForViewer({required bool isSeller}) {
     if (isSeller) {
       return orderedSpecs

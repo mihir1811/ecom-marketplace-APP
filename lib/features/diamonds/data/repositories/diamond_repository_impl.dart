@@ -33,6 +33,7 @@ class DiamondRepositoryImpl implements DiamondRepository {
     required int page,
     int pageSize = DiamondPageSize.defaultSize,
     List<SortingCriteria> sorting = const [],
+    String? sellerId,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -46,6 +47,7 @@ class DiamondRepositoryImpl implements DiamondRepository {
         page: page,
         pageSize: limit,
         sorting: sorting,
+        sellerId: sellerId,
       );
 
       final response = await _dio.post<Map<String, dynamic>>(

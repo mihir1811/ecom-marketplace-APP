@@ -116,8 +116,12 @@ class _CategoryCard extends StatelessWidget {
     final border = AppColors.border(context);
     final muted = AppColors.textMuted(context);
     final styleCount = category.styleCount;
+    final isAccessories =
+        category.name.trim().toLowerCase() == 'accessories';
     final styleLabel = styleCount <= 0
-        ? context.tr(RemainingL10n.comingSoon).replaceAll('.', '')
+        ? (isAccessories
+              ? ''
+              : context.tr(RemainingL10n.comingSoon).replaceAll('.', ''))
         : '$styleCount ${styleCount == 1 ? 'style' : 'styles'}';
     final asset = JewelleryCategoryImages.assetFor(category.name);
     final networkUrl = JewelleryCategoryImages.absoluteUrl(category.imageUrl);
@@ -185,17 +189,19 @@ class _CategoryCard extends StatelessWidget {
                       fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    styleLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.caption.copyWith(
-                      color: muted,
-                      fontSize: 12,
+                  if (styleLabel.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      styleLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.caption.copyWith(
+                        color: muted,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),

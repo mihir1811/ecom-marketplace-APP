@@ -20,6 +20,7 @@ import '../widgets/product_detail_natural_specs.dart';
 import '../widgets/product_detail_price.dart';
 import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_specs.dart';
+import '../widgets/product_detail_suggested_products.dart';
 
 /// One product detail screen for every marketplace segment.
 class ProductDetailScreen extends ConsumerStatefulWidget {
@@ -73,11 +74,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         const SizedBox(height: AppSpacing.s16),
       ],
       ProductDetailAssurance(certification: detail.certification),
-      if (isSeller &&
-          detail.listingSeller != null &&
-          detail.bullionDetail == null) ...[
+      if (detail.listingSeller != null && detail.bullionDetail == null) ...[
         const SizedBox(height: AppSpacing.s24),
-        ProductDetailSellerPanel(seller: detail.listingSeller!),
+        ProductDetailSellerPanel(
+          seller: detail.listingSeller!,
+          // Individual viewers: name only. Business viewers: full contact when
+          // the listing seller is also business (handled inside the panel).
+          showContactDetails: isSeller,
+        ),
       ],
     ];
   }
@@ -198,6 +202,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         ),
                       ),
                     ),
+                  const SizedBox(height: AppSpacing.s40),
+                  ProductDetailSuggestedProducts(detail: detail),
                 ],
               ),
             ),

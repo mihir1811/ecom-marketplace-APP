@@ -17,6 +17,7 @@ class AppRouteNames {
   static const String gemstones = '/gemstones';
   static const String gemstoneResults = '/gemstones/results';
   static const String watches = '/watches';
+  static const String watchesFilters = '/watches/filters';
   static const String comparison = '/comparison';
   static const String cart = '/cart';
   static const String paymentConfirmation = '/payment/confirmation/:orderId';
@@ -24,6 +25,7 @@ class AppRouteNames {
       '/payment/confirmation/$orderId';
   static const String brandWatch = '/watches/brand/:brandName';
   static const String bullions = '/bullions';
+  static const String bullionsFilters = '/bullions/filters';
   static const String jewelry = '/jewelry';
   static const String jewelryListing = '/jewelry/listing';
   static const String jewelryFilters = '/jewelry/filters';

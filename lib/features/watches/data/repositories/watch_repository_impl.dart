@@ -31,6 +31,7 @@ class WatchRepositoryImpl implements WatchRepository {
     required int page,
     int pageSize = WatchPageSize.defaultSize,
     WatchSortOption sort = WatchSortOption.featured,
+    String? sellerId,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -40,6 +41,7 @@ class WatchRepositoryImpl implements WatchRepository {
         page: page,
         pageSize: limit,
         sort: sort,
+        sellerId: sellerId,
       );
 
       final response = await _dio.get<Map<String, dynamic>>(

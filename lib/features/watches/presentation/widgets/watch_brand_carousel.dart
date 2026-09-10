@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,12 +14,95 @@ import '../../domain/models/watch_brand_categories.dart';
 import '../../domain/models/watch_filter_state.dart';
 import 'watch_brand_assets.dart';
 
-class WatchBrandCarousel extends ConsumerWidget {
+/// Featured brand strip with infinite auto-scroll (same pattern as diamond
+/// filter [PairedShowcaseCarousel]: unbounded PageView + timer).
+class WatchBrandCarousel extends ConsumerStatefulWidget {
   const WatchBrandCarousel({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WatchBrandCarousel> createState() => _WatchBrandCarouselState();
+}
+
+class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
+    with WidgetsBindingObserver {
+  static const _brands = WatchBrandAssets.featuredBrands;
+  static const _cardWidth = 140.0;
+  static const _gap = AppSpacing.s12;
+  static const _height = 88.0;
+  static const _autoScrollInterval = Duration(seconds: 3);
+  static const _listPad = AppSpacing.s16;
+
+  PageController? _pageController;
+  Timer? _autoScrollTimer;
+  double? _viewportFraction;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _autoScrollTimer?.cancel();
+    } else if (state == AppLifecycleState.resumed && mounted) {
+      _startAutoScroll();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _autoScrollTimer?.cancel();
+    _pageController?.dispose();
+    super.dispose();
+  }
+
+  void _ensurePageController(double maxWidth) {
+    if (maxWidth <= 0 || _brands.isEmpty) return;
+    final nextFraction =
+        ((_cardWidth + _gap) / maxWidth).clamp(0.2, 0.85);
+    if (_pageController != null &&
+        _viewportFraction != null &&
+        (_viewportFraction! - nextFraction).abs() < 0.01) {
+      return;
+    }
+
+    final initialPage = _pageController?.hasClients == true
+        ? (_pageController!.page ?? (_brands.length * 100).toDouble()).round()
+        : _brands.length * 100;
+
+    _autoScrollTimer?.cancel();
+    _pageController?.dispose();
+    _viewportFraction = nextFraction;
+    _pageController = PageController(
+      initialPage: initialPage,
+      viewportFraction: nextFraction,
+    );
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer?.cancel();
+    if (_brands.isEmpty || _pageController == null) return;
+    _autoScrollTimer = Timer.periodic(_autoScrollInterval, (_) {
+      final controller = _pageController;
+      if (!mounted || controller == null || !controller.hasClients) return;
+      final page = controller.page ?? 0;
+      controller.animateToPage(
+        page.round() + 1,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selected = ref.watch(watchFilterProvider.select((s) => s.brands));
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.s16),
       child: Column(
@@ -64,81 +149,141 @@ class WatchBrandCarousel extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.s12),
           SizedBox(
-            height: 88,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-              itemCount: WatchBrandAssets.featuredBrands.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(width: AppSpacing.s12),
-              itemBuilder: (context, index) {
-                final brand = WatchBrandAssets.featuredBrands[index];
-                final logo = WatchBrandAssets.logoPath(brand);
-                final isSelected = selected.contains(brand);
+            height: _height,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final controller = _pageController;
+                final fraction = _viewportFraction;
+                final needsSync = controller == null ||
+                    fraction == null ||
+                    (((_cardWidth + _gap) / width).clamp(0.2, 0.85) - fraction)
+                            .abs() >=
+                        0.01;
 
-                return GestureDetector(
-                  onTap: () =>
-                      ref.read(watchFilterProvider.notifier).toggleBrand(brand),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 160),
-                    width: 140,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.s16,
-                      vertical: AppSpacing.s12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.card(context),
-                      borderRadius: BorderRadius.circular(AppSpacing.r12),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.bronze
-                            : AppColors.border(context),
-                        width: isSelected ? 1.5 : 1,
-                      ),
-                    ),
-                    child: logo != null
-                        ? ColorFiltered(
-                            colorFilter: AppColors.isDark(context)
-                                ? const ColorFilter.matrix(<double>[
-                                    -1,
-                                    0,
-                                    0,
-                                    0,
-                                    255,
-                                    0,
-                                    -1,
-                                    0,
-                                    0,
-                                    255,
-                                    0,
-                                    0,
-                                    -1,
-                                    0,
-                                    255,
-                                    0,
-                                    0,
-                                    0,
-                                    1,
-                                    0,
-                                  ])
-                                : const ColorFilter.mode(
-                                    Colors.transparent,
-                                    BlendMode.dst,
-                                  ),
-                            child: Image.asset(
-                              logo,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) =>
-                                  _BrandFallback(brand: brand),
-                            ),
-                          )
-                        : _BrandFallback(brand: brand),
+                if (needsSync) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    _ensurePageController(width);
+                    setState(() {});
+                  });
+                }
+
+                if (controller == null) {
+                  return const SizedBox.shrink();
+                }
+
+                return NotificationListener<ScrollNotification>(
+                  onNotification: (notification) {
+                    if (notification is ScrollStartNotification &&
+                        notification.dragDetails != null) {
+                      _autoScrollTimer?.cancel();
+                    } else if (notification is ScrollEndNotification) {
+                      _startAutoScroll();
+                    }
+                    return false;
+                  },
+                  child: PageView.builder(
+                    controller: controller,
+                    padEnds: false,
+                    itemBuilder: (context, index) {
+                      final brand = _brands[index % _brands.length];
+                      final isSelected = selected.contains(brand);
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          left: _listPad / 2,
+                          right: _gap / 2,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _BrandLogoCard(
+                            brand: brand,
+                            isSelected: isSelected,
+                            onTap: () => ref
+                                .read(watchFilterProvider.notifier)
+                                .toggleBrand(brand),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 );
               },
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BrandLogoCard extends StatelessWidget {
+  const _BrandLogoCard({
+    required this.brand,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String brand;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final logo = WatchBrandAssets.logoPath(brand);
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        width: _WatchBrandCarouselState._cardWidth,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.s16,
+          vertical: AppSpacing.s12,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.card(context),
+          borderRadius: BorderRadius.circular(AppSpacing.r12),
+          border: Border.all(
+            color: isSelected ? AppColors.bronze : AppColors.border(context),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: logo != null
+            ? ColorFiltered(
+                colorFilter: AppColors.isDark(context)
+                    ? const ColorFilter.matrix(<double>[
+                        -1,
+                        0,
+                        0,
+                        0,
+                        255,
+                        0,
+                        -1,
+                        0,
+                        0,
+                        255,
+                        0,
+                        0,
+                        -1,
+                        0,
+                        255,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                      ])
+                    : const ColorFilter.mode(
+                        Colors.transparent,
+                        BlendMode.dst,
+                      ),
+                child: Image.asset(
+                  logo,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => _BrandFallback(brand: brand),
+                ),
+              )
+            : _BrandFallback(brand: brand),
       ),
     );
   }

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/filters/filter_accordion_section.dart';
 import '../../../../core/widgets/filters/filter_boolean_checkbox.dart';
-import '../../../../core/widgets/filters/filter_end_drawer_shell.dart';
+import '../../../../core/widgets/filters/filter_full_screen_shell.dart';
 import '../../application/watch_filter_provider.dart';
 import '../../application/watch_list_provider.dart';
 import '../../data/repositories/watch_brand_assets_data.dart';
@@ -15,7 +16,7 @@ import '../../domain/models/watch_brand_categories.dart';
 import '../../domain/models/watch_filter_state.dart';
 import 'watch_filter_swatch_pills.dart';
 
-/// Side pop-up filter panel aligned to watch filter schema categories.
+/// Full-screen watch filters (same chrome as jewelry filters).
 class WatchFilterDrawer extends ConsumerStatefulWidget {
   const WatchFilterDrawer({super.key});
 
@@ -82,18 +83,23 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
   Widget build(BuildContext context) {
     final draft = ref.watch(watchFilterDraftProvider);
     final n = ref.read(watchFilterDraftProvider.notifier);
+    final resultCount = ref.watch(
+      watchListProvider.select((v) => v.valueOrNull?.totalCount),
+    );
     final brandOptions = _showAllBrands
         ? _allBrandsAlphabetical
         : WatchFilterState.popularBrandOptions;
     final modelOptions = _modelOptions(draft);
 
-    return FilterEndDrawerShell(
-      resetLabel: 'Clear',
+    return FilterFullScreenShell(
       onReset: n.reset,
+      showResultsLabel: resultCount == null
+          ? context.tr(CatalogL10n.showResults)
+          : '${context.tr(CatalogL10n.showResults)} ($resultCount)',
       onShowResults: () {
         n.apply();
         ref.read(watchListProvider.notifier).refresh();
-        Navigator.of(context).maybePop();
+        context.goBack();
       },
       body: ListView(
         padding: const EdgeInsets.only(bottom: AppSpacing.s24),

@@ -195,4 +195,25 @@ class SellerDiamondProjectInventoryNotifier
     if (state.valueOrNull?.hasApplied == true) return;
     await applyFilters();
   }
+
+  /// Drops one stone from the applied inventory (and therefore from KPIs/charts).
+  void removeItem(String diamondId) {
+    final current = state.valueOrNull;
+    if (current == null || !current.hasApplied) return;
+    final id = diamondId.trim();
+    if (id.isEmpty) return;
+
+    final next = [
+      for (final item in current.items)
+        if (item.diamondId != id) item,
+    ];
+    if (next.length == current.items.length) return;
+
+    state = AsyncData(
+      current.copyWith(
+        items: List<DiamondProjectItem>.unmodifiable(next),
+        totalCount: next.length,
+      ),
+    );
+  }
 }

@@ -8,6 +8,7 @@ abstract final class GemstoneSearchRequestMapper {
     required int page,
     int pageSize = GemstonePageSize.defaultSize,
     String? sortBy,
+    String? sellerId,
   }) {
     final isLab = _isLab(filters.stoneType);
     final isMelee = _isMelee(filters.lotType);
@@ -18,6 +19,11 @@ abstract final class GemstoneSearchRequestMapper {
       'page': page < 1 ? 1 : page,
       'limit': pageSize < 1 ? GemstonePageSize.defaultSize : pageSize,
     };
+
+    final sid = sellerId?.trim();
+    if (sid != null && sid.isNotEmpty) {
+      body['seller_id'] = sid;
+    }
 
     if (sortBy != null && sortBy.isNotEmpty) {
       body['sort_by'] = sortBy;

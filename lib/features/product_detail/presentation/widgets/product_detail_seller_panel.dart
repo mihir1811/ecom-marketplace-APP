@@ -6,15 +6,27 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/listing_seller_info.dart';
 
-/// Listing seller identity — visible only to signed-in seller accounts.
+/// Listing seller identity.
+///
+/// Individual (non-business) viewers always see name only. Business viewers
+/// see contact fields only when the listing seller is also a business account.
 class ProductDetailSellerPanel extends StatelessWidget {
-  const ProductDetailSellerPanel({required this.seller, super.key});
+  const ProductDetailSellerPanel({
+    required this.seller,
+    this.showContactDetails = false,
+    super.key,
+  });
 
   final ListingSellerInfo seller;
+
+  /// When false (individual viewer), only [seller.displayName] is shown.
+  final bool showContactDetails;
 
   @override
   Widget build(BuildContext context) {
     if (!seller.hasAnyData) return const SizedBox.shrink();
+
+    final showContact = showContactDetails && !seller.isIndividual;
 
     final rows = <({String label, String value, IconData icon})>[
       (
@@ -22,19 +34,19 @@ class ProductDetailSellerPanel extends StatelessWidget {
         value: seller.displayName,
         icon: Icons.storefront_outlined,
       ),
-      if (!seller.isIndividual && seller.email != null)
+      if (showContact && seller.email != null)
         (
           label: context.tr(CatalogL10n.email),
           value: seller.email!,
           icon: Icons.email_outlined,
         ),
-      if (!seller.isIndividual && seller.phone != null)
+      if (showContact && seller.phone != null)
         (
           label: context.tr(CatalogL10n.phone),
           value: seller.phone!,
           icon: Icons.phone_outlined,
         ),
-      if (!seller.isIndividual && seller.location != null)
+      if (showContact && seller.location != null)
         (
           label: context.tr(CatalogL10n.location),
           value: seller.location!,

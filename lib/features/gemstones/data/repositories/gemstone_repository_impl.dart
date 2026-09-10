@@ -28,6 +28,7 @@ class GemstoneRepositoryImpl implements GemstoneRepository {
     required int page,
     int pageSize = GemstonePageSize.defaultSize,
     String? sortBy,
+    String? sellerId,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -37,6 +38,7 @@ class GemstoneRepositoryImpl implements GemstoneRepository {
         page: page,
         pageSize: limit,
         sortBy: sortBy,
+        sellerId: sellerId,
       );
 
       final response = await _dio.post<Map<String, dynamic>>(

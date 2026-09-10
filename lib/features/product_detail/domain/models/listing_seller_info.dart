@@ -66,25 +66,40 @@ ListingSellerInfo? listingSellerFromMap(Object? raw) {
   if (raw is! Map) return null;
 
   final map = raw.map((k, v) => MapEntry(k.toString(), v));
+
+  final nestedUser = map['user'];
+  final nestedUserMap = nestedUser is Map
+      ? nestedUser.map((k, v) => MapEntry(k.toString(), v))
+      : null;
+  final nestedUserId = nestedUserMap == null
+      ? null
+      : _str(nestedUserMap['id']) ?? _str(nestedUserMap['_id']);
+
+  final company = _str(map['companyName']);
+  final representative = _str(map['representativeName1']) ??
+      _str(map['representativeName']) ??
+      _str(map['name']) ??
+      _str(map['fullName']) ??
+      (nestedUserMap == null
+          ? null
+          : _str(nestedUserMap['name']) ?? _str(nestedUserMap['fullName']));
+
+  // Do not fall back to `sellerType` — that is product category (diamond,
+  // jewellery, …), not individual vs business registration.
   final registrationRaw =
-      _str(map['registrationType']) ?? _str(map['sellerType']);
+      _str(map['registrationType']) ??
+      _str(map['accountType']) ??
+      (nestedUserMap == null ? null : _str(nestedUserMap['registrationType']));
   final registration = switch (registrationRaw?.toLowerCase()) {
     'individual' => ListingSellerRegistrationType.individual,
     'business' => ListingSellerRegistrationType.business,
     _ => ListingSellerRegistrationType.unknown,
   };
 
-  final nestedUser = map['user'];
-  final nestedUserId = nestedUser is Map
-      ? _str(nestedUser['id']) ?? _str(nestedUser['_id'])
-      : null;
-
-  final company = _str(map['companyName']);
-  final representative = _str(map['representativeName1']) ??
-      _str(map['representativeName']) ??
-      _str(map['name']) ??
-      _str(map['fullName']);
-  final displayName = company ?? representative;
+  // Individual accounts: prefer person name over company when both exist.
+  final displayName = registration == ListingSellerRegistrationType.individual
+      ? (representative ?? company)
+      : (company ?? representative);
   final sellerId = _str(map['id']) ?? _str(map['_id']) ?? _str(map['sellerId']);
   final userId = _str(map['userId']) ?? nestedUserId;
   if (displayName == null && sellerId == null && userId == null) return null;
@@ -97,8 +112,12 @@ ListingSellerInfo? listingSellerFromMap(Object? raw) {
     id: sellerId,
     userId: userId,
     displayName: displayName ?? 'Seller',
-    email: _str(map['email']),
-    phone: _str(map['phone1']) ?? _str(map['phone']) ?? _str(map['businessPhone1']),
+    email: _str(map['email']) ??
+        (nestedUserMap == null ? null : _str(nestedUserMap['email'])),
+    phone: _str(map['phone1']) ??
+        _str(map['phone']) ??
+        _str(map['businessPhone1']) ??
+        (nestedUserMap == null ? null : _str(nestedUserMap['phone'])),
     location: location.isEmpty ? null : location,
     registrationType: registration,
   );

@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -20,7 +22,6 @@ import '../../application/bullions_list_provider.dart';
 // import '../../application/metal_prices_provider.dart'; // Metal prices (AURUM) disabled
 import '../../domain/models/bullions_filter_state.dart';
 // import '../../domain/models/metal_spot_price.dart'; // Metal prices (AURUM) disabled
-import '../widgets/bullions_filter_drawer.dart';
 import '../widgets/bullions_grid_view.dart';
 
 class BullionsScreen extends ConsumerStatefulWidget {
@@ -31,7 +32,6 @@ class BullionsScreen extends ConsumerStatefulWidget {
 }
 
 class _BullionsScreenState extends ConsumerState<BullionsScreen> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _scrollController = ScrollController();
   // final _tickerController = ScrollController(); // Metal prices ticker disabled
   final _searchController = TextEditingController();
@@ -109,7 +109,7 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
 
   void _openFilters() {
     ref.read(bullionsFilterDraftProvider.notifier).syncFromApplied();
-    _scaffoldKey.currentState?.openEndDrawer();
+    context.push(AppRouteNames.bullionsFilters);
   }
 
   void _clearFilters() {
@@ -128,8 +128,6 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen> {
     // });
 
     return CatalogScreenShell(
-      scaffoldKey: _scaffoldKey,
-      endDrawer: const BullionsFilterDrawer(),
       title: context.tr(CatalogL10n.bullions),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

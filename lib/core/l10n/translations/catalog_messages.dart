@@ -380,6 +380,7 @@ abstract final class CatalogL10n {
   static const viewLess = 'catalog.action.viewLess';
   static const certificateHash = 'catalog.product.certificateHash';
   static const sellerInformation = 'catalog.product.sellerInformation';
+  static const moreFromThisSeller = 'catalog.product.moreFromThisSeller';
   static const cutSymPol = 'catalog.product.cutSymPol';
   static const bgmLabel = 'catalog.product.bgmLabel';
   static const floro = 'catalog.product.floro';
@@ -1488,6 +1489,11 @@ const catalogMessages = <String, LocalizedMessage>{
     'Seller information',
     'विक्रेता की जानकारी',
     'વિક્રેતાની માહિતી',
+  ),
+  CatalogL10n.moreFromThisSeller: _M(
+    'More from this seller',
+    'इस विक्रेता के और उत्पाद',
+    'આ વિક્રેતાના વધુ ઉત્પાદનો',
   ),
   CatalogL10n.cutSymPol: _M(
     'Cut - Sym - Pol',

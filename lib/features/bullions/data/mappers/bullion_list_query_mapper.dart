@@ -10,6 +10,7 @@ abstract final class BullionListQueryMapper {
     required int page,
     int pageSize = BullionPageSize.defaultSize,
     BullionsSortOption sort = BullionsSortOption.featured,
+    String? sellerId,
   }) {
     final query = <String, dynamic>{
       'page': page < 1 ? 1 : page,
@@ -23,7 +24,7 @@ abstract final class BullionListQueryMapper {
       query['searchBy'] = 'mintMark,stockNumber,design,certification';
     }
 
-    final prismaFilters = _buildFilters(filters);
+    final prismaFilters = _buildFilters(filters, sellerId: sellerId);
     if (prismaFilters.isNotEmpty) {
       query['filters'] = jsonEncode(prismaFilters);
     }
@@ -44,8 +45,16 @@ abstract final class BullionListQueryMapper {
     };
   }
 
-  static Map<String, dynamic> _buildFilters(BullionsFilterState f) {
+  static Map<String, dynamic> _buildFilters(
+    BullionsFilterState f, {
+    String? sellerId,
+  }) {
     final filters = <String, dynamic>{};
+
+    final sid = sellerId?.trim();
+    if (sid != null && sid.isNotEmpty) {
+      filters['sellerId'] = {'equals': sid};
+    }
 
     final metal = f.metalFilter.metal;
     if (metal != null) {

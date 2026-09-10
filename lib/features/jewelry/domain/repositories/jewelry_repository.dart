@@ -17,6 +17,7 @@ abstract class JewelryRepository {
     required int page,
     int pageSize = JewelryPageSize.defaultSize,
     JewelrySortOption sort = JewelrySortOption.featured,
+    String? sellerId,
     CancelToken? cancelToken,
   });
 }

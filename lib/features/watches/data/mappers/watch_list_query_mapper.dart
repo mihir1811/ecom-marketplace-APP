@@ -10,6 +10,7 @@ abstract final class WatchListQueryMapper {
     required int page,
     int pageSize = WatchPageSize.defaultSize,
     WatchSortOption sort = WatchSortOption.featured,
+    String? sellerId,
   }) {
     final query = <String, dynamic>{
       'page': page < 1 ? 1 : page,
@@ -25,7 +26,7 @@ abstract final class WatchListQueryMapper {
     final sortField = _sortField(sort);
     if (sortField != null) query['sort'] = sortField;
 
-    final prismaFilters = _buildFilters(filters);
+    final prismaFilters = _buildFilters(filters, sellerId: sellerId);
     if (prismaFilters.isNotEmpty) {
       query['filters'] = jsonEncode(prismaFilters);
     }
@@ -45,8 +46,16 @@ abstract final class WatchListQueryMapper {
     };
   }
 
-  static Map<String, dynamic> _buildFilters(WatchFilterState f) {
+  static Map<String, dynamic> _buildFilters(
+    WatchFilterState f, {
+    String? sellerId,
+  }) {
     final filters = <String, dynamic>{};
+
+    final sid = sellerId?.trim();
+    if (sid != null && sid.isNotEmpty) {
+      filters['sellerId'] = {'equals': sid};
+    }
 
     final brands =
         f.brands.map((b) => b.trim()).where((b) => b.isNotEmpty).toList();

@@ -123,7 +123,8 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
         );
       }
 
-      if (messagesEnabled) {
+      // Messages/chat is business (seller) only — individual buyers never see it.
+      if (messagesEnabled && authState.isSeller) {
         final hasUnread = ref.watch(chatHasUnreadProvider);
         actions.add(
           IconButton(
@@ -131,7 +132,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
             onPressed:
                 onSellerMessagesTap ??
                 () => context.openRoute(
-                  authState.isSeller && authState.canTransact
+                  authState.canTransact
                       ? AppRouteNames.sellerChat
                       : AppRouteNames.buyerMessages,
                 ),

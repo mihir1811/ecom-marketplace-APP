@@ -34,6 +34,7 @@ abstract final class DiamondSearchRequestMapper {
     required int page,
     int pageSize = 24,
     List<SortingCriteria> sorting = const [],
+    String? sellerId,
   }) {
     final isLab = catalog.isLabGrown;
     final isMelee = isLab
@@ -46,6 +47,11 @@ abstract final class DiamondSearchRequestMapper {
       'page': page < 1 ? 1 : page,
       'limit': pageSize < 1 ? 24 : pageSize,
     };
+
+    final sid = sellerId?.trim();
+    if (sid != null && sid.isNotEmpty) {
+      body['seller_id'] = sid;
+    }
 
     final sortBy = _sortBy(sorting);
     if (sortBy != null) body['sort_by'] = sortBy;

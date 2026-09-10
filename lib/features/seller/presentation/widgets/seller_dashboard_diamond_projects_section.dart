@@ -173,7 +173,11 @@ class _SellerDashboardDiamondProjectsSectionState
             const SizedBox(height: AppSpacing.s16),
             DiamondProjectSelectedTable(
               items: inventory.items,
-              onRemove: (_) {},
+              onRemove: (id) {
+                ref
+                    .read(sellerDiamondProjectInventoryProvider.notifier)
+                    .removeItem(id);
+              },
             ),
           ],
         ],
