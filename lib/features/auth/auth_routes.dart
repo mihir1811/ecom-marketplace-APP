@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/router/route_names.dart';
 import '../../core/auth/business_registration_data.dart';
+import '../../core/widgets/app_system_back_scope.dart';
 import 'presentation/screens/forgot_password_screen.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/recover_account_screen.dart';
@@ -22,18 +23,27 @@ final List<RouteBase> authRoutes = [
       final initial = type == 'business' || type == 'seller'
           ? RegistrationAccountType.business
           : RegistrationAccountType.individual;
-      return RegisterScreen(initialAccountType: initial);
+      return AppSystemBackScope(
+        fallbackLocation: AppRouteNames.login,
+        child: RegisterScreen(initialAccountType: initial),
+      );
     },
   ),
   GoRoute(
     path: AppRouteNames.forgotPassword,
-    builder: (context, state) => const ForgotPasswordScreen(),
+    builder: (context, state) => const AppSystemBackScope(
+      fallbackLocation: AppRouteNames.login,
+      child: ForgotPasswordScreen(),
+    ),
   ),
   GoRoute(
     path: AppRouteNames.verifyOtp,
     builder: (context, state) {
       final email = state.uri.queryParameters['email'];
-      return VerifyOtpScreen(email: email);
+      return AppSystemBackScope(
+        fallbackLocation: AppRouteNames.login,
+        child: VerifyOtpScreen(email: email),
+      );
     },
   ),
   GoRoute(
@@ -42,14 +52,20 @@ final List<RouteBase> authRoutes = [
       final token =
           state.uri.queryParameters['token'] ??
           state.uri.queryParameters['accessToken'];
-      return ResetPasswordScreen(resetToken: token);
+      return AppSystemBackScope(
+        fallbackLocation: AppRouteNames.login,
+        child: ResetPasswordScreen(resetToken: token),
+      );
     },
   ),
   GoRoute(
     path: AppRouteNames.recoverAccount,
     builder: (context, state) {
       final token = state.uri.queryParameters['token'];
-      return RecoverAccountScreen(recoveryToken: token);
+      return AppSystemBackScope(
+        fallbackLocation: AppRouteNames.login,
+        child: RecoverAccountScreen(recoveryToken: token),
+      );
     },
   ),
 ];

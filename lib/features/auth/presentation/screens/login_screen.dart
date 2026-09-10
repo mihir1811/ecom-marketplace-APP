@@ -11,6 +11,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_system_back_scope.dart';
 import '../widgets/auth_brand_header.dart';
 import '../widgets/auth_theme.dart';
 
@@ -57,7 +58,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       });
     }
 
-    return AppScaffold(
+    return AppSystemBackScope(
+      child: AppScaffold(
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SafeArea(
@@ -166,7 +168,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               child: TextButton(
                                 onPressed: authState.isLoading
                                     ? null
-                                    : () => context.go(
+                                    : () => context.push(
                                         AppRouteNames.forgotPassword,
                                       ),
                                 child: Text(
@@ -185,7 +187,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               child: TextButton(
                                 onPressed: authState.isLoading
                                     ? null
-                                    : () => context.go(
+                                    : () => context.push(
                                         AppRouteNames.recoverAccount,
                                       ),
                                 child: Text(
@@ -254,7 +256,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               child: TextButton(
                                 onPressed: authState.isLoading
                                     ? null
-                                    : () => context.go(AppRouteNames.register),
+                                    : () =>
+                                          context.push(AppRouteNames.register),
                                 child: Text(
                                   context.tr(
                                     AccountCommerceL10n.createAccountPrompt,
@@ -275,6 +278,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

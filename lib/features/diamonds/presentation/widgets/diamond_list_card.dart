@@ -16,6 +16,7 @@ import '../../../comparison/application/comparison_provider.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
+import '../../../diamond_projects/presentation/widgets/diamond_project_pick_checkbox.dart';
 import '../../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/diamond.dart';
@@ -24,10 +25,16 @@ import 'diamond_svg_data.dart';
 
 /// Horizontal list card matching [WatchCardList] layout with diamond data.
 class DiamondCardList extends ConsumerWidget {
-  const DiamondCardList({required this.diamond, super.key, this.onTap});
+  const DiamondCardList({
+    required this.diamond,
+    super.key,
+    this.onTap,
+    this.showProjectPick = false,
+  });
 
   final Diamond diamond;
   final VoidCallback? onTap;
+  final bool showProjectPick;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -81,6 +88,8 @@ class DiamondCardList extends ConsumerWidget {
                     ),
                   ),
                 ),
+                if (showProjectPick)
+                  DiamondProjectPickBadge(diamondId: diamond.id),
               ],
             ),
           ),

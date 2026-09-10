@@ -7,7 +7,6 @@ import '../l10n/app_localizations.dart';
 import '../router/app_navigation.dart';
 import '../router/route_names.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
 import '../../features/cart/application/cart_provider.dart';
 import '../../features/chat/application/chat_providers.dart';
 import 'app_bar_actions.dart';
@@ -178,15 +177,8 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
       scrolledUnderElevation: scrolledUnderElevation,
       centerTitle: hasBackButton ? false : centerTitle,
       titleSpacing: hasBackButton ? 0 : null,
-      title:
-          titleWidget ??
-          Text(
-            title,
-            style: AppTypography.headline.copyWith(
-              fontWeight: FontWeight.w700,
-              fontSize: 22,
-            ),
-          ),
+      // Screen names are unused app-wide; keep bar chrome (back / actions) only.
+      title: null,
       leading: effectiveLeading,
       automaticallyImplyLeading: false,
       actions: actions,

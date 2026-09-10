@@ -10,6 +10,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_content_sized_grid.dart';
+import '../../../../core/auth/auth_providers.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
@@ -18,6 +19,7 @@ import '../../../comparison/application/comparison_provider.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
+import '../../../diamond_projects/presentation/widgets/diamond_project_pick_checkbox.dart';
 import '../../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/diamond.dart';
@@ -70,11 +72,13 @@ Widget _diamondThumb(
 class DiamondCardGrid extends ConsumerWidget {
   final Diamond diamond;
   final VoidCallback? onTap;
+  final bool showProjectPick;
 
   const DiamondCardGrid({
     super.key,
     required this.diamond,
     this.onTap,
+    this.showProjectPick = false,
   });
 
   @override
@@ -120,6 +124,8 @@ class DiamondCardGrid extends ConsumerWidget {
                     ),
                   ),
                 ),
+                if (showProjectPick)
+                  DiamondProjectPickBadge(diamondId: diamond.id),
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
@@ -288,7 +294,7 @@ String? _gridMetaLine(Diamond diamond) {
   return parts.join(' · ');
 }
 
-class DiamondGridView extends StatelessWidget {
+class DiamondGridView extends ConsumerWidget {
   final List<Diamond> diamonds;
   final ScrollController scrollController;
   final bool isLoadingMore;
@@ -301,7 +307,10 @@ class DiamondGridView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showProjectPick = ref.watch(
+      authProvider.select((s) => s.isSeller || s.sellerId != null),
+    );
     return CatalogContentSizedGrid(
       controller: scrollController,
       itemCount: diamonds.length,
@@ -311,6 +320,7 @@ class DiamondGridView extends StatelessWidget {
         return DiamondCardGrid(
           key: ValueKey(diamond.id),
           diamond: diamond,
+          showProjectPick: showProjectPick,
           onTap: () => openDiamondDetail(context, diamond),
         );
       },
@@ -318,7 +328,7 @@ class DiamondGridView extends StatelessWidget {
   }
 }
 
-class DiamondListView extends StatelessWidget {
+class DiamondListView extends ConsumerWidget {
   final List<Diamond> diamonds;
   final ScrollController scrollController;
   final bool isLoadingMore;
@@ -331,7 +341,10 @@ class DiamondListView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showProjectPick = ref.watch(
+      authProvider.select((s) => s.isSeller || s.sellerId != null),
+    );
     return ListView.builder(
       scrollCacheExtent: const ScrollCacheExtent.pixels(600),
       controller: scrollController,
@@ -376,6 +389,7 @@ class DiamondListView extends StatelessWidget {
             child: DiamondCardList(
               key: ValueKey(diamond.id),
               diamond: diamond,
+              showProjectPick: showProjectPick,
               onTap: () => openDiamondDetail(context, diamond),
             ),
           ),

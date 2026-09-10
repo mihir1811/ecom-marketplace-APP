@@ -41,7 +41,8 @@ class BuyerLayout extends ConsumerWidget {
 
     return PopScope(
       // Drawer destinations use `go` (no stack). Intercept system back so the
-      // app returns home instead of exiting.
+      // app returns home (or confirms exit on a terminal route) instead of
+      // exiting silently.
       canPop: canPop,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;

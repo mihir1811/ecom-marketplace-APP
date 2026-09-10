@@ -99,11 +99,11 @@ final sellerDiamondProjectInventoryProvider =
 );
 
 final sellerDiamondProjectStatsProvider = Provider<DiamondProjectStats>((ref) {
-  final items = ref.watch(
-    sellerDiamondProjectInventoryProvider.select(
-      (async) => async.valueOrNull?.items ?? const <DiamondProjectItem>[],
-    ),
-  );
+  // Watch the full async value (not a List select) so stats always recompute
+  // when inventory finishes loading after AsyncLoading clears valueOrNull.
+  final inventory = ref.watch(sellerDiamondProjectInventoryProvider);
+  final items =
+      inventory.valueOrNull?.items ?? const <DiamondProjectItem>[];
   return DiamondProjectStatsCalculator.compute(items);
 });
 
@@ -135,31 +135,40 @@ class SellerDiamondProjectInventoryNotifier
     _cancelToken?.cancel('seller-diamond-project-apply');
     _cancelToken = CancelToken();
 
-    state = const AsyncLoading();
+    final previous = state.valueOrNull;
+    state = previous == null
+        ? const AsyncLoading()
+        : const AsyncLoading<SellerDiamondProjectInventoryState>()
+            .copyWithPrevious(AsyncData(previous));
     final repo = ref.read(diamondRepositoryProvider);
 
     final items = <DiamondProjectItem>[];
+    final seen = <String>{};
     var page = 1;
     var totalCount = 0;
     var hasMore = true;
 
     while (hasMore && page <= 50) {
+      final requestedPage = page;
       final result = await repo.searchSellerInventory(
         sellerId: sellerId,
         filters: filters,
-        page: page,
+        page: requestedPage,
         cancelToken: _cancelToken,
       );
       switch (result) {
         case Success(value: final response):
           totalCount = response.totalCount;
           for (final diamond in response.diamonds) {
+            if (diamond.id.isEmpty || !seen.add(diamond.id)) continue;
             items.add(
               DiamondProjectMapper.fromDiamond(diamond, productKind: 'SINGLE'),
             );
           }
-          hasMore = response.hasMore;
-          page = response.page + 1;
+          hasMore = response.hasMore && response.diamonds.isNotEmpty;
+          // Always advance from the requested page — response.page can reset
+          // and stall the loop on the same page.
+          page = requestedPage + 1;
         case ResultFailure(failure: final failure):
           if (failure is NetworkFailure && failure.isCancelled) return;
           state = AsyncError(failure.message, StackTrace.current);
@@ -169,7 +178,7 @@ class SellerDiamondProjectInventoryNotifier
 
     state = AsyncData(
       SellerDiamondProjectInventoryState(
-        items: items,
+        items: List<DiamondProjectItem>.unmodifiable(items),
         totalCount: totalCount,
         appliedFilters: filters,
         hasApplied: true,

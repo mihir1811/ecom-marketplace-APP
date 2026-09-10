@@ -64,8 +64,8 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
             Text(
               context.tr(CatalogL10n.outliersSummary, {
                 'count': '${stats.outliers.length}',
-                'low': AppCurrency.usd(stats.iqrLow, decimals: 0),
-                'high': AppCurrency.usd(stats.iqrHigh, decimals: 0),
+                'low': '${AppCurrency.usd(stats.iqrLow, decimals: 0)}/ct',
+                'high': '${AppCurrency.usd(stats.iqrHigh, decimals: 0)}/ct',
               }),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -103,7 +103,7 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
                       ),
                       Expanded(
                         child: Text(
-                          AppCurrency.usd(outlier.item.price, decimals: 0),
+                          '${AppCurrency.usd(outlier.item.ppc, decimals: 0)}/ct',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: AppTypography.caption.copyWith(

@@ -201,7 +201,7 @@ class InquiryLabeledField extends StatelessWidget {
             label,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary(context),
+              color: AppColors.textPrimary(context),
             ),
           ),
           const SizedBox(height: 6),
@@ -373,7 +373,7 @@ class _InquiryDropdownFieldState extends State<InquiryDropdownField> {
             widget.label,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary(context),
+              color: AppColors.textPrimary(context),
             ),
           ),
           const SizedBox(height: 6),
@@ -471,12 +471,6 @@ class InquirySegmentedField extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: value == option.value ? selected : null,
                     borderRadius: BorderRadius.circular(7),
-                    border:
-                        value == option.value && selected == AppColors.bronze
-                        ? const Border.fromBorderSide(
-                            BorderSide(color: AppColors.bronze),
-                          )
-                        : null,
                   ),
                   alignment: Alignment.center,
                   child: Text(
@@ -486,9 +480,7 @@ class InquirySegmentedField extends StatelessWidget {
                     style: AppTypography.caption.copyWith(
                       fontWeight: FontWeight.w600,
                       color: value == option.value
-                          ? (selected == AppColors.bronze
-                                ? AppColors.warmWhite
-                                : AppColors.onSelected(context))
+                          ? AppColors.onSelected(context)
                           : AppColors.textSecondary(context),
                     ),
                   ),
@@ -509,7 +501,7 @@ class InquirySegmentedField extends StatelessWidget {
             label!,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary(context),
+              color: AppColors.textPrimary(context),
             ),
           ),
           const SizedBox(height: 6),

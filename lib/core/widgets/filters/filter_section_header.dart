@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
+import 'filter_info_tooltip.dart';
+import 'filter_proportion_diagram.dart';
 
 class FilterSectionHeader extends StatelessWidget {
-  const FilterSectionHeader({required this.title, this.infoText, super.key});
+  const FilterSectionHeader({
+    required this.title,
+    this.infoText,
+    this.infoDiagram,
+    super.key,
+  });
 
   final String title;
   final String? infoText;
+  final FilterProportionDiagramKind? infoDiagram;
 
   @override
   Widget build(BuildContext context) {
@@ -18,21 +25,7 @@ class FilterSectionHeader extends StatelessWidget {
         ),
         if (infoText != null) ...[
           const SizedBox(width: 6),
-          Tooltip(
-            message: infoText!,
-            triggerMode: TooltipTriggerMode.tap,
-            preferBelow: false,
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            textStyle: const TextStyle(color: Colors.white, fontSize: 13),
-            child: const Icon(
-              Icons.info_outline,
-              size: 16,
-              color: AppColors.bronze,
-            ),
-          ),
+          FilterInfoTooltip(message: infoText!, diagram: infoDiagram),
         ],
       ],
     );

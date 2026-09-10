@@ -11,6 +11,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_system_back_scope.dart';
 import '../../../buyer/presentation/widgets/buyer_drawer.dart';
 import '../../application/home_search_provider.dart';
 import '../home_network_images.dart';
@@ -80,7 +81,8 @@ class HomeScreen extends ConsumerWidget {
       homeSearchQueryProvider.select((q) => q.trim().isNotEmpty),
     );
 
-    return AppScaffold(
+    return AppSystemBackScope(
+      child: AppScaffold(
       backgroundColor: AppColors.bg(context),
       drawer: auth.isAuthenticated ? const BuyerDrawer() : null,
       appBar: AppTopBar(
@@ -132,6 +134,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
           ),
         ],
+      ),
       ),
     );
   }

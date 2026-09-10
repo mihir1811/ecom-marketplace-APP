@@ -607,6 +607,8 @@ abstract final class RemainingL10n {
   static const totalPriceMax2 = 'remaining.totalPriceMax2';
   static const ppcMin = 'remaining.ppcMin';
   static const ppcMax = 'remaining.ppcMax';
+  static const pppMin = 'remaining.pppMin';
+  static const pppMax = 'remaining.pppMax';
   static const paymentTerms2 = 'remaining.paymentTerms2';
   static const remarks = 'remaining.remarks';
   static const lengthMin2 = 'remaining.lengthMin2';
@@ -3652,6 +3654,16 @@ const remainingMessages = <String, LocalizedMessage>{
     english: 'Ppc max.',
     hindi: 'पीपीसी अधिकतम.',
     gujarati: 'પીપીસી મહત્તમ',
+  ),
+  RemainingL10n.pppMin: LocalizedMessage(
+    english: 'Ppp min.',
+    hindi: 'पीपीपी न्यूनतम.',
+    gujarati: 'Ppp ન્યૂનતમ.',
+  ),
+  RemainingL10n.pppMax: LocalizedMessage(
+    english: 'Ppp max.',
+    hindi: 'पीपीपी अधिकतम.',
+    gujarati: 'Ppp મહત્તમ.',
   ),
   RemainingL10n.paymentTerms2: LocalizedMessage(
     english: 'Payment terms',

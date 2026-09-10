@@ -47,6 +47,12 @@ abstract final class DiamondProjectMapper {
     Diamond diamond, {
     required String productKind,
   }) {
+    final carat = diamond.carat;
+    final price = diamond.price;
+    final storedPpc = diamond.pricePerCarat;
+    final ppc = (storedPpc != null && storedPpc > 0)
+        ? storedPpc
+        : (carat > 0 ? price / carat : null);
     return DiamondProjectItem(
       diamondId: diamond.id,
       productKind: productKind,
@@ -55,9 +61,9 @@ abstract final class DiamondProjectMapper {
       color: diamond.color,
       clarity: diamond.clarity,
       cut: diamond.cut,
-      carat: diamond.carat,
-      price: diamond.price,
-      pricePerCarat: diamond.pricePerCarat,
+      carat: carat,
+      price: price,
+      pricePerCarat: ppc,
     );
   }
 

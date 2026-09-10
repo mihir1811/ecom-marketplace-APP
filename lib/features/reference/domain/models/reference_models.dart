@@ -101,12 +101,37 @@ class ReferenceProfile {
   final List<ReferenceRequest> outboundHistory;
 }
 
+class ReferencePurchaseItem {
+  const ReferencePurchaseItem({
+    required this.name,
+    required this.productType,
+    required this.quantity,
+  });
+
+  final String name;
+  final String productType;
+  final int quantity;
+
+  String get lineLabel {
+    final qty = quantity < 1 ? 1 : quantity;
+    final type = productType.trim();
+    if (type.isEmpty) return '$name × $qty';
+    return '$name × $qty ($type)';
+  }
+}
+
 class ReferencePurchase {
   const ReferencePurchase({
     required this.id,
     required this.label,
     required this.amountLabel,
     required this.createdAtLabel,
+    required this.commissionInr,
+    required this.commissionAt,
+    this.orderStatus,
+    this.orderType,
+    this.buyerLabel,
+    this.items = const [],
     this.productType,
     this.raw,
   });
@@ -115,8 +140,38 @@ class ReferencePurchase {
   final String label;
   final String amountLabel;
   final String createdAtLabel;
+  final double commissionInr;
+  final DateTime? commissionAt;
+  final String? orderStatus;
+  final String? orderType;
+  final String? buyerLabel;
+  final List<ReferencePurchaseItem> items;
   final String? productType;
   final Map<String, dynamic>? raw;
+
+  bool get isRefunded {
+    final s = orderStatus?.toUpperCase();
+    return s == 'REFUNDED' || s == 'REJECTED' || s == 'CANCELLED';
+  }
+
+  String get signedAmountLabel {
+    final abs = commissionInr.abs();
+    final whole = abs == abs.roundToDouble();
+    final formatted = '₹${abs.toStringAsFixed(whole ? 0 : 2)}';
+    if (commissionInr < 0) return '-$formatted';
+    return '+$formatted';
+  }
+
+  String get metaLabel {
+    final type = (orderType ?? '').trim();
+    final status = (orderStatus ?? '').trim();
+    final typeLabel = type.isEmpty
+        ? ''
+        : '${type[0].toUpperCase()}${type.substring(1).toLowerCase()}';
+    if (typeLabel.isEmpty) return status.toUpperCase();
+    if (status.isEmpty) return typeLabel;
+    return '$typeLabel · ${status.toUpperCase()}';
+  }
 }
 
 class ReferencePurchasePage {

@@ -5,6 +5,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import 'filter_advanced_range_input.dart';
+import 'filter_proportion_diagram.dart';
 import 'filter_scrollable_chips.dart';
 
 /// A single min/max advanced proportion field.
@@ -16,6 +17,7 @@ class CatalogAdvancedRangeSpec {
     required this.onMinChanged,
     required this.onMaxChanged,
     required this.infoText,
+    this.infoDiagram,
     this.unit = '',
     this.minLimit = 0.0,
     this.maxLimit = 100.0,
@@ -27,6 +29,7 @@ class CatalogAdvancedRangeSpec {
   final ValueChanged<double> onMinChanged;
   final ValueChanged<double> onMaxChanged;
   final String infoText;
+  final FilterProportionDiagramKind? infoDiagram;
   final String unit;
   final double minLimit;
   final double maxLimit;
@@ -40,6 +43,7 @@ class CatalogAdvancedChipSpec {
     required this.selectedItems,
     required this.onToggle,
     required this.infoText,
+    this.infoDiagram,
   });
 
   final String title;
@@ -47,6 +51,7 @@ class CatalogAdvancedChipSpec {
   final List<String> selectedItems;
   final ValueChanged<String> onToggle;
   final String infoText;
+  final FilterProportionDiagramKind? infoDiagram;
 }
 
 /// Expandable advanced filter panel shared by catalog search screens.
@@ -103,6 +108,7 @@ class _CatalogExpandableAdvancedFiltersState
                 maxLimit: widget.ranges[i].maxLimit,
                 unit: widget.ranges[i].unit,
                 infoText: widget.ranges[i].infoText,
+                infoDiagram: widget.ranges[i].infoDiagram,
                 onMinChanged: widget.ranges[i].onMinChanged,
                 onMaxChanged: widget.ranges[i].onMaxChanged,
               ),
@@ -115,6 +121,7 @@ class _CatalogExpandableAdvancedFiltersState
                 selectedItems: chips.selectedItems,
                 onToggle: chips.onToggle,
                 infoText: chips.infoText,
+                infoDiagram: chips.infoDiagram,
               ),
             ],
             const SizedBox(height: AppSpacing.s16),

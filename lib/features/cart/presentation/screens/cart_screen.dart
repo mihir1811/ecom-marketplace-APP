@@ -49,18 +49,6 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       appBar: AppTopBar(
         title: '',
         titleWidget: const _CartAppBarTitle(),
-        extraActions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: context.tr(AccountCommerceL10n.refresh),
-            onPressed: () {
-              ref
-                  .read(cartProvider.notifier)
-                  .refresh(mode: CartLoadMode.full, force: true);
-              ref.read(activeFeesProvider.notifier).refresh();
-            },
-          ),
-        ],
       ),
       body: isLoading && isEmpty
           ? const Center(child: CircularProgressIndicator())

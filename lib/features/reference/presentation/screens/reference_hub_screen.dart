@@ -13,6 +13,7 @@ import '../../application/reference_providers.dart';
 import '../../domain/models/reference_models.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/widgets/app_dialog.dart';
 
 enum _ReferenceMetricTab { accepted, pending, commission }
 
@@ -114,6 +115,8 @@ class _ReferenceHubScreenState extends ConsumerState<ReferenceHubScreen> {
                     inbound: state.inbound,
                     purchases: state.purchases,
                     isLoadingMore: state.isLoadingMorePurchases,
+                    isLoadingPurchases: state.isLoadingPurchases,
+                    purchasesError: state.purchasesError,
                   ),
                   const SizedBox(height: AppSpacing.s16),
                   if (profile != null) _ShareCard(profile: profile),
@@ -295,12 +298,16 @@ class _TabPanel extends ConsumerWidget {
     required this.inbound,
     required this.purchases,
     required this.isLoadingMore,
+    required this.isLoadingPurchases,
+    this.purchasesError,
   });
 
   final _ReferenceMetricTab tab;
   final List<ReferenceRequest> inbound;
   final List<ReferencePurchase> purchases;
   final bool isLoadingMore;
+  final bool isLoadingPurchases;
+  final String? purchasesError;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -316,7 +323,12 @@ class _TabPanel extends ConsumerWidget {
       _ReferenceMetricTab.commission => _SectionCard(
         title: context.tr(RemainingL10n.referralPurchases),
         subtitle: context.tr(RemainingL10n.diamondAndMeleeOrdersThatEarned),
-        child: _buildPurchases(context),
+        child: _PurchasesPanel(
+          purchases: purchases,
+          isLoadingMore: isLoadingMore,
+          isLoadingPurchases: isLoadingPurchases,
+          purchasesError: purchasesError,
+        ),
       ),
     };
   }
@@ -359,24 +371,308 @@ class _TabPanel extends ConsumerWidget {
       ],
     );
   }
+}
 
-  Widget _buildPurchases(BuildContext context) {
-    if (purchases.isEmpty) {
-      return _EmptyNote(context.tr(RemainingL10n.noCommissionPurchases));
+enum _PurchaseRange { all, d7, d15, d30, custom }
+
+class _PurchasesPanel extends ConsumerStatefulWidget {
+  const _PurchasesPanel({
+    required this.purchases,
+    required this.isLoadingMore,
+    required this.isLoadingPurchases,
+    this.purchasesError,
+  });
+
+  final List<ReferencePurchase> purchases;
+  final bool isLoadingMore;
+  final bool isLoadingPurchases;
+  final String? purchasesError;
+
+  @override
+  ConsumerState<_PurchasesPanel> createState() => _PurchasesPanelState();
+}
+
+class _PurchasesPanelState extends ConsumerState<_PurchasesPanel> {
+  _PurchaseRange _range = _PurchaseRange.all;
+  DateTime? _customStart;
+  DateTime? _customEnd;
+
+  List<ReferencePurchase> get _filtered {
+    final now = DateTime.now().toUtc();
+    DateTime? start;
+    DateTime? end;
+    switch (_range) {
+      case _PurchaseRange.all:
+        return widget.purchases;
+      case _PurchaseRange.d7:
+        start = now.subtract(const Duration(days: 7));
+      case _PurchaseRange.d15:
+        start = now.subtract(const Duration(days: 15));
+      case _PurchaseRange.d30:
+        start = now.subtract(const Duration(days: 30));
+      case _PurchaseRange.custom:
+        if (_customStart == null || _customEnd == null) {
+          return widget.purchases;
+        }
+        start = DateTime(
+          _customStart!.year,
+          _customStart!.month,
+          _customStart!.day,
+        ).toUtc();
+        end = DateTime(
+          _customEnd!.year,
+          _customEnd!.month,
+          _customEnd!.day,
+          23,
+          59,
+          59,
+        ).toUtc();
     }
+
+    return widget.purchases
+        .where((p) {
+          final at = p.commissionAt?.toUtc();
+          if (at == null) return true;
+          if (start != null && at.isBefore(start)) return false;
+          if (end != null && at.isAfter(end)) return false;
+          return true;
+        })
+        .toList(growable: false);
+  }
+
+  Future<void> _onSelectRange(_PurchaseRange range) async {
+    if (range != _PurchaseRange.custom) {
+      setState(() => _range = range);
+      return;
+    }
+    final picked = await _pickCustomDateRange();
+    if (picked == null) return;
+    setState(() {
+      _range = _PurchaseRange.custom;
+      _customStart = picked.$1;
+      _customEnd = picked.$2;
+    });
+  }
+
+  Future<(DateTime, DateTime)?> _pickCustomDateRange() async {
+    DateTime? start = _customStart;
+    DateTime? end = _customEnd;
+    final firstDate = DateTime(2020);
+    final lastDate = DateTime.now().add(const Duration(days: 1));
+
+    return showAppDialog<(DateTime, DateTime)>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Future<void> pickStart() async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: start ?? DateTime.now(),
+                firstDate: firstDate,
+                lastDate: end ?? lastDate,
+                helpText: context.tr(RemainingL10n.selectStartDate),
+              );
+              if (picked == null) return;
+              setDialogState(() {
+                start = picked;
+                if (end != null && end!.isBefore(picked)) {
+                  end = null;
+                }
+              });
+            }
+
+            Future<void> pickEnd() async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: end ?? start ?? DateTime.now(),
+                firstDate: start ?? firstDate,
+                lastDate: lastDate,
+                helpText: context.tr(RemainingL10n.selectEndDate),
+              );
+              if (picked == null) return;
+              setDialogState(() => end = picked);
+            }
+
+            String fmt(DateTime? d) {
+              if (d == null) return '—';
+              String two(int v) => v.toString().padLeft(2, '0');
+              return '${two(d.month)}/${two(d.day)}/${d.year}';
+            }
+
+            return AlertDialog(
+              backgroundColor: AppColors.card(context),
+              title: Text(
+                context.tr(RemainingL10n.customDateRange),
+                style: AppTypography.title.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              content: SizedBox(
+                width: 320,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(context.tr(RemainingL10n.startDate)),
+                      subtitle: Text(fmt(start)),
+                      trailing: const Icon(Icons.calendar_today_outlined),
+                      onTap: pickStart,
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(context.tr(RemainingL10n.endDate)),
+                      subtitle: Text(fmt(end)),
+                      trailing: const Icon(Icons.calendar_today_outlined),
+                      onTap: pickEnd,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(context.tr(RemainingL10n.cancel)),
+                ),
+                FilledButton(
+                  onPressed: start != null && end != null
+                      ? () => Navigator.of(dialogContext).pop((start!, end!))
+                      : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.charcoal,
+                    foregroundColor: AppColors.warmWhite,
+                  ),
+                  child: Text(context.tr(RemainingL10n.apply)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = _filtered;
+    final customLabel = (_range == _PurchaseRange.custom &&
+            _customStart != null &&
+            _customEnd != null)
+        ? '${_fmtDate(_customStart!)} → ${_fmtDate(_customEnd!)}'
+        : null;
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final p in purchases)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-            child: _PurchaseRow(purchase: p),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (var i = 0; i < _PurchaseRange.values.length; i++) ...[
+                if (i > 0) const SizedBox(width: AppSpacing.s8),
+                _RangeChip(
+                  label: switch (_PurchaseRange.values[i]) {
+                    _PurchaseRange.all => 'All time',
+                    _PurchaseRange.d7 => '7 days',
+                    _PurchaseRange.d15 => '15 days',
+                    _PurchaseRange.d30 => '30 days',
+                    _PurchaseRange.custom => 'Custom',
+                  },
+                  selected: _range == _PurchaseRange.values[i],
+                  onTap: () => _onSelectRange(_PurchaseRange.values[i]),
+                ),
+              ],
+            ],
           ),
-        if (isLoadingMore)
+        ),
+        if (customLabel != null) ...[
+          const SizedBox(height: AppSpacing.s8),
+          Text(
+            customLabel,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondary(context),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.s16),
+        if (widget.isLoadingPurchases && widget.purchases.isEmpty)
           const Padding(
             padding: EdgeInsets.all(AppSpacing.s16),
             child: Center(child: CircularProgressIndicator()),
-          ),
+          )
+        else if (widget.purchasesError != null && widget.purchases.isEmpty)
+          Column(
+            children: [
+              _EmptyNote(widget.purchasesError!),
+              const SizedBox(height: AppSpacing.s12),
+              FilledButton(
+                onPressed: () =>
+                    ref.read(referenceHubProvider.notifier).refresh(),
+                child: Text(context.tr(RemainingL10n.retry)),
+              ),
+            ],
+          )
+        else if (filtered.isEmpty)
+          _EmptyNote(context.tr(RemainingL10n.noCommissionPurchases))
+        else ...[
+          for (final p in filtered)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+              child: _PurchaseRow(purchase: p),
+            ),
+          if (widget.isLoadingMore)
+            const Padding(
+              padding: EdgeInsets.all(AppSpacing.s16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+        ],
       ],
+    );
+  }
+
+  static String _fmtDate(DateTime d) {
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${two(d.month)}/${two(d.day)}/${d.year}';
+  }
+}
+
+class _RangeChip extends StatelessWidget {
+  const _RangeChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onTap(),
+      selectedColor: AppColors.bronze.withValues(alpha: 0.18),
+      labelStyle: AppTypography.caption.copyWith(
+        fontWeight: FontWeight.w700,
+        fontSize: 11,
+        height: 1.1,
+        color: selected
+            ? AppColors.bronze
+            : AppColors.textSecondary(context),
+      ),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+      side: BorderSide(
+        color: selected ? AppColors.bronze : AppColors.border(context),
+      ),
+      backgroundColor: AppColors.card(context),
+      showCheckmark: false,
+      visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
   }
 }
@@ -477,41 +773,77 @@ class _PurchaseRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final amountColor = purchase.commissionInr < 0
+        ? AppColors.terracotta
+        : const Color(0xFF2E7D4F);
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppSpacing.r12),
         border: Border.all(color: AppColors.border(context)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  purchase.label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.label.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      purchase.buyerLabel ?? purchase.label,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.label.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.s4),
+                    Text(
+                      purchase.metaLabel,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textMuted(context),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.s4),
-                Text(
-                  purchase.createdAtLabel,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMuted(context),
-                  ),
+              ),
+              const SizedBox(width: AppSpacing.s12),
+              Text(
+                purchase.signedAmountLabel,
+                style: AppTypography.label.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: amountColor,
                 ),
-              ],
+              ),
+            ],
+          ),
+          if (purchase.commissionInr < 0) ...[
+            const SizedBox(height: AppSpacing.s8),
+            Text(
+              'Commission reversed (seller rejected the order)',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.terracotta,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.s12),
-          Text(
-            purchase.amountLabel,
-            style: AppTypography.label.copyWith(fontWeight: FontWeight.w800),
-          ),
+          ],
+          if (purchase.items.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.s12),
+            for (final item in purchase.items)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Text(
+                  item.lineLabel,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondary(context),
+                  ),
+                ),
+              ),
+          ],
         ],
       ),
     );

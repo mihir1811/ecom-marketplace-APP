@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'confirm_app_exit.dart';
 import 'route_names.dart';
 
 /// App-wide navigation using only GoRouter push/pop/go (never [Navigator.removeRoute]).
 abstract final class AppNavigation {
+  static const _authRoutesReturningToLogin = <String>{
+    AppRouteNames.register,
+    AppRouteNames.forgotPassword,
+    AppRouteNames.verifyOtp,
+    AppRouteNames.resetPassword,
+    AppRouteNames.recoverAccount,
+  };
   /// Opens [location], reusing an existing stack entry when that path is already open.
   ///
   /// Use for detail / flow screens that should stack. Prefer [switchTo] for
@@ -48,19 +56,46 @@ abstract final class AppNavigation {
     router.go(location, extra: extra);
   }
 
-  /// Pops the current screen, or returns home when there is nothing to pop.
-  static void back(BuildContext context) {
+  /// Pops the current screen, or navigates safely when the stack is empty.
+  ///
+  /// Empty-stack order:
+  /// 1. Optional [fallbackLocation] (e.g. auth sub-screens → login)
+  /// 2. Auth recovery screens → login
+  /// 3. Any non-home / non-login route → home
+  /// 4. Home or login → exit confirmation dialog (never exits silently)
+  static Future<void> back(
+    BuildContext context, {
+    String? fallbackLocation,
+  }) async {
     final router = GoRouter.of(context);
     if (router.canPop()) {
       router.pop();
       return;
     }
+
     final path = canonicalPath(
       router.routerDelegate.currentConfiguration.uri.toString(),
     );
-    if (path != AppRouteNames.home) {
-      router.go(AppRouteNames.home);
+
+    final fallback = fallbackLocation == null
+        ? null
+        : canonicalPath(fallbackLocation);
+    if (fallback != null && path != fallback) {
+      router.go(fallback);
+      return;
     }
+
+    if (_authRoutesReturningToLogin.contains(path)) {
+      router.go(AppRouteNames.login);
+      return;
+    }
+
+    if (path != AppRouteNames.home && path != AppRouteNames.login) {
+      router.go(AppRouteNames.home);
+      return;
+    }
+
+    await requestAppExit(context);
   }
 
   /// Replaces the entire stack (logout, auth completion, gate redirects).
@@ -114,7 +149,8 @@ extension AppNavContext on BuildContext {
   void switchToRoute(String location, {Object? extra}) =>
       AppNavigation.switchTo(this, location, extra: extra);
 
-  void goBack() => AppNavigation.back(this);
+  void goBack({String? fallbackLocation}) =>
+      AppNavigation.back(this, fallbackLocation: fallbackLocation);
 
   void resetTo(String location, {Object? extra}) =>
       AppNavigation.resetTo(this, location, extra: extra);

@@ -3,6 +3,8 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import 'filter_info_tooltip.dart';
+import 'filter_proportion_diagram.dart';
 
 class FilterAdvancedRangeInput extends StatefulWidget {
   const FilterAdvancedRangeInput({
@@ -12,6 +14,7 @@ class FilterAdvancedRangeInput extends StatefulWidget {
     required this.minLimit,
     required this.maxLimit,
     required this.infoText,
+    this.infoDiagram,
     this.unit = '',
     required this.onMinChanged,
     required this.onMaxChanged,
@@ -24,6 +27,7 @@ class FilterAdvancedRangeInput extends StatefulWidget {
   final double minLimit;
   final double maxLimit;
   final String infoText;
+  final FilterProportionDiagramKind? infoDiagram;
   final String unit;
   final ValueChanged<double> onMinChanged;
   final ValueChanged<double> onMaxChanged;
@@ -138,20 +142,9 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               ),
             ),
             const SizedBox(width: 6),
-            Tooltip(
+            FilterInfoTooltip(
               message: widget.infoText,
-              triggerMode: TooltipTriggerMode.tap,
-              preferBelow: false,
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              textStyle: const TextStyle(color: Colors.white, fontSize: 13),
-              child: const Icon(
-                Icons.info_outline,
-                size: 16,
-                color: AppColors.bronze,
-              ),
+              diagram: widget.infoDiagram,
             ),
           ],
         ),

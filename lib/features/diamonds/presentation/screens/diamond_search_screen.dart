@@ -14,6 +14,7 @@ import '../../../../core/widgets/filters/catalog_expandable_advanced_filters.dar
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
 import '../../../../core/widgets/filters/catalog_search_add_field.dart';
+import '../../../../core/widgets/filters/filter_proportion_diagram.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
@@ -349,6 +350,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           unit: '%',
           infoText:
               'Filter by table width percentage relative to total diameter.',
+          infoDiagram: FilterProportionDiagramKind.table,
           onMinChanged: (v) => notifier.updateTableRange(v, state.maxTable),
           onMaxChanged: (v) => notifier.updateTableRange(state.minTable, v),
         ),
@@ -359,6 +361,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           unit: '%',
           infoText:
               'Filter by total depth percentage relative to total diameter.',
+          infoDiagram: FilterProportionDiagramKind.depth,
           onMinChanged: (v) => notifier.updateDepthRange(v, state.maxDepth),
           onMaxChanged: (v) => notifier.updateDepthRange(state.minDepth, v),
         ),
@@ -368,6 +371,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           currentMax: state.maxCrownAngle,
           unit: '°',
           infoText: context.tr(CatalogL10n.crownAngleHelp),
+          infoDiagram: FilterProportionDiagramKind.crownAngle,
           onMinChanged: (v) =>
               notifier.updateCrownAngleRange(v, state.maxCrownAngle),
           onMaxChanged: (v) =>
@@ -379,6 +383,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           currentMax: state.maxCrownHeight,
           unit: '%',
           infoText: context.tr(CatalogL10n.crownHeightHelp),
+          infoDiagram: FilterProportionDiagramKind.crownHeight,
           onMinChanged: (v) =>
               notifier.updateCrownHeightRange(v, state.maxCrownHeight),
           onMaxChanged: (v) =>
@@ -390,6 +395,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           currentMax: state.maxPavilionAngle,
           unit: '°',
           infoText: context.tr(CatalogL10n.pavilionAngleHelp),
+          infoDiagram: FilterProportionDiagramKind.pavilionAngle,
           onMinChanged: (v) =>
               notifier.updatePavilionAngleRange(v, state.maxPavilionAngle),
           onMaxChanged: (v) =>
@@ -401,6 +407,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           currentMax: state.maxPavilionDepth,
           unit: '%',
           infoText: context.tr(CatalogL10n.pavilionDepthHelp),
+          infoDiagram: FilterProportionDiagramKind.pavilionDepth,
           onMinChanged: (v) =>
               notifier.updatePavilionDepthRange(v, state.maxPavilionDepth),
           onMaxChanged: (v) =>
@@ -414,6 +421,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           selectedItems: state.selectedGirdles,
           onToggle: notifier.toggleGirdle,
           infoText: context.tr(CatalogL10n.girdleHelp),
+          infoDiagram: FilterProportionDiagramKind.girdle,
         ),
         CatalogAdvancedChipSpec(
           title: context.tr(CatalogL10n.culetSize),
@@ -421,6 +429,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           selectedItems: state.selectedCulets,
           onToggle: notifier.toggleCulet,
           infoText: context.tr(CatalogL10n.culetHelp),
+          infoDiagram: FilterProportionDiagramKind.culet,
         ),
       ],
     );

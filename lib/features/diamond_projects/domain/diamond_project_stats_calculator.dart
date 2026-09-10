@@ -7,31 +7,66 @@ abstract final class DiamondProjectStatsCalculator {
     if (items.isEmpty) return DiamondProjectStats.empty;
 
     final prices = items.map((i) => i.price).toList()..sort();
+    // Tukey IQR on $/ct. Positive finite values only — zeros collapse the
+    // lower fence. Seller inventory mixes shapes, so fences are computed
+    // per shape (same formula); global fences are kept for the summary.
+    final fenceSample = items
+        .map((i) => i.ppc)
+        .where((v) => v.isFinite && v > 0)
+        .toList()
+      ..sort();
     final totalCarat = items.fold<double>(0, (sum, i) => sum + i.carat);
     final totalPrice = items.fold<double>(0, (sum, i) => sum + i.price);
     final stones = items.length;
     final mean = totalPrice / stones;
     final median = _median(prices);
     final mode = _mode(prices);
-    final q1 = _percentile(prices, 0.25);
-    final q3 = _percentile(prices, 0.75);
-    final iqr = q3 - q1;
-    final low = q1 - 1.5 * iqr;
-    final high = q3 + 1.5 * iqr;
+
+    final globalFences = _tukeyFences(fenceSample);
+    final low = globalFences?.low ?? 0.0;
+    final high = globalFences?.high ?? 0.0;
+
+    final fencesByShape = <String, ({double low, double high})>{};
+    final byShape = <String, List<double>>{};
+    for (final item in items) {
+      final value = item.ppc;
+      if (!value.isFinite || value <= 0) continue;
+      final key = _shapeKey(item.shape);
+      (byShape[key] ??= <double>[]).add(value);
+    }
+    for (final entry in byShape.entries) {
+      final sorted = List<double>.from(entry.value)..sort();
+      final fences = _tukeyFences(sorted);
+      if (fences != null) fencesByShape[entry.key] = fences;
+    }
 
     final outliers = <DiamondProjectOutlier>[];
     final scatter = <DiamondProjectScatterPoint>[];
     for (final item in items) {
-      final isOutlier = item.price < low || item.price > high;
+      final value = item.ppc;
+      final measurable = value.isFinite && value > 0;
+      // Prefer shape-local fences when the cohort is large enough; otherwise
+      // fall back to the global inventory fences.
+      final fences = measurable
+          ? (fencesByShape[_shapeKey(item.shape)] ?? globalFences)
+          : null;
+      final isLow = fences != null && measurable && value < fences.low;
+      final isHigh = fences != null && measurable && value > fences.high;
+      final isOutlier = isLow || isHigh;
       if (isOutlier) {
-        outliers.add(
-          DiamondProjectOutlier(item: item, isHigh: item.price > high),
-        );
+        outliers.add(DiamondProjectOutlier(item: item, isHigh: isHigh));
       }
       scatter.add(
         DiamondProjectScatterPoint(item: item, isOutlier: isOutlier),
       );
     }
+
+    // Keep low outliers visible in the table (not buried after many highs).
+    outliers.sort((a, b) {
+      final side = a.isHigh == b.isHigh ? 0 : (a.isHigh ? 1 : -1);
+      if (side != 0) return side;
+      return a.item.ppc.compareTo(b.item.ppc);
+    });
 
     return DiamondProjectStats(
       stones: stones,
@@ -190,6 +225,21 @@ abstract final class DiamondProjectStatsCalculator {
     if (lo == hi) return sorted[lo];
     final t = pos - lo;
     return sorted[lo] * (1 - t) + sorted[hi] * t;
+  }
+
+  /// Official Tukey fences: Q1/Q3 percentiles, IQR, ±1.5·IQR.
+  static ({double low, double high})? _tukeyFences(List<double> sortedPositive) {
+    if (sortedPositive.length < 4) return null;
+    final q1 = _percentile(sortedPositive, 0.25);
+    final q3 = _percentile(sortedPositive, 0.75);
+    final iqr = q3 - q1;
+    return (low: q1 - 1.5 * iqr, high: q3 + 1.5 * iqr);
+  }
+
+  static String _shapeKey(String? shape) {
+    final raw = shape?.trim();
+    if (raw == null || raw.isEmpty) return '—';
+    return raw.toLowerCase();
   }
 
   static double _round(double value) =>

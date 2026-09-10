@@ -29,6 +29,9 @@ abstract final class CoreL10n {
   static const switchToDarkMode = 'core.theme.switchToDark';
   static const somethingWentWrong = 'core.error.somethingWentWrong';
   static const unexpectedError = 'core.error.unexpectedError';
+  static const exitAppTitle = 'core.exit.title';
+  static const exitAppBody = 'core.exit.body';
+  static const exitAppConfirm = 'core.exit.confirm';
 }
 
 const coreMessages = <String, LocalizedMessage>{
@@ -169,5 +172,20 @@ const coreMessages = <String, LocalizedMessage>{
         'एक अनपेक्षित त्रुटि हुई। कृपया ऐप को फिर से लोड या पुनः शुरू करें।',
     gujarati:
         'અણધારી ભૂલ આવી. કૃપા કરીને ઍપ ફરી લોડ કરો અથવા ફરી શરૂ કરો.',
+  ),
+  CoreL10n.exitAppTitle: LocalizedMessage(
+    english: 'Exit app?',
+    hindi: 'ऐप बंद करें?',
+    gujarati: 'ઍપ બંધ કરો?',
+  ),
+  CoreL10n.exitAppBody: LocalizedMessage(
+    english: 'Are you sure you want to exit the app?',
+    hindi: 'क्या आप वाकई ऐप से बाहर निकलना चाहते हैं?',
+    gujarati: 'શું તમે ખરેખર ઍપમાંથી બહાર નીકળવા માંગો છો?',
+  ),
+  CoreL10n.exitAppConfirm: LocalizedMessage(
+    english: 'Exit',
+    hindi: 'बाहर निकलें',
+    gujarati: 'બહાર નીકળો',
   ),
 };

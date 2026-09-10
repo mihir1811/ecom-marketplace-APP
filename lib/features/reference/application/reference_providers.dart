@@ -17,7 +17,9 @@ class ReferenceHubState {
     this.purchasesHasMore = false,
     this.isLoading = false,
     this.isLoadingMorePurchases = false,
+    this.isLoadingPurchases = false,
     this.errorMessage,
+    this.purchasesError,
   });
 
   final ReferenceProfile? profile;
@@ -28,7 +30,9 @@ class ReferenceHubState {
   final bool purchasesHasMore;
   final bool isLoading;
   final bool isLoadingMorePurchases;
+  final bool isLoadingPurchases;
   final String? errorMessage;
+  final String? purchasesError;
 
   ReferenceHubState copyWith({
     ReferenceProfile? profile,
@@ -39,8 +43,11 @@ class ReferenceHubState {
     bool? purchasesHasMore,
     bool? isLoading,
     bool? isLoadingMorePurchases,
+    bool? isLoadingPurchases,
     String? errorMessage,
+    String? purchasesError,
     bool clearError = false,
+    bool clearPurchasesError = false,
   }) {
     return ReferenceHubState(
       profile: profile ?? this.profile,
@@ -52,7 +59,11 @@ class ReferenceHubState {
       isLoading: isLoading ?? this.isLoading,
       isLoadingMorePurchases:
           isLoadingMorePurchases ?? this.isLoadingMorePurchases,
+      isLoadingPurchases: isLoadingPurchases ?? this.isLoadingPurchases,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      purchasesError: clearPurchasesError
+          ? null
+          : (purchasesError ?? this.purchasesError),
     );
   }
 }
@@ -61,7 +72,7 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
   CancelToken? _cancelToken;
   bool _started = false;
   Future<void>? _inFlight;
-  ReferenceHubState _latest = const ReferenceHubState(isLoading: true);
+  int _refreshGen = 0;
 
   ReferenceRepository get _repo => ref.read(referenceRepositoryProvider);
 
@@ -70,16 +81,12 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
     ref.onDispose(() => _cancelToken?.cancel());
     if (!_started) {
       _started = true;
-      Future.microtask(_loadOnce);
+      Future.microtask(refresh);
     }
-    return _latest;
+    return const ReferenceHubState(isLoading: true);
   }
 
-  Future<void> refresh() => _loadOnce();
-
-  Future<void> _loadOnce() async {
-    final pending = _inFlight;
-    if (pending != null) return pending;
+  Future<void> refresh() async {
     final done = _doRefresh();
     _inFlight = done;
     try {
@@ -90,57 +97,117 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
   }
 
   Future<void> _doRefresh() async {
+    final gen = ++_refreshGen;
+    final token = CancelToken();
     _cancelToken?.cancel('refresh');
-    _cancelToken = CancelToken();
-    _latest = _latest.copyWith(isLoading: true, clearError: true);
-    state = _latest;
+    _cancelToken = token;
 
-    final me = await _repo.getMe(cancelToken: _cancelToken);
-    final inbound = await _repo.listInbound(cancelToken: _cancelToken);
-    final outbound = await _repo.listOutbound(cancelToken: _cancelToken);
-    final purchases = await _repo.listPurchases(
-      page: 1,
-      cancelToken: _cancelToken,
+    state = state.copyWith(
+      isLoading: true,
+      isLoadingPurchases: true,
+      clearError: true,
+      clearPurchasesError: true,
     );
+
+    final results = await Future.wait([
+      _repo.getMe(cancelToken: token),
+      _repo.listInbound(cancelToken: token),
+      _repo.listOutbound(cancelToken: token),
+      _repo.listPurchases(page: 1, cancelToken: token),
+    ]);
+
+    if (gen != _refreshGen || token.isCancelled) return;
+
+    final me = results[0] as Result<ReferenceProfile, Failure>;
+    final inbound = results[1] as Result<List<ReferenceRequest>, Failure>;
+    final outbound = results[2] as Result<List<ReferenceRequest>, Failure>;
+    final purchases = results[3] as Result<ReferencePurchasePage, Failure>;
 
     Failure? firstFailure;
     for (final result in [me, inbound, outbound, purchases]) {
-      if (result case ResultFailure(failure: final failure)) {
+      if (result case ResultFailure(:final failure)) {
         if (failure is NetworkFailure && failure.isCancelled) return;
         firstFailure ??= failure;
       }
     }
 
-    _latest = ReferenceHubState(
-      profile: me is Success<ReferenceProfile, Failure> ? me.value : null,
-      inbound: inbound is Success<List<ReferenceRequest>, Failure>
-          ? inbound.value
-          : const [],
-      outbound: outbound is Success<List<ReferenceRequest>, Failure>
-          ? outbound.value
-          : const [],
-      purchases: purchases is Success<ReferencePurchasePage, Failure>
-          ? purchases.value.items
-          : const [],
-      purchasesPage: purchases is Success<ReferencePurchasePage, Failure>
-          ? purchases.value.page
-          : 1,
-      purchasesHasMore: purchases is Success<ReferencePurchasePage, Failure>
-          ? purchases.value.hasMore
-          : false,
+    final purchasePage = switch (purchases) {
+      Success(:final value) => value,
+      ResultFailure() => null,
+    };
+    final purchasesFailed = purchasePage == null;
+    final purchasesError = switch (purchases) {
+      ResultFailure(:final failure)
+          when failure is! NetworkFailure || !failure.isCancelled =>
+        failure.message,
+      _ => null,
+    };
+
+    state = ReferenceHubState(
+      profile: switch (me) {
+        Success(:final value) => value,
+        ResultFailure() => state.profile,
+      },
+      inbound: switch (inbound) {
+        Success(:final value) => value,
+        ResultFailure() => state.inbound,
+      },
+      outbound: switch (outbound) {
+        Success(:final value) => value,
+        ResultFailure() => state.outbound,
+      },
+      // Never wipe a successful purchases list when a later refresh fails.
+      purchases: purchasePage?.items ?? state.purchases,
+      purchasesPage: purchasePage?.page ?? state.purchasesPage,
+      purchasesHasMore: purchasePage?.hasMore ?? state.purchasesHasMore,
       isLoading: false,
+      isLoadingPurchases: false,
       errorMessage: firstFailure?.message,
+      purchasesError: purchasesError,
     );
-    state = _latest;
+
+    // Profile can succeed while purchases flakes (connection blip). Retry once.
+    if (purchasesFailed && state.profile != null) {
+      Future.microtask(_retryPurchasesOnce);
+    }
+  }
+
+  Future<void> _retryPurchasesOnce() async {
+    if (state.isLoadingPurchases || state.isLoading) return;
+    state = state.copyWith(
+      isLoadingPurchases: true,
+      clearPurchasesError: true,
+    );
+    final result = await _repo.listPurchases(page: 1);
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          purchases: value.items,
+          purchasesPage: value.page,
+          purchasesHasMore: value.hasMore,
+          isLoadingPurchases: false,
+          clearPurchasesError: true,
+        );
+      case ResultFailure(:final failure):
+        if (failure is NetworkFailure && failure.isCancelled) {
+          state = state.copyWith(isLoadingPurchases: false);
+          return;
+        }
+        state = state.copyWith(
+          isLoadingPurchases: false,
+          purchasesError: failure.message,
+        );
+    }
   }
 
   Future<void> loadMorePurchases() async {
     if (state.isLoading ||
         state.isLoadingMorePurchases ||
+        state.isLoadingPurchases ||
         !state.purchasesHasMore) {
       return;
     }
-    state = state.copyWith(isLoadingMorePurchases: true, clearError: true);
+    state = state.copyWith(isLoadingMorePurchases: true, clearPurchasesError: true);
     final next = state.purchasesPage + 1;
     final result = await _repo.listPurchases(page: next);
     switch (result) {
@@ -154,7 +221,7 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
       case ResultFailure(failure: final failure):
         state = state.copyWith(
           isLoadingMorePurchases: false,
-          errorMessage: failure.message,
+          purchasesError: failure.message,
         );
     }
   }

@@ -73,26 +73,34 @@ abstract final class ReferenceMapper {
     required int limit,
   }) {
     final data = root?['data'];
-    final payload = data is Map<String, dynamic>
-        ? data
-        : const <String, dynamic>{};
-    final purchasesRaw = payload['purchases'];
-    final list = purchasesRaw is List ? purchasesRaw : const [];
+    final List list;
+    Map<String, dynamic> payload = const <String, dynamic>{};
+    if (data is List) {
+      list = data;
+    } else if (data is Map) {
+      payload = Map<String, dynamic>.from(data);
+      final purchasesRaw =
+          payload['purchases'] ?? payload['items'] ?? payload['results'];
+      list = purchasesRaw is List ? purchasesRaw : const [];
+    } else {
+      list = const [];
+    }
+
     final items = <ReferencePurchase>[];
     for (final item in list) {
-      if (item is! Map<String, dynamic>) continue;
-      final purchase = purchaseFromJson(item);
+      if (item is! Map) continue;
+      final purchase = purchaseFromJson(Map<String, dynamic>.from(item));
       if (purchase.id.isEmpty) continue;
       items.add(purchase);
     }
 
     final meta = root?['meta'];
-    final metaMap = meta is Map<String, dynamic>
-        ? meta
+    final metaMap = meta is Map
+        ? Map<String, dynamic>.from(meta)
         : const <String, dynamic>{};
-    final pagination = metaMap['pagination'];
-    final pageMeta = pagination is Map<String, dynamic>
-        ? pagination
+    final pagination = metaMap['pagination'] ?? payload['pagination'];
+    final pageMeta = pagination is Map
+        ? Map<String, dynamic>.from(pagination)
         : const <String, dynamic>{};
 
     return ReferencePurchasePage(
@@ -107,49 +115,131 @@ abstract final class ReferenceMapper {
   static ReferencePurchase purchaseFromJson(Map<String, dynamic> json) {
     final id =
         json['id']?.toString() ??
+        json['_id']?.toString() ??
         json['orderId']?.toString() ??
         json['purchaseId']?.toString() ??
         '';
-    final productType = json['productType']?.toString();
-    final title =
-        json['title']?.toString() ??
-        json['productName']?.toString() ??
-        json['name']?.toString() ??
-        productType ??
-        'Purchase';
-    final amount = _asDouble(
-      json['commissionAmount'] ??
-          json['commission'] ??
-          json['amount'] ??
-          json['total'] ??
-          json['price'],
+
+    final itemsRaw = json['items'];
+    final parsedItems = <ReferencePurchaseItem>[];
+    if (itemsRaw is List) {
+      for (final item in itemsRaw) {
+        if (item is! Map) continue;
+        final map = Map<String, dynamic>.from(item);
+        final name = map['name']?.toString().trim() ?? '';
+        if (name.isEmpty) continue;
+        parsedItems.add(
+          ReferencePurchaseItem(
+            name: name,
+            productType: map['productType']?.toString().trim() ?? '',
+            quantity: _asInt(map['quantity']) ?? 1,
+          ),
+        );
+      }
+    }
+
+    final buyerRaw = json['buyer'] ?? json['referredUser'] ?? json['user'];
+    String? buyerLabel;
+    if (buyerRaw is Map) {
+      final buyer = Map<String, dynamic>.from(buyerRaw);
+      final party = ReferenceParty(
+        id: buyer['id']?.toString() ?? '',
+        name: buyer['name']?.toString() ?? '',
+        email: buyer['email']?.toString() ?? '',
+        userName: buyer['userName']?.toString() ?? '',
+        referralCode: buyer['referralCode']?.toString() ?? '',
+      );
+      final label = party.nameDotEmail.trim();
+      buyerLabel = label.isEmpty ? null : label;
+    }
+
+    final productType =
+        json['productType']?.toString() ??
+        json['orderType']?.toString() ??
+        (parsedItems.isNotEmpty ? parsedItems.first.productType : null);
+
+    final String title;
+    if (parsedItems.length == 1) {
+      title = parsedItems.first.name;
+    } else if (parsedItems.length > 1) {
+      title = '${parsedItems.length} items · ${parsedItems.first.name}';
+    } else {
+      title =
+          json['title']?.toString() ??
+          json['productName']?.toString() ??
+          json['name']?.toString() ??
+          buyerLabel ??
+          productType ??
+          'Purchase';
+    }
+
+    final amount =
+        _asDouble(
+          json['commissionInr'] ??
+              json['commissionAmount'] ??
+              json['commissionAmountInr'] ??
+              json['commission'] ??
+              json['amount'] ??
+              json['amountInr'] ??
+              json['earnedAmount'] ??
+              json['total'],
+        ) ??
+        0;
+    final createdAt = _parseDate(
+      json['commissionAt'] ??
+          json['orderCreatedAt'] ??
+          json['createdAt'] ??
+          json['purchasedAt'] ??
+          json['created_at'] ??
+          json['date'],
     );
-    final createdAt = _parseDate(json['createdAt'] ?? json['purchasedAt']);
 
     return ReferencePurchase(
       id: id,
       label: title,
-      amountLabel: amount == null ? '—' : AppCurrency.inr(amount),
+      amountLabel: AppCurrency.inr(amount),
       createdAtLabel: _label(createdAt),
+      commissionInr: amount,
+      commissionAt: createdAt,
+      orderStatus: json['orderStatus']?.toString(),
+      orderType: json['orderType']?.toString(),
+      buyerLabel: buyerLabel,
+      items: parsedItems,
       productType: productType,
       raw: json,
     );
   }
 
   static ReferenceParty? _partyFromJson(Object? raw) {
-    if (raw is! Map<String, dynamic>) return null;
+    if (raw is! Map) return null;
+    final map = Map<String, dynamic>.from(raw);
     return ReferenceParty(
-      id: raw['id']?.toString() ?? '',
-      name: raw['name']?.toString() ?? '',
-      email: raw['email']?.toString() ?? '',
-      userName: raw['userName']?.toString() ?? '',
-      referralCode: raw['referralCode']?.toString() ?? '',
+      id: map['id']?.toString() ?? '',
+      name: map['name']?.toString() ?? '',
+      email: map['email']?.toString() ?? '',
+      userName: map['userName']?.toString() ?? '',
+      referralCode: map['referralCode']?.toString() ?? '',
     );
   }
 
   static DateTime? _parseDate(Object? raw) {
     if (raw == null) return null;
-    return DateTime.tryParse(raw.toString())?.toLocal();
+    if (raw is DateTime) return raw.toLocal();
+    if (raw is num) {
+      final n = raw.toInt();
+      // seconds vs milliseconds
+      final ms = n < 100000000000 ? n * 1000 : n;
+      return DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true).toLocal();
+    }
+    if (raw is Map) {
+      final map = Map<String, dynamic>.from(raw);
+      return _parseDate(map['\$date'] ?? map['date'] ?? map['value']);
+    }
+    final text = raw.toString().trim();
+    if (text.isEmpty) return null;
+    final asNum = num.tryParse(text);
+    if (asNum != null) return _parseDate(asNum);
+    return DateTime.tryParse(text)?.toLocal();
   }
 
   static String _label(DateTime? value) {
@@ -163,7 +253,14 @@ abstract final class ReferenceMapper {
   static double? _asDouble(Object? value) {
     if (value == null) return null;
     if (value is num) return value.toDouble();
-    return double.tryParse(value.toString());
+    var text = value.toString().trim();
+    if (text.isEmpty) return null;
+    text = text
+        .replaceAll('₹', '')
+        .replaceAll('\$', '')
+        .replaceAll(',', '')
+        .replaceAll(RegExp(r'[^0-9.\-]'), '');
+    return double.tryParse(text);
   }
 
   static int? _asInt(Object? value) {

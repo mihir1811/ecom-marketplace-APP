@@ -305,12 +305,20 @@ class DiamondInquiryForm extends StatelessWidget {
               ),
               InquiryPairFields(
                 left: InquiryTextField(
-                  label: context.tr(RemainingL10n.ppcMin),
+                  label: context.tr(
+                    _isParcel && !_measureCarat
+                        ? RemainingL10n.pppMin
+                        : RemainingL10n.ppcMin,
+                  ),
                   controller: controller('pricePerCaratMin'),
                   onChanged: onChanged,
                 ),
                 right: InquiryTextField(
-                  label: context.tr(RemainingL10n.ppcMax),
+                  label: context.tr(
+                    _isParcel && !_measureCarat
+                        ? RemainingL10n.pppMax
+                        : RemainingL10n.ppcMax,
+                  ),
                   controller: controller('pricePerCaratMax'),
                   onChanged: onChanged,
                 ),
@@ -408,7 +416,7 @@ class DiamondInquiryForm extends StatelessWidget {
             context.tr(RemainingL10n.color),
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary(context),
+              color: AppColors.textPrimary(context),
             ),
           ),
           const Spacer(),
@@ -416,9 +424,6 @@ class DiamondInquiryForm extends StatelessWidget {
             width: 156,
             child: InquirySegmentedField(
               value: _isFancy ? 'fancy' : 'standard',
-              selectedColor: _isFancy
-                  ? AppColors.bronze
-                  : AppColors.selectedFill(context),
               options: [
                 (value: 'standard', label: context.tr(RemainingL10n.standard)),
                 (value: 'fancy', label: context.tr(RemainingL10n.fancy)),

@@ -3,6 +3,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import 'filter_group_card.dart';
+import 'filter_info_tooltip.dart';
+import 'filter_proportion_diagram.dart';
 
 class FilterScrollableChips extends StatelessWidget {
   const FilterScrollableChips({
@@ -11,6 +13,7 @@ class FilterScrollableChips extends StatelessWidget {
     required this.selectedItems,
     required this.onToggle,
     required this.infoText,
+    this.infoDiagram,
     this.wrapWithCard = true,
     this.margin,
     super.key,
@@ -21,6 +24,7 @@ class FilterScrollableChips extends StatelessWidget {
   final List<String> selectedItems;
   final void Function(String) onToggle;
   final String infoText;
+  final FilterProportionDiagramKind? infoDiagram;
   final bool wrapWithCard;
   final EdgeInsetsGeometry? margin;
 
@@ -41,21 +45,7 @@ class FilterScrollableChips extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Tooltip(
-              message: infoText,
-              triggerMode: TooltipTriggerMode.tap,
-              preferBelow: false,
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              textStyle: const TextStyle(color: Colors.white, fontSize: 13),
-              child: const Icon(
-                Icons.info_outline,
-                size: 16,
-                color: AppColors.bronze,
-              ),
-            ),
+            FilterInfoTooltip(message: infoText, diagram: infoDiagram),
           ],
         ),
         const SizedBox(height: AppSpacing.s8),
