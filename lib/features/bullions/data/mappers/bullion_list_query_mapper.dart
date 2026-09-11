@@ -79,6 +79,15 @@ abstract final class BullionListQueryMapper {
       }
     }
 
+    final availability = _mapAvailabilityToApi(f.selectedAvailability);
+    if (availability != null) {
+      filters['availability'] = {'equals': availability};
+    }
+
+    if (f.makeAnOffer) {
+      filters['isMakeAnOfferAllowed'] = {'equals': true};
+    }
+
     final fineness = _mapVariantToFineness(f.selectedVariant);
     if (fineness != null) {
       filters['metalFineness'] = {
@@ -173,6 +182,17 @@ abstract final class BullionListQueryMapper {
     if (v == 'bu' || v.contains('brilliant')) return 'BU';
     if (v.startsWith('new')) return 'New';
     return ui.trim();
+  }
+
+  static String? _mapAvailabilityToApi(String ui) {
+    return switch (ui.trim().toLowerCase()) {
+      'all' || '' => null,
+      'available' || 'yes' || 'in stock' => 'yes',
+      'on memo' || 'memo' => 'memo',
+      'on hold' || 'hold' => 'hold',
+      'sold' => 'sold',
+      _ => null,
+    };
   }
 
   static String? _mapWeightChip(String chip) {

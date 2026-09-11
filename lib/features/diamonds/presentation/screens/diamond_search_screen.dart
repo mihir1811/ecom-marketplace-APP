@@ -277,6 +277,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   Widget _buildPreferenceFilters() {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
+    final isLab = widget.catalog == DiamondCatalogType.labGrown;
 
     return CatalogPreferencesFilters(
       locationField: CatalogSearchAddField(
@@ -290,13 +291,15 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         onAdd: notifier.addVendorLocation,
         onRemove: notifier.removeVendorLocation,
       ),
-      originDropdown: FilterOriginDropdown(
-        selectedOrigin: state.selectedOrigin,
-        onSelected: notifier.updateOriginCountry,
-      ),
-      roughSourceOptions: DiamondFilterState.roughSources,
-      selectedRoughSource: state.selectedRoughSource,
-      onRoughSourceChanged: notifier.updateRoughSource,
+      originDropdown: isLab
+          ? null
+          : FilterOriginDropdown(
+              selectedOrigin: state.selectedOrigin,
+              onSelected: notifier.updateOriginCountry,
+            ),
+      roughSourceOptions: isLab ? null : DiamondFilterState.roughSources,
+      selectedRoughSource: isLab ? null : state.selectedRoughSource,
+      onRoughSourceChanged: isLab ? null : notifier.updateRoughSource,
       minSellerRating: state.minSellerRating,
       onSellerRatingChanged: notifier.updateSellerRating,
       companyField: CatalogSearchAddField(

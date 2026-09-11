@@ -15,10 +15,17 @@ final List<RouteBase> watchesRoutes = [
     builder: (context, state) => const WatchFilterDrawer(),
   ),
   GoRoute(
+    path: AppRouteNames.brandWatchFilters,
+    builder: (context, state) {
+      final brandName = state.pathParameters['brandName']!;
+      return WatchFilterDrawer(lockedBrand: Uri.decodeComponent(brandName));
+    },
+  ),
+  GoRoute(
     path: AppRouteNames.brandWatch,
     builder: (context, state) {
       final brandName = state.pathParameters['brandName']!;
-      return BrandWatchScreen(brandName: brandName);
+      return BrandWatchScreen(brandName: Uri.decodeComponent(brandName));
     },
   ),
 ];

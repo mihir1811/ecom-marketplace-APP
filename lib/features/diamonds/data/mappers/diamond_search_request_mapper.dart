@@ -272,6 +272,13 @@ abstract final class DiamondSearchRequestMapper {
     if (filters.searchByMedia || filters.sellersWithImages) {
       body['has_image'] = true;
     }
+    if (filters.makeAnOffer) {
+      body['is_make_an_offer_allowed'] = true;
+    }
+    final availability = _mapAvailability(filters.selectedAvailability);
+    if (availability != null) {
+      body['available'] = availability;
+    }
     if (filters.minSellerRating > 0) {
       body['seller_rating'] = _sellerRating(filters.minSellerRating);
     }
@@ -425,6 +432,17 @@ abstract final class DiamondSearchRequestMapper {
       return 'other';
     }
     return v;
+  }
+
+  static String? _mapAvailability(String value) {
+    return switch (value.trim().toLowerCase()) {
+      'all' || '' => null,
+      'available' || 'yes' || 'in stock' => 'yes',
+      'on memo' || 'memo' => 'memo',
+      'on hold' || 'hold' => 'hold',
+      'sold' => 'sold',
+      _ => null,
+    };
   }
 
   static String _sellerRating(double rating) {

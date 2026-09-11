@@ -5,7 +5,8 @@ class JewelryFilterState {
     this.searchQuery = '',
     this.category,
     this.subCategories = const {},
-    this.availability = const {},
+    this.selectedAvailability = 'All',
+    this.makeAnOffer = false,
     this.withMediaOnly = false,
     this.genders = const {},
     this.priceMin = 0,
@@ -39,7 +40,8 @@ class JewelryFilterState {
   final String searchQuery;
   final String? category;
   final Set<String> subCategories;
-  final Set<String> availability;
+  final String selectedAvailability;
+  final bool makeAnOffer;
   final bool withMediaOnly;
   final Set<String> genders;
   final double priceMin;
@@ -147,7 +149,13 @@ class JewelryFilterState {
         const [];
   }
 
-  static const availabilityOptions = ['In Stock', 'On Hold', 'Memo'];
+  static const availabilityOptions = [
+    'All',
+    'Available',
+    'On Memo',
+    'On Hold',
+    'Sold',
+  ];
   static const genderOptions = ['Women', 'Men', 'Unisex', 'Kids'];
   static const occasionOptions = [
     'Wedding',
@@ -346,7 +354,8 @@ class JewelryFilterState {
       if (s.isNotEmpty) count++;
     }
 
-    bump(availability);
+    if (selectedAvailability != 'All') count++;
+    if (makeAnOffer) count++;
     if (withMediaOnly) count++;
     bump(genders);
     if (priceMin > priceMinLimit || priceMax < priceMaxLimit) count++;
@@ -391,7 +400,7 @@ class JewelryFilterState {
       labels.add('${AppCurrency.format(_fmt(priceMin))}–${AppCurrency.format(_fmt(priceMax))}');
     }
     if (stoneType != null) labels.add(stoneType!);
-    labels.addAll(availability);
+    if (selectedAvailability != 'All') labels.add(selectedAvailability);
     labels.addAll(genders);
     return labels;
   }
@@ -409,7 +418,8 @@ class JewelryFilterState {
     bool clearCategory = false,
     Set<String>? subCategories,
     bool clearSubCategories = false,
-    Set<String>? availability,
+    String? selectedAvailability,
+    bool? makeAnOffer,
     bool? withMediaOnly,
     Set<String>? genders,
     double? priceMin,
@@ -447,7 +457,8 @@ class JewelryFilterState {
       subCategories: clearSubCategories
           ? const {}
           : (subCategories ?? this.subCategories),
-      availability: availability ?? this.availability,
+      selectedAvailability: selectedAvailability ?? this.selectedAvailability,
+      makeAnOffer: makeAnOffer ?? this.makeAnOffer,
       withMediaOnly: withMediaOnly ?? this.withMediaOnly,
       genders: genders ?? this.genders,
       priceMin: priceMin ?? this.priceMin,

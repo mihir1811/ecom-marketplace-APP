@@ -61,6 +61,8 @@ class BullionsFilterState {
     this.selectedVariant,
     this.searchQuery = '',
     this.shapes = const {},
+    this.selectedAvailability = 'All',
+    this.makeAnOffer = false,
     this.weightChips = const {},
     this.conditions = const {},
     this.certifications = const {},
@@ -83,6 +85,8 @@ class BullionsFilterState {
   final String? selectedVariant;
   final String searchQuery;
   final Set<String> shapes;
+  final String selectedAvailability;
+  final bool makeAnOffer;
   final Set<String> weightChips;
   final Set<String> conditions;
   final Set<String> certifications;
@@ -101,6 +105,13 @@ class BullionsFilterState {
   final double heightMax;
 
   static const shapeOptions = ['Bar', 'Biscuit', 'Coin', 'Round'];
+  static const availabilityOptions = [
+    'All',
+    'Available',
+    'On Memo',
+    'On Hold',
+    'Sold',
+  ];
   static const weightChipOptions = ['1g', '5g', '10g', '1oz'];
   static const conditionOptions = [
     'New',
@@ -153,6 +164,8 @@ class BullionsFilterState {
     }
 
     bumpSet(shapes);
+    if (selectedAvailability != 'All') count++;
+    if (makeAnOffer) count++;
     bumpSet(weightChips);
     bumpSet(conditions);
     bumpSet(certifications);
@@ -172,6 +185,8 @@ class BullionsFilterState {
     bool clearVariant = false,
     String? searchQuery,
     Set<String>? shapes,
+    String? selectedAvailability,
+    bool? makeAnOffer,
     Set<String>? weightChips,
     Set<String>? conditions,
     Set<String>? certifications,
@@ -196,6 +211,8 @@ class BullionsFilterState {
           : (selectedVariant ?? this.selectedVariant),
       searchQuery: searchQuery ?? this.searchQuery,
       shapes: shapes ?? this.shapes,
+      selectedAvailability: selectedAvailability ?? this.selectedAvailability,
+      makeAnOffer: makeAnOffer ?? this.makeAnOffer,
       weightChips: weightChips ?? this.weightChips,
       conditions: conditions ?? this.conditions,
       certifications: certifications ?? this.certifications,

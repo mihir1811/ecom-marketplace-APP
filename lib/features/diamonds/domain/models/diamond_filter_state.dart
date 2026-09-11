@@ -220,6 +220,15 @@ class DiamondFilterState {
     'Others',
   ];
 
+  /// Availability dropdown options (UI labels). `'All'` means no filter.
+  static const List<String> availabilityOptions = [
+    'All',
+    'Available',
+    'On Memo',
+    'On Hold',
+    'Sold',
+  ];
+
   static const List<String> girdles = [
     'Extremely Thin',
     'Very Thin',
@@ -679,6 +688,8 @@ class DiamondFilterState {
     this.sellersWithImages = false,
     this.separable = false,
     this.searchByMedia = false,
+    this.selectedAvailability = 'All',
+    this.makeAnOffer = false,
     this.selectedPolish = const [],
     this.selectedSymmetry = const [],
     this.selectedFluorescence = const [],
@@ -769,6 +780,12 @@ class DiamondFilterState {
   final bool sellersWithImages;
   final bool separable;
   final bool searchByMedia;
+
+  /// Availability filter label from [availabilityOptions]. `'All'` = no filter.
+  final String selectedAvailability;
+
+  /// When true, only listings that allow make-an-offer.
+  final bool makeAnOffer;
   final List<String> selectedPolish;
   final List<String> selectedSymmetry;
   final List<String> selectedFluorescence;
@@ -859,6 +876,8 @@ class DiamondFilterState {
     bool? sellersWithImages,
     bool? separable,
     bool? searchByMedia,
+    String? selectedAvailability,
+    bool? makeAnOffer,
     List<String>? selectedPolish,
     List<String>? selectedSymmetry,
     List<String>? selectedFluorescence,
@@ -945,6 +964,8 @@ class DiamondFilterState {
       sellersWithImages: sellersWithImages ?? this.sellersWithImages,
       separable: separable ?? this.separable,
       searchByMedia: searchByMedia ?? this.searchByMedia,
+      selectedAvailability: selectedAvailability ?? this.selectedAvailability,
+      makeAnOffer: makeAnOffer ?? this.makeAnOffer,
       selectedPolish: selectedPolish ?? this.selectedPolish,
       selectedSymmetry: selectedSymmetry ?? this.selectedSymmetry,
       selectedFluorescence: selectedFluorescence ?? this.selectedFluorescence,

@@ -8,60 +8,8 @@ Set<String> _toggle(Set<String> current, String value) {
   return next;
 }
 
-class WatchFilterNotifier extends Notifier<WatchFilterState> {
-  @override
-  WatchFilterState build() => const WatchFilterState();
-
-  void setSearchQuery(String query) {
-    state = state.copyWith(searchQuery: query);
-  }
-
-  void toggleBrand(String brand) {
-    state = state.copyWith(brands: _toggle(state.brands, brand));
-  }
-
-  void clearBrands() {
-    state = state.copyWith(brands: {});
-  }
-
-  void toggleCategory(String category) {
-    state = state.copyWith(categories: _toggle(state.categories, category));
-  }
-
-  void replaceWith(WatchFilterState next) {
-    state = next;
-  }
-
-  void reset() {
-    state = const WatchFilterState();
-  }
-}
-
-final watchFilterProvider =
-    NotifierProvider<WatchFilterNotifier, WatchFilterState>(
-  WatchFilterNotifier.new,
-);
-
-final watchSortProvider =
-    StateProvider<WatchSortOption>((ref) => WatchSortOption.featured);
-
-final watchViewModeProvider =
-    StateProvider<WatchViewMode>((ref) => WatchViewMode.grid);
-
-/// Draft filters edited on the full-screen filter sheet before "SHOW RESULTS".
-class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
-  @override
-  WatchFilterState build() {
-    // Seed once from applied filters. Do not `watch` applied state — that
-    // would overwrite draft edits (including Reset) whenever applied notifies.
-    // Opening the sheet always calls [syncFromApplied].
-    return ref.read(watchFilterProvider);
-  }
-
-  void syncFromApplied() {
-    state = ref.read(watchFilterProvider);
-  }
-
+/// Shared mutators for applied/draft watch filter notifiers.
+abstract class WatchFilterStateMutator extends Notifier<WatchFilterState> {
   void toggleBrand(String v) =>
       state = state.copyWith(brands: _toggle(state.brands, v));
 
@@ -80,15 +28,22 @@ class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
   void toggleCondition(String v) =>
       state = state.copyWith(conditions: _toggle(state.conditions, v));
 
-  void toggleAvailability(String v) => state = state.copyWith(
-        availabilityStatuses: _toggle(state.availabilityStatuses, v),
-      );
+  void updateAvailability(String? value) {
+    final next = (value == null || value.trim().isEmpty) ? 'All' : value.trim();
+    state = state.copyWith(selectedAvailability: next);
+  }
+
+  void setMakeAnOffer(bool v) => state = state.copyWith(makeAnOffer: v);
 
   void toggleWithMedia(String v) =>
       state = state.copyWith(withMedia: _toggle(state.withMedia, v));
 
-  void togglePriceRange(String v) =>
-      state = state.copyWith(priceRanges: _toggle(state.priceRanges, v));
+  void setPriceRange({double? min, double? max}) {
+    state = state.copyWith(
+      priceMin: min ?? state.priceMin,
+      priceMax: max ?? state.priceMax,
+    );
+  }
 
   void toggleCaseMaterial(String v) =>
       state = state.copyWith(caseMaterials: _toggle(state.caseMaterials, v));
@@ -168,9 +123,66 @@ class WatchFilterDraftNotifier extends Notifier<WatchFilterState> {
       state = state.copyWith(fullSetIncluded: v);
 
   /// Clears all draft filter fields (keeps listing search query only).
-  void reset() {
+  void resetDraftKeepingSearch() {
     state = WatchFilterState(searchQuery: state.searchQuery);
   }
+}
+
+class WatchFilterNotifier extends Notifier<WatchFilterState> {
+  @override
+  WatchFilterState build() => const WatchFilterState();
+
+  void setSearchQuery(String query) {
+    state = state.copyWith(searchQuery: query);
+  }
+
+  void toggleBrand(String brand) {
+    state = state.copyWith(brands: _toggle(state.brands, brand));
+  }
+
+  void clearBrands() {
+    state = state.copyWith(brands: {});
+  }
+
+  void toggleCategory(String category) {
+    state = state.copyWith(categories: _toggle(state.categories, category));
+  }
+
+  void replaceWith(WatchFilterState next) {
+    state = next;
+  }
+
+  void reset() {
+    state = const WatchFilterState();
+  }
+}
+
+final watchFilterProvider =
+    NotifierProvider<WatchFilterNotifier, WatchFilterState>(
+  WatchFilterNotifier.new,
+);
+
+final watchSortProvider =
+    StateProvider<WatchSortOption>((ref) => WatchSortOption.featured);
+
+final watchViewModeProvider =
+    StateProvider<WatchViewMode>((ref) => WatchViewMode.grid);
+
+/// Draft filters edited on the full-screen filter sheet before "SHOW RESULTS".
+class WatchFilterDraftNotifier extends WatchFilterStateMutator {
+  @override
+  WatchFilterState build() {
+    // Seed once from applied filters. Do not `watch` applied state — that
+    // would overwrite draft edits (including Reset) whenever applied notifies.
+    // Opening the sheet always calls [syncFromApplied].
+    return ref.read(watchFilterProvider);
+  }
+
+  void syncFromApplied() {
+    state = ref.read(watchFilterProvider);
+  }
+
+  void reset() => resetDraftKeepingSearch();
 
   void apply() {
     ref.read(watchFilterProvider.notifier).replaceWith(state);

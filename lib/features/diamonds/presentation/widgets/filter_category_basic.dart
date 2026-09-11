@@ -59,6 +59,17 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
     }
   }
 
+  String _availabilityLabel(BuildContext context, String option) {
+    return switch (option) {
+      'All' => context.tr(RemainingL10n.all),
+      'Available' => context.tr(CatalogL10n.available),
+      'On Memo' => context.tr(CatalogL10n.onMemo),
+      'On Hold' => context.tr(CatalogL10n.onHold),
+      'Sold' => context.tr(CatalogL10n.sold),
+      _ => option,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(diamondSearchProvider);
@@ -228,6 +239,39 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                   label: context.tr(CatalogL10n.filterByMedia),
                   value: state.searchByMedia,
                   onChanged: (_) => notifier.toggleSearchByMedia(),
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                FilterBooleanCheckbox(
+                  label: context.tr(CatalogL10n.makeOffer),
+                  value: state.makeAnOffer,
+                  onChanged: (_) => notifier.toggleMakeAnOffer(),
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                FilterSectionHeader(
+                  title: context.tr(CatalogL10n.availability),
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: borderColor),
+                    borderRadius: BorderRadius.circular(AppSpacing.r8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: state.selectedAvailability,
+                      items: DiamondFilterState.availabilityOptions
+                          .map(
+                            (opt) => DropdownMenuItem<String>(
+                              value: opt,
+                              child: Text(_availabilityLabel(context, opt)),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: notifier.updateAvailability,
+                    ),
+                  ),
                 ),
               ],
             ),

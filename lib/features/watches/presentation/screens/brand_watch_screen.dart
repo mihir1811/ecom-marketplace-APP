@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/l10n/app_localizations.dart';
+import 'package:gemstone/core/widgets/app_scaffold.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
-import '../../../../core/widgets/app_top_bar.dart';
 import '../../../../core/widgets/simple_sort_sheet.dart';
+import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../application/brand_watch_filter_provider.dart';
 import '../../application/brand_watch_list_provider.dart';
-import '../../domain/models/brand_watch_state.dart';
+import '../../domain/models/watch_filter_state.dart';
 import '../widgets/watch_brand_assets.dart';
 import '../widgets/watch_grid_view.dart';
-import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
-import '../../../../core/utils/app_currency.dart';
 
 class BrandWatchScreen extends ConsumerStatefulWidget {
   const BrandWatchScreen({required this.brandName, super.key});
@@ -29,20 +30,11 @@ class BrandWatchScreen extends ConsumerStatefulWidget {
 
 class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
   final _scrollController = ScrollController();
-  final _priceMinController = TextEditingController();
-  final _priceMaxController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    final filters = ref.read(brandWatchFilterProvider);
-    if (filters.priceMin.isNotEmpty) {
-      _priceMinController.text = filters.priceMin;
-    }
-    if (filters.priceMax.isNotEmpty) {
-      _priceMaxController.text = filters.priceMax;
-    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(brandWatchListProvider.notifier).setBrandName(widget.brandName);
     });
@@ -60,8 +52,6 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
-    _priceMinController.dispose();
-    _priceMaxController.dispose();
     super.dispose();
   }
 
@@ -73,152 +63,28 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
     }
   }
 
-  Future<void> _showFiltersSheet() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final filters = ref.watch(brandWatchFilterProvider);
-            final muted = AppColors.textMuted(context);
-            final n = ref.read(brandWatchFilterProvider.notifier);
-
-            return Padding(
-              padding: EdgeInsets.only(
-                left: AppSpacing.s16,
-                right: AppSpacing.s16,
-                bottom:
-                    MediaQuery.viewInsetsOf(context).bottom +
-                    MediaQuery.paddingOf(context).bottom +
-                    AppSpacing.s16,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Filters',
-                    style: AppTypography.title.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s16),
-                  Text(
-                    'Style',
-                    style: AppTypography.caption.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: muted,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Wrap(
-                      spacing: AppSpacing.s8,
-                      runSpacing: AppSpacing.s8,
-                      children: BrandWatchFilterState.styleOptions.map((style) {
-                        final selected = filters.selectedStyles.contains(style);
-                        return _StyleChip(
-                          label: style.toUpperCase(),
-                          selected: selected,
-                          onTap: () => n.toggleStyle(style),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s20),
-                  Text(
-                    'Price Range',
-                    style: AppTypography.caption.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: muted,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _PriceInput(
-                          controller: _priceMinController,
-                          hint: 'Min',
-                          onChanged: n.setPriceMin,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s8,
-                        ),
-                        child: Text(
-                          '—',
-                          style: AppTypography.body.copyWith(color: muted),
-                        ),
-                      ),
-                      Expanded(
-                        child: _PriceInput(
-                          controller: _priceMaxController,
-                          hint: 'Max',
-                          onChanged: n.setPriceMax,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.s20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            n.reset();
-                            _priceMinController.clear();
-                            _priceMaxController.clear();
-                          },
-                          child: Text(context.tr(CatalogL10n.reset)),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.s12),
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.charcoal,
-                            foregroundColor: AppColors.warmWhite,
-                          ),
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(context.tr(CatalogL10n.apply)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
+  void _openFilters() {
+    ref.read(brandWatchFilterDraftProvider.notifier).syncFromApplied();
+    context.push(AppRouteNames.brandWatchFiltersPath(widget.brandName));
   }
 
   Future<void> _showSortSheet() async {
-    final current = ref.read(brandWatchFilterProvider).sort;
-    final selected = await showSimpleSortSheet<BrandWatchSortOption>(
+    final current = ref.read(brandWatchSortProvider);
+    final selected = await showSimpleSortSheet<WatchSortOption>(
       context: context,
-      options: BrandWatchSortOption.values,
+      options: brandWatchSortOptions,
       labelOf: (o) => o.label,
       current: current,
     );
     if (selected != null) {
-      ref.read(brandWatchFilterProvider.notifier).setSort(selected);
+      ref.read(brandWatchSortProvider.notifier).state = selected;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final filters = ref.watch(brandWatchFilterProvider);
+    final sort = ref.watch(brandWatchSortProvider);
     final listAsync = ref.watch(brandWatchListProvider);
     final listState = listAsync.valueOrNull;
     final muted = AppColors.textMuted(context);
@@ -281,7 +147,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                           onPressed: _showSortSheet,
                           icon: const Icon(Icons.sort, size: 18),
                           label: Text(
-                            'Sort: ${filters.sort.label}',
+                            'Sort: ${sort.label}',
                             overflow: TextOverflow.ellipsis,
                             style: AppTypography.caption.copyWith(
                               fontWeight: FontWeight.w600,
@@ -302,7 +168,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                       Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: _showFiltersSheet,
+                          onTap: _openFilters,
                           borderRadius: const BorderRadius.horizontal(
                             right: Radius.circular(AppSpacing.r12),
                           ),
@@ -363,141 +229,40 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : listState.errorMessage != null && listState.watches.isEmpty
-                  ? CatalogErrorState(
-                      message: listState.errorMessage!,
-                      onRetry: () =>
-                          ref.read(brandWatchListProvider.notifier).refresh(),
-                    )
-                  : listState.watches.isEmpty
-                  ? CatalogEmptyState(
-                      icon: Icons.watch_outlined,
-                      title:
-                          'No ${widget.brandName} watches match your filters',
-                      message: context.tr(CatalogL10n.adjustStyleOrPrice),
-                      actionLabel: context.tr(CatalogL10n.clearAll),
-                      onAction: () {
-                        ref.read(brandWatchFilterProvider.notifier).reset();
-                        _priceMinController.clear();
-                        _priceMaxController.clear();
-                      },
-                    )
-                  : CustomScrollView(
-                      controller: _scrollController,
-                      slivers: [
-                        WatchGridSliver(
-                          watches: listState.watches,
-                          isLoadingMore: listState.isLoadingMore,
-                        ),
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: AppSpacing.s24),
-                        ),
-                      ],
-                    ),
+                      ? CatalogErrorState(
+                          message: listState.errorMessage!,
+                          onRetry: () => ref
+                              .read(brandWatchListProvider.notifier)
+                              .refresh(),
+                        )
+                      : listState.watches.isEmpty
+                          ? CatalogEmptyState(
+                              icon: Icons.watch_outlined,
+                              title:
+                                  'No ${widget.brandName} watches match your filters',
+                              message:
+                                  context.tr(CatalogL10n.adjustWatchFilters),
+                              actionLabel: context.tr(CatalogL10n.clearAll),
+                              onAction: () {
+                                ref
+                                    .read(brandWatchFilterProvider.notifier)
+                                    .reset();
+                              },
+                            )
+                          : CustomScrollView(
+                              controller: _scrollController,
+                              slivers: [
+                                WatchGridSliver(
+                                  watches: listState.watches,
+                                  isLoadingMore: listState.isLoadingMore,
+                                ),
+                                const SliverToBoxAdapter(
+                                  child: SizedBox(height: AppSpacing.s24),
+                                ),
+                              ],
+                            ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StyleChip extends StatelessWidget {
-  const _StyleChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 140),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.s16,
-          vertical: AppSpacing.s12,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.selectedFill(context)
-              : AppColors.card(context),
-          borderRadius: BorderRadius.circular(AppSpacing.r8),
-          border: Border.all(
-            color: selected
-                ? AppColors.selectedFill(context)
-                : AppColors.border(context),
-          ),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.caption.copyWith(
-            color: selected
-                ? AppColors.onSelected(context)
-                : (AppColors.textPrimary(context)),
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-            letterSpacing: 0.4,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PriceInput extends StatelessWidget {
-  const _PriceInput({
-    required this.controller,
-    required this.hint,
-    required this.onChanged,
-  });
-
-  final TextEditingController controller;
-  final String hint;
-  final ValueChanged<String> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final borderColor = AppColors.border(context);
-
-    return SizedBox(
-      height: 40,
-      child: TextField(
-        controller: controller,
-        keyboardType: TextInputType.number,
-        onChanged: onChanged,
-        style: AppTypography.caption.copyWith(fontSize: 13),
-        decoration: InputDecoration(
-          isDense: true,
-          hintText: hint,
-          hintStyle: AppTypography.caption.copyWith(
-            color: AppColors.textMuted(context),
-            fontSize: 13,
-          ),
-          prefixText: AppCurrency.symbol,
-          prefixStyle: AppTypography.caption.copyWith(fontSize: 13),
-          filled: true,
-          fillColor: AppColors.field(context),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.r8),
-            borderSide: BorderSide(color: borderColor),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.r8),
-            borderSide: BorderSide(color: borderColor),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.r8),
-            borderSide: const BorderSide(color: AppColors.bronze),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s8,
-            vertical: AppSpacing.s8,
-          ),
         ),
       ),
     );

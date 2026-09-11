@@ -40,7 +40,7 @@ abstract final class GemstoneSearchRequestMapper {
     _putStringList(body, 'fluorescence', filters.selectedFluorescence);
 
     final origin = filters.selectedOrigin ?? filters.selectedOriginCountry;
-    if (origin != null && origin.trim().isNotEmpty) {
+    if (!isLab && origin != null && origin.trim().isNotEmpty) {
       body['origins'] = [_mapOrigin(origin.trim())];
     }
 
@@ -129,6 +129,9 @@ abstract final class GemstoneSearchRequestMapper {
     );
 
     if (filters.searchByMedia) body['has_image'] = true;
+    if (filters.makeAnOffer) body['is_make_an_offer_allowed'] = true;
+    final availability = _mapAvailability(filters.selectedAvailability);
+    if (availability != null) body['available'] = availability;
 
     return body;
   }
@@ -191,5 +194,16 @@ abstract final class GemstoneSearchRequestMapper {
     if (min <= defaultMin + 1e-6 && max >= defaultMax - 1e-6) return;
     if ((min - defaultMin).abs() > 1e-6) body[minKey] = min;
     if ((max - defaultMax).abs() > 1e-6) body[maxKey] = max;
+  }
+
+  static String? _mapAvailability(String value) {
+    return switch (value.trim().toLowerCase()) {
+      'all' || '' => null,
+      'available' || 'yes' || 'in stock' => 'yes',
+      'on memo' || 'memo' => 'memo',
+      'on hold' || 'hold' => 'hold',
+      'sold' => 'sold',
+      _ => null,
+    };
   }
 }

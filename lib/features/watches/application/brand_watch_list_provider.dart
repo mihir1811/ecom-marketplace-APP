@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/result.dart';
 import '../data/repositories/watch_repository_impl.dart';
-import '../domain/models/brand_watch_state.dart';
 import '../domain/models/watch.dart';
 import '../domain/models/watch_filter_state.dart';
 import '../domain/repositories/watch_repository.dart';
@@ -45,8 +44,7 @@ class BrandWatchListState {
   }
 }
 
-/// Notifier for the brand-specific watch list.
-/// Uses a StateProvider to track which brand is currently being viewed.
+/// Brand-scoped watch list — same API filters as main catalog, brand locked.
 class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
   int _currentPage = 1;
   String _brandName = '';
@@ -57,43 +55,51 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
     ref.listen(brandWatchFilterProvider, (_, __) {
       _loadFirstPage();
     });
+    ref.listen(brandWatchSortProvider, (_, __) {
+      _loadFirstPage();
+    });
     return const BrandWatchListState(isInitialLoading: true);
   }
 
   void setBrandName(String brandName) {
-    if (_brandName != brandName) {
-      _brandName = brandName;
-      _loadFirstPage();
+    if (_brandName == brandName) return;
+    final switchingBrand = _brandName.isNotEmpty;
+    _brandName = brandName;
+    if (switchingBrand) {
+      ref.read(brandWatchFilterProvider.notifier).reset();
+      ref.read(brandWatchSortProvider.notifier).state =
+          WatchSortOption.priceHighToLow;
     }
+    _loadFirstPage();
+  }
+
+  WatchFilterState _filtersForApi() {
+    final filters = ref.read(brandWatchFilterProvider);
+    return filters.copyWith(brands: {_brandName});
   }
 
   Future<void> _loadFirstPage() async {
     if (_brandName.isEmpty) return;
     ensureRecentlyViewedIdsLoaded(ref);
     _currentPage = 1;
-    final filterState = ref.read(brandWatchFilterProvider);
     final repo = ref.read(watchRepositoryProvider);
+    final sort = ref.read(brandWatchSortProvider);
 
     state = const AsyncData(BrandWatchListState(isInitialLoading: true));
 
-    // First, get all watches for this brand using the existing filter system
-    final brandFilters = WatchFilterState(brands: {_brandName});
     final result = await repo.getWatches(
-      filters: brandFilters,
+      filters: _filtersForApi(),
       page: 1,
       pageSize: WatchPageSize.defaultSize,
-      sort: _mapSort(filterState.sort),
+      sort: sort,
     );
 
     switch (result) {
       case Success(value: final response):
-        // Apply brand-specific filters (style and price range)
-        final filtered =
-            _applyBrandFilters(response.watches, filterState);
         state = AsyncData(BrandWatchListState(
-          watches: filtered,
+          watches: response.watches,
           hasMore: response.hasMore,
-          totalCount: filtered.length,
+          totalCount: response.totalCount,
         ));
       case ResultFailure(failure: final failure):
         state = AsyncData(BrandWatchListState(
@@ -110,25 +116,22 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
     state = AsyncData(current.copyWith(isLoadingMore: true));
     _currentPage++;
 
-    final filterState = ref.read(brandWatchFilterProvider);
     final repo = ref.read(watchRepositoryProvider);
-    final brandFilters = WatchFilterState(brands: {_brandName});
+    final sort = ref.read(brandWatchSortProvider);
 
     final result = await repo.getWatches(
-      filters: brandFilters,
+      filters: _filtersForApi(),
       page: _currentPage,
       pageSize: WatchPageSize.defaultSize,
-      sort: _mapSort(filterState.sort),
+      sort: sort,
     );
 
     switch (result) {
       case Success(value: final response):
-        final filtered =
-            _applyBrandFilters(response.watches, filterState);
         state = AsyncData(BrandWatchListState(
-          watches: [...current.watches, ...filtered],
+          watches: [...current.watches, ...response.watches],
           hasMore: response.hasMore,
-          totalCount: current.totalCount + filtered.length,
+          totalCount: response.totalCount,
         ));
       case ResultFailure(failure: final failure):
         _currentPage--;
@@ -141,33 +144,6 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
 
   Future<void> refresh() async {
     await _loadFirstPage();
-  }
-
-  List<Watch> _applyBrandFilters(
-      List<Watch> watches, BrandWatchFilterState filter) {
-    return watches.where((w) {
-      // Style filter (maps to category)
-      if (filter.selectedStyles.isNotEmpty &&
-          !filter.selectedStyles.contains(w.category)) {
-        return false;
-      }
-
-      // Price range filter
-      final minPrice = double.tryParse(filter.priceMin);
-      final maxPrice = double.tryParse(filter.priceMax);
-      if (minPrice != null && w.price < minPrice) return false;
-      if (maxPrice != null && w.price > maxPrice) return false;
-
-      return true;
-    }).toList();
-  }
-
-  WatchSortOption _mapSort(BrandWatchSortOption sort) {
-    return switch (sort) {
-      BrandWatchSortOption.priceHighToLow => WatchSortOption.priceHighToLow,
-      BrandWatchSortOption.priceLowToHigh => WatchSortOption.priceLowToHigh,
-      BrandWatchSortOption.newest => WatchSortOption.newest,
-    };
   }
 }
 

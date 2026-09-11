@@ -24,6 +24,9 @@ class AppRouteNames {
   static String paymentConfirmationPath(String orderId) =>
       '/payment/confirmation/$orderId';
   static const String brandWatch = '/watches/brand/:brandName';
+  static const String brandWatchFilters = '/watches/brand/:brandName/filters';
+  static String brandWatchFiltersPath(String brandName) =>
+      '/watches/brand/${Uri.encodeComponent(brandName)}/filters';
   static const String bullions = '/bullions';
   static const String bullionsFilters = '/bullions/filters';
   static const String jewelry = '/jewelry';

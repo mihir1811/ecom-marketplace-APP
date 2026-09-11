@@ -80,10 +80,53 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
           _section(
             'availability',
             context.tr(CatalogL10n.availability),
-            _chipWrap(
-              JewelryFilterState.availabilityOptions,
-              draft.availability,
-              n.toggleAvailability,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s16,
+                    0,
+                    AppSpacing.s16,
+                    AppSpacing.s8,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.border(context)),
+                      borderRadius: BorderRadius.circular(AppSpacing.r8),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: draft.selectedAvailability,
+                        items: JewelryFilterState.availabilityOptions
+                            .map(
+                              (opt) => DropdownMenuItem<String>(
+                                value: opt,
+                                child: Text(_availabilityLabel(context, opt)),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: n.updateAvailability,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s16,
+                    0,
+                    AppSpacing.s16,
+                    AppSpacing.s12,
+                  ),
+                  child: FilterBooleanCheckbox(
+                    label: context.tr(CatalogL10n.makeOffer),
+                    value: draft.makeAnOffer,
+                    onChanged: (v) => n.setMakeAnOffer(v ?? false),
+                  ),
+                ),
+              ],
             ),
           ),
           _section(
@@ -603,6 +646,17 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
         const Divider(height: 1),
       ],
     );
+  }
+
+  String _availabilityLabel(BuildContext context, String option) {
+    return switch (option) {
+      'All' => context.tr(RemainingL10n.all),
+      'Available' => context.tr(CatalogL10n.available),
+      'On Memo' => context.tr(CatalogL10n.onMemo),
+      'On Hold' => context.tr(CatalogL10n.onHold),
+      'Sold' => context.tr(CatalogL10n.sold),
+      _ => option,
+    };
   }
 
   Widget _chipWrap(

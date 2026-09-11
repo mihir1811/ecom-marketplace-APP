@@ -85,14 +85,9 @@ abstract final class JewelryListQueryMapper {
 
     final variantSome = <String, dynamic>{};
 
-    final availability = f.availability
-        .map(_mapAvailabilityToApi)
-        .whereType<String>()
-        .toList();
-    if (availability.length == 1) {
-      variantSome['available'] = {'equals': availability.first};
-    } else if (availability.length > 1) {
-      variantSome['available'] = {'in': availability};
+    final availability = _mapAvailabilityToApi(f.selectedAvailability);
+    if (availability != null) {
+      variantSome['available'] = {'equals': availability};
     }
 
     final metalColors = f.metalColors
@@ -130,6 +125,10 @@ abstract final class JewelryListQueryMapper {
       filters['variants'] = {'some': variantSome};
     }
 
+    if (f.makeAnOffer) {
+      filters['isMakeAnOfferAllowed'] = {'equals': true};
+    }
+
     return filters;
   }
 
@@ -158,9 +157,11 @@ abstract final class JewelryListQueryMapper {
 
   static String? _mapAvailabilityToApi(String ui) {
     return switch (ui.trim().toLowerCase()) {
+      'all' || '' => null,
       'in stock' || 'available' || 'yes' => 'yes',
       'on hold' || 'hold' => 'hold',
-      'memo' => 'memo',
+      'on memo' || 'memo' => 'memo',
+      'sold' => 'sold',
       _ => null,
     };
   }

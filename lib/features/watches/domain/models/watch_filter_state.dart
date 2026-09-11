@@ -1,5 +1,3 @@
-import '../../../../core/utils/app_currency.dart';
-
 /// Immutable filter state for the watches catalog (schema-aligned drawer).
 class WatchFilterState {
   const WatchFilterState({
@@ -7,11 +5,13 @@ class WatchFilterState {
     this.brands = const {},
     this.models = const {},
     this.categories = const {},
-    this.priceRanges = const {},
+    this.priceMin = 0,
+    this.priceMax = 0,
     this.movements = const {},
     this.genders = const {},
     this.conditions = const {},
-    this.availabilityStatuses = const {},
+    this.selectedAvailability = 'All',
+    this.makeAnOffer = false,
     this.withMedia = const {},
     this.caseMaterials = const {},
     this.dialColors = const {},
@@ -45,11 +45,13 @@ class WatchFilterState {
   final Set<String> brands;
   final Set<String> models;
   final Set<String> categories;
-  final Set<String> priceRanges;
+  final double priceMin;
+  final double priceMax;
   final Set<String> movements;
   final Set<String> genders;
   final Set<String> conditions;
-  final Set<String> availabilityStatuses;
+  final String selectedAvailability;
+  final bool makeAnOffer;
   final Set<String> withMedia;
   final Set<String> caseMaterials;
   final Set<String> dialColors;
@@ -109,15 +111,6 @@ class WatchFilterState {
 
   static const styleOptions = categoryOptions;
 
-  static const priceRangeOptions = [
-    'Under ${AppCurrency.symbol}500',
-    '${AppCurrency.symbol}500 – ${AppCurrency.symbol}1,000',
-    '${AppCurrency.symbol}1,000 – ${AppCurrency.symbol}5,000',
-    '${AppCurrency.symbol}5,000 – ${AppCurrency.symbol}15,000',
-    '${AppCurrency.symbol}15,000 – ${AppCurrency.symbol}50,000',
-    '${AppCurrency.symbol}50,000+',
-  ];
-
   static const movementOptions = [
     'Automatic (Self-winding)',
     'Manual (Hand-winding)',
@@ -139,9 +132,11 @@ class WatchFilterState {
   ];
 
   static const availabilityOptions = [
+    'All',
     'Available',
+    'On Memo',
     'On Hold',
-    'Memo',
+    'Sold',
   ];
 
   static const withMediaOptions = [
@@ -389,11 +384,13 @@ class WatchFilterState {
       brands.isNotEmpty ||
       models.isNotEmpty ||
       categories.isNotEmpty ||
-      priceRanges.isNotEmpty ||
+      priceMin > 0 ||
+      priceMax > 0 ||
       movements.isNotEmpty ||
       genders.isNotEmpty ||
       conditions.isNotEmpty ||
-      availabilityStatuses.isNotEmpty ||
+      selectedAvailability != 'All' ||
+      makeAnOffer ||
       withMedia.isNotEmpty ||
       caseMaterials.isNotEmpty ||
       dialColors.isNotEmpty ||
@@ -432,11 +429,12 @@ class WatchFilterState {
     bump(brands);
     bump(models);
     bump(categories);
-    bump(priceRanges);
+    if (priceMin > 0 || priceMax > 0) count++;
     bump(movements);
     bump(genders);
     bump(conditions);
-    bump(availabilityStatuses);
+    if (selectedAvailability != 'All') count++;
+    if (makeAnOffer) count++;
     bump(withMedia);
     bump(caseMaterials);
     bump(dialColors);
@@ -472,11 +470,13 @@ class WatchFilterState {
     Set<String>? brands,
     Set<String>? models,
     Set<String>? categories,
-    Set<String>? priceRanges,
+    double? priceMin,
+    double? priceMax,
     Set<String>? movements,
     Set<String>? genders,
     Set<String>? conditions,
-    Set<String>? availabilityStatuses,
+    String? selectedAvailability,
+    bool? makeAnOffer,
     Set<String>? withMedia,
     Set<String>? caseMaterials,
     Set<String>? dialColors,
@@ -510,11 +510,13 @@ class WatchFilterState {
       brands: brands ?? this.brands,
       models: models ?? this.models,
       categories: categories ?? this.categories,
-      priceRanges: priceRanges ?? this.priceRanges,
+      priceMin: priceMin ?? this.priceMin,
+      priceMax: priceMax ?? this.priceMax,
       movements: movements ?? this.movements,
       genders: genders ?? this.genders,
       conditions: conditions ?? this.conditions,
-      availabilityStatuses: availabilityStatuses ?? this.availabilityStatuses,
+      selectedAvailability: selectedAvailability ?? this.selectedAvailability,
+      makeAnOffer: makeAnOffer ?? this.makeAnOffer,
       withMedia: withMedia ?? this.withMedia,
       caseMaterials: caseMaterials ?? this.caseMaterials,
       dialColors: dialColors ?? this.dialColors,

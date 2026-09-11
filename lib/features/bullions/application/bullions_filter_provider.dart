@@ -64,6 +64,14 @@ class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState> {
   void toggleShape(String value) =>
       state = state.copyWith(shapes: _toggle(state.shapes, value));
 
+  void updateAvailability(String? value) {
+    final next = (value == null || value.trim().isEmpty) ? 'All' : value.trim();
+    state = state.copyWith(selectedAvailability: next);
+  }
+
+  void setMakeAnOffer(bool value) =>
+      state = state.copyWith(makeAnOffer: value);
+
   void toggleWeightChip(String value) =>
       state = state.copyWith(weightChips: _toggle(state.weightChips, value));
 

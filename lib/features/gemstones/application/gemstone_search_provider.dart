@@ -19,7 +19,17 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
   }
 
   void updateStoneType(String? value) {
-    state = state.copyWith(stoneType: state.stoneType == value ? null : value);
+    final next = state.stoneType == value ? null : value;
+    final isLab = (next ?? '').toLowerCase().contains('lab');
+    if (isLab) {
+      state = state.copyWith(
+        stoneType: next,
+        selectedOrigin: null,
+        selectedOriginCountry: null,
+      );
+    } else {
+      state = state.copyWith(stoneType: next);
+    }
   }
 
   void updateLotType(String? value) {
@@ -165,6 +175,15 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
 
   void toggleSearchByMedia() {
     state = state.copyWith(searchByMedia: !state.searchByMedia);
+  }
+
+  void updateAvailability(String? value) {
+    final next = (value == null || value.trim().isEmpty) ? 'All' : value.trim();
+    state = state.copyWith(selectedAvailability: next);
+  }
+
+  void toggleMakeAnOffer() {
+    state = state.copyWith(makeAnOffer: !state.makeAnOffer);
   }
 
   void toggleTreatment(String treatment) {

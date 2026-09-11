@@ -446,6 +446,15 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     state = state.copyWith(searchByMedia: !state.searchByMedia);
   }
 
+  void updateAvailability(String? value) {
+    final next = (value == null || value.trim().isEmpty) ? 'All' : value.trim();
+    state = state.copyWith(selectedAvailability: next);
+  }
+
+  void toggleMakeAnOffer() {
+    state = state.copyWith(makeAnOffer: !state.makeAnOffer);
+  }
+
   void toggleSeparable() {
     state = state.copyWith(separable: !state.separable);
   }
@@ -802,6 +811,8 @@ int computeMatchingCount(Ref ref) {
   if (state.searchByMedia) multiplier *= 0.60;
   if (state.noBgm) multiplier *= 0.70;
   if (state.eyeClean) multiplier *= 0.80;
+  if (state.makeAnOffer) multiplier *= 0.55;
+  if (state.selectedAvailability != 'All') multiplier *= 0.70;
 
   if (state.minSellerRating > 0.0) {
     multiplier *= (1.0 - (state.minSellerRating * 0.15)).clamp(0.4, 1.0);

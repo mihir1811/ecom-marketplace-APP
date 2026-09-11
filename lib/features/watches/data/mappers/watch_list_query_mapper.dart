@@ -65,6 +65,16 @@ abstract final class WatchListQueryMapper {
         f.models.map((m) => m.trim()).where((m) => m.isNotEmpty).toList();
     _putEqualsOrIn(filters, 'model', models);
 
+    final styles = f.categories
+        .map((c) => c.trim())
+        .where((c) => c.isNotEmpty)
+        .toList();
+    if (styles.length == 1) {
+      filters['style'] = {'has': styles.first};
+    } else if (styles.isNotEmpty) {
+      filters['style'] = {'hasSome': styles};
+    }
+
     final movements = f.movements
         .map(_mapMovementToApi)
         .whereType<String>()
@@ -78,11 +88,10 @@ abstract final class WatchListQueryMapper {
     final conditions = f.conditions.map(_mapConditionToApi).whereType<String>().toList();
     _putEqualsOrIn(filters, 'condition', conditions);
 
-    final availability = f.availabilityStatuses
-        .map(_mapAvailabilityToApi)
-        .whereType<String>()
-        .toList();
-    _putEqualsOrIn(filters, 'availabilityStatus', availability);
+    final availability = _mapAvailabilityToApi(f.selectedAvailability);
+    if (availability != null) {
+      filters['availabilityStatus'] = {'equals': availability};
+    }
 
     final caseMaterials = f.caseMaterials
         .map((c) => c.trim())
@@ -109,8 +118,23 @@ abstract final class WatchListQueryMapper {
     if (f.warrantyCardIncluded) {
       filters['warrantyCardIncluded'] = {'equals': true};
     }
+    if (f.makeAnOffer) {
+      filters['isMakeAnOfferAllowed'] = {'equals': true};
+    }
+
+    if (f.priceMin > 0 || f.priceMax > 0) {
+      final range = <String, dynamic>{};
+      if (f.priceMin > 0) range['gte'] = _numString(f.priceMin);
+      if (f.priceMax > 0) range['lte'] = _numString(f.priceMax);
+      filters['price'] = range;
+    }
 
     return filters;
+  }
+
+  static String _numString(double value) {
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return value.toString();
   }
 
   static void _putEqualsOrIn(
@@ -149,9 +173,11 @@ abstract final class WatchListQueryMapper {
 
   static String? _mapAvailabilityToApi(String ui) {
     return switch (ui.trim().toLowerCase()) {
+      'all' || '' => null,
       'available' || 'yes' || 'in stock' => 'yes',
       'on hold' || 'hold' => 'hold',
-      'memo' => 'memo',
+      'on memo' || 'memo' => 'memo',
+      'sold' => 'sold',
       _ => null,
     };
   }

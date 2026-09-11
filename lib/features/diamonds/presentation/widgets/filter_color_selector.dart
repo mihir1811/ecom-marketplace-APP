@@ -40,7 +40,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
     final fraction = idx / (allLetters.length - 1);
 
     const Color startColor = Color(0xFFE4E2DC);
-    const Color endColor = Color(0xFFD9BE78);
+    const Color endColor = Color(0xFFF0D24A);
 
     return Color.lerp(startColor, endColor, fraction) ?? startColor;
   }

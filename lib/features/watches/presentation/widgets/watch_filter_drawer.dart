@@ -9,6 +9,8 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/filters/filter_accordion_section.dart';
 import '../../../../core/widgets/filters/filter_boolean_checkbox.dart';
 import '../../../../core/widgets/filters/filter_full_screen_shell.dart';
+import '../../application/brand_watch_filter_provider.dart';
+import '../../application/brand_watch_list_provider.dart';
 import '../../application/watch_filter_provider.dart';
 import '../../application/watch_list_provider.dart';
 import '../../data/repositories/watch_brand_assets_data.dart';
@@ -17,8 +19,13 @@ import '../../domain/models/watch_filter_state.dart';
 import 'watch_filter_swatch_pills.dart';
 
 /// Full-screen watch filters (same chrome as jewelry filters).
+///
+/// When [lockedBrand] is set, brand multi-select is hidden and models are
+/// scoped to that brand (brand catalog page).
 class WatchFilterDrawer extends ConsumerStatefulWidget {
-  const WatchFilterDrawer({super.key});
+  const WatchFilterDrawer({super.key, this.lockedBrand});
+
+  final String? lockedBrand;
 
   @override
   ConsumerState<WatchFilterDrawer> createState() => _WatchFilterDrawerState();
@@ -55,13 +62,64 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
   };
 
   bool _showAllBrands = false;
+  String _brandSearchQuery = '';
+  late final TextEditingController _priceMinController;
+  late final TextEditingController _priceMaxController;
+  late final TextEditingController _brandSearchController;
+
+  bool get _isBrandLocked =>
+      widget.lockedBrand != null && widget.lockedBrand!.trim().isNotEmpty;
+
+  String get _lockedBrandName => widget.lockedBrand!.trim();
+
+  WatchFilterState get _draft => _isBrandLocked
+      ? ref.watch(brandWatchFilterDraftProvider)
+      : ref.watch(watchFilterDraftProvider);
+
+  WatchFilterStateMutator get _draftNotifier => _isBrandLocked
+      ? ref.read(brandWatchFilterDraftProvider.notifier)
+      : ref.read(watchFilterDraftProvider.notifier);
 
   @override
   void initState() {
     super.initState();
+    final draft = _isBrandLocked
+        ? ref.read(brandWatchFilterDraftProvider)
+        : ref.read(watchFilterDraftProvider);
+    _priceMinController = TextEditingController(text: _priceText(draft.priceMin));
+    _priceMaxController = TextEditingController(text: _priceText(draft.priceMax));
+    _brandSearchController = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(watchFilterDraftProvider.notifier).syncFromApplied();
+      if (_isBrandLocked) {
+        ref.read(brandWatchFilterDraftProvider.notifier).syncFromApplied();
+        _syncPriceControllers(ref.read(brandWatchFilterDraftProvider));
+      } else {
+        ref.read(watchFilterDraftProvider.notifier).syncFromApplied();
+        _syncPriceControllers(ref.read(watchFilterDraftProvider));
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _priceMinController.dispose();
+    _priceMaxController.dispose();
+    _brandSearchController.dispose();
+    super.dispose();
+  }
+
+  String _priceText(double value) =>
+      value > 0 ? value.toStringAsFixed(0) : '';
+
+  void _syncPriceControllers(WatchFilterState draft) {
+    final minText = _priceText(draft.priceMin);
+    final maxText = _priceText(draft.priceMax);
+    if (_priceMinController.text != minText) {
+      _priceMinController.text = minText;
+    }
+    if (_priceMaxController.text != maxText) {
+      _priceMaxController.text = maxText;
+    }
   }
 
   List<String> get _allBrandsAlphabetical =>
@@ -69,6 +127,9 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
 
   List<String> _modelOptions(WatchFilterState draft) {
     const byBrand = WatchCatalogBrands.modelsByBrand;
+    if (_isBrandLocked) {
+      return List<String>.from(byBrand[_lockedBrandName] ?? const [])..sort();
+    }
     if (draft.brands.isEmpty) {
       return byBrand.values.expand((m) => m).toSet().toList()..sort();
     }
@@ -79,26 +140,58 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
     return models.toList()..sort();
   }
 
+  List<String> _filteredBrandOptions() {
+    final q = _brandSearchQuery.trim().toLowerCase();
+    final source = q.isNotEmpty
+        ? _allBrandsAlphabetical
+        : (_showAllBrands
+            ? _allBrandsAlphabetical
+            : WatchFilterState.popularBrandOptions);
+    if (q.isEmpty) return source;
+    return source
+        .where((b) => b.toLowerCase().contains(q))
+        .toList(growable: false);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final draft = ref.watch(watchFilterDraftProvider);
-    final n = ref.read(watchFilterDraftProvider.notifier);
-    final resultCount = ref.watch(
-      watchListProvider.select((v) => v.valueOrNull?.totalCount),
-    );
-    final brandOptions = _showAllBrands
-        ? _allBrandsAlphabetical
-        : WatchFilterState.popularBrandOptions;
+    final draft = _draft;
+    _syncPriceControllers(draft);
+    final n = _draftNotifier;
+    final resultCount = _isBrandLocked
+        ? ref.watch(
+            brandWatchListProvider.select((v) => v.valueOrNull?.totalCount),
+          )
+        : ref.watch(
+            watchListProvider.select((v) => v.valueOrNull?.totalCount),
+          );
+    final brandOptions = _filteredBrandOptions();
     final modelOptions = _modelOptions(draft);
+    final searchingBrands = _brandSearchQuery.trim().isNotEmpty;
 
     return FilterFullScreenShell(
-      onReset: n.reset,
+      onReset: () {
+        n.resetDraftKeepingSearch();
+        _brandSearchController.clear();
+        _brandSearchQuery = '';
+        _syncPriceControllers(
+          _isBrandLocked
+              ? ref.read(brandWatchFilterDraftProvider)
+              : ref.read(watchFilterDraftProvider),
+        );
+        setState(() {});
+      },
       showResultsLabel: resultCount == null
           ? context.tr(CatalogL10n.showResults)
           : '${context.tr(CatalogL10n.showResults)} ($resultCount)',
       onShowResults: () {
-        n.apply();
-        ref.read(watchListProvider.notifier).refresh();
+        if (_isBrandLocked) {
+          ref.read(brandWatchFilterDraftProvider.notifier).apply();
+          ref.read(brandWatchListProvider.notifier).refresh();
+        } else {
+          ref.read(watchFilterDraftProvider.notifier).apply();
+          ref.read(watchListProvider.notifier).refresh();
+        }
         context.goBack();
       },
       body: ListView(
@@ -110,23 +203,95 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _subLabel('Brand'),
-                _expandList(
-                  'brand',
-                  brandOptions,
-                  draft.brands,
-                  n.toggleBrand,
-                  trailing: !_showAllBrands
-                      ? _showMoreButton(
-                          label:
-                              'Show all brands (${_allBrandsAlphabetical.length})',
-                          onTap: () => setState(() {
-                            _showAllBrands = true;
-                            _visible['brand'] = _allBrandsAlphabetical.length;
-                          }),
-                        )
-                      : null,
-                ),
+                if (_isBrandLocked) ...[
+                  _subLabel('Brand'),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.s20,
+                      0,
+                      AppSpacing.s20,
+                      AppSpacing.s8,
+                    ),
+                    child: Text(
+                      _lockedBrandName,
+                      style: AppTypography.label.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  _subLabel('Brand'),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.s20,
+                      0,
+                      AppSpacing.s20,
+                      AppSpacing.s8,
+                    ),
+                    child: TextField(
+                      controller: _brandSearchController,
+                      onChanged: (value) =>
+                          setState(() => _brandSearchQuery = value),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: context.tr(CatalogL10n.searchBrands),
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        suffixIcon: _brandSearchQuery.isEmpty
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () {
+                                  _brandSearchController.clear();
+                                  setState(() => _brandSearchQuery = '');
+                                },
+                              ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s12,
+                          vertical: AppSpacing.s12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.r8),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (brandOptions.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.s20,
+                        0,
+                        AppSpacing.s20,
+                        AppSpacing.s12,
+                      ),
+                      child: Text(
+                        'No brands found',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.textMuted(context),
+                        ),
+                      ),
+                    )
+                  else
+                    _expandList(
+                      'brand',
+                      brandOptions,
+                      draft.brands,
+                      n.toggleBrand,
+                      showAll: searchingBrands,
+                      trailing: !searchingBrands && !_showAllBrands
+                          ? _showMoreButton(
+                              label:
+                                  'Show all brands (${_allBrandsAlphabetical.length})',
+                              onTap: () => setState(() {
+                                _showAllBrands = true;
+                                _visible['brand'] =
+                                    _allBrandsAlphabetical.length;
+                              }),
+                            )
+                          : null,
+                    ),
+                ],
                 _subLabel('Model'),
                 _expandList('model', modelOptions, draft.models, n.toggleModel),
               ],
@@ -145,11 +310,53 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           _section(
             'availability',
             context.tr(CatalogL10n.availability),
-            _list(
-              WatchFilterState.availabilityOptions,
-              draft.availabilityStatuses,
-              n.toggleAvailability,
-              grid: true,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s20,
+                    0,
+                    AppSpacing.s20,
+                    AppSpacing.s8,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.border(context)),
+                      borderRadius: BorderRadius.circular(AppSpacing.r8),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: draft.selectedAvailability,
+                        items: WatchFilterState.availabilityOptions
+                            .map(
+                              (opt) => DropdownMenuItem<String>(
+                                value: opt,
+                                child: Text(_availabilityLabel(context, opt)),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: n.updateAvailability,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s12,
+                    AppSpacing.s4,
+                    AppSpacing.s12,
+                    AppSpacing.s8,
+                  ),
+                  child: FilterBooleanCheckbox(
+                    label: context.tr(CatalogL10n.makeOffer),
+                    value: draft.makeAnOffer,
+                    onChanged: (v) => n.setMakeAnOffer(v ?? false),
+                  ),
+                ),
+              ],
             ),
           ),
           _section(
@@ -175,12 +382,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           _section(
             'price_range',
             context.tr(CatalogL10n.priceRange),
-            _list(
-              WatchFilterState.priceRangeOptions,
-              draft.priceRanges,
-              n.togglePriceRange,
-              grid: true,
-            ),
+            _priceRangeInputs(n),
           ),
           _section(
             'movement',
@@ -466,6 +668,54 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
     );
   }
 
+  Widget _priceRangeInputs(WatchFilterStateMutator n) {
+    final muted = AppColors.textMuted(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.s20,
+        0,
+        AppSpacing.s20,
+        AppSpacing.s16,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _WatchPriceField(
+              controller: _priceMinController,
+              label: 'Min (\$)',
+              muted: muted,
+              onChanged: (value) => n.setPriceRange(
+                min: double.tryParse(value) ?? 0,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.s12),
+          Expanded(
+            child: _WatchPriceField(
+              controller: _priceMaxController,
+              label: 'Max (\$)',
+              muted: muted,
+              onChanged: (value) => n.setPriceRange(
+                max: double.tryParse(value) ?? 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _availabilityLabel(BuildContext context, String option) {
+    return switch (option) {
+      'All' => context.tr(RemainingL10n.all),
+      'Available' => context.tr(CatalogL10n.available),
+      'On Memo' => context.tr(CatalogL10n.onMemo),
+      'On Hold' => context.tr(CatalogL10n.onHold),
+      'Sold' => context.tr(CatalogL10n.sold),
+      _ => option,
+    };
+  }
+
   Widget _subLabel(String text) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -589,8 +839,10 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
     void Function(String) onToggle, {
     Widget? trailing,
     bool grid = false,
+    bool showAll = false,
   }) {
-    final visible = _visible[key] ?? values.length;
+    final visible =
+        showAll ? values.length : (_visible[key] ?? values.length);
     final showing = values.take(visible).toList();
     final remaining = values.length - showing.length;
 
@@ -624,6 +876,49 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _WatchPriceField extends StatelessWidget {
+  const _WatchPriceField({
+    required this.controller,
+    required this.label,
+    required this.muted,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final Color muted;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTypography.caption.copyWith(color: muted)),
+        const SizedBox(height: AppSpacing.s4),
+        TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onChanged: onChanged,
+          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+          decoration: InputDecoration(
+            isDense: true,
+            hintText: '0',
+            hintStyle: AppTypography.caption.copyWith(color: muted),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.s12,
+              vertical: AppSpacing.s12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppSpacing.r8),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

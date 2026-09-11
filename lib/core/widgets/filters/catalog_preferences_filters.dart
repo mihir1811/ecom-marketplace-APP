@@ -11,11 +11,12 @@ import 'filter_section_header.dart';
 ///
 /// Pass [originDropdown] from the feature layer (e.g. [FilterOriginDropdown]).
 /// Optional rough-source and seller-rating sections are diamond-only.
+/// Origin / rough source are omitted for lab-grown catalogs.
 class CatalogPreferencesFilters extends StatelessWidget {
   const CatalogPreferencesFilters({
     required this.locationField,
-    required this.originDropdown,
     required this.companyField,
+    this.originDropdown,
     this.roughSourceOptions,
     this.selectedRoughSource,
     this.onRoughSourceChanged,
@@ -25,7 +26,7 @@ class CatalogPreferencesFilters extends StatelessWidget {
   });
 
   final CatalogSearchAddField locationField;
-  final Widget originDropdown;
+  final Widget? originDropdown;
   final CatalogSearchAddField companyField;
 
   final List<String>? roughSourceOptions;
@@ -47,8 +48,10 @@ class CatalogPreferencesFilters extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           locationField,
-          const SizedBox(height: AppSpacing.s20),
-          originDropdown,
+          if (originDropdown != null) ...[
+            const SizedBox(height: AppSpacing.s20),
+            originDropdown!,
+          ],
           if (showRough) ...[
             const SizedBox(height: AppSpacing.s24),
             FilterSectionHeader(
@@ -80,6 +83,8 @@ class CatalogPreferencesFilters extends StatelessWidget {
               ),
             ),
           ],
+          const SizedBox(height: AppSpacing.s20),
+          companyField,
           if (showRating) ...[
             const SizedBox(height: AppSpacing.s24),
             FilterSectionHeader(
@@ -131,8 +136,6 @@ class CatalogPreferencesFilters extends StatelessWidget {
               ],
             ),
           ],
-          const SizedBox(height: AppSpacing.s20),
-          companyField,
         ],
       ),
     );

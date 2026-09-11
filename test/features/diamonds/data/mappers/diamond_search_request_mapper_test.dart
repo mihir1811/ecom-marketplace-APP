@@ -31,6 +31,31 @@ void main() {
       expect(body.containsKey('companies'), isFalse);
       expect(body.containsKey('locations'), isFalse);
     });
+
+    test('maps availability and make-an-offer filters', () {
+      final body = DiamondSearchRequestMapper.toBody(
+        filters: const DiamondFilterState(
+          selectedAvailability: 'On Hold',
+          makeAnOffer: true,
+        ),
+        catalog: DiamondCatalogType.natural,
+        page: 1,
+      );
+
+      expect(body['available'], 'hold');
+      expect(body['is_make_an_offer_allowed'], isTrue);
+    });
+
+    test('omits availability and make-an-offer when unset', () {
+      final body = DiamondSearchRequestMapper.toBody(
+        filters: const DiamondFilterState(),
+        catalog: DiamondCatalogType.natural,
+        page: 1,
+      );
+
+      expect(body.containsKey('available'), isFalse);
+      expect(body.containsKey('is_make_an_offer_allowed'), isFalse);
+    });
   });
 
   group('GemstoneSearchRequestMapper', () {

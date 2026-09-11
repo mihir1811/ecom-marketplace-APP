@@ -1,42 +1,43 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../domain/models/brand_watch_state.dart';
+import '../domain/models/watch_filter_state.dart';
+import 'watch_filter_provider.dart';
 
-Set<String> _toggle(Set<String> current, String value) {
-  final next = Set<String>.from(current);
-  if (!next.add(value)) next.remove(value);
-  return next;
-}
-
-/// Manages filter state for the brand-specific watch screen.
-class BrandWatchFilterNotifier extends Notifier<BrandWatchFilterState> {
-  @override
-  BrandWatchFilterState build() => const BrandWatchFilterState();
-
-  void toggleStyle(String style) {
-    state = state.copyWith(
-      selectedStyles: _toggle(state.selectedStyles, style),
-    );
-  }
-
-  void setPriceMin(String value) {
-    state = state.copyWith(priceMin: value);
-  }
-
-  void setPriceMax(String value) {
-    state = state.copyWith(priceMax: value);
-  }
-
-  void setSort(BrandWatchSortOption sort) {
-    state = state.copyWith(sort: sort);
-  }
-
-  void reset() {
-    state = const BrandWatchFilterState();
-  }
-}
-
+/// Applied filters for a brand catalog page (brand is injected at list load).
 final brandWatchFilterProvider =
-    NotifierProvider<BrandWatchFilterNotifier, BrandWatchFilterState>(
-  BrandWatchFilterNotifier.new,
+    NotifierProvider<WatchFilterNotifier, WatchFilterState>(
+  WatchFilterNotifier.new,
 );
+
+final brandWatchSortProvider =
+    StateProvider<WatchSortOption>((ref) => WatchSortOption.priceHighToLow);
+
+/// Draft filters for the brand full-screen filter sheet.
+class BrandWatchFilterDraftNotifier extends WatchFilterStateMutator {
+  @override
+  WatchFilterState build() => ref.read(brandWatchFilterProvider);
+
+  void syncFromApplied() {
+    state = ref.read(brandWatchFilterProvider);
+  }
+
+  void reset() => resetDraftKeepingSearch();
+
+  void apply() {
+    // Brand is locked by the page route — never persist brand multi-select.
+    final cleaned = state.copyWith(brands: const {});
+    ref.read(brandWatchFilterProvider.notifier).replaceWith(cleaned);
+  }
+}
+
+final brandWatchFilterDraftProvider =
+    NotifierProvider<BrandWatchFilterDraftNotifier, WatchFilterState>(
+  BrandWatchFilterDraftNotifier.new,
+);
+
+/// Sort choices shown on the brand watch screen.
+const brandWatchSortOptions = <WatchSortOption>[
+  WatchSortOption.priceHighToLow,
+  WatchSortOption.priceLowToHigh,
+  WatchSortOption.newest,
+];

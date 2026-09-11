@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/filters/filter_accordion_section.dart';
+import '../../../../core/widgets/filters/filter_boolean_checkbox.dart';
 import '../../../../core/widgets/filters/filter_full_screen_shell.dart';
 import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
@@ -24,6 +25,7 @@ class BullionsFilterDrawer extends ConsumerStatefulWidget {
 class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
   final Map<String, bool> _expanded = {
     'shape': true,
+    'availability': true,
     'price': true,
     'weight': true,
     'quantity': true,
@@ -126,6 +128,58 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
               BullionsFilterState.shapeOptions,
               draft.shapes,
               notifier.toggleShape,
+            ),
+          ),
+          _section(
+            'availability',
+            context.tr(CatalogL10n.availability),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s20,
+                    0,
+                    AppSpacing.s20,
+                    AppSpacing.s8,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.border(context)),
+                      borderRadius: BorderRadius.circular(AppSpacing.r8),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: draft.selectedAvailability,
+                        items: BullionsFilterState.availabilityOptions
+                            .map(
+                              (opt) => DropdownMenuItem<String>(
+                                value: opt,
+                                child: Text(_availabilityLabel(context, opt)),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: notifier.updateAvailability,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s20,
+                    AppSpacing.s4,
+                    AppSpacing.s20,
+                    AppSpacing.s8,
+                  ),
+                  child: FilterBooleanCheckbox(
+                    label: context.tr(CatalogL10n.makeOffer),
+                    value: draft.makeAnOffer,
+                    onChanged: (v) => notifier.setMakeAnOffer(v ?? false),
+                  ),
+                ),
+              ],
             ),
           ),
           _section(
@@ -284,6 +338,17 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
       onToggle: () => setState(() => _expanded[key] = !open),
       child: child,
     );
+  }
+
+  String _availabilityLabel(BuildContext context, String option) {
+    return switch (option) {
+      'All' => context.tr(RemainingL10n.all),
+      'Available' => context.tr(CatalogL10n.available),
+      'On Memo' => context.tr(CatalogL10n.onMemo),
+      'On Hold' => context.tr(CatalogL10n.onHold),
+      'Sold' => context.tr(CatalogL10n.sold),
+      _ => option,
+    };
   }
 
   Widget _chipGrid(

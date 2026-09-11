@@ -241,6 +241,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
   Widget _buildPreferenceFilters() {
     final state = ref.watch(gemstoneSearchProvider);
     final notifier = ref.read(gemstoneSearchProvider.notifier);
+    final isLab = (state.stoneType ?? '').toLowerCase().contains('lab');
 
     return CatalogPreferencesFilters(
       locationField: CatalogSearchAddField(
@@ -254,13 +255,15 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
         onAdd: notifier.addVendorLocation,
         onRemove: notifier.removeVendorLocation,
       ),
-      originDropdown: FilterOriginDropdown(
-        useDiamondOriginHelp: false,
-        options: GemstoneFilterState.origins,
-        flags: GemstoneFilterState.originFlags,
-        selectedOrigin: state.selectedOriginCountry,
-        onSelected: notifier.updateOriginCountry,
-      ),
+      originDropdown: isLab
+          ? null
+          : FilterOriginDropdown(
+              useDiamondOriginHelp: false,
+              options: GemstoneFilterState.origins,
+              flags: GemstoneFilterState.originFlags,
+              selectedOrigin: state.selectedOriginCountry,
+              onSelected: notifier.updateOriginCountry,
+            ),
       companyField: CatalogSearchAddField(
         title: context.tr(CatalogL10n.companyName),
         infoText: context.tr(CatalogL10n.gemstoneCompanyHelp),

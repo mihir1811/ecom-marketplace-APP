@@ -73,8 +73,9 @@ class JewelryFilterNotifier extends Notifier<JewelryFilterState> {
           state.copyWith(stoneCategories: _toggle(state.stoneCategories, label));
     } else if (state.occasions.contains(label)) {
       state = state.copyWith(occasions: _toggle(state.occasions, label));
-    } else if (state.availability.contains(label)) {
-      state = state.copyWith(availability: _toggle(state.availability, label));
+    } else if (label == state.selectedAvailability &&
+        state.selectedAvailability != 'All') {
+      state = state.copyWith(selectedAvailability: 'All');
     } else if (state.genders.contains(label)) {
       state = state.copyWith(genders: _toggle(state.genders, label));
     } else if (label == state.stoneType) {
@@ -118,8 +119,12 @@ class JewelryFilterDraftNotifier extends Notifier<JewelryFilterState> {
     state = ref.read(jewelryFilterProvider);
   }
 
-  void toggleAvailability(String v) =>
-      state = state.copyWith(availability: _toggle(state.availability, v));
+  void updateAvailability(String? value) {
+    final next = (value == null || value.trim().isEmpty) ? 'All' : value.trim();
+    state = state.copyWith(selectedAvailability: next);
+  }
+
+  void setMakeAnOffer(bool v) => state = state.copyWith(makeAnOffer: v);
 
   void setWithMediaOnly(bool v) => state = state.copyWith(withMediaOnly: v);
 

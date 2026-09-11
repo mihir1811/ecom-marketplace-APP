@@ -223,6 +223,15 @@ class GemstoneFilterState {
     'Waxing',
   ];
 
+  /// Availability dropdown options. `'All'` means no filter.
+  static const List<String> availabilityOptions = [
+    'All',
+    'Available',
+    'On Memo',
+    'On Hold',
+    'Sold',
+  ];
+
   static const List<String> certifications = [
     'GIA',
     'AGL',
@@ -341,6 +350,8 @@ class GemstoneFilterState {
     this.selectedQualityGrade,
     this.separable = false,
     this.searchByMedia = false,
+    this.selectedAvailability = 'All',
+    this.makeAnOffer = false,
     this.selectedTreatments = const [],
     this.selectedCertifications = const [],
     this.selectedOrigin,
@@ -385,6 +396,8 @@ class GemstoneFilterState {
   final String? selectedQualityGrade;
   final bool separable;
   final bool searchByMedia;
+  final String selectedAvailability;
+  final bool makeAnOffer;
   final List<String> selectedTreatments;
   final List<String> selectedCertifications;
   final String? selectedOrigin;
@@ -431,6 +444,8 @@ class GemstoneFilterState {
     Object? selectedQualityGrade = _unset,
     bool? separable,
     bool? searchByMedia,
+    String? selectedAvailability,
+    bool? makeAnOffer,
     List<String>? selectedTreatments,
     List<String>? selectedCertifications,
     Object? selectedOrigin = _unset,
@@ -483,6 +498,8 @@ class GemstoneFilterState {
           : selectedQualityGrade as String?,
       separable: separable ?? this.separable,
       searchByMedia: searchByMedia ?? this.searchByMedia,
+      selectedAvailability: selectedAvailability ?? this.selectedAvailability,
+      makeAnOffer: makeAnOffer ?? this.makeAnOffer,
       selectedTreatments: selectedTreatments ?? this.selectedTreatments,
       selectedCertifications:
           selectedCertifications ?? this.selectedCertifications,
