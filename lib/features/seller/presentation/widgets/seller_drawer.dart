@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/auth/confirm_sign_out.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-
-import '../../../../core/l10n/app_localizations.dart';
 
 /// Side drawer for seller workspace screens only.
 class SellerDrawer extends ConsumerWidget {
@@ -190,6 +190,24 @@ class SellerDrawer extends ConsumerWidget {
                 ),
               ),
               onTap: () => _goHome(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: AppColors.error),
+              title: Text(
+                context.tr(AccountCommerceL10n.signOut),
+                style: AppTypography.label.copyWith(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              onTap: () async {
+                final confirmed = await confirmSignOut(context);
+                if (!confirmed || !context.mounted) return;
+                await Navigator.of(context).maybePop();
+                if (!context.mounted) return;
+                ref.read(authProvider.notifier).logout();
+                context.resetTo(AppRouteNames.home);
+              },
             ),
           ],
         ),

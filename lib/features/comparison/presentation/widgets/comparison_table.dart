@@ -314,7 +314,7 @@ class _SpecLabelCell extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s12,
-        vertical: AppSpacing.s4,
+        vertical: AppSpacing.s12,
       ),
       child: Text(
         context.tr(label),
@@ -428,7 +428,7 @@ class _ItemValuesRow extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.s8,
-                  vertical: AppSpacing.s4,
+                  vertical: AppSpacing.s8,
                 ),
                 alignment: Alignment.centerLeft,
                 child: Row(
@@ -612,7 +612,7 @@ class _DragSpecCell extends StatelessWidget {
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s8,
-        vertical: AppSpacing.s4,
+        vertical: AppSpacing.s8,
       ),
       decoration: BoxDecoration(
         color: stripe

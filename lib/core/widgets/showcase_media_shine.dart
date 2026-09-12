@@ -17,11 +17,12 @@ class ShowcaseMediaShine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = AppColors.isDark(context);
-    final tint =
-        glowColor ??
-        (isDark ? const Color(0xFFF4F8FF) : const Color(0xFF8FA6C4));
+    // Diamond (untinted) glow is dark-mode only; gemstone tints show in both.
+    if (glowColor == null && !isDark) return child;
+
+    final tint = glowColor ?? const Color(0xFFF4F8FF);
     final mid = glowColor == null
-        ? (isDark ? const Color(0xFFE8F0FF) : const Color(0xFFB7C6DC))
+        ? const Color(0xFFE8F0FF)
         : Color.lerp(glowColor!, Colors.white, 0.35)!;
 
     final coreA = isDark ? 0.55 : 0.42;
