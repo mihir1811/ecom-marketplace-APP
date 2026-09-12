@@ -135,7 +135,6 @@ class DiamondProjectListingActions extends ConsumerWidget {
           filters: ref.read(diamondSearchProvider),
           catalog: ref.read(diamondCatalogTypeProvider),
         );
-    ref.read(diamondProjectListingPickProvider.notifier).clear();
     context.push(AppRouteNames.diamondProject);
   }
 }

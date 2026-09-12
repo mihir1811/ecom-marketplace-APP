@@ -1,24 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../diamonds/application/diamond_list_provider.dart';
-
 /// Seller multi-select on the diamond listing before opening a project.
 ///
 /// Empty set = "Select page" uses every loaded stone (legacy behavior).
 /// Non-empty = only these IDs are pushed into [diamondProjectSelectionProvider].
+///
+/// Picks persist across navigation and list reloads so sellers can accumulate
+/// stones, leave for analysis, and return without losing the selection.
 class DiamondProjectListingPickNotifier extends Notifier<Set<String>> {
   @override
-  Set<String> build() {
-    ref.listen(diamondListProvider, (previous, next) {
-      final ids = next.valueOrNull?.diamonds.map((d) => d.id).toSet();
-      if (ids == null) return;
-      final pruned = state.where(ids.contains).toSet();
-      if (pruned.length != state.length) {
-        state = Set<String>.unmodifiable(pruned);
-      }
-    });
-    return const {};
-  }
+  Set<String> build() => const {};
 
   void toggle(String diamondId) {
     if (diamondId.isEmpty) return;

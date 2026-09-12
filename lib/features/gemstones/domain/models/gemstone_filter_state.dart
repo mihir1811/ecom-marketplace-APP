@@ -9,6 +9,7 @@ class GemstoneFilterState {
     'Ruby',
     'Sapphire',
     'Emerald',
+    'Diamond',
     'Tanzanite',
     'Red Coral',
     'Amethyst',

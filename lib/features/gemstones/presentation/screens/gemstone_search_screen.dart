@@ -28,6 +28,7 @@ const List<String> _kFeaturedGemstones = [
   'Ruby',
   'Sapphire',
   'Emerald',
+  'Diamond',
   'Tanzanite',
   'Amethyst',
   'Aquamarine',

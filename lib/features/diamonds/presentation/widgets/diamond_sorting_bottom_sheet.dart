@@ -9,7 +9,7 @@ import '../../application/diamond_list_provider.dart';
 import '../../domain/models/sorting_criteria.dart';
 
 /// Production-grade multi-criteria sorting bottom sheet.
-/// Allows users to add, remove, reorder, and configure sorting criteria.
+/// Allows users to add, remove, and configure sorting criteria.
 class DiamondSortingBottomSheet extends ConsumerStatefulWidget {
   const DiamondSortingBottomSheet({super.key});
 
@@ -86,14 +86,6 @@ class _DiamondSortingBottomSheetState
             ? SortDirection.descending
             : SortDirection.ascending,
       );
-    });
-  }
-
-  void _reorder(int oldIndex, int newIndex) {
-    setState(() {
-      final item = _tempSelected.removeAt(oldIndex);
-      _tempSelected.insert(newIndex, item);
-      _recalculatePriorities();
     });
   }
 
@@ -281,40 +273,21 @@ class _DiamondSortingBottomSheetState
     Color mutedColor,
     Color borderColor,
   ) {
-    return ReorderableListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _tempSelected.length,
-      onReorderItem: _reorder,
-      proxyDecorator: (child, index, animation) {
-        return AnimatedBuilder(
-          animation: animation,
-          builder: (context, child) {
-            return Material(
-              elevation: 4,
-              borderRadius: BorderRadius.circular(AppSpacing.r12),
-              child: child,
-            );
-          },
-          child: child,
-        );
-      },
-      itemBuilder: (context, index) {
-        final criteria = _tempSelected[index];
-        return _buildSortingCard(
-          key: ValueKey(criteria.fieldKey),
-          criteria: criteria,
-          index: index,
-          textColor: textColor,
-          mutedColor: mutedColor,
-          borderColor: borderColor,
-        );
-      },
+    return Column(
+      children: [
+        for (var index = 0; index < _tempSelected.length; index++)
+          _buildSortingCard(
+            criteria: _tempSelected[index],
+            index: index,
+            textColor: textColor,
+            mutedColor: mutedColor,
+            borderColor: borderColor,
+          ),
+      ],
     );
   }
 
   Widget _buildSortingCard({
-    required Key key,
     required SortingCriteria criteria,
     required int index,
     required Color textColor,
@@ -324,7 +297,6 @@ class _DiamondSortingBottomSheetState
     final isAscending = criteria.direction == SortDirection.ascending;
 
     return Container(
-      key: key,
       margin: const EdgeInsets.only(bottom: AppSpacing.s8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -345,14 +317,6 @@ class _DiamondSortingBottomSheetState
         ),
         child: Row(
           children: [
-            ReorderableDragStartListener(
-              index: index,
-              child: Container(
-                padding: const EdgeInsets.all(AppSpacing.s4),
-                child: Icon(Icons.drag_handle, color: mutedColor, size: 20),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.s4),
             GestureDetector(
               onTap: () => _toggleDirection(index),
               child: Container(
@@ -389,17 +353,13 @@ class _DiamondSortingBottomSheetState
                 ],
               ),
             ),
-            Text(
-              '#${criteria.priority}',
-              style: AppTypography.caption.copyWith(
-                color: mutedColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.s8),
-            GestureDetector(
-              onTap: () => _removeField(index),
-              child: Container(
+            IconButton(
+              onPressed: () => _removeField(index),
+              tooltip: context.tr(CatalogL10n.cancel),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              icon: Container(
                 padding: const EdgeInsets.all(AppSpacing.s4),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -407,7 +367,7 @@ class _DiamondSortingBottomSheetState
                 ),
                 child: const Icon(
                   Icons.close,
-                  size: 14,
+                  size: 16,
                   color: AppColors.terracotta,
                 ),
               ),

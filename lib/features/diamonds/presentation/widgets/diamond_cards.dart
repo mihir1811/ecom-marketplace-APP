@@ -105,9 +105,13 @@ class DiamondCardGrid extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s4,
                   right: AppSpacing.s4,
-                  child: Column(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (showProjectPick) ...[
+                        DiamondProjectPickBadge(diamondId: diamond.id),
+                        const SizedBox(width: AppSpacing.s4),
+                      ],
                       WishlistToggleButton(
                         item: WishlistItem.fromDiamond(diamond),
                         onAdded: () => rememberProductDetail(
@@ -115,20 +119,21 @@ class DiamondCardGrid extends ConsumerWidget {
                         ),
                         size: 18,
                       ),
-                      const SizedBox(height: AppSpacing.s4),
-                      CompareAddButton(
-                        isSelected: inCompare,
-                        onPressed: () => handleCompareToggle(
-                          context,
-                          ref,
-                          CompareItem.fromDiamond(diamond),
-                        ),
-                      ),
                     ],
                   ),
                 ),
-                if (showProjectPick)
-                  DiamondProjectPickBadge(diamondId: diamond.id),
+                Positioned(
+                  bottom: AppSpacing.s8,
+                  right: AppSpacing.s8,
+                  child: CompareAddButton(
+                    isSelected: inCompare,
+                    onPressed: () => handleCompareToggle(
+                      context,
+                      ref,
+                      CompareItem.fromDiamond(diamond),
+                    ),
+                  ),
+                ),
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,

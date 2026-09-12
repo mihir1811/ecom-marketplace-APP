@@ -14,10 +14,11 @@ import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/catalog_list_loading.dart';
 import '../../../../core/widgets/app_top_bar.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
+import '../../../diamond_projects/presentation/widgets/diamond_project_listing_actions.dart';
+import '../../../diamond_projects/presentation/widgets/diamond_project_pick_bottom_bar.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../../ai_chat/application/ai_pending_filters.dart';
-import '../../../diamond_projects/presentation/widgets/diamond_project_listing_actions.dart';
 import '../widgets/diamond_cards.dart';
 import '../widgets/diamond_listing_stats_bar.dart';
 import '../widgets/diamond_sorting_bottom_sheet.dart';
@@ -158,76 +159,86 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
 
     return AppScaffold(
       appBar: AppTopBar(title: widget.title),
-      body: ComparisonTrayHost(
-        child: Column(
-          children: [
-            const DiamondListingStatsBar(),
-            _DiamondListingHeader(
-              searchRoute: widget.searchRoute,
-              onSwitchViewMode: _switchViewMode,
-            ),
-            const DiamondProjectListingActions(),
-            const Divider(height: 0),
-            Expanded(
-              child: stateAsync.when(
-                data: (state) {
-                  if (state.isInitialLoading) {
-                    return CatalogListLoading(
-                      isGrid: viewMode == ViewMode.grid,
-                    );
-                  }
-                  if (state.errorMessage != null && state.diamonds.isEmpty) {
-                    return _buildError(state.errorMessage!);
-                  }
-                  if (state.diamonds.isEmpty) {
-                    return CatalogEmptyState(
-                      icon: Icons.diamond_outlined,
-                      iconSize: 72,
-                      iconColor: AppColors.textMuted(
-                        context,
-                      ).withValues(alpha: 0.4),
-                      title: context.tr(CatalogL10n.noDiamonds),
-                      message:
-                          'Try adjusting your filters or search criteria to find matching diamonds.',
-                      padding: const EdgeInsets.all(AppSpacing.s48),
-                      titleStyle: AppTypography.headline.copyWith(
-                        color: AppColors.textPrimary(context),
-                        fontWeight: FontWeight.bold,
-                      ),
-                      actionLabel: context.tr(CatalogL10n.resetFilters),
-                      onAction: () {
-                        ref
-                            .read(diamondListProvider.notifier)
-                            .resetFiltersAndReload();
+      body: Column(
+        children: [
+          Expanded(
+            child: ComparisonTrayHost(
+              child: Column(
+                children: [
+                  const DiamondListingStatsBar(),
+                  _DiamondListingHeader(
+                    searchRoute: widget.searchRoute,
+                    onSwitchViewMode: _switchViewMode,
+                  ),
+                  const DiamondProjectListingActions(),
+                  const Divider(height: 0),
+                  Expanded(
+                    child: stateAsync.when(
+                      data: (state) {
+                        if (state.isInitialLoading) {
+                          return CatalogListLoading(
+                            isGrid: viewMode == ViewMode.grid,
+                          );
+                        }
+                        if (state.errorMessage != null &&
+                            state.diamonds.isEmpty) {
+                          return _buildError(state.errorMessage!);
+                        }
+                        if (state.diamonds.isEmpty) {
+                          return CatalogEmptyState(
+                            icon: Icons.diamond_outlined,
+                            iconSize: 72,
+                            iconColor: AppColors.textMuted(
+                              context,
+                            ).withValues(alpha: 0.4),
+                            title: context.tr(CatalogL10n.noDiamonds),
+                            message:
+                                'Try adjusting your filters or search criteria to find matching diamonds.',
+                            padding: const EdgeInsets.all(AppSpacing.s48),
+                            titleStyle: AppTypography.headline.copyWith(
+                              color: AppColors.textPrimary(context),
+                              fontWeight: FontWeight.bold,
+                            ),
+                            actionLabel: context.tr(CatalogL10n.resetFilters),
+                            onAction: () {
+                              ref
+                                  .read(diamondListProvider.notifier)
+                                  .resetFiltersAndReload();
+                            },
+                            actionIcon: Icons.refresh,
+                          );
+                        }
+                        return RefreshIndicator(
+                          onRefresh: () => ref
+                              .read(diamondListProvider.notifier)
+                              .refresh(),
+                          child: viewMode == ViewMode.grid
+                              ? DiamondGridView(
+                                  key: const ValueKey('diamond-grid'),
+                                  diamonds: state.diamonds,
+                                  scrollController: _scrollController,
+                                  isLoadingMore: state.isLoadingMore,
+                                )
+                              : DiamondListView(
+                                  key: const ValueKey('diamond-list'),
+                                  diamonds: state.diamonds,
+                                  scrollController: _scrollController,
+                                  isLoadingMore: state.isLoadingMore,
+                                ),
+                        );
                       },
-                      actionIcon: Icons.refresh,
-                    );
-                  }
-                  return RefreshIndicator(
-                    onRefresh: () =>
-                        ref.read(diamondListProvider.notifier).refresh(),
-                    child: viewMode == ViewMode.grid
-                        ? DiamondGridView(
-                            key: const ValueKey('diamond-grid'),
-                            diamonds: state.diamonds,
-                            scrollController: _scrollController,
-                            isLoadingMore: state.isLoadingMore,
-                          )
-                        : DiamondListView(
-                            key: const ValueKey('diamond-list'),
-                            diamonds: state.diamonds,
-                            scrollController: _scrollController,
-                            isLoadingMore: state.isLoadingMore,
-                          ),
-                  );
-                },
-                loading: () =>
-                    CatalogListLoading(isGrid: viewMode == ViewMode.grid),
-                error: (error, _) => _buildError(error.toString()),
+                      loading: () => CatalogListLoading(
+                        isGrid: viewMode == ViewMode.grid,
+                      ),
+                      error: (error, _) => _buildError(error.toString()),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          const DiamondProjectPickBottomBar(),
+        ],
       ),
     );
   }

@@ -3,14 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../application/diamond_project_listing_pick_provider.dart';
 
 /// Seller-only checkbox to pick a diamond for the next project selection.
 class DiamondProjectPickCheckbox extends ConsumerWidget {
   const DiamondProjectPickCheckbox({
     required this.diamondId,
-    this.size = 22,
+    this.size = 15,
     super.key,
   });
 
@@ -25,10 +24,11 @@ class DiamondProjectPickCheckbox extends ConsumerWidget {
     if (!canPick || diamondId.isEmpty) return const SizedBox.shrink();
 
     final picked = ref.watch(isDiamondProjectPickedProvider(diamondId));
-    final border = picked ? AppColors.bronze : AppColors.border(context);
-    final fill = picked
-        ? AppColors.bronze
-        : (AppColors.card(context).withValues(alpha: 0.92));
+    final isDark = AppColors.isDark(context);
+    final fill = picked ? AppColors.bronze : AppColors.card(context);
+    final borderColor = isDark
+        ? AppColors.warmWhite.withValues(alpha: 0.85)
+        : AppColors.charcoal;
 
     return Material(
       color: Colors.transparent,
@@ -49,19 +49,12 @@ class DiamondProjectPickCheckbox extends ConsumerWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: fill,
-              border: Border.all(color: border, width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.18),
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+              border: Border.all(color: borderColor, width: 1.5),
             ),
             child: picked
                 ? Icon(
                     Icons.check,
-                    size: size * 0.6,
+                    size: size * 0.55,
                     color: AppColors.warmWhite,
                   )
                 : null,
@@ -72,18 +65,19 @@ class DiamondProjectPickCheckbox extends ConsumerWidget {
   }
 }
 
-/// Bottom-left overlay used on diamond listing cards.
+/// Overlay control used beside the wishlist button on diamond listing cards.
 class DiamondProjectPickBadge extends StatelessWidget {
-  const DiamondProjectPickBadge({required this.diamondId, super.key});
+  const DiamondProjectPickBadge({
+    required this.diamondId,
+    this.size = 15,
+    super.key,
+  });
 
   final String diamondId;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: AppSpacing.s8,
-      left: AppSpacing.s8,
-      child: DiamondProjectPickCheckbox(diamondId: diamondId),
-    );
+    return DiamondProjectPickCheckbox(diamondId: diamondId, size: size);
   }
 }

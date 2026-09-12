@@ -51,8 +51,35 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
   }
 
   void toggleBirthstoneMonth(String month) {
+    final stone = GemstoneFilterState.birthstones[month]?.trim();
+    final months = _toggled(state.selectedBirthstoneMonths, month);
+    final selecting = months.contains(month);
+
+    var types = List<String>.from(state.selectedGemstoneTypes);
+    var shapes = List<String>.from(state.selectedShapes);
+
+    if (stone != null && stone.isNotEmpty) {
+      final stillNeeded = months.any(
+        (m) => GemstoneFilterState.birthstones[m] == stone,
+      );
+      if (selecting) {
+        if (!types.contains(stone)) types.add(stone);
+        if (GemstoneFilterState.shapeSvgNames.containsKey(stone) &&
+            !shapes.contains(stone)) {
+          shapes.add(stone);
+        }
+      } else if (!stillNeeded) {
+        types.remove(stone);
+        if (GemstoneFilterState.shapeSvgNames.containsKey(stone)) {
+          shapes.remove(stone);
+        }
+      }
+    }
+
     state = state.copyWith(
-      selectedBirthstoneMonths: _toggled(state.selectedBirthstoneMonths, month),
+      selectedBirthstoneMonths: months,
+      selectedGemstoneTypes: List<String>.unmodifiable(types),
+      selectedShapes: List<String>.unmodifiable(shapes),
     );
   }
 

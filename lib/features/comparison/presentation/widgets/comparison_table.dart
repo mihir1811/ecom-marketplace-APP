@@ -13,7 +13,7 @@ import '../../domain/models/compare_spec.dart';
 
 const double kCompareLabelWidth = 132;
 const double kCompareColWidth = 140;
-const double kCompareRowHeight = 52;
+const double kCompareRowHeight = 40;
 
 /// Owns horizontal scroll sync so the comparison screen shell never rebuilds on scroll.
 class ComparisonTable extends StatefulWidget {
@@ -314,7 +314,7 @@ class _SpecLabelCell extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s12,
-        vertical: AppSpacing.s12,
+        vertical: AppSpacing.s4,
       ),
       child: Text(
         context.tr(label),
@@ -428,7 +428,7 @@ class _ItemValuesRow extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.s8,
-                  vertical: AppSpacing.s8,
+                  vertical: AppSpacing.s4,
                 ),
                 alignment: Alignment.centerLeft,
                 child: Row(
@@ -612,7 +612,7 @@ class _DragSpecCell extends StatelessWidget {
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s8,
-        vertical: AppSpacing.s8,
+        vertical: AppSpacing.s4,
       ),
       decoration: BoxDecoration(
         color: stripe
