@@ -90,6 +90,14 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
         : state.labNatural.usesMeleeFilters;
     final showStandardRanges = !useMeleeFilters;
     final showSieve = useMeleeFilters && state.shapes.contains('Round');
+    final meleeFamily = widget.isLabCatalog
+        ? MeleeBgFamily.labGrown
+        : MeleeBgFamily.natural;
+    final accent = AppColors.finderAccent(
+      context,
+      family: meleeFamily,
+      melee: useMeleeFilters,
+    );
 
     return RepaintBoundary(
       child: Column(
@@ -207,13 +215,13 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                       isAtMax
                           ? Icons.keyboard_arrow_up
                           : Icons.keyboard_arrow_down,
-                      color: AppColors.bronze,
+                      color: accent,
                       size: 18,
                     ),
                     label: Text(
                       isAtMax ? 'Show Less Shapes' : 'Show More Shapes',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.bronze,
+                        color: accent,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -671,7 +679,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                     Text(
                       context.tr(CatalogL10n.viewMoreFilters),
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.bronze,
+                        color: accent,
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -681,7 +689,7 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                       _isAdvancedFiltersExpanded
                           ? Icons.keyboard_arrow_up
                           : Icons.keyboard_arrow_down,
-                      color: AppColors.bronze,
+                      color: accent,
                       size: 18,
                     ),
                   ],
@@ -888,11 +896,7 @@ class FilterSegmentedControl extends StatelessWidget {
           children: options.map((opt) {
             final isCurrent = opt == selected;
             final splash = opt.usesMeleeFilters
-                ? AppColors.screenBgFor(
-                    context,
-                    melee: true,
-                    family: MeleeBgFamily.natural,
-                  )
+                ? AppColors.naturalMeleeAccent
                 : AppColors.bronzeLight;
             return Expanded(
               child: Material(
@@ -1022,6 +1026,11 @@ class _FilterSieveSizeState extends ConsumerState<FilterSieveSize> {
             _SelectionSummaryCard(
               count: state.selectedSieveIndices.length,
               borderColor: borderColor,
+              accentColor: AppColors.finderAccent(
+                context,
+                family: MeleeBgFamily.natural,
+                melee: true,
+              ),
               onClear: state.selectedSieveIndices.isEmpty
                   ? null
                   : () => notifier.clearSieves(),
@@ -1202,11 +1211,13 @@ class _DataCell extends StatelessWidget {
 class _SelectionSummaryCard extends StatelessWidget {
   final int count;
   final Color borderColor;
+  final Color accentColor;
   final VoidCallback? onClear;
 
   const _SelectionSummaryCard({
     required this.count,
     required this.borderColor,
+    required this.accentColor,
     this.onClear,
   });
 
@@ -1224,9 +1235,7 @@ class _SelectionSummaryCard extends StatelessWidget {
           Icon(
             count > 0 ? Icons.check_circle : Icons.circle_outlined,
             size: 18,
-            color: count > 0
-                ? AppColors.bronze
-                : (AppColors.textMuted(context)),
+            color: count > 0 ? accentColor : (AppColors.textMuted(context)),
           ),
           const SizedBox(width: AppSpacing.s8),
           Text(
@@ -1234,7 +1243,7 @@ class _SelectionSummaryCard extends StatelessWidget {
             style: AppTypography.label.copyWith(
               fontWeight: FontWeight.bold,
               color: count > 0
-                  ? AppColors.bronze
+                  ? accentColor
                   : (AppColors.textSecondary(context)),
             ),
           ),

@@ -53,23 +53,25 @@ class WatchCardGrid extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s4,
                   right: AppSpacing.s4,
-                  child: WishlistToggleButton(
-                    item: WishlistItem.fromWatch(watch),
-                    onAdded: () =>
-                        rememberProductDetail(watchProductDetail(watch)),
-                    size: 18,
-                  ),
-                ),
-                Positioned(
-                  bottom: AppSpacing.s8,
-                  right: AppSpacing.s8,
-                  child: CompareAddButton(
-                    isSelected: inCompare,
-                    onPressed: () => handleCompareToggle(
-                      context,
-                      ref,
-                      CompareItem.fromWatch(watch),
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      WishlistToggleButton(
+                        item: WishlistItem.fromWatch(watch),
+                        onAdded: () =>
+                            rememberProductDetail(watchProductDetail(watch)),
+                        size: 18,
+                      ),
+                      const SizedBox(height: AppSpacing.s4),
+                      CompareAddButton(
+                        isSelected: inCompare,
+                        onPressed: () => handleCompareToggle(
+                          context,
+                          ref,
+                          CompareItem.fromWatch(watch),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Positioned(
@@ -215,24 +217,26 @@ class WatchCardList extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   right: AppSpacing.s8,
-                  child: WishlistToggleButton(
-                    item: WishlistItem.fromWatch(watch),
-                    onAdded: () =>
-                        rememberProductDetail(watchProductDetail(watch)),
-                    size: 18,
-                  ),
-                ),
-                Positioned(
-                  bottom: AppSpacing.s8,
-                  right: AppSpacing.s8,
-                  child: CompareAddButton(
-                    size: 32,
-                    isSelected: inCompare,
-                    onPressed: () => handleCompareToggle(
-                      context,
-                      ref,
-                      CompareItem.fromWatch(watch),
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      WishlistToggleButton(
+                        item: WishlistItem.fromWatch(watch),
+                        onAdded: () =>
+                            rememberProductDetail(watchProductDetail(watch)),
+                        size: 18,
+                      ),
+                      const SizedBox(height: AppSpacing.s4),
+                      CompareAddButton(
+                        size: 32,
+                        isSelected: inCompare,
+                        onPressed: () => handleCompareToggle(
+                          context,
+                          ref,
+                          CompareItem.fromWatch(watch),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

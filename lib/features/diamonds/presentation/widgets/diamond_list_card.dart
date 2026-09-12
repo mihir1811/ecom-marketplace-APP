@@ -68,24 +68,27 @@ class DiamondCardList extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   right: AppSpacing.s8,
-                  child: WishlistToggleButton(
-                    item: WishlistItem.fromDiamond(diamond),
-                    onAdded: () =>
-                        rememberProductDetail(diamondProductDetail(diamond)),
-                    size: 18,
-                  ),
-                ),
-                Positioned(
-                  bottom: AppSpacing.s8,
-                  right: AppSpacing.s8,
-                  child: CompareAddButton(
-                    size: 32,
-                    isSelected: inCompare,
-                    onPressed: () => handleCompareToggle(
-                      context,
-                      ref,
-                      CompareItem.fromDiamond(diamond),
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      WishlistToggleButton(
+                        item: WishlistItem.fromDiamond(diamond),
+                        onAdded: () => rememberProductDetail(
+                          diamondProductDetail(diamond),
+                        ),
+                        size: 18,
+                      ),
+                      const SizedBox(height: AppSpacing.s4),
+                      CompareAddButton(
+                        size: 32,
+                        isSelected: inCompare,
+                        onPressed: () => handleCompareToggle(
+                          context,
+                          ref,
+                          CompareItem.fromDiamond(diamond),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 if (showProjectPick)

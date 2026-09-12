@@ -19,6 +19,7 @@ import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
+import '../widgets/diamond_shape_shine.dart';
 import '../widgets/diamond_svg_data.dart';
 import '../widgets/filter_category_basic.dart';
 import '../widgets/filter_origin_dropdown.dart';
@@ -169,17 +170,25 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         ),
     ];
 
+    final meleeFamily = widget.catalog.isLabGrown
+        ? MeleeBgFamily.labGrown
+        : MeleeBgFamily.natural;
+    final accent = AppColors.finderAccent(
+      context,
+      family: meleeFamily,
+      melee: useMeleeFilters,
+    );
+
     return CatalogSearchFilterShell(
       title: widget.title,
       isMelee: useMeleeFilters,
-      meleeFamily: widget.catalog.isLabGrown
-          ? MeleeBgFamily.labGrown
-          : MeleeBgFamily.natural,
+      meleeFamily: meleeFamily,
       onScrollNotification: catalogHandleScrollNotification,
       stickyNav: CatalogSearchSectionNav<Section>(
         navKey: catalogNavKey,
         sections: sections,
         activeId: _activeSection,
+        accentColor: accent,
         onSectionTap: (section) {
           setState(() {
             _activeSection = section.id;
@@ -243,6 +252,22 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   Widget _buildShapeCarousel() {
     final shapes = ref.watch(diamondSearchProvider.select((s) => s.shapes));
     final notifier = ref.read(diamondSearchProvider.notifier);
+    final useMelee = ref.watch(
+      diamondSearchProvider.select(_usesMeleeFilters),
+    );
+    final family = widget.catalog.isLabGrown
+        ? MeleeBgFamily.labGrown
+        : MeleeBgFamily.natural;
+    final accent = AppColors.finderAccent(
+      context,
+      family: family,
+      melee: useMelee,
+    );
+    final accentSoft = AppColors.finderAccentSoft(
+      context,
+      family: family,
+      melee: useMelee,
+    );
 
     return PairedShowcaseCarousel(
       title: context.tr(CatalogL10n.selectDiamondShapes),
@@ -255,20 +280,23 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         final fallback = renderShapeSvg(
           name,
           size: 48,
-          color: isSelected ? AppColors.bronze : AppColors.bronzeLight,
+          color: isSelected ? accent : accentSoft,
         );
 
         return ShowcaseSelectCard(
           name: name,
           isSelected: isSelected,
+          activeColor: accent,
           onTap: () => notifier.toggleShape(name),
-          media: imagePath != null
-              ? Image.asset(
-                  imagePath,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => fallback,
-                )
-              : fallback,
+          media: DiamondShapeShine(
+            child: imagePath != null
+                ? Image.asset(
+                    imagePath,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => fallback,
+                  )
+                : fallback,
+          ),
         );
       },
     );

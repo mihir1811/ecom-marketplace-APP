@@ -61,24 +61,26 @@ class GemstoneCardGrid extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s4,
                   right: AppSpacing.s4,
-                  child: WishlistToggleButton(
-                    item: WishlistItem.fromGemstone(gemstone),
-                    onAdded: () => rememberProductDetail(
-                      gemstoneProductDetail(gemstone),
-                    ),
-                    size: 18,
-                  ),
-                ),
-                Positioned(
-                  bottom: AppSpacing.s8,
-                  right: AppSpacing.s8,
-                  child: CompareAddButton(
-                    isSelected: inCompare,
-                    onPressed: () => handleCompareToggle(
-                      context,
-                      ref,
-                      CompareItem.fromGemstone(gemstone),
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      WishlistToggleButton(
+                        item: WishlistItem.fromGemstone(gemstone),
+                        onAdded: () => rememberProductDetail(
+                          gemstoneProductDetail(gemstone),
+                        ),
+                        size: 18,
+                      ),
+                      const SizedBox(height: AppSpacing.s4),
+                      CompareAddButton(
+                        isSelected: inCompare,
+                        onPressed: () => handleCompareToggle(
+                          context,
+                          ref,
+                          CompareItem.fromGemstone(gemstone),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Positioned(
@@ -240,25 +242,27 @@ class GemstoneCardList extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   right: AppSpacing.s8,
-                  child: WishlistToggleButton(
-                    item: WishlistItem.fromGemstone(gemstone),
-                    onAdded: () => rememberProductDetail(
-                      gemstoneProductDetail(gemstone),
-                    ),
-                    size: 18,
-                  ),
-                ),
-                Positioned(
-                  bottom: AppSpacing.s8,
-                  right: AppSpacing.s8,
-                  child: CompareAddButton(
-                    size: 32,
-                    isSelected: inCompare,
-                    onPressed: () => handleCompareToggle(
-                      context,
-                      ref,
-                      CompareItem.fromGemstone(gemstone),
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      WishlistToggleButton(
+                        item: WishlistItem.fromGemstone(gemstone),
+                        onAdded: () => rememberProductDetail(
+                          gemstoneProductDetail(gemstone),
+                        ),
+                        size: 18,
+                      ),
+                      const SizedBox(height: AppSpacing.s4),
+                      CompareAddButton(
+                        size: 32,
+                        isSelected: inCompare,
+                        onPressed: () => handleCompareToggle(
+                          context,
+                          ref,
+                          CompareItem.fromGemstone(gemstone),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

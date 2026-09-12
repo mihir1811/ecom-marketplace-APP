@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 enum MeleeBgFamily {
   labGrown,
   natural,
-  /// Gemstone finder — Natural stone type (warm sand).
+
+  /// Gemstone finder — Natural stone type.
   gemstoneNatural,
-  /// Gemstone finder — Lab Grown stone type (warm sand).
+
+  /// Gemstone finder — Lab Grown stone type.
   gemstoneLabGrown,
 }
 
@@ -40,32 +42,95 @@ class AppColors {
   static const slateSurface = Color(0xFF16181B);
   static const slateBorder = Color(0xFF2E3035);
 
-  /// Catalog Single/Melee screen backgrounds — distinct pastels (never white/black).
-  /// Natural diamond finder
-  static const naturalSingleBg = Color(0xFFEEDFCC); // warm sand (default)
-  static const naturalMeleeBg = Color(0xFFD9B894); // apricot clay
+  /// Catalog Single/Melee screen backgrounds — light contrasting pairs
+  /// (cool ↔ warm opposites; never pure white/black).
+  /// Natural diamond finder — cool mist ↔ warm peach
+  static const naturalSingleBg = Color.fromARGB(
+    255,
+    190,
+    217,
+    248,
+  ); // cool mist (default)
+  static const naturalMeleeBg = Color.fromARGB(255, 248, 213, 182); // peach
 
-  /// Lab-grown diamond finder
-  static const labGrownSingleBg = Color(0xFFD7E8E0); // mint (default)
-  static const labGrownMeleeBg = Color(0xFFB8D4C8); // sage
+  /// Lab-grown diamond finder — warm blush ↔ cool mint
+  static const labGrownSingleBg = Color.fromARGB(
+    255,
+    242,
+    248,
+    190,
+  ); // warm blush (default)
+  static const labGrownMeleeBg = Color(0xFFC8DED6); // cool mint
 
-  /// Gemstone — Natural stone type
-  static const gemstoneNaturalSingleBg = Color(0xFFEBD2B8); // peach (default)
-  static const gemstoneNaturalMeleeBg = Color(0xFFD4AE8C); // clay blush
+  /// Gemstone — Natural stone type — cool lilac ↔ warm apricot
+  static const gemstoneNaturalSingleBg = Color.fromARGB(
+    255,
+    224,
+    205,
+    255,
+  ); // cool lilac (default)
+  static const gemstoneNaturalMeleeBg = Color.fromARGB(
+    255,
+    202,
+    247,
+    199,
+  ); // warm apricot
 
-  /// Gemstone — Lab Grown stone type
-  static const gemstoneLabSingleBg = Color(0xFFD6E0EC); // cool pearl (default)
-  static const gemstoneLabMeleeBg = Color(0xFFB7C8DC); // steel mist
+  /// Gemstone — Lab Grown stone type — warm sand ↔ cool steel
+  static const gemstoneLabSingleBg = Color.fromARGB(
+    255,
+    248,
+    199,
+    250,
+  ); // warm sand (default)
+  static const gemstoneLabMeleeBg = Color.fromARGB(
+    255,
+    248,
+    196,
+    196,
+  ); // cool steel
 
-  /// Dark-mode tinted bands — warm/cool charcoal tints (never pure black).
-  static const naturalSingleBgDark = Color(0xFF1E1914);
-  static const naturalMeleeBgDark = Color(0xFF2A221A);
-  static const labGrownSingleBgDark = Color(0xFF161E1A);
-  static const labGrownMeleeBgDark = Color(0xFF1C2822);
-  static const gemstoneNaturalSingleBgDark = Color(0xFF1F1A15);
-  static const gemstoneNaturalMeleeBgDark = Color(0xFF2A2118);
-  static const gemstoneLabSingleBgDark = Color(0xFF171B22);
-  static const gemstoneLabMeleeBgDark = Color(0xFF1C2430);
+  /// Dark-mode tinted bands — unused; dark mode uses neutral surfaces only.
+  static const naturalSingleBgDark = Color(0xFF4A4036);
+  static const naturalMeleeBgDark = Color(0xFF5E5144);
+  static const labGrownSingleBgDark = Color(0xFF2A3832);
+  static const labGrownMeleeBgDark = Color(0xFF344840);
+  static const gemstoneNaturalSingleBgDark = Color(0xFF4A3E34);
+  static const gemstoneNaturalMeleeBgDark = Color(0xFF5C4C3E);
+  static const gemstoneLabSingleBgDark = Color(0xFF2C3440);
+  static const gemstoneLabMeleeBgDark = Color(0xFF364050);
+
+  /// Soft highlight used by melee water-reveal rings (lighter than bronze).
+  static const meleeRevealAccentLight = Color(0xFFD4B896);
+  static const meleeRevealAccentDark = Color(0xFFE8D4B0);
+
+  /// Natural melee accent — cool slate (contrasts peach melee bg).
+  static const naturalMeleeAccent = Color(0xFF5C6B7A);
+  static const naturalMeleeAccentLight = Color(0xFF8A98A6);
+
+  /// Brand / finder accent. Natural melee uses cool slate; everything else stays bronze.
+  static Color finderAccent(
+    BuildContext context, {
+    MeleeBgFamily family = MeleeBgFamily.natural,
+    bool melee = false,
+  }) {
+    if (family == MeleeBgFamily.natural && melee) {
+      return naturalMeleeAccent;
+    }
+    return isDark(context) ? bronzeLight : bronze;
+  }
+
+  /// Softer companion to [finderAccent] (unselected / glow).
+  static Color finderAccentSoft(
+    BuildContext context, {
+    MeleeBgFamily family = MeleeBgFamily.natural,
+    bool melee = false,
+  }) {
+    if (family == MeleeBgFamily.natural && melee) {
+      return naturalMeleeAccentLight;
+    }
+    return bronzeLight;
+  }
 
   /// Resolves gemstone finder palette from Natural / Lab Grown stone type.
   /// Defaults to Natural when unset so Single/Melee still have a stable tint.
@@ -100,31 +165,14 @@ class AppColors {
     return screenBg(melee: melee, family: family);
   }
 
-  static Color _screenBgDark({
-    required bool melee,
-    required MeleeBgFamily family,
-  }) {
-    switch (family) {
-      case MeleeBgFamily.labGrown:
-        return melee ? labGrownMeleeBgDark : labGrownSingleBgDark;
-      case MeleeBgFamily.natural:
-        return melee ? naturalMeleeBgDark : naturalSingleBgDark;
-      case MeleeBgFamily.gemstoneNatural:
-        return melee ? gemstoneNaturalMeleeBgDark : gemstoneNaturalSingleBgDark;
-      case MeleeBgFamily.gemstoneLabGrown:
-        return melee ? gemstoneLabMeleeBgDark : gemstoneLabSingleBgDark;
-    }
-  }
-
-  /// Melee-family screen tint that adapts to the active theme.
+  /// Melee-family screen tint. Light mode uses pastels; dark mode stays neutral
+  /// (no family color shift — looks muddy on dark surfaces).
   static Color screenBgFor(
     BuildContext context, {
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
   }) {
-    if (isDark(context)) {
-      return _screenBgDark(melee: melee, family: family);
-    }
+    if (isDark(context)) return slateSurface;
     return screenBg(melee: melee, family: family);
   }
 

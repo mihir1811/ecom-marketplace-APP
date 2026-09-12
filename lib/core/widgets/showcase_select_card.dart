@@ -13,6 +13,7 @@ class ShowcaseSelectCard extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     required this.media,
+    this.activeColor,
     super.key,
   });
 
@@ -23,9 +24,12 @@ class ShowcaseSelectCard extends StatelessWidget {
   /// Visual for the 84×84 media slot (image, SVG, hue fallback, etc.).
   final Widget media;
 
+  /// Selected border / label color. Defaults to brand bronze.
+  final Color? activeColor;
+
   @override
   Widget build(BuildContext context) {
-    const activeColor = AppColors.bronze;
+    final resolvedActive = activeColor ?? AppColors.bronze;
     final inactiveBorderColor = AppColors.border(context);
 
     return GestureDetector(
@@ -36,7 +40,7 @@ class ShowcaseSelectCard extends StatelessWidget {
           color: isSelected ? AppColors.bg(context) : AppColors.card(context),
           borderRadius: const BorderRadius.all(Radius.circular(60.0)),
           border: Border.all(
-            color: isSelected ? activeColor : inactiveBorderColor,
+            color: isSelected ? resolvedActive : inactiveBorderColor,
             width: isSelected ? 2.0 : 1.0,
           ),
           boxShadow: isSelected ? AppShadows.cardLight : AppShadows.none,
@@ -60,7 +64,7 @@ class ShowcaseSelectCard extends StatelessWidget {
               style: AppTypography.label.copyWith(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected
-                    ? activeColor
+                    ? resolvedActive
                     : AppColors.textPrimary(context),
               ),
             ),

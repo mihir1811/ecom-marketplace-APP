@@ -199,6 +199,14 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
       melee: widget.isMelee,
       family: widget.family,
     );
+    // Dark mode has no family tint — skip the color-reveal animation.
+    if (AppColors.isDark(context)) {
+      _fromColor = next;
+      _toColor = next;
+      _animating = false;
+      _controller.value = 1;
+      return;
+    }
     if (next == _toColor && !_animating) return;
     _startTransition(next);
   }
@@ -214,9 +222,11 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
     final dark = AppColors.isDark(context);
     // Soft themed underlay below the switch — not plain white/black.
     final baseBg = dark ? AppColors.slateSurface : AppColors.sandSurface;
-    final accent = widget.isMelee
-        ? (dark ? AppColors.bronzeLight : AppColors.bronze)
-        : (dark ? AppColors.bronze : AppColors.bronzeDark);
+    final accent = AppColors.finderAccent(
+      context,
+      family: widget.family,
+      melee: widget.isMelee,
+    );
     final restingTint = AppColors.screenBgFor(
       context,
       melee: widget.isMelee,
@@ -355,14 +365,15 @@ class _WaterRevealPainter extends CustomPainter {
     // Soft water rings while the reveal is in flight (fade out near the end).
     final ringFade = (1.0 - progress).clamp(0.0, 1.0);
     if (ringFade > 0.04 && progress < 0.98) {
-      final ringBoost = dark ? 0.55 : 1.0;
+      // Dark mode needs brighter rings so the animation stays visible.
+      final ringBoost = dark ? 1.35 : 1.0;
       canvas.drawCircle(
         center,
         radius * 0.92,
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 22 * ringFade
-          ..color = accent.withValues(alpha: 0.22 * ringFade * ringBoost),
+          ..color = accent.withValues(alpha: 0.32 * ringFade * ringBoost),
       );
       canvas.drawCircle(
         center,
@@ -370,7 +381,7 @@ class _WaterRevealPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 10 * ringFade
-          ..color = toColor.withValues(alpha: 0.40 * ringFade * ringBoost),
+          ..color = toColor.withValues(alpha: 0.45 * ringFade * ringBoost),
       );
       canvas.drawCircle(
         center,
@@ -378,7 +389,7 @@ class _WaterRevealPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 5 * ringFade
-          ..color = accent.withValues(alpha: 0.14 * ringFade * ringBoost),
+          ..color = accent.withValues(alpha: 0.22 * ringFade * ringBoost),
       );
     }
   }

@@ -105,23 +105,26 @@ class DiamondCardGrid extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s4,
                   right: AppSpacing.s4,
-                  child: WishlistToggleButton(
-                    item: WishlistItem.fromDiamond(diamond),
-                    onAdded: () =>
-                        rememberProductDetail(diamondProductDetail(diamond)),
-                    size: 18,
-                  ),
-                ),
-                Positioned(
-                  bottom: AppSpacing.s8,
-                  right: AppSpacing.s8,
-                  child: CompareAddButton(
-                    isSelected: inCompare,
-                    onPressed: () => handleCompareToggle(
-                      context,
-                      ref,
-                      CompareItem.fromDiamond(diamond),
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      WishlistToggleButton(
+                        item: WishlistItem.fromDiamond(diamond),
+                        onAdded: () => rememberProductDetail(
+                          diamondProductDetail(diamond),
+                        ),
+                        size: 18,
+                      ),
+                      const SizedBox(height: AppSpacing.s4),
+                      CompareAddButton(
+                        isSelected: inCompare,
+                        onPressed: () => handleCompareToggle(
+                          context,
+                          ref,
+                          CompareItem.fromDiamond(diamond),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 if (showProjectPick)

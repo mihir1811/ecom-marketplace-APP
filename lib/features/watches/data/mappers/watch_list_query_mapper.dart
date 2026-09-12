@@ -103,6 +103,10 @@ abstract final class WatchListQueryMapper {
         f.dialColors.map((c) => c.trim()).where((c) => c.isNotEmpty).toList();
     _putEqualsOrIn(filters, 'dialColor', dialColors);
 
+    final indexes =
+        f.indexes.map(_mapIndexesToApi).whereType<String>().toList();
+    _putEqualsOrIn(filters, 'indexes', indexes);
+
     final caseShapes =
         f.caseShapes.map((c) => c.trim()).where((c) => c.isNotEmpty).toList();
     _putEqualsOrIn(filters, 'caseShape', caseShapes);
@@ -186,5 +190,21 @@ abstract final class WatchListQueryMapper {
     final v = ui.trim().toLowerCase();
     if (v.startsWith('new')) return 'New';
     return ui.trim().isEmpty ? null : ui.trim();
+  }
+
+  /// Maps UI dial-index labels to API `indexes` values.
+  static String? _mapIndexesToApi(String ui) {
+    final v = ui.trim().toLowerCase();
+    if (v.isEmpty) return null;
+    if (v.contains('arabic')) return 'Arabic Numerals';
+    if (v.contains('roman')) return 'Roman Numerals';
+    if (v.contains('baton') || v.contains('line')) {
+      return 'Baton / Stick Markers';
+    }
+    if (v.contains('dot') || v.contains('gem')) return 'Dot / Gem Markers';
+    if (v.contains('no marker') || v.contains('blank') || v.contains('minimal')) {
+      return 'Blank / Minimalist';
+    }
+    return ui.trim();
   }
 }

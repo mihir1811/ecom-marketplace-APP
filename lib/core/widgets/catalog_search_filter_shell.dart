@@ -26,6 +26,7 @@ class CatalogSearchSectionNav<T> extends StatelessWidget {
     required this.activeId,
     required this.onSectionTap,
     this.height = 52,
+    this.accentColor,
     super.key,
   });
 
@@ -34,9 +35,11 @@ class CatalogSearchSectionNav<T> extends StatelessWidget {
   final T activeId;
   final ValueChanged<CatalogSearchNavSection<T>> onSectionTap;
   final double height;
+  final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
+    final active = accentColor ?? AppColors.bronze;
     return Container(
       key: navKey,
       height: height,
@@ -56,7 +59,7 @@ class CatalogSearchSectionNav<T> extends StatelessWidget {
                     border: Border(
                       bottom: BorderSide(
                         color: activeId == section.id
-                            ? AppColors.bronze
+                            ? active
                             : Colors.transparent,
                         width: 2.5,
                       ),
@@ -69,7 +72,7 @@ class CatalogSearchSectionNav<T> extends StatelessWidget {
                         section.icon,
                         size: 16,
                         color: activeId == section.id
-                            ? AppColors.bronze
+                            ? active
                             : AppColors.textMuted(context),
                       ),
                       const SizedBox(width: 4),
@@ -80,7 +83,7 @@ class CatalogSearchSectionNav<T> extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.3,
                           color: activeId == section.id
-                              ? AppColors.bronze
+                              ? active
                               : AppColors.textMuted(context),
                         ),
                       ),

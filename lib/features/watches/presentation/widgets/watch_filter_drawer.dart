@@ -16,6 +16,7 @@ import '../../application/watch_list_provider.dart';
 import '../../data/repositories/watch_brand_assets_data.dart';
 import '../../domain/models/watch_brand_categories.dart';
 import '../../domain/models/watch_filter_state.dart';
+import 'watch_dial_style_index_grid.dart';
 import 'watch_filter_swatch_pills.dart';
 
 /// Full-screen watch filters (same chrome as jewelry filters).
@@ -477,11 +478,10 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer> {
                   draft.glassMaterials,
                   n.toggleGlassMaterial,
                 ),
-                _subLabel('Dial Style / Indexes'),
-                _list(
-                  WatchFilterState.indexesOptions,
-                  draft.indexes,
-                  n.toggleIndexes,
+                _swatchHeading('Dial Style / Indexes'),
+                WatchDialStyleIndexGrid(
+                  selected: draft.indexes,
+                  onToggle: n.toggleIndexes,
                 ),
               ],
             ),

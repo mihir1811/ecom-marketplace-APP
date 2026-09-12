@@ -5,9 +5,7 @@ import '../../../core/theme/app_colors.dart';
 /// Asset path for a gemstone image, or null when none is available.
 String? gemstoneImagePath(String name) {
   // Filenames in public/images/gemstones/ that differ from the display name.
-  const aliases = {
-    "Tiger's Eye": 'Tiger Eye',
-  };
+  const aliases = {"Tiger's Eye": 'Tiger Eye'};
   final fileName = aliases[name] ?? name;
   return 'public/images/gemstones/$fileName.png';
 }

@@ -373,11 +373,11 @@ class WatchFilterState {
   ];
 
   static const indexesOptions = [
-    'Arabic Numerals',
-    'Roman Numerals',
-    'Baton / Stick Markers',
-    'Dot / Gem Markers',
-    'Blank / Minimalist',
+    'Arabic numerals',
+    'Gemstones / Dots',
+    'Lines / Baton',
+    'No markers',
+    'Roman numerals',
   ];
 
   bool get hasActiveFilters =>
