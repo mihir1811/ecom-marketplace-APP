@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../haptics/app_haptics.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/app_dialog.dart';
 
@@ -17,7 +18,10 @@ Future<bool> confirmAppExit(BuildContext context) async {
           child: Text(context.tr(CoreL10n.cancel)),
         ),
         FilledButton(
-          onPressed: () => Navigator.pop(context, true),
+          onPressed: () {
+            AppHaptics.medium();
+            Navigator.pop(context, true);
+          },
           child: Text(context.tr(CoreL10n.exitAppConfirm)),
         ),
       ],

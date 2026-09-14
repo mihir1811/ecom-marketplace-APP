@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../haptics/app_haptics.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
@@ -39,7 +40,10 @@ Future<T?> showSimpleSortSheet<T>({
                 trailing: current == option
                     ? const Icon(Icons.check, color: AppColors.bronze)
                     : null,
-                onTap: () => Navigator.pop(context, option),
+                onTap: () {
+                  AppHaptics.selection();
+                  Navigator.pop(context, option);
+                },
               ),
             const SizedBox(height: AppSpacing.s12),
           ],

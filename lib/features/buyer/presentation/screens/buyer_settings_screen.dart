@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/confirm_delete_account.dart';
 import '../../../../core/auth/confirm_sign_out.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
@@ -46,8 +47,10 @@ class BuyerSettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 value: darkMode,
-                onChanged: (v) =>
-                    ref.read(themePreferenceProvider.notifier).setDarkMode(v),
+                onChanged: (v) {
+                  AppHaptics.selection();
+                  ref.read(themePreferenceProvider.notifier).setDarkMode(v);
+                },
               ),
               const Divider(height: 1),
               const LanguageSettingsTile(),
@@ -161,6 +164,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (!ok) {
+      AppHaptics.error();
       final message =
           ref.read(authProvider).errorMessage ??
           'Could not delete account. Please try again.';
@@ -179,6 +183,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
         ? base
         : '$base Recover by ${until.toLocal()}.';
 
+    AppHaptics.heavy();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(detail)));
     context.resetTo(AppRouteNames.recoverAccount);
   }

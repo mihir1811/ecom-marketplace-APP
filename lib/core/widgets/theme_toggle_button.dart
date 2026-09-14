@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../haptics/app_haptics.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/theme_preference_provider.dart';
 
@@ -25,6 +26,7 @@ class ThemeToggleButton extends ConsumerWidget {
         size: size,
       ),
       onPressed: () {
+        AppHaptics.selection();
         ref.read(themePreferenceProvider.notifier).setDarkMode(!dark);
       },
     );

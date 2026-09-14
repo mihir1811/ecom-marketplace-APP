@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../haptics/app_haptics.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
@@ -56,7 +57,10 @@ class SearchActionBottomBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
                 ),
-                onPressed: onClear,
+                onPressed: () {
+                  AppHaptics.selection();
+                  onClear();
+                },
                 child: _FittedLabel(
                   clearLabel,
                   style: AppTypography.caption.copyWith(
@@ -86,7 +90,12 @@ class SearchActionBottomBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
                 ),
-                onPressed: onPrimary,
+                onPressed: onPrimary == null
+                    ? null
+                    : () {
+                        AppHaptics.medium();
+                        onPrimary!();
+                      },
                 child: _FittedLabel(
                   primaryLabel,
                   style: AppTypography.label.copyWith(

@@ -315,7 +315,7 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s4,
                   right: AppSpacing.s4,
-                  child: WishlistToggleButton(item: wishlistItem, size: 18),
+                  child: WishlistToggleButton(item: wishlistItem),
                 ),
                 if (compareItem != null)
                   Positioned(
@@ -464,14 +464,13 @@ class _RecentlyViewedListCard extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   right: AppSpacing.s8,
-                  child: WishlistToggleButton(item: wishlistItem, size: 18),
+                  child: WishlistToggleButton(item: wishlistItem),
                 ),
                 if (compareItem != null)
                   Positioned(
                     bottom: AppSpacing.s8,
                     right: AppSpacing.s8,
                     child: CompareAddButton(
-                      size: 32,
                       isSelected: inCompare,
                       onPressed: () =>
                           handleCompareToggle(context, ref, compareItem),

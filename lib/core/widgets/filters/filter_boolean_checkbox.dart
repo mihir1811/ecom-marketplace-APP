@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../haptics/app_haptics.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 
@@ -23,7 +24,10 @@ class FilterBooleanCheckbox extends StatelessWidget {
           activeColor: AppColors.bronze,
           checkColor: AppColors.warmWhite,
           side: BorderSide(color: AppColors.border(context)),
-          onChanged: onChanged,
+          onChanged: (value) {
+            AppHaptics.selection();
+            onChanged(value);
+          },
         ),
         Expanded(
           child: Text(

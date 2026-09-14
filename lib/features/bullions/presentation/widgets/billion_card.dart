@@ -6,7 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
-import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_card_image_pager.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
@@ -78,7 +78,6 @@ class BullionCardGrid extends StatelessWidget {
                     item: WishlistItem.fromBullion(bullion),
                     onAdded: () =>
                         rememberProductDetail(bullionProductDetail(bullion)),
-                    size: 18,
                   ),
                 ),
                 Positioned(
@@ -226,7 +225,6 @@ class BullionCardList extends StatelessWidget {
                         item: WishlistItem.fromBullion(bullion),
                         onAdded: () =>
                             rememberProductDetail(bullionProductDetail(bullion)),
-                        size: 18,
                       ),
                     ],
                   ),
@@ -337,16 +335,15 @@ class _BullionCardImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final network = bullion.renderableImageUrl;
-    if (network != null) {
-      return AppNetworkImage(
-        url: network,
-        fit: BoxFit.cover,
-        memCacheWidth: 480,
-        error: const CatalogMissingImage(),
-      );
-    }
-    return const CatalogMissingImage();
+    const fallback = CatalogMissingImage();
+    return CatalogCardImagePager(
+      imageUrls: catalogListingImageUrls(
+        imageUrl: bullion.imageUrl,
+        imageUrls: bullion.imageUrls,
+      ),
+      fallback: fallback,
+      memCacheWidth: 480,
+    );
   }
 }
 

@@ -23,6 +23,11 @@ bool isValidAadhaar(String value) {
   return RegExp(r'^\d{12}$').hasMatch(value.trim());
 }
 
+/// Indian mobile: exactly 10 digits.
+bool isValidIndianPhone(String value) {
+  return RegExp(r'^\d{10}$').hasMatch(value.trim());
+}
+
 /// IFSC: 4 letters + 0 + 6 alphanumeric (e.g. HDFC0001234).
 bool isValidIfsc(String value) {
   return RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$').hasMatch(value.trim().toUpperCase());
@@ -53,6 +58,16 @@ String localizePasswordStrength(
       .map(context.tr)
       .join(', ');
   return context.tr(strength.message, {'requirements': requirements});
+}
+
+/// English copy for controller-layer failures (no [BuildContext]).
+String englishPasswordStrength(PasswordStrength strength) {
+  final requirements = strength.missingRequirementKeys
+      .map(AccountCommerceL10n.english)
+      .join(', ');
+  return AccountCommerceL10n.english(
+    strength.message,
+  ).replaceAll('{requirements}', requirements);
 }
 
 /// Strength rules:

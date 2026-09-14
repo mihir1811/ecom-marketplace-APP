@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -47,6 +48,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
         openProductDetail(context, detail);
         return;
       }
+      AppHaptics.error();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.tr(AccountCommerceL10n.productOpenFailed)),
@@ -168,6 +170,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                     if (result case ResultFailure(
                                       :final failure,
                                     )) {
+                                      AppHaptics.error();
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(
@@ -175,6 +178,8 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                           content: Text(failure.message),
                                         ),
                                       );
+                                    } else {
+                                      AppHaptics.medium();
                                     }
                                   },
                             icon: const Icon(Icons.delete_outline, size: 20),
@@ -232,9 +237,12 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                 );
                             if (!context.mounted) return;
                             if (result case ResultFailure(:final failure)) {
+                              AppHaptics.error();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text(failure.message)),
                               );
+                            } else {
+                              AppHaptics.selection();
                             }
                           },
                         ),

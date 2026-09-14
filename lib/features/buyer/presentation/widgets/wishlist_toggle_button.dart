@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
@@ -30,6 +31,11 @@ Future<bool?> toggleWishlistItem(
   final error = ref.read(wishlistProvider).errorMessage;
   final messenger = ScaffoldMessenger.maybeOf(context);
   messenger?.hideCurrentSnackBar();
+  if (error != null && error.isNotEmpty) {
+    AppHaptics.error();
+  } else {
+    AppHaptics.medium();
+  }
   messenger?.showSnackBar(
     SnackBar(
       content: Text(
@@ -52,10 +58,16 @@ class WishlistToggleButton extends ConsumerWidget {
   const WishlistToggleButton({
     required this.item,
     this.onAdded,
-    this.size = 18,
+    this.size = listingIconSize,
     this.padded = true,
     super.key,
   });
+
+  /// Shared listing control hit target (matches project-pick / compare circles).
+  static const double listingHitSize = 20;
+
+  /// Default heart icon size on listing cards.
+  static const double listingIconSize = 22;
 
   final WishlistItem item;
 
@@ -67,7 +79,7 @@ class WishlistToggleButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wishlisted = ref.watch(isInWishlistProvider(item.id));
-    final box = padded ? 32.0 : size + 8;
+    final box = padded ? listingHitSize : size;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -79,21 +91,17 @@ class WishlistToggleButton extends ConsumerWidget {
               ? AccountCommerceL10n.removeWishlist
               : AccountCommerceL10n.addWishlist,
         ),
-        child: Container(
+        child: SizedBox(
           width: box,
           height: box,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.card(context),
-            border: Border.all(color: AppColors.border(context)),
-          ),
-          child: Icon(
-            wishlisted ? Icons.favorite : Icons.favorite_border,
-            size: size,
-            color: wishlisted
-                ? AppColors.error
-                : AppColors.textPrimary(context),
+          child: Center(
+            child: Icon(
+              wishlisted ? Icons.favorite : Icons.favorite_border,
+              size: size,
+              color: wishlisted
+                  ? AppColors.error
+                  : AppColors.textPrimary(context),
+            ),
           ),
         ),
       ),

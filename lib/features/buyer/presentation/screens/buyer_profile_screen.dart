@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +9,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/profile_avatar.dart';
 import '../../../auth/application/user_profile_providers.dart';
 import '../../../auth/domain/models/user_profile.dart';
 import '../../../auth/presentation/widgets/profile_info_widgets.dart';
@@ -145,7 +145,6 @@ class _ProfileHero extends StatelessWidget {
     final picture = profile.profilePicture.trim().isNotEmpty
         ? profile.profilePicture.trim()
         : user.profilePicture.trim();
-    final hasPicture = picture.isNotEmpty;
     final displayName = profile.fullName.trim().isNotEmpty
         ? profile.fullName
         : (profile.username.trim().isNotEmpty
@@ -161,21 +160,10 @@ class _ProfileHero extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
+          ProfileAvatar(
+            displayName: displayName,
+            imageUrl: picture,
             radius: 36,
-            backgroundColor: AppColors.selectedFill(context),
-            backgroundImage: hasPicture
-                ? CachedNetworkImageProvider(picture)
-                : null,
-            child: hasPicture
-                ? null
-                : Text(
-                    _initials(displayName),
-                    style: AppTypography.title.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onSelected(context),
-                    ),
-                  ),
           ),
           const SizedBox(width: AppSpacing.s16),
           Expanded(
@@ -224,12 +212,5 @@ class _ProfileHero extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  static String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty || parts.first.isEmpty) return 'U';
-    if (parts.length == 1) return parts.first[0].toUpperCase();
-    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 }

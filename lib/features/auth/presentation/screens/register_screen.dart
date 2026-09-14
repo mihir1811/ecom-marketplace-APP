@@ -7,6 +7,7 @@ import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/auth/business_registration_data.dart';
@@ -85,6 +86,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   void _onAccountTypeChanged(RegistrationAccountType type) {
     if (type == _accountType) return;
+    AppHaptics.selection();
     setState(() {
       _accountType = type;
       _sellerStep = 0;
@@ -109,11 +111,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   void _continueSeller() {
     ref.read(authProvider.notifier).clearError();
-    if (!_validateCurrentStep()) return;
+    if (!_validateCurrentStep()) {
+      AppHaptics.error();
+      return;
+    }
     if (_isLastSellerStep) {
       _submit();
       return;
     }
+    AppHaptics.selection();
     setState(() => _sellerStep += 1);
   }
 
@@ -127,9 +133,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     ref.read(authProvider.notifier).clearError();
 
     final ok = _formKey.currentState?.validate() ?? false;
-    if (!ok) return;
+    if (!ok) {
+      AppHaptics.error();
+      return;
+    }
 
     if (!_acceptTerms) {
+      AppHaptics.error();
       ref
           .read(authProvider.notifier)
           .setErrorMessage(
@@ -142,11 +152,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (_isSeller) {
       final filesError = _businessFields.missingFilesMessage();
       if (filesError != null) {
+        AppHaptics.error();
         ref.read(authProvider.notifier).setErrorMessage(filesError);
         return;
       }
       business = _businessFields.toData();
       if (business == null) {
+        AppHaptics.error();
         ref
             .read(authProvider.notifier)
             .setErrorMessage(context.tr(AccountCommerceL10n.sellerIncomplete));
@@ -168,7 +180,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           referralEmail: _referralEmailController.text,
           referralCode: _referralCodeController.text,
         );
-    if (!mounted || !registered) return;
+    if (!mounted) return;
+    if (!registered) {
+      AppHaptics.error();
+      return;
+    }
+    AppHaptics.success();
     final pending = ref.read(authProvider).pendingVerificationEmail;
     if (pending != null && pending.isNotEmpty) {
       context.go(
@@ -483,6 +500,7 @@ class _BasicDetailsFields extends StatelessWidget {
           decoration: InputDecoration(
             labelText: context.tr(AccountCommerceL10n.password),
             prefixIcon: const Icon(Icons.lock_outline),
+            suffixIconColor: AppColors.textSecondary(context),
             suffixIcon: IconButton(
               tooltip: obscurePassword
                   ? context.tr(AccountCommerceL10n.showPassword)
@@ -491,13 +509,16 @@ class _BasicDetailsFields extends StatelessWidget {
                 obscurePassword
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
+                color: AppColors.textSecondary(context),
               ),
               onPressed: onToggleObscure,
             ),
           ),
           validator: (value) {
             final strength = evaluatePasswordStrength((value ?? '').trim());
-            if (!strength.isStrong) return strength.message;
+            if (!strength.isStrong) {
+              return localizePasswordStrength(context, strength);
+            }
             return null;
           },
         ),
@@ -505,7 +526,7 @@ class _BasicDetailsFields extends StatelessWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            strength.message,
+            localizePasswordStrength(context, strength),
             style: AppTypography.caption.copyWith(
               color: strength.isStrong
                   ? AppColors.success

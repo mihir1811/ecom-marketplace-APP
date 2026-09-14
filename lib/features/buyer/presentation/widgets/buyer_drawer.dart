@@ -11,6 +11,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/profile_avatar.dart';
 
 /// Buyer-side account drawer (home + buyer screens).
 class BuyerDrawer extends ConsumerWidget {
@@ -126,18 +127,11 @@ class BuyerDrawer extends ConsumerWidget {
               padding: const EdgeInsets.all(AppSpacing.s16),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: AppColors.navSelectedFill(context),
-                    child: Text(
-                      _initials(
+                  ProfileAvatar(
+                    displayName:
                         auth.user?.fullName ?? auth.user?.username ?? 'U',
-                      ),
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.navOnSelected(context),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    imageUrl: auth.user?.profilePicture,
+                    radius: 22,
                   ),
                   const SizedBox(width: AppSpacing.s12),
                   Expanded(
@@ -276,13 +270,6 @@ class BuyerDrawer extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  static String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty || parts.first.isEmpty) return 'U';
-    if (parts.length == 1) return parts.first[0].toUpperCase();
-    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 }
 

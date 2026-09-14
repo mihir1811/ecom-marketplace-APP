@@ -8,7 +8,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
-import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_card_image_pager.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../../core/widgets/catalog_content_sized_grid.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
@@ -66,7 +66,6 @@ class GemstoneCardGrid extends ConsumerWidget {
                     onAdded: () => rememberProductDetail(
                       gemstoneProductDetail(gemstone),
                     ),
-                    size: 18,
                   ),
                 ),
                 Positioned(
@@ -245,14 +244,12 @@ class GemstoneCardList extends ConsumerWidget {
                     onAdded: () => rememberProductDetail(
                       gemstoneProductDetail(gemstone),
                     ),
-                    size: 18,
                   ),
                 ),
                 Positioned(
                   bottom: AppSpacing.s8,
                   right: AppSpacing.s8,
                   child: CompareAddButton(
-                    size: 32,
                     isSelected: inCompare,
                     onPressed: () => handleCompareToggle(
                       context,
@@ -472,19 +469,20 @@ class _GemstoneThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (gemstone.hasNetworkImage) {
-      return ColoredBox(
-        color: AppColors.sandSurface,
-        child: AppNetworkImage(
-          url: gemstone.imageUrl!,
-          fit: cover ? BoxFit.cover : BoxFit.contain,
-          memCacheWidth: cover ? 280 : 400,
-          error: CatalogMissingImage(padding: padding),
-        ),
-      );
-    }
+    final fallback = CatalogMissingImage(padding: padding);
+    final urls = catalogListingImageUrls(
+      imageUrl: gemstone.imageUrl,
+      imageUrls: gemstone.imageUrls,
+    );
+    if (urls.isEmpty) return fallback;
 
-    return CatalogMissingImage(padding: padding);
+    return CatalogCardImagePager(
+      imageUrls: urls,
+      fallback: fallback,
+      fit: cover ? BoxFit.cover : BoxFit.contain,
+      memCacheWidth: cover ? 280 : 400,
+      backgroundColor: AppColors.sandSurface,
+    );
   }
 }
 

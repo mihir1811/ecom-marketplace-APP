@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/auth_providers.dart';
+import '../haptics/app_haptics.dart';
 import '../l10n/app_localizations.dart';
 
 /// Compact app-bar control for changing the persisted application language.
@@ -28,7 +29,10 @@ class LanguageMenuButton extends ConsumerWidget {
       tooltip: context.tr(CoreL10n.changeLanguage),
       initialValue: locale,
       icon: Icon(Icons.language_outlined, size: iconSize),
-      onSelected: ref.read(localePreferenceProvider.notifier).setLocale,
+      onSelected: (locale) {
+        AppHaptics.selection();
+        ref.read(localePreferenceProvider.notifier).setLocale(locale);
+      },
       itemBuilder: (context) => [
         _item(context, AppLocale.english, CoreL10n.english),
         _item(context, AppLocale.hindi, CoreL10n.hindi),
@@ -85,6 +89,7 @@ class LanguageSettingsTile extends ConsumerWidget {
           groupValue: selected,
           onChanged: (locale) {
             if (locale == null) return;
+            AppHaptics.selection();
             ref.read(localePreferenceProvider.notifier).setLocale(locale);
             Navigator.of(dialogContext).pop();
           },

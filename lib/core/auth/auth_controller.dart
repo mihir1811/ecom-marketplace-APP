@@ -214,7 +214,7 @@ class AuthController extends Notifier<AuthState> {
     }
     final strength = evaluatePasswordStrength(password);
     if (!strength.isStrong) {
-      return _fail(strength.message);
+      return _fail(englishPasswordStrength(strength));
     }
     if (!acceptTerms) {
       return _fail(
@@ -395,7 +395,7 @@ class AuthController extends Notifier<AuthState> {
     }
     final strength = evaluatePasswordStrength(newPassword);
     if (!strength.isStrong) {
-      return _fail(strength.message);
+      return _fail(englishPasswordStrength(strength));
     }
 
     final result = await _repo.resetPassword(

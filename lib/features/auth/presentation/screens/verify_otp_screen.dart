@@ -6,6 +6,7 @@ import '../../../../core/l10n/app_localizations.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -153,13 +154,24 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                         final ok =
                                             _formKey.currentState?.validate() ??
                                             false;
-                                        if (!ok) return;
+                                        if (!ok) {
+                                          AppHaptics.error();
+                                          return;
+                                        }
                                         await ref
                                             .read(authProvider.notifier)
                                             .verifyOtp(
                                               email: email,
                                               otp: _otpController.text,
                                             );
+                                        if (!context.mounted) return;
+                                        final after = ref.read(authProvider);
+                                        if (after.isAuthenticated) {
+                                          AppHaptics.success();
+                                        } else if (after.errorMessage !=
+                                            null) {
+                                          AppHaptics.error();
+                                        }
                                       },
                                 style: authFilledButtonStyle(context),
                                 child: authState.isLoading
@@ -190,6 +202,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                       if (!mounted) return;
                                       setState(() => _resendBusy = false);
                                       if (ok) {
+                                        AppHaptics.success();
                                         messenger.showSnackBar(
                                           SnackBar(
                                             content: Text(
@@ -200,6 +213,8 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                                             ),
                                           ),
                                         );
+                                      } else {
+                                        AppHaptics.error();
                                       }
                                     },
                               child: Text(

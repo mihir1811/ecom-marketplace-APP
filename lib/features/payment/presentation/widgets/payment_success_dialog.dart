@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -18,6 +19,7 @@ Future<bool> showPaymentSuccessDialog(
   BuildContext context, {
   required PaymentOrder order,
 }) async {
+  AppHaptics.heavy();
   final result = await showAppDialog<bool>(
     context: context,
     barrierDismissible: false,
@@ -82,6 +84,7 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
   Future<void> _submit() async {
     final sellerId = _sellerId;
     if (sellerId == null || _rating < 1) {
+      AppHaptics.error();
       setState(() => _error = context.tr(AccountCommerceL10n.selectStar));
       return;
     }
@@ -106,8 +109,10 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
     if (!mounted) return;
     switch (result) {
       case Success():
+        AppHaptics.success();
         Navigator.of(context).pop(true);
       case ResultFailure(:final failure):
+        AppHaptics.error();
         setState(() {
           _submitting = false;
           _error = failure.message;

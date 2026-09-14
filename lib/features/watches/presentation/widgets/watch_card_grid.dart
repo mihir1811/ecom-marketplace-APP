@@ -57,7 +57,6 @@ class WatchCardGrid extends ConsumerWidget {
                     item: WishlistItem.fromWatch(watch),
                     onAdded: () =>
                         rememberProductDetail(watchProductDetail(watch)),
-                    size: 18,
                   ),
                 ),
                 Positioned(
@@ -219,14 +218,12 @@ class WatchCardList extends ConsumerWidget {
                     item: WishlistItem.fromWatch(watch),
                     onAdded: () =>
                         rememberProductDetail(watchProductDetail(watch)),
-                    size: 18,
                   ),
                 ),
                 Positioned(
                   bottom: AppSpacing.s8,
                   right: AppSpacing.s8,
                   child: CompareAddButton(
-                    size: 32,
                     isSelected: inCompare,
                     onPressed: () => handleCompareToggle(
                       context,

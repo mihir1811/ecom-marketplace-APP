@@ -1,0 +1,112 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+
+/// Optional tactile feedback for meaningful UI events.
+///
+/// Wraps [HapticFeedback] so missing platform support never throws.
+/// Callers must invoke these at committed user/event boundaries, never
+/// from `build()` or unrelated state updates.
+abstract final class AppHaptics {
+  static DateTime? _lastAt;
+  static _Kind? _lastKind;
+
+  /// Test hook to force a no-op without touching platform channels.
+  @visibleForTesting
+  static bool debugDisable = false;
+
+  /// Test hook to clear debounce state between cases.
+  @visibleForTesting
+  static void debugReset() {
+    debugDisable = false;
+    _lastAt = null;
+    _lastKind = null;
+  }
+
+  /// Level 1 — short, low-intensity confirmation.
+  static void light() => _play(_Kind.light, HapticFeedback.lightImpact);
+
+  /// Level 1 — option/tab/toggle selection changed.
+  static void selection() =>
+      _play(_Kind.selection, HapticFeedback.selectionClick);
+
+  /// Level 2 — a meaningful action completed or was triggered.
+  static void medium() => _play(_Kind.medium, HapticFeedback.mediumImpact);
+
+  /// Level 3 — major completion or critical confirmation.
+  static void heavy() => _play(_Kind.heavy, HapticFeedback.heavyImpact);
+
+  /// Distinct success feedback for confirmed successful operations.
+  static void success() => _play(_Kind.success, HapticFeedback.mediumImpact);
+
+  /// Distinct warning for destructive confirms and blocking states.
+  static void warning() => _play(_Kind.warning, HapticFeedback.heavyImpact);
+
+  /// Distinct error/validation pattern. Not for ordinary recoverable UI noise.
+  static void error() {
+    _play(_Kind.error, () async {
+      await HapticFeedback.heavyImpact();
+      await Future<void>.delayed(const Duration(milliseconds: 70));
+      await HapticFeedback.mediumImpact();
+    });
+  }
+
+  static void _play(_Kind kind, Future<void> Function() run) {
+    if (_shouldSkip(kind)) return;
+    _lastAt = DateTime.now();
+    _lastKind = kind;
+    unawaited(_safe(run));
+  }
+
+  static bool _shouldSkip(_Kind kind) {
+    if (debugDisable || kIsWeb) return true;
+    if (_reduceMotion) return true;
+    final lastAt = _lastAt;
+    final lastKind = _lastKind;
+    if (lastAt == null || lastKind == null) return false;
+    final elapsed = DateTime.now().difference(lastAt);
+    if (elapsed < const Duration(milliseconds: 40) && lastKind == kind) {
+      return true;
+    }
+    if (elapsed < const Duration(milliseconds: 180) &&
+        kind.rank <= lastKind.rank) {
+      return true;
+    }
+    return false;
+  }
+
+  static bool get _reduceMotion {
+    try {
+      return WidgetsBinding
+          .instance
+          .platformDispatcher
+          .accessibilityFeatures
+          .disableAnimations;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<void> _safe(Future<void> Function() run) async {
+    try {
+      await run();
+    } catch (_) {
+      // Unsupported devices, desktop shells, and emulators no-op.
+    }
+  }
+}
+
+enum _Kind {
+  selection(1),
+  light(1),
+  medium(2),
+  success(2),
+  heavy(3),
+  warning(3),
+  error(4);
+
+  const _Kind(this.rank);
+  final int rank;
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../haptics/app_haptics.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
@@ -58,7 +59,10 @@ class FilterEndDrawerShell extends StatelessWidget {
                       ),
                     ),
                     TextButton(
-                      onPressed: onReset,
+                      onPressed: () {
+                        AppHaptics.selection();
+                        onReset();
+                      },
                       child: Text(
                         resetLabel,
                         style: AppTypography.caption.copyWith(
@@ -101,7 +105,10 @@ class FilterEndDrawerShell extends StatelessWidget {
                         borderRadius: BorderRadius.circular(AppSpacing.r8),
                       ),
                     ),
-                    onPressed: onShowResults,
+                    onPressed: () {
+                      AppHaptics.medium();
+                      onShowResults();
+                    },
                     child: Text(
                       showResultsLabel,
                       style: AppTypography.label.copyWith(

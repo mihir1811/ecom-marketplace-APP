@@ -5,6 +5,7 @@ import '../../../../core/l10n/app_localizations.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/router/route_names.dart';
@@ -135,6 +136,7 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                         onSelectionChanged: authState.isLoading
                             ? null
                             : (next) {
+                                AppHaptics.selection();
                                 setState(() => _useToken = next.first);
                                 ref.read(authProvider.notifier).clearError();
                               },
@@ -203,6 +205,9 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                                     AccountCommerceL10n.password,
                                   ),
                                   prefixIcon: const Icon(Icons.lock_outline),
+                                  suffixIconColor: AppColors.textSecondary(
+                                    context,
+                                  ),
                                   suffixIcon: IconButton(
                                     tooltip: _obscurePassword
                                         ? context.tr(
@@ -219,6 +224,7 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                                       _obscurePassword
                                           ? Icons.visibility_outlined
                                           : Icons.visibility_off_outlined,
+                                      color: AppColors.textSecondary(context),
                                     ),
                                   ),
                                 ),
@@ -287,7 +293,10 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
   Future<void> _submit() async {
     ref.read(authProvider.notifier).clearError();
     final ok = _formKey.currentState?.validate() ?? false;
-    if (!ok) return;
+    if (!ok) {
+      AppHaptics.error();
+      return;
+    }
 
     await ref
         .read(authProvider.notifier)
@@ -296,5 +305,12 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
           email: _useToken ? null : _emailController.text,
           password: _useToken ? null : _passwordController.text,
         );
+    if (!mounted) return;
+    final after = ref.read(authProvider);
+    if (after.accountRecovered) {
+      AppHaptics.success();
+    } else if (after.errorMessage != null) {
+      AppHaptics.error();
+    }
   }
 }

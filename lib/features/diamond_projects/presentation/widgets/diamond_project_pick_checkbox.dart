@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../application/diamond_project_listing_pick_provider.dart';
 
@@ -9,9 +10,15 @@ import '../../application/diamond_project_listing_pick_provider.dart';
 class DiamondProjectPickCheckbox extends ConsumerWidget {
   const DiamondProjectPickCheckbox({
     required this.diamondId,
-    this.size = 15,
+    this.size = listingControlSize,
     super.key,
   });
+
+  /// Visual diameter — matches wishlist heart icon ([WishlistToggleButton.listingIconSize]).
+  static const double listingControlSize = 18;
+
+  /// Tap target — matches [WishlistToggleButton.listingHitSize].
+  static const double listingHitSize = 34;
 
   final String diamondId;
   final double size;
@@ -30,34 +37,43 @@ class DiamondProjectPickCheckbox extends ConsumerWidget {
         ? AppColors.warmWhite.withValues(alpha: 0.85)
         : AppColors.charcoal;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => ref
-            .read(diamondProjectListingPickProvider.notifier)
-            .toggle(diamondId),
-        customBorder: const CircleBorder(),
-        child: Semantics(
-          button: true,
-          checked: picked,
-          label: picked
-              ? 'Remove from diamond project pick'
-              : 'Add to diamond project pick',
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: fill,
-              border: Border.all(color: borderColor, width: 1.5),
+    return SizedBox(
+      width: listingHitSize,
+      height: listingHitSize,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            AppHaptics.selection();
+            ref
+                .read(diamondProjectListingPickProvider.notifier)
+                .toggle(diamondId);
+          },
+          customBorder: const CircleBorder(),
+          child: Semantics(
+            button: true,
+            checked: picked,
+            label: picked
+                ? 'Remove from diamond project pick'
+                : 'Add to diamond project pick',
+            child: Center(
+              child: Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: fill,
+                  border: Border.all(color: borderColor, width: 1.5),
+                ),
+                child: picked
+                    ? Icon(
+                        Icons.check,
+                        size: size * 0.55,
+                        color: AppColors.warmWhite,
+                      )
+                    : null,
+              ),
             ),
-            child: picked
-                ? Icon(
-                    Icons.check,
-                    size: size * 0.55,
-                    color: AppColors.warmWhite,
-                  )
-                : null,
           ),
         ),
       ),
@@ -69,7 +85,7 @@ class DiamondProjectPickCheckbox extends ConsumerWidget {
 class DiamondProjectPickBadge extends StatelessWidget {
   const DiamondProjectPickBadge({
     required this.diamondId,
-    this.size = 15,
+    this.size = DiamondProjectPickCheckbox.listingControlSize,
     super.key,
   });
 

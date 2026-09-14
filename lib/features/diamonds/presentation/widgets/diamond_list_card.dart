@@ -7,7 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
-import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_card_image_pager.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
@@ -61,15 +61,14 @@ class DiamondCardList extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: AvailabilityStatusBadge(
-                    status: diamond.available,
-                  ),
+                  child: AvailabilityStatusBadge(status: diamond.available),
                 ),
                 Positioned(
                   top: AppSpacing.s8,
                   right: AppSpacing.s8,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       if (showProjectPick) ...[
                         DiamondProjectPickBadge(diamondId: diamond.id),
@@ -80,7 +79,6 @@ class DiamondCardList extends ConsumerWidget {
                         onAdded: () => rememberProductDetail(
                           diamondProductDetail(diamond),
                         ),
-                        size: 18,
                       ),
                     ],
                   ),
@@ -89,7 +87,6 @@ class DiamondCardList extends ConsumerWidget {
                   bottom: AppSpacing.s8,
                   right: AppSpacing.s8,
                   child: CompareAddButton(
-                    size: 32,
                     isSelected: inCompare,
                     onPressed: () => handleCompareToggle(
                       context,
@@ -173,8 +170,7 @@ class DiamondCardList extends ConsumerWidget {
                         ),
                         if (diamond.discount != null && diamond.discount! > 0)
                           Padding(
-                            padding:
-                                const EdgeInsets.only(left: AppSpacing.s4),
+                            padding: const EdgeInsets.only(left: AppSpacing.s4),
                             child: Text(
                               '-${formatDiscountPercent(diamond.discount!)}%',
                               style: AppTypography.caption.copyWith(
@@ -209,20 +205,14 @@ class _DiamondListThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final photoUrl = diamond.imageUrl?.trim();
-    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
     final fallback = _ShapeFallback(shape: diamond.shape, size: 52);
-
-    if (!hasPhoto) return fallback;
-
-    return ColoredBox(
-      color: AppColors.surface(context),
-      child: AppNetworkImage(
-        url: photoUrl,
-        fit: BoxFit.cover,
-        memCacheWidth: 480,
-        error: fallback,
+    return CatalogCardImagePager(
+      imageUrls: catalogListingImageUrls(
+        imageUrl: diamond.imageUrl,
+        imageUrls: diamond.imageUrls,
       ),
+      fallback: fallback,
+      memCacheWidth: 480,
     );
   }
 }

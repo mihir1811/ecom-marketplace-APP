@@ -323,7 +323,9 @@ class BusinessAddressStep extends StatelessWidget {
         TextFormField(
           controller: controller.zipCode,
           enabled: enabled,
+          keyboardType: TextInputType.number,
           textInputAction: TextInputAction.done,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: InputDecoration(
             labelText: context.tr(AccountCommerceL10n.postalCode),
             prefixIcon: const Icon(Icons.markunread_mailbox_outlined),
@@ -366,25 +368,51 @@ class BusinessContactsKycStep extends StatelessWidget {
         TextFormField(
           controller: controller.phone1,
           enabled: enabled,
-          keyboardType: TextInputType.phone,
+          keyboardType: TextInputType.number,
           textInputAction: TextInputAction.next,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10),
+          ],
           decoration: InputDecoration(
             labelText: context.tr(AccountCommerceL10n.primaryPhone),
             prefixIcon: const Icon(Icons.phone_outlined),
           ),
-          validator: _required(context.tr(AccountCommerceL10n.phone1Required)),
+          validator: (value) {
+            final v = value?.trim() ?? '';
+            if (v.isEmpty) {
+              return context.tr(AccountCommerceL10n.phone1Required);
+            }
+            if (!isValidIndianPhone(v)) {
+              return context.tr(AccountCommerceL10n.validPhone);
+            }
+            return null;
+          },
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
           controller: controller.phone2,
           enabled: enabled,
-          keyboardType: TextInputType.phone,
+          keyboardType: TextInputType.number,
           textInputAction: TextInputAction.next,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10),
+          ],
           decoration: InputDecoration(
             labelText: context.tr(AccountCommerceL10n.secondaryPhone),
             prefixIcon: const Icon(Icons.phone_android_outlined),
           ),
-          validator: _required(context.tr(AccountCommerceL10n.phone2Required)),
+          validator: (value) {
+            final v = value?.trim() ?? '';
+            if (v.isEmpty) {
+              return context.tr(AccountCommerceL10n.phone2Required);
+            }
+            if (!isValidIndianPhone(v)) {
+              return context.tr(AccountCommerceL10n.validPhone);
+            }
+            return null;
+          },
         ),
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
@@ -409,29 +437,13 @@ class BusinessContactsKycStep extends StatelessWidget {
           validator: _required(context.tr(AccountCommerceL10n.rep2Required)),
         ),
         const SizedBox(height: AppSpacing.s16),
-        TextFormField(
+        _PanCardNumberField(
           controller: controller.panCardNumber,
           enabled: enabled,
-          textCapitalization: TextCapitalization.characters,
-          textInputAction: TextInputAction.next,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-            LengthLimitingTextInputFormatter(10),
-          ],
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.panNumber),
-            prefixIcon: const Icon(Icons.credit_card_outlined),
-          ),
-          validator: (value) {
-            final v = value?.trim() ?? '';
-            if (v.isEmpty) return context.tr(AccountCommerceL10n.panRequired);
-            if (!isValidPan(v)) return context.tr(AccountCommerceL10n.validPan);
-            return null;
-          },
         ),
         const SizedBox(height: AppSpacing.s16),
         _FilePickButton(
-          label: controller.panCard?.name ?? 'Upload PAN card image (optional)',
+          label: controller.panCard?.name ?? 'Upload PAN card image',
           icon: Icons.upload_file_outlined,
           enabled: enabled,
           onPressed: _pickPan,
@@ -618,6 +630,113 @@ FormFieldValidator<String> _required(String message) {
     if (v.isEmpty) return message;
     return null;
   };
+}
+
+/// PAN format AAAAA9999A — switches keyboard: letters → digits → letter.
+TextInputType _panKeyboardTypeForLength(int length) {
+  if (length < 5) return TextInputType.text;
+  if (length < 9) return TextInputType.number;
+  return TextInputType.text;
+}
+
+class _PanCardNumberField extends StatefulWidget {
+  const _PanCardNumberField({
+    required this.controller,
+    required this.enabled,
+  });
+
+  final TextEditingController controller;
+  final bool enabled;
+
+  @override
+  State<_PanCardNumberField> createState() => _PanCardNumberFieldState();
+}
+
+class _PanCardNumberFieldState extends State<_PanCardNumberField> {
+  final _focusNode = FocusNode();
+  late TextInputType _keyboardType;
+
+  @override
+  void initState() {
+    super.initState();
+    _keyboardType = _panKeyboardTypeForLength(widget.controller.text.length);
+    widget.controller.addListener(_syncKeyboardType);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_syncKeyboardType);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _syncKeyboardType() {
+    final next = _panKeyboardTypeForLength(widget.controller.text.length);
+    if (next == _keyboardType) return;
+    setState(() => _keyboardType = next);
+    if (!_focusNode.hasFocus) return;
+    // Rebuild + refocus so the soft keyboard actually switches type.
+    _focusNode.unfocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      key: ValueKey(_keyboardType),
+      controller: widget.controller,
+      focusNode: _focusNode,
+      enabled: widget.enabled,
+      keyboardType: _keyboardType,
+      textCapitalization: TextCapitalization.characters,
+      textInputAction: TextInputAction.next,
+      inputFormatters: [
+        const _PanCardInputFormatter(),
+        LengthLimitingTextInputFormatter(10),
+      ],
+      decoration: InputDecoration(
+        labelText: context.tr(AccountCommerceL10n.panNumber),
+        prefixIcon: const Icon(Icons.credit_card_outlined),
+      ),
+      validator: (value) {
+        final v = value?.trim() ?? '';
+        if (v.isEmpty) return context.tr(AccountCommerceL10n.panRequired);
+        if (!isValidPan(v)) return context.tr(AccountCommerceL10n.validPan);
+        return null;
+      },
+    );
+  }
+}
+
+/// Enforces PAN shape AAAAA9999A and forces uppercase letters.
+class _PanCardInputFormatter extends TextInputFormatter {
+  const _PanCardInputFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final raw = newValue.text.toUpperCase();
+    final buffer = StringBuffer();
+    for (var i = 0; i < raw.length && buffer.length < 10; i++) {
+      final char = raw[i];
+      final index = buffer.length;
+      final isLetterSlot = index < 5 || index == 9;
+      if (isLetterSlot) {
+        if (RegExp(r'[A-Z]').hasMatch(char)) buffer.write(char);
+      } else if (RegExp(r'[0-9]').hasMatch(char)) {
+        buffer.write(char);
+      }
+    }
+    final text = buffer.toString();
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
 }
 
 class _FilePickButton extends StatelessWidget {

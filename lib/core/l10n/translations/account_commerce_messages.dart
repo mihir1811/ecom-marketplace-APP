@@ -287,6 +287,7 @@ abstract final class AccountCommerceL10n {
   static const postalRequired = 'account.validation.postalRequired';
   static const phone1Required = 'account.validation.phone1Required';
   static const phone2Required = 'account.validation.phone2Required';
+  static const validPhone = 'account.validation.validPhone';
   static const rep1Required = 'account.validation.rep1Required';
   static const rep2Required = 'account.validation.rep2Required';
   static const panRequired = 'account.validation.panRequired';
@@ -1805,6 +1806,11 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     hindi: 'सेकंडरी फ़ोन ज़रूरी है',
     gujarati: 'ગૌણ ફોન જરૂરી છે',
   ),
+  AccountCommerceL10n.validPhone: LocalizedMessage(
+    english: 'Enter a valid 10-digit phone number',
+    hindi: 'मान्य 10 अंकों का फ़ोन नंबर डालें',
+    gujarati: 'માન્ય 10-અંકનો ફોન નંબર દાખલ કરો',
+  ),
   AccountCommerceL10n.rep1Required: LocalizedMessage(
     english: 'Representative name 1 is required',
     hindi: 'प्रतिनिधि का नाम 1 ज़रूरी है',
@@ -2103,9 +2109,9 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     gujarati: 'સરખામણી કરો',
   ),
   AccountCommerceL10n.passwordAddRequirements: LocalizedMessage(
-    english: 'Add {requirements} to strengthen your password.',
-    hindi: 'अपना पासवर्ड मज़बूत करने के लिए {requirements} जोड़ें।',
-    gujarati: 'તમારો પાસવર્ડ મજબૂત કરવા {requirements} ઉમેરો.',
+    english: 'Password is weak. Add {requirements}.',
+    hindi: 'पासवर्ड कमज़ोर है। {requirements} जोड़ें।',
+    gujarati: 'પાસવર્ડ નબળો છે. {requirements} ઉમેરો.',
   ),
   AccountCommerceL10n.uppercaseLetter: LocalizedMessage(
     english: 'an uppercase letter',

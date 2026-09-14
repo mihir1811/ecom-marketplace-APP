@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/router/route_names.dart';
@@ -127,13 +128,24 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                                         final ok =
                                             _formKey.currentState?.validate() ??
                                             false;
-                                        if (!ok) return;
+                                        if (!ok) {
+                                          AppHaptics.error();
+                                          return;
+                                        }
 
                                         await ref
                                             .read(authProvider.notifier)
                                             .sendResetLink(
                                               email: _emailController.text,
                                             );
+                                        if (!context.mounted) return;
+                                        final after = ref.read(authProvider);
+                                        if (after.resetLinkSent) {
+                                          AppHaptics.success();
+                                        } else if (after.errorMessage !=
+                                            null) {
+                                          AppHaptics.error();
+                                        }
                                       },
                                 style: authFilledButtonStyle(context),
                                 child: authState.isLoading

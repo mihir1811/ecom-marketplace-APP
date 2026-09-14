@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/auth/account_access.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
@@ -37,9 +38,12 @@ class CartCheckoutButton extends ConsumerWidget {
         .saveAndSelectAddress(saved);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
+      AppHaptics.error();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message)));
+    } else {
+      AppHaptics.medium();
     }
   }
 
@@ -60,6 +64,7 @@ class CartCheckoutButton extends ConsumerWidget {
         ref.invalidate(buyerOrdersProvider);
         context.resetTo(AppRouteNames.buyerOrders);
       case ResultFailure(:final failure):
+        AppHaptics.error();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(failure.message)));
@@ -194,6 +199,7 @@ class CartCheckoutButton extends ConsumerWidget {
                     if (!hasAddress) {
                       _addAddress(context, ref);
                     } else if (hasUnavailable) {
+                      AppHaptics.warning();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
@@ -204,6 +210,7 @@ class CartCheckoutButton extends ConsumerWidget {
                     } else if (canCheckout) {
                       _pay(context, ref, payableInr: estimate.totalInr);
                     } else {
+                      AppHaptics.warning();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
@@ -314,7 +321,12 @@ class _CheckoutToggleTile extends StatelessWidget {
           ),
         ),
         value: value,
-        onChanged: enabled ? onChanged : null,
+        onChanged: enabled
+            ? (v) {
+                AppHaptics.selection();
+                onChanged(v);
+              }
+            : null,
         activeThumbColor: AppColors.warmWhite,
         activeTrackColor: AppColors.bronze,
         inactiveThumbColor: enabled

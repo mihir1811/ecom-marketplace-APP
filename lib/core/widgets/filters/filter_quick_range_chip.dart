@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../haptics/app_haptics.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -22,7 +23,10 @@ class FilterQuickRangeChip extends StatelessWidget {
     final containerBorderColor = isSelected ? fill : AppColors.border(context);
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        AppHaptics.selection();
+        onTap();
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

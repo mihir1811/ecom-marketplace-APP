@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -26,10 +27,12 @@ class CartAddressSection extends ConsumerWidget {
         .saveAndSelectAddress(saved);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
+      AppHaptics.error();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message)));
     } else {
+      AppHaptics.success();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr(AccountCommerceL10n.addressSaved))),
       );
@@ -48,10 +51,12 @@ class CartAddressSection extends ConsumerWidget {
         .saveAndSelectAddress(edited);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
+      AppHaptics.error();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message)));
     } else {
+      AppHaptics.success();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr(AccountCommerceL10n.addressUpdated))),
       );
@@ -91,10 +96,12 @@ class CartAddressSection extends ConsumerWidget {
     final result = await ref.read(cartProvider.notifier).deleteAddress(id);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
+      AppHaptics.error();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message)));
     } else {
+      AppHaptics.medium();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr(AccountCommerceL10n.addressDeleted))),
       );

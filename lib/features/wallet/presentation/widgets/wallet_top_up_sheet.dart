@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -58,6 +59,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
     FocusScope.of(context).unfocus();
     final amount = _parsedAmount;
     if (amount == null) {
+      AppHaptics.error();
       setState(() => _fieldError = context.tr(RemainingL10n.enterAmountInr));
       return;
     }
@@ -65,6 +67,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
         .read(walletTopUpProvider.notifier)
         .validateAmount(amount);
     if (invalid != null) {
+      AppHaptics.error();
       setState(() => _fieldError = invalid.message);
       return;
     }
@@ -75,11 +78,13 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
     final messenger = ScaffoldMessenger.of(context);
     switch (result) {
       case Success():
+        AppHaptics.success();
         Navigator.of(context).maybePop();
         messenger.showSnackBar(
           SnackBar(content: Text(context.tr(RemainingL10n.walletTopUpSuccess))),
         );
       case ResultFailure(:final failure):
+        AppHaptics.error();
         messenger.showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }

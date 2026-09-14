@@ -80,6 +80,9 @@ class AppTheme {
         ),
         labelStyle: AppTypography.label.copyWith(color: AppColors.textSecondaryLight),
         hintStyle: AppTypography.body.copyWith(color: AppColors.textMutedLight),
+        // Keep prefix/suffix icons readable when the field is in error state.
+        prefixIconColor: AppColors.textSecondaryLight,
+        suffixIconColor: AppColors.textSecondaryLight,
       ),
 
       // Button Themes
@@ -231,6 +234,8 @@ class AppTheme {
         ),
         labelStyle: AppTypography.label.copyWith(color: AppColors.textSecondaryDark),
         hintStyle: AppTypography.body.copyWith(color: AppColors.textMutedDark),
+        prefixIconColor: AppColors.textSecondaryDark,
+        suffixIconColor: AppColors.textSecondaryDark,
       ),
 
       // Button Themes

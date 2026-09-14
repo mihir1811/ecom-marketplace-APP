@@ -8,7 +8,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
-import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/catalog_card_image_pager.dart';
 import '../../../../core/widgets/catalog_content_sized_grid.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
@@ -33,30 +33,7 @@ Widget _diamondThumb(
   Diamond diamond, {
   double shapeSize = 48,
 }) {
-  final url = diamond.imageUrl?.trim();
-  if (url != null && url.isNotEmpty) {
-    return ColoredBox(
-      color: AppColors.surface(context),
-      child: SizedBox.expand(
-        child: AppNetworkImage(
-          url: url,
-          fit: BoxFit.cover,
-          memCacheWidth: 400,
-          error: ColoredBox(
-            color: AppColors.surface(context),
-            child: Center(
-              child: renderShapeSvg(
-                diamond.shape,
-                size: shapeSize,
-                color: AppColors.bronze,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  return ColoredBox(
+  final fallback = ColoredBox(
     color: AppColors.surface(context),
     child: Center(
       child: renderShapeSvg(
@@ -65,6 +42,14 @@ Widget _diamondThumb(
         color: AppColors.bronze,
       ),
     ),
+  );
+  return CatalogCardImagePager(
+    imageUrls: catalogListingImageUrls(
+      imageUrl: diamond.imageUrl,
+      imageUrls: diamond.imageUrls,
+    ),
+    fallback: fallback,
+    memCacheWidth: 400,
   );
 }
 
@@ -107,6 +92,7 @@ class DiamondCardGrid extends ConsumerWidget {
                   right: AppSpacing.s4,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       if (showProjectPick) ...[
                         DiamondProjectPickBadge(diamondId: diamond.id),
@@ -117,7 +103,6 @@ class DiamondCardGrid extends ConsumerWidget {
                         onAdded: () => rememberProductDetail(
                           diamondProductDetail(diamond),
                         ),
-                        size: 18,
                       ),
                     ],
                   ),
@@ -137,9 +122,7 @@ class DiamondCardGrid extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: AvailabilityStatusBadge(
-                    status: diamond.available,
-                  ),
+                  child: AvailabilityStatusBadge(status: diamond.available),
                 ),
               ],
             ),
@@ -203,9 +186,7 @@ class DiamondCardGrid extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          AppCurrency.format(
-                            formatCatalogPrice(diamond.price),
-                          ),
+                          AppCurrency.format(formatCatalogPrice(diamond.price)),
                           style: GoogleFonts.manrope(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -252,15 +233,15 @@ double diamondGridRowStride(BuildContext context, double viewportWidth) {
   const horizontalPadding = AppSpacing.s16 * 2;
   const crossSpacing = AppSpacing.s12;
   const mainSpacing = AppSpacing.s12;
-  final usableWidth =
-      viewportWidth - horizontalPadding - crossSpacing;
+  final usableWidth = viewportWidth - horizontalPadding - crossSpacing;
   final itemWidth = usableWidth / 2;
   final imageHeight = itemWidth / 1.05;
   final scaler = MediaQuery.textScalerOf(context);
   final titleLine = scaler.scale(13 * 1.2);
   final captionLine = scaler.scale(11 * 1.25);
   final priceLine = scaler.scale(14 * 1.2);
-  final textBlock = AppSpacing.s12 * 2 +
+  final textBlock =
+      AppSpacing.s12 * 2 +
       titleLine * 2 +
       AppSpacing.cardLineGap +
       captionLine * 2 +

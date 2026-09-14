@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../haptics/app_haptics.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -50,7 +51,10 @@ class FilterTextSegmentedControl extends StatelessWidget {
                       details.globalPosition,
                     ).dispatch(context);
                   },
-                  onTap: () => onSelected(opt),
+                  onTap: () {
+                    if (!isCurrent) AppHaptics.selection();
+                    onSelected(opt);
+                  },
                   splashColor: splash.withValues(alpha: 0.55),
                   highlightColor: splash.withValues(alpha: 0.22),
                   child: AnimatedContainer(

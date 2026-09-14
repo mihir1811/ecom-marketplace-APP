@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../application/comparison_provider.dart';
 import '../../domain/models/compare_item.dart';
@@ -26,6 +27,12 @@ void handleCompareToggle(
         'attempted': context.tr(attempted.labelPluralKey),
       }),
   };
+  switch (result) {
+    case CompareAddSuccess() || CompareAddRemoved():
+      AppHaptics.medium();
+    default:
+      AppHaptics.warning();
+  }
   if (result is! CompareAddSuccess && result is! CompareAddRemoved) {
     showCompareFeedback(context, message);
   } else if (result is CompareAddSuccess) {

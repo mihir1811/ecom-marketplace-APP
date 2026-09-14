@@ -1,16 +1,17 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_user.dart';
 import '../../../../core/auth/confirm_delete_account.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/profile_avatar.dart';
 import '../../../auth/application/user_profile_providers.dart';
 import '../../../auth/domain/models/user_profile.dart';
 import '../../../auth/presentation/widgets/profile_info_widgets.dart';
@@ -76,6 +77,7 @@ class SellerProfileScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (!ok) {
+      AppHaptics.error();
       final message =
           ref.read(authProvider).errorMessage ??
           context.tr(RemainingL10n.couldNotDeleteAccount);
@@ -96,6 +98,7 @@ class SellerProfileScreen extends ConsumerWidget {
             'date': until.toLocal().toString(),
           })}';
 
+    AppHaptics.heavy();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(detail)));
     context.resetTo(AppRouteNames.recoverAccount);
   }
@@ -261,7 +264,6 @@ class _SellerHero extends StatelessWidget {
     final picture = profile.profilePicture.trim().isNotEmpty
         ? profile.profilePicture.trim()
         : user.profilePicture.trim();
-    final hasPicture = picture.isNotEmpty;
     final name = profile.fullName.trim().isNotEmpty
         ? profile.fullName
         : (profile.username.trim().isNotEmpty ? profile.username : 'Seller');
@@ -275,21 +277,10 @@ class _SellerHero extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
+          ProfileAvatar(
+            displayName: name,
+            imageUrl: picture,
             radius: 28,
-            backgroundColor: AppColors.selectedFill(context),
-            backgroundImage: hasPicture
-                ? CachedNetworkImageProvider(picture)
-                : null,
-            child: hasPicture
-                ? null
-                : Text(
-                    name.isNotEmpty ? name[0].toUpperCase() : 'S',
-                    style: AppTypography.title.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onSelected(context),
-                    ),
-                  ),
           ),
           const SizedBox(width: AppSpacing.s12),
           Expanded(

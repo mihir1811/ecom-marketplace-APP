@@ -126,7 +126,6 @@ class JewelryProductCard extends ConsumerWidget {
                     item: WishlistItem.fromJewelry(item),
                     onAdded: () =>
                         rememberProductDetail(jewelryProductDetail(item)),
-                    size: 18,
                   ),
                 ),
                 Positioned(
@@ -264,17 +263,16 @@ class JewelryProductCard extends ConsumerWidget {
                     right: AppSpacing.s8,
                     child: InkWell(
                       onTap: () => _toggleWishlist(context, ref),
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: bg.withValues(alpha: 0.92),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          wishlisted ? Icons.favorite : Icons.favorite_border,
-                          size: 18,
-                          color: wishlisted ? AppColors.terracotta : muted,
+                      customBorder: const CircleBorder(),
+                      child: SizedBox(
+                        width: WishlistToggleButton.listingHitSize,
+                        height: WishlistToggleButton.listingHitSize,
+                        child: Center(
+                          child: Icon(
+                            wishlisted ? Icons.favorite : Icons.favorite_border,
+                            size: WishlistToggleButton.listingIconSize,
+                            color: wishlisted ? AppColors.terracotta : muted,
+                          ),
                         ),
                       ),
                     ),
@@ -547,10 +545,17 @@ class JewelryProductListCard extends ConsumerWidget {
                     right: AppSpacing.s8,
                     child: InkWell(
                       onTap: () => _toggleWishlist(context, ref),
-                      child: Icon(
-                        wishlisted ? Icons.favorite : Icons.favorite_border,
-                        size: 18,
-                        color: wishlisted ? AppColors.terracotta : secondary,
+                      customBorder: const CircleBorder(),
+                      child: SizedBox(
+                        width: WishlistToggleButton.listingHitSize,
+                        height: WishlistToggleButton.listingHitSize,
+                        child: Center(
+                          child: Icon(
+                            wishlisted ? Icons.favorite : Icons.favorite_border,
+                            size: WishlistToggleButton.listingIconSize,
+                            color: wishlisted ? AppColors.terracotta : secondary,
+                          ),
+                        ),
                       ),
                     ),
                   ),

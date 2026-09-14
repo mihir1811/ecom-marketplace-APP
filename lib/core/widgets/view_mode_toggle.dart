@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../haptics/app_haptics.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
@@ -103,7 +104,10 @@ class _LabeledBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        if (!isSelected) AppHaptics.selection();
+        onTap();
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
@@ -157,7 +161,10 @@ class _IconBtn extends StatelessWidget {
         : AppColors.sandSurface;
 
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        if (!selected) AppHaptics.selection();
+        onTap();
+      },
       child: ColoredBox(
         color: selected ? selectedBg : Colors.transparent,
         child: SizedBox(

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/catalog/catalog_purchase_policy.dart';
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -24,7 +25,12 @@ class ProductDetailActionBar extends ConsumerWidget {
 
   final ProductDetail detail;
 
-  void _notify(BuildContext context, String message) {
+  void _notify(
+    BuildContext context,
+    String message, {
+    void Function()? haptic,
+  }) {
+    (haptic ?? AppHaptics.medium)();
     final messenger = ScaffoldMessenger.maybeOf(context);
     messenger?.hideCurrentSnackBar();
     messenger?.showSnackBar(
@@ -34,7 +40,11 @@ class ProductDetailActionBar extends ConsumerWidget {
 
   Future<void> _addToCart(BuildContext context, WidgetRef ref) async {
     if (!ref.read(authProvider).isAuthenticated) {
-      _notify(context, 'Please sign in to add items to your cart');
+      _notify(
+        context,
+        'Please sign in to add items to your cart',
+        haptic: AppHaptics.warning,
+      );
       context.push(AppRouteNames.login);
       return;
     }
@@ -45,7 +55,7 @@ class ProductDetailActionBar extends ConsumerWidget {
       sellerId: auth.sellerId,
     );
     if (blockMessage != null) {
-      _notify(context, blockMessage);
+      _notify(context, blockMessage, haptic: AppHaptics.warning);
       return;
     }
 
@@ -73,19 +83,31 @@ class ProductDetailActionBar extends ConsumerWidget {
           .ensureSeeded(meleeQty);
       final draft = ref.read(meleeQtyDraftProvider(detail.id));
       if (draft == null || (draft.pieces < 1 && draft.carat <= 0)) {
-        _notify(context, 'Enter how many pieces or carats to add');
+        _notify(
+          context,
+          'Enter how many pieces or carats to add',
+          haptic: AppHaptics.error,
+        );
         return;
       }
       if (draft.inCarat) {
         final maxCt = meleeQty.totalCarat;
         if (maxCt != null && draft.carat > maxCt + 1e-9) {
-          _notify(context, 'Only ${maxCt.toStringAsFixed(2)} ct available');
+          _notify(
+            context,
+            'Only ${maxCt.toStringAsFixed(2)} ct available',
+            haptic: AppHaptics.warning,
+          );
           return;
         }
       } else {
         final maxPcs = meleeQty.totalPcs;
         if (maxPcs != null && draft.pieces > maxPcs) {
-          _notify(context, 'Only $maxPcs pcs available');
+          _notify(
+            context,
+            'Only $maxPcs pcs available',
+            haptic: AppHaptics.warning,
+          );
           return;
         }
       }
@@ -109,21 +131,29 @@ class ProductDetailActionBar extends ConsumerWidget {
     if (!context.mounted) return;
     switch (result) {
       case Success():
-        _notify(context, 'Added to cart');
+        _notify(context, 'Added to cart', haptic: AppHaptics.success);
       case ResultFailure(:final failure):
-        _notify(context, failure.message);
+        _notify(context, failure.message, haptic: AppHaptics.error);
     }
   }
 
   Future<void> _makeOffer(BuildContext context, WidgetRef ref) async {
     if (!ref.read(authProvider).isAuthenticated) {
-      _notify(context, 'Please sign in to make an offer');
+      _notify(
+        context,
+        'Please sign in to make an offer',
+        haptic: AppHaptics.warning,
+      );
       context.push(AppRouteNames.login);
       return;
     }
     if (!AccountAccess.guard(context, ref)) return;
     if (_isOwnListing(ref)) {
-      _notify(context, 'You cannot make an offer on your own listing');
+      _notify(
+        context,
+        'You cannot make an offer on your own listing',
+        haptic: AppHaptics.warning,
+      );
       return;
     }
 
@@ -209,9 +239,9 @@ class ProductDetailActionBar extends ConsumerWidget {
     if (!context.mounted) return;
     switch (result) {
       case Success():
-        _notify(context, 'Offer submitted');
+        _notify(context, 'Offer submitted', haptic: AppHaptics.success);
       case ResultFailure(:final failure):
-        _notify(context, failure.message);
+        _notify(context, failure.message, haptic: AppHaptics.error);
     }
   }
 

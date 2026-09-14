@@ -1,4 +1,5 @@
 import 'seller_account_snapshot.dart';
+import '../utils/media_url.dart';
 
 /// Authenticated user mapped from login / verify-otp API `data.user`.
 class AuthUser {
@@ -67,7 +68,14 @@ class AuthUser {
       username: _str(json['userName']) ?? _str(json['username']) ?? '',
       email: _str(json['email']) ?? '',
       role: _str(json['role']) ?? '',
-      profilePicture: _str(json['profilePicture']) ?? '',
+      profilePicture:
+          MediaUrl.resolve(
+            _str(json['profilePicture']) ??
+                _str(json['avatar']) ??
+                _str(json['image']) ??
+                _str(json['photo']),
+          ) ??
+          '',
       phone: _str(json['phone']),
       isVerified: parseAccountVerified(json),
       isBlocked: json['isBlocked'] == true,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../haptics/app_haptics.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
@@ -33,7 +34,10 @@ class ShowcaseSelectCard extends StatelessWidget {
     final inactiveBorderColor = AppColors.border(context);
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        if (!isSelected) AppHaptics.selection();
+        onTap();
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(

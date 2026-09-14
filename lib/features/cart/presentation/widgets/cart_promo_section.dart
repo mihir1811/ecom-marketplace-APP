@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -49,10 +50,12 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
     final messenger = ScaffoldMessenger.of(context);
     switch (result) {
       case Success():
+        AppHaptics.success();
         messenger.showSnackBar(
           SnackBar(content: Text(context.tr(AccountCommerceL10n.promoApplied))),
         );
       case ResultFailure(:final failure):
+        AppHaptics.error();
         messenger.showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
@@ -61,10 +64,12 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
     final result = await ref.read(cartProvider.notifier).removePromo(code);
     if (!mounted) return;
     if (result case ResultFailure(:final failure)) {
+      AppHaptics.error();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message)));
     } else {
+      AppHaptics.medium();
       _promoController.clear();
     }
   }

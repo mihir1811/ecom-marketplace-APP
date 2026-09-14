@@ -5,6 +5,7 @@ import '../../../../core/l10n/app_localizations.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/router/route_names.dart';
@@ -123,6 +124,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                     AccountCommerceL10n.newPassword,
                                   ),
                                   prefixIcon: const Icon(Icons.lock_outline),
+                                  suffixIconColor: AppColors.textSecondary(
+                                    context,
+                                  ),
                                   suffixIcon: IconButton(
                                     tooltip: _obscurePassword
                                         ? context.tr(
@@ -135,6 +139,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                       _obscurePassword
                                           ? Icons.visibility_off_outlined
                                           : Icons.visibility_outlined,
+                                      color: AppColors.textSecondary(context),
                                     ),
                                     onPressed: () {
                                       setState(() {
@@ -148,7 +153,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                     value ?? '',
                                   );
                                   if (!strength.isStrong) {
-                                    return strength.message;
+                                    return localizePasswordStrength(
+                                      context,
+                                      strength,
+                                    );
                                   }
                                   return null;
                                 },
@@ -172,6 +180,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                     AccountCommerceL10n.confirmPassword,
                                   ),
                                   prefixIcon: const Icon(Icons.lock_outline),
+                                  suffixIconColor: AppColors.textSecondary(
+                                    context,
+                                  ),
                                   suffixIcon: IconButton(
                                     tooltip: _obscureConfirm
                                         ? context.tr(
@@ -184,6 +195,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                       _obscureConfirm
                                           ? Icons.visibility_off_outlined
                                           : Icons.visibility_outlined,
+                                      color: AppColors.textSecondary(context),
                                     ),
                                     onPressed: () {
                                       setState(() {
@@ -225,7 +237,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                               _formKey.currentState
                                                   ?.validate() ??
                                               false;
-                                          if (!ok) return;
+                                          if (!ok) {
+                                            AppHaptics.error();
+                                            return;
+                                          }
                                           await ref
                                               .read(authProvider.notifier)
                                               .resetPassword(
@@ -233,6 +248,14 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                                 newPassword:
                                                     _passwordController.text,
                                               );
+                                          if (!context.mounted) return;
+                                          final after = ref.read(authProvider);
+                                          if (after.passwordResetSuccess) {
+                                            AppHaptics.success();
+                                          } else if (after.errorMessage !=
+                                              null) {
+                                            AppHaptics.error();
+                                          }
                                         },
                                   style: authFilledButtonStyle(context),
                                   child: authState.isLoading

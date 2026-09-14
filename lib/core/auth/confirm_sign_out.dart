@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../haptics/app_haptics.dart';
 import '../l10n/app_localizations.dart';
 
 import '../widgets/app_dialog.dart';
@@ -17,7 +18,10 @@ Future<bool> confirmSignOut(BuildContext context) async {
           child: Text(context.tr(CoreL10n.cancel)),
         ),
         FilledButton(
-          onPressed: () => Navigator.pop(context, true),
+          onPressed: () {
+            AppHaptics.warning();
+            Navigator.pop(context, true);
+          },
           child: Text(context.tr(AccountCommerceL10n.signOut)),
         ),
       ],

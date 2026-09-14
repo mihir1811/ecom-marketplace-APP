@@ -10,9 +10,12 @@ class CompareAddButton extends StatelessWidget {
   const CompareAddButton({
     required this.isSelected,
     required this.onPressed,
-    this.size = 32,
+    this.size = listingControlSize,
     super.key,
   });
+
+  /// Matches listing wishlist / project-pick control size.
+  static const double listingControlSize = 24;
 
   final bool isSelected;
   final VoidCallback onPressed;

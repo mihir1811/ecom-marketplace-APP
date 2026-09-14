@@ -1,5 +1,6 @@
 import '../../../../core/auth/auth_user.dart';
 import '../../../../core/network/response_parser.dart';
+import '../../../../core/utils/media_url.dart';
 import '../../domain/models/user_profile.dart';
 
 abstract final class UserProfileMapper {
@@ -45,7 +46,15 @@ abstract final class UserProfileMapper {
       email: _str(user['email']) ?? _str(json['email']) ?? '',
       role: _str(user['role']) ?? _str(json['role']) ?? '',
       profilePicture:
-          _str(user['profilePicture']) ?? _str(json['profilePicture']) ?? '',
+          MediaUrl.resolve(
+            _str(user['profilePicture']) ??
+                _str(user['avatar']) ??
+                _str(user['image']) ??
+                _str(user['photo']) ??
+                _str(json['profilePicture']) ??
+                _str(json['avatar']),
+          ) ??
+          '',
       isVerified: parseAccountVerified(user) && parseAccountVerified(json),
       companyName: _str(business['companyName']) ?? _str(user['companyName']),
       addressLine1:
@@ -84,11 +93,15 @@ abstract final class UserProfileMapper {
           _str(business['gstin']) ??
           _str(user['gstNumber']) ??
           _str(user['gstin']),
-      companyLogoUrl:
-          _str(business['companyLogo']) ?? _str(business['companyLogoUrl']),
-      bannerImageUrl:
-          _str(business['bannerImage']) ?? _str(business['bannerImageUrl']),
-      panCardUrl: _str(business['panCard']) ?? _str(business['panCardUrl']),
+      companyLogoUrl: MediaUrl.resolve(
+        _str(business['companyLogo']) ?? _str(business['companyLogoUrl']),
+      ),
+      bannerImageUrl: MediaUrl.resolve(
+        _str(business['bannerImage']) ?? _str(business['bannerImageUrl']),
+      ),
+      panCardUrl: MediaUrl.resolve(
+        _str(business['panCard']) ?? _str(business['panCardUrl']),
+      ),
       accountHolderName: _str(bank['accountHolderName']),
       accountNumber: _str(bank['accountNumber']),
       ifscCode: _str(bank['ifscCode']),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../haptics/app_haptics.dart';
 import '../l10n/app_localizations.dart';
 
 import '../theme/app_colors.dart';
@@ -44,6 +45,7 @@ Future<String?> confirmDeleteAccount(BuildContext context) async {
                         AccountCommerceL10n.currentPassword,
                       ),
                       prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIconColor: AppColors.textSecondary(context),
                       suffixIcon: IconButton(
                         tooltip: obscure
                             ? context.tr(AccountCommerceL10n.showPassword)
@@ -53,11 +55,16 @@ Future<String?> confirmDeleteAccount(BuildContext context) async {
                           obscure
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: AppColors.textSecondary(context),
                         ),
                       ),
                     ),
                     onSubmitted: (_) {
-                      if (passwordController.text.trim().isEmpty) return;
+                      if (passwordController.text.trim().isEmpty) {
+                        AppHaptics.error();
+                        return;
+                      }
+                      AppHaptics.warning();
                       Navigator.pop(context, true);
                     },
                   ),
@@ -74,7 +81,11 @@ Future<String?> confirmDeleteAccount(BuildContext context) async {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () {
-                    if (passwordController.text.trim().isEmpty) return;
+                    if (passwordController.text.trim().isEmpty) {
+                      AppHaptics.error();
+                      return;
+                    }
+                    AppHaptics.warning();
                     Navigator.pop(context, true);
                   },
                   child: Text(context.tr(AccountCommerceL10n.deleteAccount)),
