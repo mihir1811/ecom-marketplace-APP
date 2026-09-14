@@ -448,6 +448,23 @@ abstract final class RemainingL10n {
       'remaining.certifiedDiamondsGemsAndFineJewelryIn';
   static const searchDiamondsJewelryWatches =
       'remaining.searchDiamondsJewelryWatches';
+  static const homeNewArrivals = 'remaining.homeNewArrivals';
+  static const homeEditorsPicks = 'remaining.homeEditorsPicks';
+  static const homeFeaturedHouses = 'remaining.homeFeaturedHouses';
+  static const homeSeeAll = 'remaining.homeSeeAll';
+  static const homeShopTheEdit = 'remaining.homeShopTheEdit';
+  static const homeBannerDiamondsTitle = 'remaining.homeBannerDiamondsTitle';
+  static const homeBannerDiamondsSubtitle =
+      'remaining.homeBannerDiamondsSubtitle';
+  static const homeBannerJewelryTitle = 'remaining.homeBannerJewelryTitle';
+  static const homeBannerJewelrySubtitle =
+      'remaining.homeBannerJewelrySubtitle';
+  static const homeBannerWatchesTitle = 'remaining.homeBannerWatchesTitle';
+  static const homeBannerWatchesSubtitle =
+      'remaining.homeBannerWatchesSubtitle';
+  static const homePromoTitle = 'remaining.homePromoTitle';
+  static const homePromoSubtitle = 'remaining.homePromoSubtitle';
+  static const homePromoCta = 'remaining.homePromoCta';
   static const expertDrivenMarketplaceForLuxuryAssetsAnd =
       'remaining.expertDrivenMarketplaceForLuxuryAssetsAnd';
   static const indiaSMarketplaceForDiamondsGemstonesJewelry =
@@ -2961,6 +2978,76 @@ const remainingMessages = <String, LocalizedMessage>{
     english: 'Search diamonds, jewelry, watches…',
     hindi: 'हीरे, आभूषण, घड़ियाँ खोजें...',
     gujarati: 'હીરા, ઘરેણાં, ઘડિયાળો શોધો...',
+  ),
+  RemainingL10n.homeNewArrivals: LocalizedMessage(
+    english: 'New arrivals',
+    hindi: 'नई आवक',
+    gujarati: 'નવી આવક',
+  ),
+  RemainingL10n.homeEditorsPicks: LocalizedMessage(
+    english: "Editors' picks",
+    hindi: 'संपादक की पसंद',
+    gujarati: 'સંપાદકની પસંદ',
+  ),
+  RemainingL10n.homeFeaturedHouses: LocalizedMessage(
+    english: 'Featured houses',
+    hindi: 'विशेष हाउस',
+    gujarati: 'વિશેષ હાઉસ',
+  ),
+  RemainingL10n.homeSeeAll: LocalizedMessage(
+    english: 'See all',
+    hindi: 'सभी देखें',
+    gujarati: 'બધું જુઓ',
+  ),
+  RemainingL10n.homeShopTheEdit: LocalizedMessage(
+    english: 'Shop the edit',
+    hindi: 'एडिट देखें',
+    gujarati: 'એડિટ જુઓ',
+  ),
+  RemainingL10n.homeBannerDiamondsTitle: LocalizedMessage(
+    english: 'Exceptional diamonds',
+    hindi: 'असाधारण हीरे',
+    gujarati: 'અસાધારણ હીરા',
+  ),
+  RemainingL10n.homeBannerDiamondsSubtitle: LocalizedMessage(
+    english: 'Certified stones from trusted houses worldwide.',
+    hindi: 'विश्वभर के विश्वसनीय हाउस से प्रमाणित पत्थर।',
+    gujarati: 'વિશ્વભરના વિશ્વસનીય હાઉસમાંથી પ્રમાણિત પથ્થરો.',
+  ),
+  RemainingL10n.homeBannerJewelryTitle: LocalizedMessage(
+    english: 'Fine jewelry',
+    hindi: 'बढ़िया आभूषण',
+    gujarati: 'સુંદર દાગીના',
+  ),
+  RemainingL10n.homeBannerJewelrySubtitle: LocalizedMessage(
+    english: 'Rings, necklaces, and pieces made to last.',
+    hindi: 'अंगूठियां, हार और टिकाऊ डिज़ाइन।',
+    gujarati: 'વીંટી, હાર અને ટકાઉ ડિઝાઇન.',
+  ),
+  RemainingL10n.homeBannerWatchesTitle: LocalizedMessage(
+    english: 'Luxury timepieces',
+    hindi: 'लक्ज़री घड़ियाँ',
+    gujarati: 'લક્ઝરી ઘડિયાળો',
+  ),
+  RemainingL10n.homeBannerWatchesSubtitle: LocalizedMessage(
+    english: 'Iconic houses, verified authenticity.',
+    hindi: 'प्रतिष्ठित ब्रांड, सत्यापित प्रामाणिकता।',
+    gujarati: 'પ્રતિષ્ઠિત બ્રાન્ડ, ચકાસાયેલ અધિકૃતતા.',
+  ),
+  RemainingL10n.homePromoTitle: LocalizedMessage(
+    english: 'Lab-grown brilliance',
+    hindi: 'लैब-ग्रोन चमक',
+    gujarati: 'લેબ-ગ્રોન ચમક',
+  ),
+  RemainingL10n.homePromoSubtitle: LocalizedMessage(
+    english: 'CVD & HPHT diamonds with full certification.',
+    hindi: 'पूर्ण प्रमाणन के साथ CVD और HPHT हीरे।',
+    gujarati: 'સંપૂર્ણ પ્રમાણન સાથે CVD અને HPHT હીરા.',
+  ),
+  RemainingL10n.homePromoCta: LocalizedMessage(
+    english: 'Explore lab-grown',
+    hindi: 'लैब-ग्रोन देखें',
+    gujarati: 'લેબ-ગ્રોન જુઓ',
   ),
   RemainingL10n.expertDrivenMarketplaceForLuxuryAssetsAnd: LocalizedMessage(
     english: 'Expert-driven marketplace\nfor luxury assets and fine goods',

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:gemstone/core/widgets/app_dialog.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:gemstone/core/widgets/app_top_bar.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -14,57 +14,20 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_system_back_scope.dart';
 import '../../../buyer/presentation/widgets/buyer_drawer.dart';
 import '../../application/home_search_provider.dart';
+import '../home_feed_data.dart';
 import '../home_network_images.dart';
-import '../widgets/home_category_tile.dart';
-import '../widgets/home_hero.dart';
+import '../widgets/home_banner_carousel.dart';
+import '../widgets/home_brand_row.dart';
+import '../widgets/home_category_strip.dart';
+import '../widgets/home_editors_grid.dart';
+import '../widgets/home_product_rail.dart';
+import '../widgets/home_promo_strip.dart';
 import '../widgets/home_quick_search.dart';
 import '../widgets/home_search_results_list.dart';
 
-import '../../../../core/l10n/app_localizations.dart';
-
-/// GemWorld marketplace landing — minimal, image-led, one-tap catalog access.
+/// GemWorld luxury marketplace landing.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
-
-  static List<_HomeCategory> _categories(BuildContext context) =>
-      <_HomeCategory>[
-        _HomeCategory(
-          title: context.tr(RemainingL10n.naturalDiamonds),
-          subtitle: context.tr(RemainingL10n.certifiedFinder),
-          imageUrl: HomeNetworkImages.naturalDiamonds,
-          route: AppRouteNames.diamonds,
-        ),
-        _HomeCategory(
-          title: context.tr(RemainingL10n.labGrown),
-          subtitle: context.tr(RemainingL10n.cvdHpht),
-          imageUrl: HomeNetworkImages.labGrown,
-          route: AppRouteNames.labGrownDiamonds,
-        ),
-        _HomeCategory(
-          title: context.tr(RemainingL10n.gemstones),
-          subtitle: context.tr(RemainingL10n.rubyToTanzanite),
-          imageUrl: HomeNetworkImages.gemstones,
-          route: AppRouteNames.gemstones,
-        ),
-        _HomeCategory(
-          title: context.tr(RemainingL10n.watches),
-          subtitle: context.tr(RemainingL10n.luxuryBrands),
-          imageUrl: HomeNetworkImages.watches,
-          route: AppRouteNames.watches,
-        ),
-        _HomeCategory(
-          title: context.tr(RemainingL10n.jewelry),
-          subtitle: context.tr(RemainingL10n.ringsAndMore),
-          imageUrl: HomeNetworkImages.jewelry,
-          route: AppRouteNames.jewelry,
-        ),
-        _HomeCategory(
-          title: context.tr(RemainingL10n.bullion),
-          subtitle: context.tr(RemainingL10n.goldSilver),
-          imageUrl: HomeNetworkImages.bullion,
-          route: AppRouteNames.bullions,
-        ),
-      ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -83,58 +46,58 @@ class HomeScreen extends ConsumerWidget {
 
     return AppSystemBackScope(
       child: AppScaffold(
-      backgroundColor: AppColors.bg(context),
-      drawer: auth.isAuthenticated ? const BuyerDrawer() : null,
-      appBar: AppTopBar(
-        title: 'GemWorld',
-        showThemeToggle: true,
-        showCart: auth.isAuthenticated,
-        showWallet: auth.isAuthenticated,
-        showMessages: auth.isAuthenticated,
-        onSellerWalletTap: () => context.openRoute(AppRouteNames.buyerWallet),
-        onSellerMessagesTap: () =>
-            context.openRoute(AppRouteNames.buyerMessages),
-        extraActions: !auth.isAuthenticated
-            ? [
-                TextButton(
-                  onPressed: () => context.openRoute(AppRouteNames.login),
-                  child: Text(
-                    context.tr(RemainingL10n.login),
-                    style: AppTypography.label.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(context),
+        backgroundColor: AppColors.bg(context),
+        drawer: auth.isAuthenticated ? const BuyerDrawer() : null,
+        appBar: AppTopBar(
+          title: 'GemWorld',
+          showThemeToggle: true,
+          showCart: auth.isAuthenticated,
+          showWallet: auth.isAuthenticated,
+          showMessages: auth.isAuthenticated,
+          onSellerWalletTap: () => context.openRoute(AppRouteNames.buyerWallet),
+          onSellerMessagesTap: () =>
+              context.openRoute(AppRouteNames.buyerMessages),
+          extraActions: !auth.isAuthenticated
+              ? [
+                  TextButton(
+                    onPressed: () => context.openRoute(AppRouteNames.login),
+                    child: Text(
+                      context.tr(RemainingL10n.login),
+                      style: AppTypography.label.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary(context),
+                      ),
                     ),
                   ),
+                  const SizedBox(width: AppSpacing.s8),
+                ]
+              : [],
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ColoredBox(
+              color: AppColors.bg(context),
+              child: const Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.s20,
+                  AppSpacing.s8,
+                  AppSpacing.s20,
+                  AppSpacing.s12,
                 ),
-                const SizedBox(width: AppSpacing.s8),
-              ]
-            : [],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ColoredBox(
-            color: AppColors.bg(context),
-            child: const Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.s20,
-                AppSpacing.s8,
-                AppSpacing.s20,
-                AppSpacing.s12,
+                child: HomeQuickSearch(),
               ),
-              child: HomeQuickSearch(),
             ),
-          ),
-          Expanded(
-            child: isSearching
-                ? const HomeSearchResultsList()
-                : _HomeBrowseBody(
-                    isAuthenticated: auth.isAuthenticated,
-                    isSeller: auth.isSeller,
-                  ),
-          ),
-        ],
-      ),
+            Expanded(
+              child: isSearching
+                  ? const HomeSearchResultsList()
+                  : _HomeBrowseBody(
+                      isAuthenticated: auth.isAuthenticated,
+                      isSeller: auth.isSeller,
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -151,17 +114,34 @@ class _HomeBrowseBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final banners = HomeFeedData.banners(
+      diamondsTitle: context.tr(RemainingL10n.homeBannerDiamondsTitle),
+      diamondsSubtitle: context.tr(RemainingL10n.homeBannerDiamondsSubtitle),
+      jewelryTitle: context.tr(RemainingL10n.homeBannerJewelryTitle),
+      jewelrySubtitle: context.tr(RemainingL10n.homeBannerJewelrySubtitle),
+      watchesTitle: context.tr(RemainingL10n.homeBannerWatchesTitle),
+      watchesSubtitle: context.tr(RemainingL10n.homeBannerWatchesSubtitle),
+      shopTheEdit: context.tr(RemainingL10n.homeShopTheEdit),
+    );
+    final categories = HomeFeedData.categories(
+      naturalDiamonds: context.tr(RemainingL10n.naturalDiamonds),
+      labGrown: context.tr(RemainingL10n.labGrown),
+      gemstones: context.tr(RemainingL10n.gemstones),
+      watches: context.tr(RemainingL10n.watches),
+      jewelry: context.tr(RemainingL10n.jewelry),
+      bullion: context.tr(RemainingL10n.bullion),
+    );
+
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
         SliverToBoxAdapter(
-          child: HomeHero(
-            imageUrl: HomeNetworkImages.hero,
-            onPrimary: (ctx) => ctx.push(AppRouteNames.diamonds),
-            onSecondary: (ctx) => ctx.push(AppRouteNames.jewelry),
+          child: HomeBannerCarousel(
+            items: banners,
+            onTap: (item) => context.openRoute(item.route),
           ),
         ),
-        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
@@ -174,30 +154,51 @@ class _HomeBrowseBody extends ConsumerWidget {
             ),
           ),
         ),
-        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s12)),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: AppSpacing.s12,
-              crossAxisSpacing: AppSpacing.s12,
-              childAspectRatio: 0.92,
-            ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              final item = HomeScreen._categories(context)[index];
-              return HomeCategoryTile(
-                key: ValueKey(item.route),
-                title: item.title,
-                subtitle: item.subtitle,
-                imageUrl: item.imageUrl,
-                onTap: () => context.openRoute(item.route),
-              );
-            }, childCount: HomeScreen._categories(context).length),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s16)),
+        SliverToBoxAdapter(
+          child: HomeCategoryStrip(
+            items: categories,
+            onTap: (item) => context.openRoute(item.route),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
+        SliverToBoxAdapter(
+          child: HomeProductRail(
+            title: context.tr(RemainingL10n.homeNewArrivals),
+            seeAllLabel: context.tr(RemainingL10n.homeSeeAll),
+            items: HomeFeedData.newArrivals,
+            onSeeAll: () => context.openRoute(AppRouteNames.jewelry),
+            onItemTap: (item) => context.openRoute(item.route),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
+        SliverToBoxAdapter(
+          child: HomePromoStrip(
+            imageUrl: HomeNetworkImages.forSeed(2),
+            title: context.tr(RemainingL10n.homePromoTitle),
+            subtitle: context.tr(RemainingL10n.homePromoSubtitle),
+            ctaLabel: context.tr(RemainingL10n.homePromoCta),
+            onTap: () => context.openRoute(AppRouteNames.labGrownDiamonds),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s40)),
+        SliverToBoxAdapter(
+          child: HomeEditorsGrid(
+            title: context.tr(RemainingL10n.homeEditorsPicks),
+            items: HomeFeedData.editorsPicks,
+            onItemTap: (item) => context.openRoute(item.route),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s40)),
+        SliverToBoxAdapter(
+          child: HomeBrandRow(
+            title: context.tr(RemainingL10n.homeFeaturedHouses),
+            items: HomeFeedData.brands,
+            onTap: (item) => context.openRoute(item.route),
           ),
         ),
         if (!isSeller) ...[
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s32)),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
@@ -219,8 +220,7 @@ class _HomeBrowseBody extends ConsumerWidget {
             ),
             child: Text(
               context.tr(
-                RemainingL10n
-                    .certifiedStonesTransparentSellersWorldwideShipping,
+                RemainingL10n.certifiedStonesTransparentSellersWorldwideShipping,
               ),
               textAlign: TextAlign.center,
               style: AppTypography.caption.copyWith(
@@ -318,20 +318,6 @@ Future<void> _onSellTap(BuildContext context, WidgetRef ref) async {
   await ref.read(authProvider.notifier).logout();
   if (!context.mounted) return;
   context.resetTo('${AppRouteNames.register}?type=business');
-}
-
-class _HomeCategory {
-  const _HomeCategory({
-    required this.title,
-    required this.subtitle,
-    required this.imageUrl,
-    required this.route,
-  });
-
-  final String title;
-  final String subtitle;
-  final String imageUrl;
-  final String route;
 }
 
 class _SellerBanner extends StatelessWidget {
