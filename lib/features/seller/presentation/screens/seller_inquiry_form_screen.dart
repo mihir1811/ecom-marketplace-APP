@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/result.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/router/account_nav.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -61,6 +62,7 @@ class _SellerInquiryFormScreenState
   void _markDirty([_]) => setState(() => _dirty = true);
 
   void _setBool(String key, bool value) {
+    AppHaptics.selection();
     setState(() {
       _bools[key] = value;
       _dirty = true;
@@ -115,6 +117,7 @@ class _SellerInquiryFormScreenState
   }
 
   void _reset() {
+    AppHaptics.selection();
     for (final c in _ctrls.values) {
       c.clear();
     }
@@ -133,6 +136,7 @@ class _SellerInquiryFormScreenState
       lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
     );
     if (picked == null) return;
+    AppHaptics.selection();
     setState(() {
       _urgency = picked;
       _dirty = true;
@@ -163,6 +167,7 @@ class _SellerInquiryFormScreenState
     );
     if (validationError != null) {
       setState(() => _submitting = false);
+      AppHaptics.error();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(validationError)));
@@ -183,6 +188,7 @@ class _SellerInquiryFormScreenState
 
     switch (result) {
       case Success(value: final inquiry):
+        AppHaptics.success();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${_category!.label} inquiry sent to admin')),
         );
@@ -191,6 +197,7 @@ class _SellerInquiryFormScreenState
           inquiryDetailPathFor(path, _category!.name, inquiry.id),
         );
       case ResultFailure(failure: final failure):
+        AppHaptics.error();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(failure.message)));
@@ -268,6 +275,7 @@ class _SellerInquiryFormScreenState
               InquiryCategoryPicker(
                 selected: _category,
                 onSelected: (c) {
+                  AppHaptics.selection();
                   setState(() {
                     _category = c;
                     _dirty = true;

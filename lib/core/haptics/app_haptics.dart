@@ -29,8 +29,13 @@ abstract final class AppHaptics {
   static void light() => _play(_Kind.light, HapticFeedback.lightImpact);
 
   /// Level 1 — option/tab/toggle selection changed.
-  static void selection() =>
-      _play(_Kind.selection, HapticFeedback.selectionClick);
+  ///
+  /// Repeats are allowed so discrete sliders can tick on every step.
+  static void selection() => _play(
+    _Kind.selection,
+    HapticFeedback.selectionClick,
+    allowRepeat: true,
+  );
 
   /// Level 2 — a meaningful action completed or was triggered.
   static void medium() => _play(_Kind.medium, HapticFeedback.mediumImpact);
@@ -53,14 +58,18 @@ abstract final class AppHaptics {
     });
   }
 
-  static void _play(_Kind kind, Future<void> Function() run) {
-    if (_shouldSkip(kind)) return;
+  static void _play(
+    _Kind kind,
+    Future<void> Function() run, {
+    bool allowRepeat = false,
+  }) {
+    if (_shouldSkip(kind, allowRepeat: allowRepeat)) return;
     _lastAt = DateTime.now();
     _lastKind = kind;
     unawaited(_safe(run));
   }
 
-  static bool _shouldSkip(_Kind kind) {
+  static bool _shouldSkip(_Kind kind, {bool allowRepeat = false}) {
     if (debugDisable || kIsWeb) return true;
     if (_reduceMotion) return true;
     final lastAt = _lastAt;
@@ -70,7 +79,8 @@ abstract final class AppHaptics {
     if (elapsed < const Duration(milliseconds: 40) && lastKind == kind) {
       return true;
     }
-    if (elapsed < const Duration(milliseconds: 180) &&
+    if (!allowRepeat &&
+        elapsed < const Duration(milliseconds: 180) &&
         kind.rank <= lastKind.rank) {
       return true;
     }

@@ -64,7 +64,7 @@ class WishlistToggleButton extends ConsumerWidget {
   });
 
   /// Shared listing control hit target (matches project-pick / compare circles).
-  static const double listingHitSize = 20;
+  static const double listingHitSize = 24;
 
   /// Default heart icon size on listing cards.
   static const double listingIconSize = 22;

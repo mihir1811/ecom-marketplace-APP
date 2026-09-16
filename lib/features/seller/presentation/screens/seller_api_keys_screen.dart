@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_validators.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -44,6 +45,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
       ),
     );
     if (created == null || !mounted) return;
+    AppHaptics.success();
     await _showGeneratedKey(created);
   }
 
@@ -73,6 +75,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: apiKey.apiKey));
               if (!mounted) return;
+              AppHaptics.success();
               _snack(context.tr(RemainingL10n.apiKeyCopied));
             },
             child: Text(context.tr(RemainingL10n.copy)),
@@ -134,8 +137,10 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
     if (!mounted) return;
     switch (result) {
       case Success():
+        AppHaptics.success();
         _snack(context.tr(RemainingL10n.apiKeyRevoked));
       case ResultFailure(failure: final failure):
+        AppHaptics.error();
         _snack(failure.message);
     }
   }
@@ -207,6 +212,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
                     busy: state.isMutating,
                     onCopy: () async {
                       await Clipboard.setData(ClipboardData(text: key.apiKey));
+                      AppHaptics.success();
                       // ignore: use_build_context_synchronously
                       _snack(context.tr(RemainingL10n.apiKeyCopied));
                     },
@@ -261,8 +267,12 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
       _permissionError = null;
       _submitError = null;
     });
-    if (_formKey.currentState?.validate() != true) return;
+    if (_formKey.currentState?.validate() != true) {
+      AppHaptics.error();
+      return;
+    }
     if (_selected.isEmpty) {
+      AppHaptics.error();
       setState(
         () => _permissionError = context.tr(
           RemainingL10n.selectAtLeastOnePermission,
@@ -283,6 +293,7 @@ class _GenerateApiKeyDialogState extends State<_GenerateApiKeyDialog> {
       case Success(value: final key):
         Navigator.of(context).pop(key);
       case ResultFailure(failure: final failure):
+        AppHaptics.error();
         setState(() {
           _saving = false;
           _submitError = failure.message;

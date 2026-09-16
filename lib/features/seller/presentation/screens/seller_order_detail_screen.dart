@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -77,6 +78,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
       ];
       _noteCtrl.clear();
     });
+    AppHaptics.success();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.tr(RemainingL10n.trackingSaved))),
     );
@@ -208,7 +210,10 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                           ),
                       ],
                       onChanged: (v) {
-                        if (v != null) setState(() => _status = v);
+                        if (v != null) {
+                          AppHaptics.selection();
+                          setState(() => _status = v);
+                        }
                       },
                       decoration: _fieldDecoration(
                         context.tr(RemainingL10n.status2),
@@ -342,6 +347,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
                       child: FilledButton(
                         onPressed: () {
                           _commentCtrl.clear();
+                          AppHaptics.medium();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(

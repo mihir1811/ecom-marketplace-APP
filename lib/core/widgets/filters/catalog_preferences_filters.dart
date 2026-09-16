@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../haptics/app_haptics.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
@@ -117,7 +118,10 @@ class CatalogPreferencesFilters extends StatelessWidget {
                           : context.tr(CatalogL10n.ratingAndUp, {
                               'rating': minSellerRating!.toStringAsFixed(1),
                             }),
-                      onChanged: onSellerRatingChanged,
+                      onChanged: (value) {
+                        AppHaptics.selection();
+                        onSellerRatingChanged!(value);
+                      },
                     ),
                   ),
                 ),

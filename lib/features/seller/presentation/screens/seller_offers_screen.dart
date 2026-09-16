@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/result.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -50,6 +51,11 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
     final messenger = ScaffoldMessenger.of(context);
     switch (result) {
       case Success():
+        if (status == ProductOfferStatus.accepted) {
+          AppHaptics.success();
+        } else {
+          AppHaptics.warning();
+        }
         messenger.showSnackBar(
           SnackBar(
             content: Text(
@@ -60,6 +66,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
           ),
         );
       case ResultFailure(:final failure):
+        AppHaptics.error();
         messenger.showSnackBar(SnackBar(content: Text(failure.message)));
     }
   }
