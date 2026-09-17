@@ -7,11 +7,16 @@ abstract final class ProductOfferMapper {
     final productMap = product is Map<String, dynamic> ? product : null;
     final buyer = json['buyer'] ?? json['user'];
     final buyerMap = buyer is Map<String, dynamic> ? buyer : null;
+    final productId = json['productId']?.toString() ??
+        productMap?['id']?.toString() ??
+        '';
 
     return ProductOffer(
       id: json['id']?.toString() ?? '',
-      productId: json['productId']?.toString() ?? '',
-      productType: json['productType']?.toString() ?? '',
+      productId: productId,
+      productType: json['productType']?.toString() ??
+          productMap?['productType']?.toString() ??
+          '',
       buyerId: json['buyerId']?.toString() ?? '',
       sellerId: json['sellerId']?.toString() ?? '',
       amount: _asDouble(json['amount']) ?? 0,
@@ -28,6 +33,9 @@ abstract final class ProductOfferMapper {
       buyerName: _nullableString(buyerMap?['name']) ??
           _nullableString(buyerMap?['fullName']),
       buyerEmail: _nullableString(buyerMap?['email']),
+      imageUrl: _imageUrl(productMap) ?? _imageUrl(json),
+      productSpecs: _productSpecs(productMap),
+      certificateLabel: _certificateLabel(productMap),
     );
   }
 
@@ -84,11 +92,72 @@ abstract final class ProductOfferMapper {
         return '${_formatNum(carat)} ct $shape';
       }
       final title = _nullableString(product['title']) ??
-          _nullableString(product['name']);
+          _nullableString(product['name']) ??
+          _nullableString(product['productName']);
       if (title != null) return title;
+      if (shape != null) return shape;
+      final stock = _nullableString(product['stockNumber']);
+      if (stock != null) return stock;
     }
     return _nullableString(json['productLabel']) ??
-        _nullableString(json['productType']);
+        _nullableString(json['stockNumber']);
+  }
+
+  static String? _productSpecs(Map<String, dynamic>? product) {
+    if (product == null) return null;
+    final parts = <String>[
+      ?_nullableString(product['color']) ??
+          _nullableString(product['colorFrom']),
+      ?_nullableString(product['clarity']) ??
+          _nullableString(product['clarityMin']),
+      ?_nullableString(product['cut']) ?? _nullableString(product['cutFrom']),
+      ?_nullableString(product['polish']) ??
+          _nullableString(product['polishFrom']),
+      ?_nullableString(product['symmetry']) ??
+          _nullableString(product['symmetryFrom']),
+    ];
+    if (parts.isEmpty) return null;
+    return parts.join(' · ');
+  }
+
+  static String? _certificateLabel(Map<String, dynamic>? product) {
+    if (product == null) return null;
+    final lab = _nullableString(product['certificateCompanyName']) ??
+        _nullableString(product['lab']) ??
+        _nullableString(product['certificateCompany']);
+    final number = _nullableString(product['certificateNumber']) ??
+        _nullableString(product['certificateNo']);
+    if (lab != null && number != null) return '$lab · $number';
+    return lab ?? number;
+  }
+
+  static String? _imageUrl(Map<String, dynamic>? map) {
+    if (map == null) return null;
+    for (final key in [
+      'imageUrl',
+      'image1',
+      'image2',
+      'thumbnail',
+      'coverImage',
+      'primaryImage',
+    ]) {
+      final direct = _nullableString(map[key]);
+      if (direct != null) return direct;
+    }
+    final images = map['images'] ?? map['imageUrls'] ?? map['media'];
+    if (images is List) {
+      for (final item in images) {
+        if (item is String) {
+          final url = _nullableString(item);
+          if (url != null) return url;
+        } else if (item is Map<String, dynamic>) {
+          final url = _nullableString(item['url']) ??
+              _nullableString(item['imageUrl']);
+          if (url != null) return url;
+        }
+      }
+    }
+    return null;
   }
 
   static String _formatNum(Object? value) {

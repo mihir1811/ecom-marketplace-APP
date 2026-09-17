@@ -130,12 +130,25 @@ class _BuyerRefundCard extends ConsumerWidget {
                 ),
               ),
               const Spacer(),
-              Text(
-                AppCurrency.usd(refund.amount),
-                style: AppTypography.title.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    AppCurrency.usd(refund.amountUsd),
+                    style: AppTypography.title.copyWith(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
+                  ),
+                  if (refund.amountInr > 0)
+                    Text(
+                      AppCurrency.inr(refund.amountInr),
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textMuted(context),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
               ),
             ],
           ),

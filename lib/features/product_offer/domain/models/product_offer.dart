@@ -35,6 +35,9 @@ class ProductOffer {
     this.listPrice,
     this.buyerName,
     this.buyerEmail,
+    this.imageUrl,
+    this.productSpecs,
+    this.certificateLabel,
   });
 
   final String id;
@@ -52,6 +55,18 @@ class ProductOffer {
   final double? listPrice;
   final String? buyerName;
   final String? buyerEmail;
+  final String? imageUrl;
+  final String? productSpecs;
+  final String? certificateLabel;
+
+  /// Best available product title for list cards.
+  String get displayTitle {
+    final label = productLabel?.trim();
+    if (label != null && label.isNotEmpty) return label;
+    final stock = stockNumber?.trim();
+    if (stock != null && stock.isNotEmpty) return stock;
+    return productType;
+  }
 }
 
 class ProductOfferListPage {

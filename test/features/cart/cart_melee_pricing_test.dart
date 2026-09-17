@@ -121,4 +121,47 @@ void main() {
     expect(reconciled.subtotal, closeTo(101.89, 0.01));
     expect(reconciled.discountedSubtotal, closeTo(101.89, 0.01));
   });
+
+  test('jewellery cart prefers selected variant calculatedPrice', () {
+    final item = CartMapper.cartItemFromJson({
+      'id': 'cart-j1',
+      'productId': 'jewel-1',
+      'productType': 'jewellery',
+      'quantity': 1,
+      'specifications': {
+        'stoneWeight': '3ct',
+        'variantId': 'var-3ct',
+        'unitPrice': 2300000,
+        'calculatedPrice': 2300000,
+      },
+      'product': {
+        'id': 'jewel-1',
+        'name': 'Platinum Diamond Tennis Bracelet',
+        'totalPrice': 1312000,
+        'variants': [
+          {'id': 'var-2ct', 'totalStoneCarat': 2, 'totalPrice': 1312000},
+          {'id': 'var-3ct', 'totalStoneCarat': 3, 'totalPrice': 2300000},
+        ],
+      },
+    });
+    expect(item.displayPriceUsd, closeTo(2300000, 0.01));
+    expect(item.title, contains('3ct'));
+  });
+
+  test('jewellery cart resolves variant price when calculatedPrice missing', () {
+    final price = MeleePurchaseMath.linePriceFromCartPayload(
+      specifications: {
+        'stoneWeight': '3ct',
+        'variantId': 'var-3ct',
+      },
+      product: {
+        'totalPrice': 1312000,
+        'variants': [
+          {'id': 'var-2ct', 'totalStoneCarat': 2, 'totalPrice': 1312000},
+          {'id': 'var-3ct', 'totalStoneCarat': 3, 'totalPrice': 2300000},
+        ],
+      },
+    );
+    expect(price, closeTo(2300000, 0.01));
+  });
 }

@@ -35,12 +35,18 @@ abstract final class CartMapper {
         _firstImage(productMap);
 
     final availability = _productAvailability(json, productMap);
+    final stoneWeight = _str(specifications?['stoneWeight']);
+    final displayTitle = (stoneWeight != null &&
+            stoneWeight.isNotEmpty &&
+            !name.toLowerCase().contains(stoneWeight.toLowerCase()))
+        ? '$name · $stoneWeight'
+        : name;
 
     return CartItem(
       cartId: _str(json['id']) ?? '',
       productId: _str(json['productId']) ?? _str(productMap['id']) ?? '',
       productType: productType,
-      title: name,
+      title: displayTitle,
       category: CartProductType.label(productType),
       // Cart line count — melee partial amount lives in specifications, not qty.
       quantity: _int(json['quantity']) ?? 1,

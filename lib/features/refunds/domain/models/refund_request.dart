@@ -50,7 +50,8 @@ class RefundRequest {
     required this.sellerId,
     required this.status,
     required this.reason,
-    required this.amount,
+    required this.amountInr,
+    required this.amountUsd,
     required this.createdAtLabel,
     required this.updatedAtLabel,
     this.sellerNote,
@@ -66,7 +67,13 @@ class RefundRequest {
   final String sellerId;
   final RefundStatus status;
   final String reason;
-  final double amount;
+
+  /// Charge amount in INR as returned by the refunds API (`amount`).
+  final double amountInr;
+
+  /// USD equivalent for display (API `amountUsd` when present, else converted).
+  final double amountUsd;
+
   final String createdAtLabel;
   final String updatedAtLabel;
   final String? sellerNote;
@@ -74,6 +81,9 @@ class RefundRequest {
   final String? resolvedAtLabel;
   final RefundPartyUser? user;
   final RefundPartySeller? seller;
+
+  /// Legacy alias for [amountInr].
+  double get amount => amountInr;
 
   String get buyerLabel => user?.name.trim().isNotEmpty == true
       ? user!.name

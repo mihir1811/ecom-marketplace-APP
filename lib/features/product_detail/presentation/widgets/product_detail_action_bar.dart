@@ -67,14 +67,16 @@ class ProductDetailActionBar extends ConsumerWidget {
           .read(jewelryConfigDraftProvider(detail.id).notifier)
           .ensureSeeded(jewelryDetail);
       final draft = ref.read(jewelryConfigDraftProvider(detail.id));
-      quantity = draft?.quantity ?? 1;
-      specifications = {
-        if (draft?.purity != null) 'purity': draft!.purity,
-        if (draft?.size != null) 'size': draft!.size,
-        if (draft?.stoneWeightLabel != null)
-          'stoneWeight': draft!.stoneWeightLabel,
-        if (draft?.sku != null) 'sku': draft!.sku,
-      };
+      if (draft == null) {
+        _notify(
+          context,
+          'Select jewelry options before adding to cart',
+          haptic: AppHaptics.error,
+        );
+        return;
+      }
+      quantity = draft.quantity;
+      specifications = draft.toCartSpecifications();
     }
     final meleeQty = detail.naturalSpecTabs?.meleeQty;
     if (meleeQty != null) {

@@ -1,3 +1,4 @@
+import '../../../../core/utils/currency_rates.dart';
 import '../../domain/models/refund_list_page.dart';
 import '../../domain/models/refund_request.dart';
 
@@ -7,6 +8,13 @@ abstract final class RefundMapper {
     final updatedAt = _parseDate(json['updatedAt']) ?? createdAt;
     final resolvedAt = _parseDate(json['resolvedAt']);
 
+    // Refunds settle via Razorpay in INR — API `amount` is always INR.
+    final amountInr = _asDouble(json['amountInr']) ??
+        _asDouble(json['amount']) ??
+        0;
+    final amountUsd = _asDouble(json['amountUsd']) ??
+        (amountInr > 0 ? inrToUsd(amountInr) : 0);
+
     return RefundRequest(
       id: json['id']?.toString() ?? '',
       orderId: json['orderId']?.toString() ?? '',
@@ -14,7 +22,8 @@ abstract final class RefundMapper {
       sellerId: json['sellerId']?.toString() ?? '',
       status: RefundStatus.fromApi(json['status']?.toString()),
       reason: json['reason']?.toString() ?? '',
-      amount: _asDouble(json['amount']) ?? 0,
+      amountInr: amountInr,
+      amountUsd: amountUsd,
       sellerNote: _nullableString(json['sellerNote']),
       razorpayRefundId: _nullableString(json['razorpayRefundId']),
       createdAtLabel: _label(createdAt),

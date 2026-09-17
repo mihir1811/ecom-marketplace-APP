@@ -3,15 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
 import '../../../product_offer/data/mappers/product_offer_mapper.dart';
 import '../../../product_offer/domain/models/product_offer.dart';
-
-import '../../../../core/l10n/app_localizations.dart';
 
 class SellerOffersScreen extends ConsumerStatefulWidget {
   const SellerOffersScreen({super.key});
@@ -245,29 +245,40 @@ class _OfferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPending = offer.status.isPending;
-    final productLabel = offer.productLabel ?? offer.productType;
     final listPrice = offer.listPrice;
     final statusColor = _statusColor(context);
+    final buyerLine = [
+      if (offer.buyerName != null) offer.buyerName!,
+      if (offer.buyerEmail != null) offer.buyerEmail!,
+    ].join(' · ');
+    final metaParts = <String>[
+      if (offer.stockNumber != null)
+        context.tr(RemainingL10n.stockWithNumber, {
+          'stockNumber': offer.stockNumber!,
+        }),
+      if (offer.productSpecs != null) offer.productSpecs!,
+      if (offer.certificateLabel != null) offer.certificateLabel!,
+    ];
 
     return Material(
       color: AppColors.card(context),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.r12),
         side: BorderSide(color: AppColors.border(context)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s16),
+        padding: const EdgeInsets.all(AppSpacing.s12),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
                 _Pill(label: offer.productType),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                    horizontal: 8,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.12),
@@ -278,6 +289,7 @@ class _OfferCard extends StatelessWidget {
                     style: AppTypography.caption.copyWith(
                       color: statusColor,
                       fontWeight: FontWeight.w700,
+                      fontSize: 11,
                     ),
                   ),
                 ),
@@ -292,65 +304,104 @@ class _OfferCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            Text(
-              productLabel,
-              style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
-            ),
-            if (offer.stockNumber != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                context.tr(RemainingL10n.stockWithNumber, {
-                  'stockNumber': offer.stockNumber!,
-                }),
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondary(context),
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (listPrice != null)
-                  Expanded(
-                    child: _PriceBlock(
-                      label: context.tr(RemainingL10n.listPrice),
-                      value: AppCurrency.format(listPrice),
-                    ),
-                  ),
-                if (listPrice != null) const SizedBox(width: 12),
+                _ProductThumb(imageUrl: offer.imageUrl),
+                const SizedBox(width: AppSpacing.s12),
                 Expanded(
-                  child: _PriceBlock(
-                    label: context.tr(RemainingL10n.buyerOffer),
-                    value: ProductOfferMapper.offerPriceLabel(offer.amount),
-                    emphasize: true,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        offer.displayTitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.label.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                      ),
+                      if (metaParts.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          metaParts.join(' · '),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textSecondary(context),
+                            height: 1.3,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                      if (offer.productId.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'ID ${offer.productId}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textMuted(context),
+                            fontSize: 10,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ],
+                      if (buyerLine.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          buyerLine,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textMuted(context),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
+                ),
+                const SizedBox(width: AppSpacing.s8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (listPrice != null) ...[
+                      _PriceBlock(
+                        label: context.tr(RemainingL10n.listPrice),
+                        value: AppCurrency.format(listPrice),
+                        alignEnd: true,
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    _PriceBlock(
+                      label: context.tr(RemainingL10n.buyerOffer),
+                      value: ProductOfferMapper.offerPriceLabel(offer.amount),
+                      emphasize: true,
+                      alignEnd: true,
+                    ),
+                  ],
                 ),
               ],
             ),
-            if (offer.buyerName != null || offer.buyerEmail != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                [
-                  if (offer.buyerName != null) offer.buyerName!,
-                  if (offer.buyerEmail != null) offer.buyerEmail!,
-                ].join(' · '),
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondary(context),
-                ),
-              ),
-            ],
             if (offer.message != null) ...[
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s12,
+                  vertical: AppSpacing.s8,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.surface(context),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppSpacing.r8),
                 ),
                 child: Text(
                   offer.message!,
-                  style: AppTypography.body.copyWith(
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.caption.copyWith(
                     color: AppColors.textSecondary(context),
                     height: 1.35,
                   ),
@@ -358,7 +409,7 @@ class _OfferCard extends StatelessWidget {
               ),
             ],
             if (isPending) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -367,7 +418,8 @@ class _OfferCard extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.error,
                         side: const BorderSide(color: AppColors.error),
-                        minimumSize: const Size.fromHeight(44),
+                        minimumSize: const Size.fromHeight(40),
+                        padding: EdgeInsets.zero,
                       ),
                       child: Text(context.tr(RemainingL10n.reject)),
                     ),
@@ -378,7 +430,8 @@ class _OfferCard extends StatelessWidget {
                       onPressed: onAccept,
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.charcoal,
-                        minimumSize: const Size.fromHeight(44),
+                        minimumSize: const Size.fromHeight(40),
+                        padding: EdgeInsets.zero,
                       ),
                       child: Text(context.tr(RemainingL10n.accept)),
                     ),
@@ -388,6 +441,47 @@ class _OfferCard extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProductThumb extends StatelessWidget {
+  const _ProductThumb({this.imageUrl});
+
+  final String? imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(AppSpacing.r8);
+    return ClipRRect(
+      borderRadius: radius,
+      child: Container(
+        width: 64,
+        height: 64,
+        color: AppColors.surface(context),
+        foregroundDecoration: BoxDecoration(
+          borderRadius: radius,
+          border: Border.all(color: AppColors.border(context)),
+        ),
+        child: imageUrl == null || imageUrl!.isEmpty
+            ? Icon(
+                Icons.diamond_outlined,
+                size: 26,
+                color: AppColors.textMuted(context),
+              )
+            : AppNetworkImage(
+                url: imageUrl!,
+                width: 64,
+                height: 64,
+                fit: BoxFit.cover,
+                memCacheWidth: 128,
+                error: Icon(
+                  Icons.diamond_outlined,
+                  size: 26,
+                  color: AppColors.textMuted(context),
+                ),
+              ),
       ),
     );
   }
@@ -420,31 +514,39 @@ class _PriceBlock extends StatelessWidget {
     required this.label,
     required this.value,
     this.emphasize = false,
+    this.alignEnd = false,
   });
 
   final String label;
   final String value;
   final bool emphasize;
+  final bool alignEnd;
 
   @override
   Widget build(BuildContext context) {
+    final align = alignEnd ? TextAlign.end : TextAlign.start;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         Text(
           label,
+          textAlign: align,
           style: AppTypography.caption.copyWith(
             color: AppColors.textMuted(context),
             fontWeight: FontWeight.w600,
+            fontSize: 11,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(
           value,
+          textAlign: align,
           style: AppTypography.title.copyWith(
             fontWeight: FontWeight.w800,
             color: emphasize ? AppColors.info : AppColors.textPrimary(context),
-            fontSize: emphasize ? 18 : 16,
+            fontSize: emphasize ? 18 : 14,
+            height: 1.15,
           ),
         ),
       ],
