@@ -45,6 +45,11 @@ abstract final class AccountCommerceL10n {
   static const alreadyRegistered = 'account.auth.alreadyRegistered';
   static const fullName = 'account.field.fullName';
   static const fullNameRequired = 'account.validation.fullNameRequired';
+  static const dateOfBirth = 'account.field.dateOfBirth';
+  static const dateOfBirthRequired = 'account.validation.dateOfBirthRequired';
+  static const dateOfBirthInvalid = 'account.validation.dateOfBirthInvalid';
+  static const dateOfBirthTooYoung = 'account.validation.dateOfBirthTooYoung';
+  static const selectDateOfBirth = 'account.action.selectDateOfBirth';
   static const usernameRequired = 'account.validation.usernameRequired';
   static const emailAddress = 'account.field.emailAddress';
   static const referralEmail = 'account.field.referralEmail';
@@ -577,6 +582,31 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     english: 'Full name is required',
     hindi: 'पूरा नाम ज़रूरी है',
     gujarati: 'નામ જરૂરી છે',
+  ),
+  AccountCommerceL10n.dateOfBirth: LocalizedMessage(
+    english: 'Date of birth',
+    hindi: 'जन्म तिथि',
+    gujarati: 'જન્મ તારીખ',
+  ),
+  AccountCommerceL10n.dateOfBirthRequired: LocalizedMessage(
+    english: 'Date of birth is required',
+    hindi: 'जन्म तिथि ज़रूरी है',
+    gujarati: 'જન્મ તારીખ જરૂરી છે',
+  ),
+  AccountCommerceL10n.dateOfBirthInvalid: LocalizedMessage(
+    english: 'Enter a valid date of birth',
+    hindi: 'मान्य जन्म तिथि दर्ज करें',
+    gujarati: 'માન્ય જન્મ તારીખ દાખલ કરો',
+  ),
+  AccountCommerceL10n.dateOfBirthTooYoung: LocalizedMessage(
+    english: 'You must be at least 18 years old to register',
+    hindi: 'रजिस्टर करने के लिए आपकी आयु कम से कम 18 वर्ष होनी चाहिए',
+    gujarati: 'રજીસ્ટર કરવા માટે તમારી ઉંમર ઓછામાં ઓછી 18 વર્ષ હોવી જોઈએ',
+  ),
+  AccountCommerceL10n.selectDateOfBirth: LocalizedMessage(
+    english: 'Select date of birth',
+    hindi: 'जन्म तिथि चुनें',
+    gujarati: 'જન્મ તારીખ પસંદ કરો',
   ),
   AccountCommerceL10n.usernameRequired: LocalizedMessage(
     english: 'Username is required.',

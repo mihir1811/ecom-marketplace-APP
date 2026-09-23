@@ -63,8 +63,9 @@ class DiamondRepositoryImpl implements DiamondRepository {
           : const <String, dynamic>{};
       final itemsJson = payload['data'];
       final metaJson = payload['meta'];
-      final meta =
-          metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+      final meta = metaJson is Map<String, dynamic>
+          ? metaJson
+          : const <String, dynamic>{};
 
       final list = itemsJson is List ? itemsJson : const [];
       final diamonds = <Diamond>[];
@@ -84,8 +85,8 @@ class DiamondRepositoryImpl implements DiamondRepository {
       final hasMore = meta.containsKey('next')
           ? meta['next'] != null
           : (lastPage != null
-              ? currentPage < lastPage
-              : diamonds.length >= limit);
+                ? currentPage < lastPage
+                : diamonds.length >= limit);
 
       // Primary key goes to the API; remaining keys chain client-side on the page.
       final sorted = DiamondMultiSorter.apply(diamonds, sorting);
@@ -135,8 +136,9 @@ class DiamondRepositoryImpl implements DiamondRepository {
           : const <String, dynamic>{};
       final itemsJson = payload['data'];
       final metaJson = payload['meta'];
-      final meta =
-          metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+      final meta = metaJson is Map<String, dynamic>
+          ? metaJson
+          : const <String, dynamic>{};
 
       final list = itemsJson is List ? itemsJson : const [];
       final diamonds = <Diamond>[];
@@ -153,8 +155,8 @@ class DiamondRepositoryImpl implements DiamondRepository {
       final hasMore = meta.containsKey('next')
           ? meta['next'] != null
           : (lastPage != null
-              ? currentPage < lastPage
-              : diamonds.length >= limit);
+                ? currentPage < lastPage
+                : diamonds.length >= limit);
 
       return Result.success(
         DiamondListResponse(

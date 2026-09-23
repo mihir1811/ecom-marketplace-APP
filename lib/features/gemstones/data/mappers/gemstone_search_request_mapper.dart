@@ -35,8 +35,16 @@ abstract final class GemstoneSearchRequestMapper {
     _putStringList(body, 'color_intensities', filters.selectedIntensities);
     _putStringList(body, 'clarities', filters.selectedClarities);
     _putStringList(body, 'cuts', filters.selectedCutGrades);
-    _putStringList(body, 'certifications', filters.selectedCertifications);
-    _putStringList(body, 'treatments', filters.selectedTreatments);
+    _putStringList(
+      body,
+      'certifications',
+      filters.selectedCertifications.map(_mapCertification).toList(),
+    );
+    _putStringList(
+      body,
+      'treatments',
+      filters.selectedTreatments.map(_mapTreatment).toList(),
+    );
     _putStringList(body, 'fluorescence', filters.selectedFluorescence);
 
     final origin = filters.selectedOrigin ?? filters.selectedOriginCountry;
@@ -128,6 +136,37 @@ abstract final class GemstoneSearchRequestMapper {
       GemstoneFilterState.pricePerPieceMax,
     );
 
+    // Separate length/width/height columns on search (not the measurement string).
+    // Do not send ratio_* — gem inventory has empty ratio and any ratio filter
+    // returns zero hits.
+    _putNarrowedRange(
+      body,
+      'length_min',
+      'length_max',
+      filters.minLength,
+      filters.maxLength,
+      GemstoneFilterState.dimensionMin,
+      GemstoneFilterState.dimensionMax,
+    );
+    _putNarrowedRange(
+      body,
+      'width_min',
+      'width_max',
+      filters.minWidth,
+      filters.maxWidth,
+      GemstoneFilterState.dimensionMin,
+      GemstoneFilterState.dimensionMax,
+    );
+    _putNarrowedRange(
+      body,
+      'height_min',
+      'height_max',
+      filters.minHeight,
+      filters.maxHeight,
+      GemstoneFilterState.dimensionMin,
+      GemstoneFilterState.dimensionMax,
+    );
+
     if (filters.searchByMedia) body['has_image'] = true;
     if (filters.makeAnOffer) body['is_make_an_offer_allowed'] = true;
     final availability = _mapAvailability(filters.selectedAvailability);
@@ -171,6 +210,27 @@ abstract final class GemstoneSearchRequestMapper {
     };
   }
 
+  /// Maps UI treatment labels to GET `/gem-stone/filters` values.
+  static String _mapTreatment(String value) {
+    return switch (value.trim().toLowerCase()) {
+      'oiled' || 'oiling' => 'Oiling',
+      'heated' => 'Heated',
+      'none' => 'None',
+      _ => value.trim(),
+    };
+  }
+
+  /// Maps UI lab labels to filters/search certification values.
+  static String _mapCertification(String value) {
+    final v = value.trim();
+    return switch (v.toLowerCase()) {
+      'gübelin' || 'gubelin' => 'Gubelin',
+      'others' || 'other' || 'non-certified' || 'non certified' =>
+        'Non-certified',
+      _ => v,
+    };
+  }
+
   static void _putStringList(
     Map<String, dynamic> body,
     String key,
@@ -194,6 +254,25 @@ abstract final class GemstoneSearchRequestMapper {
     if (min <= defaultMin + 1e-6 && max >= defaultMax - 1e-6) return;
     if ((min - defaultMin).abs() > 1e-6) body[minKey] = min;
     if ((max - defaultMax).abs() > 1e-6) body[maxKey] = max;
+  }
+
+  /// Requires the range to be strictly inside defaults before either bound is
+  /// sent (avoids null-excluding measurement predicates on full spans).
+  static void _putNarrowedRange(
+    Map<String, dynamic> body,
+    String minKey,
+    String maxKey,
+    double min,
+    double max,
+    double defaultMin,
+    double defaultMax,
+  ) {
+    if (min <= defaultMin + 1e-6 && max >= defaultMax - 1e-6) return;
+    final narrowedMin = min > defaultMin + 1e-6;
+    final narrowedMax = max < defaultMax - 1e-6;
+    if (!narrowedMin && !narrowedMax) return;
+    if (narrowedMin) body[minKey] = min;
+    if (narrowedMax) body[maxKey] = max;
   }
 
   static String? _mapAvailability(String value) {

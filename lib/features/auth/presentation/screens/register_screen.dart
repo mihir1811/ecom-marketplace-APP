@@ -49,6 +49,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _acceptTerms = false;
   String _profileImageLabel = AccountCommerceL10n.uploadProfileImage;
   XFile? _profilePicture;
+  DateTime? _dateOfBirth;
 
   PasswordStrength _strength = const PasswordStrength(
     isStrong: false,
@@ -179,6 +180,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           profilePicture: _profilePicture,
           referralEmail: _referralEmailController.text,
           referralCode: _referralCodeController.text,
+          dateOfBirth: _isSeller ? null : _dateOfBirth,
         );
     if (!mounted) return;
     if (!registered) {
@@ -283,6 +285,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     ? context.tr(_profileImageLabel)
                                     : _profileImageLabel,
                                 isLoading: authState.isLoading,
+                                showDateOfBirth: !_isSeller,
+                                dateOfBirth: _dateOfBirth,
+                                onDateOfBirthChanged: (value) {
+                                  setState(() => _dateOfBirth = value);
+                                },
                                 onToggleObscure: () {
                                   setState(() {
                                     _obscurePassword = !_obscurePassword;
@@ -421,6 +428,9 @@ class _BasicDetailsFields extends StatelessWidget {
     required this.strength,
     required this.profileImageLabel,
     required this.isLoading,
+    required this.showDateOfBirth,
+    required this.dateOfBirth,
+    required this.onDateOfBirthChanged,
     required this.onToggleObscure,
     required this.onPasswordChanged,
     required this.onPickProfile,
@@ -436,9 +446,27 @@ class _BasicDetailsFields extends StatelessWidget {
   final PasswordStrength strength;
   final String profileImageLabel;
   final bool isLoading;
+  final bool showDateOfBirth;
+  final DateTime? dateOfBirth;
+  final ValueChanged<DateTime?> onDateOfBirthChanged;
   final VoidCallback onToggleObscure;
   final ValueChanged<String> onPasswordChanged;
   final VoidCallback onPickProfile;
+
+  Future<DateTime?> _pickDateOfBirth(BuildContext context) async {
+    final now = DateTime.now();
+    final adultCutoff = DateTime(now.year - 18, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: dateOfBirth ?? adultCutoff,
+      firstDate: DateTime(1900),
+      lastDate: adultCutoff,
+      helpText: context.tr(AccountCommerceL10n.selectDateOfBirth),
+    );
+    if (picked == null) return null;
+    onDateOfBirthChanged(picked);
+    return picked;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -491,6 +519,59 @@ class _BasicDetailsFields extends StatelessWidget {
             return null;
           },
         ),
+        if (showDateOfBirth) ...[
+          const SizedBox(height: AppSpacing.s16),
+          FormField<DateTime>(
+            key: ValueKey(dateOfBirth?.millisecondsSinceEpoch ?? 0),
+            initialValue: dateOfBirth,
+            validator: (_) {
+              if (dateOfBirth == null) {
+                return context.tr(AccountCommerceL10n.dateOfBirthRequired);
+              }
+              final error = validateDateOfBirth(dateOfBirth);
+              if (error == null) return null;
+              if (error ==
+                  AccountCommerceL10n.english(
+                    AccountCommerceL10n.dateOfBirthTooYoung,
+                  )) {
+                return context.tr(AccountCommerceL10n.dateOfBirthTooYoung);
+              }
+              return context.tr(AccountCommerceL10n.dateOfBirthInvalid);
+            },
+            builder: (field) {
+              final selected = dateOfBirth;
+              return InputDecorator(
+                decoration: InputDecoration(
+                  labelText: context.tr(AccountCommerceL10n.dateOfBirth),
+                  prefixIcon: const Icon(Icons.cake_outlined),
+                  errorText: field.errorText,
+                  suffixIcon: const Icon(Icons.calendar_today_outlined),
+                ),
+                child: InkWell(
+                  onTap: isLoading
+                      ? null
+                      : () async {
+                          final picked = await _pickDateOfBirth(context);
+                          if (picked != null) field.didChange(picked);
+                        },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      selected == null
+                          ? context.tr(AccountCommerceL10n.selectDateOfBirth)
+                          : formatDateOfBirthDisplay(selected),
+                      style: AppTypography.body.copyWith(
+                        color: selected == null
+                            ? AppColors.textMuted(context)
+                            : AppColors.textPrimary(context),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
         const SizedBox(height: AppSpacing.s16),
         TextFormField(
           controller: passwordController,

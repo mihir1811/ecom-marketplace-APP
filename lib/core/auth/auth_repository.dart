@@ -34,6 +34,8 @@ abstract class AuthRepository {
     XFile? profilePicture,
     String? referralEmail,
     String? referralCode,
+    /// `YYYY-MM-DD` — required by API for individual registration.
+    String? dateOfBirth,
   });
 
   Future<Result<AuthSession, Failure>> verifyOtp({
@@ -152,6 +154,7 @@ class AuthRepositoryImpl implements AuthRepository {
     XFile? profilePicture,
     String? referralEmail,
     String? referralCode,
+    String? dateOfBirth,
   }) async {
     try {
       if (registrationType == RegistrationAccountType.business &&
@@ -168,6 +171,11 @@ class AuthRepositoryImpl implements AuthRepository {
         'password': password,
         'registrationType': registrationType.apiValue,
       };
+
+      final dob = dateOfBirth?.trim();
+      if (dob != null && dob.isNotEmpty) {
+        map['dateOfBirth'] = dob;
+      }
 
       final referralEmailValue = referralEmail?.trim();
       if (referralEmailValue != null && referralEmailValue.isNotEmpty) {

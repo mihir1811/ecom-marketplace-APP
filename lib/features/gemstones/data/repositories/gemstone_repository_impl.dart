@@ -54,8 +54,9 @@ class GemstoneRepositoryImpl implements GemstoneRepository {
           : const <String, dynamic>{};
       final itemsJson = payload['data'];
       final metaJson = payload['meta'];
-      final meta =
-          metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+      final meta = metaJson is Map<String, dynamic>
+          ? metaJson
+          : const <String, dynamic>{};
 
       final list = itemsJson is List ? itemsJson : const [];
       final gemstones = <Gemstone>[];
@@ -73,8 +74,8 @@ class GemstoneRepositoryImpl implements GemstoneRepository {
       final hasMore = meta.containsKey('next')
           ? meta['next'] != null
           : (lastPage != null
-              ? currentPage < lastPage
-              : gemstones.length >= limit);
+                ? currentPage < lastPage
+                : gemstones.length >= limit);
 
       return Result.success(
         GemstoneListResponse(

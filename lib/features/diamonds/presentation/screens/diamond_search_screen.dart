@@ -252,9 +252,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   Widget _buildShapeCarousel() {
     final shapes = ref.watch(diamondSearchProvider.select((s) => s.shapes));
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final useMelee = ref.watch(
-      diamondSearchProvider.select(_usesMeleeFilters),
-    );
+    final useMelee = ref.watch(diamondSearchProvider.select(_usesMeleeFilters));
     final family = widget.catalog.isLabGrown
         ? MeleeBgFamily.labGrown
         : MeleeBgFamily.natural;

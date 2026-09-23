@@ -193,6 +193,7 @@ class AuthController extends Notifier<AuthState> {
     XFile? profilePicture,
     String? referralEmail,
     String? referralCode,
+    DateTime? dateOfBirth,
   }) async {
     _setLoading();
     _clearEphemeralFlags();
@@ -222,6 +223,15 @@ class AuthController extends Notifier<AuthState> {
       );
     }
 
+    String? dateOfBirthApi;
+    if (registrationType == RegistrationAccountType.individual) {
+      final dobError = validateDateOfBirth(dateOfBirth);
+      if (dobError != null) {
+        return _fail(dobError);
+      }
+      dateOfBirthApi = formatDateOfBirthForApi(dateOfBirth!);
+    }
+
     if (registrationType == RegistrationAccountType.business) {
       final businessError = _validateBusiness(business);
       if (businessError != null) {
@@ -241,6 +251,7 @@ class AuthController extends Notifier<AuthState> {
       profilePicture: profilePicture,
       referralEmail: referralEmail,
       referralCode: referralCode,
+      dateOfBirth: dateOfBirthApi,
     );
     return switch (result) {
       Success(:final value) => () {

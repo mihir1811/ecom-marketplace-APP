@@ -21,6 +21,8 @@ abstract final class DiamondSearchRequestMapper {
   static const _defaultMaxWidth = 100.0;
   static const _defaultMinHeight = 0.0;
   static const _defaultMaxHeight = 100.0;
+  static const _defaultMinRatio = 0.5;
+  static const _defaultMaxRatio = 5.0;
   static const _defaultMinCaratPerPcs = 0.0;
   static const _defaultMaxCaratPerPcs = 100.0;
   static const _defaultMinPricePerPcs = 0.0;
@@ -64,13 +66,21 @@ abstract final class DiamondSearchRequestMapper {
         'fancy_colors',
         filters.selectedFancyColors.map(_mapFancyColor).toList(),
       );
-      _putStringList(body, 'fancy_intensities', filters.selectedIntensities);
-      _putStringList(body, 'fancy_overtones', filters.selectedOvertones);
+      _putStringList(
+        body,
+        'fancy_intensities',
+        filters.selectedIntensities.map(_mapFancyIntensity).toList(),
+      );
+      _putStringList(
+        body,
+        'fancy_overtones',
+        filters.selectedOvertones.map(_mapFancyOvertone).toList(),
+      );
     } else {
       final colors = filters.selectedStandardColors.isNotEmpty
           ? filters.selectedStandardColors
           : _colorsFromIndexRange(filters.minColorIndex, filters.maxColorIndex);
-      _putStringList(body, 'colors', colors);
+      _putStringList(body, 'colors', _mapColorsForApi(colors));
     }
 
     final clarities = filters.selectedClarityGrades.isNotEmpty
@@ -109,7 +119,10 @@ abstract final class DiamondSearchRequestMapper {
     );
     if (filters.selectedFluorescenceColor != null &&
         filters.selectedFluorescenceColor!.isNotEmpty) {
-      body['fluorescence_colors'] = [filters.selectedFluorescenceColor];
+      final fluoColor = filters.selectedFluorescenceColor!.trim();
+      if (fluoColor.isNotEmpty && fluoColor.toLowerCase() != 'none') {
+        body['fluorescence_colors'] = [fluoColor.toLowerCase()];
+      }
     }
 
     if (isLab) {
@@ -122,21 +135,19 @@ abstract final class DiamondSearchRequestMapper {
             .toList(),
       );
     } else {
-      if (filters.selectedOrigin != null &&
-          filters.selectedOrigin!.trim().isNotEmpty) {
-        body['origins'] = [filters.selectedOrigin!.trim()];
+      final origin = _mapOrigin(filters.selectedOrigin);
+      if (origin != null) {
+        body['origins'] = [origin];
       }
-      if (filters.selectedRoughSource != null &&
-          filters.selectedRoughSource!.trim().isNotEmpty) {
-        body['rough_sources'] = [filters.selectedRoughSource!.trim()];
+      final rough = _mapRoughSource(filters.selectedRoughSource);
+      if (rough != null) {
+        body['rough_sources'] = [rough];
       }
     }
 
-    final treatment = filters.selectedEnhancement;
-    if (treatment != null &&
-        treatment.trim().isNotEmpty &&
-        !treatment.toLowerCase().startsWith('none')) {
-      body['treatments'] = [treatment.trim()];
+    final treatment = _mapTreatment(filters.selectedEnhancement);
+    if (treatment != null) {
+      body['treatments'] = [treatment];
     }
 
     _putStringList(body, 'companies', filters.companyNames);
@@ -160,9 +171,8 @@ abstract final class DiamondSearchRequestMapper {
       _defaultMinPpc,
       _defaultMaxPpc,
     );
-    // Intentionally omit ratio_*/length_*/width_*/height_* unless narrowed.
-    // The search API excludes null measurement fields, so full-range ratio
-    // predicates (even 0.5–5) return zero hits.
+    // Measurement filters map to separate DB columns (length/width/height/ratio).
+    // Only send when narrowed — full-range ratio still drops null-ratio rows.
     _putNarrowedRange(
       body,
       'length_min',
@@ -190,7 +200,15 @@ abstract final class DiamondSearchRequestMapper {
       _defaultMinHeight,
       _defaultMaxHeight,
     );
-    // Do not send ratio_* — API null-excludes ratio and returns empty sets.
+    _putNarrowedRange(
+      body,
+      'ratio_min',
+      'ratio_max',
+      filters.minRatio,
+      filters.maxRatio,
+      _defaultMinRatio,
+      _defaultMaxRatio,
+    );
 
     if (isMelee) {
       _putRange(
@@ -381,6 +399,33 @@ abstract final class DiamondSearchRequestMapper {
     return colors.sublist(start, end + 1);
   }
 
+  /// Maps UI color letters to `/diamond/filters` values.
+  /// Inventory stores late colors as pairs (`O-P` … `Y-Z`), not singles.
+  static List<String> _mapColorsForApi(List<String> colors) {
+    const pairByLetter = <String, String>{
+      'O': 'O-P',
+      'P': 'O-P',
+      'Q': 'Q-R',
+      'R': 'Q-R',
+      'S': 'S-T',
+      'T': 'S-T',
+      'U': 'U-V',
+      'V': 'U-V',
+      'W': 'W-X',
+      'X': 'W-X',
+      'Y': 'Y-Z',
+      'Z': 'Y-Z',
+    };
+    final out = <String>{};
+    for (final raw in colors) {
+      final c = raw.trim();
+      if (c.isEmpty) continue;
+      final upper = c.toUpperCase();
+      out.add(pairByLetter[upper] ?? upper);
+    }
+    return out.toList();
+  }
+
   static List<String> _claritiesFromIndexRange(int minIndex, int maxIndex) {
     const clarities = DiamondFilterState.clarities;
     // Full clarity span (incl. I3) means "no filter".
@@ -415,8 +460,9 @@ abstract final class DiamondSearchRequestMapper {
   }
 
   static String _mapFluorescence(String value) {
+    // Match GET `/diamond/filters` option values (e.g. "Very Strong").
     return switch (value.trim().toLowerCase()) {
-      'very strong' || 'v. str' || 'vstr' => 'V. Str',
+      'very strong' || 'v. str' || 'vstr' => 'Very Strong',
       'none' => 'None',
       'faint' => 'Faint',
       'medium' => 'Medium',
@@ -427,11 +473,53 @@ abstract final class DiamondSearchRequestMapper {
   }
 
   static String _mapFancyColor(String value) {
+    final lower = value.trim().toLowerCase();
+    if (lower == 'multi' || lower == 'other') return 'other';
+    // Filters API uses American spelling "gray".
+    if (lower == 'grey') return 'gray';
+    return lower;
+  }
+
+  static String _mapFancyIntensity(String value) {
+    return value.trim().toLowerCase();
+  }
+
+  static String _mapFancyOvertone(String value) {
+    return value.trim().toLowerCase();
+  }
+
+  /// Maps UI enhancement labels to filters/search treatment values.
+  static String? _mapTreatment(String? value) {
+    if (value == null) return null;
+    var v = value.trim();
+    if (v.isEmpty) return null;
+    final lower = v.toLowerCase();
+    if (lower.startsWith('none')) return null;
+    v = v
+        .replaceAll(RegExp(r'\s*\(treatment\)\s*', caseSensitive: false), '')
+        .trim();
+    return v.toLowerCase();
+  }
+
+  static String? _mapOrigin(String? value) {
+    final v = value?.trim();
+    if (v == null || v.isEmpty) return null;
+    return v.toLowerCase();
+  }
+
+  /// Maps UI rough-source labels onto filters API country-style values.
+  static String? _mapRoughSource(String? value) {
+    if (value == null) return null;
     final v = value.trim();
-    if (v.toLowerCase() == 'multi' || v.toLowerCase() == 'other') {
-      return 'other';
-    }
-    return v;
+    if (v.isEmpty) return null;
+    return switch (v.toLowerCase()) {
+      'canadian' || 'canada' => 'canada',
+      'russian' || 'russia' => 'russia',
+      'rio tinto' => 'rio tinto',
+      'sight holder' => 'sight holder',
+      'others' || 'other' => null,
+      _ => v.toLowerCase(),
+    };
   }
 
   static String? _mapAvailability(String value) {

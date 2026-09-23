@@ -38,6 +38,40 @@ bool isValidBankAccountNumber(String value) {
   return RegExp(r'^\d{8,20}$').hasMatch(value.trim());
 }
 
+/// Formats a calendar date for `/auth/register` `dateOfBirth` (YYYY-MM-DD).
+String formatDateOfBirthForApi(DateTime date) {
+  final y = date.year.toString().padLeft(4, '0');
+  final m = date.month.toString().padLeft(2, '0');
+  final d = date.day.toString().padLeft(2, '0');
+  return '$y-$m-$d';
+}
+
+/// Display label for a picked date of birth (local calendar day).
+String formatDateOfBirthDisplay(DateTime date) {
+  final m = date.month.toString().padLeft(2, '0');
+  final d = date.day.toString().padLeft(2, '0');
+  return '$m/$d/${date.year}';
+}
+
+/// Returns an English validation error, or `null` when [date] is acceptable.
+String? validateDateOfBirth(DateTime? date) {
+  if (date == null) {
+    return AccountCommerceL10n.english(AccountCommerceL10n.dateOfBirthRequired);
+  }
+  final today = DateTime.now();
+  final todayDate = DateTime(today.year, today.month, today.day);
+  final picked = DateTime(date.year, date.month, date.day);
+  if (picked.isAfter(todayDate)) {
+    return AccountCommerceL10n.english(AccountCommerceL10n.dateOfBirthInvalid);
+  }
+  // Must be at least 18 years old for individual accounts.
+  final adultOn = DateTime(picked.year + 18, picked.month, picked.day);
+  if (adultOn.isAfter(todayDate)) {
+    return AccountCommerceL10n.english(AccountCommerceL10n.dateOfBirthTooYoung);
+  }
+  return null;
+}
+
 class PasswordStrength {
   const PasswordStrength({
     required this.isStrong,

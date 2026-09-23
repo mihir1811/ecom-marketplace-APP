@@ -593,7 +593,11 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
                                               const SizedBox(
                                                 width: AppSpacing.s12,
                                               ),
-                                              Text(context.trCatalogValue(colorName)),
+                                              Text(
+                                                context.trCatalogValue(
+                                                  colorName,
+                                                ),
+                                              ),
                                               const Spacer(),
                                               Text(
                                                 hex,
