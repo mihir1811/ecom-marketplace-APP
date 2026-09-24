@@ -18,6 +18,7 @@ ProductDetail watchProductDetail(Watch w) {
     if (w.papersIncluded) 'Papers',
     if (w.warrantyCardIncluded) 'Warranty card',
   ];
+  final markdown = catalogMarkdownPercent(w.discount);
 
   return ProductDetail(
     id: w.id,
@@ -31,9 +32,9 @@ ProductDetail watchProductDetail(Watch w) {
       const ProductBadge('Watch', tone: ProductBadgeTone.accent),
       ProductBadge(w.condition, tone: ProductBadgeTone.positive),
       if (w.fullSetIncluded) const ProductBadge('Full set'),
-      if (w.discount != null && w.discount! > 0)
+      if (markdown != null)
         ProductBadge(
-          '${formatDiscountPercent(w.discount!)}% below list',
+          '${formatDiscountPercent(markdown)}% below list',
           tone: ProductBadgeTone.caution,
         ),
     ],
@@ -54,7 +55,9 @@ ProductDetail watchProductDetail(Watch w) {
       priceUsd: w.price,
       priceInr: usdToInr(w.price),
       displayAmount: w.price,
-      discountPercent: w.discount,
+      discountPercent: markdown,
+      listAmount:
+          markdown == null ? null : catalogListFromNet(w.price, markdown),
     ),
     highlights: [
       ProductHighlight('Case size', '${w.caseSizeMm} mm'),

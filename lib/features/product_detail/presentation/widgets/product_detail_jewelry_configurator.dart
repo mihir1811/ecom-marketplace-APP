@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -320,7 +321,10 @@ class _PillChip extends StatelessWidget {
           : AppColors.surface(context),
       borderRadius: BorderRadius.circular(AppSpacing.r32),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          if (!selected) AppHaptics.selection();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(AppSpacing.r32),
         child: Container(
           padding: const EdgeInsets.symmetric(

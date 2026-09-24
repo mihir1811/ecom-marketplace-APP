@@ -77,6 +77,10 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
     } else if (!hasDiscount) {
       saleLabel = '${price.currencySymbol}${formatAmount(amount)}';
       listLabel = null;
+    } else if (price.listAmount != null && price.listAmount! > amount) {
+      listLabel =
+          '${price.currencySymbol}${formatAmount(price.listAmount!)}';
+      saleLabel = '${price.currencySymbol}${formatAmount(amount)}';
     } else if (price.displayAmountIsListPrice) {
       // List in amountLabel → discounted = list × (1 − %/100).
       final list = amount;
@@ -86,7 +90,7 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
     } else {
       // Net already in amountLabel → list inferred from %.
       saleLabel = '${price.currencySymbol}${formatAmount(amount)}';
-      final list = amount / (1 - discount! / 100);
+      final list = catalogListFromNet(amount, discount!) ?? amount;
       listLabel = '${price.currencySymbol}${formatAmount(list)}';
     }
 

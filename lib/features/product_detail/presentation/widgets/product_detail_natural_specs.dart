@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -313,7 +314,10 @@ class _UnitChip extends StatelessWidget {
       color: selected ? AppColors.bronze : AppColors.surface(context),
       borderRadius: BorderRadius.circular(AppSpacing.r12),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          if (!selected) AppHaptics.selection();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(AppSpacing.r12),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.s12),

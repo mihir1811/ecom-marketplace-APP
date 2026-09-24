@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/result.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -45,6 +46,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
+    AppHaptics.selection();
     final tab = _tabController.index == 0
         ? SellerProductDiamondTab.natural
         : SellerProductDiamondTab.melee;
@@ -402,7 +404,10 @@ class _ToggleChip extends StatelessWidget {
     return Material(
       color: selected ? AppColors.selectedFill(context) : Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          if (!selected) AppHaptics.selection();
+          onTap();
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Row(

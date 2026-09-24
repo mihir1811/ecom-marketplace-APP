@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/router/route_names.dart';
@@ -629,7 +630,10 @@ class _PresetChip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: AppSpacing.s8),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          AppHaptics.selection();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         child: Container(
           height: 32,
@@ -678,7 +682,10 @@ class _VariantFilterChip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: AppSpacing.s8),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          AppHaptics.selection();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         child: Container(
           height: 32,

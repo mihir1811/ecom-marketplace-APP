@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../domain/models/sieve_size.dart';
 import '../../../../core/widgets/melee_background_shell.dart';
@@ -911,7 +912,10 @@ class FilterSegmentedControl extends StatelessWidget {
                       details.globalPosition,
                     ).dispatch(context);
                   },
-                  onTap: () => onSelected(opt),
+                  onTap: () {
+                    if (!isCurrent) AppHaptics.selection();
+                    onSelected(opt);
+                  },
                   splashColor: splash.withValues(alpha: 0.55),
                   highlightColor: splash.withValues(alpha: 0.22),
                   child: AnimatedContainer(
@@ -1060,7 +1064,10 @@ class _CompactPresetChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        AppHaptics.selection();
+        onTap();
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
@@ -1154,7 +1161,10 @@ class _SieveTableRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        AppHaptics.selection();
+        onTap();
+      },
       child: Container(
         height: 36,
         decoration: BoxDecoration(

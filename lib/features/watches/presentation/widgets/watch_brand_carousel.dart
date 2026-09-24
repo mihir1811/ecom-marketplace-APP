@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -353,7 +354,10 @@ class _CategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        if (!selected) AppHaptics.selection();
+        onTap();
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
         padding: const EdgeInsets.symmetric(

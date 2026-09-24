@@ -32,8 +32,8 @@ class _ProductDetailSuggestedProductsState
   static const _cardGap = AppSpacing.s12;
   /// Wider than tall so the media band stays short.
   static const _imageAspect = 1.45;
-  /// Compact block: title + 2 meta lines + price + padding.
-  static const _textBlockHeight = 72.0;
+  /// Title + 2 meta lines + price + card inset.
+  static const _textBlockHeight = 88.0;
 
   @override
   void initState() {
@@ -248,10 +248,10 @@ class _SuggestedProductCard extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s8,
-              AppSpacing.s8,
-              AppSpacing.s8,
-              AppSpacing.s8,
+              AppSpacing.s16,
+              AppSpacing.s12,
+              AppSpacing.s16,
+              AppSpacing.s16,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

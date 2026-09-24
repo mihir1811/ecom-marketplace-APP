@@ -186,6 +186,8 @@ abstract final class CatalogL10n {
   static const viewerTimeout = 'catalog.viewer.timeout';
   static const viewerHttpError = 'catalog.viewer.httpError';
   static const viewerBrowserError = 'catalog.viewer.browserError';
+  static const viewerAccessDenied = 'catalog.viewer.accessDenied';
+  static const viewerNoMedia = 'catalog.viewer.noMedia';
   static const tryAgain = 'catalog.action.tryAgain';
   static const viewerGestureHint = 'catalog.viewer.gestureHint';
   static const diamondProject = 'catalog.project.title';
@@ -983,6 +985,16 @@ const catalogMessages = <String, LocalizedMessage>{
     'The 360° viewer could not be loaded in this browser.',
     'इस ब्राउज़र में 360° व्यूअर लोड नहीं हो सका।',
     'આ બ્રાઉઝરમાં 360° વ્યૂઅર લોડ થઈ શક્યું નહીં.',
+  ),
+  CatalogL10n.viewerAccessDenied: _M(
+    'Access denied. This 360° view is not available for this product.',
+    'पहुँच अस्वीकृत। इस उत्पाद का 360° दृश्य उपलब्ध नहीं है।',
+    'ઍક્સેસ નકારાયું. આ ઉત્પાદનનો 360° દૃશ્ય ઉપલબ્ધ નથી.',
+  ),
+  CatalogL10n.viewerNoMedia: _M(
+    'This 360° view did not load any images. The media link may be unavailable.',
+    'इस 360° दृश्य में कोई छवि लोड नहीं हुई। मीडिया लिंक उपलब्ध नहीं हो सकता।',
+    'આ 360° દૃશ્યમાં કોઈ છબી લોડ થઈ નથી. મીડિયા લિંક ઉપલબ્ધ ન હોઈ શકે.',
   ),
   CatalogL10n.tryAgain: _M('Try again', 'फिर कोशिश करें', 'ફરી પ્રયાસ કરો'),
   CatalogL10n.viewerGestureHint: _M(

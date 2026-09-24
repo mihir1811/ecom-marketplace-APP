@@ -41,6 +41,15 @@ ProductDetail diamondProductDetail(Diamond d) {
     if (!DiamondDisplay.isMissing(d.sellerCountry)) d.sellerCountry!.trim(),
   ].join(', ');
 
+  final belowList = catalogMarkdownPercent(d.discount);
+  final listFromRap =
+      (d.rap != null && d.rap! > 0 && d.carat > 0) ? d.rap! * d.carat : null;
+  final listAmount = belowList == null
+      ? null
+      : (listFromRap != null && listFromRap > d.price
+            ? listFromRap
+            : catalogListFromNet(d.price, belowList));
+
   final sellerInfo = d.listingSeller ??
       (DiamondDisplay.optional(d.sellerCompanyName) == null
           ? null
@@ -65,9 +74,9 @@ ProductDetail diamondProductDetail(Diamond d) {
       ProductBadge(segment.label, tone: ProductBadgeTone.accent),
       if (authority != null)
         ProductBadge('$authority certified', tone: ProductBadgeTone.positive),
-      if (d.discount != null && d.discount! > 0)
+      if (belowList != null)
         ProductBadge(
-          '${formatDiscountPercent(d.discount!)}% below list',
+          '${formatDiscountPercent(belowList)}% below list',
           tone: ProductBadgeTone.caution,
         ),
       if (d.isOnAuction)
@@ -105,7 +114,8 @@ ProductDetail diamondProductDetail(Diamond d) {
       unitLabel: 'per carat',
       unitAmountLabel:
           perCarat == null ? null : formatCatalogPrice(perCarat),
-      discountPercent: d.discount,
+      discountPercent: belowList,
+      listAmount: listAmount,
     ),
     highlights: [
       ProductHighlight('Carat', carat),

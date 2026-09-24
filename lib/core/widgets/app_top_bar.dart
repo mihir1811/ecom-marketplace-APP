@@ -169,6 +169,28 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
 
     final hasBackButton = showBack || leading is BackButton;
 
+    // AppBar packs [actions] into a min-size Row. On narrow widths that row
+    // overflows (and can report a ~1px trailing slot). Keep actions flexible
+    // and horizontally scrollable so chrome never throws a layout overflow.
+    final trailing = actions.isEmpty
+        ? const <Widget>[]
+        : <Widget>[
+            Flexible(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  reverse: true,
+                  physics: const ClampingScrollPhysics(),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: actions,
+                  ),
+                ),
+              ),
+            ),
+          ];
+
     return AppBar(
       backgroundColor: transparent
           ? Colors.transparent
@@ -182,7 +204,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
       title: null,
       leading: effectiveLeading,
       automaticallyImplyLeading: false,
-      actions: actions,
+      actions: trailing,
     );
   }
 }

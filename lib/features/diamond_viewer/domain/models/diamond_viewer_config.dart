@@ -30,7 +30,7 @@ class DiamondViewerConfig {
   /// pointers (critical inside [PageView] / [ListView]).
   final bool claimAllGestures;
 
-  /// Optional override UA. Some S3 Vision360 hosts serve a blank mobile shell.
+  /// Optional override UA. S3 Vision360 pages serve a blank shell to mobile UAs.
   final String? userAgent;
 
   /// Reject non-HTTPS URLs in production embeds.
@@ -43,4 +43,9 @@ class DiamondViewerConfig {
   static const String defaultMobileUserAgent =
       'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
+
+  /// Desktop Chrome. Vision360 / diamondshow HTML hides the canvas for mobile UAs.
+  static const String defaultDesktopUserAgent =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+      '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 }

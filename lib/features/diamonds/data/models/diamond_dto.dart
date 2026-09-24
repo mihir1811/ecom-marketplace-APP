@@ -27,6 +27,7 @@ class DiamondDto {
     this.pricePerCarat,
     this.pricePerPcs,
     this.totalPrice,
+    this.rap,
     this.discount,
     this.certificateCompanyName,
     this.certificateNumber,
@@ -103,6 +104,7 @@ class DiamondDto {
   final double? pricePerCarat;
   final double? pricePerPcs;
   final double? totalPrice;
+  final double? rap;
   final double? discount;
   final String? certificateCompanyName;
   final String? certificateNumber;
@@ -186,6 +188,7 @@ class DiamondDto {
       pricePerCarat: _toDouble(json['pricePerCarat']),
       pricePerPcs: _toDouble(json['pricePerPcs']),
       totalPrice: _toDouble(json['totalPrice']),
+      rap: _toDouble(json['rap']),
       discount: _toDouble(json['discount']),
       certificateCompanyName: json['certificateCompanyName']?.toString(),
       certificateNumber: json['certificateNumber']?.toString(),

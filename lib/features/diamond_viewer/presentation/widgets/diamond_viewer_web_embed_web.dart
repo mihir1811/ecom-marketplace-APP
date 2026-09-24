@@ -104,10 +104,17 @@ class _DiamondViewerWebEmbedState extends State<DiamondViewerWebEmbed> {
 
   @override
   Widget build(BuildContext context) {
+    final ready = _state is DiamondViewerReady;
     return Stack(
       fit: StackFit.expand,
       children: [
-        HtmlElementView(viewType: _viewType),
+        Opacity(
+          opacity: ready ? 1 : 0,
+          child: IgnorePointer(
+            ignoring: !ready,
+            child: HtmlElementView(viewType: _viewType),
+          ),
+        ),
         if (_state is DiamondViewerLoading)
           widget.loadingBuilder?.call(context, 0) ??
               const DiamondViewerLoadingView(),

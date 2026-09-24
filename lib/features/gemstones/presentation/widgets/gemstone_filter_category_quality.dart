@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -120,7 +121,10 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
                   return Padding(
                     padding: const EdgeInsets.only(right: 12.0),
                     child: GestureDetector(
-                      onTap: () => notifier.updateFluorescenceColor(name),
+                      onTap: () {
+                        AppHaptics.selection();
+                        notifier.updateFluorescenceColor(name);
+                      },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         padding: const EdgeInsets.symmetric(

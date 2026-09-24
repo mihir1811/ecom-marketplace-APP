@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -91,7 +92,10 @@ class GemstoneSegmentedControl extends StatelessWidget {
                     MeleeRippleOriginNotification(details.globalPosition)
                         .dispatch(context);
                   },
-                  onTap: () => onSelected(opt.value),
+                  onTap: () {
+                    if (!isCurrent) AppHaptics.selection();
+                    onSelected(opt.value);
+                  },
                   splashColor: splash.withValues(alpha: 0.55),
                   highlightColor: splash.withValues(alpha: 0.22),
                   borderRadius: BorderRadius.circular(AppSpacing.r12),

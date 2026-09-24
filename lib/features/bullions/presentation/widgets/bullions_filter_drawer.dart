@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -450,7 +451,10 @@ class _SelectableChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        AppHaptics.selection();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(AppSpacing.r8),
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -498,7 +502,10 @@ class _MiniChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        AppHaptics.selection();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(AppSpacing.r8),
       child: Container(
         padding: const EdgeInsets.symmetric(

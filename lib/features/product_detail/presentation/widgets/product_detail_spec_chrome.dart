@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -25,7 +26,10 @@ class ProductDetailSpecTabBar extends StatelessWidget {
         for (var i = 0; i < titles.length; i++)
           Expanded(
             child: InkWell(
-              onTap: () => onSelected(i),
+              onTap: () {
+                if (i != selectedIndex) AppHaptics.selection();
+                onSelected(i);
+              },
               child: Column(
                 children: [
                   Padding(

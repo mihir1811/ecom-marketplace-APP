@@ -17,6 +17,9 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
   final certificateLabel = certificateUrl == null
       ? null
       : (authority == null ? 'Certificate' : '$authority certificate');
+  final markdown = catalogMarkdownPercent(g.discount);
+  final listAmount =
+      markdown == null ? null : catalogListFromNet(g.price, markdown);
 
   return ProductDetail(
     id: g.id,
@@ -36,9 +39,9 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
         ProductBadge('$authority certified', tone: ProductBadgeTone.positive),
       if (g.qualityGrade != null) ProductBadge(g.qualityGrade!),
       if (g.treatment.isNotEmpty) ProductBadge(g.treatment),
-      if (g.discount != null && g.discount! > 0)
+      if (markdown != null)
         ProductBadge(
-          '${formatDiscountPercent(g.discount!)}% below list',
+          '${formatDiscountPercent(markdown)}% below list',
           tone: ProductBadgeTone.caution,
         ),
     ],
@@ -69,7 +72,8 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
       displayAmount: g.price,
       unitLabel: 'per carat',
       unitAmountLabel: perCarat == null ? null : formatGroupedWhole(perCarat),
-      discountPercent: g.discount,
+      discountPercent: markdown,
+      listAmount: listAmount,
     ),
     highlights: [
       ProductHighlight('Carat', carat),

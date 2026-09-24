@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -10,6 +9,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/catalog_card_image_pager.dart';
 import '../../../../core/widgets/catalog_content_sized_grid.dart';
+import '../../../../core/widgets/catalog_discount_price.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
@@ -75,6 +75,7 @@ class DiamondCardGrid extends ConsumerWidget {
         '${diamond.carat.toStringAsFixed(2)}ct ${DiamondDisplay.shape(diamond.shape)}';
     final gradesLine = _gridGradesLine(diamond);
     final metaLine = _gridMetaLine(diamond);
+    final belowList = catalogMarkdownPercent(diamond.discount);
 
     return RecentlyViewedCardShell(
       productId: diamond.id,
@@ -185,22 +186,24 @@ class DiamondCardGrid extends ConsumerWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          AppCurrency.format(formatCatalogPrice(diamond.price)),
-                          style: GoogleFonts.manrope(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ).copyWith(color: textColor),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: CatalogDiscountPrice(
+                          net: diamond.price,
+                          discount: diamond.discount,
+                          listOverride:
+                              (diamond.rap != null &&
+                                  diamond.rap! > 0 &&
+                                  diamond.carat > 0)
+                              ? diamond.rap! * diamond.carat
+                              : null,
+                          textColor: textColor,
+                          fontSize: 14,
                         ),
                       ),
-                      if (diamond.discount != null && diamond.discount! > 0)
+                      if (belowList != null)
                         Padding(
                           padding: const EdgeInsets.only(left: AppSpacing.s4),
                           child: Text(
-                            '-${formatDiscountPercent(diamond.discount!)}%',
+                            '-${formatDiscountPercent(belowList)}%',
                             style: AppTypography.caption.copyWith(
                               color: AppColors.terracotta,
                               fontWeight: FontWeight.bold,

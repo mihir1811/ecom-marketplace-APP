@@ -55,6 +55,8 @@ class DiamondViewer extends StatefulWidget {
 class _DiamondViewerState extends State<DiamondViewer> {
   InAppWebViewController? _controller;
   Timer? _timeout;
+  Timer? _probeTimer;
+  DateTime? _pageReadyAt;
   DiamondViewerLoadState _state = const DiamondViewerLoading();
   var _loadGeneration = 0;
 
@@ -81,6 +83,7 @@ class _DiamondViewerState extends State<DiamondViewer> {
   @override
   void dispose() {
     _timeout?.cancel();
+    _probeTimer?.cancel();
     widget.controller?.detach();
     _controller = null;
     super.dispose();
@@ -103,8 +106,21 @@ class _DiamondViewerState extends State<DiamondViewer> {
     });
   }
 
+  void _fail(String message, {bool canRetry = true}) {
+    _probeTimer?.cancel();
+    _timeout?.cancel();
+    _emit(DiamondViewerFailed(message: message, canRetry: canRetry));
+  }
+
+  bool _isAccessDenied(int? code, String? description) {
+    if (code == 401 || code == 403) return true;
+    final text = description?.toLowerCase() ?? '';
+    return text.contains('access denied') || text.contains('403');
+  }
+
   Future<void> _reload() async {
     _loadGeneration++;
+    _probeTimer?.cancel();
     _emit(const DiamondViewerLoading());
     _armTimeout();
     final url = _resolvedUrl;
@@ -152,8 +168,8 @@ class _DiamondViewerState extends State<DiamondViewer> {
       sharedCookiesEnabled: true,
       allowsLinkPreview: false,
       isFraudulentWebsiteWarningEnabled: true,
-      preferredContentMode: UserPreferredContentMode.MOBILE,
-      userAgent: cfg.userAgent ?? DiamondViewerConfig.defaultMobileUserAgent,
+      preferredContentMode: UserPreferredContentMode.DESKTOP,
+      userAgent: cfg.userAgent ?? DiamondViewerConfig.defaultDesktopUserAgent,
       iframeAllow:
           'accelerometer; autoplay; clipboard-write; encrypted-media; '
           'gyroscope; picture-in-picture; web-share',
@@ -180,19 +196,63 @@ class _DiamondViewerState extends State<DiamondViewer> {
       if (!mounted || generation != _loadGeneration) return;
       await controller.evaluateJavascript(source: ViewerJsBridge.layoutFix);
 
-      final raw = await controller.evaluateJavascript(
-        source: ViewerJsBridge.detectEngine,
-      );
-      if (!mounted || generation != _loadGeneration) return;
-      final hint = raw?.toString().replaceAll('"', '') ?? 'unknown';
-      widget.onEngineDetected?.call(hint);
-      _timeout?.cancel();
-      _emit(DiamondViewerReady(engineHint: hint));
+      _pageReadyAt = DateTime.now();
+      await _probeMedia(generation);
     } catch (_) {
       if (!mounted || generation != _loadGeneration) return;
-      _timeout?.cancel();
-      _emit(const DiamondViewerReady());
+      _pageReadyAt = DateTime.now();
+      await _probeMedia(generation);
     }
+  }
+
+  Future<void> _probeMedia(int generation) async {
+    if (!mounted || generation != _loadGeneration) return;
+    if (_state is DiamondViewerFailed) return;
+    final controller = _controller;
+    if (controller == null) return;
+
+    var status = 'pending';
+    try {
+      final raw = await controller.evaluateJavascript(
+        source: ViewerJsBridge.mediaStatus,
+      );
+      status = raw?.toString().replaceAll('"', '').trim() ?? 'pending';
+    } catch (_) {
+      status = 'pending';
+    }
+    if (!mounted || generation != _loadGeneration) return;
+    if (_state is DiamondViewerFailed) return;
+
+    if (status == 'ok') {
+      _probeTimer?.cancel();
+      _timeout?.cancel();
+      widget.onEngineDetected?.call('media');
+      _emit(const DiamondViewerReady(engineHint: 'media'));
+      return;
+    }
+    if (status == 'denied') {
+      _fail(context.tr(CatalogL10n.viewerAccessDenied));
+      return;
+    }
+
+    // Keep the Flutter loader up while frames are still arriving.
+    if (_state is! DiamondViewerLoading) {
+      _emit(const DiamondViewerLoading());
+    }
+
+    final elapsed = DateTime.now().difference(_pageReadyAt ?? DateTime.now());
+    final giveUp = status == 'empty'
+        ? const Duration(seconds: 6)
+        : const Duration(seconds: 25);
+    if (elapsed >= giveUp) {
+      _fail(context.tr(CatalogL10n.viewerNoMedia));
+      return;
+    }
+
+    _probeTimer?.cancel();
+    _probeTimer = Timer(const Duration(milliseconds: 500), () {
+      _probeMedia(generation);
+    });
   }
 
   @override
@@ -208,6 +268,9 @@ class _DiamondViewerState extends State<DiamondViewer> {
       DiamondViewerLoading(:final progress) => progress,
       _ => 0.0,
     };
+    final mediaReady = _state is DiamondViewerReady;
+    final showLoader = !kIsWeb && _state is DiamondViewerLoading;
+    final showError = !kIsWeb && _state is DiamondViewerFailed;
 
     return Stack(
       fit: StackFit.expand,
@@ -224,79 +287,92 @@ class _DiamondViewerState extends State<DiamondViewer> {
             onRetry: _reload,
           )
         else
-          InAppWebView(
-            key: ValueKey(url),
-            initialUrlRequest: URLRequest(url: WebUri(url)),
-            initialSettings: _settings(),
-            gestureRecognizers: _gestureRecognizers,
-            onWebViewCreated: (controller) {
-              _controller = controller;
-              widget.controller?.attach(controller);
-            },
-            onLoadStart: (_, __) {
-              _emit(const DiamondViewerLoading());
-              _armTimeout();
-            },
-            onProgressChanged: (_, value) {
-              if (_state is DiamondViewerReady) return;
-              _emit(DiamondViewerLoading(progress: value / 100));
-            },
-            onLoadStop: (_, uri) => _onPageFinished(uri),
-            onReceivedError: (controller, request, error) {
-              if (!ViewerResourcePolicy.shouldFailViewer(
-                isForMainFrame: request.isForMainFrame,
-                requestUrl: request.url,
-              )) {
-                if (kDebugMode) {
-                  debugPrint(
-                    '[DiamondViewer] ignored resource error: '
-                    '${request.url} ${error.description}',
-                  );
-                }
-                return;
-              }
-              _timeout?.cancel();
-              _emit(
-                DiamondViewerFailed(
-                  message: error.description.isEmpty
-                      ? 'The 360° viewer could not be loaded.'
-                      : error.description,
-                ),
-              );
-            },
-            onReceivedHttpError: (controller, request, response) {
-              final code = response.statusCode ?? 0;
-              if (!ViewerResourcePolicy.shouldFailViewer(
-                isForMainFrame: request.isForMainFrame,
-                requestUrl: request.url,
-                statusCode: code,
-              )) {
-                if (kDebugMode) {
-                  debugPrint(
-                    '[DiamondViewer] ignored HTTP $code: ${request.url}',
-                  );
-                }
-                return;
-              }
-              _timeout?.cancel();
-              _emit(
-                DiamondViewerFailed(
-                  message: context.tr(CatalogL10n.viewerHttpError, {
-                    'code': code,
-                  }),
-                ),
-              );
-            },
-            onConsoleMessage: kDebugMode
-                ? (_, msg) {
-                    debugPrint('[DiamondViewer] ${msg.message}');
+          // Hybrid Composition draws above Flutter siblings — hide the WebView
+          // until diamond media is confirmed so the loader stays visible.
+          Opacity(
+            opacity: mediaReady ? 1 : 0,
+            child: IgnorePointer(
+              ignoring: !mediaReady,
+              child: InAppWebView(
+                key: ValueKey(url),
+                initialUrlRequest: URLRequest(url: WebUri(url)),
+                initialSettings: _settings(),
+                gestureRecognizers: _gestureRecognizers,
+                onWebViewCreated: (controller) {
+                  _controller = controller;
+                  widget.controller?.attach(controller);
+                },
+                onLoadStart: (_, __) {
+                  _probeTimer?.cancel();
+                  _emit(const DiamondViewerLoading());
+                  _armTimeout();
+                },
+                onProgressChanged: (_, value) {
+                  if (_state is DiamondViewerReady ||
+                      _state is DiamondViewerFailed) {
+                    return;
                   }
-                : null,
+                  // Cap below 1.0 so the bar does not look finished while frames
+                  // are still loading after HTML arrives.
+                  final capped = (value / 100).clamp(0.0, 0.92);
+                  _emit(DiamondViewerLoading(progress: capped));
+                },
+                onLoadStop: (_, uri) => _onPageFinished(uri),
+                onReceivedError: (controller, request, error) {
+                  if (!ViewerResourcePolicy.shouldFailViewer(
+                    isForMainFrame: request.isForMainFrame,
+                    requestUrl: request.url,
+                  )) {
+                    if (kDebugMode) {
+                      debugPrint(
+                        '[DiamondViewer] ignored resource error: '
+                        '${request.url} ${error.description}',
+                      );
+                    }
+                    return;
+                  }
+                  _fail(
+                    _isAccessDenied(null, error.description)
+                        ? context.tr(CatalogL10n.viewerAccessDenied)
+                        : (error.description.isEmpty
+                              ? context.tr(CatalogL10n.viewerNoMedia)
+                              : error.description),
+                  );
+                },
+                onReceivedHttpError: (controller, request, response) {
+                  final code = response.statusCode ?? 0;
+                  if (!ViewerResourcePolicy.shouldFailViewer(
+                    isForMainFrame: request.isForMainFrame,
+                    requestUrl: request.url,
+                    statusCode: code,
+                  )) {
+                    if (kDebugMode) {
+                      debugPrint(
+                        '[DiamondViewer] ignored HTTP $code: ${request.url}',
+                      );
+                    }
+                    return;
+                  }
+                  _fail(
+                    _isAccessDenied(code, null)
+                        ? context.tr(CatalogL10n.viewerAccessDenied)
+                        : context.tr(CatalogL10n.viewerHttpError, {
+                            'code': code,
+                          }),
+                  );
+                },
+                onConsoleMessage: kDebugMode
+                    ? (_, msg) {
+                        debugPrint('[DiamondViewer] ${msg.message}');
+                      }
+                    : null,
+              ),
+            ),
           ),
-        if (!kIsWeb && _state is DiamondViewerLoading)
+        if (showLoader)
           widget.loadingBuilder?.call(context, progress) ??
               DiamondViewerLoadingView(progress: progress),
-        if (!kIsWeb && _state is DiamondViewerFailed)
+        if (showError)
           Builder(
             builder: (context) {
               final failed = _state as DiamondViewerFailed;

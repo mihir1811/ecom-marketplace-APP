@@ -29,6 +29,28 @@ String formatDiscountPercent(double value) {
   return truncated.toStringAsFixed(2);
 }
 
+/// Markdown % for UI badges and dual-price display (exclusive 0–100).
+///
+/// Diamonds send a signed RAP discount (negative = below list). Watches /
+/// jewelry / gemstones send a positive "% off" when present.
+double? catalogMarkdownPercent(double? raw) {
+  if (raw == null || raw == 0) return null;
+  final percent = raw < 0 ? raw.abs() : raw;
+  if (percent <= 0 || percent >= 100) return null;
+  return percent;
+}
+
+/// Diamond `discount` from the detail API is a signed percent versus `rap`.
+/// Prefer [catalogMarkdownPercent] for shared UI.
+double? belowListDiscountPercent(double? signed) =>
+    catalogMarkdownPercent(signed);
+
+/// Infers list / RAP total from an already-discounted net price.
+double? catalogListFromNet(double net, double markdownPercent) {
+  if (net <= 0 || markdownPercent <= 0 || markdownPercent >= 100) return null;
+  return net / (1 - markdownPercent / 100);
+}
+
 String _formatExact(double price, {required bool group}) {
   final fixed = price.toStringAsFixed(2);
   final negative = fixed.startsWith('-');

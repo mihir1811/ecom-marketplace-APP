@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -11,6 +10,7 @@ import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/catalog_card_image_pager.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../../core/widgets/catalog_content_sized_grid.dart';
+import '../../../../core/widgets/catalog_discount_price.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
@@ -41,6 +41,7 @@ class GemstoneCardGrid extends ConsumerWidget {
     final title = _gridTitle(gemstone);
     final gradesLine = _gridGradesLine(gemstone);
     final metaLine = _gridMetaLine(gemstone);
+    final markdown = catalogMarkdownPercent(gemstone.discount);
 
     return RecentlyViewedCardShell(
       productId: gemstone.id,
@@ -148,24 +149,18 @@ class GemstoneCardGrid extends ConsumerWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          AppCurrency.format(
-                            formatCatalogPrice(gemstone.price),
-                          ),
-                          style: GoogleFonts.manrope(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ).copyWith(color: textColor),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: CatalogDiscountPrice(
+                          net: gemstone.price,
+                          discount: gemstone.discount,
+                          textColor: textColor,
+                          fontSize: 14,
                         ),
                       ),
-                      if (gemstone.discount != null && gemstone.discount! > 0)
+                      if (markdown != null)
                         Padding(
                           padding: const EdgeInsets.only(left: AppSpacing.s4),
                           child: Text(
-                            '-${formatDiscountPercent(gemstone.discount!)}%',
+                            '-${formatDiscountPercent(markdown)}%',
                             style: AppTypography.caption.copyWith(
                               color: AppColors.terracotta,
                               fontWeight: FontWeight.bold,
@@ -209,6 +204,7 @@ class GemstoneCardList extends ConsumerWidget {
     final title = _listTitle(gemstone);
     final detail = _listDetailLine(gemstone);
     final meta = _listMetaLine(gemstone);
+    final markdown = catalogMarkdownPercent(gemstone.discount);
 
     return RecentlyViewedCardShell(
       productId: gemstone.id,
@@ -317,24 +313,18 @@ class GemstoneCardList extends ConsumerWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          AppCurrency.format(
-                            formatCatalogPrice(gemstone.price),
-                          ),
-                          style: GoogleFonts.manrope(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ).copyWith(color: textColor),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: CatalogDiscountPrice(
+                          net: gemstone.price,
+                          discount: gemstone.discount,
+                          textColor: textColor,
+                          fontSize: 17,
                         ),
                       ),
-                      if (gemstone.discount != null && gemstone.discount! > 0)
+                      if (markdown != null)
                         Padding(
                           padding: const EdgeInsets.only(left: AppSpacing.s4),
                           child: Text(
-                            '-${formatDiscountPercent(gemstone.discount!)}%',
+                            '-${formatDiscountPercent(markdown)}%',
                             style: AppTypography.caption.copyWith(
                               color: AppColors.terracotta,
                               fontWeight: FontWeight.bold,

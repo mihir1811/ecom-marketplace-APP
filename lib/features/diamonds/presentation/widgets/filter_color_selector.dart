@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -58,7 +59,10 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: GestureDetector(
-              onTap: () => notifier.toggleStandardColor(colorLetter),
+              onTap: () {
+                AppHaptics.selection();
+                notifier.toggleStandardColor(colorLetter);
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 height: 40,
@@ -136,7 +140,10 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => notifier.updateColorMode(false),
+                    onTap: () {
+                      if (state.isFancyColor) AppHaptics.selection();
+                      notifier.updateColorMode(false);
+                    },
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
@@ -162,7 +169,10 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                 ),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => notifier.updateColorMode(true),
+                    onTap: () {
+                      if (!state.isFancyColor) AppHaptics.selection();
+                      notifier.updateColorMode(true);
+                    },
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
@@ -310,7 +320,10 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                   final overtone = DiamondFilterState.overtones[index];
                   final isSelected = state.selectedOvertones.contains(overtone);
                   return GestureDetector(
-                    onTap: () => notifier.toggleOvertone(overtone),
+                    onTap: () {
+                      AppHaptics.selection();
+                      notifier.toggleOvertone(overtone);
+                    },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       alignment: Alignment.center,
@@ -390,7 +403,10 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: GestureDetector(
-                      onTap: () => notifier.toggleIntensity(intensity),
+                      onTap: () {
+                        AppHaptics.selection();
+                        notifier.toggleIntensity(intensity);
+                      },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -504,7 +520,10 @@ class FancyColorDiamondButton extends StatelessWidget {
       selected: isSelected,
       label: colorName,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: () {
+          AppHaptics.selection();
+          onTap();
+        },
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

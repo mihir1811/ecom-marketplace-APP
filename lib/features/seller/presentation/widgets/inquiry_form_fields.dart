@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -460,7 +461,10 @@ class InquirySegmentedField extends StatelessWidget {
           for (final option in options)
             Expanded(
               child: InkWell(
-                onTap: () => onChanged(option.value),
+                onTap: () {
+                  if (value != option.value) AppHaptics.selection();
+                  onChanged(option.value);
+                },
                 borderRadius: BorderRadius.circular(8),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),

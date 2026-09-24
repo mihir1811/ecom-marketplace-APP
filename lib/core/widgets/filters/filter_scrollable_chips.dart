@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../haptics/app_haptics.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -57,7 +58,10 @@ class FilterScrollableChips extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: GestureDetector(
-                  onTap: () => onToggle(opt),
+                  onTap: () {
+                    AppHaptics.selection();
+                    onToggle(opt);
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     padding: const EdgeInsets.symmetric(

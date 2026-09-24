@@ -21,6 +21,8 @@ class Diamond {
   final bool hasVideo;
   final bool hasImage;
   final double? discount;
+  /// RAP / list price per carat from the catalog API (when present).
+  final double? rap;
   final bool isLabGrown;
   final bool isMelee;
   final String? stockNumber;
@@ -84,6 +86,7 @@ class Diamond {
     this.hasVideo = false,
     this.hasImage = false,
     this.discount,
+    this.rap,
     this.isLabGrown = false,
     this.isMelee = false,
     this.stockNumber,

@@ -159,6 +159,7 @@ class ProductPrice {
     this.unitLabel,
     this.unitAmountLabel,
     this.discountPercent,
+    this.listAmount,
     this.displayAmountIsListPrice = false,
     this.isOnRequest = false,
   });
@@ -175,6 +176,10 @@ class ProductPrice {
   final String? unitLabel;
   final String? unitAmountLabel;
   final double? discountPercent;
+
+  /// Explicit list / RAP total when known (shown struck through).
+  /// When null, list is inferred from [displayAmount] and [discountPercent].
+  final double? listAmount;
 
   /// When true, [displayAmount] is the list price and discount % reduces it.
   /// When false (diamonds), [displayAmount] is already the net sale price.
@@ -195,7 +200,9 @@ class ProductPrice {
   bool get hasDiscount {
     if (isOnRequest) return false;
     final d = discountPercent;
-    return d != null && d > 0 && d < 100 && displayAmount > 0;
+    if (d == null || d <= 0 || d >= 100 || displayAmount <= 0) return false;
+    if (listAmount != null) return listAmount! > displayAmount;
+    return true;
   }
 }
 
