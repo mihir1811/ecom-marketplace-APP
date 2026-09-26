@@ -72,6 +72,7 @@ flutter:
 
   assets:
     - public/images/
+    - public/images/hero_diamond.png
     - public/images/gemstones/
     - public/images/jewelryCategoryImages/
     - public/images/watch_logo/

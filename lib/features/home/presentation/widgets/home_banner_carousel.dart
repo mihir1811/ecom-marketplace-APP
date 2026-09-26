@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../home_feed_data.dart';
+import 'home_diamond_pointer_field.dart';
 
 /// Auto-advancing editorial banner carousel (Farfetch-style hero).
 class HomeBannerCarousel extends StatefulWidget {
@@ -34,6 +35,20 @@ class _HomeBannerCarouselState extends State<HomeBannerCarousel>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _controller = PageController();
+  }
+
+  bool? _dark;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    if (_dark == dark) return;
+    _dark = dark;
+    if (dark) {
+      _timer?.cancel();
+      return;
+    }
     _start();
   }
 
@@ -42,7 +57,9 @@ class _HomeBannerCarouselState extends State<HomeBannerCarousel>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       _timer?.cancel();
-    } else if (state == AppLifecycleState.resumed && mounted) {
+    } else if (state == AppLifecycleState.resumed &&
+        mounted &&
+        Theme.of(context).brightness != Brightness.dark) {
       _start();
     }
   }
@@ -75,6 +92,41 @@ class _HomeBannerCarouselState extends State<HomeBannerCarousel>
       320.0,
       480.0,
     );
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (isDark && widget.items.isNotEmpty) {
+      final item = widget.items.first;
+      return Column(
+        children: [
+          SizedBox(
+            height: height,
+            width: double.infinity,
+            child: _BannerSlide(
+              item: item,
+              diamondField: true,
+            ),
+          ),
+          // Carousel page dots — commented out in dark mode, not deleted.
+          // const SizedBox(height: AppSpacing.s16),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.center,
+          //   children: List.generate(widget.items.length, (i) {
+          //     final active = i == _index;
+          //     return AnimatedContainer(
+          //       duration: const Duration(milliseconds: 200),
+          //       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.s4),
+          //       width: active ? 22 : 6,
+          //       height: 6,
+          //       decoration: BoxDecoration(
+          //         color: active ? AppColors.bronze : AppColors.border(context),
+          //         borderRadius: BorderRadius.circular(AppSpacing.circular),
+          //       ),
+          //     );
+          //   }),
+          // ),
+        ],
+      );
+    }
 
     return Column(
       children: [
@@ -119,34 +171,58 @@ class _HomeBannerCarouselState extends State<HomeBannerCarousel>
 }
 
 class _BannerSlide extends StatelessWidget {
-  const _BannerSlide({required this.item, required this.onTap});
+  const _BannerSlide({
+    required this.item,
+    this.onTap,
+    this.diamondField = false,
+  });
 
   final HomeBannerItem item;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final bool diamondField;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
+    final content = Stack(
+      fit: StackFit.expand,
+      children: [
+        if (diamondField)
+          const Positioned.fill(child: HomeDiamondPointerField())
+        else
           AppNetworkImage(url: item.imageUrl, memCacheWidth: 1600),
-          const DecoratedBox(
+        // Dark mode swaps the hero photo for the diamond field.
+        // AppNetworkImage(url: item.imageUrl, memCacheWidth: 1600),
+        IgnorePointer(
+          ignoring: diamondField,
+          child: DecoratedBox(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x33111827),
-                  Color(0x99111827),
-                  Color(0xE6111827),
-                ],
-                stops: [0.0, 0.4, 1.0],
-              ),
+              gradient: diamondField
+                  ? const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0x00000000),
+                        Color(0x00000000),
+                        Color(0x99000000),
+                      ],
+                      stops: [0.0, 0.55, 1.0],
+                    )
+                  : const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0x33111827),
+                        Color(0x99111827),
+                        Color(0xE6111827),
+                      ],
+                      stops: [0.0, 0.4, 1.0],
+                    ),
             ),
           ),
-          Padding(
+        ),
+        IgnorePointer(
+          ignoring: diamondField,
+          child: Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.s24,
               AppSpacing.s32,
@@ -204,8 +280,15 @@ class _BannerSlide extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+
+    if (diamondField) return content;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: content,
     );
   }
 }
