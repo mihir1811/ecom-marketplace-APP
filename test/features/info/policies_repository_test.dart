@@ -24,6 +24,42 @@ void main() {
     expect(hindiTerms.title, isNot(gujaratiTerms.title));
   });
 
+  test('terms carries every clause from the source PDF plus Appendix A', () async {
+    const locales = [AppLocale.english, AppLocale.hindi, AppLocale.gujarati];
+    final expectedNumbers = [
+      for (var i = 1; i <= 24; i++) '$i',
+      'Appendix A',
+    ];
+
+    for (final locale in locales) {
+      final terms = (await PoliciesRepository.loadAll(locale))
+          .firstWhere((policy) => policy.id == 'terms');
+
+      expect(
+        terms.sections.map((section) => section.number).toList(),
+        expectedNumbers,
+        reason: 'terms sections out of order for ${locale.languageCode}',
+      );
+
+      for (final section in terms.sections) {
+        expect(
+          section.title,
+          isNotEmpty,
+          reason: 'missing title for section ${section.number}',
+        );
+        expect(
+          section.paragraphs.length + section.bullets.length,
+          greaterThan(0),
+          reason: 'section ${section.number} has no content',
+        );
+        expect(
+          section.paragraphs.every((paragraph) => paragraph.trim().isNotEmpty),
+          isTrue,
+        );
+      }
+    }
+  });
+
   test('loadById returns localized policy for active locale', () async {
     final hindiPrivacy = await PoliciesRepository.loadById(
       'privacy',

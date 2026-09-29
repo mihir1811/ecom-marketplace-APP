@@ -2827,11 +2827,11 @@ const remainingMessages = <String, LocalizedMessage>{
   ),
   RemainingL10n.forQuestionsAboutThisPolicyOrders: LocalizedMessage(
     english:
-        'For questions about this policy, orders, or account issues, contact support through the Help Center or email support@gemworld.com.',
+        'For questions about this policy, orders, or account issues, contact support through the Help Center or email m.gemworld@gmail.com.',
     hindi:
-        'इस नीति, आदेश या खाता समस्याओं के बारे में प्रश्नों के लिए, सहायता केंद्र या ईमेल support@gemworld.com के माध्यम से समर्थन से संपर्क करें।',
+        'इस नीति, आदेश या खाता समस्याओं के बारे में प्रश्नों के लिए, सहायता केंद्र या ईमेल m.gemworld@gmail.com के माध्यम से समर्थन से संपर्क करें।',
     gujarati:
-        'આ નીતિ, ઓર્ડર અથવા એકાઉન્ટ સમસ્યાઓ વિશેના પ્રશ્નો માટે, સહાય કેન્દ્ર દ્વારા સપોર્ટનો સંપર્ક કરો અથવા support@gemworld.com પર ઇમેઇલ કરો.',
+        'આ નીતિ, ઓર્ડર અથવા એકાઉન્ટ સમસ્યાઓ વિશેના પ્રશ્નો માટે, સહાય કેન્દ્ર દ્વારા સપોર્ટનો સંપર્ક કરો અથવા m.gemworld@gmail.com પર ઇમેઇલ કરો.',
   ),
   RemainingL10n.diamondAndMeleeOrdersThatEarned: LocalizedMessage(
     english:
@@ -3068,9 +3068,9 @@ const remainingMessages = <String, LocalizedMessage>{
         gujarati: 'ચકાસાયેલ વિક્રેતાઓ, સુરક્ષિત ચૂકવણીઓ અને સમર્પિત સમર્થન.',
       ),
   RemainingL10n.supportGemworldCom: LocalizedMessage(
-    english: 'support@gemworld.com',
-    hindi: 'support@gemworld.com',
-    gujarati: 'support@gemworld.com',
+    english: 'm.gemworld@gmail.com',
+    hindi: 'm.gemworld@gmail.com',
+    gujarati: 'm.gemworld@gmail.com',
   ),
   RemainingL10n.helpCenter2: LocalizedMessage(
     english: 'Help Center',

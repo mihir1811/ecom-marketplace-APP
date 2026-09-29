@@ -2,14 +2,12 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'hero_diamond_bytes.dart';
 
-/// Dark hero field: floating diamonds with soft proximity highlight and
-/// magnetic finger repulsion. Claims pan gestures so the home scroll stays
-/// locked while the finger is on this component.
+/// Dark hero field modeled on the Oryzo footer: scattered objects, a soft
+/// spotlight on the pointer, and a push/spin while the finger stays down.
 class HomeDiamondPointerField extends StatefulWidget {
   const HomeDiamondPointerField({super.key});
 
@@ -37,9 +35,7 @@ class _Stone {
 
 class _HomeDiamondPointerFieldState extends State<HomeDiamondPointerField>
     with SingleTickerProviderStateMixin {
-  /// Radius where repulsion + diamond highlight apply.
-  static const _influence = 150.0;
-  static const _count = 138; // 46 × 3
+  static const _influence = 220.0;
 
   late final AnimationController _clock;
   ui.Image? _image;
@@ -51,10 +47,8 @@ class _HomeDiamondPointerFieldState extends State<HomeDiamondPointerField>
 
   Offset? _pointer;
   Offset _pointerVel = Offset.zero;
-  bool _touching = false;
-  bool _hovering = false;
-
-  bool get _active => _touching || _hovering;
+  bool _active = false;
+  double _glow = 0;
 
   @override
   void initState() {
@@ -69,8 +63,9 @@ class _HomeDiamondPointerFieldState extends State<HomeDiamondPointerField>
   }
 
   Future<void> _load() async {
-    final codec =
-        await ui.instantiateImageCodec(base64Decode(heroDiamondBase64));
+    final codec = await ui.instantiateImageCodec(
+      base64Decode(heroDiamondBase64),
+    );
     final frame = await codec.getNextFrame();
     if (!mounted) {
       frame.image.dispose();
@@ -83,14 +78,14 @@ class _HomeDiamondPointerFieldState extends State<HomeDiamondPointerField>
     if (_stones.isNotEmpty && _size == size) return;
     _size = size;
     final rng = math.Random(7);
-    _stones = List.generate(_count, (i) {
+    _stones = List.generate(46, (i) {
       final depth = 0.42 + rng.nextDouble() * 0.58;
       final stone = _Stone(
         home: Offset(
           (rng.nextDouble() * 1.12 - 0.06) * size.width,
           (rng.nextDouble() * 1.08 - 0.04) * size.height,
         ),
-        size: (28 + rng.nextDouble() * 48) * depth,
+        size: (36 + rng.nextDouble() * 62) * depth,
         rotation: rng.nextDouble() * math.pi * 2,
         depth: depth,
       );
@@ -108,58 +103,70 @@ class _HomeDiamondPointerFieldState extends State<HomeDiamondPointerField>
     _time += dt;
     if (_stones.isEmpty || !mounted) return;
 
+    final glowTarget = _active && _pointer != null ? 1.0 : 0.0;
+    _glow += (glowTarget - _glow) * (1 - math.exp(-dt * 12));
+    if (!_active && _glow < 0.01) {
+      _pointer = null;
+      _glow = 0;
+    }
+
     for (final stone in _stones) {
       final phase = stone.home.dx + stone.home.dy;
       final sway = Offset(
-        math.sin(_time * 0.22 + phase) * (3 + stone.depth * 4),
-        math.cos(_time * 0.18 + phase) * (3.5 + stone.depth * 5),
+        math.sin(_time * 0.55 + phase) * (14 + stone.depth * 22),
+        math.cos(_time * 0.42 + phase) * (18 + stone.depth * 28),
       );
-      stone.spin += math.sin(_time * 0.2 + phase) * 0.0004;
+      stone.spin += math.sin(_time * 0.35 + phase) * 0.004;
       final home = stone.home + sway;
 
       if (_active && _pointer != null) {
         final delta = stone.pos - _pointer!;
         final dist = delta.distance;
         if (dist < _influence) {
-          final safe = math.max(dist, 28.0);
+          final safe = math.max(dist, 12.0);
+          final t = 1 - dist / _influence;
+          final falloff = t * t;
+          // Strong radial push so nearby stones visibly scatter away.
+          final force = (55 + 90 * stone.depth) * falloff;
           final dir = delta / safe;
-          final falloff = (1 - dist / _influence).clamp(0.0, 1.0);
-          // Gentle opposite-magnet push, not a snap.
-          stone.vel += dir * (1.6 + 2.4 * falloff * stone.depth);
+          stone.vel += dir * force * dt * 60;
+          final tangent =
+              Offset(-dir.dy, dir.dx) * (_pointerVel.distance.clamp(0, 40));
+          stone.vel += tangent * 0.08 * falloff;
           stone.spin +=
-              (_pointerVel.dx * dir.dy - _pointerVel.dy * dir.dx) * 0.00008;
+              (_pointerVel.dx * dir.dy - _pointerVel.dy * dir.dx) *
+              0.0008 *
+              falloff;
         }
       }
 
+      // Soft spring home — weaker while finger is near so push wins.
       final toHome = home - stone.pos;
-      final nearPointer = _active &&
+      final nearPointer =
+          _active &&
           _pointer != null &&
           (stone.pos - _pointer!).distance < _influence;
-      stone.vel += toHome * (nearPointer ? 0.012 : 0.028);
-      stone.vel *= math.pow(nearPointer ? 0.9 : 0.86, dt * 60).toDouble();
-      stone.spin *= math.pow(0.9, dt * 60).toDouble();
-      stone.pos += stone.vel * (dt * 60) * 0.45;
-      stone.rotation += stone.spin * (dt * 60) * 0.45;
+      stone.vel += toHome * (nearPointer ? 0.02 : 0.09);
+      stone.vel *= math.pow(nearPointer ? 0.90 : 0.82, dt * 60).toDouble();
+      stone.spin *= math.pow(0.88, dt * 60).toDouble();
+      stone.pos += stone.vel * (dt * 60);
+      stone.rotation += stone.spin * (dt * 60);
     }
     setState(() {});
   }
 
-  void _point(Offset local, {bool touching = true, bool hovering = false}) {
+  void _point(Offset local) {
     final previous = _pointer;
     _pointer = local;
-    if (touching) _touching = true;
-    if (hovering) _hovering = true;
+    _active = true;
     if (previous != null) {
       _pointerVel = local - previous;
     }
   }
 
   void _clear() {
-    _touching = false;
-    _hovering = false;
-    _pointer = null;
+    _active = false;
     _pointerVel = Offset.zero;
-    setState(() {});
   }
 
   @override
@@ -169,42 +176,25 @@ class _HomeDiamondPointerFieldState extends State<HomeDiamondPointerField>
     super.dispose();
   }
 
-  Map<Type, GestureRecognizerFactory> _panGestures() {
-    return <Type, GestureRecognizerFactory>{
-      _ClaimPanRecognizer:
-          GestureRecognizerFactoryWithHandlers<_ClaimPanRecognizer>(
-        () => _ClaimPanRecognizer(),
-        (instance) {
-          instance.onStart = (d) {
-            _point(d.localPosition);
-          };
-          instance.onUpdate = (d) {
-            _point(d.localPosition);
-          };
-          instance.onEnd = (_) => _clear();
-          instance.onCancel = _clear;
-        },
-      ),
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = Size(constraints.maxWidth, constraints.maxHeight);
         _layout(size);
-        return RawGestureDetector(
+        return Listener(
           behavior: HitTestBehavior.opaque,
-          gestures: _panGestures(),
+          onPointerDown: (e) => _point(e.localPosition),
+          onPointerMove: (e) {
+            if (!_active) return;
+            _point(e.localPosition);
+          },
+          onPointerHover: (e) => _point(e.localPosition),
+          onPointerUp: (_) => _clear(),
+          onPointerCancel: (_) => _clear(),
           child: MouseRegion(
-            onHover: (e) {
-              if (_touching) return;
-              _point(e.localPosition, touching: false, hovering: true);
-            },
             onExit: (_) {
-              _hovering = false;
-              if (!_touching) _clear();
+              if (!_active) _clear();
             },
             child: CustomPaint(
               size: size,
@@ -212,6 +202,7 @@ class _HomeDiamondPointerFieldState extends State<HomeDiamondPointerField>
                 image: _image,
                 stones: _stones,
                 pointer: _pointer,
+                glow: _glow,
                 influence: _influence,
               ),
             ),
@@ -227,19 +218,21 @@ class _DiamondFieldPainter extends CustomPainter {
     required this.image,
     required this.stones,
     required this.pointer,
+    required this.glow,
     required this.influence,
   });
 
   final ui.Image? image;
   final List<_Stone> stones;
   final Offset? pointer;
+  final double glow;
   final double influence;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(
       Offset.zero & size,
-      Paint()..color = const Color(0xFF000000),
+      Paint()..color = const Color(0xFF050505),
     );
     final sprite = image;
     if (sprite == null) return;
@@ -253,16 +246,9 @@ class _DiamondFieldPainter extends CustomPainter {
     );
 
     for (final stone in ordered) {
-      const resting = 0.16;
-      var alpha = resting;
-      if (pointer != null) {
-        final dist = (stone.pos - pointer!).distance;
-        if (dist < influence) {
-          final t = (1 - dist / influence).clamp(0.0, 1.0);
-          alpha = resting + (1 - resting) * t;
-        }
-      }
-
+      final lit = pointer == null || glow < 0.02
+          ? 0.0
+          : (1 - (stone.pos - pointer!).distance / influence).clamp(0.0, 1.0);
       canvas.save();
       canvas.translate(stone.pos.dx, stone.pos.dy);
       canvas.rotate(stone.rotation);
@@ -271,31 +257,49 @@ class _DiamondFieldPainter extends CustomPainter {
         width: stone.size * 0.52,
         height: stone.size * 0.72,
       );
-      canvas.drawImageRect(
-        sprite,
-        src,
-        dst,
-        Paint()
-          ..filterQuality = FilterQuality.medium
-          ..colorFilter = ColorFilter.mode(
-            Colors.white.withValues(alpha: alpha),
-            BlendMode.modulate,
-          ),
-      );
+      final paint = Paint()
+        ..filterQuality = FilterQuality.medium
+        ..color = Colors.white.withValues(alpha: 0.42 + stone.depth * 0.58);
+      if (lit > 0.04) {
+        paint.colorFilter = ColorFilter.mode(
+          Colors.white.withValues(alpha: lit * glow),
+          BlendMode.srcATop,
+        );
+      }
+      canvas.drawImageRect(sprite, src, dst, paint);
       canvas.restore();
     }
+
+    final center = pointer;
+    if (center == null || glow < 0.02) return;
+
+    // Soft bright halo around the finger (drawn under stones would be hidden;
+    // drawn after so surroundings read as lit).
+    canvas.drawCircle(
+      center,
+      influence,
+      Paint()
+        ..shader = ui.Gradient.radial(
+          center,
+          influence,
+          [
+            Color.fromRGBO(255, 252, 245, 0.55 * glow),
+            Color.fromRGBO(255, 236, 200, 0.22 * glow),
+            const Color.fromRGBO(255, 255, 255, 0),
+          ],
+          const [0.0, 0.35, 1.0],
+        )
+        ..blendMode = BlendMode.plus,
+    );
+    canvas.drawCircle(
+      center,
+      36,
+      Paint()
+        ..color = Color.fromRGBO(255, 255, 255, 0.35 * glow)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
+    );
   }
 
   @override
   bool shouldRepaint(covariant _DiamondFieldPainter oldDelegate) => true;
-}
-
-/// Wins the gesture arena on pointer-down so a parent scroll view cannot
-/// scroll while the finger is on the diamond hero.
-class _ClaimPanRecognizer extends PanGestureRecognizer {
-  @override
-  void addAllowedPointer(PointerDownEvent event) {
-    super.addAllowedPointer(event);
-    resolve(GestureDisposition.accepted);
-  }
 }
