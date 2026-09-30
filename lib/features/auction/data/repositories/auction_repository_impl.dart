@@ -111,6 +111,67 @@ class AuctionRepositoryImpl implements AuctionRepository {
   }
 
   @override
+  Future<Result<SellerAuctionStanding, Failure>> sellerStanding() async {
+    Failure? failed;
+    Future<int?> totalFor(String status) async {
+      final page = await sellerAuctions(page: 1, limit: 1, status: status);
+      return switch (page) {
+        Success(:final value) => value.total,
+        ResultFailure(:final failure) => () {
+          failed ??= failure;
+          return null;
+        }(),
+      };
+    }
+
+    final active = await totalFor('active');
+    final upcoming = await totalFor('upcoming');
+    final ended = await totalFor('ended');
+    if (active == null || upcoming == null || ended == null) {
+      return ResultFailure(
+        failed ?? const UnknownFailure('seller auction totals'),
+      );
+    }
+
+    var needsDecision = 0;
+    var sold = 0;
+    var bidCount = 0;
+    var total = 0;
+    var page = 1;
+    var last = 1;
+    do {
+      final result = await sellerAuctions(page: page, limit: 50);
+      switch (result) {
+        case ResultFailure(:final failure):
+          return ResultFailure(failure);
+        case Success(:final value):
+          total = value.total;
+          last = value.lastPage;
+          for (final auction in value.items) {
+            if (auction.awaitingSellerDecision) needsDecision += 1;
+            if (auction.isSold) sold += 1;
+            bidCount += auction.bids.isEmpty && auction.highestBidAmount != null
+                ? 1
+                : auction.bids.length;
+          }
+      }
+      page += 1;
+    } while (page <= last && page <= 5);
+
+    return Success(
+      SellerAuctionStanding(
+        total: total,
+        active: active,
+        upcoming: upcoming,
+        ended: ended,
+        needsDecision: needsDecision,
+        sold: sold,
+        bids: bidCount,
+      ),
+    );
+  }
+
+  @override
   Future<Result<List<AuctionBid>, Failure>> bids(String auctionId) {
     return _guard(() async {
       final response = await _dio.get<Map<String, dynamic>>(

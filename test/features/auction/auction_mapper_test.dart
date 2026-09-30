@@ -115,4 +115,51 @@ void main() {
     expect(auction.highestBidAmount, 120);
     expect(auction.bids.single.buyerName, 'abdshc');
   });
+
+  test('maps activity summary and the signed-in user outcome', () {
+    final page = AuctionMapper.pageFromEnvelope(
+      {
+        'success': true,
+        'data': {
+          'summary': {
+            'participated': 4,
+            'participating': 2,
+            'won': 1,
+            'lost': 1,
+          },
+          'data': [
+            {
+              'id': 'auction-1',
+              'productType': 'diamond',
+              'productId': 'product-1',
+              'sellerId': 'seller-1',
+              'minimumBid': 80,
+              'isActive': true,
+              'isSold': false,
+              'userOutcome': 'participating',
+              'myHighestBid': 120.4,
+              'myBidCount': 2,
+              'bids': [],
+            },
+          ],
+          'meta': {
+            'total': 4,
+            'lastPage': 1,
+            'currentPage': 1,
+            'perPage': 20,
+          },
+        },
+      },
+      page: 1,
+      limit: 20,
+    );
+
+    expect(page.summary?.participated, 4);
+    expect(page.summary?.participating, 2);
+    expect(page.summary?.won, 1);
+    expect(page.summary?.lost, 1);
+    expect(page.items.single.userOutcome, 'participating');
+    expect(page.items.single.myHighestBid, 120.4);
+    expect(page.items.single.myBidCount, 2);
+  });
 }

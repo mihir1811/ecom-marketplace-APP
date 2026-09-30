@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/app_currency.dart';
 import '../../domain/models/auction_models.dart';
 import 'auction_card.dart';
 
@@ -61,7 +60,7 @@ class _AuctionBidPanelState extends State<AuctionBidPanel> {
           if (auction.highestBidAmount != null) ...[
             const SizedBox(height: 8),
             Text(
-              'Current bid ${AppCurrency.usd(auction.currentBid)}',
+              'Current bid ${auctionBidAmount(auction.highestBidAmount!)}',
               style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
             ),
           ],

@@ -37,6 +37,9 @@ abstract class AuctionRepository {
     String? status,
   });
 
+  /// Active, upcoming, ended, sold, and bid totals for the signed-in seller.
+  Future<Result<SellerAuctionStanding, Failure>> sellerStanding();
+
   Future<Result<List<AuctionBid>, Failure>> bids(String auctionId);
 
   Future<Result<AuctionMutation, Failure>> placeBid({

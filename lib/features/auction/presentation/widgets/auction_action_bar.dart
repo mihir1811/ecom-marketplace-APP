@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,10 +9,10 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../application/auction_providers.dart';
 import '../../domain/models/auction_models.dart';
+import 'auction_card.dart';
 
 /// Sticky auction actions. Replaces the product add-to-cart bar.
 class AuctionActionBar extends ConsumerStatefulWidget {
@@ -34,17 +35,15 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
   @override
   void initState() {
     super.initState();
-    _amount = TextEditingController(
-      text: _nextAmount(widget.auction).toStringAsFixed(2),
-    );
+    _amount = TextEditingController(text: _plusFive(widget.auction).toString());
   }
 
   @override
   void didUpdateWidget(covariant AuctionActionBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.auction.currentBid != widget.auction.currentBid &&
-        _amount.text == _nextAmount(oldWidget.auction).toStringAsFixed(2)) {
-      _amount.text = _nextAmount(widget.auction).toStringAsFixed(2);
+        _amount.text == _plusFive(oldWidget.auction).toString()) {
+      _amount.text = _plusFive(widget.auction).toString();
     }
   }
 
@@ -72,12 +71,15 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
     final myBidId = ref.watch(
       auctionDetailProvider(widget.auctionId).select((s) => s.myBidId),
     );
-    final owns = auction.sellerId.isNotEmpty &&
+    final owns =
+        auction.sellerId.isNotEmpty &&
         (auction.sellerId == auth.sellerId || auction.sellerId == auth.userId);
     final won =
         auth.userId != null &&
         auction.winnerId == auth.userId &&
         !_paid(auction.winnerStatus);
+    final suggestions = _suggestions(auction);
+    final ownBidId = _ownBidId(auction, auth.userId, myBidId);
 
     return Material(
       color: AppColors.surface(context),
@@ -121,37 +123,90 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
                   onPressed: () => context.push(AppRouteNames.login),
                   child: const Text('Sign in to bid'),
                 )
-              : Row(
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SizedBox(
-                      width: 120,
-                      child: TextField(
-                        controller: _amount,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'Bid',
-                          prefixText: r'$',
-                          isDense: true,
-                        ),
+                    TextField(
+                      controller: _amount,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      decoration: const InputDecoration(
+                        labelText: 'Bid',
+                        prefixText: r'$',
+                        isDense: true,
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.s12),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: submitting ? null : _bid,
-                        child: const Text('Place bid'),
-                      ),
+                    const SizedBox(height: AppSpacing.s8),
+                    Row(
+                      children: [
+                        for (var i = 0; i < suggestions.length; i++) ...[
+                          if (i > 0) const SizedBox(width: AppSpacing.s8),
+                          Expanded(
+                            child: Material(
+                              color: AppColors.surface(context),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(
+                                  color: AppColors.border(context),
+                                ),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: InkWell(
+                                onTap: submitting
+                                    ? null
+                                    : () => setState(() {
+                                        _amount.text = suggestions[i].amount
+                                            .toString();
+                                      }),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 8,
+                                  ),
+                                  child: Text(
+                                    '${auctionBidAmount(suggestions[i].amount)}\n${suggestions[i].label}',
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                    if (myBidId != null) ...[
-                      const SizedBox(width: 8),
-                      IconButton(
-                        tooltip: 'Cancel bid',
-                        onPressed: submitting ? null : () => _cancel(myBidId),
-                        icon: const Icon(Icons.undo),
-                      ),
-                    ],
+                    const SizedBox(height: AppSpacing.s8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: submitting ? null : _bid,
+                            child: const Text('Place bid'),
+                          ),
+                        ),
+                        PopupMenuButton<String>(
+                          tooltip: 'More',
+                          enabled: !submitting,
+                          onSelected: (value) {
+                            if (value == 'cancel' && ownBidId != null) {
+                              _cancel(ownBidId);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'cancel',
+                              enabled: ownBidId != null,
+                              child: const Text('Cancel bid'),
+                            ),
+                          ],
+                          icon: const Icon(Icons.more_vert),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
         ),
@@ -159,10 +214,52 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
     );
   }
 
-  double _nextAmount(AuctionListing auction) {
-    final base = auction.highestBidAmount ?? auction.minimumBid;
-    if (auction.highestBidAmount == null) return base;
-    return base + 1;
+  int _baseAmount(AuctionListing auction) {
+    final highest = auction.highestBidAmount;
+    if (highest == null) {
+      final minimum = auction.minimumBid.ceil();
+      return minimum < 1 ? 1 : minimum;
+    }
+    final whole = highest.round();
+    return whole < 1 ? 1 : whole;
+  }
+
+  int _plusFive(AuctionListing auction) {
+    final amount = _baseAmount(auction) + 5;
+    return amount < 1 ? 1 : amount;
+  }
+
+  int _percentAbove(AuctionListing auction, int percent) {
+    final amount = (_baseAmount(auction) * (100 + percent) / 100).ceil();
+    return amount < 1 ? 1 : amount;
+  }
+
+  List<({int amount, String label})> _suggestions(AuctionListing auction) {
+    return [
+      (amount: _plusFive(auction), label: r'+$5'),
+      (amount: _percentAbove(auction, 5), label: '+5%'),
+      (amount: _percentAbove(auction, 10), label: '+10%'),
+    ];
+  }
+
+  String? _ownBidId(AuctionListing auction, String? userId, String? stored) {
+    if (stored != null && stored.isNotEmpty) return stored;
+    if (userId == null || userId.isEmpty) return null;
+    AuctionBid? mine;
+    for (final bid in auction.bids) {
+      if (bid.buyerId != userId) continue;
+      final current = mine;
+      if (current == null) {
+        mine = bid;
+        continue;
+      }
+      final bidAt = bid.createdAt;
+      final currentAt = current.createdAt;
+      if (bidAt != null && (currentAt == null || bidAt.isAfter(currentAt))) {
+        mine = bid;
+      }
+    }
+    return mine?.id;
   }
 
   bool _paid(String? status) {
@@ -172,27 +269,27 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
 
   Future<void> _bid() async {
     if (!AccountAccess.guard(context, ref)) return;
-    final amount = double.tryParse(_amount.text.trim());
+    final amount = int.tryParse(_amount.text.trim());
     if (amount == null || amount <= 0) {
-      _toast('Enter a bid amount.');
+      _toast('Enter a whole-dollar bid.');
       return;
     }
     final confirmed = await _confirm(
       title: 'Place this bid?',
-      message: 'You are about to bid ${AppCurrency.usd(amount)}.',
+      message: 'You are about to bid ${auctionBidAmount(amount)}.',
       confirmLabel: 'Place bid',
     );
     if (!confirmed || !mounted) return;
     final message = await ref
         .read(auctionDetailProvider(widget.auctionId).notifier)
-        .placeBid(amount);
+        .placeBid(amount.toDouble());
     _result(message);
   }
 
   Future<void> _cancel(String bidId) async {
     final confirmed = await _confirm(
-      title: 'Cancel this bid?',
-      message: 'Your highest bid will be withdrawn if the auction is still open.',
+      title: 'Cancel bid',
+      message: 'Are you sure you want to cancel bid?',
       confirmLabel: 'Cancel bid',
     );
     if (!confirmed || !mounted) return;
@@ -250,7 +347,8 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
                 contentPadding: EdgeInsets.zero,
                 value: useWallet,
                 title: const Text('Use wallet balance'),
-                onChanged: (value) => setLocal(() => useWallet = value ?? false),
+                onChanged: (value) =>
+                    setLocal(() => useWallet = value ?? false),
               ),
               actions: [
                 TextButton(
@@ -280,7 +378,9 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
       _toast(message);
       return;
     }
-    final error = ref.read(auctionDetailProvider(widget.auctionId)).errorMessage;
+    final error = ref
+        .read(auctionDetailProvider(widget.auctionId))
+        .errorMessage;
     if (error != null) _toast(error);
   }
 

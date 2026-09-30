@@ -54,9 +54,7 @@ ProductDetail _compact(AuctionListing auction) {
     subtitle: auction.sellerName ?? '',
     referenceLabel: 'Stock ID',
     referenceValue: auction.stockNumber ?? auction.productId,
-    badges: [
-      ProductBadge(auction.phaseLabel, tone: ProductBadgeTone.caution),
-    ],
+    badges: [ProductBadge(auction.phaseLabel, tone: ProductBadgeTone.caution)],
     media: ProductMedia(
       images: images,
       imageSlots: images.length.clamp(0, 6),

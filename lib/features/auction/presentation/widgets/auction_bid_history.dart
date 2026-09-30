@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/app_currency.dart';
 import '../../domain/models/auction_models.dart';
 import 'auction_card.dart';
 
@@ -58,9 +57,10 @@ class _AuctionBidHistoryState extends State<AuctionBidHistory> {
         else
           SizedBox(
             height: _rowHeight * window,
-            child: Scrollbar(
-              controller: _scroll,
-              thumbVisibility: bids.length > _visibleRows,
+            child: ScrollConfiguration(
+              behavior: ScrollConfiguration.of(
+                context,
+              ).copyWith(scrollbars: false),
               child: ListView.builder(
                 controller: _scroll,
                 primary: false,
@@ -115,7 +115,7 @@ class _BidRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                AppCurrency.usd(bid.amount),
+                auctionBidAmount(bid.amount),
                 style: AppTypography.body.copyWith(fontWeight: FontWeight.w700),
               ),
               if (isHighest)

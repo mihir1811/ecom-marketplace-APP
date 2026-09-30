@@ -111,7 +111,7 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
             const SizedBox(height: AppSpacing.s24),
             ProductDetailPrice(
               detail: detail,
-              amountOverride: auction.highestBidAmount,
+              amountOverride: auction.highestBidAmount?.roundToDouble(),
               showCatalogDiscount: false,
               showWishlist: false,
             ),

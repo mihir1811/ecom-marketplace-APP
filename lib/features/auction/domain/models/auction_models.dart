@@ -46,6 +46,9 @@ class AuctionListing {
     this.highestBidAmount,
     this.catalogPrice,
     this.stockNumber,
+    this.userOutcome,
+    this.myHighestBid,
+    this.myBidCount = 0,
   });
 
   final String id;
@@ -73,6 +76,15 @@ class AuctionListing {
   final List<String> declinedWinnerIds;
   final List<AuctionBid> bids;
 
+  /// `participating`, `won`, or `lost` on `GET /auction/my-activity`.
+  final String? userOutcome;
+
+  /// This signed-in user's highest bid on the auction.
+  final double? myHighestBid;
+
+  /// How many bids this signed-in user placed.
+  final int myBidCount;
+
   /// Catalog product payload used to build the product-detail layout.
   final Map<String, dynamic> product;
 
@@ -83,7 +95,8 @@ class AuctionListing {
 
   /// Inserts a socket bid into history and raises the current price in place.
   AuctionListing applyLiveBid(double amount, {AuctionBid? bid}) {
-    final incoming = bid ??
+    final incoming =
+        bid ??
         AuctionBid(
           id: 'live:$id:${amount.toStringAsFixed(2)}',
           auctionId: id,
@@ -158,6 +171,9 @@ class AuctionListing {
       product: product,
       seller: seller,
       highestBidAmount: highestBidAmount ?? this.highestBidAmount,
+      userOutcome: userOutcome,
+      myHighestBid: myHighestBid,
+      myBidCount: myBidCount,
     );
   }
 
@@ -193,6 +209,7 @@ class AuctionPage {
     required this.lastPage,
     required this.perPage,
     this.nextPage,
+    this.summary,
   });
 
   final List<AuctionListing> items;
@@ -202,7 +219,46 @@ class AuctionPage {
   final int perPage;
   final int? nextPage;
 
+  /// Counts from `GET /auction/my-activity` (`summary` on every page).
+  final AuctionActivitySummary? summary;
+
   bool get hasMore => nextPage != null;
+}
+
+/// Signed-in buyer outcome counts from `GET /auction/my-activity`.
+class AuctionActivitySummary {
+  const AuctionActivitySummary({
+    required this.participated,
+    required this.participating,
+    required this.won,
+    required this.lost,
+  });
+
+  final int participated;
+  final int participating;
+  final int won;
+  final int lost;
+}
+
+/// Seller auction outcomes from `GET /auction/seller`.
+class SellerAuctionStanding {
+  const SellerAuctionStanding({
+    required this.total,
+    required this.active,
+    required this.upcoming,
+    required this.ended,
+    required this.needsDecision,
+    required this.sold,
+    required this.bids,
+  });
+
+  final int total;
+  final int active;
+  final int upcoming;
+  final int ended;
+  final int needsDecision;
+  final int sold;
+  final int bids;
 }
 
 /// `GET /auction/settings`.

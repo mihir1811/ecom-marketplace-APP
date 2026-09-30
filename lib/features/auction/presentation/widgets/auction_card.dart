@@ -83,9 +83,33 @@ class AuctionCard extends StatelessWidget {
             ),
           ),
         ],
+        if (auctionOutcomeLabel(auction.userOutcome) != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            auctionOutcomeLabel(auction.userOutcome)!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.bronze,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+        if (auction.myHighestBid != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            'Your bid ${auctionBidAmount(auction.myHighestBid!)}'
+            '${auction.myBidCount > 1 ? ' · ${auction.myBidCount} bids' : ''}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.caption,
+          ),
+        ],
         const SizedBox(height: 8),
         Text(
-          AppCurrency.usd(auction.currentBid),
+          auction.highestBidAmount == null
+              ? AppCurrency.usd(auction.minimumBid)
+              : auctionBidAmount(auction.highestBidAmount!),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppTypography.body.copyWith(fontWeight: FontWeight.w700),
@@ -144,6 +168,19 @@ class _Thumb extends StatelessWidget {
 }
 
 String auctionWhen(DateTime value) => _when(value);
+
+/// Whole-dollar bid. Fractional cents are not shown.
+String auctionBidAmount(num amount) =>
+    AppCurrency.usd(amount.round(), decimals: 0);
+
+String? auctionOutcomeLabel(String? outcome) {
+  return switch (outcome) {
+    'participating' => 'Participating',
+    'won' => 'Won',
+    'lost' => 'Lost',
+    _ => null,
+  };
+}
 
 String _when(DateTime value) {
   final local = value.toLocal();

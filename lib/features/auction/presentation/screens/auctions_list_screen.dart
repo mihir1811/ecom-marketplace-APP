@@ -9,6 +9,7 @@ import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../../../core/widgets/view_mode_toggle.dart';
 import '../../application/auction_providers.dart';
 import '../widgets/auction_card.dart';
+import '../widgets/auction_standing_strip.dart';
 
 /// Live auctions, my activity, or my wins.
 class AuctionsListScreen extends ConsumerStatefulWidget {
@@ -47,14 +48,47 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (widget.outcomes.isNotEmpty)
+          if (widget.kind == AuctionFeedKind.activity && feed.summary != null)
+            AuctionStandingStrip(
+              selectedId: _outcome,
+              onSelected: (value) => setState(() => _outcome = value),
+              items: [
+                AuctionStandingItem(
+                  id: 'all',
+                  label: 'Participated',
+                  count: feed.summary!.participated,
+                ),
+                AuctionStandingItem(
+                  id: 'participating',
+                  label: 'In progress',
+                  count: feed.summary!.participating,
+                ),
+                AuctionStandingItem(
+                  id: 'won',
+                  label: 'Won',
+                  count: feed.summary!.won,
+                ),
+                AuctionStandingItem(
+                  id: 'lost',
+                  label: 'Lost',
+                  count: feed.summary!.lost,
+                ),
+              ],
+            )
+          else if (widget.outcomes.isNotEmpty)
             _Chips(
               labels: widget.outcomes,
               selected: _outcome,
               onSelected: (value) => setState(() => _outcome = value),
             ),
           _Chips(
-            labels: const ['all', 'diamond', 'gemstone', 'meleeDiamond', 'jewellery'],
+            labels: const [
+              'all',
+              'diamond',
+              'gemstone',
+              'meleeDiamond',
+              'jewellery',
+            ],
             selected: _productType ?? 'all',
             onSelected: (value) => setState(() {
               _productType = value == 'all' ? null : value;
@@ -92,7 +126,8 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen> {
         message: feed.errorMessage!,
         icon: Icons.cloud_off_outlined,
         actionLabel: 'Retry',
-        onAction: () => ref.read(auctionFeedProvider(_query).notifier).refresh(),
+        onAction: () =>
+            ref.read(auctionFeedProvider(_query).notifier).refresh(),
       );
     }
     if (feed.items.isEmpty) {

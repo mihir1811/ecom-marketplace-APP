@@ -16,6 +16,7 @@ import '../../../auction/data/repositories/auction_repository_impl.dart';
 import '../../../auction/domain/models/auction_models.dart';
 import '../../../auction/presentation/widgets/auction_card.dart';
 import '../widgets/seller_auction_create_sheet.dart';
+import '../widgets/seller_auction_standing_section.dart';
 
 class SellerAuctionsScreen extends ConsumerStatefulWidget {
   const SellerAuctionsScreen({super.key});
@@ -45,6 +46,15 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
             padding: const EdgeInsets.all(AppSpacing.s16),
             children: [
               _header(context),
+              const SizedBox(height: AppSpacing.s16),
+              SellerAuctionStandingSection(
+                onSelected: (id) => setState(() {
+                  _status = switch (id) {
+                    'active' || 'upcoming' || 'ended' => id,
+                    _ => null,
+                  };
+                }),
+              ),
               const SizedBox(height: AppSpacing.s16),
               Wrap(
                 spacing: 8,
@@ -164,6 +174,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
   }
 
   Future<void> _refresh() {
+    ref.invalidate(sellerAuctionStandingProvider);
     return ref.read(auctionFeedProvider(_query).notifier).refresh();
   }
 }
@@ -207,7 +218,7 @@ class _SellerAuctionCard extends ConsumerWidget {
           const SizedBox(height: 6),
           Text(auction.title, style: AppTypography.title),
           Text(
-            '${auction.productType} · ${AppCurrency.usd(auction.currentBid)}',
+            '${auction.productType} · ${auction.highestBidAmount == null ? AppCurrency.usd(auction.minimumBid) : auctionBidAmount(auction.highestBidAmount!)}',
             style: AppTypography.caption,
           ),
           if (auction.endTime != null)
@@ -241,9 +252,9 @@ class _SellerAuctionCard extends ConsumerWidget {
                   onPressed: () => _act(
                     context,
                     ref,
-                    () => ref.read(auctionRepositoryProvider).accept(
-                      auctionId: auction.id,
-                    ),
+                    () => ref
+                        .read(auctionRepositoryProvider)
+                        .accept(auctionId: auction.id),
                   ),
                   child: const Text('Accept'),
                 ),
@@ -257,7 +268,8 @@ class _SellerAuctionCard extends ConsumerWidget {
                   onPressed: () => _act(
                     context,
                     ref,
-                    () => ref.read(auctionRepositoryProvider).delete(auction.id),
+                    () =>
+                        ref.read(auctionRepositoryProvider).delete(auction.id),
                   ),
                   child: const Text('Delete'),
                 ),
@@ -273,7 +285,7 @@ class _SellerAuctionCard extends ConsumerWidget {
               for (final bid in bids!)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(AppCurrency.usd(bid.amount)),
+                  title: Text(auctionBidAmount(bid.amount)),
                   subtitle: Text(bid.buyerName ?? bid.buyerId),
                   trailing: auction.awaitingSellerDecision
                       ? TextButton(
@@ -326,14 +338,16 @@ class _SellerAuctionCard extends ConsumerWidget {
     await _act(
       context,
       ref,
-      () => ref.read(auctionRepositoryProvider).reject(
-        auctionId: auction.id,
-        action: action,
-        startTime: start,
-        endTime: end,
-        minimumBid: auction.minimumBid,
-        reservePrice: auction.reservePrice,
-      ),
+      () => ref
+          .read(auctionRepositoryProvider)
+          .reject(
+            auctionId: auction.id,
+            action: action,
+            startTime: start,
+            endTime: end,
+            minimumBid: auction.minimumBid,
+            reservePrice: auction.reservePrice,
+          ),
     );
   }
 
@@ -348,9 +362,9 @@ class _SellerAuctionCard extends ConsumerWidget {
       Success(:final value) => value.message,
       ResultFailure(:final failure) => failure.message,
     };
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.maybeOf(
+      context,
+    )?.showSnackBar(SnackBar(content: Text(message)));
     if (result is Success) await onChanged();
   }
 }

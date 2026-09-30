@@ -47,6 +47,7 @@ class AuctionFeedState {
     this.isLoading = false,
     this.isLoadingMore = false,
     this.errorMessage,
+    this.summary,
   });
 
   final List<AuctionListing> items;
@@ -55,6 +56,7 @@ class AuctionFeedState {
   final bool isLoading;
   final bool isLoadingMore;
   final String? errorMessage;
+  final AuctionActivitySummary? summary;
 
   AuctionFeedState copyWith({
     List<AuctionListing>? items,
@@ -63,6 +65,7 @@ class AuctionFeedState {
     bool? isLoading,
     bool? isLoadingMore,
     String? errorMessage,
+    AuctionActivitySummary? summary,
     bool clearError = false,
   }) {
     return AuctionFeedState(
@@ -72,6 +75,7 @@ class AuctionFeedState {
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      summary: summary ?? this.summary,
     );
   }
 }
@@ -168,6 +172,7 @@ class AuctionFeedNotifier extends FamilyNotifier<AuctionFeedState, AuctionFeedQu
           items: value.items,
           page: value.currentPage,
           hasMore: value.hasMore,
+          summary: value.summary,
         );
       case ResultFailure(:final failure):
         if (failure is NetworkFailure && failure.isCancelled) return;
@@ -223,6 +228,16 @@ class AuctionFeedNotifier extends FamilyNotifier<AuctionFeedState, AuctionFeedQu
 
 final auctionSettingsProvider = FutureProvider<AuctionSettings>((ref) async {
   final result = await ref.watch(auctionRepositoryProvider).settings();
+  return switch (result) {
+    Success(:final value) => value,
+    ResultFailure(:final failure) => throw failure,
+  };
+});
+
+final sellerAuctionStandingProvider = FutureProvider<SellerAuctionStanding>((
+  ref,
+) async {
+  final result = await ref.watch(auctionRepositoryProvider).sellerStanding();
   return switch (result) {
     Success(:final value) => value,
     ResultFailure(:final failure) => throw failure,

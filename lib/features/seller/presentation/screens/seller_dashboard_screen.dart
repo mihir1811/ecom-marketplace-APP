@@ -11,6 +11,8 @@ import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/chart_value_tooltip.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_insights_provider.dart';
+import '../../../auction/application/auction_providers.dart';
+import '../widgets/seller_auction_standing_section.dart';
 import '../widgets/seller_dashboard_diamond_projects_section.dart';
 import '../../domain/models/seller_insights.dart';
 
@@ -69,7 +71,10 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.s20),
       child: RefreshIndicator(
-        onRefresh: () => ref.read(sellerDashboardProvider.notifier).refresh(),
+        onRefresh: () async {
+          ref.invalidate(sellerAuctionStandingProvider);
+          await ref.read(sellerDashboardProvider.notifier).refresh();
+        },
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
           child: ListView(
@@ -202,6 +207,8 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: AppSpacing.s16),
+                const SellerAuctionStandingSection(),
                 const SizedBox(height: AppSpacing.s16),
                 const SellerDashboardDiamondProjectsSection(),
               ],

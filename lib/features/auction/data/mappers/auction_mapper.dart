@@ -54,10 +54,12 @@ abstract final class AuctionMapper {
     final data = body?['data'];
     List<dynamic> rows = const [];
     Map<String, dynamic>? meta;
+    AuctionActivitySummary? summary;
     if (data is Map) {
       final nested = data['data'];
       if (nested is List) rows = nested;
       meta = _map(data['meta']);
+      summary = _summary(data['summary']);
     } else if (data is List) {
       rows = data;
     }
@@ -77,6 +79,25 @@ abstract final class AuctionMapper {
       lastPage: last,
       perPage: _int(meta?['perPage']) ?? limit,
       nextPage: next,
+      summary: summary,
+    );
+  }
+
+  static AuctionActivitySummary? _summary(Object? raw) {
+    final map = _map(raw);
+    if (map == null) return null;
+    if (map['participated'] == null &&
+        map['participating'] == null &&
+        map['won'] == null &&
+        map['lost'] == null) {
+      return null;
+    }
+    int count(String key) => _int(map[key]) ?? 0;
+    return AuctionActivitySummary(
+      participated: count('participated'),
+      participating: count('participating'),
+      won: count('won'),
+      lost: count('lost'),
     );
   }
 
@@ -115,6 +136,9 @@ abstract final class AuctionMapper {
       isReserveMet: json['isReserveMet'] != false,
       declinedWinnerIds: _strings(json['declinedWinnerIds']),
       bids: bids,
+      userOutcome: _str(json['userOutcome']),
+      myHighestBid: _num(json['myHighestBid']),
+      myBidCount: _int(json['myBidCount']) ?? 0,
       product: product,
       seller: seller,
     );
