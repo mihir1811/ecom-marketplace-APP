@@ -78,6 +78,13 @@ class AppRouteNames {
   static String buyerChatDetailPath(String chatId) =>
       '/buyer/messages/${Uri.encodeComponent(chatId)}';
   static const String buyerSettings = '/buyer/settings';
+  static const String buyerNotifications = '/buyer/notifications';
+  static const String auctions = '/auctions';
+  static const String auctionActivity = '/auctions/activity';
+  static const String auctionWins = '/auctions/wins';
+  static const String auctionDetail = '/auctions/:auctionId';
+  static String auctionDetailPath(String auctionId) =>
+      '/auctions/${Uri.encodeComponent(auctionId)}';
 
   // Seller (dashboard workspace)
   static const String sellerDashboard = '/seller/dashboard';
@@ -104,6 +111,7 @@ class AppRouteNames {
   static String sellerChatDetailPath(String chatId) =>
       '/seller/chat/${Uri.encodeComponent(chatId)}';
   static const String sellerHelpCenter = '/seller/help-center';
+  static const String sellerNotifications = '/seller/notifications';
   static const String sellerReferences = '/seller/references';
   static const String sellerPromotions = '/seller/promotions';
   static const String sellerProfile = '/seller/profile';

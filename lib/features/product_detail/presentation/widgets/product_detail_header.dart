@@ -15,9 +15,16 @@ import '../../domain/models/product_detail.dart';
 
 /// Identity block: what the product is, how it is qualified, and its reference.
 class ProductDetailHeader extends ConsumerStatefulWidget {
-  const ProductDetailHeader({required this.detail, super.key});
+  const ProductDetailHeader({
+    required this.detail,
+    this.showWishlist = true,
+    super.key,
+  });
 
   final ProductDetail detail;
+
+  /// Heart control. Auction detail hides it.
+  final bool showWishlist;
 
   @override
   ConsumerState<ProductDetailHeader> createState() =>
@@ -52,24 +59,25 @@ class _ProductDetailHeaderState extends ConsumerState<ProductDetailHeader> {
     final actions = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _ActionIcon(
-          icon: wishlisted ? Icons.favorite : Icons.favorite_border,
-          tooltip: wishlisted ? 'Remove from wishlist' : 'Save to wishlist',
-          tint: wishlisted
-              ? AppColors.terracotta
-              : AppColors.textPrimary(context),
-          onTap: () {
-            toggleWishlistItem(
-              context,
-              ref,
-              detail.toWishlistItem(),
-              addedMessage: 'Saved to wishlist',
-              removedMessage: 'Removed from wishlist',
-            );
-          },
-        ),
+        if (widget.showWishlist)
+          _ActionIcon(
+            icon: wishlisted ? Icons.favorite : Icons.favorite_border,
+            tooltip: wishlisted ? 'Remove from wishlist' : 'Save to wishlist',
+            tint: wishlisted
+                ? AppColors.terracotta
+                : AppColors.textPrimary(context),
+            onTap: () {
+              toggleWishlistItem(
+                context,
+                ref,
+                detail.toWishlistItem(),
+                addedMessage: 'Saved to wishlist',
+                removedMessage: 'Removed from wishlist',
+              );
+            },
+          ),
         if (canChat) ...[
-          const SizedBox(width: AppSpacing.s8),
+          if (widget.showWishlist) const SizedBox(width: AppSpacing.s8),
           _ActionIcon(
             icon: Icons.chat_bubble_outline,
             tooltip: context.tr(CatalogL10n.chatWithSeller),
@@ -77,7 +85,7 @@ class _ProductDetailHeaderState extends ConsumerState<ProductDetailHeader> {
             onTap: _openChat,
           ),
         ],
-        const SizedBox(width: AppSpacing.s8),
+        if (widget.showWishlist || canChat) const SizedBox(width: AppSpacing.s8),
         _ActionIcon(
           icon: Icons.share_outlined,
           tooltip: context.tr(CatalogL10n.share),

@@ -9,6 +9,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../notifications/application/notifications_provider.dart';
 
 /// Side drawer for seller workspace screens only.
 class SellerDrawer extends ConsumerWidget {
@@ -21,6 +22,7 @@ class SellerDrawer extends ConsumerWidget {
     final pending = ref.watch(
       authProvider.select((s) => s.isVerificationPending),
     );
+    final unread = ref.watch(notificationUnreadCountProvider);
     final items = <_DrawerItem>[
       _DrawerItem(
         route: AppRouteNames.sellerDashboard,
@@ -50,6 +52,11 @@ class SellerDrawer extends ConsumerWidget {
         route: AppRouteNames.sellerInquiries,
         label: context.tr(RemainingL10n.inquiries),
         icon: Icons.mail_outline,
+      ),
+      const _DrawerItem(
+        route: AppRouteNames.sellerNotifications,
+        label: 'Notifications',
+        icon: Icons.notifications_none,
       ),
       _DrawerItem(
         route: AppRouteNames.sellerOffers,
@@ -172,6 +179,18 @@ class SellerDrawer extends ConsumerWidget {
                                 ),
                               ),
                             ),
+                            if (item.route ==
+                                    AppRouteNames.sellerNotifications &&
+                                unread > 0)
+                              Text(
+                                unread > 99 ? '99+' : '$unread',
+                                style: AppTypography.caption.copyWith(
+                                  color: isSelected
+                                      ? AppColors.navOnSelected(context)
+                                      : AppColors.bronze,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                           ],
                         ),
                       ),

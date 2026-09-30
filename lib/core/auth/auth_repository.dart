@@ -8,6 +8,7 @@ import '../error/failure.dart';
 import '../error/result.dart';
 import '../network/api_endpoints.dart';
 import '../network/dio_provider.dart';
+import '../push/push_logout_hook.dart';
 import 'auth_api_error.dart';
 import 'auth_session.dart';
 import 'auth_token_store.dart';
@@ -34,6 +35,7 @@ abstract class AuthRepository {
     XFile? profilePicture,
     String? referralEmail,
     String? referralCode,
+
     /// `YYYY-MM-DD` — required by API for individual registration.
     String? dateOfBirth,
   });
@@ -351,6 +353,11 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Result<void, Failure>> logout() async {
     try {
+      try {
+        await PushLogoutHook.beforeLogout?.call();
+      } catch (_) {
+        // Logout must continue if device unregister fails.
+      }
       await _dio.post<Map<String, dynamic>>(ApiEndpoints.authLogout);
       await _tokenStore.clear();
       return Result.success(null);

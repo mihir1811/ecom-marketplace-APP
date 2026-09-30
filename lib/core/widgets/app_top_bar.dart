@@ -9,11 +9,12 @@ import '../router/route_names.dart';
 import '../theme/app_colors.dart';
 import '../../features/cart/application/cart_provider.dart';
 import '../../features/chat/application/chat_providers.dart';
+import '../../features/notifications/application/notifications_provider.dart';
 import 'app_bar_actions.dart';
 import 'app_drawer_button.dart';
 
 /// Reusable top app bar with a fixed trailing action order:
-/// **Cart → Wallet → Messages → Theme** (when signed in).
+/// **Notifications → Cart → Wallet → Messages → Theme** (when signed in).
 ///
 /// [extraActions] always render *before* that standard set.
 class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -87,11 +88,32 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
         showCart && authState.isAuthenticated && cartCount == null
         ? ref.watch(cartItemCountProvider)
         : (cartCount ?? 0);
+    final unreadNotifications = authState.isAuthenticated
+        ? ref.watch(notificationUnreadCountProvider)
+        : 0;
 
     final actions = <Widget>[...extraActions];
 
     if (authState.isAuthenticated) {
-      // Fixed order: Cart → Wallet → Messages → Theme
+      actions.add(
+        IconButton(
+          tooltip: 'Notifications',
+          onPressed: () => context.switchToRoute(
+            authState.isSeller
+                ? AppRouteNames.sellerNotifications
+                : AppRouteNames.buyerNotifications,
+          ),
+          icon: Badge(
+            isLabelVisible: unreadNotifications > 0,
+            label: Text(
+              unreadNotifications > 99 ? '99+' : '$unreadNotifications',
+            ),
+            backgroundColor: AppColors.terracotta,
+            child: const Icon(Icons.notifications_none),
+          ),
+        ),
+      );
+      // Fixed order: Notifications → Cart → Wallet → Messages → Theme
       if (showCart) {
         actions.add(
           IconButton(
@@ -182,10 +204,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
                   scrollDirection: Axis.horizontal,
                   reverse: true,
                   physics: const ClampingScrollPhysics(),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: actions,
-                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: actions),
                 ),
               ),
             ),

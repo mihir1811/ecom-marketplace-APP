@@ -194,19 +194,48 @@ abstract final class ApiEndpoints {
 
   // Login history
   static const String loginHistory = '/login-history';
-  static const String loginHistoryActiveSeller =
-      '/login-history/active-seller';
+  static const String loginHistoryActiveSeller = '/login-history/active-seller';
   static String loginHistoryBySession(String sessionId) =>
       '/login-history/$sessionId';
+
+  // Push inbox + device registration
+  static const String notifications = '/notifications';
+  static const String notificationsUnreadCount = '/notifications/unread-count';
+  static const String notificationsReadAll = '/notifications/read-all';
+  static const String notificationsDevices = '/notifications/devices';
+  static const String notificationsDevicesUnregister =
+      '/notifications/devices/unregister';
+  static String notificationRead(String id) => '/notifications/$id/read';
+  static String notificationById(String id) => '/notifications/$id';
 
   // User profile (read-only)
   static const String userProfile = '/user/profile';
 
   // Jewellery category admin
-  static String jewelleryCategoryById(String id) =>
-      '/jewellery-categories/$id';
+  static String jewelleryCategoryById(String id) => '/jewellery-categories/$id';
   static String jewelleryCategorySubcategories(String categoryId) =>
       '/jewellery-categories/$categoryId/subcategories';
   static String jewellerySubcategoryById(String id) =>
       '/jewellery-categories/subcategories/$id';
+
+  // Auctions
+  static const String auctionSettings = '/auction/settings';
+  static const String auctionLive = '/auction/live';
+  static const String auctionCreate = '/auction/create';
+  static const String auctionBulkCreate = '/auction/bulk-create';
+  static const String auctionBid = '/auction/bid';
+  static const String auctionMyPenalty = '/auction/my-penalty';
+  static const String auctionMyWins = '/auction/my-wins';
+  static const String auctionMyActivity = '/auction/my-activity';
+  static const String auctionSeller = '/auction/seller';
+  static const String auctionSelectWinner = '/auction/select-winner';
+  static String auctionById(String id) => '/auction/$id';
+  static String auctionEnd(String id) => '/auction/end/$id';
+  static String auctionAccept(String id) => '/auction/$id/accept';
+  static String auctionReject(String id) => '/auction/$id/reject';
+  static String auctionDeclineWin(String id) => '/auction/$id/decline-win';
+  static String auctionCreatePayment(String id) => '/auction/$id/create-payment';
+  static String auctionVerifyPayment(String id) => '/auction/$id/verify-payment';
+  static String auctionBids(String id) => '/auction/$id/bids';
+  static String auctionCancelBid(String bidId) => '/auction/bid/$bidId';
 }

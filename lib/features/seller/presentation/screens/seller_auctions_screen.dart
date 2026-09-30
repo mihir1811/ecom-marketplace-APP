@@ -1,31 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/error/failure.dart';
+import '../../../../core/error/result.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../data/seller_orders_mock_data.dart';
-import '../../domain/models/seller_orders_models.dart';
+import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/catalog_empty_state.dart';
+import '../../../auction/application/auction_providers.dart';
+import '../../../auction/data/repositories/auction_repository_impl.dart';
+import '../../../auction/domain/models/auction_models.dart';
+import '../../../auction/presentation/widgets/auction_card.dart';
+import '../widgets/seller_auction_create_sheet.dart';
 
-import '../../../../core/l10n/app_localizations.dart';
-
-class SellerAuctionsScreen extends StatefulWidget {
+class SellerAuctionsScreen extends ConsumerStatefulWidget {
   const SellerAuctionsScreen({super.key});
 
   @override
-  State<SellerAuctionsScreen> createState() => _SellerAuctionsScreenState();
+  ConsumerState<SellerAuctionsScreen> createState() =>
+      _SellerAuctionsScreenState();
 }
 
-class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
-  SellerAuctionStatus? _filter;
+class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
+  String? _status;
   final Set<String> _expanded = {};
+  final Map<String, List<AuctionBid>> _bids = {};
+  final Set<String> _loadingBids = {};
+
+  AuctionFeedQuery get _query =>
+      AuctionFeedQuery(kind: AuctionFeedKind.seller, status: _status);
 
   @override
   Widget build(BuildContext context) {
-    final items = kSellerAuctionsMock.where((a) {
-      if (_filter == null) return true;
-      return a.status == _filter;
-    }).toList();
-
+    final feed = ref.watch(auctionFeedProvider(_query));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -33,120 +44,64 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.s16),
             children: [
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.s16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface(context),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Icon(
-                        Icons.gavel_outlined,
-                        size: 56,
-                        color: AppColors.textMuted(
-                          context,
-                        ).withValues(alpha: 0.25),
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.card(context),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: AppColors.border(context),
-                            ),
-                          ),
-                          child: Text(
-                            context.tr(RemainingL10n.sellerAuctions),
-                            style: AppTypography.caption.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          context.tr(
-                            RemainingL10n.manageYourLiveAuctionsViewAll,
-                          ),
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.textSecondary(context),
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
+              _header(context),
+              const SizedBox(height: AppSpacing.s16),
               Wrap(
                 spacing: 8,
-                runSpacing: 8,
                 children: [
-                  _FilterChip(
-                    label: context.tr(RemainingL10n.all),
-                    selected: _filter == null,
-                    onTap: () => setState(() => _filter = null),
-                  ),
-                  _FilterChip(
-                    label: context.tr(RemainingL10n.active),
-                    selected: _filter == SellerAuctionStatus.active,
-                    onTap: () =>
-                        setState(() => _filter = SellerAuctionStatus.active),
-                  ),
-                  _FilterChip(
-                    label: context.tr(RemainingL10n.upcoming),
-                    selected: _filter == SellerAuctionStatus.upcoming,
-                    onTap: () =>
-                        setState(() => _filter = SellerAuctionStatus.upcoming),
-                  ),
-                  _FilterChip(
-                    label: context.tr(RemainingL10n.ended),
-                    selected: _filter == SellerAuctionStatus.ended,
-                    onTap: () =>
-                        setState(() => _filter = SellerAuctionStatus.ended),
-                  ),
+                  for (final entry in const [
+                    (null, 'All'),
+                    ('active', 'Active'),
+                    ('upcoming', 'Upcoming'),
+                    ('ended', 'Ended'),
+                  ])
+                    ChoiceChip(
+                      label: Text(entry.$2),
+                      selected: _status == entry.$1,
+                      onSelected: (_) => setState(() => _status = entry.$1),
+                    ),
                 ],
               ),
-              const SizedBox(height: 16),
-              for (final auction in items) ...[
-                _AuctionCard(
-                  auction: auction,
-                  expanded: _expanded.contains(auction.id),
-                  onToggleBids: () {
-                    setState(() {
-                      if (_expanded.contains(auction.id)) {
-                        _expanded.remove(auction.id);
-                      } else {
-                        _expanded.add(auction.id);
-                      }
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-              ],
-              if (items.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 40),
-                  child: Center(
-                    child: Text(
-                      context.tr(RemainingL10n.noAuctionsFilter),
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.textMuted(context),
-                      ),
-                    ),
+              const SizedBox(height: AppSpacing.s16),
+              if (feed.isLoading && feed.items.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(AppSpacing.s32),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (feed.errorMessage != null && feed.items.isEmpty)
+                CatalogEmptyState(
+                  title: 'Auctions unavailable',
+                  message: feed.errorMessage!,
+                  actionLabel: 'Retry',
+                  onAction: () =>
+                      ref.read(auctionFeedProvider(_query).notifier).refresh(),
+                )
+              else if (feed.items.isEmpty)
+                CatalogEmptyState(
+                  title: context.tr(RemainingL10n.auctions),
+                  message: context.tr(RemainingL10n.noAuctionsFilter),
+                  icon: Icons.gavel_outlined,
+                )
+              else
+                for (final auction in feed.items) ...[
+                  _SellerAuctionCard(
+                    auction: auction,
+                    expanded: _expanded.contains(auction.id),
+                    bids: _bids[auction.id],
+                    loadingBids: _loadingBids.contains(auction.id),
+                    onToggle: () => _toggle(auction.id),
+                    onChanged: _refresh,
                   ),
+                  const SizedBox(height: AppSpacing.s12),
+                ],
+              if (feed.hasMore && feed.items.isNotEmpty)
+                TextButton(
+                  onPressed: feed.isLoadingMore
+                      ? null
+                      : () => ref
+                            .read(auctionFeedProvider(_query).notifier)
+                            .loadMore(),
+                  child: Text(feed.isLoadingMore ? 'Loading…' : 'Load more'),
                 ),
             ],
           ),
@@ -154,287 +109,248 @@ class _SellerAuctionsScreenState extends State<SellerAuctionsScreen> {
       ],
     );
   }
-}
 
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: selected
-          ? AppColors.selectedFill(context)
-          : AppColors.card(context),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(999),
-        side: BorderSide(
-          color: selected
-              ? AppColors.selectedFill(context)
-              : AppColors.border(context),
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w700,
-              color: selected
-                  ? AppColors.onSelected(context)
-                  : AppColors.textPrimary(context),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AuctionCard extends StatelessWidget {
-  const _AuctionCard({
-    required this.auction,
-    required this.expanded,
-    required this.onToggleBids,
-  });
-
-  final SellerAuction auction;
-  final bool expanded;
-  final VoidCallback onToggleBids;
-
-  String _statusLabel(BuildContext context) => switch (auction.status) {
-    SellerAuctionStatus.active => context.tr(RemainingL10n.active),
-    SellerAuctionStatus.upcoming => context.tr(RemainingL10n.upcoming),
-    SellerAuctionStatus.ended => context.tr(RemainingL10n.ended),
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.card(context),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppColors.border(context)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 8,
-              children: [
-                _Pill(label: auction.category),
-                _Pill(label: _statusLabel(context)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              auction.productLabel,
-              style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              context.tr(RemainingL10n.auctionBidSummary, {
-                'id': auction.id,
-                'minBid': auction.minBid,
-                'currentBid': auction.currentBid,
-              }),
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondary(context),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.schedule,
-                  size: 16,
-                  color: AppColors.textMuted(context),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    '${auction.startsAt} → ${auction.endsAt}',
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.textMuted(context),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 16,
-              children: [
-                TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.open_in_new, size: 16),
-                  label: Text(context.tr(RemainingL10n.viewPublicPage)),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.info,
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary(context),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  child: Text(
-                    context.tr(RemainingL10n.viewProduct),
-                    style: AppTypography.caption.copyWith(
-                      decoration: TextDecoration.underline,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Divider(height: 24),
-            InkWell(
-              onTap: onToggleBids,
-              child: Row(
-                children: [
-                  Icon(
-                    expanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${auction.bids.length} bids · Highest: ${auction.currentBid}',
-                    style: AppTypography.label.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (expanded) ...[
-              const SizedBox(height: 10),
-              if (auction.bids.isEmpty)
-                Text(
-                  context.tr(RemainingL10n.noBids),
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMuted(context),
-                  ),
-                )
-              else
-                for (final bid in auction.bids) ...[
-                  _BidTile(bid: bid),
-                  const SizedBox(height: 8),
-                ],
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _header(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
         color: AppColors.surface(context),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Text(
-        label,
-        style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-}
-
-class _BidTile extends StatelessWidget {
-  const _BidTile({required this.bid});
-
-  final SellerAuctionBid bid;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface(context),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                bid.amount,
-                style: AppTypography.title.copyWith(
-                  color: AppColors.info,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              if (bid.isHighest) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    context.tr(RemainingL10n.highest),
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.success,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 10,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 4),
           Text(
-            '${bid.bidder} · ${bid.email}',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary(context),
-            ),
+            context.tr(RemainingL10n.sellerAuctions),
+            style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
           ),
+          const SizedBox(height: 10),
           Text(
-            bid.at,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-              fontSize: 11,
-            ),
+            context.tr(RemainingL10n.manageYourLiveAuctionsViewAll),
+            style: AppTypography.title,
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: () async {
+              final created = await showSellerAuctionCreateSheet(context);
+              if (created && mounted) await _refresh();
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Create auction'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _toggle(String id) async {
+    setState(() {
+      if (_expanded.contains(id)) {
+        _expanded.remove(id);
+        return;
+      }
+      _expanded.add(id);
+    });
+    if (_bids.containsKey(id) || !_expanded.contains(id)) return;
+    setState(() => _loadingBids.add(id));
+    final result = await ref.read(auctionRepositoryProvider).bids(id);
+    if (!mounted) return;
+    setState(() {
+      _loadingBids.remove(id);
+      if (result case Success(:final value)) {
+        _bids[id] = value;
+      }
+    });
+  }
+
+  Future<void> _refresh() {
+    return ref.read(auctionFeedProvider(_query).notifier).refresh();
+  }
+}
+
+class _SellerAuctionCard extends ConsumerWidget {
+  const _SellerAuctionCard({
+    required this.auction,
+    required this.expanded,
+    required this.loadingBids,
+    required this.onToggle,
+    required this.onChanged,
+    this.bids,
+  });
+
+  final AuctionListing auction;
+  final bool expanded;
+  final bool loadingBids;
+  final List<AuctionBid>? bids;
+  final VoidCallback onToggle;
+  final Future<void> Function() onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.s16),
+      decoration: BoxDecoration(
+        color: AppColors.surface(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            auction.phaseLabel,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.bronze,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(auction.title, style: AppTypography.title),
+          Text(
+            '${auction.productType} · ${AppCurrency.usd(auction.currentBid)}',
+            style: AppTypography.caption,
+          ),
+          if (auction.endTime != null)
+            Text(
+              'Ends ${auctionWhen(auction.endTime!)}',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textMuted(context),
+              ),
+            ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              TextButton(
+                onPressed: () =>
+                    context.push(AppRouteNames.auctionDetailPath(auction.id)),
+                child: const Text('Open'),
+              ),
+              TextButton(onPressed: onToggle, child: const Text('Bids')),
+              if (auction.isLive)
+                TextButton(
+                  onPressed: () => _act(
+                    context,
+                    ref,
+                    () => ref.read(auctionRepositoryProvider).end(auction.id),
+                  ),
+                  child: const Text('End'),
+                ),
+              if (auction.awaitingSellerDecision)
+                TextButton(
+                  onPressed: () => _act(
+                    context,
+                    ref,
+                    () => ref.read(auctionRepositoryProvider).accept(
+                      auctionId: auction.id,
+                    ),
+                  ),
+                  child: const Text('Accept'),
+                ),
+              if (auction.awaitingSellerDecision || auction.isEnded)
+                TextButton(
+                  onPressed: () => _reject(context, ref),
+                  child: const Text('Reject'),
+                ),
+              if (!auction.isSold)
+                TextButton(
+                  onPressed: () => _act(
+                    context,
+                    ref,
+                    () => ref.read(auctionRepositoryProvider).delete(auction.id),
+                  ),
+                  child: const Text('Delete'),
+                ),
+            ],
+          ),
+          if (expanded) ...[
+            const Divider(),
+            if (loadingBids)
+              const LinearProgressIndicator()
+            else if (bids == null || bids!.isEmpty)
+              const Text('No bids yet.')
+            else
+              for (final bid in bids!)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(AppCurrency.usd(bid.amount)),
+                  subtitle: Text(bid.buyerName ?? bid.buyerId),
+                  trailing: auction.awaitingSellerDecision
+                      ? TextButton(
+                          onPressed: () => _act(
+                            context,
+                            ref,
+                            () => ref
+                                .read(auctionRepositoryProvider)
+                                .selectWinner(
+                                  auctionId: auction.id,
+                                  bidderId: bid.buyerId,
+                                ),
+                          ),
+                          child: const Text('Select'),
+                        )
+                      : null,
+                ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _reject(BuildContext context, WidgetRef ref) async {
+    final action = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reject outcome'),
+        content: const Text('Restart the auction or remove the listing.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'remove'),
+            child: const Text('Remove'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'restart'),
+            child: const Text('Restart'),
+          ),
+        ],
+      ),
+    );
+    if (action == null || !context.mounted) return;
+    DateTime? start;
+    DateTime? end;
+    if (action == 'restart') {
+      final now = DateTime.now();
+      start = now.add(const Duration(minutes: 5));
+      end = now.add(const Duration(days: 7));
+    }
+    await _act(
+      context,
+      ref,
+      () => ref.read(auctionRepositoryProvider).reject(
+        auctionId: auction.id,
+        action: action,
+        startTime: start,
+        endTime: end,
+        minimumBid: auction.minimumBid,
+        reservePrice: auction.reservePrice,
+      ),
+    );
+  }
+
+  Future<void> _act(
+    BuildContext context,
+    WidgetRef ref,
+    Future<Result<AuctionMutation, Failure>> Function() call,
+  ) async {
+    final result = await call();
+    if (!context.mounted) return;
+    final message = switch (result) {
+      Success(:final value) => value.message,
+      ResultFailure(:final failure) => failure.message,
+    };
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+    if (result is Success) await onChanged();
   }
 }

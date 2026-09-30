@@ -8,6 +8,7 @@ import 'core/theme/theme_preference_provider.dart';
 import 'core/widgets/keyboard_aware.dart';
 import 'features/ai_chat/presentation/widgets/gem_ai_overlay.dart';
 import 'features/auth/application/user_profile_providers.dart';
+import 'features/notifications/application/notifications_provider.dart';
 
 /// The root application widget configuring themes and GoRouter navigation.
 class GemWorldApp extends ConsumerWidget {
@@ -17,6 +18,7 @@ class GemWorldApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final darkMode = ref.watch(themePreferenceProvider);
     final locale = ref.watch(localePreferenceProvider);
+    ref.watch(notificationSessionProvider);
 
     return MaterialApp.router(
       onGenerateTitle: (context) => context.tr(CoreL10n.appTitle),

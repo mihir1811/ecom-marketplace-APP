@@ -15,9 +15,24 @@ import '../../domain/models/product_detail.dart';
 
 /// Price block — the highest-priority number on the page.
 class ProductDetailPrice extends ConsumerStatefulWidget {
-  const ProductDetailPrice({required this.detail, super.key});
+  const ProductDetailPrice({
+    required this.detail,
+    this.amountOverride,
+    this.showCatalogDiscount = true,
+    this.showWishlist = true,
+    super.key,
+  });
 
   final ProductDetail detail;
+
+  /// Replaces the catalog sale amount. Used for the highest auction bid.
+  final double? amountOverride;
+
+  /// When false, the struck-through list price and discount badge are hidden.
+  final bool showCatalogDiscount;
+
+  /// Heart control. Auction detail hides it.
+  final bool showWishlist;
 
   @override
   ConsumerState<ProductDetailPrice> createState() => _ProductDetailPriceState();
@@ -61,17 +76,21 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
         ? null
         : '${price.currencySymbol}${price.unitAmountLabel} $localizedUnit';
     final discount = price.discountPercent;
-    final hasDiscount = price.hasDiscount;
-    final formatAmount = price.displayAmountIsListPrice
-        ? formatGroupedWhole
-        : formatCatalogPrice;
+    final override = widget.amountOverride;
+    final suppressDiscount = !widget.showCatalogDiscount || override != null;
+    final hasDiscount = !suppressDiscount && price.hasDiscount;
+    final formatAmount = override != null
+        ? formatCatalogPrice
+        : (price.displayAmountIsListPrice
+              ? formatGroupedWhole
+              : formatCatalogPrice);
 
     // Catalog lot price from API — never scale with melee pcs/carat draft.
-    final amount = price.displayAmount;
+    final amount = override ?? price.displayAmount;
 
     late final String saleLabel;
     late final String? listLabel;
-    if (price.isOnRequest) {
+    if (price.isOnRequest && override == null) {
       saleLabel = price.display;
       listLabel = null;
     } else if (!hasDiscount) {
@@ -161,26 +180,27 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _ActionIcon(
-                  icon: wishlisted ? Icons.favorite : Icons.favorite_border,
-                  tooltip: wishlisted
-                      ? 'Remove from wishlist'
-                      : 'Save to wishlist',
-                  tint: wishlisted
-                      ? AppColors.terracotta
-                      : AppColors.textPrimary(context),
-                  onTap: () {
-                    toggleWishlistItem(
-                      context,
-                      ref,
-                      detail.toWishlistItem(),
-                      addedMessage: 'Saved to wishlist',
-                      removedMessage: 'Removed from wishlist',
-                    );
-                  },
-                ),
+                if (widget.showWishlist)
+                  _ActionIcon(
+                    icon: wishlisted ? Icons.favorite : Icons.favorite_border,
+                    tooltip: wishlisted
+                        ? 'Remove from wishlist'
+                        : 'Save to wishlist',
+                    tint: wishlisted
+                        ? AppColors.terracotta
+                        : AppColors.textPrimary(context),
+                    onTap: () {
+                      toggleWishlistItem(
+                        context,
+                        ref,
+                        detail.toWishlistItem(),
+                        addedMessage: 'Saved to wishlist',
+                        removedMessage: 'Removed from wishlist',
+                      );
+                    },
+                  ),
                 if (canChat) ...[
-                  const SizedBox(width: AppSpacing.s8),
+                  if (widget.showWishlist) const SizedBox(width: AppSpacing.s8),
                   _ActionIcon(
                     icon: Icons.chat_bubble_outline,
                     tooltip: context.tr(CatalogL10n.chatWithSeller),
@@ -188,7 +208,8 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
                     onTap: _openChat,
                   ),
                 ],
-                const SizedBox(width: AppSpacing.s8),
+                if (widget.showWishlist || canChat)
+                  const SizedBox(width: AppSpacing.s8),
                 _ActionIcon(
                   icon: Icons.share_outlined,
                   tooltip: context.tr(CatalogL10n.share),
@@ -204,7 +225,7 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
             ),
           ],
         ),
-        if (unit != null) ...[
+        if (unit != null && override == null) ...[
           const SizedBox(height: AppSpacing.s8),
           Text(
             unit,

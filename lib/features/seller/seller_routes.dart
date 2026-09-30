@@ -22,6 +22,7 @@ import 'presentation/screens/seller_promotions_screen.dart';
 import 'presentation/widgets/seller_layout.dart';
 import '../reference/presentation/screens/seller_references_screen.dart';
 import '../wallet/presentation/screens/seller_wallet_screen.dart';
+import '../notifications/presentation/screens/notifications_screen.dart';
 
 /// Modular routes for the authenticated seller workspace.
 ///
@@ -100,6 +101,10 @@ final List<RouteBase> sellerRoutes = [
         path: AppRouteNames.sellerHelpCenter,
         builder: (context, state) =>
             const SellerHelpCenterScreen(showHeader: false),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerNotifications,
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerReferences,

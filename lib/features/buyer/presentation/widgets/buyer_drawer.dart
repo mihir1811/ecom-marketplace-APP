@@ -12,6 +12,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/profile_avatar.dart';
+import '../../../notifications/application/notifications_provider.dart';
 
 /// Buyer-side account drawer (home + buyer screens).
 class BuyerDrawer extends ConsumerWidget {
@@ -52,9 +53,25 @@ class BuyerDrawer extends ConsumerWidget {
       icon: Icons.mail_outline,
     ),
     const BuyerDrawerItem(
+      route: AppRouteNames.buyerNotifications,
+      label: 'Notifications',
+      icon: Icons.notifications_none,
+    ),
+    const BuyerDrawerItem(
       route: AppRouteNames.buyerHelpCenter,
       label: AccountCommerceL10n.helpCenterCaps,
       icon: Icons.help_outline,
+    ),
+    const BuyerDrawerItem(
+      route: AppRouteNames.auctions,
+      label: 'Auctions',
+      icon: Icons.gavel_outlined,
+    ),
+    const BuyerDrawerItem(
+      route: AppRouteNames.auctionActivity,
+      label: 'My bids',
+      icon: Icons.price_change_outlined,
+      requiresVerified: true,
     ),
     const BuyerDrawerItem(
       route: AppRouteNames.buyerWishlist,
@@ -106,6 +123,7 @@ class BuyerDrawer extends ConsumerWidget {
       ),
     );
     final currentPath = GoRouterState.of(context).uri.path;
+    final unread = ref.watch(notificationUnreadCountProvider);
     final items = <BuyerDrawerItem>[
       _buyerItems.first,
       if (auth.isSeller && auth.showProtected) _sellerDashboardItem,
@@ -219,6 +237,18 @@ class BuyerDrawer extends ConsumerWidget {
                                 ),
                               ),
                             ),
+                            if (item.route ==
+                                    AppRouteNames.buyerNotifications &&
+                                unread > 0)
+                              Text(
+                                unread > 99 ? '99+' : '$unread',
+                                style: AppTypography.caption.copyWith(
+                                  color: isSelected
+                                      ? AppColors.navOnSelected(context)
+                                      : AppColors.bronze,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             if (item.isSellerEntry)
                               Icon(
                                 Icons.open_in_new,

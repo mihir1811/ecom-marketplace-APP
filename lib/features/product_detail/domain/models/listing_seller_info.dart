@@ -105,8 +105,9 @@ ListingSellerInfo? listingSellerFromMap(Object? raw) {
   if (displayName == null && sellerId == null && userId == null) return null;
 
   final city = _str(map['city']);
+  final state = _str(map['state']);
   final country = _str(map['country']);
-  final location = [city, country].where((p) => p != null).join(', ');
+  final location = [city, state, country].where((p) => p != null).join(', ');
 
   return ListingSellerInfo(
     id: sellerId,
