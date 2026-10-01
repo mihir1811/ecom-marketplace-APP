@@ -94,6 +94,7 @@ class PaymentOrder {
     this.items = const [],
     this.pricing,
     this.sellers = const [],
+    this.sellerDecisions = const [],
   });
 
   final String id;
@@ -109,6 +110,16 @@ class PaymentOrder {
   final List<PaymentOrderItem> items;
   final PaymentOrderPricing? pricing;
   final List<PaymentOrderSeller> sellers;
+
+  /// Each seller's accept / reject decision, when the API includes it.
+  final List<PaymentOrderSellerDecision> sellerDecisions;
+
+  PaymentOrderSellerDecision? decisionFor(String sellerId) {
+    for (final d in sellerDecisions) {
+      if (d.sellerId == sellerId) return d;
+    }
+    return null;
+  }
 
   String get primaryProductLabel =>
       items.isEmpty ? 'Order' : items.map((e) => e.name).join(', ');
@@ -173,6 +184,40 @@ class PaymentOrderPricing {
   final double exchangeRate;
   final double subtotalInr;
   final double totalInr;
+}
+
+/// Seller approval states from Swagger (`/seller/orders` status filter).
+abstract final class SellerDecisionStatuses {
+  static const pending = 'PENDING';
+  static const accepted = 'ACCEPTED';
+  static const rejected = 'REJECTED';
+
+  static const all = {pending, accepted, rejected};
+}
+
+/// One seller's decision on their portion of a marketplace order.
+class PaymentOrderSellerDecision {
+  const PaymentOrderSellerDecision({
+    required this.sellerId,
+    required this.status,
+    this.sellerName,
+    this.reason,
+    this.sellerNote,
+    this.decidedAt,
+  });
+
+  final String sellerId;
+
+  /// One of [SellerDecisionStatuses].
+  final String status;
+  final String? sellerName;
+  final String? reason;
+  final String? sellerNote;
+  final DateTime? decidedAt;
+
+  bool get isPending => status == SellerDecisionStatuses.pending;
+  bool get isAccepted => status == SellerDecisionStatuses.accepted;
+  bool get isRejected => status == SellerDecisionStatuses.rejected;
 }
 
 class PaymentOrderSeller {

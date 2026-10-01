@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +10,9 @@ import '../../../core/push/push_logout_hook.dart';
 import '../data/repositories/notification_repository_impl.dart';
 import '../domain/models/app_notification.dart';
 import '../domain/repositories/notification_repository.dart';
+import 'chat_message_alerts.dart';
+import 'in_app_notification_provider.dart';
+import 'push_messaging_service.dart';
 
 /// Badge count for the bell. `0` when signed out.
 final notificationUnreadCountProvider =
@@ -163,6 +168,14 @@ class NotificationListNotifier extends Notifier<NotificationListState> {
     }
   }
 
+  /// Puts a foreground push at the top of a loaded inbox without refetching.
+  /// No-op when that row is already listed.
+  void insertFromPush(AppNotification notification) {
+    if (notification.id.isEmpty || state.isLoading) return;
+    if (state.items.any((item) => item.id == notification.id)) return;
+    state = state.copyWith(items: [notification, ...state.items]);
+  }
+
   Future<String?> markRead(String id) async {
     final result = await _repo.markRead(id: id);
     return switch (result) {
@@ -230,19 +243,26 @@ class NotificationListNotifier extends Notifier<NotificationListState> {
   }
 }
 
-/// Registers the stored device after sign-in and unregisters it before logout.
+/// Starts push listeners, registers this device's FCM token after sign-in
+/// and unregisters it before logout.
 final notificationSessionProvider = Provider<void>((ref) {
-  PushLogoutHook.beforeLogout = () {
-    return ref.read(notificationRepositoryProvider).unregisterStoredDevice();
-  };
+  final push = ref.watch(pushMessagingProvider);
+  unawaited(push.start());
+  // Live chat messages from the socket, on every screen. `listen` keeps it
+  // alive without rebuilding this session (and re-registering the device).
+  ref.listen(chatMessageAlertsProvider, (_, _) {});
+
+  PushLogoutHook.beforeLogout = push.unregisterDevice;
   ref.onDispose(() => PushLogoutHook.beforeLogout = null);
 
   ref.listen(authProvider.select((s) => s.isAuthenticated), (prev, next) {
     if (next) {
-      ref.read(notificationRepositoryProvider).registerStoredDevice();
+      unawaited(push.registerDevice());
       ref.read(notificationUnreadCountProvider.notifier).refresh();
-    } else {
+    } else if (prev == true) {
+      unawaited(push.stopTokenSync());
+      ref.read(inAppNotificationProvider.notifier).clear();
       ref.read(notificationUnreadCountProvider.notifier).setCount(0);
     }
-  });
+  }, fireImmediately: true);
 });

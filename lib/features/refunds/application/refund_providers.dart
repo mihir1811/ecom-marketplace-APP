@@ -60,6 +60,12 @@ abstract class _RefundListNotifier extends Notifier<RefundListState> {
     CancelToken? cancelToken,
   });
 
+  /// When true, [refresh] follows every page (up to [maxPages]) so screens
+  /// can count, sort and filter the whole set without further requests.
+  bool get loadsAllPages => false;
+
+  static const maxPages = 20;
+
   @override
   RefundListState build() {
     ref.watch(authProvider.select((s) => s.user?.id));
@@ -70,25 +76,51 @@ abstract class _RefundListNotifier extends Notifier<RefundListState> {
 
   Future<void> refresh() async {
     _cancelToken?.cancel('refresh');
-    _cancelToken = CancelToken();
+    final token = _cancelToken = CancelToken();
     state = state.copyWith(isLoading: true, clearError: true);
 
-    final result = await fetchPage(page: 1, cancelToken: _cancelToken);
+    final result = await fetchPage(page: 1, cancelToken: token);
     switch (result) {
-      case Success(value: final page):
+      case Success(value: var page):
+        final items = [...page.items];
+        String? partialError;
+        while (loadsAllPages && page.hasMore && page.currentPage < maxPages) {
+          final next = await fetchPage(
+            page: page.currentPage + 1,
+            cancelToken: token,
+          );
+          if (token.isCancelled) return;
+          if (next case Success(:final value)) {
+            final known = items.map((r) => r.id).toSet();
+            items.addAll(value.items.where((r) => !known.contains(r.id)));
+            page = value;
+          } else if (next case ResultFailure(:final failure)) {
+            partialError = failure.message;
+            break;
+          }
+        }
         state = RefundListState(
-          items: page.items,
+          items: items,
           total: page.total,
           currentPage: page.currentPage,
           hasMore: page.hasMore,
+          errorMessage: partialError,
         );
       case ResultFailure(failure: final failure):
         if (failure is NetworkFailure && failure.isCancelled) return;
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
     }
+  }
+
+  /// Applies a server-confirmed update in place, so the refund moves to its
+  /// new tab before the follow-up reload lands.
+  void replace(RefundRequest refund) {
+    state = state.copyWith(
+      items: [
+        for (final r in state.items)
+          r.id == refund.id ? refund.withPartiesFrom(r) : r,
+      ],
+    );
   }
 
   Future<void> loadMore() async {
@@ -124,25 +156,44 @@ class BuyerRefundListNotifier extends _RefundListNotifier {
   }
 }
 
+/// Every refund request for the seller's orders (the Orders screen splits
+/// them into Requests / Approved / Rejected locally).
 class SellerRefundListNotifier extends _RefundListNotifier {
+  @override
+  bool get loadsAllPages => true;
+
   @override
   Future<Result<RefundListPage, Failure>> fetchPage({
     required int page,
     CancelToken? cancelToken,
   }) {
-    return _repo.listSeller(page: page, cancelToken: cancelToken);
+    return _repo.listSeller(page: page, limit: 50, cancelToken: cancelToken);
   }
 }
 
 final buyerRefundListProvider =
     NotifierProvider<BuyerRefundListNotifier, RefundListState>(
-  BuyerRefundListNotifier.new,
-);
+      BuyerRefundListNotifier.new,
+    );
 
 final sellerRefundListProvider =
     NotifierProvider<SellerRefundListNotifier, RefundListState>(
-  SellerRefundListNotifier.new,
-);
+      SellerRefundListNotifier.new,
+    );
+
+/// The buyer's refund requests for one order (every seller on it).
+final orderRefundsProvider = FutureProvider.autoDispose
+    .family<List<RefundRequest>, String>((ref, orderId) async {
+      final result = await ref
+          .watch(refundRepositoryProvider)
+          .listMine(page: 1, limit: 50, orderId: orderId);
+      return switch (result) {
+        // Filter client-side too in case the server ignored `orderId`.
+        Success(value: final page) =>
+          page.items.where((r) => r.orderId == orderId).toList(),
+        ResultFailure(failure: final failure) => throw failure,
+      };
+    });
 
 class RefundMutationNotifier extends Notifier<AsyncValue<void>> {
   @override
@@ -155,6 +206,11 @@ class RefundMutationNotifier extends Notifier<AsyncValue<void>> {
     required String sellerId,
     required String reason,
   }) async {
+    if (state.isLoading) {
+      return Result.failure(
+        const ValidationFailure('A refund request is already being sent.'),
+      );
+    }
     state = const AsyncValue.loading();
     final result = await _repo.create(
       orderId: orderId,
@@ -162,31 +218,39 @@ class RefundMutationNotifier extends Notifier<AsyncValue<void>> {
       reason: reason,
     );
     _apply(result);
+    // A failure can mean "already requested"; reload server truth either way.
+    ref.invalidate(orderRefundsProvider(orderId));
     if (result case Success()) {
       ref.invalidate(buyerRefundListProvider);
     }
     return result;
   }
 
-  Future<Result<RefundRequest, Failure>> accept(String id) async {
-    state = const AsyncValue.loading();
-    final result = await _repo.accept(id: id);
-    _apply(result);
-    if (result case Success()) {
-      ref.invalidate(sellerRefundListProvider);
-    }
-    return result;
-  }
+  Future<Result<RefundRequest, Failure>> accept(String id) =>
+      _sellerDecision(() => _repo.accept(id: id));
 
   Future<Result<RefundRequest, Failure>> reject(
     String id, {
     String? sellerNote,
-  }) async {
+  }) => _sellerDecision(() => _repo.reject(id: id, sellerNote: sellerNote));
+
+  Future<Result<RefundRequest, Failure>> _sellerDecision(
+    Future<Result<RefundRequest, Failure>> Function() call,
+  ) async {
+    if (state.isLoading) {
+      return Result.failure(
+        const ValidationFailure('A refund decision is already being sent.'),
+      );
+    }
     state = const AsyncValue.loading();
-    final result = await _repo.reject(id: id, sellerNote: sellerNote);
+    final result = await call();
     _apply(result);
-    if (result case Success()) {
-      ref.invalidate(sellerRefundListProvider);
+    if (ref.exists(sellerRefundListProvider)) {
+      if (result case Success(:final value)) {
+        ref.read(sellerRefundListProvider.notifier).replace(value);
+      }
+      // Success or "already processed": reload server truth either way.
+      ref.read(sellerRefundListProvider.notifier).refresh();
     }
     return result;
   }
@@ -204,13 +268,15 @@ class RefundMutationNotifier extends Notifier<AsyncValue<void>> {
   void _apply(Result<RefundRequest, Failure> result) {
     state = switch (result) {
       Success() => const AsyncValue.data(null),
-      ResultFailure(failure: final failure) =>
-        AsyncValue.error(failure, StackTrace.current),
+      ResultFailure(failure: final failure) => AsyncValue.error(
+        failure,
+        StackTrace.current,
+      ),
     };
   }
 }
 
 final refundMutationProvider =
     NotifierProvider<RefundMutationNotifier, AsyncValue<void>>(
-  RefundMutationNotifier.new,
-);
+      RefundMutationNotifier.new,
+    );

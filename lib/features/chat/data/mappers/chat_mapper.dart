@@ -1,3 +1,4 @@
+import '../../../../core/utils/media_url.dart';
 import '../../domain/models/chat_message.dart';
 import '../../domain/models/chat_product_type.dart';
 import '../../domain/models/chat_thread.dart';
@@ -11,7 +12,7 @@ abstract final class ChatMapper {
     final fromId = json['fromId']?.toString() ?? '';
     final createdAt =
         DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
-            DateTime.fromMillisecondsSinceEpoch(0);
+        DateTime.fromMillisecondsSinceEpoch(0);
     final readAt = DateTime.tryParse(json['readAt']?.toString() ?? '');
 
     return ChatMessage(
@@ -19,7 +20,8 @@ abstract final class ChatMapper {
       fromId: fromId,
       toId: json['toId']?.toString() ?? '',
       body: json['message']?.toString() ?? '',
-      fileUrl: json['fileUrl']?.toString(),
+      // Uploads normally return absolute URLs; a bare path loads from the API.
+      fileUrl: MediaUrl.resolve(json['fileUrl']?.toString()),
       messageType: _messageType(json['messageType']?.toString()),
       productId: json['productId']?.toString(),
       productType: ChatProductType.fromApi(json['productType']?.toString()),
@@ -58,7 +60,8 @@ abstract final class ChatMapper {
       }
     }
 
-    final type = ChatProductType.fromApi(json['productType']?.toString()) ??
+    final type =
+        ChatProductType.fromApi(json['productType']?.toString()) ??
         ChatProductType.diamond;
     final priceRaw = json['productPrice'];
     double? price;
@@ -104,8 +107,7 @@ abstract final class ChatMapper {
       );
       final existing = map[id];
       final preview = _preview(msg);
-      final unreadBump =
-          !msg.isMine && !msg.isRead ? 1 : 0;
+      final unreadBump = !msg.isMine && !msg.isRead ? 1 : 0;
 
       if (existing == null || msg.createdAt.isAfter(existing.lastMessageAt)) {
         map[id] = ChatThread(
@@ -151,8 +153,7 @@ abstract final class ChatMapper {
 
   static String _productNameHint(Map<String, dynamic> json) {
     final nested = json['product'];
-    final nestedMap =
-        nested is Map ? Map<String, dynamic>.from(nested) : null;
+    final nestedMap = nested is Map ? Map<String, dynamic>.from(nested) : null;
     final candidates = <Object?>[
       json['productName'],
       json['productTitle'],

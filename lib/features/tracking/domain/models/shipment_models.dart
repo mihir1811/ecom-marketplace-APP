@@ -8,6 +8,43 @@ abstract final class ShipmentStatuses {
   static const delivered = 'DELIVERED';
   static const cancelled = 'CANCELLED';
 
+  /// Forward order of a parcel; [cancelled] can end it at any point.
+  static const progression = [
+    processing,
+    packed,
+    shipped,
+    inTransit,
+    outForDelivery,
+    delivered,
+  ];
+
+  /// Delivered and cancelled shipments accept no further updates.
+  static bool isTerminal(String status) {
+    final normalized = status.trim().toUpperCase();
+    return normalized == delivered || normalized == cancelled;
+  }
+
+  /// Statuses a seller may move a shipment to from [current]: the same step
+  /// (to post a location / note) or any later one, plus cancel. Never
+  /// backwards; the backend still validates.
+  static List<String> nextOptions(String? current) {
+    if (current == null || current.trim().isEmpty) {
+      return [...progression, cancelled];
+    }
+    final normalized = current.trim().toUpperCase();
+    if (isTerminal(normalized)) return const [];
+    final index = progression.indexOf(normalized);
+    return [...progression.sublist(index < 0 ? 0 : index), cancelled];
+  }
+
+  static String label(String status) {
+    final words = status.trim().toLowerCase().split('_');
+    return words
+        .where((w) => w.isNotEmpty)
+        .map((w) => '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
+  }
+
   /// Refunds stop once the parcel reaches out-for-delivery or later.
   static bool blocksBuyerRefund(String status) {
     final normalized = status.trim().toUpperCase();

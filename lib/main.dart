@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'core/l10n/app_localizations.dart';
+import 'features/notifications/application/push_messaging_service.dart';
 
 void main() {
-  runZonedGuarded(() {
+  runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    
+    await PushMessagingService.initializeFirebase();
+
     // Layer 3 Error Boundary - Degrades gracefully in production rather than showing the red screen
     ErrorWidget.builder = (FlutterErrorDetails details) {
       return Builder(

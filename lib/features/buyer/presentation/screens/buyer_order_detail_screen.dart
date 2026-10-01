@@ -19,26 +19,70 @@ import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../payment/domain/models/payment_models.dart';
 import '../../../refunds/application/refund_providers.dart';
+import '../../../refunds/domain/models/refund_request.dart';
 import '../../../tracking/application/order_shipments_provider.dart';
 import '../../../tracking/domain/models/shipment_models.dart';
 import '../../application/buyer_orders_provider.dart';
 import '../widgets/buyer_layout.dart';
+import '../widgets/order_rejection_section.dart';
 import '../widgets/order_review_section.dart';
+import '../widgets/order_status_section.dart';
 import '../widgets/order_tracking_section.dart';
 
 /// Buyer order detail from GET /payment/orders/{orderId}.
-class BuyerOrderDetailScreen extends ConsumerWidget {
+///
+/// Seller decisions, shipments and refunds arrive as FCM pushes, which
+/// invalidate this order's providers (see `syncOrderViewsFromPush`), so the
+/// status updates in place. Returning to the app also reloads it, covering
+/// platforms without push.
+class BuyerOrderDetailScreen extends ConsumerStatefulWidget {
   const BuyerOrderDetailScreen({required this.orderId, super.key});
 
   final String orderId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BuyerOrderDetailScreen> createState() =>
+      _BuyerOrderDetailScreenState();
+}
+
+class _BuyerOrderDetailScreenState
+    extends ConsumerState<BuyerOrderDetailScreen> {
+  late final AppLifecycleListener _lifecycle;
+
+  String get orderId => widget.orderId;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: _reload);
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  Future<void> _reload() async {
+    ref.invalidate(orderShipmentsProvider(orderId));
+    ref.invalidate(orderRefundsProvider(orderId));
+    try {
+      ref.invalidate(buyerOrderDetailProvider(orderId));
+      await ref.read(buyerOrderDetailProvider(orderId).future);
+    } catch (_) {
+      // The error state below shows the failure.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final async = ref.watch(buyerOrderDetailProvider(orderId));
 
     return BuyerLayout(
       title: context.tr(AccountCommerceL10n.orderDetails),
       child: async.when(
+        skipLoadingOnReload: true,
+        skipLoadingOnRefresh: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) {
           final message = e is Failure
@@ -57,164 +101,176 @@ class BuyerOrderDetailScreen extends ConsumerWidget {
             ),
           );
         },
-        data: (order) => ListView(
-          padding: const EdgeInsets.all(AppSpacing.s16),
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Order',
-                    style: AppTypography.title.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: order.id));
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          context.tr(AccountCommerceL10n.orderIdCopied),
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.copy_outlined, size: 18),
-                  label: Text(context.tr(AccountCommerceL10n.copyOrderId)),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.bronze,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            _Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        data: (order) => RefreshIndicator(
+          onRefresh: _reload,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(AppSpacing.s16),
+            children: [
+              Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              order.items.length == 1
-                                  ? context.tr(AccountCommerceL10n.orderItem)
-                                  : context.tr(AccountCommerceL10n.itemsCount, {
-                                      'count': order.items.length,
-                                    }),
-                              style: AppTypography.title.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              context.tr(AccountCommerceL10n.soldBy, {
-                                'seller': order.primarySellerName,
-                              }),
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.textSecondary(context),
-                              ),
-                            ),
-                          ],
-                        ),
+                  Expanded(
+                    child: Text(
+                      'Order',
+                      style: AppTypography.title.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
-                      const SizedBox(width: AppSpacing.s8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _StatusChip(status: order.status),
-                          if (order.createdAt != null) ...[
-                            const SizedBox(height: 6),
-                            Text(
-                              context.tr(AccountCommerceL10n.placedOn, {
-                                'date': _formatOrderDate(order.createdAt!),
-                              }),
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.textMuted(context),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  for (var i = 0; i < order.items.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 12),
-                    _ItemRow(
-                      item: order.items[i],
-                      showSeller:
-                          order.items.length > 1 &&
-                          (order.items[i].sellerName?.isNotEmpty ?? false),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
+                  ),
+                  TextButton.icon(
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: order.id));
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            context.tr(AccountCommerceL10n.orderIdCopied),
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.copy_outlined, size: 18),
+                    label: Text(context.tr(AccountCommerceL10n.copyOrderId)),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.bronze,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
                 ],
               ),
-            ),
-            if (order.pricing != null) ...[
+              const SizedBox(height: AppSpacing.s8),
+              _Card(child: OrderStatusSection(order: order)),
+              if (order.sellerDecisions.any((d) => d.isRejected)) ...[
+                const SizedBox(height: 12),
+                _Card(child: OrderRejectionSection(order: order)),
+              ],
               const SizedBox(height: 12),
               _Card(
-                child: _OrderPricingSummary(
-                  pricing: order.pricing!,
-                  amountUsd: order.amountUsd,
-                  amountInr: order.amount,
-                ),
-              ),
-              if (order.invoiceUrl != null && order.invoiceUrl!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (order.invoiceNumber != null &&
-                          order.invoiceNumber!.isNotEmpty) ...[
-                        Text(
-                          context.tr(AccountCommerceL10n.invoiceNumber, {
-                            'number': order.invoiceNumber,
-                          }),
-                          style: AppTypography.label.copyWith(
-                            fontWeight: FontWeight.w700,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                order.items.length == 1
+                                    ? context.tr(AccountCommerceL10n.orderItem)
+                                    : context.tr(
+                                        AccountCommerceL10n.itemsCount,
+                                        {'count': order.items.length},
+                                      ),
+                                style: AppTypography.title.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                context.tr(AccountCommerceL10n.soldBy, {
+                                  'seller': order.primarySellerName,
+                                }),
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.textSecondary(context),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.s12),
+                        const SizedBox(width: AppSpacing.s8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            _StatusChip(status: order.status),
+                            if (order.createdAt != null) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                context.tr(AccountCommerceL10n.placedOn, {
+                                  'date': _formatOrderDate(order.createdAt!),
+                                }),
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.textMuted(context),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ],
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.charcoal,
-                            foregroundColor: AppColors.warmWhite,
-                          ),
-                          onPressed: () => _downloadInvoice(context, order),
-                          icon: const Icon(Icons.download_outlined, size: 20),
-                          label: Text(
-                            context.tr(AccountCommerceL10n.downloadInvoice),
-                          ),
-                        ),
+                    ),
+                    const SizedBox(height: 14),
+                    for (var i = 0; i < order.items.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 12),
+                      _ItemRow(
+                        item: order.items[i],
+                        showSeller:
+                            order.items.length > 1 &&
+                            (order.items[i].sellerName?.isNotEmpty ?? false),
                       ),
                     ],
+                  ],
+                ),
+              ),
+              if (order.pricing != null) ...[
+                const SizedBox(height: 12),
+                _Card(
+                  child: _OrderPricingSummary(
+                    pricing: order.pricing!,
+                    amountUsd: order.amountUsd,
+                    amountInr: order.amount,
                   ),
                 ),
+                if (order.invoiceUrl != null &&
+                    order.invoiceUrl!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _Card(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (order.invoiceNumber != null &&
+                            order.invoiceNumber!.isNotEmpty) ...[
+                          Text(
+                            context.tr(AccountCommerceL10n.invoiceNumber, {
+                              'number': order.invoiceNumber,
+                            }),
+                            style: AppTypography.label.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.s12),
+                        ],
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.charcoal,
+                              foregroundColor: AppColors.warmWhite,
+                            ),
+                            onPressed: () => _downloadInvoice(context, order),
+                            icon: const Icon(Icons.download_outlined, size: 20),
+                            label: Text(
+                              context.tr(AccountCommerceL10n.downloadInvoice),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
+              const SizedBox(height: 12),
+              _Card(child: OrderTrackingSection(orderId: order.id)),
+              const SizedBox(height: 12),
+              _Card(child: _OrderRefundSection(order: order)),
+              const SizedBox(height: 12),
+              _Card(child: OrderReviewSection(order: order)),
+              const SizedBox(height: 24),
             ],
-            const SizedBox(height: 12),
-            _Card(child: OrderTrackingSection(orderId: order.id)),
-            const SizedBox(height: 12),
-            _Card(child: _OrderRefundSection(order: order)),
-            const SizedBox(height: 12),
-            _Card(child: OrderReviewSection(order: order)),
-            const SizedBox(height: 24),
-          ],
+          ),
         ),
       ),
     );
@@ -226,8 +282,12 @@ class _OrderRefundSection extends ConsumerWidget {
 
   final PaymentOrder order;
 
+  /// Sellers that rejected the order are handled by [OrderRejectionSection].
   List<({String sellerId, String sellerName})> get _sellerTargets {
-    final seen = <String>{};
+    final seen = <String>{
+      for (final d in order.sellerDecisions)
+        if (d.isRejected) d.sellerId,
+    };
     final targets = <({String sellerId, String sellerName})>[];
     for (final seller in order.sellers) {
       if (seller.id.isEmpty || !seen.add(seller.id)) continue;
@@ -246,7 +306,10 @@ class _OrderRefundSection extends ConsumerWidget {
     return targets;
   }
 
-  bool get _isPaid => order.status.toUpperCase() == 'PAID';
+  bool get _isPaid {
+    final status = order.status.toUpperCase();
+    return status == 'PAID' || status == 'PARTIALLY_REFUNDED';
+  }
 
   bool _shipmentBlocksRefund(List<Shipment> shipments) {
     return shipments.any((s) => ShipmentStatuses.blocksBuyerRefund(s.status));
@@ -311,6 +374,17 @@ class _OrderRefundSection extends ConsumerWidget {
     }
 
     final mutating = ref.watch(refundMutationProvider).isLoading;
+    final refunds = ref.watch(orderRefundsProvider(order.id)).asData?.value;
+    RefundRequest? activeRefundFor(String sellerId) {
+      for (final r in refunds ?? const <RefundRequest>[]) {
+        if (r.sellerId == sellerId &&
+            (r.status == RefundStatus.pending ||
+                r.status == RefundStatus.accepted)) {
+          return r;
+        }
+      }
+      return null;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,25 +403,46 @@ class _OrderRefundSection extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         for (final target in targets) ...[
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: mutating
-                  ? null
-                  : () => _requestRefund(
-                      context,
-                      ref,
-                      sellerId: target.sellerId,
-                      sellerName: target.sellerName,
+          if (activeRefundFor(target.sellerId) case final active?)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  const Icon(Icons.schedule, size: 18, color: AppColors.info),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      active.status == RefundStatus.pending
+                          ? 'Refund requested from ${target.sellerName}'
+                          : 'Refund processing from ${target.sellerName}',
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-              icon: const Icon(Icons.replay, size: 18),
-              label: Text(
-                context.tr(AccountCommerceL10n.requestRefund, {
-                  'seller': target.sellerName,
-                }),
+                  ),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: mutating
+                    ? null
+                    : () => _requestRefund(
+                        context,
+                        ref,
+                        sellerId: target.sellerId,
+                        sellerName: target.sellerName,
+                      ),
+                icon: const Icon(Icons.replay, size: 18),
+                label: Text(
+                  context.tr(AccountCommerceL10n.requestRefund, {
+                    'seller': target.sellerName,
+                  }),
+                ),
               ),
             ),
-          ),
           const SizedBox(height: 8),
         ],
         TextButton(
@@ -435,7 +530,7 @@ class _StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        status,
+        'Payment · ${_titleCase(status)}',
         style: AppTypography.caption.copyWith(
           color: AppColors.info,
           fontWeight: FontWeight.w700,
@@ -521,6 +616,13 @@ class _ItemRow extends StatelessWidget {
     );
   }
 }
+
+String _titleCase(String raw) => raw
+    .toLowerCase()
+    .split('_')
+    .where((w) => w.isNotEmpty)
+    .map((w) => '${w[0].toUpperCase()}${w.substring(1)}')
+    .join(' ');
 
 String _formatOrderDate(DateTime date) {
   return '${date.day}/${date.month}/${date.year}';

@@ -39,9 +39,6 @@ abstract class NotificationRepository {
   /// Stops pushes for [token]. Does not send an auth header.
   Future<Result<void, Failure>> unregisterDevice({required String token});
 
-  /// Re-registers a previously saved token. No-op when none is stored.
-  Future<Result<void, Failure>> registerStoredDevice();
-
   /// Unregisters the saved token before logout. No-op when none is stored.
   Future<void> unregisterStoredDevice();
 }

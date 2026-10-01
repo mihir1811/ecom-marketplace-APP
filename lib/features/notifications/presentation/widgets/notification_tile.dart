@@ -149,26 +149,31 @@ class _IconBubble extends StatelessWidget {
         color: AppColors.bg(context),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
       ),
-      child: Icon(_iconFor(type), size: 22, color: AppColors.bronze),
+      child: Icon(
+        notificationTypeIcon(type),
+        size: 22,
+        color: AppColors.bronze,
+      ),
     );
   }
+}
 
-  IconData _iconFor(String type) {
-    return switch (type) {
-      'CHAT_MESSAGE' => Icons.chat_bubble_outline,
-      'ORDER_ACCEPTED' || 'ORDER_REJECTED' => Icons.local_shipping_outlined,
-      'AUCTION_OUTBID' ||
-      'AUCTION_WON' ||
-      'AUCTION_NEW_BID' ||
-      'AUCTION_ENDED_SELLER' => Icons.gavel_outlined,
-      'OFFER_RECEIVED' ||
-      'OFFER_ACCEPTED' ||
-      'OFFER_REJECTED' => Icons.local_offer_outlined,
-      'HELP_CENTER_ANSWERED' => Icons.help_outline,
-      'ADMIN_BROADCAST' => Icons.campaign_outlined,
-      _ => Icons.notifications_none,
-    };
-  }
+/// Icon for a notification `type`, shared by inbox rows and the in-app banner.
+IconData notificationTypeIcon(String type) {
+  return switch (type) {
+    'CHAT_MESSAGE' => Icons.chat_bubble_outline,
+    'ORDER_ACCEPTED' || 'ORDER_REJECTED' => Icons.local_shipping_outlined,
+    'AUCTION_OUTBID' ||
+    'AUCTION_WON' ||
+    'AUCTION_NEW_BID' ||
+    'AUCTION_ENDED_SELLER' => Icons.gavel_outlined,
+    'OFFER_RECEIVED' ||
+    'OFFER_ACCEPTED' ||
+    'OFFER_REJECTED' => Icons.local_offer_outlined,
+    'HELP_CENTER_ANSWERED' => Icons.help_outline,
+    'ADMIN_BROADCAST' => Icons.campaign_outlined,
+    _ => Icons.notifications_none,
+  };
 }
 
 /// Short relative time for inbox rows.

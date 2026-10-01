@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
@@ -76,14 +78,24 @@ double? _socketAmount(Object? raw) {
 ///
 /// Joins through `CHAT_EVENT` (`JOIN_AUCTION_ROOM`, `JOIN_LIVE_AUCTIONS`,
 /// `JOIN_SELLER_AUCTIONS`) and listens for `AUCTION_BID` / `AUCTION_UPDATED`.
+///
+/// Rooms are per connection on the server, so they are rejoined on every
+/// connect. Events sent while disconnected are not replayed; [resync] fires
+/// after a reconnect so watchers can fetch once to catch up.
 class AuctionSocketClient {
   io.Socket? _socket;
+  AppLifecycleListener? _lifecycle;
   final _events = StreamController<AuctionSocketEvent>.broadcast();
+  final _resync = StreamController<void>.broadcast();
   final _auctionRooms = <String, int>{};
   final _sellerRooms = <String, int>{};
   var _liveCount = 0;
+  var _missedEvents = false;
 
   Stream<AuctionSocketEvent> get events => _events.stream;
+
+  /// Fires after the connection comes back from a drop.
+  Stream<void> get resync => _resync.stream;
 
   void watchAuction(String auctionId) {
     if (auctionId.isEmpty) return;
@@ -136,33 +148,64 @@ class AuctionSocketClient {
   }
 
   void _ensureConnected() {
-    final existing = _socket;
-    if (existing != null) {
-      if (existing.connected) _rejoin();
-      return;
-    }
+    if (_socket != null) return;
+    // websocket only: on Android/iOS socket_io_client has no HTTP polling
+    // transport, so listing `polling` first sends a websocket handshake with
+    // `transport=polling`, which the server rejects and the app never connects.
     final socket = io.io(
       ApiConfig.socketBaseUrl,
       io.OptionBuilder()
-          .setTransports(['polling', 'websocket'])
+          .setTransports(['websocket'])
           .enableForceNew()
           .disableAutoConnect()
           .enableReconnection()
           .build(),
     );
     _socket = socket;
-    socket.onConnect((_) => _rejoin());
-    socket.on('AUCTION_BID', (raw) {
-      final event = auctionSocketEventFromRaw(raw, kind: AuctionSocketKind.bid);
-      if (event != null && !_events.isClosed) _events.add(event);
+    socket.onConnect((_) {
+      _log('connected ${socket.id}');
+      _rejoin();
+      if (_missedEvents) {
+        _missedEvents = false;
+        if (!_resync.isClosed) _resync.add(null);
+      }
     });
-    socket.on('AUCTION_UPDATED', (raw) {
-      final event = auctionSocketEventFromRaw(
-        raw,
-        kind: AuctionSocketKind.updated,
-      );
-      if (event != null && !_events.isClosed) _events.add(event);
+    socket.onDisconnect((reason) {
+      _log('disconnected: $reason');
+      _missedEvents = true;
+      // The client does not auto-reconnect after a server-side disconnect.
+      if (reason == 'io server disconnect' && identical(_socket, socket)) {
+        socket.connect();
+      }
     });
+    socket.onConnectError((error) => _log('connect error: $error'));
+    socket.on('AUCTION_BID', (raw) => _dispatch(raw, AuctionSocketKind.bid));
+    socket.on(
+      'AUCTION_UPDATED',
+      (raw) => _dispatch(raw, AuctionSocketKind.updated),
+    );
+    // The server replies on MESSAGE when it rejects a CHAT_EVENT payload.
+    socket.on('MESSAGE', (raw) => _log('server message: $raw'));
+    _lifecycle = AppLifecycleListener(onResume: _onResume);
+    socket.connect();
+  }
+
+  void _dispatch(dynamic raw, AuctionSocketKind kind) {
+    final event = auctionSocketEventFromRaw(raw, kind: kind);
+    if (event == null) {
+      _log('ignored ${kind.name} payload: $raw');
+      return;
+    }
+    _log('${kind.name} ${event.auctionId} amount=${event.amount}');
+    if (!_events.isClosed) _events.add(event);
+  }
+
+  /// Back from background: skip the reconnect backoff if the link dropped.
+  /// A successful reconnect then fires [resync].
+  void _onResume() {
+    final socket = _socket;
+    if (socket == null || socket.connected) return;
+    _log('resumed while disconnected; reconnecting');
     socket.connect();
   }
 
@@ -178,22 +221,27 @@ class AuctionSocketClient {
     }
   }
 
+  /// Before the first connect this is a no-op; [_rejoin] sends it on connect.
   void _emit(String type, Map<String, dynamic> data) {
     final socket = _socket;
     if (socket == null || !socket.connected) return;
     socket.emit('CHAT_EVENT', jsonEncode({'type': type, 'data': data}));
+    _log('$type $data');
   }
 
   void _maybeDisconnect() {
     if (_auctionRooms.isNotEmpty || _liveCount > 0 || _sellerRooms.isNotEmpty) {
       return;
     }
+    _lifecycle?.dispose();
+    _lifecycle = null;
+    _missedEvents = false;
     final socket = _socket;
     _socket = null;
     if (socket == null) return;
-    socket.off('AUCTION_BID');
-    socket.off('AUCTION_UPDATED');
+    socket.clearListeners();
     socket.dispose();
+    _log('closed (no rooms watched)');
   }
 
   void dispose() {
@@ -202,6 +250,11 @@ class AuctionSocketClient {
     _liveCount = 0;
     _maybeDisconnect();
     if (!_events.isClosed) _events.close();
+    if (!_resync.isClosed) _resync.close();
+  }
+
+  static void _log(String message) {
+    if (kDebugMode) debugPrint('[AuctionSocket] $message');
   }
 }
 

@@ -161,6 +161,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                       : _RevenueLineChart(
                           values: snapshot.revenueSeries.values,
                           labels: snapshot.revenueSeries.labels,
+                          details: snapshot.revenueSeries.details,
                         ),
                 ),
                 const SizedBox(height: AppSpacing.s16),
@@ -539,10 +540,17 @@ class _AnalyticsCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _RevenueLineChart extends StatefulWidget {
-  const _RevenueLineChart({required this.values, required this.labels});
+  const _RevenueLineChart({
+    required this.values,
+    required this.labels,
+    this.details = const [],
+  });
 
   final List<double> values;
   final List<String> labels;
+
+  /// Full period names for the tooltip, aligned with [labels].
+  final List<String> details;
 
   static const height = 220.0;
 
@@ -564,6 +572,10 @@ class _RevenueLineChartState extends State<_RevenueLineChart> {
   @override
   Widget build(BuildContext context) {
     final maxY = widget.values.reduce(math.max) * 1.15;
+    final labelStep = (widget.labels.length / 7).ceil().clamp(
+      1,
+      math.max(1, widget.labels.length),
+    );
 
     return Column(
       children: [
@@ -640,17 +652,23 @@ class _RevenueLineChartState extends State<_RevenueLineChart> {
         Row(
           children: [
             const SizedBox(width: 54),
-            for (final label in widget.labels)
+            for (var i = 0; i < widget.labels.length; i++)
               Expanded(
                 child: Text(
-                  label,
+                  // Daily / weekly series label every few points; the
+                  // tooltip names each one.
+                  i % labelStep == 0 || i == widget.labels.length - 1
+                      ? widget.labels[i]
+                      : '',
                   textAlign: TextAlign.center,
                   style: AppTypography.caption.copyWith(
                     fontSize: 10,
+                    height: 1.2,
                     color: AppColors.textMuted(context),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  softWrap: false,
+                  overflow: TextOverflow.visible,
                 ),
               ),
           ],
@@ -668,7 +686,9 @@ class _RevenueLineChartState extends State<_RevenueLineChart> {
       left: (x - 48).clamp(0.0, width - 96),
       top: (y - 52).clamp(0.0, _RevenueLineChart.height - 48),
       child: ChartValueTooltip(
-        label: widget.labels[index],
+        label: index < widget.details.length
+            ? widget.details[index]
+            : widget.labels[index],
         value: AppCurrency.format(widget.values[index].toStringAsFixed(2)),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
@@ -37,9 +38,10 @@ abstract class ChatRepository {
     CancelToken? cancelToken,
   });
 
+  /// Uploads a picked photo and returns its public URL.
   Future<Result<String, Failure>> uploadImage({
-    required String filePath,
-    String? filename,
+    required XFile file,
+    void Function(double progress)? onProgress,
     CancelToken? cancelToken,
   });
 

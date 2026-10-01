@@ -1,6 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -8,6 +11,8 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
+import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_message.dart';
@@ -61,6 +66,35 @@ class _SellerChatDetailScreenState
     if (text.trim().isEmpty) return;
     _messageCtrl.clear();
     await ref.read(chatThreadProvider(args).notifier).sendText(text);
+    _scrollToEnd();
+  }
+
+  Future<void> _pickImage() async {
+    final args = _args;
+    if (args == null) return;
+    if (ref.read(chatThreadProvider(args)).isSending) return;
+    XFile? file;
+    try {
+      file = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 2048,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(content: Text(context.tr(RemainingL10n.couldNotOpenPhotos))),
+      );
+      return;
+    }
+    if (file == null || !mounted) return;
+    final send = ref.read(chatThreadProvider(args).notifier).sendImage(file);
+    _scrollToEnd();
+    await send;
+    _scrollToEnd();
+  }
+
+  void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollCtrl.hasClients) return;
       _scrollCtrl.animateTo(
@@ -107,6 +141,7 @@ class _SellerChatDetailScreenState
             isSending: state.isSending,
             sendError: state.sendError,
             onSend: _send,
+            onPickImage: _pickImage,
           ),
         ],
       ),
@@ -123,7 +158,7 @@ class _SellerChatDetailScreenState
         onRetry: () => ref.read(chatThreadProvider(args).notifier).refresh(),
       );
     }
-    if (state.messages.isEmpty) {
+    if (state.messages.isEmpty && state.pendingImage == null) {
       return CatalogEmptyState(
         icon: Icons.chat_bubble_outline_rounded,
         title: context.tr(RemainingL10n.startConversation),
@@ -139,8 +174,14 @@ class _SellerChatDetailScreenState
         AppSpacing.s16,
         AppSpacing.s16,
       ),
-      itemCount: state.messages.length,
+      itemCount: state.messages.length + (state.pendingImage == null ? 0 : 1),
       itemBuilder: (context, index) {
+        if (index >= state.messages.length) {
+          return _PendingImageBubble(
+            bytes: state.pendingImage!,
+            progress: state.uploadProgress,
+          );
+        }
         final msg = state.messages[index];
         final prev = index > 0 ? state.messages[index - 1] : null;
         final showDate =
@@ -323,6 +364,13 @@ class _MessageBubble extends StatelessWidget {
     final mine = message.isMine;
     final time = message.createdAt.toLocal();
     String two(int v) => v.toString().padLeft(2, '0');
+    final fileUrl = message.fileUrl?.trim();
+    final imageUrl =
+        message.messageType == ChatMessageType.image &&
+            fileUrl != null &&
+            fileUrl.isNotEmpty
+        ? fileUrl
+        : null;
 
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
@@ -332,7 +380,9 @@ class _MessageBubble extends StatelessWidget {
         ),
         child: Container(
           margin: const EdgeInsets.only(bottom: AppSpacing.s8),
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+          padding: imageUrl == null
+              ? const EdgeInsets.fromLTRB(14, 10, 14, 8)
+              : const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: mine
                 ? (AppColors.isDark(context)
@@ -354,23 +404,28 @@ class _MessageBubble extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  message.body.isEmpty
-                      ? (message.messageType == ChatMessageType.image
-                            ? context.tr(RemainingL10n.photo)
-                            : context.tr(RemainingL10n.attachment))
-                      : message.body,
-                  style: AppTypography.body.copyWith(
-                    fontSize: 14,
-                    height: 1.35,
-                    color: mine
-                        ? AppColors.warmWhite
-                        : AppColors.textPrimary(context),
+              if (imageUrl != null) ...[
+                _ChatImage(url: imageUrl),
+                if (message.body.trim().isNotEmpty) const SizedBox(height: 6),
+              ],
+              if (imageUrl == null || message.body.trim().isNotEmpty)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    message.body.isEmpty
+                        ? (message.messageType == ChatMessageType.image
+                              ? context.tr(RemainingL10n.photo)
+                              : context.tr(RemainingL10n.attachment))
+                        : message.body,
+                    style: AppTypography.body.copyWith(
+                      fontSize: 14,
+                      height: 1.35,
+                      color: mine
+                          ? AppColors.warmWhite
+                          : AppColors.textPrimary(context),
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: 4),
               Text(
                 '${two(time.hour)}:${two(time.minute)}',
@@ -382,6 +437,113 @@ class _MessageBubble extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Photo inside a message bubble; tap to view it full screen.
+class _ChatImage extends StatelessWidget {
+  const _ChatImage({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: context.tr(RemainingL10n.photo),
+      child: GestureDetector(
+        onTap: () => showChatImageViewer(context, url),
+        child: AppNetworkImage(
+          url: url,
+          width: 220,
+          height: 220,
+          memCacheWidth: 660,
+          borderRadius: BorderRadius.circular(AppSpacing.r12),
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-screen, zoomable view of a chat photo.
+Future<void> showChatImageViewer(BuildContext context, String url) {
+  return showAppDialog<void>(
+    context: context,
+    barrierColor: Colors.black87,
+    builder: (ctx) => Dialog(
+      insetPadding: const EdgeInsets.all(12),
+      backgroundColor: Colors.black,
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          InteractiveViewer(
+            maxScale: 5,
+            child: Center(
+              child: AppNetworkImage(url: url, fit: BoxFit.contain),
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: IconButton(
+              tooltip: MaterialLocalizations.of(ctx).closeButtonTooltip,
+              color: Colors.white,
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(ctx).pop(),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// Local preview of a photo that is still uploading.
+class _PendingImageBubble extends StatelessWidget {
+  const _PendingImageBubble({required this.bytes, this.progress});
+
+  final Uint8List bytes;
+  final double? progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = progress;
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+        child: Semantics(
+          label: context.tr(RemainingL10n.uploadingPhoto),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.r12),
+            child: SizedBox(
+              width: 220,
+              height: 220,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.memory(bytes, fit: BoxFit.cover, cacheWidth: 660),
+                  const ColoredBox(color: Color(0x66000000)),
+                  Center(
+                    child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: CircularProgressIndicator(
+                        value: value == null || value <= 0 || value >= 1
+                            ? null
+                            : value,
+                        strokeWidth: 3,
+                        color: AppColors.warmWhite,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -440,12 +602,14 @@ class _Composer extends StatelessWidget {
     required this.controller,
     required this.isSending,
     required this.onSend,
+    required this.onPickImage,
     this.sendError,
   });
 
   final TextEditingController controller;
   final bool isSending;
   final VoidCallback onSend;
+  final VoidCallback onPickImage;
   final String? sendError;
 
   @override
@@ -475,6 +639,13 @@ class _Composer extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+                  IconButton(
+                    tooltip: context.tr(RemainingL10n.sendPhoto),
+                    onPressed: isSending ? null : onPickImage,
+                    color: AppColors.textSecondary(context),
+                    icon: const Icon(Icons.add_photo_alternate_outlined),
+                  ),
+                  const SizedBox(width: AppSpacing.s4),
                   Expanded(
                     child: TextField(
                       controller: controller,

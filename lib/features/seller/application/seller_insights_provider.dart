@@ -40,7 +40,12 @@ class SellerDashboardState {
 }
 
 class SellerDashboardNotifier extends Notifier<SellerDashboardState> {
-  Future<void>? _inFlight;
+  /// Id of the newest request; older responses are dropped so a slow
+  /// monthly response can never land under a newer "Daily" selection.
+  int _generation = 0;
+
+  /// Survives rebuilds (e.g. a session refresh) so the seller's range is kept.
+  SellerDashboardParams _params = const SellerDashboardParams();
 
   SellerInsightsRepository get _repo =>
       ref.read(sellerInsightsRepositoryProvider);
@@ -48,64 +53,48 @@ class SellerDashboardNotifier extends Notifier<SellerDashboardState> {
   @override
   SellerDashboardState build() {
     final userId = ref.watch(authProvider.select((s) => s.user?.id));
-    _inFlight = null;
+    _generation++;
     if (userId == null || userId.isEmpty) {
-      return const SellerDashboardState();
+      return SellerDashboardState(params: _params);
     }
-    Future.microtask(refresh);
-    return const SellerDashboardState(isLoading: true);
+    Future.microtask(_load);
+    return SellerDashboardState(params: _params, isLoading: true);
   }
 
   Future<void> setParams(SellerDashboardParams params) async {
-    if (params == state.params && state.snapshot != null) return;
+    if (params == state.params && state.snapshot?.params == params) return;
+    _params = params;
     state = state.copyWith(params: params);
-    await _doRefresh(keepVisible: true);
+    await _load();
   }
 
   Future<void> refresh() async {
     _repo.invalidateCache();
-    await _doRefresh(keepVisible: state.snapshot != null);
+    await _load();
   }
 
-  Future<void> _doRefresh({required bool keepVisible}) async {
-    final pending = _inFlight;
-    if (pending != null) {
-      await pending;
-    }
+  Future<void> _load() async {
+    final generation = ++_generation;
+    final params = state.params;
+    final hasSnapshot = state.snapshot != null;
+    state = state.copyWith(
+      isLoading: !hasSnapshot,
+      isRefreshing: hasSnapshot,
+      clearError: true,
+    );
 
-    late final Future<void> run;
-    run = () async {
-      if (keepVisible && state.snapshot != null) {
-        state = state.copyWith(isRefreshing: true, clearError: true);
-      } else {
+    // Identical in-flight queries are shared by the repository cache.
+    final result = await _repo.getDashboard(params: params);
+    if (generation != _generation) return;
+    switch (result) {
+      case Success(:final value):
+        state = SellerDashboardState(snapshot: value, params: params);
+      case ResultFailure(:final failure):
         state = state.copyWith(
-          isLoading: true,
+          isLoading: false,
           isRefreshing: false,
-          clearError: true,
+          errorMessage: failure.message,
         );
-      }
-
-      final result = await _repo.getDashboard(params: state.params);
-      switch (result) {
-        case Success(:final value):
-          state = SellerDashboardState(
-            snapshot: value,
-            params: state.params,
-          );
-        case ResultFailure(:final failure):
-          state = state.copyWith(
-            isLoading: false,
-            isRefreshing: false,
-            errorMessage: failure.message,
-          );
-      }
-    }();
-
-    _inFlight = run;
-    try {
-      await run;
-    } finally {
-      if (identical(_inFlight, run)) _inFlight = null;
     }
   }
 }

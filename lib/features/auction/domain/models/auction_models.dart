@@ -120,9 +120,14 @@ class AuctionListing {
   }
 
   /// Keeps a socket bid that the following refresh has not returned yet.
+  ///
+  /// Only bids above the fresh highest are kept, so a cancelled bid is
+  /// dropped instead of lingering as a placeholder row.
   AuctionListing keepingPendingBids(AuctionListing fresh) {
+    final freshHighest = fresh.highestBidAmount ?? 0;
     final pending = bids.where((bid) {
       if (!bid.id.startsWith('live:')) return false;
+      if (bid.amount <= freshHighest) return false;
       return !fresh.bids.any((row) => (row.amount - bid.amount).abs() < 0.001);
     });
     if (pending.isEmpty) return fresh;

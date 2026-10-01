@@ -10,6 +10,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_dialog.dart';
+import '../../../payment/presentation/payment_flow.dart';
 import '../../application/auction_providers.dart';
 import '../../domain/models/auction_models.dart';
 import 'auction_card.dart';
@@ -130,9 +131,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
                     TextField(
                       controller: _amount,
                       keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: const InputDecoration(
                         labelText: 'Bid',
                         prefixText: r'$',
@@ -312,11 +311,11 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
           content: Text(message),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => _popDialog(context, false),
               child: const Text('Back'),
             ),
             FilledButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => _popDialog(context, true),
               child: Text(confirmLabel),
             ),
           ],
@@ -334,9 +333,10 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
   }
 
   Future<void> _pay() async {
+    if (PaymentFlow.isActive) return;
     if (!AccountAccess.guard(context, ref)) return;
     var useWallet = false;
-    final proceed = await showDialog<bool>(
+    final proceed = await showAppDialog<bool>(
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -352,11 +352,11 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context, false),
+                  onPressed: () => _popDialog(context, false),
                   child: const Text('Cancel'),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pop(context, true),
+                  onPressed: () => _popDialog(context, true),
                   child: const Text('Continue'),
                 ),
               ],
@@ -366,10 +366,19 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
       },
     );
     if (proceed != true || !mounted) return;
-    final message = await ref
-        .read(auctionDetailProvider(widget.auctionId).notifier)
-        .pay(useWallet: useWallet);
-    _result(message);
+    final auction = widget.auction;
+    final amount = auction.highestBidAmount ?? auction.currentBid;
+    final notifier = ref.read(auctionDetailProvider(widget.auctionId).notifier);
+    await PaymentFlow.run(
+      context,
+      summary: PurchaseSummary(
+        item: auction.title.isEmpty ? 'Auction win' : auction.title,
+        method: useWallet ? 'Wallet (Razorpay for any balance)' : 'Razorpay',
+        amount: auctionBidAmount(amount),
+      ),
+      process: () => notifier.pay(useWallet: useWallet),
+      successMessage: (message) => message,
+    );
   }
 
   void _result(String? message) {
@@ -382,6 +391,14 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
         .read(auctionDetailProvider(widget.auctionId))
         .errorMessage;
     if (error != null) _toast(error);
+  }
+
+  /// Pops the dialog once; a second tap during the exit animation would
+  /// otherwise pop the auction screen underneath.
+  void _popDialog(BuildContext dialogContext, bool value) {
+    final route = ModalRoute.of(dialogContext);
+    if (route == null || !route.isCurrent) return;
+    Navigator.pop(dialogContext, value);
   }
 
   void _toast(String message) {

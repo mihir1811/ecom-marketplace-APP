@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/chat_repository_impl.dart';
+import '../domain/chat_image_rules.dart';
 import '../domain/models/chat_message.dart';
 import '../domain/models/chat_thread.dart';
 import '../domain/models/product_chat_context.dart';
@@ -81,16 +84,14 @@ class ChatInboxNotifier extends Notifier<ChatInboxState> {
         state = ChatInboxState(threads: threads);
       case ResultFailure(failure: final failure):
         if (failure is NetworkFailure && failure.isCancelled) return;
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
     }
   }
 }
 
-final chatInboxProvider =
-    NotifierProvider<ChatInboxNotifier, ChatInboxState>(ChatInboxNotifier.new);
+final chatInboxProvider = NotifierProvider<ChatInboxNotifier, ChatInboxState>(
+  ChatInboxNotifier.new,
+);
 
 /// True when any inbox thread has unread messages (app-bar chat dot).
 final chatHasUnreadProvider = Provider<bool>((ref) {
@@ -123,6 +124,8 @@ class ChatThreadState {
     this.isSending = false,
     this.errorMessage,
     this.sendError,
+    this.pendingImage,
+    this.uploadProgress,
   });
 
   final List<ChatMessage> messages;
@@ -132,6 +135,12 @@ class ChatThreadState {
   final String? errorMessage;
   final String? sendError;
 
+  /// Photo being uploaded, shown as a placeholder bubble until it is sent.
+  final Uint8List? pendingImage;
+
+  /// Upload progress of [pendingImage], 0–1.
+  final double? uploadProgress;
+
   ChatThreadState copyWith({
     List<ChatMessage>? messages,
     ProductChatContext? context,
@@ -139,9 +148,12 @@ class ChatThreadState {
     bool? isSending,
     String? errorMessage,
     String? sendError,
+    Uint8List? pendingImage,
+    double? uploadProgress,
     bool clearError = false,
     bool clearSendError = false,
     bool clearContext = false,
+    bool clearPendingImage = false,
   }) {
     return ChatThreadState(
       messages: messages ?? this.messages,
@@ -150,11 +162,18 @@ class ChatThreadState {
       isSending: isSending ?? this.isSending,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       sendError: clearSendError ? null : (sendError ?? this.sendError),
+      pendingImage: clearPendingImage
+          ? null
+          : (pendingImage ?? this.pendingImage),
+      uploadProgress: clearPendingImage
+          ? null
+          : (uploadProgress ?? this.uploadProgress),
     );
   }
 }
 
-class ChatThreadNotifier extends FamilyNotifier<ChatThreadState, ChatThreadArgs> {
+class ChatThreadNotifier
+    extends FamilyNotifier<ChatThreadState, ChatThreadArgs> {
   CancelToken? _cancelToken;
   StreamSubscription<ChatMessage>? _socketSub;
 
@@ -172,8 +191,10 @@ class ChatThreadNotifier extends FamilyNotifier<ChatThreadState, ChatThreadArgs>
         await refresh();
       });
       _socketSub?.cancel();
-      _socketSub =
-          ref.read(chatRepositoryProvider).incomingMessages.listen(_onIncoming);
+      _socketSub = ref
+          .read(chatRepositoryProvider)
+          .incomingMessages
+          .listen(_onIncoming);
     }
 
     return const ChatThreadState(isLoading: true);
@@ -183,8 +204,7 @@ class ChatThreadNotifier extends FamilyNotifier<ChatThreadState, ChatThreadArgs>
 
   bool _belongs(ChatMessage msg) {
     final productOk = msg.productId == arg.productId;
-    final peerOk =
-        msg.fromId == arg.peerUserId || msg.toId == arg.peerUserId;
+    final peerOk = msg.fromId == arg.peerUserId || msg.toId == arg.peerUserId;
     return productOk && peerOk;
   }
 
@@ -234,6 +254,9 @@ class ChatThreadNotifier extends FamilyNotifier<ChatThreadState, ChatThreadArgs>
         state = ChatThreadState(
           messages: filtered,
           context: context,
+          isSending: state.isSending,
+          pendingImage: state.pendingImage,
+          uploadProgress: state.uploadProgress,
         );
         await _markUnread(filtered);
       case ResultFailure(failure: final failure):
@@ -283,14 +306,89 @@ class ChatThreadNotifier extends FamilyNotifier<ChatThreadState, ChatThreadArgs>
         // Fallback refresh in case socket echo is delayed.
         Future<void>.delayed(const Duration(milliseconds: 600), refresh);
       case ResultFailure(failure: final failure):
-        state = state.copyWith(
-          isSending: false,
-          sendError: failure.message,
-        );
+        state = state.copyWith(isSending: false, sendError: failure.message);
     }
     return result;
   }
+
+  /// Uploads [file] and sends it as an IMAGE message in this thread.
+  Future<Result<void, Failure>> sendImage(XFile file) async {
+    if (state.isSending) {
+      return Result.failure(
+        const ValidationFailure('Please wait for the current message.'),
+      );
+    }
+    final myId = ref.read(authProvider).user?.id;
+    if (myId == null || myId.isEmpty) {
+      return Result.failure(const AuthFailure('Please sign in again.'));
+    }
+
+    final Uint8List bytes;
+    try {
+      bytes = await file.readAsBytes();
+    } catch (_) {
+      return _imageFailed('This photo could not be read.');
+    }
+    final rejection = chatImageRejection(
+      fileName: file.name,
+      bytes: bytes.length,
+    );
+    if (rejection != null) return _imageFailed(rejection);
+
+    state = state.copyWith(
+      isSending: true,
+      clearSendError: true,
+      pendingImage: bytes,
+      uploadProgress: 0,
+    );
+    final uploaded = await _repo.uploadImage(
+      file: file,
+      onProgress: (progress) {
+        if (state.pendingImage == null) return;
+        state = state.copyWith(uploadProgress: progress);
+      },
+    );
+    final String url;
+    switch (uploaded) {
+      case ResultFailure(:final failure):
+        return _imageFailed('Photo upload failed: ${failure.message}');
+      case Success(:final value):
+        url = value;
+    }
+
+    final sent = await _repo.sendMessage(
+      fromId: myId,
+      toId: arg.peerUserId,
+      message: '',
+      productId: arg.productId,
+      productType: ChatThread.decodeId(arg.threadId)?.productType,
+      fileUrl: url,
+      messageType: ChatMessageType.image,
+    );
+    switch (sent) {
+      case Success():
+        state = state.copyWith(isSending: false, clearPendingImage: true);
+        // Fallback refresh in case socket echo is delayed.
+        Future<void>.delayed(const Duration(milliseconds: 600), refresh);
+      case ResultFailure(:final failure):
+        return _imageFailed(failure.message);
+    }
+    return sent;
+  }
+
+  Result<void, Failure> _imageFailed(String message) {
+    state = state.copyWith(
+      isSending: false,
+      sendError: message,
+      clearPendingImage: true,
+    );
+    return Result.failure(ValidationFailure(message));
+  }
 }
 
-final chatThreadProvider = NotifierProvider.family<ChatThreadNotifier,
-    ChatThreadState, ChatThreadArgs>(ChatThreadNotifier.new);
+final chatThreadProvider =
+    NotifierProvider.family<
+      ChatThreadNotifier,
+      ChatThreadState,
+      ChatThreadArgs
+    >(ChatThreadNotifier.new);

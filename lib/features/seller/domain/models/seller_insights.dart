@@ -27,18 +27,27 @@ class InsightsChartSeries {
   const InsightsChartSeries({
     required this.values,
     required this.labels,
+    this.details = const [],
     this.endDate,
   });
 
   final List<double> values;
+
+  /// Short x-axis labels, one per value.
   final List<String> labels;
+
+  /// Full period names for tooltips, aligned with [labels] when present.
+  final List<String> details;
   final DateTime? endDate;
+
+  String detailAt(int i) => i < details.length ? details[i] : labels[i];
 }
 
 /// One time bucket with values for every dashboard metric.
 class InsightsChartBucket {
   const InsightsChartBucket({
     required this.label,
+    this.detail,
     required this.totalSales,
     required this.productsSold,
     required this.orders,
@@ -46,6 +55,9 @@ class InsightsChartBucket {
   });
 
   final String label;
+
+  /// Full period name for tooltips (e.g. "Week of Sep 28 – Oct 4, 2026").
+  final String? detail;
   final double totalSales;
   final double productsSold;
   final double orders;
@@ -96,6 +108,7 @@ class SellerDashboardSnapshot {
     required this.recentOrders,
     this.uploadStatus = const DashboardUploadStatus(),
     required this.fetchedAt,
+    this.params = const SellerDashboardParams(),
   });
 
   final List<DashboardMetricCard> metrics;
@@ -105,10 +118,17 @@ class SellerDashboardSnapshot {
   final DashboardUploadStatus uploadStatus;
   final DateTime fetchedAt;
 
+  /// Range this snapshot was loaded for; a chart is only shown under the
+  /// range selector that produced it.
+  final SellerDashboardParams params;
+
   InsightsChartSeries chartFor(DashboardMetric metric) {
     return InsightsChartSeries(
       values: [for (final bucket in chartBuckets) bucket.valueFor(metric)],
       labels: [for (final bucket in chartBuckets) bucket.label],
+      details: [
+        for (final bucket in chartBuckets) bucket.detail ?? bucket.label,
+      ],
       endDate: chartEndDate,
     );
   }

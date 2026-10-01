@@ -1,6 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/failure.dart';
+import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
@@ -8,65 +12,350 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../data/seller_orders_mock_data.dart';
-import '../../domain/models/seller_orders_models.dart';
+import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/app_dialog.dart';
+import '../../../tracking/application/order_shipments_provider.dart';
+import '../../../tracking/data/repositories/tracking_repository_impl.dart';
+import '../../../tracking/domain/models/shipment_models.dart';
+import '../../application/seller_order_shipping_provider.dart';
+import '../../application/seller_orders_provider.dart';
+import '../../domain/models/seller_order.dart';
+import '../widgets/seller_order_decision.dart';
 
-class SellerOrderDetailScreen extends StatefulWidget {
+/// Seller view of one incoming order: approve / reject while pending, then
+/// shipping updates once confirmed (`/seller/orders`, `/tracking/seller/*`).
+class SellerOrderDetailScreen extends ConsumerWidget {
   const SellerOrderDetailScreen({required this.orderId, super.key});
 
   final String orderId;
 
   @override
-  State<SellerOrderDetailScreen> createState() =>
-      _SellerOrderDetailScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(sellerOrderDetailProvider(orderId));
+    return async.when(
+      // Keep showing the order while a realtime refresh reloads it.
+      skipLoadingOnReload: true,
+      skipLoadingOnRefresh: true,
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => _NotFound(
+        message: error is Failure
+            ? error.message
+            : context.tr(RemainingL10n.orderNotFound),
+        onRetry: () => ref.invalidate(sellerOrderDetailProvider(orderId)),
+      ),
+      data: (order) => RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(sellerOrderShipmentsProvider(order.orderId));
+          return ref.refresh(sellerOrderDetailProvider(orderId).future);
+        },
+        child: _OrderDetailBody(order: order),
+      ),
+    );
+  }
 }
 
-class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
-  static const _statusOptions = [
-    'Processing',
-    'Shipped',
-    'Out For Delivery',
-    'Delivered',
-    'Cancelled',
-  ];
+class _NotFound extends StatelessWidget {
+  const _NotFound({required this.message, required this.onRetry});
 
-  static const _progressStatuses = [
-    'Processing',
-    'Shipped',
-    'Out For Delivery',
-    'Delivered',
-  ];
-
-  static const _statusLabelKeys = <String, String>{
-    'Processing': RemainingL10n.orderStatusProcessing,
-    'Shipped': RemainingL10n.orderStatusShipped,
-    'Out For Delivery': RemainingL10n.orderStatusOutForDelivery,
-    'Delivered': RemainingL10n.orderStatusDelivered,
-    'Cancelled': RemainingL10n.orderStatusCancelled,
-  };
-
-  late String _status;
-  late final TextEditingController _locationCtrl;
-  late final TextEditingController _carrierCtrl;
-  late final TextEditingController _trackingCtrl;
-  late final TextEditingController _noteCtrl;
-  late final TextEditingController _commentCtrl;
-  late List<SellerOrderTimelineEntry> _timeline;
-  SellerOrder? _order;
+  final String message;
+  final VoidCallback onRetry;
 
   @override
-  void initState() {
-    super.initState();
-    _order = findSellerOrderById(widget.orderId);
-    final o = _order;
-    _status = o?.status ?? 'Processing';
-    _locationCtrl = TextEditingController(text: o?.location ?? '');
-    _carrierCtrl = TextEditingController(text: o?.carrier ?? '');
-    _trackingCtrl = TextEditingController(text: o?.trackingNumber ?? '');
-    _noteCtrl = TextEditingController();
-    _commentCtrl = TextEditingController();
-    _timeline = List.of(o?.timeline ?? const []);
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.s24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 48,
+              color: AppColors.textMuted(context),
+            ),
+            const SizedBox(height: AppSpacing.s12),
+            Text(
+              message,
+              style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.s16),
+            Wrap(
+              spacing: 12,
+              children: [
+                OutlinedButton(
+                  onPressed: onRetry,
+                  child: Text(context.tr(RemainingL10n.retry)),
+                ),
+                FilledButton(
+                  onPressed: () => context.goBack(),
+                  child: Text(context.tr(RemainingL10n.backToOrders)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
+}
+
+class _OrderDetailBody extends StatelessWidget {
+  const _OrderDetailBody({required this.order});
+
+  final SellerOrder order;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = sellerOrderStatusColor(order.status);
+    final customer = order.customer;
+
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.s16,
+        AppSpacing.s8,
+        AppSpacing.s16,
+        AppSpacing.s24,
+      ),
+      children: [
+        _OrderHeroCard(
+          orderId: order.shortId,
+          statusLabel: sellerOrderStatusLabel(order),
+          updatedAt: sellerOrderDateLabel(
+            order.decidedAt ?? order.updatedAt ?? order.createdAt,
+          ),
+          accent: accent,
+          icon: sellerOrderStatusIcon(order.status),
+        ),
+        if (order.status == SellerOrderStatus.pending) ...[
+          const SizedBox(height: AppSpacing.s16),
+          _SectionCard(
+            icon: Icons.approval_outlined,
+            title: 'Waiting for your approval',
+            subtitle:
+                'Accept to confirm the order, or reject it to refund the '
+                'customer to their wallet.',
+            child: SellerOrderDecisionButtons(order: order),
+          ),
+        ],
+        if (order.status == SellerOrderStatus.rejected) ...[
+          const SizedBox(height: AppSpacing.s16),
+          _SectionCard(
+            icon: Icons.cancel_outlined,
+            title: 'Order rejected',
+            subtitle: 'The customer was refunded to their GemWorld wallet.',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _KeyValue(
+                  label: 'Reason',
+                  value: order.rejectionReason ?? 'Not provided',
+                ),
+                if (order.sellerNote != null) ...[
+                  const SizedBox(height: AppSpacing.s12),
+                  _KeyValue(
+                    label: 'Note to customer',
+                    value: order.sellerNote!,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.s16),
+        _InfoGrid(
+          items: [
+            _InfoTile(
+              icon: Icons.person_outline,
+              label: 'Customer',
+              value: order.customerLabel,
+            ),
+            _InfoTile(
+              icon: Icons.payments_outlined,
+              label: 'Amount',
+              value: sellerOrderAmountLabel(order),
+            ),
+            _InfoTile(
+              icon: Icons.event_outlined,
+              label: 'Ordered on',
+              value: sellerOrderDateLabel(order.createdAt),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        _SectionCard(
+          icon: Icons.receipt_long_outlined,
+          title: 'Order details',
+          subtitle: order.orderId == order.id
+              ? null
+              : 'Marketplace order ${order.orderId}',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (order.items.isEmpty)
+                _EmptyPanel(
+                  icon: Icons.inventory_2_outlined,
+                  message: order.productSummary,
+                  compact: true,
+                )
+              else
+                for (var i = 0; i < order.items.length; i++) ...[
+                  if (i > 0) const Divider(height: AppSpacing.s24),
+                  _OrderItemRow(item: order.items[i]),
+                ],
+              if (customer?.email != null || customer?.phone != null) ...[
+                const SizedBox(height: AppSpacing.s16),
+                _KeyValue(
+                  label: 'Contact',
+                  value: [
+                    customer?.email,
+                    customer?.phone,
+                  ].whereType<String>().join(' · '),
+                ),
+              ],
+              if (order.shippingAddress != null) ...[
+                const SizedBox(height: AppSpacing.s12),
+                _KeyValue(label: 'Ship to', value: order.shippingAddress!),
+              ],
+              if (order.paymentStatus != null) ...[
+                const SizedBox(height: AppSpacing.s12),
+                _KeyValue(
+                  label: 'Payment',
+                  value: ShipmentStatuses.label(order.paymentStatus!),
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (order.status == SellerOrderStatus.accepted) ...[
+          const SizedBox(height: AppSpacing.s16),
+          _ShippingSection(order: order),
+        ],
+      ],
+    );
+  }
+}
+
+class _KeyValue extends StatelessWidget {
+  const _KeyValue({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.textMuted(context),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(value, style: AppTypography.body),
+      ],
+    );
+  }
+}
+
+class _OrderItemRow extends StatelessWidget {
+  const _OrderItemRow({required this.item});
+
+  final SellerOrderItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final meta = [
+      if (item.productType != null) item.productType!,
+      if (item.stockNumber != null) '#${item.stockNumber}',
+      'Qty ${item.quantity}',
+    ].join(' · ');
+    final price = item.lineTotal ?? item.unitPrice;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: AppColors.surface(context),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: item.image != null
+              ? CachedNetworkImage(
+                  imageUrl: item.image!,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 104,
+                  errorWidget: (_, __, ___) => const Icon(
+                    Icons.diamond_outlined,
+                    color: AppColors.bronze,
+                  ),
+                )
+              : const Icon(Icons.diamond_outlined, color: AppColors.bronze),
+        ),
+        const SizedBox(width: AppSpacing.s12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.label.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                meta,
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textMuted(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (price != null) ...[
+          const SizedBox(width: AppSpacing.s8),
+          Text(
+            AppCurrency.usd(price),
+            style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Next valid seller step after acceptance: create the shipment, then move it
+/// forward until delivered. Comments reach the buyer's tracking view.
+class _ShippingSection extends ConsumerStatefulWidget {
+  const _ShippingSection({required this.order});
+
+  final SellerOrder order;
+
+  @override
+  ConsumerState<_ShippingSection> createState() => _ShippingSectionState();
+}
+
+class _ShippingSectionState extends ConsumerState<_ShippingSection> {
+  final _locationCtrl = TextEditingController();
+  final _carrierCtrl = TextEditingController();
+  final _trackingCtrl = TextEditingController();
+  final _noteCtrl = TextEditingController();
+  final _commentCtrl = TextEditingController();
+  String? _status;
+  String? _seededFor;
+  bool _postingComment = false;
+
+  String get _orderId => widget.order.orderId;
 
   @override
   void dispose() {
@@ -78,76 +367,95 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
     super.dispose();
   }
 
-  void _saveUpdate() {
-    final note = _noteCtrl.text.trim();
-    setState(() {
-      _timeline = [
-        SellerOrderTimelineEntry(
-          title:
-              '${_statusLabel(context, _status)} · ${_locationCtrl.text.trim()}',
-          subtitle: note.isEmpty
-              ? context.tr(RemainingL10n.statusUpdated)
-              : note,
-          at: _nowLabel(),
+  /// Prefills the form once per shipment so typing is not overwritten by a
+  /// background refresh.
+  void _seed(Shipment? shipment) {
+    final key = shipment?.id ?? '';
+    if (_seededFor == key) return;
+    _seededFor = key;
+    _locationCtrl.text = shipment?.currentLocation ?? '';
+    _carrierCtrl.text = shipment?.carrier ?? '';
+    _trackingCtrl.text = shipment?.trackingNumber ?? '';
+    final options = ShipmentStatuses.nextOptions(shipment?.status);
+    _status = options.isEmpty ? null : options.first;
+  }
+
+  Future<void> _save(Shipment? shipment) async {
+    final status = _status;
+    if (status == null) return;
+    if (status == ShipmentStatuses.cancelled) {
+      final confirmed = await showAppDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Cancel shipment?'),
+          content: const Text('A cancelled shipment cannot be updated again.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Keep'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+              child: const Text('Cancel shipment'),
+            ),
+          ],
         ),
-        ..._timeline,
-      ];
-      _noteCtrl.clear();
-    });
-    AppHaptics.success();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.tr(RemainingL10n.trackingSaved))),
-    );
+      );
+      if (confirmed != true || !mounted) return;
+    }
+    final result = await ref
+        .read(sellerShipmentActionsProvider.notifier)
+        .save(
+          orderId: _orderId,
+          existing: shipment,
+          status: status,
+          currentLocation: _locationCtrl.text,
+          carrier: _carrierCtrl.text,
+          trackingNumber: _trackingCtrl.text,
+          note: _noteCtrl.text,
+        );
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    switch (result) {
+      case Success(:final value):
+        AppHaptics.success();
+        _noteCtrl.clear();
+        _seededFor = null;
+        _seed(value);
+        messenger.showSnackBar(
+          SnackBar(content: Text(context.tr(RemainingL10n.trackingSaved))),
+        );
+      case ResultFailure(:final failure):
+        AppHaptics.error();
+        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+    }
   }
 
-  void _postComment() {
+  Future<void> _postComment(Shipment shipment) async {
     final text = _commentCtrl.text.trim();
-    if (text.isEmpty) return;
-    _commentCtrl.clear();
-    AppHaptics.medium();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.tr(RemainingL10n.commentPosted))),
-    );
+    if (text.isEmpty || _postingComment) return;
+    setState(() => _postingComment = true);
+    final result = await ref
+        .read(trackingRepositoryProvider)
+        .addComment(shipmentId: shipment.id, body: text);
+    if (!mounted) return;
+    setState(() => _postingComment = false);
+    final messenger = ScaffoldMessenger.of(context);
+    switch (result) {
+      case Success():
+        AppHaptics.medium();
+        _commentCtrl.clear();
+        ref.invalidate(shipmentDetailProvider(shipment.id));
+        messenger.showSnackBar(
+          SnackBar(content: Text(context.tr(RemainingL10n.commentPosted))),
+        );
+      case ResultFailure(:final failure):
+        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+    }
   }
 
-  String _statusLabel(BuildContext context, String status) {
-    final key = _statusLabelKeys[status];
-    return key == null ? status : context.tr(key);
-  }
-
-  String _nowLabel() {
-    final n = DateTime.now();
-    String two(int v) => v.toString().padLeft(2, '0');
-    return '${two(n.day)}/${two(n.month)}/${n.year}, '
-        '${two(n.hour)}:${two(n.minute)}:${two(n.second)}';
-  }
-
-  Color _statusColor(String status) {
-    final s = status.toLowerCase();
-    if (s.contains('cancel')) return AppColors.error;
-    if (s.contains('deliver')) return AppColors.success;
-    if (s.contains('out for')) return AppColors.info;
-    if (s.contains('process') || s.contains('ship')) return AppColors.bronze;
-    return AppColors.charcoalLight;
-  }
-
-  IconData _statusIcon(String status) {
-    final s = status.toLowerCase();
-    if (s.contains('cancel')) return Icons.cancel_outlined;
-    if (s.contains('deliver')) return Icons.check_circle_outline;
-    if (s.contains('out for')) return Icons.local_shipping_outlined;
-    if (s.contains('process')) return Icons.hourglass_top_outlined;
-    if (s.contains('ship')) return Icons.flight_takeoff_outlined;
-    return Icons.shopping_bag_outlined;
-  }
-
-  int? _progressIndex(String status) {
-    final idx = _progressStatuses.indexOf(status);
-    return idx >= 0 ? idx : null;
-  }
-
-  InputDecoration _fieldDecoration(
-    BuildContext context, {
+  InputDecoration _fieldDecoration({
     required String label,
     required IconData icon,
     int maxLines = 1,
@@ -164,7 +472,7 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
       border: border,
       enabledBorder: border,
       focusedBorder: border.copyWith(
-        borderSide: BorderSide(color: AppColors.bronze, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.bronze, width: 1.5),
       ),
       contentPadding: EdgeInsets.symmetric(
         horizontal: AppSpacing.s16,
@@ -175,254 +483,344 @@ class _SellerOrderDetailScreenState extends State<SellerOrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final order = _order;
-    if (order == null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.s24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.receipt_long_outlined,
-                size: 48,
-                color: AppColors.textMuted(context),
-              ),
-              const SizedBox(height: AppSpacing.s12),
-              Text(
-                context.tr(RemainingL10n.orderNotFound),
-                style: AppTypography.title.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.s16),
-              FilledButton(
-                onPressed: () => context.goBack(),
-                child: Text(context.tr(RemainingL10n.backToOrders)),
-              ),
-            ],
-          ),
+    final shipmentsAsync = ref.watch(sellerOrderShipmentsProvider(_orderId));
+    return shipmentsAsync.when(
+      skipLoadingOnReload: true,
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.s24),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => _SectionCard(
+        icon: Icons.local_shipping_outlined,
+        title: context.tr(RemainingL10n.updateTracking),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(error is Failure ? error.message : 'Could not load shipping.'),
+            const SizedBox(height: AppSpacing.s8),
+            OutlinedButton(
+              onPressed: () =>
+                  ref.invalidate(sellerOrderShipmentsProvider(_orderId)),
+              child: Text(context.tr(RemainingL10n.retry)),
+            ),
+          ],
         ),
-      );
-    }
+      ),
+      data: (shipments) {
+        final shipment = shipments.isEmpty ? null : shipments.first;
+        _seed(shipment);
+        return _buildShipping(shipment);
+      },
+    );
+  }
 
-    final accent = _statusColor(_status);
-    final location = _locationCtrl.text.trim().isEmpty
-        ? order.location
-        : _locationCtrl.text.trim();
+  Widget _buildShipping(Shipment? shipment) {
+    final saving = ref.watch(sellerShipmentActionsProvider);
+    final options = ShipmentStatuses.nextOptions(shipment?.status);
+    final currentStatus = shipment?.status;
+    final progressIndex = currentStatus == null
+        ? null
+        : ShipmentStatuses.progression.indexOf(currentStatus.toUpperCase());
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s8,
-              AppSpacing.s16,
-              AppSpacing.s16,
+        if (shipment != null) ...[
+          _InfoGrid(
+            items: [
+              _InfoTile(
+                icon: Icons.local_shipping_outlined,
+                label: context.tr(RemainingL10n.carrier),
+                value: shipment.carrier ?? '',
+              ),
+              _InfoTile(
+                icon: Icons.qr_code_2_outlined,
+                label: context.tr(RemainingL10n.trackingNumber),
+                value: shipment.trackingNumber ?? '',
+                monospace: true,
+              ),
+              _InfoTile(
+                icon: Icons.location_on_outlined,
+                label: context.tr(RemainingL10n.currentLocation),
+                value: shipment.currentLocation ?? '',
+              ),
+            ],
+          ),
+          if (progressIndex != null && progressIndex >= 0) ...[
+            const SizedBox(height: AppSpacing.s16),
+            _DeliveryProgress(
+              currentIndex: progressIndex,
+              labels: [
+                for (final s in ShipmentStatuses.progression)
+                  ShipmentStatuses.label(s),
+              ],
             ),
-            children: [
-              _OrderHeroCard(
-                orderId: order.id,
-                statusLabel: _statusLabel(context, _status),
-                updatedAt: order.updatedAt,
-                accent: accent,
-                icon: _statusIcon(_status),
-              ),
-              const SizedBox(height: AppSpacing.s16),
-              _InfoGrid(
-                items: [
-                  _InfoTile(
-                    icon: Icons.local_shipping_outlined,
-                    label: context.tr(RemainingL10n.carrier),
-                    value: _carrierCtrl.text.trim().isEmpty
-                        ? order.carrier
-                        : _carrierCtrl.text.trim(),
+          ],
+          const SizedBox(height: AppSpacing.s16),
+        ],
+        if (options.isEmpty)
+          _EmptyPanel(
+            icon: currentStatus?.toUpperCase() == ShipmentStatuses.delivered
+                ? Icons.task_alt_outlined
+                : Icons.block_outlined,
+            message: currentStatus?.toUpperCase() == ShipmentStatuses.delivered
+                ? 'Delivered — this order is complete.'
+                : 'This shipment was cancelled. No further updates.',
+          )
+        else
+          _SectionCard(
+            icon: Icons.edit_location_alt_outlined,
+            title: shipment == null
+                ? 'Create shipment'
+                : context.tr(RemainingL10n.updateTracking),
+            subtitle: shipment == null
+                ? 'The customer sees each update on their order.'
+                : context.tr(RemainingL10n.optionalNoteForTimeline),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  context.tr(RemainingL10n.status2),
+                  style: AppTypography.caption.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                    color: AppColors.textSecondary(context),
                   ),
-                  _InfoTile(
-                    icon: Icons.qr_code_2_outlined,
-                    label: context.tr(RemainingL10n.trackingNumber),
-                    value: _trackingCtrl.text.trim().isEmpty
-                        ? order.trackingNumber
-                        : _trackingCtrl.text.trim(),
-                    monospace: true,
-                  ),
-                  _InfoTile(
-                    icon: Icons.location_on_outlined,
-                    label: context.tr(RemainingL10n.currentLocation),
-                    value: location,
-                  ),
-                ],
-              ),
-              if (_progressIndex(_status) != null) ...[
-                const SizedBox(height: AppSpacing.s16),
-                _DeliveryProgress(
-                  currentIndex: _progressIndex(_status)!,
-                  labels: [
-                    for (final s in _progressStatuses)
-                      _statusLabel(context, s),
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final s in options)
+                      _StatusChip(
+                        label: ShipmentStatuses.label(s),
+                        icon: _shipmentIcon(s),
+                        selected: _status == s,
+                        color: _shipmentColor(s),
+                        onTap: () {
+                          if (_status == s) return;
+                          AppHaptics.selection();
+                          setState(() => _status = s);
+                        },
+                      ),
                   ],
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                TextField(
+                  controller: _locationCtrl,
+                  decoration: _fieldDecoration(
+                    label: context.tr(RemainingL10n.currentLocation),
+                    icon: Icons.location_on_outlined,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                TextField(
+                  controller: _carrierCtrl,
+                  decoration: _fieldDecoration(
+                    label: context.tr(RemainingL10n.carrier),
+                    icon: Icons.local_shipping_outlined,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                TextField(
+                  controller: _trackingCtrl,
+                  decoration: _fieldDecoration(
+                    label: context.tr(RemainingL10n.trackingNumber),
+                    icon: Icons.qr_code_2_outlined,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                TextField(
+                  controller: _noteCtrl,
+                  maxLines: 3,
+                  decoration: _fieldDecoration(
+                    label: context.tr(RemainingL10n.updateNote),
+                    icon: Icons.notes_outlined,
+                    maxLines: 3,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                SizedBox(
+                  height: 52,
+                  child: FilledButton.icon(
+                    onPressed: saving || _status == null
+                        ? null
+                        : () => _save(shipment),
+                    icon: saving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.warmWhite,
+                            ),
+                          )
+                        : const Icon(Icons.save_outlined, size: 20),
+                    label: Text(
+                      shipment == null
+                          ? 'Create shipment'
+                          : context.tr(RemainingL10n.saveUpdate),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.charcoal,
+                      foregroundColor: AppColors.warmWhite,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.r12),
+                      ),
+                    ),
+                  ),
                 ),
               ],
-              const SizedBox(height: AppSpacing.s16),
-              _SectionCard(
-                icon: Icons.edit_location_alt_outlined,
-                title: context.tr(RemainingL10n.updateTracking),
-                subtitle: context.tr(RemainingL10n.optionalNoteForTimeline),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+            ),
+          ),
+        if (shipment != null) ...[
+          const SizedBox(height: AppSpacing.s16),
+          _ShipmentActivity(
+            shipment: shipment,
+            commentController: _commentCtrl,
+            posting: _postingComment,
+            onPost: () => _postComment(shipment),
+            decoration: _fieldDecoration(
+              label: context.tr(RemainingL10n.replyToBuyerHint),
+              icon: Icons.reply_outlined,
+              maxLines: 3,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Timeline and buyer/seller comments for one shipment.
+class _ShipmentActivity extends ConsumerWidget {
+  const _ShipmentActivity({
+    required this.shipment,
+    required this.commentController,
+    required this.posting,
+    required this.onPost,
+    required this.decoration,
+  });
+
+  final Shipment shipment;
+  final TextEditingController commentController;
+  final bool posting;
+  final VoidCallback onPost;
+  final InputDecoration decoration;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final detail = ref.watch(shipmentDetailProvider(shipment.id)).asData?.value;
+    final source = detail ?? shipment;
+    final updates = [...source.updates]
+      ..sort(
+        (a, b) =>
+            (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
+      );
+    final comments = source.comments;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionCard(
+          icon: Icons.timeline_outlined,
+          title: context.tr(RemainingL10n.timeline),
+          child: updates.isEmpty
+              ? _EmptyPanel(
+                  icon: Icons.history_toggle_off_outlined,
+                  message: ShipmentStatuses.label(shipment.status),
+                )
+              : Column(
                   children: [
-                    Text(
-                      context.tr(RemainingL10n.status2),
-                      style: _sectionLabelStyle(context),
-                    ),
-                    const SizedBox(height: AppSpacing.s8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final s in _statusOptions)
-                          _StatusChip(
-                            label: _statusLabel(context, s),
-                            icon: _statusIcon(s),
-                            selected: _status == s,
-                            color: _statusColor(s),
-                            onTap: () {
-                              if (_status == s) return;
-                              AppHaptics.selection();
-                              setState(() => _status = s);
-                            },
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.s16),
-                    TextField(
-                      controller: _locationCtrl,
-                      decoration: _fieldDecoration(
-                        context,
-                        label: context.tr(RemainingL10n.currentLocation),
-                        icon: Icons.location_on_outlined,
+                    for (var i = 0; i < updates.length; i++)
+                      _TimelineRow(
+                        title: [
+                          ShipmentStatuses.label(updates[i].status),
+                          if (updates[i].location != null) updates[i].location!,
+                        ].join(' · '),
+                        subtitle:
+                            updates[i].note ??
+                            context.tr(RemainingL10n.statusUpdated),
+                        at: sellerOrderDateLabel(updates[i].createdAt),
+                        isFirst: i == 0,
+                        isLast: i == updates.length - 1,
                       ),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
-                    TextField(
-                      controller: _carrierCtrl,
-                      decoration: _fieldDecoration(
-                        context,
-                        label: context.tr(RemainingL10n.carrier),
-                        icon: Icons.local_shipping_outlined,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
-                    TextField(
-                      controller: _trackingCtrl,
-                      decoration: _fieldDecoration(
-                        context,
-                        label: context.tr(RemainingL10n.trackingNumber),
-                        icon: Icons.qr_code_2_outlined,
-                      ),
-                      keyboardType: TextInputType.text,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
-                    TextField(
-                      controller: _noteCtrl,
-                      maxLines: 3,
-                      decoration: _fieldDecoration(
-                        context,
-                        label: context.tr(RemainingL10n.updateNote),
-                        icon: Icons.notes_outlined,
-                        maxLines: 3,
-                      ),
-                    ),
                   ],
                 ),
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        _SectionCard(
+          icon: Icons.forum_outlined,
+          title: context.tr(RemainingL10n.comments),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (comments.isEmpty)
+                _EmptyPanel(
+                  icon: Icons.chat_bubble_outline,
+                  message: context.tr(RemainingL10n.noCommentsYet),
+                  compact: true,
+                )
+              else
+                for (final c in comments) ...[
+                  _EmptyPanel(
+                    icon: Icons.chat_bubble_outline,
+                    message: '${c.body}\n${sellerOrderDateLabel(c.createdAt)}',
+                    compact: true,
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                ],
+              const SizedBox(height: AppSpacing.s12),
+              TextField(
+                controller: commentController,
+                maxLines: 3,
+                decoration: decoration,
               ),
-              const SizedBox(height: AppSpacing.s16),
-              _SectionCard(
-                icon: Icons.timeline_outlined,
-                title: context.tr(RemainingL10n.timeline),
-                child: _timeline.isEmpty
-                    ? _EmptyPanel(
-                        icon: Icons.history_toggle_off_outlined,
-                        message: context.tr(RemainingL10n.statusUpdated),
-                      )
-                    : Column(
-                        children: [
-                          for (var i = 0; i < _timeline.length; i++)
-                            _TimelineRow(
-                              entry: _timeline[i],
-                              isFirst: i == 0,
-                              isLast: i == _timeline.length - 1,
-                            ),
-                        ],
-                      ),
-              ),
-              const SizedBox(height: AppSpacing.s16),
-              _SectionCard(
-                icon: Icons.forum_outlined,
-                title: context.tr(RemainingL10n.comments),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _EmptyPanel(
-                      icon: Icons.chat_bubble_outline,
-                      message: context.tr(RemainingL10n.noCommentsYet),
-                      compact: true,
+              const SizedBox(height: AppSpacing.s12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton.icon(
+                  onPressed: posting ? null : onPost,
+                  icon: const Icon(Icons.send_outlined, size: 18),
+                  label: Text(context.tr(RemainingL10n.postComment)),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.charcoal,
+                    foregroundColor: AppColors.warmWhite,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s20,
+                      vertical: AppSpacing.s12,
                     ),
-                    const SizedBox(height: AppSpacing.s12),
-                    TextField(
-                      controller: _commentCtrl,
-                      maxLines: 3,
-                      decoration: _fieldDecoration(
-                        context,
-                        label: context.tr(RemainingL10n.replyToBuyerHint),
-                        icon: Icons.reply_outlined,
-                        maxLines: 3,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: FilledButton.icon(
-                        onPressed: _postComment,
-                        icon: const Icon(Icons.send_outlined, size: 18),
-                        label: Text(context.tr(RemainingL10n.postComment)),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.charcoal,
-                          foregroundColor: AppColors.warmWhite,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.s20,
-                            vertical: AppSpacing.s12,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],
           ),
-        ),
-        _SaveBar(
-          label: context.tr(RemainingL10n.saveUpdate),
-          onPressed: _saveUpdate,
         ),
       ],
     );
   }
-
-  TextStyle _sectionLabelStyle(BuildContext context) =>
-      AppTypography.caption.copyWith(
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.3,
-        color: AppColors.textSecondary(context),
-      );
 }
+
+Color _shipmentColor(String status) => switch (status.toUpperCase()) {
+  ShipmentStatuses.cancelled => AppColors.error,
+  ShipmentStatuses.delivered => AppColors.success,
+  ShipmentStatuses.outForDelivery => AppColors.info,
+  _ => AppColors.bronze,
+};
+
+IconData _shipmentIcon(String status) => switch (status.toUpperCase()) {
+  ShipmentStatuses.cancelled => Icons.cancel_outlined,
+  ShipmentStatuses.delivered => Icons.check_circle_outline,
+  ShipmentStatuses.outForDelivery => Icons.local_shipping_outlined,
+  ShipmentStatuses.packed => Icons.inventory_2_outlined,
+  ShipmentStatuses.shipped ||
+  ShipmentStatuses.inTransit => Icons.flight_takeoff_outlined,
+  _ => Icons.hourglass_top_outlined,
+};
 
 class _OrderHeroCard extends StatelessWidget {
   const _OrderHeroCard({
@@ -498,9 +896,7 @@ class _OrderHeroCard extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  context.tr(RemainingL10n.shipmentWithStatus, {
-                                    'status': statusLabel,
-                                  }),
+                                  statusLabel,
                                   style: AppTypography.caption.copyWith(
                                     color: AppColors.textSecondary(context),
                                   ),
@@ -523,7 +919,7 @@ class _OrderHeroCard extends StatelessWidget {
                           ),
                           _MetaChip(
                             icon: Icons.schedule_outlined,
-                            label: 'Updated $updatedAt',
+                            label: updatedAt,
                           ),
                         ],
                       ),
@@ -632,10 +1028,7 @@ class _InfoTile extends StatelessWidget {
 }
 
 class _DeliveryProgress extends StatelessWidget {
-  const _DeliveryProgress({
-    required this.currentIndex,
-    required this.labels,
-  });
+  const _DeliveryProgress({required this.currentIndex, required this.labels});
 
   final int currentIndex;
   final List<String> labels;
@@ -666,10 +1059,7 @@ class _DeliveryProgress extends StatelessWidget {
               for (var i = 0; i < labels.length; i++) ...[
                 Expanded(
                   child: Center(
-                    child: _ProgressDot(
-                      index: i,
-                      currentIndex: currentIndex,
-                    ),
+                    child: _ProgressDot(index: i, currentIndex: currentIndex),
                   ),
                 ),
                 if (i < labels.length - 1)
@@ -717,10 +1107,7 @@ class _DeliveryProgress extends StatelessWidget {
 }
 
 class _ProgressDot extends StatelessWidget {
-  const _ProgressDot({
-    required this.index,
-    required this.currentIndex,
-  });
+  const _ProgressDot({required this.index, required this.currentIndex});
 
   final int index;
   final int currentIndex;
@@ -934,12 +1321,16 @@ class _MetaChip extends StatelessWidget {
 
 class _TimelineRow extends StatelessWidget {
   const _TimelineRow({
-    required this.entry,
+    required this.title,
+    required this.subtitle,
+    required this.at,
     required this.isFirst,
     required this.isLast,
   });
 
-  final SellerOrderTimelineEntry entry;
+  final String title;
+  final String subtitle;
+  final String at;
   final bool isFirst;
   final bool isLast;
 
@@ -995,14 +1386,14 @@ class _TimelineRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    entry.title,
+                    title,
                     style: AppTypography.label.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    entry.subtitle,
+                    subtitle,
                     style: AppTypography.caption.copyWith(
                       color: AppColors.textSecondary(context),
                       height: 1.35,
@@ -1010,7 +1401,7 @@ class _TimelineRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    entry.at,
+                    at,
                     style: AppTypography.caption.copyWith(
                       color: AppColors.textMuted(context),
                       fontSize: 11,
@@ -1052,7 +1443,11 @@ class _EmptyPanel extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: compact ? 20 : 28, color: AppColors.textMuted(context)),
+          Icon(
+            icon,
+            size: compact ? 20 : 28,
+            color: AppColors.textMuted(context),
+          ),
           const SizedBox(width: AppSpacing.s12),
           Expanded(
             child: Text(
@@ -1064,54 +1459,6 @@ class _EmptyPanel extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SaveBar extends StatelessWidget {
-  const _SaveBar({required this.label, required this.onPressed});
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 8,
-      color: AppColors.card(context),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s16,
-            AppSpacing.s12,
-            AppSpacing.s16,
-            AppSpacing.s12,
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: FilledButton.icon(
-              onPressed: onPressed,
-              icon: const Icon(Icons.save_outlined, size: 20),
-              label: Text(
-                label,
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.warmWhite,
-                ),
-              ),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.charcoal,
-                foregroundColor: AppColors.warmWhite,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.r12),
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

@@ -7,8 +7,10 @@ import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/router/app_navigation.dart';
+import '../../../../core/router/navigator_keys.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -18,6 +20,8 @@ import '../../../buyer/application/buyer_orders_provider.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
 import '../../application/fees_providers.dart';
 import '../../domain/models/fee_rule.dart';
+import '../../../payment/domain/models/payment_models.dart';
+import '../../../payment/presentation/payment_flow.dart';
 import '../../../payment/presentation/widgets/payment_success_dialog.dart';
 import '../../../wallet/application/wallet_provider.dart';
 import '../../../wallet/domain/models/wallet.dart';
@@ -51,24 +55,68 @@ class CartCheckoutButton extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref, {
     required double payableInr,
+    required PurchaseSummary summary,
   }) async {
     if (!AccountAccess.guard(context, ref)) return;
-    final result = await ref
-        .read(paymentCheckoutProvider.notifier)
-        .checkout(payableInr: payableInr);
-    if (!context.mounted) return;
-    switch (result) {
-      case Success(:final value):
-        await showPaymentSuccessDialog(context, order: value);
-        if (!context.mounted) return;
-        ref.invalidate(buyerOrdersProvider);
-        context.resetTo(AppRouteNames.buyerOrders);
-      case ResultFailure(:final failure):
-        AppHaptics.error();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
+    final notifier = ref.read(paymentCheckoutProvider.notifier);
+    final result = await PaymentFlow.run(
+      context,
+      summary: summary,
+      process: () => notifier.checkout(payableInr: payableInr),
+      status: (ref) => _phaseLabel(ref.watch(paymentCheckoutProvider)),
+      showSuccess: (context, order) =>
+          showPaymentSuccessDialog(context, order: order),
+    );
+    if (result is! Success<PaymentOrder, Failure>) return;
+    // Only after the user closed the success popup.
+    ref.invalidate(buyerOrdersProvider);
+    final router = rootNavigatorKey.currentContext;
+    if (context.mounted) {
+      context.resetTo(AppRouteNames.buyerOrders);
+    } else if (router != null && router.mounted) {
+      router.resetTo(AppRouteNames.buyerOrders);
     }
+  }
+
+  static String _phaseLabel(CheckoutState checkout) {
+    return switch (checkout.phase) {
+      CheckoutPhase.awaitingPayment => 'Complete payment…',
+      CheckoutPhase.verifying =>
+        checkout.useWallet ? 'Paying with wallet…' : 'Verifying payment…',
+      _ => 'Creating order…',
+    };
+  }
+
+  static PurchaseSummary _summary({
+    required int itemCount,
+    required CartOrderEstimate estimate,
+    required bool useWallet,
+    required bool fullyCoveredByWallet,
+    required double walletAppliedInr,
+    required double remainingInr,
+  }) {
+    final walletUsed = useWallet && walletAppliedInr > 0;
+    final method = fullyCoveredByWallet
+        ? 'Wallet'
+        : walletUsed
+        ? 'Wallet + Razorpay'
+        : 'Razorpay';
+    return PurchaseSummary(
+      item: itemCount == 1 ? '1 item' : '$itemCount items',
+      method: method,
+      amount: estimate.hasLiveRate
+          ? AppCurrency.inr(estimate.totalInr)
+          : AppCurrency.usd(estimate.totalUsd),
+      details: [
+        if (estimate.hasLiveRate)
+          (label: 'Total (USD)', value: AppCurrency.usd(estimate.totalUsd)),
+        if (walletUsed && estimate.hasLiveRate) ...[
+          (label: 'From wallet', value: AppCurrency.inr(walletAppliedInr)),
+          if (!fullyCoveredByWallet)
+            (label: 'Via Razorpay', value: AppCurrency.inr(remainingInr)),
+        ],
+      ],
+    );
   }
 
   @override
@@ -208,7 +256,19 @@ class CartCheckoutButton extends ConsumerWidget {
                         ),
                       );
                     } else if (canCheckout) {
-                      _pay(context, ref, payableInr: estimate.totalInr);
+                      _pay(
+                        context,
+                        ref,
+                        payableInr: estimate.totalInr,
+                        summary: _summary(
+                          itemCount: items.where((e) => e.isAvailable).length,
+                          estimate: estimate,
+                          useWallet: useWallet,
+                          fullyCoveredByWallet: fullyCoveredByWallet,
+                          walletAppliedInr: walletAppliedInr,
+                          remainingInr: remainingInr,
+                        ),
+                      );
                     } else {
                       AppHaptics.warning();
                       ScaffoldMessenger.of(context).showSnackBar(

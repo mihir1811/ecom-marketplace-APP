@@ -17,6 +17,7 @@ abstract class RefundRepository {
     required int page,
     int limit = 10,
     String? status,
+    String? orderId,
     CancelToken? cancelToken,
   });
 

@@ -80,9 +80,25 @@ abstract final class ApiEndpoints {
   static String trackingShipment(String id) => '/tracking/shipments/$id';
   static String trackingShipmentComments(String id) =>
       '/tracking/shipments/$id/comments';
+  static const String trackingSellerShipments = '/tracking/seller/shipments';
+  static String trackingSellerShipment(String id) =>
+      '/tracking/seller/shipments/$id';
+
+  // Seller orders (incoming orders the seller accepts or rejects)
+  static const String sellerOrders = '/seller/orders';
+  static String sellerOrderById(String id) => '/seller/orders/$id';
+  static String sellerOrderAccept(String id) => '/seller/orders/$id/accept';
+  static String sellerOrderReject(String id) => '/seller/orders/$id/reject';
+
+  // App feedback (buyer + seller)
+  static const String feedback = '/feedback';
+  static const String feedbackMine = '/feedback/mine';
 
   // Seller reviews (buyer rates a seller after a paid order)
   static const String sellerReviews = '/seller-reviews';
+
+  // Seller dashboard charts and totals (seller-scoped, server aggregated)
+  static const String sellerStats = '/seller/stats';
 
   // Product inquiries (buyer + seller submit to admin)
   static const String diamondInquiry = '/diamond-inquiry';

@@ -31,6 +31,8 @@ abstract final class RefundMapper {
       resolvedAtLabel: resolvedAt != null ? _label(resolvedAt) : null,
       user: _userFromJson(json['user']),
       seller: _sellerFromJson(json['seller']),
+      createdAt: createdAt,
+      resolvedAt: resolvedAt,
     );
   }
 
@@ -100,7 +102,7 @@ abstract final class RefundMapper {
 
   static DateTime? _parseDate(Object? raw) {
     if (raw == null) return null;
-    return DateTime.tryParse(raw.toString());
+    return DateTime.tryParse(raw.toString())?.toLocal();
   }
 
   static String _label(DateTime? date) {

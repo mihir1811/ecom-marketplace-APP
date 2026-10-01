@@ -1,11 +1,11 @@
 {
-    "name": "gemstone",
-    "short_name": "gemstone",
+    "name": "GemWorld",
+    "short_name": "GemWorld",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F3F5F8",
+    "theme_color": "#151A2B",
+    "description": "GemWorld marketplace for diamonds, gemstones, jewellery, watches and bullion.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

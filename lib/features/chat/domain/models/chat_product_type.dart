@@ -20,11 +20,11 @@ enum ChatProductType {
   }
 
   String get label => switch (this) {
-        ChatProductType.diamond => 'Diamond',
-        ChatProductType.gemstone => 'Gemstone',
-        ChatProductType.meleeDiamond => 'Melee',
-        ChatProductType.jewellery => 'Jewellery',
-        ChatProductType.watch => 'Watch',
-        ChatProductType.bullion => 'Bullion',
-      };
+    ChatProductType.diamond => 'Diamond',
+    ChatProductType.gemstone => 'Gemstone',
+    ChatProductType.meleeDiamond => 'Melee',
+    ChatProductType.jewellery => 'Jewellery',
+    ChatProductType.watch => 'Watch',
+    ChatProductType.bullion => 'Bullion',
+  };
 }

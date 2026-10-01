@@ -102,7 +102,7 @@ Future<Result<RazorpayPaymentSuccess, Failure>> openPlatformCheckout(
     'key': session.keyId,
     'amount': session.amountPaise,
     'currency': session.currency,
-    'name': 'Gemstone',
+    'name': 'GemWorld',
     'description': session.description ?? 'Order ${session.orderId}',
     'order_id': session.razorpayOrderId,
     'prefill': <String, Object?>{

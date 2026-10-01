@@ -32,11 +32,7 @@ class RefundRepositoryImpl implements RefundRepository {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         ApiEndpoints.refunds,
-        data: {
-          'orderId': orderId,
-          'sellerId': sellerId,
-          'reason': reason,
-        },
+        data: {'orderId': orderId, 'sellerId': sellerId, 'reason': reason},
         cancelToken: cancelToken,
       );
       final data = response.data?['data'];
@@ -58,6 +54,7 @@ class RefundRepositoryImpl implements RefundRepository {
     required int page,
     int limit = 10,
     String? status,
+    String? orderId,
     CancelToken? cancelToken,
   }) {
     return _list(
@@ -65,6 +62,7 @@ class RefundRepositoryImpl implements RefundRepository {
       page: page,
       limit: limit,
       status: status,
+      orderId: orderId,
       cancelToken: cancelToken,
     );
   }
@@ -173,8 +171,13 @@ class RefundRepositoryImpl implements RefundRepository {
     required int page,
     required int limit,
     String? status,
+    String? orderId,
     CancelToken? cancelToken,
   }) async {
+    final filters = {
+      if (status != null && status.isNotEmpty) 'status': status,
+      if (orderId != null && orderId.isNotEmpty) 'orderId': orderId,
+    };
     try {
       final response = await _dio.get<Map<String, dynamic>>(
         path,
@@ -182,17 +185,12 @@ class RefundRepositoryImpl implements RefundRepository {
           'page': page < 1 ? 1 : page,
           'limit': limit < 1 ? 10 : limit,
           'sort': '-createdAt',
-          if (status != null && status.isNotEmpty)
-            'filters': jsonEncode({'status': status}),
+          if (filters.isNotEmpty) 'filters': jsonEncode(filters),
         },
         cancelToken: cancelToken,
       );
       return Result.success(
-        RefundMapper.listPageFromJson(
-          response.data,
-          page: page,
-          limit: limit,
-        ),
+        RefundMapper.listPageFromJson(response.data, page: page, limit: limit),
       );
     } on DioException catch (e) {
       return Result.failure(ApiError.fromDio(e));

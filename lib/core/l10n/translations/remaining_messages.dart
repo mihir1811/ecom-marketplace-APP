@@ -175,6 +175,9 @@ abstract final class RemainingL10n {
   static const conversation = 'remaining.conversation';
   static const inbox = 'remaining.inbox';
   static const photo = 'remaining.photo';
+  static const sendPhoto = 'remaining.sendPhoto';
+  static const uploadingPhoto = 'remaining.uploadingPhoto';
+  static const couldNotOpenPhotos = 'remaining.couldNotOpenPhotos';
   static const attachment = 'remaining.attachment';
   static const today = 'remaining.today';
   static const yesterday = 'remaining.yesterday';
@@ -700,6 +703,7 @@ abstract final class RemainingL10n {
   static const conversationsCount = 'remaining.conversationsCount';
   static const daysAgoTime = 'remaining.daysAgoTime';
   static const throughDate = 'remaining.throughDate';
+  static const inventorySnapshotNote = 'remaining.inventorySnapshotNote';
   static const submittedBy = 'remaining.submittedBy';
   static const sellerToAdmin = 'remaining.sellerToAdmin';
   static const buyerToAdmin = 'remaining.buyerToAdmin';
@@ -1681,6 +1685,21 @@ const remainingMessages = <String, LocalizedMessage>{
     english: 'Photo',
     hindi: 'तस्वीर',
     gujarati: 'ફોટો',
+  ),
+  RemainingL10n.sendPhoto: LocalizedMessage(
+    english: 'Send photo',
+    hindi: 'फ़ोटो भेजें',
+    gujarati: 'ફોટો મોકલો',
+  ),
+  RemainingL10n.uploadingPhoto: LocalizedMessage(
+    english: 'Uploading photo…',
+    hindi: 'फ़ोटो अपलोड हो रही है…',
+    gujarati: 'ફોટો અપલોડ થઈ રહ્યો છે…',
+  ),
+  RemainingL10n.couldNotOpenPhotos: LocalizedMessage(
+    english: "Could not open your photos. Check the app's photo permission.",
+    hindi: 'आपकी फ़ोटो नहीं खुल सकीं। ऐप की फ़ोटो अनुमति जाँचें।',
+    gujarati: 'તમારા ફોટા ખોલી શકાયા નહીં. ઍપની ફોટો પરવાનગી તપાસો.',
   ),
   RemainingL10n.attachment: LocalizedMessage(
     english: 'Attachment',
@@ -4080,6 +4099,12 @@ const remainingMessages = <String, LocalizedMessage>{
     english: 'To {date}',
     hindi: '{date} तक',
     gujarati: '{date} સુધી',
+  ),
+  RemainingL10n.inventorySnapshotNote: LocalizedMessage(
+    english:
+        "Inventory value is today's snapshot. Earlier periods have no inventory history.",
+    hindi: 'इन्वेंटरी मूल्य आज का स्नैपशॉट है। पिछली अवधियों का इन्वेंटरी इतिहास नहीं है।',
+    gujarati: 'ઇન્વેન્ટરી મૂલ્ય આજનો સ્નેપશોટ છે. અગાઉના સમયગાળાનો ઇન્વેન્ટરી ઇતિહાસ નથી.',
   ),
   RemainingL10n.submittedBy: LocalizedMessage(
     english: 'SUBMITTED BY',

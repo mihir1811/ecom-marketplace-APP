@@ -17,7 +17,19 @@ BuyerOrder buyerOrderFromPayment(PaymentOrder order) {
     currency: order.currency,
     createdAt: order.createdAt,
     itemCount: order.items.length,
+    sellerDecision: combinedSellerDecision(order.sellerDecisions),
   );
+}
+
+/// `REJECTED` only when every seller rejected; `PENDING` while any seller
+/// still has to decide; otherwise `ACCEPTED`.
+String? combinedSellerDecision(List<PaymentOrderSellerDecision> decisions) {
+  if (decisions.isEmpty) return null;
+  if (decisions.every((d) => d.isRejected)) {
+    return SellerDecisionStatuses.rejected;
+  }
+  if (decisions.any((d) => d.isPending)) return SellerDecisionStatuses.pending;
+  return SellerDecisionStatuses.accepted;
 }
 
 class BuyerOrdersListState {

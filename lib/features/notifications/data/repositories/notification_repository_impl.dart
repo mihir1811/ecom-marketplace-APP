@@ -194,19 +194,6 @@ class NotificationRepositoryImpl implements NotificationRepository {
     }
   }
 
-  /// Re-sends a stored FCM token after login or app start. No-op without one.
-  @override
-  Future<Result<void, Failure>> registerStoredDevice() async {
-    final token = await _devices.readToken();
-    if (token == null || token.isEmpty) return Result.success(null);
-    final deviceId = await _devices.deviceId();
-    return registerDevice(
-      token: token,
-      platform: notificationPlatform(),
-      deviceId: deviceId,
-    );
-  }
-
   /// Called before `POST /auth/logout`. No-op when this install was never registered.
   @override
   Future<void> unregisterStoredDevice() async {

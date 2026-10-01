@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import '../../../../core/router/app_navigation.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
@@ -233,8 +233,9 @@ class _SellerAuctionCard extends ConsumerWidget {
             spacing: 8,
             children: [
               TextButton(
-                onPressed: () =>
-                    context.push(AppRouteNames.auctionDetailPath(auction.id)),
+                onPressed: () => context.openRoute(
+                  AppRouteNames.auctionDetailPath(auction.id),
+                ),
                 child: const Text('Open'),
               ),
               TextButton(onPressed: onToggle, child: const Text('Bids')),

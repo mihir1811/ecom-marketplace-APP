@@ -4,32 +4,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
-import '../../../payment/data/repositories/payment_repository_impl.dart';
-import '../../../payment/domain/models/payment_models.dart';
-import '../../../payment/domain/repositories/payment_repository.dart';
+import '../../../../core/network/api_endpoints.dart';
+import '../../../../core/network/api_error.dart';
+import '../../../../core/network/dio_provider.dart';
 import '../../../refunds/data/repositories/refund_repository_impl.dart';
 import '../../../refunds/domain/models/refund_request.dart';
 import '../../../refunds/domain/repositories/refund_repository.dart';
 import '../../domain/models/seller_insights.dart';
-import '../../domain/models/seller_product.dart';
+import '../../domain/models/seller_stats.dart';
 import '../../domain/repositories/seller_insights_repository.dart';
-import '../../domain/repositories/seller_product_repository.dart';
 import '../mappers/seller_insights_aggregator.dart';
-import 'seller_product_repository_impl.dart';
+import '../mappers/seller_stats_mapper.dart';
 
-/// Session-scoped orders/refunds/inventory cache for dashboard + analytics.
+/// Session-scoped stats/refunds cache for dashboard + analytics.
 class SellerInsightsFetchCache {
-  List<PaymentOrder>? orders;
-  DateTime? ordersAt;
-  Future<Result<List<PaymentOrder>, Failure>>? ordersInFlight;
+  final stats = <SellerStatsQuery, (DateTime, SellerStats)>{};
+  final statsInFlight =
+      <SellerStatsQuery, Future<Result<SellerStats, Failure>>>{};
 
   List<RefundRequest>? refunds;
   DateTime? refundsAt;
   Future<Result<List<RefundRequest>, Failure>>? refundsInFlight;
-
-  double? inventoryValue;
-  DateTime? inventoryAt;
-  Future<Result<double, Failure>>? inventoryInFlight;
 
   static const ttl = Duration(minutes: 5);
 
@@ -37,15 +32,11 @@ class SellerInsightsFetchCache {
       at != null && DateTime.now().difference(at) < ttl;
 
   void clear() {
-    orders = null;
-    ordersAt = null;
-    ordersInFlight = null;
+    stats.clear();
+    statsInFlight.clear();
     refunds = null;
     refundsAt = null;
     refundsInFlight = null;
-    inventoryValue = null;
-    inventoryAt = null;
-    inventoryInFlight = null;
   }
 }
 
@@ -60,33 +51,22 @@ final sellerInsightsFetchCacheProvider = Provider<SellerInsightsFetchCache>((
 
 final sellerInsightsRepositoryProvider = Provider<SellerInsightsRepository>(
   (ref) => SellerInsightsRepositoryImpl(
-    ref.watch(paymentRepositoryProvider),
+    ref.watch(dioProvider),
     ref.watch(refundRepositoryProvider),
-    ref.watch(sellerProductRepositoryProvider),
     ref.watch(sellerInsightsFetchCacheProvider),
-    () =>
-        ref.read(authProvider).sellerId ?? ref.read(authProvider).user?.id,
   ),
 );
 
-/// Loads seller orders/refunds/inventory and aggregates dashboard snapshots.
+/// Loads seller-scoped stats (`GET /seller/stats`) and refunds.
+///
+/// `GET /payment/orders` is deliberately not used here: it lists the signed-in
+/// user's own purchases, not the orders other buyers placed with this seller.
 class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
-  const SellerInsightsRepositoryImpl(
-    this._payments,
-    this._refunds,
-    this._products,
-    this._cache,
-    this._sellerId,
-  );
+  const SellerInsightsRepositoryImpl(this._dio, this._refunds, this._cache);
 
-  final PaymentRepository _payments;
+  final Dio _dio;
   final RefundRepository _refunds;
-  final SellerProductRepository _products;
   final SellerInsightsFetchCache _cache;
-  final String? Function() _sellerId;
-
-  static const _pageSize = 50;
-  static const _maxPages = 6;
 
   @override
   void invalidateCache() => _cache.clear();
@@ -96,23 +76,28 @@ class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
     required SellerDashboardParams params,
     CancelToken? cancelToken,
   }) async {
-    final ordersResult = await _loadOrders();
-    final inventoryResult = await _loadInventoryValue(cancelToken: cancelToken);
-    final inventory = switch (inventoryResult) {
-      Success(:final value) => value,
-      ResultFailure() => _cache.inventoryValue ?? 0,
-    };
-
-    return switch (ordersResult) {
-      Success(:final value) => Result.success(
-        SellerInsightsAggregator.dashboard(
-          orders: value,
-          params: params,
-          inventoryValue: inventory,
-        ),
-      ),
-      ResultFailure(:final failure) => Result.failure(failure),
-    };
+    final plan = SellerInsightsAggregator.dashboardPlan(params);
+    final result = await _loadStats(plan.query, cancelToken: cancelToken);
+    switch (result) {
+      case Success(:final value):
+        final mismatch = SellerInsightsAggregator.periodMismatch(
+          value,
+          plan.query,
+        );
+        if (mismatch != null) {
+          _cache.stats.remove(plan.query);
+          return Result.failure(NetworkFailure(mismatch));
+        }
+        return Result.success(
+          SellerInsightsAggregator.dashboard(
+            stats: value,
+            plan: plan,
+            params: params,
+          ),
+        );
+      case ResultFailure(:final failure):
+        return Result.failure(failure);
+    }
   }
 
   @override
@@ -120,120 +105,83 @@ class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
     required AnalyticsRange range,
     CancelToken? cancelToken,
   }) async {
-    final ordersResult = await _loadOrders();
-    if (ordersResult is ResultFailure<List<PaymentOrder>, Failure>) {
-      return Result.failure(ordersResult.failure);
+    final queries = SellerInsightsAggregator.analyticsQueries(range);
+    final results = await Future.wait([
+      _loadStats(queries.current, cancelToken: cancelToken),
+      _loadStats(queries.previous, cancelToken: cancelToken),
+    ]);
+    final current = results[0];
+    if (current is ResultFailure<SellerStats, Failure>) {
+      return Result.failure(current.failure);
     }
-    final orders = (ordersResult as Success<List<PaymentOrder>, Failure>).value;
+    final currentStats = (current as Success<SellerStats, Failure>).value;
+    final mismatch = SellerInsightsAggregator.periodMismatch(
+      currentStats,
+      queries.current,
+    );
+    if (mismatch != null) {
+      _cache.stats.remove(queries.current);
+      return Result.failure(NetworkFailure(mismatch));
+    }
+    // A failed comparison window only affects the deltas.
+    final previous = switch (results[1]) {
+      Success(:final value) => value,
+      ResultFailure() => const SellerStats(),
+    };
 
-    final refundsResult = await _loadRefunds();
-    final refunds = switch (refundsResult) {
+    final refunds = switch (await _loadRefunds()) {
       Success(:final value) => value,
       ResultFailure() => const <RefundRequest>[],
     };
 
     return Result.success(
       SellerInsightsAggregator.analytics(
-        orders: orders,
+        current: currentStats,
+        previous: previous,
+        currentQuery: queries.current,
         refunds: refunds,
-        range: range,
       ),
     );
   }
 
-  Future<Result<List<PaymentOrder>, Failure>> _loadOrders() {
-    if (_cache.orders != null && _cache.isFresh(_cache.ordersAt)) {
-      return Future.value(Result.success(_cache.orders!));
-    }
-    final existing = _cache.ordersInFlight;
-    if (existing != null) return existing;
-
-    final future = _fetchAllOrders();
-    _cache.ordersInFlight = future;
-    return future.whenComplete(() {
-      if (identical(_cache.ordersInFlight, future)) {
-        _cache.ordersInFlight = null;
-      }
-    });
-  }
-
-  Future<Result<List<PaymentOrder>, Failure>> _fetchAllOrders() async {
-    final all = <PaymentOrder>[];
-    var page = 1;
-    while (page <= _maxPages) {
-      final result = await _payments.listOrders(page: page, limit: _pageSize);
-      switch (result) {
-        case ResultFailure(:final failure):
-          return Result.failure(failure);
-        case Success(:final value):
-          all.addAll(value.orders);
-          if (!value.hasMore) {
-            _cache.orders = all;
-            _cache.ordersAt = DateTime.now();
-            return Result.success(all);
-          }
-          page += 1;
-      }
-    }
-    _cache.orders = all;
-    _cache.ordersAt = DateTime.now();
-    return Result.success(all);
-  }
-
-  Future<Result<double, Failure>> _loadInventoryValue({
+  Future<Result<SellerStats, Failure>> _loadStats(
+    SellerStatsQuery query, {
     CancelToken? cancelToken,
   }) {
-    if (_cache.inventoryValue != null && _cache.isFresh(_cache.inventoryAt)) {
-      return Future.value(Result.success(_cache.inventoryValue!));
+    final cached = _cache.stats[query];
+    if (cached != null && _cache.isFresh(cached.$1)) {
+      return Future.value(Result.success(cached.$2));
     }
-    final existing = _cache.inventoryInFlight;
+    final existing = _cache.statsInFlight[query];
     if (existing != null) return existing;
 
-    final future = _fetchInventoryValue(cancelToken: cancelToken);
-    _cache.inventoryInFlight = future;
+    final future = _fetchStats(query, cancelToken: cancelToken);
+    _cache.statsInFlight[query] = future;
     return future.whenComplete(() {
-      if (identical(_cache.inventoryInFlight, future)) {
-        _cache.inventoryInFlight = null;
+      if (identical(_cache.statsInFlight[query], future)) {
+        _cache.statsInFlight.remove(query);
       }
     });
   }
 
-  Future<Result<double, Failure>> _fetchInventoryValue({
+  Future<Result<SellerStats, Failure>> _fetchStats(
+    SellerStatsQuery query, {
     CancelToken? cancelToken,
   }) async {
-    final sellerId = _sellerId()?.trim() ?? '';
-    if (sellerId.isEmpty) {
-      _cache.inventoryValue = 0;
-      _cache.inventoryAt = DateTime.now();
-      return Result.success(0);
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        ApiEndpoints.sellerStats,
+        queryParameters: query.toQueryParameters(),
+        cancelToken: cancelToken,
+      );
+      final stats = SellerStatsMapper.fromEnvelope(response.data);
+      _cache.stats[query] = (DateTime.now(), stats);
+      return Result.success(stats);
+    } on DioException catch (e) {
+      return Result.failure(ApiError.fromDio(e));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
     }
-
-    final result = await _products.listProducts(
-      sellerId: sellerId,
-      cancelToken: cancelToken,
-    );
-    switch (result) {
-      case Success(value: final List<SellerProduct> products):
-        var total = 0.0;
-        for (final product in products) {
-          if (product.isDeleted || product.isExpired || product.isSold) {
-            continue;
-          }
-          total += _productPrice(product);
-        }
-        _cache.inventoryValue = total;
-        _cache.inventoryAt = DateTime.now();
-        return Result.success(total);
-      case ResultFailure(:final failure):
-        return Result.failure(failure);
-    }
-  }
-
-  static double _productPrice(SellerProduct product) {
-    final raw =
-        product.field('total_price') ?? product.field('price_per_carat') ?? '';
-    final cleaned = raw.replaceAll(RegExp(r'[^0-9.\-]'), '');
-    return double.tryParse(cleaned) ?? 0;
   }
 
   Future<Result<List<RefundRequest>, Failure>> _loadRefunds() {

@@ -108,7 +108,124 @@ abstract final class PaymentMapper {
       items: items,
       pricing: pricing,
       sellers: sellers,
+      sellerDecisions: sellerDecisionsFromJson(json),
     );
+  }
+
+  /// Seller approval per seller. Swagger has no schema for it, so this reads
+  /// the shapes the backend uses for seller-scoped order data: a
+  /// `sellerOrders` list, a status on each `sellers[]` entry, a status on
+  /// each item, or one order-level status. Only `PENDING` / `ACCEPTED` /
+  /// `REJECTED` count, so the payment status is never mistaken for it.
+  static List<PaymentOrderSellerDecision> sellerDecisionsFromJson(
+    Map<String, dynamic> json,
+  ) {
+    final bySeller = <String, PaymentOrderSellerDecision>{};
+
+    void add(Map<String, dynamic> row, {String? fallbackSellerId}) {
+      final seller = row['seller'];
+      final sellerMap = seller is Map
+          ? Map<String, dynamic>.from(seller)
+          : null;
+      final sellerId =
+          _str(row['sellerId']) ?? _str(sellerMap?['id']) ?? fallbackSellerId;
+      final status = _decisionStatus(
+        row['sellerOrderStatus'] ??
+            row['sellerStatus'] ??
+            row['approvalStatus'] ??
+            row['orderStatus'] ??
+            row['status'],
+      );
+      if (sellerId == null || status == null) return;
+      bySeller[sellerId] = PaymentOrderSellerDecision(
+        sellerId: sellerId,
+        status: status,
+        sellerName: _str(sellerMap?['companyName']) ?? _str(row['companyName']),
+        reason:
+            _str(row['rejectionReason']) ??
+            _str(row['rejectReason']) ??
+            _str(row['reason']),
+        sellerNote: _str(row['sellerNote']),
+        decidedAt:
+            _date(row['rejectedAt']) ??
+            _date(row['acceptedAt']) ??
+            _date(row['respondedAt']) ??
+            _date(row['decidedAt']),
+      );
+    }
+
+    final sellerOrders = json['sellerOrders'] ?? json['seller_orders'];
+    if (sellerOrders is List) {
+      for (final row in sellerOrders) {
+        if (row is Map) add(Map<String, dynamic>.from(row));
+      }
+    }
+    final sellers = json['sellers'];
+    if (sellers is List) {
+      for (final row in sellers) {
+        if (row is! Map) continue;
+        final map = Map<String, dynamic>.from(row);
+        final id = _str(map['id']);
+        if (id == null || bySeller.containsKey(id)) continue;
+        final nested = map['sellerOrder'];
+        add(
+          nested is Map ? Map<String, dynamic>.from(nested) : map,
+          fallbackSellerId: id,
+        );
+      }
+    }
+    final items = json['items'];
+    if (items is List) {
+      for (final row in items) {
+        if (row is! Map) continue;
+        final map = Map<String, dynamic>.from(row);
+        final nested = map['sellerOrder'];
+        final source = nested is Map
+            ? Map<String, dynamic>.from(nested)
+            : <String, dynamic>{
+                'sellerId': map['sellerId'],
+                'seller': map['seller'],
+                'sellerOrderStatus':
+                    map['sellerOrderStatus'] ?? map['sellerStatus'],
+              };
+        final id = _str(source['sellerId']) ?? _str(map['sellerId']);
+        if (id != null && bySeller.containsKey(id)) continue;
+        add(source, fallbackSellerId: _str(map['sellerId']));
+      }
+    }
+    if (bySeller.isEmpty) {
+      final orderLevel = _decisionStatus(
+        json['sellerOrderStatus'] ??
+            json['sellerStatus'] ??
+            json['approvalStatus'],
+      );
+      if (orderLevel != null) {
+        final ids = <String>{
+          if (sellers is List)
+            for (final s in sellers)
+              if (s is Map && _str(s['id']) != null) _str(s['id'])!,
+          if (items is List)
+            for (final i in items)
+              if (i is Map && _str(i['sellerId']) != null) _str(i['sellerId'])!,
+        };
+        for (final id in ids) {
+          add({
+            'sellerId': id,
+            'status': orderLevel,
+            'rejectionReason': json['rejectionReason'],
+            'sellerNote': json['sellerNote'],
+          });
+        }
+      }
+    }
+    return bySeller.values.toList();
+  }
+
+  static String? _decisionStatus(Object? raw) {
+    final value = _str(raw)?.toUpperCase();
+    return value != null && SellerDecisionStatuses.all.contains(value)
+        ? value
+        : null;
   }
 
   static PaymentOrderItem orderItemFromJson(Map<String, dynamic> json) {

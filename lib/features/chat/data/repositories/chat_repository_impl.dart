@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/error/failure.dart';
@@ -9,6 +10,7 @@ import '../../../../core/error/result.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/network/api_error.dart';
 import '../../../../core/network/dio_provider.dart';
+import '../../domain/chat_image_rules.dart';
 import '../../domain/models/chat_message.dart';
 import '../../domain/models/chat_product_type.dart';
 import '../../domain/models/chat_thread.dart';
@@ -96,11 +98,11 @@ class ChatRepositoryImpl implements ChatRepository {
     );
     return switch (result) {
       Success(value: final page) => Result.success(
-          ChatMapper.threadsFromMessages(
-            messages: page.items,
-            myUserId: _currentUserId(),
-          ),
+        ChatMapper.threadsFromMessages(
+          messages: page.items,
+          myUserId: _currentUserId(),
         ),
+      ),
       ResultFailure(failure: final failure) => Result.failure(failure),
     };
   }
@@ -122,7 +124,9 @@ class ChatRepositoryImpl implements ChatRepository {
       );
       final data = response.data?['data'];
       if (data is! Map) {
-        return Result.failure(const ValidationFailure('Product context not found.'));
+        return Result.failure(
+          const ValidationFailure('Product context not found.'),
+        );
       }
       return Result.success(
         ChatMapper.contextFromJson(Map<String, dynamic>.from(data)),
@@ -184,26 +188,39 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Future<Result<String, Failure>> uploadImage({
-    required String filePath,
-    String? filename,
+    required XFile file,
+    void Function(double progress)? onProgress,
     CancelToken? cancelToken,
   }) async {
     try {
+      // Bytes (not a path) so the same upload works on web.
+      final bytes = await file.readAsBytes();
+      final filename = file.name.trim().isEmpty ? 'chat-image.jpg' : file.name;
       final form = FormData.fromMap({
-        'image': await MultipartFile.fromFile(
-          filePath,
+        'image': MultipartFile.fromBytes(
+          bytes,
           filename: filename,
+          // The backend accepts JPEG/PNG/WebP/GIF by MIME type; without it
+          // Dio would send application/octet-stream for unknown extensions.
+          contentType: DioMediaType.parse(chatImageMimeType(file)),
         ),
       });
       final response = await _dio.post<Map<String, dynamic>>(
         ApiEndpoints.chatUploadImage,
         data: form,
         cancelToken: cancelToken,
+        onSendProgress: onProgress == null
+            ? null
+            : (sent, total) {
+                if (total > 0) onProgress(sent / total);
+              },
       );
       final data = response.data?['data'];
       final url = data is Map ? data['url']?.toString() : null;
       if (url == null || url.isEmpty) {
-        return Result.failure(const UnknownFailure('Unexpected upload response.'));
+        return Result.failure(
+          const UnknownFailure('Unexpected upload response.'),
+        );
       }
       return Result.success(url);
     } on DioException catch (e) {
@@ -252,12 +269,14 @@ class ChatRepositoryImpl implements ChatRepository {
     String myUserId,
   ) {
     final dataNode = root?['data'];
-    final payload =
-        dataNode is Map ? Map<String, dynamic>.from(dataNode) : const {};
+    final payload = dataNode is Map
+        ? Map<String, dynamic>.from(dataNode)
+        : const {};
     final itemsJson = payload['data'];
     final metaJson = payload['meta'];
-    final meta =
-        metaJson is Map ? Map<String, dynamic>.from(metaJson) : const {};
+    final meta = metaJson is Map
+        ? Map<String, dynamic>.from(metaJson)
+        : const {};
 
     final list = itemsJson is List ? itemsJson : const [];
     final items = <ChatMessage>[];

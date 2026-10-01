@@ -40,24 +40,16 @@ class ChatThread {
     required ChatProductType productType,
     required String productId,
     required String peerUserId,
-  }) =>
-      '${productType.apiValue}~$productId~$peerUserId';
+  }) => '${productType.apiValue}~$productId~$peerUserId';
 
-  static ({
-    ChatProductType productType,
-    String productId,
-    String peerUserId,
-  })? decodeId(String id) {
+  static ({ChatProductType productType, String productId, String peerUserId})?
+  decodeId(String id) {
     final parts = id.split('~');
     if (parts.length != 3) return null;
     final type = ChatProductType.fromApi(parts[0]);
     if (type == null) return null;
     if (parts[1].isEmpty || parts[2].isEmpty) return null;
-    return (
-      productType: type,
-      productId: parts[1],
-      peerUserId: parts[2],
-    );
+    return (productType: type, productId: parts[1], peerUserId: parts[2]);
   }
 }
 

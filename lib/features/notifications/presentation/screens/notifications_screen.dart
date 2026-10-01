@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/auth/auth_providers.dart';
-import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
 import '../../application/notifications_provider.dart';
 import '../../domain/models/app_notification.dart';
-import '../../domain/notification_open_target.dart';
+import '../open_notification.dart';
 import '../widgets/notification_tile.dart';
 
 /// Paginated notifications inbox for buyer and seller shells.
@@ -47,25 +44,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   Future<void> _open(AppNotification notification) async {
-    final error = await ref
-        .read(notificationListProvider.notifier)
-        .markRead(notification.id);
-    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final error = await openNotification(context, ref, notification);
     if (error != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error)));
-    }
-    final isSeller = ref.read(authProvider).isSeller;
-    final target = notificationOpenTarget(notification, isSeller: isSeller);
-    if (!mounted) return;
-    switch (target) {
-      case NotificationStay():
-        break;
-      case NotificationInApp(:final route):
-        context.switchToRoute(route);
-      case NotificationExternal(:final url):
-        await launchUrl(url, mode: LaunchMode.externalApplication);
+      messenger.showSnackBar(SnackBar(content: Text(error)));
     }
   }
 

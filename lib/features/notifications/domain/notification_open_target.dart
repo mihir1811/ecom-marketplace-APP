@@ -1,4 +1,6 @@
 import '../../../core/router/route_names.dart';
+import '../../chat/domain/models/chat_product_type.dart';
+import '../../chat/domain/models/chat_thread.dart';
 import 'models/app_notification.dart';
 
 /// Where a tapped notification should go.
@@ -33,6 +35,23 @@ NotificationOpenTarget notificationOpenTarget(
   final data = notification.data;
   switch (notification.type) {
     case 'CHAT_MESSAGE':
+      // Open the conversation itself when the product is known; chats are
+      // always about a product, so otherwise fall back to the inbox.
+      final productType = ChatProductType.fromApi(data['productType']);
+      final productId = data['productId'] ?? '';
+      final senderId = data['senderId'] ?? '';
+      if (productType != null && productId.isNotEmpty && senderId.isNotEmpty) {
+        final threadId = ChatThread.encodeId(
+          productType: productType,
+          productId: productId,
+          peerUserId: senderId,
+        );
+        return NotificationInApp(
+          isSeller
+              ? AppRouteNames.sellerChatDetailPath(threadId)
+              : AppRouteNames.buyerChatDetailPath(threadId),
+        );
+      }
       return NotificationInApp(
         isSeller ? AppRouteNames.sellerChat : AppRouteNames.buyerMessages,
       );
@@ -41,6 +60,14 @@ NotificationOpenTarget notificationOpenTarget(
       final orderId = data['orderId'];
       if (orderId == null || orderId.isEmpty) return const NotificationStay();
       return NotificationInApp(AppRouteNames.buyerOrderDetailPath(orderId));
+    case final type when type.startsWith('ORDER_') && isSeller:
+      // New / updated incoming order for the seller.
+      final id = data['sellerOrderId'] ?? data['orderId'] ?? '';
+      return NotificationInApp(
+        id.isEmpty
+            ? AppRouteNames.sellerOrders
+            : AppRouteNames.sellerOrderDetailPath(id),
+      );
     case 'AUCTION_NEW_BID':
     case 'AUCTION_ENDED_SELLER':
       return const NotificationInApp(AppRouteNames.sellerAuctions);

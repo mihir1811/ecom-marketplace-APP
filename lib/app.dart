@@ -9,6 +9,7 @@ import 'core/widgets/keyboard_aware.dart';
 import 'features/ai_chat/presentation/widgets/gem_ai_overlay.dart';
 import 'features/auth/application/user_profile_providers.dart';
 import 'features/notifications/application/notifications_provider.dart';
+import 'features/notifications/presentation/widgets/in_app_notification_host.dart';
 
 /// The root application widget configuring themes and GoRouter navigation.
 class GemWorldApp extends ConsumerWidget {
@@ -34,11 +35,12 @@ class GemWorldApp extends ConsumerWidget {
         return AppFocusedFieldRevealer(
           child: Stack(
             fit: StackFit.expand,
-            children: [
+            children: [                                                                         
               child ?? const SizedBox.shrink(),
               const Positioned.fill(child: GemAiOverlay()),
               const _AccountProfileSync(),
               const _PreferenceHydrator(child: SizedBox.shrink()),
+              const InAppNotificationHost(),
             ],
           ),
         );

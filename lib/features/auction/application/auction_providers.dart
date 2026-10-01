@@ -81,12 +81,16 @@ class AuctionFeedState {
 }
 
 final auctionFeedProvider =
-    NotifierProvider.family<AuctionFeedNotifier, AuctionFeedState, AuctionFeedQuery>(
-      AuctionFeedNotifier.new,
-    );
+    NotifierProvider.family<
+      AuctionFeedNotifier,
+      AuctionFeedState,
+      AuctionFeedQuery
+    >(AuctionFeedNotifier.new);
 
-class AuctionFeedNotifier extends FamilyNotifier<AuctionFeedState, AuctionFeedQuery> {
+class AuctionFeedNotifier
+    extends FamilyNotifier<AuctionFeedState, AuctionFeedQuery> {
   StreamSubscription<AuctionSocketEvent>? _socketSub;
+  StreamSubscription<void>? _resyncSub;
   AuctionSocketClient? _socket;
   String? _sellerRoom;
   var _watchingLive = false;
@@ -116,10 +120,12 @@ class AuctionFeedNotifier extends FamilyNotifier<AuctionFeedState, AuctionFeedQu
         return;
     }
     _socketSub = socket.events.listen(_onSocketEvent);
+    _resyncSub = socket.resync.listen((_) => unawaited(refreshQuiet()));
   }
 
   void _stopSocket() {
     _socketSub?.cancel();
+    _resyncSub?.cancel();
     final socket = _socket;
     if (socket == null) return;
     if (_watchingLive) socket.unwatchLive();
@@ -128,18 +134,29 @@ class AuctionFeedNotifier extends FamilyNotifier<AuctionFeedState, AuctionFeedQu
   }
 
   void _onSocketEvent(AuctionSocketEvent event) {
-    final known = state.items.any(
-      (item) => item.id.toLowerCase() == event.auctionId.toLowerCase(),
-    );
-    if (!known) return;
-    if (event.kind == AuctionSocketKind.bid && event.amount != null) {
+    final id = event.auctionId.toLowerCase();
+    final current = state.items
+        .where((item) => item.id.toLowerCase() == id)
+        .firstOrNull;
+    if (current == null) {
+      // A new or not-yet-loaded auction changed: only a lifecycle update
+      // (created, ended, deleted) can add or remove a card here.
+      if (event.kind == AuctionSocketKind.updated) unawaited(refreshQuiet());
+      return;
+    }
+    final amount = event.amount;
+    if (event.kind == AuctionSocketKind.bid && amount != null && amount > 0) {
+      if (amount <= (current.highestBidAmount ?? 0)) {
+        // Same bid seen twice, or a cancellation lowered the price.
+        if (amount < (current.highestBidAmount ?? 0)) {
+          unawaited(refreshQuiet());
+        }
+        return;
+      }
       state = state.copyWith(
         items: [
           for (final item in state.items)
-            if (item.id.toLowerCase() == event.auctionId.toLowerCase())
-              item.applyLiveBid(event.amount!)
-            else
-              item,
+            if (identical(item, current)) item.applyLiveBid(amount) else item,
         ],
       );
       return;
@@ -295,6 +312,7 @@ class AuctionDetailNotifier
     extends AutoDisposeFamilyNotifier<AuctionDetailState, String> {
   late final RazorpayCheckoutService _razorpay;
   StreamSubscription<AuctionSocketEvent>? _socketSub;
+  StreamSubscription<void>? _resyncSub;
   Timer? _socketRefresh;
 
   @override
@@ -304,9 +322,11 @@ class AuctionDetailNotifier
     socket.watchAuction(arg);
     socket.watchLive();
     _socketSub = socket.events.listen(_onSocketEvent);
+    _resyncSub = socket.resync.listen((_) => _scheduleSync());
     ref.onDispose(() {
       _socketRefresh?.cancel();
       _socketSub?.cancel();
+      _resyncSub?.cancel();
       socket.unwatchAuction(arg);
       socket.unwatchLive();
       _razorpay.dispose();
@@ -319,9 +339,23 @@ class AuctionDetailNotifier
     if (event.auctionId.toLowerCase() != arg.toLowerCase()) return;
     final amount = event.amount;
     final auction = state.auction;
-    if (event.kind == AuctionSocketKind.bid && amount != null && auction != null) {
+    // Only a new top bid is shown straight from the event. A lower amount
+    // (or 0) means a bid was cancelled; the sync below brings that in.
+    if (event.kind == AuctionSocketKind.bid &&
+        amount != null &&
+        amount > 0 &&
+        auction != null &&
+        amount > (auction.highestBidAmount ?? 0)) {
       state = state.copyWith(auction: auction.applyLiveBid(amount));
     }
+    _scheduleSync();
+  }
+
+  /// One targeted `GET /auction/{id}` for what the event does not carry
+  /// (bidder names, bid ids, reserve, status). Bursts of events, including
+  /// the same bid delivered through both the auction and live rooms,
+  /// collapse into a single request.
+  void _scheduleSync() {
     _socketRefresh?.cancel();
     _socketRefresh = Timer(const Duration(milliseconds: 400), () {
       unawaited(refresh(silent: true));
@@ -330,7 +364,10 @@ class AuctionDetailNotifier
 
   Future<void> refresh({bool silent = false}) async {
     if (!silent) {
-      state = state.copyWith(isLoading: state.auction == null, clearError: true);
+      state = state.copyWith(
+        isLoading: state.auction == null,
+        clearError: true,
+      );
     }
     final result = await ref.read(auctionRepositoryProvider).byId(arg);
     switch (result) {
@@ -351,10 +388,9 @@ class AuctionDetailNotifier
 
   Future<String?> placeBid(double amount) {
     return _run(
-      () => ref.read(auctionRepositoryProvider).placeBid(
-        auctionId: arg,
-        amount: amount,
-      ),
+      () => ref
+          .read(auctionRepositoryProvider)
+          .placeBid(auctionId: arg, amount: amount),
       onSuccess: (value) => value.bidId,
     );
   }
@@ -377,10 +413,9 @@ class AuctionDetailNotifier
 
   Future<String?> accept({String? bidId}) {
     return _run(
-      () => ref.read(auctionRepositoryProvider).accept(
-        auctionId: arg,
-        bidId: bidId,
-      ),
+      () => ref
+          .read(auctionRepositoryProvider)
+          .accept(auctionId: arg, bidId: bidId),
     );
   }
 
@@ -392,23 +427,24 @@ class AuctionDetailNotifier
     double? reservePrice,
   }) {
     return _run(
-      () => ref.read(auctionRepositoryProvider).reject(
-        auctionId: arg,
-        action: action,
-        startTime: startTime,
-        endTime: endTime,
-        minimumBid: minimumBid,
-        reservePrice: reservePrice,
-      ),
+      () => ref
+          .read(auctionRepositoryProvider)
+          .reject(
+            auctionId: arg,
+            action: action,
+            startTime: startTime,
+            endTime: endTime,
+            minimumBid: minimumBid,
+            reservePrice: reservePrice,
+          ),
     );
   }
 
   Future<String?> selectWinner(String bidderId) {
     return _run(
-      () => ref.read(auctionRepositoryProvider).selectWinner(
-        auctionId: arg,
-        bidderId: bidderId,
-      ),
+      () => ref
+          .read(auctionRepositoryProvider)
+          .selectWinner(auctionId: arg, bidderId: bidderId),
     );
   }
 
@@ -416,36 +452,31 @@ class AuctionDetailNotifier
     return _run(() => ref.read(auctionRepositoryProvider).delete(arg));
   }
 
-  /// Returns a user-facing message. Opens Razorpay when the server still
-  /// expects a card payment.
-  Future<String?> pay({required bool useWallet}) async {
-    if (state.isSubmitting) return null;
+  /// Returns the success message, or the failure to show. Opens Razorpay
+  /// when the server still expects a card payment.
+  Future<Result<String, Failure>> pay({required bool useWallet}) async {
+    if (state.isSubmitting) {
+      return Result.failure(
+        const ValidationFailure('Payment is already in progress.'),
+      );
+    }
     state = state.copyWith(isSubmitting: true, clearError: true);
-    final created = await ref.read(auctionRepositoryProvider).createPayment(
-      auctionId: arg,
-      useWallet: useWallet,
-    );
+    final created = await ref
+        .read(auctionRepositoryProvider)
+        .createPayment(auctionId: arg, useWallet: useWallet);
     switch (created) {
       case ResultFailure(:final failure):
-        state = state.copyWith(
-          isSubmitting: false,
-          errorMessage: failure.message,
-        );
-        return null;
+        return _payFailed(failure);
       case Success(:final value):
         final session = value;
         if (session.isFullyPaidByWallet) {
           await refresh();
-          return 'Payment completed';
+          return Result.success('Payment completed');
         }
         final paid = await _razorpay.open(session);
         switch (paid) {
           case ResultFailure(:final failure):
-            state = state.copyWith(
-              isSubmitting: false,
-              errorMessage: failure.message,
-            );
-            return null;
+            return _payFailed(failure);
           case Success(:final value):
             final receipt = value;
             final verified = await ref
@@ -459,17 +490,20 @@ class AuctionDetailNotifier
                 );
             switch (verified) {
               case ResultFailure(:final failure):
-                state = state.copyWith(
-                  isSubmitting: false,
-                  errorMessage: failure.message,
-                );
-                return null;
+                return _payFailed(failure);
               case Success(:final value):
                 await refresh();
-                return value.message;
+                return Result.success(
+                  value.message.isEmpty ? 'Payment completed' : value.message,
+                );
             }
         }
     }
+  }
+
+  Result<String, Failure> _payFailed(Failure failure) {
+    state = state.copyWith(isSubmitting: false, errorMessage: failure.message);
+    return Result.failure(failure);
   }
 
   Future<String?> _run(

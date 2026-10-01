@@ -1,116 +1,283 @@
 import '../../../../core/utils/app_currency.dart';
-import '../../../payment/domain/models/payment_models.dart';
 import '../../../refunds/domain/models/refund_request.dart';
 import '../../domain/models/seller_insights.dart';
+import '../../domain/models/seller_stats.dart';
+import '../../domain/seller_chart_buckets.dart';
 
-/// Builds dashboard and analytics snapshots from live orders and refunds.
+/// What to request from `GET /seller/stats` for a dashboard range, and the
+/// calendar buckets the chart shows.
+class SellerDashboardPlan {
+  factory SellerDashboardPlan({
+    required SellerStatsQuery query,
+    List<SellerChartBucket>? buckets,
+  }) {
+    final source = SellerChartBuckets.forQuery(query);
+    return SellerDashboardPlan._(query, source, buckets ?? source);
+  }
+
+  const SellerDashboardPlan._(this.query, this.sourceBuckets, this.buckets);
+
+  final SellerStatsQuery query;
+
+  /// Buckets the server returns for [query].
+  final List<SellerChartBucket> sourceBuckets;
+
+  /// Buckets the chart shows. Differs from [sourceBuckets] only for the
+  /// quarterly view: the server has no quarter period, so its monthly values
+  /// are summed per calendar quarter.
+  final List<SellerChartBucket> buckets;
+
+  bool get regroups => !identical(buckets, sourceBuckets);
+}
+
+/// Builds dashboard and analytics snapshots from seller-scoped stats.
+///
+/// Every chart bucket comes from the server's bucket for that period, so a
+/// period before the seller had orders stays 0 instead of inheriting a later
+/// value. Inventory value is a current snapshot and is only placed in the
+/// bucket that contains today.
 abstract final class SellerInsightsAggregator {
-  static const _paidStatuses = {
-    'PAID',
-    'CAPTURED',
-    'SUCCESS',
-    'COMPLETED',
-    'DELIVERED',
-    'SHIPPED',
-    'OUT FOR DELIVERY',
-    'OUT_FOR_DELIVERY',
-    'PROCESSING',
-    'CONFIRMED',
-  };
+  /// Bars shown by each preset range; the last one is the current period
+  /// to date.
+  static const presetBuckets = 7;
+
+  static SellerDashboardPlan dashboardPlan(
+    SellerDashboardParams params, {
+    DateTime? now,
+  }) {
+    final today = _day(now ?? DateTime.now());
+    final y = today.year;
+    final m = today.month;
+    final d = today.day;
+    const back = presetBuckets - 1;
+    SellerStatsQuery query(SellerStatsPeriod period, DateTime from) =>
+        SellerStatsQuery(period: period, from: from, to: today);
+
+    switch (params.range) {
+      case SalesRange.daily:
+        return SellerDashboardPlan(
+          query: query(SellerStatsPeriod.daily, DateTime(y, m, d - back)),
+        );
+      case SalesRange.weekly:
+        // Monday-aligned so the first bar is a whole week, as the server
+        // buckets weeks from Monday.
+        final monday = SellerChartBuckets.weekStart(today);
+        return SellerDashboardPlan(
+          query: query(
+            SellerStatsPeriod.weekly,
+            DateTime(monday.year, monday.month, monday.day - 7 * back),
+          ),
+        );
+      case SalesRange.monthly:
+        return SellerDashboardPlan(
+          query: query(SellerStatsPeriod.monthly, DateTime(y, m - back, 1)),
+        );
+      case SalesRange.quarterly:
+        final from = DateTime(
+          y,
+          SellerChartBuckets.quarterStartMonth(m) - 3 * back,
+          1,
+        );
+        return SellerDashboardPlan(
+          query: query(SellerStatsPeriod.monthly, from),
+          buckets: SellerChartBuckets.quarters(from, today),
+        );
+      case SalesRange.yearly:
+        return SellerDashboardPlan(
+          query: query(SellerStatsPeriod.yearly, DateTime(y - back, 1, 1)),
+        );
+      case SalesRange.custom:
+        final start = params.customStart;
+        final end = params.customEnd;
+        if (start == null || end == null) {
+          return SellerDashboardPlan(
+            query: query(SellerStatsPeriod.daily, DateTime(y, m, d - 29)),
+          );
+        }
+        var from = _day(start);
+        var to = _day(end);
+        if (to.isBefore(from)) (from, to) = (to, from);
+        return SellerDashboardPlan(
+          query: SellerStatsQuery(
+            period: _periodForSpan(from, to),
+            from: from,
+            to: to,
+          ),
+        );
+    }
+  }
+
+  /// Why [stats] cannot be charted as [query]'s buckets, or `null` when it
+  /// can. Guards against showing e.g. monthly totals under "Daily".
+  static String? periodMismatch(SellerStats stats, SellerStatsQuery query) {
+    final requested = query.period.name;
+    final charts = [
+      stats.salesChart,
+      stats.productsSoldChart,
+      stats.ordersChart,
+    ];
+    for (final chart in charts) {
+      final served = chart.period;
+      if (served != null && served != requested) {
+        return 'The server returned $served figures instead of $requested. '
+            'Please try again.';
+      }
+    }
+    final buckets = SellerChartBuckets.forQuery(query);
+    for (final chart in charts) {
+      if (SellerChartBuckets.align(chart, buckets) == null) {
+        return 'The server returned figures that do not match the '
+            '$requested periods requested. Please try again.';
+      }
+    }
+    return null;
+  }
 
   static SellerDashboardSnapshot dashboard({
-    required List<PaymentOrder> orders,
-    required SellerDashboardParams params,
-    double inventoryValue = 0,
+    required SellerStats stats,
+    required SellerDashboardPlan plan,
+    SellerDashboardParams params = const SellerDashboardParams(),
     DateTime? now,
   }) {
     final clock = now ?? DateTime.now();
-    final window = _windowForSales(params, clock);
-    final inWindow = _inRange(orders, window.$1, window.$2);
-    final paid = inWindow.where(_isPaid).toList();
+    final buckets = plan.buckets;
+    List<double> series(SellerStatsChart chart) {
+      final aligned =
+          SellerChartBuckets.align(chart, plan.sourceBuckets) ??
+          List<double>.filled(plan.sourceBuckets.length, 0);
+      return plan.regroups
+          ? SellerChartBuckets.regroup(aligned, plan.sourceBuckets, buckets)
+          : aligned;
+    }
 
-    final sales = _sumUsd(paid);
-    final units = _unitsSold(paid);
-    final pendingCount = inWindow.where((o) => !_isPaid(o)).length;
-    final buckets = _bind(
-      orders,
-      _salesBucketDefs(params, clock, window.$1, window.$2),
-    );
+    final sales = series(stats.salesChart);
+    final units = series(stats.productsSoldChart);
+    final orders = series(stats.ordersChart);
+
+    // Inventory has no history: only the bucket holding today gets today's
+    // value, so a past range never shows it.
+    final today = _day(clock);
+    final totalSales = _sum(sales);
+    final unitsSold = _sum(units).round();
+    final orderCount = _sum(orders).round();
 
     return SellerDashboardSnapshot(
       metrics: [
         DashboardMetricCard(
           metric: DashboardMetric.totalSales,
           title: 'Total Sales',
-          value: AppCurrency.usd(sales),
-          subtitle: 'Revenue from completed orders',
+          value: AppCurrency.usd(totalSales),
+          subtitle: 'Revenue from paid orders in this period',
         ),
         DashboardMetricCard(
           metric: DashboardMetric.productsSold,
           title: 'Products Sold',
-          value: '$units',
-          subtitle: '$units units on paid orders',
+          value: '$unitsSold',
+          subtitle: '$unitsSold units on paid orders',
         ),
         DashboardMetricCard(
           metric: DashboardMetric.orders,
           title: 'Orders',
-          value: '${inWindow.length}',
-          subtitle: '${paid.length} paid · $pendingCount pending',
+          value: '$orderCount',
+          subtitle:
+              'All time: ${stats.deliveredOrders} delivered · '
+              '${stats.pendingOrders} pending',
         ),
         DashboardMetricCard(
           metric: DashboardMetric.inventoryValue,
           title: 'Inventory Value',
-          value: AppCurrency.usd(inventoryValue),
-          subtitle: inventoryValue > 0
-              ? 'Active listing inventory'
+          value: AppCurrency.usd(stats.inventoryValue),
+          subtitle: stats.inventoryValue > 0
+              ? '${stats.liveProducts} live listings today'
               : 'No priced active listings',
         ),
       ],
       chartBuckets: [
-        for (final bucket in buckets)
+        for (var i = 0; i < buckets.length; i++)
           InsightsChartBucket(
-            label: bucket.$1,
-            totalSales: _sumUsd(bucket.$2.where(_isPaid)),
-            productsSold: _unitsSold(bucket.$2.where(_isPaid)).toDouble(),
-            orders: bucket.$2.length.toDouble(),
-            inventoryValue: inventoryValue,
+            label: buckets[i].label,
+            detail: buckets[i].detail,
+            totalSales: sales[i],
+            productsSold: units[i],
+            orders: orders[i],
+            inventoryValue: buckets[i].contains(today)
+                ? stats.inventoryValue
+                : 0,
           ),
       ],
-      chartEndDate: window.$2,
+      chartEndDate: plan.query.to,
       recentOrders: const [],
       fetchedAt: clock,
+      params: params,
     );
   }
 
+  /// Current window and the equally long window right before it.
+  static ({SellerStatsQuery current, SellerStatsQuery previous})
+  analyticsQueries(AnalyticsRange range, {DateTime? now}) {
+    final today = _day(now ?? DateTime.now());
+    final y = today.year;
+    final m = today.month;
+    final d = today.day;
+
+    ({SellerStatsQuery current, SellerStatsQuery previous}) trailing(
+      int days,
+      SellerStatsPeriod period,
+    ) {
+      return (
+        current: SellerStatsQuery(
+          period: period,
+          from: DateTime(y, m, d - (days - 1)),
+          to: today,
+        ),
+        previous: SellerStatsQuery(
+          period: period,
+          from: DateTime(y, m, d - (2 * days - 1)),
+          to: DateTime(y, m, d - days),
+        ),
+      );
+    }
+
+    return switch (range) {
+      AnalyticsRange.last7 => trailing(7, SellerStatsPeriod.daily),
+      AnalyticsRange.last30 => trailing(30, SellerStatsPeriod.daily),
+      AnalyticsRange.last90 => trailing(90, SellerStatsPeriod.weekly),
+      // Year to date vs the same days of last year.
+      AnalyticsRange.year => (
+        current: SellerStatsQuery(
+          period: SellerStatsPeriod.monthly,
+          from: DateTime(y, 1, 1),
+          to: today,
+        ),
+        previous: SellerStatsQuery(
+          period: SellerStatsPeriod.monthly,
+          from: DateTime(y - 1, 1, 1),
+          to: _clampDay(y - 1, m, d),
+        ),
+      ),
+    };
+  }
+
   static SellerAnalyticsSnapshot analytics({
-    required List<PaymentOrder> orders,
+    required SellerStats current,
+    required SellerStats previous,
+    required SellerStatsQuery currentQuery,
     required List<RefundRequest> refunds,
-    required AnalyticsRange range,
     DateTime? now,
   }) {
     final clock = now ?? DateTime.now();
-    final current = _windowForAnalytics(range, clock);
-    final span = current.$2.difference(current.$1);
-    final previous = (current.$1.subtract(span), current.$1);
-
-    final currentOrders = _inRange(orders, current.$1, current.$2);
-    final previousOrders = _inRange(orders, previous.$1, previous.$2);
-    final currentPaid = currentOrders.where(_isPaid).toList();
-    final previousPaid = previousOrders.where(_isPaid).toList();
-
-    final revenue = _sumUsd(currentPaid);
-    final prevRevenue = _sumUsd(previousPaid);
-    final aov = currentPaid.isEmpty ? 0.0 : revenue / currentPaid.length;
-    final prevAov = previousPaid.isEmpty
-        ? 0.0
-        : prevRevenue / previousPaid.length;
-    final units = _unitsSold(currentPaid);
-    final prevUnits = _unitsSold(previousPaid);
-
-    final buckets = _bind(
-      orders,
-      _analyticsBucketDefs(range, clock, current.$1, current.$2),
-    );
+    final buckets = SellerChartBuckets.forQuery(currentQuery);
+    final revenueValues =
+        SellerChartBuckets.align(current.salesChart, buckets) ??
+        List<double>.filled(buckets.length, 0);
+    final revenue = _sum(revenueValues);
+    final prevRevenue = previous.salesChart.total;
+    final orders = current.ordersChart.total;
+    final prevOrders = previous.ordersChart.total;
+    final units = current.productsSoldChart.total;
+    final prevUnits = previous.productsSoldChart.total;
+    final aov = orders <= 0 ? 0.0 : revenue / orders;
+    final prevAov = prevOrders <= 0 ? 0.0 : prevRevenue / prevOrders;
 
     return SellerAnalyticsSnapshot(
       kpis: [
@@ -122,12 +289,9 @@ abstract final class SellerInsightsAggregator {
         ),
         AnalyticsKpi(
           title: 'Orders',
-          value: '${currentOrders.length}',
-          delta: _deltaLabel(
-            currentOrders.length.toDouble(),
-            previousOrders.length.toDouble(),
-          ),
-          deltaUp: currentOrders.length >= previousOrders.length,
+          value: '${orders.round()}',
+          delta: _deltaLabel(orders, prevOrders),
+          deltaUp: orders >= prevOrders,
         ),
         AnalyticsKpi(
           title: 'Avg. Order Value',
@@ -137,24 +301,26 @@ abstract final class SellerInsightsAggregator {
         ),
         AnalyticsKpi(
           title: 'Units Sold',
-          value: _compact(units.toDouble()),
-          delta: _deltaLabel(units.toDouble(), prevUnits.toDouble()),
+          value: _compact(units),
+          delta: _deltaLabel(units, prevUnits),
           deltaUp: units >= prevUnits,
         ),
       ],
       revenueSeries: InsightsChartSeries(
-        values: [
-          for (final bucket in buckets) _sumUsd(bucket.$2.where(_isPaid)),
-        ],
-        labels: [for (final bucket in buckets) bucket.$1],
-        endDate: current.$2,
+        values: revenueValues,
+        labels: [for (final b in buckets) b.label],
+        details: [for (final b in buckets) b.detail],
+        endDate: currentQuery.to,
       ),
-      categorySlices: _categorySlices(currentPaid),
-      orderStatus: _statusRows(currentOrders),
+      // `/seller/stats` has no category or per-status breakdown for a date
+      // range; empty lists show the screen's "no data" state instead of
+      // figures from the wrong orders.
+      categorySlices: const [],
+      orderStatus: const [],
       engagement: [
         AnalyticsEngagementMetric(
           label: 'Units Sold',
-          value: _compact(units.toDouble()),
+          value: _compact(units),
           hint: 'Items on paid orders',
         ),
         AnalyticsEngagementMetric(
@@ -163,342 +329,45 @@ abstract final class SellerInsightsAggregator {
           hint: 'Seller refund inbox',
         ),
         AnalyticsEngagementMetric(
-          label: 'Paid Rate',
-          value: currentOrders.isEmpty
-              ? '0%'
-              : '${((currentPaid.length / currentOrders.length) * 100).toStringAsFixed(1)}%',
-          hint: 'Paid orders ÷ all orders',
+          label: 'Live Listings',
+          value: '${current.liveProducts}',
+          hint: 'Available, hold or memo today',
         ),
         AnalyticsEngagementMetric(
-          label: 'Unique Products',
-          value: '${_uniqueProducts(currentPaid)}',
-          hint: 'Distinct SKUs on paid orders',
+          label: 'Sold Products',
+          value: '${current.soldProducts}',
+          hint: 'Listings marked sold',
         ),
       ],
       fetchedAt: clock,
     );
   }
 
-  static List<(String, List<PaymentOrder>)> _bind(
-    List<PaymentOrder> orders,
-    List<(String, DateTime, DateTime)> defs,
-  ) {
-    return [for (final def in defs) (def.$1, _inRange(orders, def.$2, def.$3))];
+  /// Bucket size that keeps a custom range readable (about 4–31 bars).
+  static SellerStatsPeriod _periodForSpan(DateTime from, DateTime to) {
+    final days = _daysBetween(from, to) + 1;
+    if (days <= 31) return SellerStatsPeriod.daily;
+    if (days <= 182) return SellerStatsPeriod.weekly;
+    if (days <= 3 * 366) return SellerStatsPeriod.monthly;
+    return SellerStatsPeriod.yearly;
   }
 
-  static bool _isPaid(PaymentOrder order) {
-    final status = order.status.toUpperCase().trim();
-    if (_paidStatuses.contains(status)) return true;
-    // Fulfillment-style labels still mean the order was paid.
-    if (status.contains('DELIVER') ||
-        status.contains('SHIP') ||
-        status.contains('PAID') ||
-        status.contains('SUCCESS') ||
-        status.contains('COMPLETE')) {
-      return true;
-    }
-    return false;
-  }
+  static double _sum(List<double> values) =>
+      values.fold(0, (sum, v) => sum + v);
 
-  static double _sumUsd(Iterable<PaymentOrder> orders) {
-    var total = 0.0;
-    for (final order in orders) {
-      total += _orderUsd(order);
-    }
-    return total;
-  }
+  static DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
-  static double _orderUsd(PaymentOrder order) {
-    if (order.amountUsd > 0) return order.amountUsd;
-    final pricingUsd = order.pricing?.totalUsd ?? 0;
-    if (pricingUsd > 0) return pricingUsd;
-    return order.amount;
-  }
+  /// Calendar-day difference, immune to DST hour shifts.
+  static int _daysBetween(DateTime a, DateTime b) => DateTime.utc(
+    b.year,
+    b.month,
+    b.day,
+  ).difference(DateTime.utc(a.year, a.month, a.day)).inDays;
 
-  static int _unitsSold(Iterable<PaymentOrder> orders) {
-    var units = 0;
-    for (final order in orders) {
-      if (order.items.isEmpty) {
-        units += 1;
-        continue;
-      }
-      for (final item in order.items) {
-        units += item.quantity;
-      }
-    }
-    return units;
-  }
-
-  static int _uniqueProducts(Iterable<PaymentOrder> orders) {
-    final ids = <String>{};
-    for (final order in orders) {
-      for (final item in order.items) {
-        if (item.productId.isNotEmpty) ids.add(item.productId);
-      }
-    }
-    return ids.length;
-  }
-
-  static List<PaymentOrder> _inRange(
-    List<PaymentOrder> orders,
-    DateTime start,
-    DateTime end,
-  ) {
-    return [
-      for (final order in orders)
-        if (_orderDate(order) case final date?
-            when !date.isBefore(start) && !date.isAfter(end))
-          order,
-    ];
-  }
-
-  static DateTime? _orderDate(PaymentOrder order) => order.createdAt;
-
-  static List<AnalyticsCategorySlice> _categorySlices(List<PaymentOrder> paid) {
-    final totals = <String, double>{};
-    for (final order in paid) {
-      if (order.items.isEmpty) {
-        totals['Other'] = (totals['Other'] ?? 0) + _orderUsd(order);
-        continue;
-      }
-      for (final item in order.items) {
-        final label = _categoryLabel(item.productType);
-        final line = item.lineTotal > 0 ? item.lineTotal : 0.0;
-        totals[label] = (totals[label] ?? 0) + line;
-      }
-    }
-    var sum = totals.values.fold<double>(0, (a, b) => a + b);
-    if (sum <= 0) {
-      totals.clear();
-      for (final order in paid) {
-        totals['Other'] = (totals['Other'] ?? 0) + _orderUsd(order);
-      }
-      sum = totals.values.fold<double>(0, (a, b) => a + b);
-    }
-    if (sum <= 0) return const [];
-    final slices = [
-      for (final entry in totals.entries)
-        AnalyticsCategorySlice(entry.key, (entry.value / sum) * 100),
-    ]..sort((a, b) => b.value.compareTo(a.value));
-    return slices;
-  }
-
-  static List<AnalyticsStatusRow> _statusRows(List<PaymentOrder> orders) {
-    final counts = <String, int>{};
-    for (final order in orders) {
-      final label = _titleCase(order.status);
-      counts[label] = (counts[label] ?? 0) + 1;
-    }
-    final rows = [
-      for (final entry in counts.entries)
-        AnalyticsStatusRow(entry.key, entry.value),
-    ]..sort((a, b) => b.count.compareTo(a.count));
-    return rows;
-  }
-
-  static String _categoryLabel(String type) {
-    final t = type.toLowerCase();
-    if (t.contains('diamond')) return 'Diamonds';
-    if (t.contains('watch')) return 'Watches';
-    if (t.contains('jewel')) return 'Jewelry';
-    if (t.contains('gem')) return 'Gemstones';
-    if (t.contains('bullion')) return 'Bullions';
-    if (type.trim().isEmpty) return 'Other';
-    return _titleCase(type);
-  }
-
-  static (DateTime, DateTime) _windowForSales(
-    SellerDashboardParams params,
-    DateTime clock,
-  ) {
-    final end = DateTime(clock.year, clock.month, clock.day, 23, 59, 59);
-    if (params.range == SalesRange.custom &&
-        params.customStart != null &&
-        params.customEnd != null) {
-      return (
-        DateTime(
-          params.customStart!.year,
-          params.customStart!.month,
-          params.customStart!.day,
-        ),
-        DateTime(
-          params.customEnd!.year,
-          params.customEnd!.month,
-          params.customEnd!.day,
-          23,
-          59,
-          59,
-        ),
-      );
-    }
-    return switch (params.range) {
-      SalesRange.daily => (end.subtract(const Duration(days: 6)), end),
-      SalesRange.weekly => (end.subtract(const Duration(days: 48)), end),
-      SalesRange.monthly => (DateTime(end.year, end.month - 6, 1), end),
-      SalesRange.quarterly => (DateTime(end.year, end.month - 18, 1), end),
-      SalesRange.yearly => (DateTime(end.year - 6, 1, 1), end),
-      SalesRange.custom => (end.subtract(const Duration(days: 29)), end),
-    };
-  }
-
-  static (DateTime, DateTime) _windowForAnalytics(
-    AnalyticsRange range,
-    DateTime clock,
-  ) {
-    final end = DateTime(clock.year, clock.month, clock.day, 23, 59, 59);
-    return switch (range) {
-      AnalyticsRange.last7 => (end.subtract(const Duration(days: 6)), end),
-      AnalyticsRange.last30 => (end.subtract(const Duration(days: 29)), end),
-      AnalyticsRange.last90 => (end.subtract(const Duration(days: 89)), end),
-      AnalyticsRange.year => (DateTime(end.year, 1, 1), end),
-    };
-  }
-
-  static List<(String, DateTime, DateTime)> _salesBucketDefs(
-    SellerDashboardParams params,
-    DateTime clock,
-    DateTime start,
-    DateTime end,
-  ) {
-    return switch (params.range) {
-      SalesRange.daily => _dayBuckets(start, end),
-      SalesRange.weekly => _fixedBuckets(end, days: 7, count: 7, prefix: 'W'),
-      SalesRange.monthly => _monthBuckets(clock, 7),
-      SalesRange.quarterly => _quarterBuckets(clock, 7),
-      SalesRange.yearly => _yearBuckets(clock, 7),
-      SalesRange.custom => _dayBuckets(start, end, maxBuckets: 7),
-    };
-  }
-
-  static List<(String, DateTime, DateTime)> _analyticsBucketDefs(
-    AnalyticsRange range,
-    DateTime clock,
-    DateTime start,
-    DateTime end,
-  ) {
-    return switch (range) {
-      AnalyticsRange.last7 => _dayBuckets(start, end),
-      AnalyticsRange.last30 => _fixedBuckets(
-        end,
-        days: 7,
-        count: 5,
-        prefix: 'W',
-      ),
-      AnalyticsRange.last90 => _monthBuckets(clock, 6),
-      AnalyticsRange.year => _monthBuckets(clock, 7),
-    };
-  }
-
-  static List<(String, DateTime, DateTime)> _dayBuckets(
-    DateTime start,
-    DateTime end, {
-    int maxBuckets = 7,
-  }) {
-    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final days = end.difference(start).inDays + 1;
-    final step = days <= maxBuckets ? 1 : (days / maxBuckets).ceil();
-    final buckets = <(String, DateTime, DateTime)>[];
-    var cursor = DateTime(start.year, start.month, start.day);
-    while (!cursor.isAfter(end) && buckets.length < maxBuckets) {
-      final bucketEnd = DateTime(
-        cursor.year,
-        cursor.month,
-        cursor.day + step - 1,
-        23,
-        59,
-        59,
-      );
-      final clampedEnd = bucketEnd.isAfter(end) ? end : bucketEnd;
-      buckets.add((labels[(cursor.weekday - 1) % 7], cursor, clampedEnd));
-      cursor = cursor.add(Duration(days: step));
-    }
-    return buckets;
-  }
-
-  static List<(String, DateTime, DateTime)> _fixedBuckets(
-    DateTime end, {
-    required int days,
-    required int count,
-    required String prefix,
-  }) {
-    final buckets = <(String, DateTime, DateTime)>[];
-    var cursor = DateTime(end.year, end.month, end.day, 23, 59, 59);
-    for (var i = count - 1; i >= 0; i--) {
-      final bucketEnd = cursor;
-      final bucketStart = DateTime(
-        cursor.year,
-        cursor.month,
-        cursor.day - (days - 1),
-      );
-      buckets.insert(0, ('$prefix${i + 1}', bucketStart, bucketEnd));
-      cursor = bucketStart.subtract(const Duration(seconds: 1));
-    }
-    return buckets;
-  }
-
-  static List<(String, DateTime, DateTime)> _monthBuckets(
-    DateTime clock,
-    int count,
-  ) {
-    const names = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return [
-      for (var i = count - 1; i >= 0; i--)
-        (
-          names[DateTime(clock.year, clock.month - i, 1).month - 1],
-          DateTime(clock.year, clock.month - i, 1),
-          DateTime(clock.year, clock.month - i + 1, 0, 23, 59, 59),
-        ),
-    ];
-  }
-
-  static List<(String, DateTime, DateTime)> _quarterBuckets(
-    DateTime clock,
-    int count,
-  ) {
-    final buckets = <(String, DateTime, DateTime)>[];
-    var year = clock.year;
-    var quarter = ((clock.month - 1) ~/ 3) + 1;
-    for (var i = 0; i < count; i++) {
-      final startMonth = (quarter - 1) * 3 + 1;
-      buckets.insert(0, (
-        'Q$quarter',
-        DateTime(year, startMonth, 1),
-        DateTime(year, startMonth + 3, 0, 23, 59, 59),
-      ));
-      quarter -= 1;
-      if (quarter < 1) {
-        quarter = 4;
-        year -= 1;
-      }
-    }
-    return buckets;
-  }
-
-  static List<(String, DateTime, DateTime)> _yearBuckets(
-    DateTime clock,
-    int count,
-  ) {
-    return [
-      for (var i = count - 1; i >= 0; i--)
-        (
-          '${clock.year - i}',
-          DateTime(clock.year - i, 1, 1),
-          DateTime(clock.year - i, 12, 31, 23, 59, 59),
-        ),
-    ];
+  /// [day] in [month] of [year], clamped to the month's length (Feb 29).
+  static DateTime _clampDay(int year, int month, int day) {
+    final last = DateTime(year, month + 1, 0).day;
+    return DateTime(year, month, day > last ? last : day);
   }
 
   static String _deltaLabel(double current, double previous) {
@@ -514,20 +383,5 @@ abstract final class SellerInsightsAggregator {
   static String _compact(double value) {
     if (value >= 1000) return '${(value / 1000).toStringAsFixed(1)}k';
     return value.toStringAsFixed(0);
-  }
-
-  static String _titleCase(String raw) {
-    final trimmed = raw.trim();
-    if (trimmed.isEmpty) return 'Unknown';
-    final parts = trimmed
-        .replaceAll('_', ' ')
-        .replaceAll('-', ' ')
-        .split(RegExp(r'\s+'));
-    return [
-      for (final part in parts)
-        part.isEmpty
-            ? part
-            : '${part[0].toUpperCase()}${part.substring(1).toLowerCase()}',
-    ].join(' ');
   }
 }

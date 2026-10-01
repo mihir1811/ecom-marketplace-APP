@@ -105,7 +105,13 @@ class _BuyerOrderCard extends StatelessWidget {
 
   Color get _statusColor {
     final s = order.status.toUpperCase();
-    if (s == 'PAID') return AppColors.success;
+    if (s == 'PAID') {
+      return switch (order.sellerDecision) {
+        'REJECTED' => AppColors.error,
+        'PENDING' => AppColors.info,
+        _ => AppColors.success,
+      };
+    }
     if (s == 'PENDING') return AppColors.info;
     if (s.contains('REFUND')) return AppColors.bronze;
     if (s == 'FAILED') return AppColors.error;
@@ -220,7 +226,7 @@ class _BuyerOrderCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
-                            order.status,
+                            order.displayStatus,
                             style: AppTypography.caption.copyWith(
                               color: accent,
                               fontWeight: FontWeight.w700,

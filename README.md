@@ -1,4 +1,4 @@
-# gemstone
+# GemWorld
 
 A new Flutter project.
 

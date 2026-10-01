@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import '../../../../core/router/app_navigation.dart';
 
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -21,7 +21,8 @@ class AuctionCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => context.push(AppRouteNames.auctionDetailPath(auction.id)),
+        onTap: () =>
+            context.openRoute(AppRouteNames.auctionDetailPath(auction.id)),
         child: grid ? _grid(context) : _list(context),
       ),
     );
@@ -115,7 +116,9 @@ class AuctionCard extends StatelessWidget {
           style: AppTypography.body.copyWith(fontWeight: FontWeight.w700),
         ),
         Text(
-          auction.endTime == null ? 'Min ${AppCurrency.usd(auction.minimumBid)}' : 'Ends ${_when(auction.endTime!)}',
+          auction.endTime == null
+              ? 'Min ${AppCurrency.usd(auction.minimumBid)}'
+              : 'Ends ${_when(auction.endTime!)}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppTypography.caption.copyWith(

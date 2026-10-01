@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1033527417367",
+    "project_id": "gemworld-9c899",
+    "storage_bucket": "gemworld-9c899.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1033527417367:android:283b66ae3fdd8ed21b5a52",
+        "android_client_info": {
+          "package_name": "com.gemworld.notifications"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOYtHNMBr31gzkY5pd7-y1906kQfFKE-4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

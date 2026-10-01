@@ -14,6 +14,8 @@ import '../../application/seller_insights_provider.dart';
 import '../../../auction/application/auction_providers.dart';
 import '../widgets/seller_auction_standing_section.dart';
 import '../widgets/seller_dashboard_diamond_projects_section.dart';
+import '../widgets/seller_dashboard_orders_section.dart';
+import '../../application/seller_orders_provider.dart';
 import '../../domain/models/seller_insights.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
@@ -28,9 +30,6 @@ class SellerDashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
-  SalesRange _range = SalesRange.monthly;
-  DateTime? _customStart;
-  DateTime? _customEnd;
   DashboardMetric _metric = DashboardMetric.totalSales;
 
   static final _metricIcons = <DashboardMetric, (IconData, Color)>{
@@ -46,12 +45,9 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
     ),
   };
 
+  // The provider owns the selected range, so the selector and the chart can
+  // never disagree (e.g. after this screen is rebuilt).
   Future<void> _applyRange(SalesRange range, {DateTime? start, DateTime? end}) {
-    setState(() {
-      _range = range;
-      _customStart = start;
-      _customEnd = end;
-    });
     return ref
         .read(sellerDashboardProvider.notifier)
         .setParams(
@@ -67,12 +63,17 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(sellerDashboardProvider);
     final snapshot = state.snapshot;
+    final params = state.params;
+    // A failed range switch must not leave the previous range's bars under
+    // the newly selected range.
+    final chartIsStale = snapshot != null && snapshot.params != params;
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.s20),
       child: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(sellerAuctionStandingProvider);
+          ref.invalidate(sellerPendingOrdersProvider);
           await ref.read(sellerDashboardProvider.notifier).refresh();
         },
         child: ScrollConfiguration(
@@ -132,15 +133,17 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                   },
                 ),
                 const SizedBox(height: AppSpacing.s16),
+                const SellerDashboardOrdersSummary(),
+                const SizedBox(height: AppSpacing.s16),
                 _CardSection(
                   title: _chartSectionTitle(_metric),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _SalesRangeDropdown(
-                        value: _range,
-                        customStart: _customStart,
-                        customEnd: _customEnd,
+                        value: params.range,
+                        customStart: params.customStart,
+                        customEnd: params.customEnd,
                         onChanged: (v) async {
                           if (v == SalesRange.custom) {
                             final picked = await _pickCustomDateRange(context);
@@ -155,24 +158,34 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                           await _applyRange(v);
                         },
                       ),
-                      if (_range == SalesRange.custom &&
-                          _customStart != null &&
-                          _customEnd != null) ...[
+                      if (params.range == SalesRange.custom &&
+                          params.customStart != null &&
+                          params.customEnd != null) ...[
                         const SizedBox(height: AppSpacing.s8),
                         Text(
-                          '${_fmtDate(_customStart!)} → ${_fmtDate(_customEnd!)}',
+                          '${_fmtDate(params.customStart!)} → '
+                          '${_fmtDate(params.customEnd!)}',
                           style: AppTypography.caption.copyWith(
                             color: AppColors.textSecondary(context),
                           ),
                         ),
                       ],
                       const SizedBox(height: AppSpacing.s16),
+                      if (chartIsStale &&
+                          !state.isRefreshing &&
+                          state.errorMessage != null)
+                        CatalogErrorState(
+                          message: state.errorMessage!,
+                          onRetry: () => ref
+                              .read(sellerDashboardProvider.notifier)
+                              .refresh(),
+                        )
+                      else
                       Stack(
                         children: [
                           _DashboardBarChart(
                             metric: _metric,
-                            values: snapshot.chartFor(_metric).values,
-                            labels: snapshot.chartFor(_metric).labels,
+                            series: snapshot.chartFor(_metric),
                           ),
                           if (state.isRefreshing)
                             Positioned.fill(
@@ -195,7 +208,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                       ),
                       const SizedBox(height: AppSpacing.s12),
                       Text(
-                        snapshot.chartEndDate != null
+                        snapshot.chartEndDate != null && !chartIsStale
                             ? context.tr(RemainingL10n.throughDate, {
                                 'date': _fmtDate(snapshot.chartEndDate!),
                               })
@@ -204,6 +217,15 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                           color: AppColors.textSecondary(context),
                         ),
                       ),
+                      if (_metric == DashboardMetric.inventoryValue) ...[
+                        const SizedBox(height: AppSpacing.s4),
+                        Text(
+                          context.tr(RemainingL10n.inventorySnapshotNote),
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textMuted(context),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -233,8 +255,9 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
   Future<(DateTime, DateTime)?> _pickCustomDateRange(
     BuildContext context,
   ) async {
-    DateTime? start = _customStart;
-    DateTime? end = _customEnd;
+    final current = ref.read(sellerDashboardProvider).params;
+    DateTime? start = current.customStart;
+    DateTime? end = current.customEnd;
     final firstDate = DateTime(2020);
     final lastDate = DateTime.now().add(const Duration(days: 365));
 
@@ -585,15 +608,13 @@ class _SalesRangeDropdown extends StatelessWidget {
 }
 
 class _DashboardBarChart extends StatefulWidget {
-  const _DashboardBarChart({
-    required this.metric,
-    required this.values,
-    required this.labels,
-  });
+  const _DashboardBarChart({required this.metric, required this.series});
 
   final DashboardMetric metric;
-  final List<double> values;
-  final List<String> labels;
+  final InsightsChartSeries series;
+
+  List<double> get values => series.values;
+  List<String> get labels => series.labels;
 
   static const chartHeight = 240.0;
 
@@ -670,6 +691,7 @@ class _DashboardBarChartState extends State<_DashboardBarChart> {
   Widget build(BuildContext context) {
     final series = widget.values.isEmpty ? const <double>[0] : widget.values;
     final xLabels = widget.labels.isEmpty ? ['—'] : widget.labels;
+    final labelStep = (xLabels.length / 8).ceil().clamp(1, xLabels.length);
     final maxY = _DashboardBarChart.niceMax(series);
     final yTicks = _DashboardBarChart.yTicks(maxY);
     final formatY = _DashboardBarChart.yFormatter(widget.metric);
@@ -710,7 +732,8 @@ class _DashboardBarChartState extends State<_DashboardBarChart> {
                         Positioned(
                           left: 0,
                           right: 0,
-                          top: _DashboardBarChart.chartHeight *
+                          top:
+                              _DashboardBarChart.chartHeight *
                               (1 - yTicks[i] / maxY),
                           child: Container(
                             height: 1,
@@ -738,13 +761,16 @@ class _DashboardBarChartState extends State<_DashboardBarChart> {
                                   selected: _selectedIndex == i,
                                   onTap: () {
                                     setState(() {
-                                      _selectedIndex =
-                                          _selectedIndex == i ? null : i;
+                                      _selectedIndex = _selectedIndex == i
+                                          ? null
+                                          : i;
                                     });
                                   },
                                   tooltip: _selectedIndex == i
                                       ? ChartValueTooltip(
-                                          label: xLabels[i],
+                                          label: widget.labels.isEmpty
+                                              ? xLabels[i]
+                                              : widget.series.detailAt(i),
                                           value: formatY(series[i]),
                                         )
                                       : null,
@@ -758,18 +784,25 @@ class _DashboardBarChartState extends State<_DashboardBarChart> {
                 ),
                 const SizedBox(height: AppSpacing.s8),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (final label in xLabels)
+                    for (var i = 0; i < xLabels.length; i++)
                       Expanded(
                         child: Text(
-                          label,
+                          // Long daily ranges label every few bars; the
+                          // tooltip still names each one.
+                          i % labelStep == 0 || i == xLabels.length - 1
+                              ? xLabels[i]
+                              : '',
                           textAlign: TextAlign.center,
                           style: AppTypography.caption.copyWith(
                             color: AppColors.textMuted(context),
                             fontSize: 11,
+                            height: 1.2,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                          softWrap: false,
+                          overflow: TextOverflow.visible,
                         ),
                       ),
                   ],
@@ -821,8 +854,9 @@ class _BarColumn extends StatelessWidget {
                 height: barHeight.clamp(0, height),
                 decoration: BoxDecoration(
                   color: selected ? color.withValues(alpha: 0.85) : color,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(4)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(4),
+                  ),
                   border: selected
                       ? Border.all(color: AppColors.info, width: 2)
                       : null,
@@ -833,8 +867,9 @@ class _BarColumn extends StatelessWidget {
           if (tooltip != null)
             Positioned(
               bottom: barHeight.clamp(0, height) + 8,
-              left: 0,
-              right: 0,
+              // Wider than the bar so period names ("Week of …") fit.
+              left: -72,
+              right: -72,
               child: Center(child: tooltip),
             ),
         ],
@@ -842,4 +877,3 @@ class _BarColumn extends StatelessWidget {
     );
   }
 }
-

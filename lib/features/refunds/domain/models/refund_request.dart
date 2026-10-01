@@ -59,6 +59,8 @@ class RefundRequest {
     this.resolvedAtLabel,
     this.user,
     this.seller,
+    this.createdAt,
+    this.resolvedAt,
   });
 
   final String id;
@@ -82,6 +84,10 @@ class RefundRequest {
   final RefundPartyUser? user;
   final RefundPartySeller? seller;
 
+  /// Local time the buyer asked for the refund (for sorting / date filters).
+  final DateTime? createdAt;
+  final DateTime? resolvedAt;
+
   /// Legacy alias for [amountInr].
   double get amount => amountInr;
 
@@ -97,4 +103,28 @@ class RefundRequest {
 
   bool get canCancel => status.isPending;
   bool get canSellerDecide => status.isPending;
+
+  /// Keeps [previous]'s buyer / seller when an update response omits them.
+  RefundRequest withPartiesFrom(RefundRequest previous) {
+    if (user != null && seller != null) return this;
+    return RefundRequest(
+      id: id,
+      orderId: orderId,
+      userId: userId,
+      sellerId: sellerId,
+      status: status,
+      reason: reason,
+      amountInr: amountInr,
+      amountUsd: amountUsd,
+      createdAtLabel: createdAtLabel,
+      updatedAtLabel: updatedAtLabel,
+      sellerNote: sellerNote,
+      razorpayRefundId: razorpayRefundId,
+      resolvedAtLabel: resolvedAtLabel,
+      user: user ?? previous.user,
+      seller: seller ?? previous.seller,
+      createdAt: createdAt ?? previous.createdAt,
+      resolvedAt: resolvedAt,
+    );
+  }
 }

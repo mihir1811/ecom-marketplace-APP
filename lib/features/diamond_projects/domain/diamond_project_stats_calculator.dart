@@ -1,64 +1,77 @@
+import 'dart:math' as math;
+
 import 'models/diamond_project_item.dart';
 import 'models/diamond_project_stats.dart';
 
 /// Computes dashboard analytics from already-loaded project items.
+///
+/// Used by both the diamond project builder and the seller dashboard, so the
+/// outlier rule is defined once:
+///
+/// * Only priced stones with a carat weight are measured; duplicates (same
+///   stone listed twice) count once.
+/// * Stones are compared within their product kind (single stones and melee
+///   parcels are priced on different scales) and against their own shape.
+/// * $/ct grows with carat weight, so the expected log $/ct for a stone's
+///   size is removed first (fitted from the data once there is enough carat
+///   spread to estimate it).
+/// * Tukey's fences (Q1 - 1.5·IQR, Q3 + 1.5·IQR) are applied to the residual
+///   of log $/ct. Prices are right-skewed, so on the raw scale the low fence
+///   usually falls below zero and cheap outliers can never be flagged.
 abstract final class DiamondProjectStatsCalculator {
-  static DiamondProjectStats compute(List<DiamondProjectItem> items) {
+  /// Fewer stones than this in a product kind: no fences, no outliers.
+  static const minFenceSample = 5;
+
+  /// A shape needs this many stones to be judged against its own level;
+  /// smaller shapes are judged against the whole product kind.
+  static const minShapeSample = 3;
+
+  /// Carat trend is only fitted with enough stones and carat spread.
+  static const minTrendSample = 8;
+
+  static DiamondProjectStats compute(List<DiamondProjectItem> rawItems) {
+    final items = _dedupe(rawItems);
     if (items.isEmpty) return DiamondProjectStats.empty;
 
-    final prices = items.map((i) => i.price).toList()..sort();
-    // Tukey IQR on $/ct. Positive finite values only — zeros collapse the
-    // lower fence. Seller inventory mixes shapes, so fences are computed
-    // per shape (same formula); global fences are kept for the summary.
-    final fenceSample = items
-        .map((i) => i.ppc)
-        .where((v) => v.isFinite && v > 0)
-        .toList()
-      ..sort();
+    final priced = items.where((i) => i.price > 0).toList();
+    final prices = priced.map((i) => i.price).toList()..sort();
     final totalCarat = items.fold<double>(0, (sum, i) => sum + i.carat);
-    final totalPrice = items.fold<double>(0, (sum, i) => sum + i.price);
+    final totalPrice = priced.fold<double>(0, (sum, i) => sum + i.price);
+    final withCarat = priced.where((i) => i.carat > 0);
+    final pricedCarat = withCarat.fold<double>(0, (sum, i) => sum + i.carat);
+    final pricedValue = withCarat.fold<double>(0, (sum, i) => sum + i.price);
     final stones = items.length;
-    final mean = totalPrice / stones;
+    final mean = priced.isEmpty ? 0.0 : totalPrice / priced.length;
     final median = _median(prices);
     final mode = _mode(prices);
 
-    final globalFences = _tukeyFences(fenceSample);
-    final low = globalFences?.low ?? 0.0;
-    final high = globalFences?.high ?? 0.0;
-
-    final fencesByShape = <String, ({double low, double high})>{};
-    final byShape = <String, List<double>>{};
+    final flags = <DiamondProjectItem, bool>{};
+    ({double low, double high})? summaryFences;
+    var summaryKindSize = 0;
+    final byKind = <String, List<DiamondProjectItem>>{};
     for (final item in items) {
-      final value = item.ppc;
-      if (!value.isFinite || value <= 0) continue;
-      final key = _shapeKey(item.shape);
-      (byShape[key] ??= <double>[]).add(value);
+      if (!_measurable(item)) continue;
+      (byKind[_kindKey(item)] ??= []).add(item);
     }
-    for (final entry in byShape.entries) {
-      final sorted = List<double>.from(entry.value)..sort();
-      final fences = _tukeyFences(sorted);
-      if (fences != null) fencesByShape[entry.key] = fences;
+    for (final group in byKind.values) {
+      final result = _classify(group);
+      if (result == null) continue;
+      flags.addAll(result.flags);
+      if (group.length > summaryKindSize) {
+        summaryKindSize = group.length;
+        summaryFences = result.typicalFences;
+      }
     }
 
     final outliers = <DiamondProjectOutlier>[];
     final scatter = <DiamondProjectScatterPoint>[];
     for (final item in items) {
-      final value = item.ppc;
-      final measurable = value.isFinite && value > 0;
-      // Prefer shape-local fences when the cohort is large enough; otherwise
-      // fall back to the global inventory fences.
-      final fences = measurable
-          ? (fencesByShape[_shapeKey(item.shape)] ?? globalFences)
-          : null;
-      final isLow = fences != null && measurable && value < fences.low;
-      final isHigh = fences != null && measurable && value > fences.high;
-      final isOutlier = isLow || isHigh;
+      final isHigh = flags[item];
+      final isOutlier = isHigh != null;
       if (isOutlier) {
         outliers.add(DiamondProjectOutlier(item: item, isHigh: isHigh));
       }
-      scatter.add(
-        DiamondProjectScatterPoint(item: item, isOutlier: isOutlier),
-      );
+      scatter.add(DiamondProjectScatterPoint(item: item, isOutlier: isOutlier));
     }
 
     // Keep low outliers visible in the table (not buried after many highs).
@@ -74,23 +87,146 @@ abstract final class DiamondProjectStatsCalculator {
       avgCarat: totalCarat / stones,
       totalPrice: totalPrice,
       avgPrice: mean,
-      avgPpc: totalCarat > 0 ? totalPrice / totalCarat : 0,
+      avgPpc: pricedCarat > 0 ? pricedValue / pricedCarat : 0,
       meanPrice: mean,
       medianPrice: median,
       modePrice: mode.$1,
       modeCount: mode.$2,
-      iqrLow: low,
-      iqrHigh: high,
+      iqrLow: summaryFences?.low ?? 0,
+      iqrHigh: summaryFences?.high ?? 0,
       outliers: outliers,
       shapeMix: _mix(items, (i) => i.shape),
       colorMix: _mix(items, (i) => i.color),
       clarityMix: _mix(items, (i) => i.clarity),
-      priceBuckets: _priceBuckets(items),
-      ppcBuckets: _ppcBuckets(items),
+      priceBuckets: _priceBuckets(priced),
+      ppcBuckets: _ppcBuckets(priced.where(_measurable).toList()),
       caratBuckets: _caratBuckets(items),
       scatter: scatter,
     );
   }
+
+  /// Flags outliers in one product kind: `flags[item]` is `true` for high and
+  /// `false` for low outliers. [typicalFences] are the fences in $/ct for a
+  /// stone of the group's median size and level (the summary line).
+  static ({
+    Map<DiamondProjectItem, bool> flags,
+    ({double low, double high}) typicalFences,
+  })?
+  _classify(List<DiamondProjectItem> group) {
+    if (group.length < minFenceSample) return null;
+
+    final y = [for (final i in group) math.log(i.ppc)];
+    final x = [for (final i in group) math.log(i.carat)];
+    final yMid = _median(List.of(y)..sort());
+    final xMid = _median(List.of(x)..sort());
+
+    // Shape level: centre each sizeable shape on its own medians so a shape
+    // that trades higher (or lower) is not flagged as a whole.
+    final byShape = <String, List<int>>{};
+    for (var k = 0; k < group.length; k++) {
+      (byShape[_shapeKey(group[k].shape)] ??= []).add(k);
+    }
+    final yc = List<double>.filled(group.length, 0);
+    final xc = List<double>.filled(group.length, 0);
+    for (final indices in byShape.values) {
+      final own = indices.length >= minShapeSample;
+      final yLevel = own
+          ? _median([for (final k in indices) y[k]]..sort())
+          : yMid;
+      final xLevel = own
+          ? _median([for (final k in indices) x[k]]..sort())
+          : xMid;
+      for (final k in indices) {
+        yc[k] = y[k] - yLevel;
+        xc[k] = x[k] - xLevel;
+      }
+    }
+
+    // Size trend: log $/ct against log carat. Fitted twice, the second time
+    // without the first pass's outliers, so one extreme stone cannot bend the
+    // line toward itself. Clamped to a plausible elasticity: $/ct does not
+    // fall with size for comparable stones, and > 2 means the fit is chasing
+    // noise.
+    var slope = 0.0;
+    if (group.length >= minTrendSample && _caratSpread(x)) {
+      slope = _fitSlope(xc, yc, List.filled(group.length, true));
+      final firstPass = _tukey(_residuals(xc, yc, slope));
+      final keep = [
+        for (final r in _residuals(xc, yc, slope))
+          r >= firstPass.low && r <= firstPass.high,
+      ];
+      slope = _fitSlope(xc, yc, keep);
+    }
+
+    final residuals = _residuals(xc, yc, slope);
+    final fences = _tukey(residuals);
+    final flags = <DiamondProjectItem, bool>{};
+    for (var k = 0; k < group.length; k++) {
+      if (residuals[k] < fences.low) flags[group[k]] = false;
+      if (residuals[k] > fences.high) flags[group[k]] = true;
+    }
+    return (
+      flags: flags,
+      typicalFences: (
+        low: math.exp(yMid + fences.low),
+        high: math.exp(yMid + fences.high),
+      ),
+    );
+  }
+
+  static List<double> _residuals(
+    List<double> x,
+    List<double> y,
+    double slope,
+  ) => [for (var k = 0; k < y.length; k++) y[k] - slope * x[k]];
+
+  /// Least-squares slope through the origin of centred values.
+  static double _fitSlope(List<double> x, List<double> y, List<bool> use) {
+    var sxy = 0.0;
+    var sxx = 0.0;
+    for (var k = 0; k < x.length; k++) {
+      if (!use[k]) continue;
+      sxy += x[k] * y[k];
+      sxx += x[k] * x[k];
+    }
+    if (sxx <= 1e-12) return 0;
+    return (sxy / sxx).clamp(0.0, 2.0);
+  }
+
+  /// At least two carat sizes about 20% apart, each held by 3+ stones.
+  static bool _caratSpread(List<double> logCarats) {
+    final bins = <int, int>{};
+    for (final v in logCarats) {
+      final bin = (v / math.log(1.2)).floor();
+      bins[bin] = (bins[bin] ?? 0) + 1;
+    }
+    return bins.values.where((n) => n >= 3).length >= 2;
+  }
+
+  /// Tukey fences: Q1/Q3 (linear-interpolated percentiles) ± 1.5·IQR.
+  static ({double low, double high}) _tukey(List<double> values) {
+    final sorted = List.of(values)..sort();
+    final q1 = _percentile(sorted, 0.25);
+    final q3 = _percentile(sorted, 0.75);
+    final iqr = q3 - q1;
+    return (low: q1 - 1.5 * iqr, high: q3 + 1.5 * iqr);
+  }
+
+  static bool _measurable(DiamondProjectItem item) {
+    final ppc = item.ppc;
+    return item.price > 0 && item.carat > 0 && ppc.isFinite && ppc > 0;
+  }
+
+  static List<DiamondProjectItem> _dedupe(List<DiamondProjectItem> items) {
+    final seen = <String>{};
+    return [
+      for (final item in items)
+        if (seen.add('${item.diamondId}|${item.rowId ?? ''}')) item,
+    ];
+  }
+
+  static String _kindKey(DiamondProjectItem item) =>
+      item.productKind.trim().toUpperCase();
 
   /// Compact payload for `analytics` — KPIs + mixes, no scatter points.
   static Map<String, dynamic> toAnalytics(DiamondProjectStats stats) {
@@ -125,14 +261,19 @@ abstract final class DiamondProjectStatsCalculator {
     }
     final entries = counts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    return [
-      for (final e in entries) NamedCount(label: e.key, count: e.value),
-    ];
+    return [for (final e in entries) NamedCount(label: e.key, count: e.value)];
   }
 
   static List<NamedCount> _priceBuckets(List<DiamondProjectItem> items) {
     const edges = [1000.0, 5000.0, 10000.0, 25000.0, 50000.0];
-    const labels = ['\$0 - \$1k', '\$1k - \$5k', '\$5k - \$10k', '\$10k - \$25k', '\$25k - \$50k', '\$50k+'];
+    const labels = [
+      '\$0 - \$1k',
+      '\$1k - \$5k',
+      '\$5k - \$10k',
+      '\$10k - \$25k',
+      '\$25k - \$50k',
+      '\$50k+',
+    ];
     return _bucket(items.map((i) => i.price), edges, labels);
   }
 
@@ -227,21 +368,11 @@ abstract final class DiamondProjectStatsCalculator {
     return sorted[lo] * (1 - t) + sorted[hi] * t;
   }
 
-  /// Official Tukey fences: Q1/Q3 percentiles, IQR, ±1.5·IQR.
-  static ({double low, double high})? _tukeyFences(List<double> sortedPositive) {
-    if (sortedPositive.length < 4) return null;
-    final q1 = _percentile(sortedPositive, 0.25);
-    final q3 = _percentile(sortedPositive, 0.75);
-    final iqr = q3 - q1;
-    return (low: q1 - 1.5 * iqr, high: q3 + 1.5 * iqr);
-  }
-
   static String _shapeKey(String? shape) {
     final raw = shape?.trim();
     if (raw == null || raw.isEmpty) return '—';
     return raw.toLowerCase();
   }
 
-  static double _round(double value) =>
-      double.parse(value.toStringAsFixed(2));
+  static double _round(double value) => double.parse(value.toStringAsFixed(2));
 }

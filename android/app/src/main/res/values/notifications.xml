@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Must match FCM_ANDROID_CHANNEL_ID on the backend. -->
+    <string name="default_notification_channel_id" translatable="false">gemworld_default</string>
+    <string name="default_notification_channel_name">GemWorld notifications</string>
+    <string name="default_notification_channel_description">Chats, offers, bids and order updates</string>
+</resources>

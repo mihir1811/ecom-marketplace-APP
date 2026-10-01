@@ -19,8 +19,8 @@ class ChatParticipant {
 
   String get displayAvatar =>
       (companyLogo != null && companyLogo!.trim().isNotEmpty)
-          ? companyLogo!.trim()
-          : profilePicture.trim();
+      ? companyLogo!.trim()
+      : profilePicture.trim();
 }
 
 class ChatMessage {
@@ -64,6 +64,5 @@ class ChatMessage {
 
   String peerId(String myUserId) => fromId == myUserId ? toId : fromId;
 
-  ChatParticipant? peer(String myUserId) =>
-      fromId == myUserId ? to : from;
+  ChatParticipant? peer(String myUserId) => fromId == myUserId ? to : from;
 }

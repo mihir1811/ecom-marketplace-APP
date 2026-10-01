@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -12,11 +14,23 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../refunds/application/refund_providers.dart';
 import '../../../refunds/domain/models/refund_request.dart';
-import '../../data/seller_orders_mock_data.dart';
-import '../../domain/models/seller_orders_models.dart';
+import '../../application/seller_orders_provider.dart';
+import '../../domain/models/seller_order.dart';
+import '../../domain/seller_order_board.dart';
+import '../widgets/seller_order_customer_block.dart';
+import '../widgets/seller_order_decision.dart';
+import '../widgets/seller_order_summary_card.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 
+/// Seller order management: orders and refund requests split into status
+/// tabs, with local search, sort and filters.
+///
+/// Both lists are loaded once ([sellerOrdersProvider],
+/// [sellerRefundListProvider]); tabs, sorting and filters work on that data
+/// without new requests. Decisions and FCM order / refund pushes reload
+/// them, so an order moves from Pending to Confirmed (or a refund to
+/// Approved) as soon as the backend reports it.
 class SellerOrdersScreen extends ConsumerStatefulWidget {
   const SellerOrdersScreen({super.key});
 
@@ -27,24 +41,42 @@ class SellerOrdersScreen extends ConsumerStatefulWidget {
 class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  final _searchCtrl = TextEditingController();
+  SellerOrderFilters _filters = const SellerOrderFilters();
+
+  static const _categories = SellerOrderCategory.values;
+
+  SellerOrderCategory get _category => _categories[_tabController.index];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: _categories.length, vsync: this)
+      ..addListener(() {
+        if (!_tabController.indexIsChanging) setState(() {});
+      });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _refreshAll() async {
+    await Future.wait([
+      ref.read(sellerOrdersProvider.notifier).refresh(),
+      ref.read(sellerRefundListProvider.notifier).refresh(),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
-    final refundTotal = ref.watch(
-      sellerRefundListProvider.select((s) => s.total),
-    );
+    final orders = ref.watch(sellerOrdersProvider);
+    final refunds = ref.watch(sellerRefundListProvider);
+    final board = SellerOrderBoard(orders: orders.items, refunds: refunds.items);
+    final counts = board.counts();
     final accent = AppColors.isDark(context)
         ? AppColors.bronzeLight
         : AppColors.bronzeDark;
@@ -54,263 +86,506 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
       children: [
         TabBar(
           controller: _tabController,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           labelColor: accent,
           unselectedLabelColor: AppColors.textSecondary(context),
           indicatorColor: accent,
           indicatorWeight: 3,
           labelStyle: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
           tabs: [
-            Tab(text: 'Orders (${kSellerOrdersMock.length})'),
-            Tab(text: 'Refunds ($refundTotal)'),
+            for (final c in _categories) Tab(text: '${c.label} (${counts[c]})'),
           ],
         ),
+        _Toolbar(
+          searchCtrl: _searchCtrl,
+          filters: _filters,
+          onSearch: (q) => setState(() => _filters = _filters.copyWith(search: q)),
+          onSort: (sort) =>
+              setState(() => _filters = _filters.copyWith(sort: sort)),
+          onOpenFilters: () => _openFilters(board),
+        ),
+        if (_filters.activeCount > 0)
+          _ActiveFilters(
+            filters: _filters,
+            showRefundStates: !_category.isRefund,
+            onChanged: (f) => setState(() => _filters = f),
+          ),
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: const [_OrdersTab(), _RefundsTab()],
+            children: [
+              for (final category in _categories)
+                _CategoryList(
+                  category: category,
+                  entries: board.entries(category, _filters),
+                  isLoading: category.isRefund
+                      ? refunds.isLoading && refunds.items.isEmpty
+                      : orders.isLoading && orders.items.isEmpty,
+                  errorMessage: category.isRefund
+                      ? refunds.errorMessage
+                      : orders.errorMessage,
+                  truncated: category.isRefund
+                      ? refunds.hasMore
+                      : orders.truncated,
+                  filtered:
+                      _filters.activeCount > 0 ||
+                      _filters.search.trim().isNotEmpty,
+                  onRefresh: _refreshAll,
+                ),
+            ],
           ),
         ),
       ],
     );
   }
-}
 
-class _OrdersTab extends StatelessWidget {
-  const _OrdersTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      itemCount: kSellerOrdersMock.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 14),
-      itemBuilder: (context, index) {
-        final order = kSellerOrdersMock[index];
-        return _OrderSummaryCard(
-          order: order,
-          onTap: () =>
-              context.openRoute(AppRouteNames.sellerOrderDetailPath(order.id)),
-        );
-      },
-    );
-  }
-}
-
-class _OrderSummaryCard extends StatelessWidget {
-  const _OrderSummaryCard({required this.order, required this.onTap});
-
-  final SellerOrder order;
-  final VoidCallback onTap;
-
-  Color get _statusColor {
-    final s = order.status.toLowerCase();
-    if (s.contains('deliver')) return AppColors.success;
-    if (s.contains('out for')) return AppColors.info;
-    if (s.contains('process') || s.contains('ship')) return AppColors.bronze;
-    return AppColors.charcoalLight;
-  }
-
-  IconData get _statusIcon {
-    final s = order.status.toLowerCase();
-    if (s.contains('deliver')) return Icons.check_circle_outline;
-    if (s.contains('out for')) return Icons.local_shipping_outlined;
-    if (s.contains('process')) return Icons.hourglass_top_outlined;
-    if (s.contains('ship')) return Icons.flight_takeoff_outlined;
-    return Icons.shopping_bag_outlined;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = _statusColor;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: AppColors.card(context),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border(context)),
-            boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
-          ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  width: 5,
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      bottomLeft: Radius.circular(16),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: accent.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(_statusIcon, color: accent, size: 22),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    order.id,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTypography.title.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Updated ${order.updatedAt}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTypography.caption.copyWith(
-                                      color: AppColors.textMuted(context),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.chevron_right,
-                              color: AppColors.textMuted(context),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _MetaChip(
-                              icon: Icons.flag_outlined,
-                              label: order.status,
-                              foreground: accent,
-                              background: accent.withValues(alpha: 0.12),
-                            ),
-                            _MetaChip(
-                              icon: Icons.local_shipping_outlined,
-                              label: order.carrier,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on_outlined,
-                              size: 16,
-                              color: AppColors.textMuted(context),
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                order.location,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.textSecondary(context),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            if (order.trackingNumber.isNotEmpty) ...[
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  '#${order.trackingNumber}',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.right,
-                                  style: AppTypography.caption.copyWith(
-                                    color: AppColors.textMuted(context),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+  Future<void> _openFilters(SellerOrderBoard board) async {
+    final result = await showModalBottomSheet<SellerOrderFilters>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _FilterSheet(
+        initial: _filters,
+        paymentStatuses: board.paymentStatuses(),
+        showRefundStates: !_category.isRefund,
       ),
     );
+    if (result != null && mounted) setState(() => _filters = result);
   }
 }
 
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({
-    required this.icon,
-    required this.label,
-    this.foreground,
-    this.background,
+class _Toolbar extends StatelessWidget {
+  const _Toolbar({
+    required this.searchCtrl,
+    required this.filters,
+    required this.onSearch,
+    required this.onSort,
+    required this.onOpenFilters,
   });
 
-  final IconData icon;
-  final String label;
-  final Color? foreground;
-  final Color? background;
+  final TextEditingController searchCtrl;
+  final SellerOrderFilters filters;
+  final ValueChanged<String> onSearch;
+  final ValueChanged<SellerOrderSort> onSort;
+  final VoidCallback onOpenFilters;
 
   @override
   Widget build(BuildContext context) {
-    final fg = foreground ?? AppColors.textPrimary(context);
-    final bg = background ?? AppColors.surface(context);
+    final active = filters.activeCount;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: searchCtrl,
+              onChanged: onSearch,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: 'Search order, customer or product',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                suffixIcon: filters.search.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        onPressed: () {
+                          searchCtrl.clear();
+                          onSearch('');
+                        },
+                      ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.r8),
+                  borderSide: BorderSide(color: AppColors.border(context)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.r8),
+                  borderSide: BorderSide(color: AppColors.border(context)),
+                ),
+              ),
+            ),
+          ),
+          PopupMenuButton<SellerOrderSort>(
+            tooltip: 'Sort: ${filters.sort.label}',
+            icon: const Icon(Icons.sort),
+            initialValue: filters.sort,
+            onSelected: onSort,
+            itemBuilder: (_) => [
+              for (final sort in SellerOrderSort.values)
+                CheckedPopupMenuItem(
+                  value: sort,
+                  checked: sort == filters.sort,
+                  child: Text(sort.label),
+                ),
+            ],
+          ),
+          IconButton(
+            tooltip: 'Filters',
+            onPressed: onOpenFilters,
+            icon: Badge(
+              isLabelVisible: active > 0,
+              label: Text('$active'),
+              child: const Icon(Icons.tune),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: (foreground ?? AppColors.border(context)).withValues(
-            alpha: foreground == null ? 1 : 0.25,
+String _fmtDay(DateTime d) {
+  String two(int v) => v.toString().padLeft(2, '0');
+  return '${two(d.day)}/${two(d.month)}/${d.year}';
+}
+
+String _humanize(String raw) {
+  final words = raw.trim().toLowerCase().replaceAll('_', ' ');
+  return words.isEmpty ? raw : words[0].toUpperCase() + words.substring(1);
+}
+
+class _ActiveFilters extends StatelessWidget {
+  const _ActiveFilters({
+    required this.filters,
+    required this.showRefundStates,
+    required this.onChanged,
+  });
+
+  final SellerOrderFilters filters;
+  final bool showRefundStates;
+  final ValueChanged<SellerOrderFilters> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final from = filters.from;
+    final to = filters.to;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: Row(
+        children: [
+          if (filters.hasDateRange)
+            _chip(
+              '${from == null ? '…' : _fmtDay(from)} – '
+              '${to == null ? '…' : _fmtDay(to)}',
+              () => onChanged(filters.copyWith(clearDates: true)),
+            ),
+          for (final status in filters.paymentStatuses)
+            _chip(
+              'Payment: ${_humanize(status)}',
+              () => onChanged(
+                filters.copyWith(
+                  paymentStatuses: {...filters.paymentStatuses}..remove(status),
+                ),
+              ),
+            ),
+          if (showRefundStates)
+            for (final state in filters.refundStates)
+              _chip(
+                state.label,
+                () => onChanged(
+                  filters.copyWith(
+                    refundStates: {...filters.refundStates}..remove(state),
+                  ),
+                ),
+              ),
+          TextButton(
+            onPressed: () => onChanged(
+              SellerOrderFilters(sort: filters.sort, search: filters.search),
+            ),
+            child: const Text('Clear all'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(String label, VoidCallback onRemove) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InputChip(label: Text(label), onDeleted: onRemove),
+    );
+  }
+}
+
+class _FilterSheet extends StatefulWidget {
+  const _FilterSheet({
+    required this.initial,
+    required this.paymentStatuses,
+    required this.showRefundStates,
+  });
+
+  final SellerOrderFilters initial;
+  final List<String> paymentStatuses;
+  final bool showRefundStates;
+
+  @override
+  State<_FilterSheet> createState() => _FilterSheetState();
+}
+
+class _FilterSheetState extends State<_FilterSheet> {
+  late SellerOrderFilters _draft = widget.initial;
+
+  Future<void> _pickDates() async {
+    final now = DateTime.now();
+    final from = _draft.from;
+    final to = _draft.to;
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(now.year, now.month, now.day),
+      initialDateRange: from != null && to != null
+          ? DateTimeRange(start: from, end: to)
+          : null,
+    );
+    if (picked == null) return;
+    setState(() {
+      _draft = _draft.copyWith(from: picked.start, to: picked.end);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final from = _draft.from;
+    final to = _draft.to;
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Filter orders',
+                style: AppTypography.title.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _label(context, 'Date'),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _pickDates,
+                      icon: const Icon(Icons.date_range, size: 18),
+                      label: Text(
+                        _draft.hasDateRange
+                            ? '${from == null ? '…' : _fmtDay(from)} – '
+                                  '${to == null ? '…' : _fmtDay(to)}'
+                            : 'Any date',
+                      ),
+                    ),
+                  ),
+                  if (_draft.hasDateRange)
+                    IconButton(
+                      tooltip: 'Clear dates',
+                      onPressed: () => setState(
+                        () => _draft = _draft.copyWith(clearDates: true),
+                      ),
+                      icon: const Icon(Icons.close),
+                    ),
+                ],
+              ),
+              if (widget.paymentStatuses.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _label(context, 'Payment status'),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final status in widget.paymentStatuses)
+                      FilterChip(
+                        label: Text(_humanize(status)),
+                        selected: _draft.paymentStatuses.contains(status),
+                        onSelected: (on) => setState(() {
+                          final next = {..._draft.paymentStatuses};
+                          on ? next.add(status) : next.remove(status);
+                          _draft = _draft.copyWith(paymentStatuses: next);
+                        }),
+                      ),
+                  ],
+                ),
+              ],
+              if (widget.showRefundStates) ...[
+                const SizedBox(height: 16),
+                _label(context, 'Refund status'),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final state in SellerOrderRefundState.values)
+                      FilterChip(
+                        label: Text(state.label),
+                        selected: _draft.refundStates.contains(state),
+                        onSelected: (on) => setState(() {
+                          final next = {..._draft.refundStates};
+                          on ? next.add(state) : next.remove(state);
+                          _draft = _draft.copyWith(refundStates: next);
+                        }),
+                      ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(
+                        context,
+                        SellerOrderFilters(
+                          sort: _draft.sort,
+                          search: _draft.search,
+                        ),
+                      ),
+                      child: const Text('Reset'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => Navigator.pop(context, _draft),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.charcoal,
+                        foregroundColor: AppColors.warmWhite,
+                      ),
+                      child: Text(context.tr(RemainingL10n.apply)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+    );
+  }
+
+  Widget _label(BuildContext context, String text) => Text(
+    text,
+    style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
+  );
+}
+
+class _CategoryList extends StatelessWidget {
+  const _CategoryList({
+    required this.category,
+    required this.entries,
+    required this.isLoading,
+    required this.errorMessage,
+    required this.truncated,
+    required this.filtered,
+    required this.onRefresh,
+  });
+
+  final SellerOrderCategory category;
+  final List<SellerOrderBoardEntry> entries;
+  final bool isLoading;
+  final String? errorMessage;
+  final bool truncated;
+  final bool filtered;
+  final Future<void> Function() onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          Icon(icon, size: 14, color: fg),
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 48),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (errorMessage != null && entries.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                children: [
+                  Text(errorMessage!, textAlign: TextAlign.center),
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    onPressed: onRefresh,
+                    child: Text(context.tr(RemainingL10n.retry)),
+                  ),
+                ],
+              ),
+            )
+          else if (entries.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 48),
+              child: Center(
+                child: Text(
+                  filtered
+                      ? 'No ${category.label.toLowerCase()} match these filters.'
+                      : category.emptyMessage,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.body,
+                ),
+              ),
+            )
+          else ...[
+            if (errorMessage != null) _Notice(text: errorMessage!),
+            if (truncated)
+              const _Notice(
+                text:
+                    'Showing your most recent records only. Narrow the date '
+                    'range to find older ones.',
+              ),
+            for (final entry in entries) ...[
+              if (entry.refund != null)
+                _RefundCard(refund: entry.refund!, order: entry.order)
+              else
+                SellerOrderSummaryCard(
+                  order: entry.order!,
+                  latestRefund: entry.latestRefund,
+                  onTap: () => context.openRoute(
+                    AppRouteNames.sellerOrderDetailPath(entry.order!.id),
+                  ),
+                ),
+              const SizedBox(height: 14),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _Notice extends StatelessWidget {
+  const _Notice({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 16,
+            color: AppColors.textMuted(context),
+          ),
           const SizedBox(width: 6),
-          Flexible(
+          Expanded(
             child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              text,
               style: AppTypography.caption.copyWith(
-                color: fg,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
+                color: AppColors.textMuted(context),
               ),
             ),
           ),
@@ -320,111 +595,13 @@ class _MetaChip extends StatelessWidget {
   }
 }
 
-class _RefundsTab extends ConsumerWidget {
-  const _RefundsTab();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(sellerRefundListProvider);
-
-    return RefreshIndicator(
-      onRefresh: () => ref.read(sellerRefundListProvider.notifier).refresh(),
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (n) {
-          if (n is ScrollUpdateNotification &&
-              n.metrics.maxScrollExtent > 0 &&
-              n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
-            ref.read(sellerRefundListProvider.notifier).loadMore();
-          }
-          return false;
-        },
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(AppSpacing.s16),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.s16),
-              decoration: BoxDecoration(
-                color: AppColors.surface(context),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border(context)),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Icon(
-                      Icons.replay,
-                      size: 56,
-                      color: AppColors.textMuted(
-                        context,
-                      ).withValues(alpha: 0.25),
-                    ),
-                  ),
-                  Text(
-                    context.tr(RemainingL10n.reviewBuyerRefundRequestsForYour),
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.textSecondary(context),
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (state.isLoading && state.items.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 48),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (state.errorMessage != null && state.items.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Column(
-                  children: [
-                    Text(state.errorMessage!, textAlign: TextAlign.center),
-                    const SizedBox(height: 12),
-                    FilledButton(
-                      onPressed: () =>
-                          ref.read(sellerRefundListProvider.notifier).refresh(),
-                      child: Text(context.tr(RemainingL10n.retry)),
-                    ),
-                  ],
-                ),
-              )
-            else if (state.items.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 48),
-                child: Center(
-                  child: Text(
-                    context.tr(RemainingL10n.noRefundRequestsYet),
-                    style: AppTypography.body,
-                  ),
-                ),
-              )
-            else ...[
-              for (final refund in state.items) ...[
-                _RefundCard(refund: refund),
-                const SizedBox(height: 12),
-              ],
-              if (state.isLoadingMore)
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _RefundCard extends ConsumerWidget {
-  const _RefundCard({required this.refund});
+  const _RefundCard({required this.refund, this.order});
 
   final RefundRequest refund;
+
+  /// The refunded order, when it is among the loaded orders.
+  final SellerOrder? order;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -440,7 +617,15 @@ class _RefundCard extends ConsumerWidget {
       RefundStatus.rejected => Icons.cancel_outlined,
       RefundStatus.cancelled => Icons.block,
     };
+    final statusLabel = switch (refund.status) {
+      RefundStatus.pending => 'Refund requested',
+      RefundStatus.accepted => 'Refund approved',
+      RefundStatus.rejected => 'Refund rejected',
+      RefundStatus.cancelled => 'Withdrawn by buyer',
+    };
     final mutating = ref.watch(refundMutationProvider).isLoading;
+    final linked = order;
+    final orderLabel = linked != null ? '#${linked.shortId}' : refund.orderId;
 
     return Container(
       decoration: BoxDecoration(
@@ -457,14 +642,15 @@ class _RefundCard extends ConsumerWidget {
             children: [
               Icon(statusIcon, color: statusColor, size: 20),
               const SizedBox(width: 8),
-              Text(
-                refund.status.label,
-                style: AppTypography.label.copyWith(
-                  color: statusColor,
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Text(
+                  statusLabel,
+                  style: AppTypography.label.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-              const Spacer(),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -488,32 +674,31 @@ class _RefundCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 14),
+          _InfoBlock(
+            label: context.tr(RemainingL10n.buyer),
+            child: SellerOrderCustomerBlock(
+              name: refund.user?.name.trim().isNotEmpty == true
+                  ? refund.buyerLabel
+                  : (linked?.customerLabel ?? refund.buyerLabel),
+              email: linked?.customer?.email,
+              phone: linked?.customer?.phone,
+            ),
+          ),
+          const SizedBox(height: 14),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: _InfoBlock(
-                  label: context.tr(RemainingL10n.buyer),
-                  child: Text(
-                    refund.buyerLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _InfoBlock(
                   label: context.tr(RemainingL10n.order),
                   child: GestureDetector(
                     onTap: () => context.openRoute(
-                      AppRouteNames.sellerOrderDetailPath(refund.orderId),
+                      AppRouteNames.sellerOrderDetailPath(
+                        linked?.id ?? refund.orderId,
+                      ),
                     ),
                     child: Text(
-                      refund.orderId,
+                      orderLabel,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.body.copyWith(
@@ -540,6 +725,23 @@ class _RefundCard extends ConsumerWidget {
                   ),
                 ),
               ),
+              if (refund.resolvedAtLabel != null) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _InfoBlock(
+                    label: 'Resolved',
+                    child: Text(
+                      refund.resolvedAtLabel!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textPrimary(context),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 14),
@@ -581,7 +783,7 @@ class _RefundCard extends ConsumerWidget {
                   child: OutlinedButton(
                     onPressed: mutating
                         ? null
-                        : () => _rejectRefund(context, ref, refund.id),
+                        : () => _rejectRefund(context, refund),
                     child: Text(context.tr(RemainingL10n.reject)),
                   ),
                 ),
@@ -590,7 +792,7 @@ class _RefundCard extends ConsumerWidget {
                   child: FilledButton(
                     onPressed: mutating
                         ? null
-                        : () => _acceptRefund(context, ref, refund.id),
+                        : () => _acceptRefund(context, refund),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.charcoal,
                       foregroundColor: AppColors.warmWhite,
@@ -606,90 +808,93 @@ class _RefundCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _acceptRefund(
-    BuildContext context,
-    WidgetRef ref,
-    String id,
+  static Future<Failure?> _outcome(
+    Future<Result<RefundRequest, Failure>> call,
   ) async {
-    final confirmed = await showAppDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.tr(RemainingL10n.acceptRefund)),
-        content: Text(
-          context.tr(RemainingL10n.thisTriggersARazorpayRefundForThe),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(context.tr(RemainingL10n.cancel)),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(context.tr(RemainingL10n.accept)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
-    final result = await ref.read(refundMutationProvider.notifier).accept(id);
-    if (!context.mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    switch (result) {
-      case Success():
-        messenger.showSnackBar(
-          SnackBar(content: Text(context.tr(RemainingL10n.refundAccepted))),
-        );
-      case ResultFailure(failure: final failure):
-        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
-    }
+    return switch (await call) {
+      Success() => null,
+      ResultFailure(:final failure) => failure,
+    };
   }
 
-  Future<void> _rejectRefund(
-    BuildContext context,
-    WidgetRef ref,
-    String id,
-  ) async {
-    final noteController = TextEditingController();
-    final confirmed = await showAppDialog<bool>(
+  Future<void> _acceptRefund(BuildContext context, RefundRequest refund) async {
+    // Captured now: this card moves to another tab once the refund is
+    // approved, so its context is gone when the dialog closes.
+    final messenger = ScaffoldMessenger.of(context);
+    final acceptedText = context.tr(RemainingL10n.refundAccepted);
+    final done = await showAppDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.tr(RemainingL10n.rejectRefund)),
-        content: TextField(
-          controller: noteController,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'Note (optional)',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(context.tr(RemainingL10n.cancel)),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(context.tr(RemainingL10n.reject)),
-          ),
-        ],
+      barrierDismissible: false,
+      builder: (ctx) => SellerActionConfirmDialog(
+        title: ctx.tr(RemainingL10n.acceptRefund),
+        message: ctx.tr(RemainingL10n.thisTriggersARazorpayRefundForThe),
+        confirmLabel: ctx.tr(RemainingL10n.accept),
+        onConfirm: (ref) =>
+            _outcome(ref.read(refundMutationProvider.notifier).accept(refund.id)),
       ),
     );
-    final note = noteController.text.trim();
-    noteController.dispose();
-    if (confirmed != true || !context.mounted) return;
-    final result = await ref
-        .read(refundMutationProvider.notifier)
-        .reject(id, sellerNote: note.isEmpty ? null : note);
-    if (!context.mounted) return;
+    if (done != true) return;
+    AppHaptics.success();
+    messenger.showSnackBar(SnackBar(content: Text(acceptedText)));
+  }
+
+  Future<void> _rejectRefund(BuildContext context, RefundRequest refund) async {
     final messenger = ScaffoldMessenger.of(context);
-    switch (result) {
-      case Success():
-        messenger.showSnackBar(
-          SnackBar(content: Text(context.tr(RemainingL10n.refundRejected))),
+    final rejectedText = context.tr(RemainingL10n.refundRejected);
+    final done = await showAppDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _RejectRefundDialog(refund: refund),
+    );
+    if (done != true) return;
+    AppHaptics.success();
+    messenger.showSnackBar(SnackBar(content: Text(rejectedText)));
+  }
+}
+
+class _RejectRefundDialog extends StatefulWidget {
+  const _RejectRefundDialog({required this.refund});
+
+  final RefundRequest refund;
+
+  @override
+  State<_RejectRefundDialog> createState() => _RejectRefundDialogState();
+}
+
+class _RejectRefundDialogState extends State<_RejectRefundDialog> {
+  final _noteCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _noteCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SellerActionConfirmDialog(
+      title: context.tr(RemainingL10n.rejectRefund),
+      message: 'Are you sure you want to reject this refund request?',
+      confirmLabel: context.tr(RemainingL10n.reject),
+      destructive: true,
+      content: TextField(
+        controller: _noteCtrl,
+        maxLines: 3,
+        maxLength: 2000,
+        decoration: const InputDecoration(
+          labelText: 'Note (optional)',
+          border: OutlineInputBorder(),
+        ),
+      ),
+      onConfirm: (ref) {
+        final note = _noteCtrl.text.trim();
+        return _RefundCard._outcome(
+          ref
+              .read(refundMutationProvider.notifier)
+              .reject(widget.refund.id, sellerNote: note.isEmpty ? null : note),
         );
-      case ResultFailure(failure: final failure):
-        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
-    }
+      },
+    );
   }
 }
 

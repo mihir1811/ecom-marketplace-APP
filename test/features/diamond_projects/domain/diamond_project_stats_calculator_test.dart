@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gemstone/features/diamond_projects/domain/diamond_project_stats_calculator.dart';
 import 'package:gemstone/features/diamond_projects/domain/models/diamond_project_item.dart';
@@ -10,9 +12,11 @@ void main() {
     String shape = 'Round',
     String color = 'D',
     String clarity = 'VS1',
+    String kind = 'SINGLE',
   }) {
     return DiamondProjectItem(
       diamondId: id,
+      productKind: kind,
       stockNumber: id,
       shape: shape,
       color: color,
@@ -117,10 +121,14 @@ void main() {
 
     expect(ids, containsAll(['low', 'high']));
     expect(ids, isNot(contains('z1')));
-    expect(stats.outliers.firstWhere((o) => o.item.diamondId == 'low').isHigh,
-        isFalse);
-    expect(stats.outliers.firstWhere((o) => o.item.diamondId == 'high').isHigh,
-        isTrue);
+    expect(
+      stats.outliers.firstWhere((o) => o.item.diamondId == 'low').isHigh,
+      isFalse,
+    );
+    expect(
+      stats.outliers.firstWhere((o) => o.item.diamondId == 'high').isHigh,
+      isTrue,
+    );
   });
 
   test('shape-local IQR finds outliers hidden by mixed-shape inventory', () {
@@ -160,5 +168,110 @@ void main() {
     expect(json['stones'], 2);
     expect(json.containsKey('scatter'), isFalse);
     expect(json['shapeMix'], isA<Map>());
+  });
+  group('outlier audit', () {
+    // $/ct for a comparable stone grows with size (elasticity ~1.2 here).
+    double fairPpc(double carat) => 4000 * math.pow(carat, 1.2).toDouble();
+    const noise = [1.0, 1.03, 0.97, 1.02, 0.98];
+
+    List<DiamondProjectItem> sizedInventory() {
+      final items = <DiamondProjectItem>[];
+      var n = 0;
+      for (final (carat, count) in [
+        (0.3, 5),
+        (0.5, 5),
+        (0.7, 4),
+        (1.0, 3),
+        (3.0, 3),
+      ]) {
+        for (var i = 0; i < count; i++) {
+          final ppc = fairPpc(carat) * noise[n % noise.length];
+          items.add(item(id: 's${n++}', carat: carat, price: ppc * carat));
+        }
+      }
+      return items;
+    }
+
+    test('large stones priced normally for their size are not outliers', () {
+      // Raw $/ct IQR flagged every 3 ct stone here (≈15k/ct vs a 1–4k/ct
+      // middle) although each is priced in line with its size.
+      final stats = DiamondProjectStatsCalculator.compute(sizedInventory());
+      expect(stats.outliers, isEmpty);
+    });
+
+    test('genuine extremes are still found once size is accounted for', () {
+      final stats = DiamondProjectStatsCalculator.compute([
+        ...sizedInventory(),
+        item(id: 'tooHigh', carat: 1.0, price: fairPpc(1.0) * 3),
+        item(id: 'tooLow', carat: 0.5, price: fairPpc(0.5) * 0.5 * 0.25),
+      ]);
+      final flagged = {
+        for (final o in stats.outliers) o.item.diamondId: o.isHigh,
+      };
+      expect(flagged, {'tooHigh': true, 'tooLow': false});
+    });
+
+    test('melee parcels are not judged against single stones', () {
+      final stats = DiamondProjectStatsCalculator.compute([
+        for (var i = 0; i < 10; i++)
+          item(id: 'single$i', carat: 1, price: 5000 + i * 40.0),
+        item(id: 'melee1', carat: 1, price: 600, kind: 'MELEE'),
+        item(id: 'melee2', carat: 1, price: 640, kind: 'MELEE'),
+      ]);
+      expect(stats.outliers, isEmpty);
+    });
+
+    test('too few comparable stones: no outliers are claimed', () {
+      final stats = DiamondProjectStatsCalculator.compute([
+        item(id: 'a', carat: 1, price: 100),
+        item(id: 'b', carat: 1, price: 102),
+        item(id: 'c', carat: 1, price: 104),
+        item(id: 'd', carat: 1, price: 900),
+      ]);
+      expect(stats.outliers, isEmpty);
+      expect(stats.scatter.any((p) => p.isOutlier), isFalse);
+    });
+
+    test('a low outlier in right-skewed prices is detected', () {
+      // Raw IQR puts the low fence at -$90/ct, so nothing can ever be low.
+      final stats = DiamondProjectStatsCalculator.compute([
+        for (final (i, p) in [
+          100.0,
+          110.0,
+          120.0,
+          140.0,
+          170.0,
+          210.0,
+          260.0,
+          320.0,
+          400.0,
+        ].indexed)
+          item(id: 'n$i', carat: 1, price: p),
+        item(id: 'low', carat: 1, price: 30),
+      ]);
+      expect(stats.outliers.map((o) => (o.item.diamondId, o.isHigh)), [
+        ('low', false),
+      ]);
+    });
+
+    test('duplicates count once and unpriced stones do not skew prices', () {
+      final stats = DiamondProjectStatsCalculator.compute([
+        item(id: 'a', carat: 1, price: 100),
+        item(id: 'a', carat: 1, price: 100),
+        item(id: 'b', carat: 1, price: 300),
+        item(id: 'unpriced', carat: 1, price: 0),
+      ]);
+      expect(stats.stones, 3);
+      expect(stats.meanPrice, 200);
+      expect(stats.medianPrice, 200);
+      expect(stats.avgPpc, 200);
+      expect(stats.ppcBuckets.fold<int>(0, (sum, b) => sum + b.count), 2);
+    });
+
+    test('summary fences bracket a typical stone', () {
+      final stats = DiamondProjectStatsCalculator.compute(sizedInventory());
+      expect(stats.iqrLow, greaterThan(0));
+      expect(stats.iqrHigh, greaterThan(stats.iqrLow));
+    });
   });
 }
