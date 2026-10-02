@@ -3,6 +3,8 @@ import '../../haptics/app_haptics.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import '../../theme/luxe_scope.dart';
+import '../../theme/luxe_tokens.dart';
 
 class FilterChipWidget extends StatelessWidget {
   const FilterChipWidget({
@@ -43,6 +45,7 @@ class FilterChipWidget extends StatelessWidget {
     final defaultBorder = borderColor ?? AppColors.border(context);
     final defaultUnselectedText =
         unselectedTextColor ?? AppColors.textPrimary(context);
+    final luxe = LuxeScope.paletteOf(context) != null;
 
     return GestureDetector(
       onTap: () {
@@ -56,16 +59,22 @@ class FilterChipWidget extends StatelessWidget {
         alignment: centerLabel ? Alignment.center : null,
         decoration: BoxDecoration(
           color: isSelected ? fill : defaultUnselectedBg,
-          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          borderRadius: BorderRadius.circular(luxe ? 100 : AppSpacing.r8),
           border: Border.all(
             color: isSelected ? fill : defaultBorder,
-            width: isSelected ? 1.5 : 1.0,
+            width: isSelected && !luxe ? 1.5 : 1.0,
           ),
         ),
         child: Text(
           label,
           style:
               textStyle ??
+              (luxe
+                  ? LuxeType.label(
+                      isSelected ? onFill : defaultUnselectedText,
+                      size: 12.5,
+                    )
+                  : null) ??
               AppTypography.caption.copyWith(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected ? onFill : defaultUnselectedText,

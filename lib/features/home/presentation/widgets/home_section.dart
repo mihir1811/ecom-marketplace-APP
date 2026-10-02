@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/home_tokens.dart';
-import 'motion/scroll_reveal.dart';
+import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 /// Max content width so sections stay editorial on tablets and desktop.
 const double kHomeMaxContentWidth = 760;

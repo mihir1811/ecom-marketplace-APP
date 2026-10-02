@@ -4,6 +4,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../melee_background_shell.dart';
+import '../../theme/luxe_scope.dart';
+import '../luxe/luxe_layout.dart';
 
 /// String-based single-select segmented control (switch) — used by the
 /// lab-grown Diamond Category section.
@@ -21,6 +23,15 @@ class FilterTextSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (LuxeScope.paletteOf(context) != null) {
+      return LuxeSegmented<String>(
+        options: options,
+        selected: selected,
+        onChanged: onSelected,
+        labelOf: (o) => o,
+        dense: true,
+      );
+    }
     final borderColor = AppColors.border(context);
 
     return MeleeTintExtentAnchor(

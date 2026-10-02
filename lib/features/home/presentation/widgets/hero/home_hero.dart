@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -46,7 +47,11 @@ class _HomeHeroState extends State<HomeHero>
   final _clock = ValueNotifier<double>(2);
   final _progress = ValueNotifier<double>(0);
   final _hintVisible = ValueNotifier<bool>(true);
-  final _regionKey = GlobalKey();
+  int? _activePointer;
+  Offset _downAt = Offset.zero;
+  Duration _downTime = Duration.zero;
+  double _travel = 0;
+  VelocityTracker? _tracker;
   late final Ticker _ticker = createTicker(_onTick);
   StardustSprites? _sprites;
   StardustPainter? _painter;
@@ -122,21 +127,61 @@ class _HomeHeroState extends State<HomeHero>
     });
   }
 
-  Offset? _local(Offset global) {
-    final box = _regionKey.currentContext?.findRenderObject();
-    if (box is! RenderBox || !box.hasSize) return null;
-    return box.globalToLocal(global);
-  }
-
   void _dismissHint() {
     if (_hintVisible.value) _hintVisible.value = false;
   }
 
-  void _onTapUp(TapUpDetails d) {
-    AppHaptics.light();
+  void _onPointerDown(PointerDownEvent e) {
+    if (_activePointer != null) return;
+    _activePointer = e.pointer;
+    _downAt = e.localPosition;
+    _downTime = e.timeStamp;
+    _travel = 0;
+    _tracker = VelocityTracker.withKind(e.kind)
+      ..addPosition(e.timeStamp, e.position);
+    _field
+      ..beginDrag()
+      ..setPointer(e.localPosition);
     _dismissHint();
-    _field.shockwave(d.localPosition, radius: _scale * 1.4);
+  }
+
+  void _onPointerMove(PointerMoveEvent e) {
+    if (e.pointer != _activePointer) return;
+    _travel += e.delta.distance;
+    _tracker?.addPosition(e.timeStamp, e.position);
+    _field
+      ..dragBy(e.delta)
+      ..setPointer(e.localPosition);
+    if (_reduceMotion) _field.reproject(_center, _scale);
+  }
+
+  void _onPointerUp(PointerUpEvent e) {
+    if (e.pointer != _activePointer) return;
+    _activePointer = null;
+    final quick = e.timeStamp - _downTime < const Duration(milliseconds: 350);
+    if (_travel < 10 && quick) {
+      _field.endDrag(Offset.zero);
+      _onTap(_downAt);
+    } else {
+      final v = _tracker?.getVelocity().pixelsPerSecond ?? Offset.zero;
+      _field.endDrag(_reduceMotion ? Offset.zero : v);
+    }
+    _field.setPointer(null);
+  }
+
+  void _onPointerCancel(PointerCancelEvent e) {
+    if (e.pointer != _activePointer) return;
+    _activePointer = null;
+    _field
+      ..endDrag(Offset.zero)
+      ..setPointer(null);
+  }
+
+  void _onTap(Offset local) {
+    AppHaptics.light();
+    _field.shockwave(local, _scale * 1.4);
     _field.advance();
+    if (_reduceMotion) _settleStatic();
   }
 
   void _select(StarForm form) {
@@ -162,14 +207,8 @@ class _HomeHeroState extends State<HomeHero>
     final width = MediaQuery.sizeOf(context).width;
     final gutter = width > 720 ? (width - 680) / 2 : HomeSpace.gutter;
 
-    // Raw pointer tracking (no gesture arena) lets the stars react to the
-    // finger anywhere on the hero without ever blocking page scroll.
-    return Listener(
-      behavior: HitTestBehavior.translucent,
-      onPointerDown: (e) => _field.setPointer(_local(e.position)),
-      onPointerMove: (e) => _field.setPointer(_local(e.position)),
-      onPointerUp: (_) => _field.setPointer(null),
-      onPointerCancel: (_) => _field.setPointer(null),
+    return Semantics(
+      container: true,
       child: SizedBox(
         height: widget.height,
         child: ClipRect(
@@ -251,14 +290,32 @@ class _HomeHeroState extends State<HomeHero>
             Positioned.fill(
               child: Semantics(
                 label: context.tr(HomeL10n.dragHint),
-                child: GestureDetector(
-                  key: _regionKey,
+                // The eager recognizer wins the gesture arena on touch-down,
+                // so the page does not scroll while a finger orbits the
+                // cosmos. Scrolling from anywhere else is unaffected.
+                child: RawGestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTapUp: _onTapUp,
-                  child: RepaintBoundary(
-                    child: CustomPaint(
-                      painter: _painter,
-                      child: const SizedBox.expand(),
+                  gestures: {
+                    EagerGestureRecognizer:
+                        GestureRecognizerFactoryWithHandlers<
+                          EagerGestureRecognizer
+                        >(EagerGestureRecognizer.new, (_) {}),
+                  },
+                  child: MouseRegion(
+                    onHover: (e) => _field.setPointer(e.localPosition),
+                    onExit: (_) => _field.setPointer(null),
+                    child: Listener(
+                      behavior: HitTestBehavior.opaque,
+                      onPointerDown: _onPointerDown,
+                      onPointerMove: _onPointerMove,
+                      onPointerUp: _onPointerUp,
+                      onPointerCancel: _onPointerCancel,
+                      child: RepaintBoundary(
+                        child: CustomPaint(
+                          painter: _painter,
+                          child: const SizedBox.expand(),
+                        ),
+                      ),
                     ),
                   ),
                 ),

@@ -12,7 +12,7 @@ import '../../../diamonds/domain/models/diamond_filter_state.dart';
 import '../home_content.dart';
 import '../theme/home_tokens.dart';
 import 'home_section.dart';
-import 'motion/scroll_reveal.dart';
+import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 /// Coverflow of diamond shapes; the centred shape opens matching results.
 class HomeShapeAtelier extends ConsumerStatefulWidget {

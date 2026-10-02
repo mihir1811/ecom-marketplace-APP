@@ -1,0 +1,379 @@
+import '../localized_message.dart';
+
+/// Copy for the redesigned diamond finder → results → detail flow.
+abstract final class DiamondFlowL10n {
+  // Finder
+  static const finderEyebrow = 'diamondFlow.finderEyebrow';
+  static const finderHeadlineNatural = 'diamondFlow.finderHeadlineNatural';
+  static const finderHeadlineLab = 'diamondFlow.finderHeadlineLab';
+  static const finderIntro = 'diamondFlow.finderIntro';
+  static const singleStones = 'diamondFlow.singleStones';
+  static const sectionShape = 'diamondFlow.sectionShape';
+  static const sectionSizePrice = 'diamondFlow.sectionSizePrice';
+  static const sectionColorClarity = 'diamondFlow.sectionColorClarity';
+  static const sectionGrading = 'diamondFlow.sectionGrading';
+  static const sectionInclusions = 'diamondFlow.sectionInclusions';
+  static const sectionListing = 'diamondFlow.sectionListing';
+  static const sectionSeller = 'diamondFlow.sectionSeller';
+  static const sectionMeasurements = 'diamondFlow.sectionMeasurements';
+  static const sectionProportions = 'diamondFlow.sectionProportions';
+  static const any = 'diamondFlow.any';
+  static const selectedCount = 'diamondFlow.selectedCount';
+  static const reset = 'diamondFlow.reset';
+  static const filtersCleared = 'diamondFlow.filtersCleared';
+  static const undo = 'diamondFlow.undo';
+  static const allShapes = 'diamondFlow.allShapes';
+  static const fewerShapes = 'diamondFlow.fewerShapes';
+
+  // Results
+  static const resultsCount = 'diamondFlow.resultsCount';
+  static const searching = 'diamondFlow.searching';
+  static const sort = 'diamondFlow.sort';
+  static const filters = 'diamondFlow.filters';
+  static const grid = 'diamondFlow.grid';
+  static const list = 'diamondFlow.list';
+  static const backToTop = 'diamondFlow.backToTop';
+  static const loadingMore = 'diamondFlow.loadingMore';
+  static const emptyTitle = 'diamondFlow.emptyTitle';
+  static const emptyBody = 'diamondFlow.emptyBody';
+  static const editFilters = 'diamondFlow.editFilters';
+  static const errorTitle = 'diamondFlow.errorTitle';
+  static const belowList = 'diamondFlow.belowList';
+  static const insights = 'diamondFlow.insights';
+
+  // Detail
+  static const atAGlance = 'diamondFlow.atAGlance';
+  static const certifiedBy = 'diamondFlow.certifiedBy';
+  static const reportNumber = 'diamondFlow.reportNumber';
+  static const viewCertificate = 'diamondFlow.viewCertificate';
+  static const view360 = 'diamondFlow.view360';
+  static const specifications = 'diamondFlow.specifications';
+  static const soldBy = 'diamondFlow.soldBy';
+  static const addToCart = 'diamondFlow.addToCart';
+  static const viewInCart = 'diamondFlow.viewInCart';
+  static const addedToCart = 'diamondFlow.addedToCart';
+  static const yourListing = 'diamondFlow.yourListing';
+  static const unavailable = 'diamondFlow.unavailable';
+  static const onHoldMemo = 'diamondFlow.onHoldMemo';
+  static const signInToBuy = 'diamondFlow.signInToBuy';
+  static const signInToOffer = 'diamondFlow.signInToOffer';
+  static const ownListingOffer = 'diamondFlow.ownListingOffer';
+  static const enterMeleeQty = 'diamondFlow.enterMeleeQty';
+  static const onlyCaratAvailable = 'diamondFlow.onlyCaratAvailable';
+  static const onlyPiecesAvailable = 'diamondFlow.onlyPiecesAvailable';
+  static const offerSubtitle = 'diamondFlow.offerSubtitle';
+  static const offerMinimum = 'diamondFlow.offerMinimum';
+  static const offerTooLow = 'diamondFlow.offerTooLow';
+  static const offerInvalid = 'diamondFlow.offerInvalid';
+  static const offerSent = 'diamondFlow.offerSent';
+  static const stockIdCopied = 'diamondFlow.stockIdCopied';
+  static const youSave = 'diamondFlow.youSave';
+}
+
+const diamondFlowMessages = <String, LocalizedMessage>{
+  DiamondFlowL10n.finderEyebrow: LocalizedMessage(
+    english: 'Diamond finder',
+    hindi: 'डायमंड फाइंडर',
+    gujarati: 'ડાયમંડ ફાઇન્ડર',
+  ),
+  DiamondFlowL10n.finderHeadlineNatural: LocalizedMessage(
+    english: 'Find your\nnatural diamond.',
+    hindi: 'अपना प्राकृतिक\nहीरा खोजें।',
+    gujarati: 'તમારો કુદરતી\nહીરો શોધો.',
+  ),
+  DiamondFlowL10n.finderHeadlineLab: LocalizedMessage(
+    english: 'Find your\nlab-grown diamond.',
+    hindi: 'अपना लैब-ग्रोन\nहीरा खोजें।',
+    gujarati: 'તમારો લેબ-ગ્રોન\nહીરો શોધો.',
+  ),
+  DiamondFlowL10n.finderIntro: LocalizedMessage(
+    english: 'Start with a shape, then refine by size, price and the 4Cs.',
+    hindi: 'आकार चुनें, फिर साइज़, कीमत और 4C से सटीक करें।',
+    gujarati: 'આકાર પસંદ કરો, પછી સાઇઝ, કિંમત અને 4C થી ચોક્કસ કરો.',
+  ),
+  DiamondFlowL10n.singleStones: LocalizedMessage(
+    english: 'Single stones',
+    hindi: 'एकल हीरे',
+    gujarati: 'એકલ હીરા',
+  ),
+  DiamondFlowL10n.sectionShape: LocalizedMessage(
+    english: 'Shape',
+    hindi: 'आकार',
+    gujarati: 'આકાર',
+  ),
+  DiamondFlowL10n.sectionSizePrice: LocalizedMessage(
+    english: 'Size & price',
+    hindi: 'साइज़ और कीमत',
+    gujarati: 'સાઇઝ અને કિંમત',
+  ),
+  DiamondFlowL10n.sectionColorClarity: LocalizedMessage(
+    english: 'Colour & clarity',
+    hindi: 'रंग और स्पष्टता',
+    gujarati: 'રંગ અને સ્પષ્ટતા',
+  ),
+  DiamondFlowL10n.sectionGrading: LocalizedMessage(
+    english: 'Cut & grading',
+    hindi: 'कट और ग्रेडिंग',
+    gujarati: 'કટ અને ગ્રેડિંગ',
+  ),
+  DiamondFlowL10n.sectionInclusions: LocalizedMessage(
+    english: 'Inclusions & fluorescence',
+    hindi: 'इन्क्लूज़न और फ्लोरेसेंस',
+    gujarati: 'ઇન્ક્લુઝન અને ફ્લોરેસન્સ',
+  ),
+  DiamondFlowL10n.sectionListing: LocalizedMessage(
+    english: 'Listing preferences',
+    hindi: 'लिस्टिंग प्राथमिकताएँ',
+    gujarati: 'લિસ્ટિંગ પસંદગીઓ',
+  ),
+  DiamondFlowL10n.sectionSeller: LocalizedMessage(
+    english: 'Seller & origin',
+    hindi: 'विक्रेता और उत्पत्ति',
+    gujarati: 'વિક્રેતા અને મૂળ',
+  ),
+  DiamondFlowL10n.sectionMeasurements: LocalizedMessage(
+    english: 'Measurements',
+    hindi: 'माप',
+    gujarati: 'માપ',
+  ),
+  DiamondFlowL10n.sectionProportions: LocalizedMessage(
+    english: 'Proportions',
+    hindi: 'अनुपात',
+    gujarati: 'પ્રમાણ',
+  ),
+  DiamondFlowL10n.any: LocalizedMessage(
+    english: 'Any',
+    hindi: 'कोई भी',
+    gujarati: 'કોઈપણ',
+  ),
+  DiamondFlowL10n.selectedCount: LocalizedMessage(
+    english: '{count} selected',
+    hindi: '{count} चयनित',
+    gujarati: '{count} પસંદ',
+  ),
+  DiamondFlowL10n.reset: LocalizedMessage(
+    english: 'Reset',
+    hindi: 'रीसेट',
+    gujarati: 'રીસેટ',
+  ),
+  DiamondFlowL10n.filtersCleared: LocalizedMessage(
+    english: 'All filters cleared',
+    hindi: 'सभी फ़िल्टर हटाए गए',
+    gujarati: 'બધા ફિલ્ટર દૂર થયા',
+  ),
+  DiamondFlowL10n.undo: LocalizedMessage(
+    english: 'Undo',
+    hindi: 'पूर्ववत करें',
+    gujarati: 'પૂર્વવત્ કરો',
+  ),
+  DiamondFlowL10n.allShapes: LocalizedMessage(
+    english: 'All shapes',
+    hindi: 'सभी आकार',
+    gujarati: 'બધા આકાર',
+  ),
+  DiamondFlowL10n.fewerShapes: LocalizedMessage(
+    english: 'Fewer shapes',
+    hindi: 'कम आकार',
+    gujarati: 'ઓછા આકાર',
+  ),
+  DiamondFlowL10n.resultsCount: LocalizedMessage(
+    english: '{count} diamonds',
+    hindi: '{count} हीरे',
+    gujarati: '{count} હીરા',
+  ),
+  DiamondFlowL10n.searching: LocalizedMessage(
+    english: 'Searching…',
+    hindi: 'खोज रहे हैं…',
+    gujarati: 'શોધી રહ્યા છીએ…',
+  ),
+  DiamondFlowL10n.sort: LocalizedMessage(
+    english: 'Sort',
+    hindi: 'क्रम',
+    gujarati: 'ક્રમ',
+  ),
+  DiamondFlowL10n.filters: LocalizedMessage(
+    english: 'Filters',
+    hindi: 'फ़िल्टर',
+    gujarati: 'ફિલ્ટર',
+  ),
+  DiamondFlowL10n.grid: LocalizedMessage(
+    english: 'Grid view',
+    hindi: 'ग्रिड दृश्य',
+    gujarati: 'ગ્રિડ દૃશ્ય',
+  ),
+  DiamondFlowL10n.list: LocalizedMessage(
+    english: 'List view',
+    hindi: 'सूची दृश्य',
+    gujarati: 'યાદી દૃશ્ય',
+  ),
+  DiamondFlowL10n.backToTop: LocalizedMessage(
+    english: 'Back to top',
+    hindi: 'ऊपर जाएँ',
+    gujarati: 'ઉપર જાઓ',
+  ),
+  DiamondFlowL10n.loadingMore: LocalizedMessage(
+    english: 'Loading more',
+    hindi: 'और लोड हो रहा है',
+    gujarati: 'વધુ લોડ થઈ રહ્યું છે',
+  ),
+  DiamondFlowL10n.emptyTitle: LocalizedMessage(
+    english: 'No diamonds match.',
+    hindi: 'कोई हीरा मेल नहीं खाता।',
+    gujarati: 'કોઈ હીરો મેળ ખાતો નથી.',
+  ),
+  DiamondFlowL10n.emptyBody: LocalizedMessage(
+    english: 'Try widening your price or carat range, or remove a few filters.',
+    hindi: 'कीमत या कैरेट सीमा बढ़ाएँ, या कुछ फ़िल्टर हटाएँ।',
+    gujarati: 'કિંમત કે કેરેટ શ્રેણી વધારો અથવા થોડા ફિલ્ટર દૂર કરો.',
+  ),
+  DiamondFlowL10n.editFilters: LocalizedMessage(
+    english: 'Edit filters',
+    hindi: 'फ़िल्टर बदलें',
+    gujarati: 'ફિલ્ટર બદલો',
+  ),
+  DiamondFlowL10n.errorTitle: LocalizedMessage(
+    english: 'We couldn’t load diamonds.',
+    hindi: 'हीरे लोड नहीं हो सके।',
+    gujarati: 'હીરા લોડ થઈ શક્યા નહીં.',
+  ),
+  DiamondFlowL10n.belowList: LocalizedMessage(
+    english: '{percent}% below list',
+    hindi: 'सूची से {percent}% कम',
+    gujarati: 'યાદી કરતાં {percent}% ઓછું',
+  ),
+  DiamondFlowL10n.insights: LocalizedMessage(
+    english: 'Results at a glance',
+    hindi: 'परिणाम एक नज़र में',
+    gujarati: 'પરિણામો એક નજરે',
+  ),
+  DiamondFlowL10n.atAGlance: LocalizedMessage(
+    english: 'At a glance',
+    hindi: 'एक नज़र में',
+    gujarati: 'એક નજરે',
+  ),
+  DiamondFlowL10n.certifiedBy: LocalizedMessage(
+    english: 'Certified by {lab}',
+    hindi: '{lab} द्वारा प्रमाणित',
+    gujarati: '{lab} દ્વારા પ્રમાણિત',
+  ),
+  DiamondFlowL10n.reportNumber: LocalizedMessage(
+    english: 'Report no.',
+    hindi: 'रिपोर्ट नं.',
+    gujarati: 'રિપોર્ટ નં.',
+  ),
+  DiamondFlowL10n.viewCertificate: LocalizedMessage(
+    english: 'View certificate',
+    hindi: 'प्रमाणपत्र देखें',
+    gujarati: 'પ્રમાણપત્ર જુઓ',
+  ),
+  DiamondFlowL10n.view360: LocalizedMessage(
+    english: '360° view',
+    hindi: '360° दृश्य',
+    gujarati: '360° દૃશ્ય',
+  ),
+  DiamondFlowL10n.specifications: LocalizedMessage(
+    english: 'Specifications',
+    hindi: 'विशिष्टताएँ',
+    gujarati: 'વિશિષ્ટતાઓ',
+  ),
+  DiamondFlowL10n.soldBy: LocalizedMessage(
+    english: 'Sold by',
+    hindi: 'विक्रेता',
+    gujarati: 'વિક્રેતા',
+  ),
+  DiamondFlowL10n.addToCart: LocalizedMessage(
+    english: 'Add to cart',
+    hindi: 'कार्ट में जोड़ें',
+    gujarati: 'કાર્ટમાં ઉમેરો',
+  ),
+  DiamondFlowL10n.viewInCart: LocalizedMessage(
+    english: 'View in cart',
+    hindi: 'कार्ट में देखें',
+    gujarati: 'કાર્ટમાં જુઓ',
+  ),
+  DiamondFlowL10n.addedToCart: LocalizedMessage(
+    english: 'Added to cart',
+    hindi: 'कार्ट में जोड़ा गया',
+    gujarati: 'કાર્ટમાં ઉમેરાયું',
+  ),
+  DiamondFlowL10n.yourListing: LocalizedMessage(
+    english: 'Your listing',
+    hindi: 'आपकी लिस्टिंग',
+    gujarati: 'તમારી લિસ્ટિંગ',
+  ),
+  DiamondFlowL10n.unavailable: LocalizedMessage(
+    english: 'Unavailable',
+    hindi: 'उपलब्ध नहीं',
+    gujarati: 'ઉપલબ્ધ નથી',
+  ),
+  DiamondFlowL10n.onHoldMemo: LocalizedMessage(
+    english: 'On hold / memo',
+    hindi: 'होल्ड / मेमो पर',
+    gujarati: 'હોલ્ડ / મેમો પર',
+  ),
+  DiamondFlowL10n.signInToBuy: LocalizedMessage(
+    english: 'Please sign in to add items to your cart',
+    hindi: 'कार्ट में जोड़ने के लिए साइन इन करें',
+    gujarati: 'કાર્ટમાં ઉમેરવા માટે સાઇન ઇન કરો',
+  ),
+  DiamondFlowL10n.signInToOffer: LocalizedMessage(
+    english: 'Please sign in to make an offer',
+    hindi: 'प्रस्ताव देने के लिए साइन इन करें',
+    gujarati: 'ઓફર આપવા માટે સાઇન ઇન કરો',
+  ),
+  DiamondFlowL10n.ownListingOffer: LocalizedMessage(
+    english: 'You cannot make an offer on your own listing',
+    hindi: 'आप अपनी लिस्टिंग पर प्रस्ताव नहीं दे सकते',
+    gujarati: 'તમે તમારી પોતાની લિસ્ટિંગ પર ઓફર આપી શકતા નથી',
+  ),
+  DiamondFlowL10n.enterMeleeQty: LocalizedMessage(
+    english: 'Enter how many pieces or carats to add',
+    hindi: 'कितने पीस या कैरेट जोड़ने हैं, दर्ज करें',
+    gujarati: 'કેટલા પીસ કે કેરેટ ઉમેરવા છે તે દાખલ કરો',
+  ),
+  DiamondFlowL10n.onlyCaratAvailable: LocalizedMessage(
+    english: 'Only {carat} ct available',
+    hindi: 'केवल {carat} ct उपलब्ध',
+    gujarati: 'ફક્ત {carat} ct ઉપલબ્ધ',
+  ),
+  DiamondFlowL10n.onlyPiecesAvailable: LocalizedMessage(
+    english: 'Only {pieces} pcs available',
+    hindi: 'केवल {pieces} पीस उपलब्ध',
+    gujarati: 'ફક્ત {pieces} પીસ ઉપલબ્ધ',
+  ),
+  DiamondFlowL10n.offerSubtitle: LocalizedMessage(
+    english: 'Listed at {price}. The seller reviews every offer.',
+    hindi: 'सूचीबद्ध कीमत {price}। विक्रेता हर प्रस्ताव की समीक्षा करता है।',
+    gujarati: 'યાદી કિંમત {price}. વિક્રેતા દરેક ઓફર તપાસે છે.',
+  ),
+  DiamondFlowL10n.offerMinimum: LocalizedMessage(
+    english: 'Minimum offer {amount}',
+    hindi: 'न्यूनतम प्रस्ताव {amount}',
+    gujarati: 'ન્યૂનતમ ઓફર {amount}',
+  ),
+  DiamondFlowL10n.offerTooLow: LocalizedMessage(
+    english: 'Offer must be at least {amount}',
+    hindi: 'प्रस्ताव कम से कम {amount} होना चाहिए',
+    gujarati: 'ઓફર ઓછામાં ઓછી {amount} હોવી જોઈએ',
+  ),
+  DiamondFlowL10n.offerInvalid: LocalizedMessage(
+    english: 'Enter a valid amount',
+    hindi: 'मान्य राशि दर्ज करें',
+    gujarati: 'માન્ય રકમ દાખલ કરો',
+  ),
+  DiamondFlowL10n.offerSent: LocalizedMessage(
+    english: 'Offer submitted',
+    hindi: 'प्रस्ताव भेजा गया',
+    gujarati: 'ઓફર મોકલાઈ',
+  ),
+  DiamondFlowL10n.stockIdCopied: LocalizedMessage(
+    english: 'Stock ID copied',
+    hindi: 'स्टॉक आईडी कॉपी हुई',
+    gujarati: 'સ્ટોક આઈડી કૉપિ થઈ',
+  ),
+  DiamondFlowL10n.youSave: LocalizedMessage(
+    english: 'You save {amount}',
+    hindi: 'आपकी बचत {amount}',
+    gujarati: 'તમારી બચત {amount}',
+  ),
+};

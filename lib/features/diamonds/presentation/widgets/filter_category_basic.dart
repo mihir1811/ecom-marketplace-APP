@@ -13,52 +13,83 @@ import 'package:gemstone/core/widgets/filters/filter_chip.dart';
 import 'package:gemstone/core/widgets/filters/filter_text_segmented_control.dart';
 import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
 import 'package:gemstone/core/widgets/filters/filter_group_card.dart';
-import 'filter_color_selector.dart';
 import 'package:gemstone/core/widgets/filters/filter_scrollable_chips.dart';
-import 'filter_shape_grid_cell.dart';
 import 'package:gemstone/core/widgets/filters/filter_boolean_checkbox.dart';
 import 'package:gemstone/core/widgets/filters/melee_range_filters.dart';
 import 'package:gemstone/core/widgets/filters/catalog_standard_range_filters.dart';
-import 'diamond_svg_data.dart';
+import '../../../../core/theme/luxe_scope.dart';
+import '../../../../core/widgets/luxe/luxe_layout.dart';
 
-class FilterCategoryBasic extends ConsumerStatefulWidget {
-  const FilterCategoryBasic({
+/// Whether the current catalog shows melee (sieve / per-piece) filters.
+bool diamondUsesMeleeFilters(DiamondFilterState state, {required bool isLab}) =>
+    isLab
+    ? state.labCategory == 'Lab Melee'
+    : state.labNatural.usesMeleeFilters;
+
+/// Catalog mode controls: Natural / Melee for the natural finder; diamond
+/// category and growth method for the lab-grown finder.
+class DiamondCatalogModeControls extends ConsumerWidget {
+  const DiamondCatalogModeControls({
     super.key,
-    this.sectionTitle = 'Natural Diamond',
     this.showOriginToggle = true,
     this.isLabCatalog = false,
   });
 
-  /// Header above the origin control / catalog label.
-  final String sectionTitle;
-
-  /// When false (lab-grown screen), hides Natural / Melee segmented control.
   final bool showOriginToggle;
-
-  /// Lab-grown catalog mode: shows Diamond Category (multi-select) and
-  /// Growth Method sections; melee/sieve filters follow the Lab Melee
-  /// category instead of the natural origin toggle.
   final bool isLabCatalog;
 
   @override
-  ConsumerState<FilterCategoryBasic> createState() =>
-      _FilterCategoryBasicState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (showOriginToggle)
+          FilterSegmentedControl(
+            options: LabNaturalType.values,
+            selected: state.labNatural,
+            onSelected: notifier.updateOrigin,
+          ),
+        if (isLabCatalog) ...[
+          FilterSectionHeader(title: context.tr(CatalogL10n.diamondCategory)),
+          const SizedBox(height: AppSpacing.s8),
+          FilterTextSegmentedControl(
+            options: DiamondFilterState.labCategories,
+            selected: state.labCategory,
+            onSelected: notifier.updateLabCategory,
+          ),
+          const SizedBox(height: AppSpacing.s16),
+          FilterSectionHeader(title: context.tr(CatalogL10n.growthMethod)),
+          const SizedBox(height: AppSpacing.s8),
+          Row(
+            children: [
+              for (final method in DiamondFilterState.growthMethods)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: FilterChipWidget(
+                      label: method,
+                      isSelected: state.selectedGrowthMethods.contains(method),
+                      centerLabel: true,
+                      onTap: () => notifier.toggleGrowthMethod(method),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
 }
 
-class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
-  bool _isAdvancedFiltersExpanded = false;
-  int _shapeDisplayRows = 2;
+/// Media, offer, availability and (melee) separable listing options.
+class DiamondListingOptionsFilters extends ConsumerWidget {
+  const DiamondListingOptionsFilters({required this.isLabCatalog, super.key});
 
-  static const int _shapeGridColumns = 4;
-
-  Color _parseHex(String hex) {
-    try {
-      final cleaned = hex.replaceAll('#', '');
-      return Color(int.parse('FF$cleaned', radix: 16));
-    } catch (_) {
-      return Colors.grey;
-    }
-  }
+  final bool isLabCatalog;
 
   String _availabilityLabel(BuildContext context, String option) {
     return switch (option) {
@@ -72,637 +103,334 @@ class _FilterCategoryBasicState extends ConsumerState<FilterCategoryBasic> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final borderColor = AppColors.border(context);
+    final melee = diamondUsesMeleeFilters(state, isLab: isLabCatalog);
 
-    final totalShapes = kAllShapes.length;
-    final totalRows = (totalShapes / _shapeGridColumns).ceil();
-    final shapesToShow = _shapeDisplayRows * _shapeGridColumns;
-    final isAtMax = _shapeDisplayRows >= totalRows;
-
-    // Lab catalog: the Lab Diamond / Lab Melee switch drives the layout;
-    // natural catalog: the origin toggle does. Either way it's an
-    // either/or between standard ranges and melee filters, and the sieve
-    // table only appears for melee when the Round shape is selected.
-    final useMeleeFilters = widget.isLabCatalog
-        ? state.labCategory == 'Lab Melee'
-        : state.labNatural.usesMeleeFilters;
-    final showStandardRanges = !useMeleeFilters;
-    final showSieve = useMeleeFilters && state.shapes.contains('Round');
-    final meleeFamily = widget.isLabCatalog
-        ? MeleeBgFamily.labGrown
-        : MeleeBgFamily.natural;
-    final accent = AppColors.finderAccent(
-      context,
-      family: meleeFamily,
-      melee: useMeleeFilters,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (melee)
+          FilterBooleanCheckbox(
+            label: context.tr(CatalogL10n.separable),
+            value: state.separable,
+            onChanged: (_) => notifier.toggleSeparable(),
+          ),
+        FilterBooleanCheckbox(
+          label: context.tr(CatalogL10n.filterByMedia),
+          value: state.searchByMedia,
+          onChanged: (_) => notifier.toggleSearchByMedia(),
+        ),
+        FilterBooleanCheckbox(
+          label: context.tr(CatalogL10n.makeOffer),
+          value: state.makeAnOffer,
+          onChanged: (_) => notifier.toggleMakeAnOffer(),
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        FilterSectionHeader(title: context.tr(CatalogL10n.availability)),
+        const SizedBox(height: AppSpacing.s8),
+        DiamondDropdownField<String>(
+          value: state.selectedAvailability,
+          items: [
+            for (final opt in DiamondFilterState.availabilityOptions)
+              DropdownMenuItem(
+                value: opt,
+                child: Text(_availabilityLabel(context, opt)),
+              ),
+          ],
+          onChanged: notifier.updateAvailability,
+        ),
+      ],
     );
+  }
+}
 
-    return RepaintBoundary(
-      child: Column(
+/// Size & price: sieve table and per-piece ranges for melee, or the
+/// carat / total price / price-per-carat ranges for single stones.
+class DiamondSizePriceFilters extends ConsumerWidget {
+  const DiamondSizePriceFilters({required this.isLabCatalog, super.key});
+
+  final bool isLabCatalog;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+    final melee = diamondUsesMeleeFilters(state, isLab: isLabCatalog);
+    final showSieve = melee && state.shapes.contains('Round');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (showSieve) const FilterSieveSize(),
+        if (melee)
+          MeleeRangeFilters(
+            caratPerPcsMin: state.minCaratPerPcs,
+            caratPerPcsMax: state.maxCaratPerPcs,
+            onCaratPerPcsChanged: notifier.updateCaratPerPcsRange,
+            pricePerPcsMin: state.minPricePerPcs,
+            pricePerPcsMax: state.maxPricePerPcs,
+            onPricePerPcsChanged: notifier.updatePricePerPcsRange,
+            totalPcsMin: state.minTotalPcs,
+            totalPcsMax: state.maxTotalPcs,
+            onTotalPcsChanged: notifier.updateTotalPcsRange,
+            totalPriceMin: state.minPrice,
+            totalPriceMax: state.maxPrice,
+            onTotalPriceChanged: notifier.updatePriceRange,
+            pricePerCaratMin: state.minPricePerCarat,
+            pricePerCaratMax: state.maxPricePerCarat,
+            onPricePerCaratChanged: notifier.updatePricePerCaratRange,
+            totalCaratMin: state.minCarat,
+            totalCaratMax: state.maxCarat,
+            onTotalCaratChanged: notifier.updateCaratRange,
+          )
+        else
+          CatalogStandardRangeFilters(
+            totalPriceMin: state.minPrice,
+            totalPriceMax: state.maxPrice,
+            totalPriceLimits: (0.0, 1000000.0),
+            onTotalPriceChanged: notifier.updatePriceRange,
+            totalCaratMin: state.minCarat,
+            totalCaratMax: state.maxCarat,
+            totalCaratLimits: (0.0, 100.00),
+            onTotalCaratChanged: notifier.updateCaratRange,
+            caratQuickRanges: DiamondFilterState.caratQuickRanges,
+            selectedCaratQuickRanges: state.selectedCaratQuickRanges,
+            onToggleCaratQuickRange: notifier.toggleCaratQuickRange,
+            pricePerCaratMin: state.minPricePerCarat,
+            pricePerCaratMax: state.maxPricePerCarat,
+            pricePerCaratLimits: (0.0, 200000.0),
+            onPricePerCaratChanged: notifier.updatePricePerCaratRange,
+          ),
+      ],
+    );
+  }
+}
+
+/// Finish presets, cut, polish, symmetry and certifying lab.
+class DiamondGradingFilters extends ConsumerWidget {
+  const DiamondGradingFilters({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const FinishPresetsSection(wrapWithCard: false),
+        const SizedBox(height: AppSpacing.s20),
+        FilterScrollableChips(
+          title: context.tr(CatalogL10n.cutGrade),
+          options: DiamondFilterState.cuts,
+          selectedItems: state.selectedCuts,
+          onToggle: notifier.toggleCut,
+          infoText: "Filter by the quality of the diamond's cut.",
+          wrapWithCard: false,
+        ),
+        const SizedBox(height: AppSpacing.s20),
+        FilterScrollableChips(
+          title: context.tr(CatalogL10n.polish),
+          options: DiamondFilterState.polishingGrades,
+          selectedItems: state.selectedPolish,
+          onToggle: notifier.togglePolish,
+          infoText: "Filter by the smoothness of the diamond's facets.",
+          wrapWithCard: false,
+        ),
+        const SizedBox(height: AppSpacing.s20),
+        FilterScrollableChips(
+          title: context.tr(CatalogL10n.symmetry),
+          options: DiamondFilterState.symmetryGrades,
+          selectedItems: state.selectedSymmetry,
+          onToggle: notifier.toggleSymmetry,
+          infoText: "Filter by the exactness of the diamond's shape.",
+          wrapWithCard: false,
+        ),
+        const SizedBox(height: AppSpacing.s20),
+        FilterScrollableChips(
+          title: context.tr(CatalogL10n.certification),
+          options: DiamondFilterState.labs,
+          selectedItems: state.selectedLabs,
+          onToggle: notifier.toggleLab,
+          infoText:
+              'Filter by the gemological laboratory that certified the diamond.',
+          wrapWithCard: false,
+        ),
+      ],
+    );
+  }
+}
+
+/// Eye-clean / BGM / H&A, milky, fluorescence and enhancement.
+class DiamondInclusionFilters extends ConsumerWidget {
+  const DiamondInclusionFilters({super.key});
+
+  static Color _parseHex(String hex) {
+    try {
+      return Color(int.parse('FF${hex.replaceAll('#', '')}', radix: 16));
+    } catch (_) {
+      return Colors.grey;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(diamondSearchProvider);
+    final notifier = ref.read(diamondSearchProvider.notifier);
+
+    Widget chips(
+      String title,
+      List<String> options,
+      List<String> selected,
+      void Function(String) onToggle,
+    ) {
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FilterSectionHeader(title: widget.sectionTitle),
-          if (widget.showOriginToggle) ...[
-            const SizedBox(height: AppSpacing.s8),
-            FilterSegmentedControl(
-              options: LabNaturalType.values,
-              selected: state.labNatural,
-              onSelected: (value) => notifier.updateOrigin(value),
-            ),
-          ],
-          const SizedBox(height: AppSpacing.s20),
-
-          if (widget.isLabCatalog) ...[
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FilterSectionHeader(
-                  title: context.tr(CatalogL10n.diamondCategory),
-                ),
-                const SizedBox(height: AppSpacing.s8),
-                FilterTextSegmentedControl(
-                  options: DiamondFilterState.labCategories,
-                  selected: state.labCategory,
-                  onSelected: (value) => notifier.updateLabCategory(value),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: AppSpacing.s16),
-
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FilterSectionHeader(
-                  title: context.tr(CatalogL10n.growthMethod),
-                ),
-                const SizedBox(height: AppSpacing.s8),
-                Row(
-                  children: DiamondFilterState.growthMethods.map((method) {
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: FilterChipWidget(
-                          label: method,
-                          isSelected: state.selectedGrowthMethods.contains(
-                            method,
-                          ),
-                          centerLabel: true,
-                          onTap: () => notifier.toggleGrowthMethod(method),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: AppSpacing.s20),
-          ],
-
-          FilterGroupCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FilterSectionHeader(title: context.tr(CatalogL10n.selectShape)),
-                const SizedBox(height: AppSpacing.s8),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  alignment: Alignment.topCenter,
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: shapesToShow,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: _shapeGridColumns,
-                          mainAxisSpacing: 10,
-                          crossAxisSpacing: 10,
-                          childAspectRatio: 1.35,
-                        ),
-                    itemBuilder: (context, index) {
-                      if (index >= totalShapes) {
-                        return const SizedBox.shrink();
-                      }
-                      final name = kAllShapes[index]['name']!;
-                      final isSelected = state.shapes.contains(name);
-                      return FilterShapeGridCell(
-                        name: name,
-                        isSelected: isSelected,
-                        onTap: () => notifier.toggleShape(name),
-                      );
-                    },
-                  ),
-                ),
-                Center(
-                  child: TextButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        if (isAtMax) {
-                          _shapeDisplayRows = 2;
-                        } else {
-                          _shapeDisplayRows = (_shapeDisplayRows + 2).clamp(
-                            0,
-                            totalRows,
-                          );
-                        }
-                      });
-                    },
-                    icon: Icon(
-                      isAtMax
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      color: accent,
-                      size: 18,
-                    ),
-                    label: Text(
-                      isAtMax ? 'Show Less Shapes' : 'Show More Shapes',
-                      style: AppTypography.caption.copyWith(
-                        color: accent,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          FilterGroupCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (useMeleeFilters) ...[
-                  FilterBooleanCheckbox(
-                    label: context.tr(CatalogL10n.separable),
-                    value: state.separable,
-                    onChanged: (_) => notifier.toggleSeparable(),
-                  ),
-                  const SizedBox(height: AppSpacing.s16),
-                ],
-                FilterBooleanCheckbox(
-                  label: context.tr(CatalogL10n.filterByMedia),
-                  value: state.searchByMedia,
-                  onChanged: (_) => notifier.toggleSearchByMedia(),
-                ),
-                const SizedBox(height: AppSpacing.s8),
-                FilterBooleanCheckbox(
-                  label: context.tr(CatalogL10n.makeOffer),
-                  value: state.makeAnOffer,
-                  onChanged: (_) => notifier.toggleMakeAnOffer(),
-                ),
-                const SizedBox(height: AppSpacing.s16),
-                FilterSectionHeader(
-                  title: context.tr(CatalogL10n.availability),
-                ),
-                const SizedBox(height: AppSpacing.s8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: borderColor),
-                    borderRadius: BorderRadius.circular(AppSpacing.r8),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      value: state.selectedAvailability,
-                      items: DiamondFilterState.availabilityOptions
-                          .map(
-                            (opt) => DropdownMenuItem<String>(
-                              value: opt,
-                              child: Text(_availabilityLabel(context, opt)),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: notifier.updateAvailability,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          if (showSieve) ...[const FilterSieveSize()],
-
-          if (useMeleeFilters) ...[
-            MeleeRangeFilters(
-              caratPerPcsMin: state.minCaratPerPcs,
-              caratPerPcsMax: state.maxCaratPerPcs,
-              onCaratPerPcsChanged: notifier.updateCaratPerPcsRange,
-              pricePerPcsMin: state.minPricePerPcs,
-              pricePerPcsMax: state.maxPricePerPcs,
-              onPricePerPcsChanged: notifier.updatePricePerPcsRange,
-              totalPcsMin: state.minTotalPcs,
-              totalPcsMax: state.maxTotalPcs,
-              onTotalPcsChanged: notifier.updateTotalPcsRange,
-              totalPriceMin: state.minPrice,
-              totalPriceMax: state.maxPrice,
-              onTotalPriceChanged: notifier.updatePriceRange,
-              pricePerCaratMin: state.minPricePerCarat,
-              pricePerCaratMax: state.maxPricePerCarat,
-              onPricePerCaratChanged: notifier.updatePricePerCaratRange,
-              totalCaratMin: state.minCarat,
-              totalCaratMax: state.maxCarat,
-              onTotalCaratChanged: notifier.updateCaratRange,
-            ),
-          ],
-          if (showStandardRanges) ...[
-            CatalogStandardRangeFilters(
-              totalPriceMin: state.minPrice,
-              totalPriceMax: state.maxPrice,
-              totalPriceLimits: (0.0, 1000000.0),
-              onTotalPriceChanged: notifier.updatePriceRange,
-              totalCaratMin: state.minCarat,
-              totalCaratMax: state.maxCarat,
-              totalCaratLimits: (0.0, 100.00),
-              onTotalCaratChanged: notifier.updateCaratRange,
-              caratQuickRanges: DiamondFilterState.caratQuickRanges,
-              selectedCaratQuickRanges: state.selectedCaratQuickRanges,
-              onToggleCaratQuickRange: notifier.toggleCaratQuickRange,
-              pricePerCaratMin: state.minPricePerCarat,
-              pricePerCaratMax: state.maxPricePerCarat,
-              pricePerCaratLimits: (0.0, 200000.0),
-              onPricePerCaratChanged: notifier.updatePricePerCaratRange,
-            ),
-          ],
-
-          // === COLOR, CLARITY, FINISH (always visible) ===
-          const ColorTabsSelector(),
-
-          const ClarityCardsSection(),
-
-          AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: _isAdvancedFiltersExpanded
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FilterGroupCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const FinishPresetsSection(wrapWithCard: false),
-                            const SizedBox(height: AppSpacing.s20),
-                            FilterScrollableChips(
-                              title: context.tr(CatalogL10n.cutGrade),
-                              options: DiamondFilterState.cuts,
-                              selectedItems: state.selectedCuts,
-                              onToggle: (val) => notifier.toggleCut(val),
-                              infoText:
-                                  "Filter by the quality of the diamond's cut.",
-                              wrapWithCard: false,
-                            ),
-                            const SizedBox(height: AppSpacing.s20),
-                            FilterScrollableChips(
-                              title: context.tr(CatalogL10n.polish),
-                              options: DiamondFilterState.polishingGrades,
-                              selectedItems: state.selectedPolish,
-                              onToggle: (val) => notifier.togglePolish(val),
-                              infoText:
-                                  "Filter by the smoothness of the diamond's facets.",
-                              wrapWithCard: false,
-                            ),
-                            const SizedBox(height: AppSpacing.s20),
-                            FilterScrollableChips(
-                              title: context.tr(CatalogL10n.symmetry),
-                              options: DiamondFilterState.symmetryGrades,
-                              selectedItems: state.selectedSymmetry,
-                              onToggle: (val) => notifier.toggleSymmetry(val),
-                              infoText:
-                                  "Filter by the exactness of the diamond's shape.",
-                              wrapWithCard: false,
-                            ),
-                            const SizedBox(height: AppSpacing.s20),
-                            FilterScrollableChips(
-                              title: context.tr(CatalogL10n.certification),
-                              options: DiamondFilterState.labs,
-                              selectedItems: state.selectedLabs,
-                              onToggle: (val) => notifier.toggleLab(val),
-                              infoText:
-                                  "Filter by the gemological laboratory that certified the diamond.",
-                              wrapWithCard: false,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // === INCLUSIONS ===
-                      FilterGroupCard(
-                        child: Column(
-                          children: [
-                            FilterBooleanCheckbox(
-                              label: context.tr(CatalogL10n.noBgmLong),
-                              value: state.noBgm,
-                              onChanged: (_) => notifier.toggleNoBgm(),
-                            ),
-                            FilterBooleanCheckbox(
-                              label: context.tr(CatalogL10n.eyeCleanLong),
-                              value: state.eyeClean,
-                              onChanged: (_) => notifier.toggleEyeClean(),
-                            ),
-                            FilterBooleanCheckbox(
-                              label: context.tr(CatalogL10n.heartsAndArrows),
-                              value: state.heartAndArrow,
-                              onChanged: (_) => notifier.toggleHeartAndArrow(),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // === TREATMENT ===
-                      FilterGroupCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FilterSectionHeader(
-                              title: context.tr(CatalogL10n.milky),
-                            ),
-                            const SizedBox(height: AppSpacing.s8),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: DiamondFilterState.milkyGrades.map((
-                                  grade,
-                                ) {
-                                  final isSelected = state.selectedMilkyGrades
-                                      .contains(grade);
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: GestureDetector(
-                                      onTap: () =>
-                                          notifier.toggleMilkyGrade(grade),
-                                      child: AnimatedContainer(
-                                        duration: const Duration(
-                                          milliseconds: 150,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? AppColors.selectedFill(context)
-                                              : AppColors.card(context),
-                                          borderRadius: BorderRadius.circular(
-                                            AppSpacing.r8,
-                                          ),
-                                          border: Border.all(
-                                            color: isSelected
-                                                ? AppColors.selectedFill(
-                                                    context,
-                                                  )
-                                                : borderColor,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          context.trCatalogValue(grade),
-                                          style: AppTypography.caption.copyWith(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.w500,
-                                            color: isSelected
-                                                ? AppColors.onSelected(context)
-                                                : (AppColors.textPrimary(
-                                                    context,
-                                                  )),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                            FilterSectionHeader(
-                              title: context.tr(
-                                CatalogL10n.fluorescenceIntensity,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.s8),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: DiamondFilterState.fluorescenceGrades
-                                    .map((grade) {
-                                      final isSelected = state
-                                          .selectedFluorescence
-                                          .contains(grade);
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 8.0,
-                                        ),
-                                        child: GestureDetector(
-                                          onTap: () => notifier
-                                              .toggleFluorescence(grade),
-                                          child: AnimatedContainer(
-                                            duration: const Duration(
-                                              milliseconds: 150,
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 14,
-                                              vertical: 8,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: isSelected
-                                                  ? AppColors.selectedFill(
-                                                      context,
-                                                    )
-                                                  : AppColors.card(context),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    AppSpacing.r8,
-                                                  ),
-                                              border: Border.all(
-                                                color: isSelected
-                                                    ? AppColors.selectedFill(
-                                                        context,
-                                                      )
-                                                    : borderColor,
-                                              ),
-                                            ),
-                                            child: Text(
-                                              context.trCatalogValue(grade),
-                                              style: AppTypography.caption
-                                                  .copyWith(
-                                                    fontWeight: isSelected
-                                                        ? FontWeight.bold
-                                                        : FontWeight.w500,
-                                                    color: isSelected
-                                                        ? AppColors.onSelected(
-                                                            context,
-                                                          )
-                                                        : (AppColors.textPrimary(
-                                                            context,
-                                                          )),
-                                                  ),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    })
-                                    .toList(),
-                              ),
-                            ),
-                            FilterSectionHeader(
-                              title: context.tr(CatalogL10n.fluorescenceColor),
-                            ),
-                            const SizedBox(height: AppSpacing.s8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: borderColor),
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.r8,
-                                ),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  isExpanded: true,
-                                  hint: Text(
-                                    context.tr(
-                                      CatalogL10n.selectFluorescenceColor,
-                                    ),
-                                  ),
-                                  value: state.selectedFluorescenceColor,
-                                  items: DiamondFilterState.fluorescenceColors
-                                      .map((colorName) {
-                                        final hex = DiamondFilterState
-                                            .fluorescenceColorsHex[colorName]!;
-                                        return DropdownMenuItem<String>(
-                                          value: colorName,
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                width: 16,
-                                                height: 16,
-                                                decoration: BoxDecoration(
-                                                  color: _parseHex(hex),
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: Colors.grey.shade400,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(
-                                                width: AppSpacing.s12,
-                                              ),
-                                              Text(
-                                                context.trCatalogValue(
-                                                  colorName,
-                                                ),
-                                              ),
-                                              const Spacer(),
-                                              Text(
-                                                hex,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: AppColors.textMuted(
-                                                    context,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      })
-                                      .toList(),
-                                  onChanged: (val) =>
-                                      notifier.updateFluorescenceColor(val),
-                                ),
-                              ),
-                            ),
-                            FilterSectionHeader(
-                              title: context.tr(CatalogL10n.enhancement),
-                            ),
-                            const SizedBox(height: AppSpacing.s8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: borderColor),
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.r8,
-                                ),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  isExpanded: true,
-                                  hint: Text(
-                                    context.tr(CatalogL10n.selectEnhancement),
-                                  ),
-                                  value: state.selectedEnhancement,
-                                  items: DiamondFilterState.enhancements.map((
-                                    enh,
-                                  ) {
-                                    return DropdownMenuItem<String>(
-                                      value: enh,
-                                      child: Text(context.trCatalogValue(enh)),
-                                    );
-                                  }).toList(),
-                                  onChanged: (val) =>
-                                      notifier.updateEnhancement(val),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                : const SizedBox(width: double.infinity, height: 0),
-          ),
-
+          FilterSectionHeader(title: title),
           const SizedBox(height: AppSpacing.s8),
-
-          if (showStandardRanges) ...[
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isAdvancedFiltersExpanded = !_isAdvancedFiltersExpanded;
-                });
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.bg(context),
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
-                  border: Border.all(color: AppColors.border(context)),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final grade in options)
+                FilterChipWidget(
+                  label: context.trCatalogValue(grade),
+                  isSelected: selected.contains(grade),
+                  onTap: () => onToggle(grade),
                 ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.s20),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        FilterBooleanCheckbox(
+          label: context.tr(CatalogL10n.noBgmLong),
+          value: state.noBgm,
+          onChanged: (_) => notifier.toggleNoBgm(),
+        ),
+        FilterBooleanCheckbox(
+          label: context.tr(CatalogL10n.eyeCleanLong),
+          value: state.eyeClean,
+          onChanged: (_) => notifier.toggleEyeClean(),
+        ),
+        FilterBooleanCheckbox(
+          label: context.tr(CatalogL10n.heartsAndArrows),
+          value: state.heartAndArrow,
+          onChanged: (_) => notifier.toggleHeartAndArrow(),
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        chips(
+          context.tr(CatalogL10n.milky),
+          DiamondFilterState.milkyGrades,
+          state.selectedMilkyGrades,
+          notifier.toggleMilkyGrade,
+        ),
+        chips(
+          context.tr(CatalogL10n.fluorescenceIntensity),
+          DiamondFilterState.fluorescenceGrades,
+          state.selectedFluorescence,
+          notifier.toggleFluorescence,
+        ),
+        FilterSectionHeader(title: context.tr(CatalogL10n.fluorescenceColor)),
+        const SizedBox(height: AppSpacing.s8),
+        DiamondDropdownField<String>(
+          hint: context.tr(CatalogL10n.selectFluorescenceColor),
+          value: state.selectedFluorescenceColor,
+          items: [
+            for (final colorName in DiamondFilterState.fluorescenceColors)
+              DropdownMenuItem(
+                value: colorName,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      context.tr(CatalogL10n.viewMoreFilters),
-                      style: AppTypography.caption.copyWith(
-                        color: accent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                    Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: _parseHex(
+                          DiamondFilterState.fluorescenceColorsHex[colorName]!,
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border(context)),
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Icon(
-                      _isAdvancedFiltersExpanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      color: accent,
-                      size: 18,
-                    ),
+                    const SizedBox(width: AppSpacing.s12),
+                    Text(context.trCatalogValue(colorName)),
                   ],
                 ),
               ),
-            ),
           ],
-        ],
+          onChanged: notifier.updateFluorescenceColor,
+        ),
+        const SizedBox(height: AppSpacing.s20),
+        FilterSectionHeader(title: context.tr(CatalogL10n.enhancement)),
+        const SizedBox(height: AppSpacing.s8),
+        DiamondDropdownField<String>(
+          hint: context.tr(CatalogL10n.selectEnhancement),
+          value: state.selectedEnhancement,
+          items: [
+            for (final enh in DiamondFilterState.enhancements)
+              DropdownMenuItem(
+                value: enh,
+                child: Text(context.trCatalogValue(enh)),
+              ),
+          ],
+          onChanged: notifier.updateEnhancement,
+        ),
+      ],
+    );
+  }
+}
+
+/// Rounded dropdown that follows the ambient (luxe-aware) palette.
+class DiamondDropdownField<T> extends StatelessWidget {
+  const DiamondDropdownField({
+    required this.value,
+    required this.items,
+    required this.onChanged,
+    super.key,
+    this.hint,
+  });
+
+  final T? value;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T?> onChanged;
+  final String? hint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: AppColors.card(context),
+        border: Border.all(color: AppColors.border(context)),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          isExpanded: true,
+          value: value,
+          hint: hint == null ? null : Text(hint!),
+          borderRadius: BorderRadius.circular(14),
+          dropdownColor: AppColors.card(context),
+          icon: Icon(
+            Icons.expand_more_rounded,
+            color: AppColors.textSecondary(context),
+          ),
+          style: AppTypography.body.copyWith(
+            fontSize: 14,
+            color: AppColors.textPrimary(context),
+          ),
+          items: items,
+          onChanged: onChanged,
+        ),
       ),
     );
   }
@@ -727,10 +455,7 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.tr(CatalogL10n.clarity),
-            style: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
-          ),
+          FilterSectionHeader(title: context.tr(CatalogL10n.clarity)),
           const SizedBox(height: AppSpacing.s8),
           GridView.builder(
             shrinkWrap: true,
@@ -754,7 +479,7 @@ class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
                     color: isSelected
                         ? AppColors.selectedFill(context)
                         : AppColors.card(context),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(100),
                     border: Border.all(
                       color: isSelected
                           ? AppColors.selectedFill(context)
@@ -887,6 +612,16 @@ class FilterSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (LuxeScope.paletteOf(context) != null) {
+      return LuxeSegmented<LabNaturalType>(
+        options: options,
+        selected: selected,
+        onChanged: onSelected,
+        labelOf: (o) => o.usesMeleeFilters
+            ? context.tr(CatalogL10n.melee)
+            : context.tr(DiamondFlowL10n.singleStones),
+      );
+    }
     final borderColor = AppColors.border(context);
 
     return MeleeTintExtentAnchor(

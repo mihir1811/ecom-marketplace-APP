@@ -73,8 +73,8 @@ class DiamondCardGrid extends ConsumerWidget {
     final inCompare = ref.watch(isInComparisonProvider(diamond.id));
     final title =
         '${diamond.carat.toStringAsFixed(2)}ct ${DiamondDisplay.shape(diamond.shape)}';
-    final gradesLine = _gridGradesLine(diamond);
-    final metaLine = _gridMetaLine(diamond);
+    final gradesLine = diamondGradesLine(diamond);
+    final metaLine = diamondMetaLine(diamond);
     final belowList = catalogMarkdownPercent(diamond.discount);
 
     return RecentlyViewedCardShell(
@@ -256,7 +256,7 @@ double diamondGridRowStride(BuildContext context, double viewportWidth) {
 }
 
 /// Color · Clarity · Cut — only values that exist (never N/A).
-String? _gridGradesLine(Diamond diamond) {
+String? diamondGradesLine(Diamond diamond) {
   final parts = <String>[];
   final color = DiamondDisplay.primaryColorLabel(
     color: diamond.color,
@@ -274,7 +274,7 @@ String? _gridGradesLine(Diamond diamond) {
 }
 
 /// $/ct · measurement — raw values only (no Pol/Sym/labels).
-String? _gridMetaLine(Diamond diamond) {
+String? diamondMetaLine(Diamond diamond) {
   final parts = <String>[];
   final ppc = diamond.pricePerCarat;
   if (ppc != null && ppc > 0) {

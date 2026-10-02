@@ -3,6 +3,8 @@ import '../../haptics/app_haptics.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import '../../theme/luxe_scope.dart';
+import '../../theme/luxe_tokens.dart';
 
 class FilterQuickRangeChip extends StatelessWidget {
   const FilterQuickRangeChip({
@@ -21,6 +23,7 @@ class FilterQuickRangeChip extends StatelessWidget {
     final fill = AppColors.selectedFill(context);
     final onFill = AppColors.onSelected(context);
     final containerBorderColor = isSelected ? fill : AppColors.border(context);
+    final luxe = LuxeScope.paletteOf(context) != null;
 
     return GestureDetector(
       onTap: () {
@@ -32,19 +35,24 @@ class FilterQuickRangeChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? fill : AppColors.card(context),
-          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          borderRadius: BorderRadius.circular(luxe ? 100 : AppSpacing.r8),
           border: Border.all(
             color: containerBorderColor,
-            width: isSelected ? 1.5 : 1.0,
+            width: isSelected && !luxe ? 1.5 : 1.0,
           ),
         ),
         child: Text(
           label,
-          style: AppTypography.caption.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-            color: isSelected ? onFill : AppColors.textSecondary(context),
-          ),
+          style: luxe
+              ? LuxeType.label(
+                  isSelected ? onFill : AppColors.textSecondary(context),
+                  size: 12,
+                )
+              : AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                  color: isSelected ? onFill : AppColors.textSecondary(context),
+                ),
         ),
       ),
     );

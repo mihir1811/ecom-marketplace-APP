@@ -74,7 +74,7 @@ class CatalogExpandableAdvancedFilters extends StatefulWidget {
 
 class _CatalogExpandableAdvancedFiltersState
     extends State<CatalogExpandableAdvancedFilters> {
-  bool _isExpanded = false;
+  late bool _isExpanded = widget.expandAdvanced;
 
   @override
   void didUpdateWidget(covariant CatalogExpandableAdvancedFilters oldWidget) {

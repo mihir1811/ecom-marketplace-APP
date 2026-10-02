@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../theme/home_tokens.dart';
 import 'home_section.dart';
-import 'motion/scroll_reveal.dart';
+import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 enum _Glyph { seal, shield, lock }
 

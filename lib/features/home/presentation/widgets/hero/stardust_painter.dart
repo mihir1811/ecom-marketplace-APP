@@ -221,9 +221,12 @@ class StardustPainter extends CustomPainter {
     );
 
     const half = StardustSprites.dotSize / 2;
-    final px = field.px, py = field.py;
+    final px = field.sx, py = field.sy, depth = field.depth;
     for (var i = 0; i < field.count; i++) {
-      final s = field.size[i] * 2.6 / StardustSprites.dotSize;
+      // Perspective: nearer stars are larger and brighter.
+      final f = depth[i];
+      final near = ((f - 0.78) / 0.55).clamp(0.0, 1.0);
+      final s = field.size[i] * 2.6 * f * f / StardustSprites.dotSize;
       _rst[i * 4] = s;
       _rst[i * 4 + 1] = 0;
       _rst[i * 4 + 2] = px[i] - s * half;
@@ -231,7 +234,7 @@ class StardustPainter extends CustomPainter {
       final tw =
           0.6 +
           0.4 * math.sin(t * field.twinkleSpeed[i] + field.twinklePhase[i]);
-      final a = (255 * tw * fade).round().clamp(0, 255);
+      final a = (255 * tw * fade * (0.35 + 0.65 * near)).round().clamp(0, 255);
       _colors[i] = ((a << 24) | field.rgb[i]).toSigned(32);
     }
     canvas.drawRawAtlas(
@@ -252,7 +255,11 @@ class StardustPainter extends CustomPainter {
           0.5 *
               math.sin(t * field.twinkleSpeed[i] * 0.6 + field.twinklePhase[i]);
       final s =
-          field.size[i] * 5.5 * (0.6 + tw * 0.4) / StardustSprites.flareSize;
+          field.size[i] *
+          5.5 *
+          depth[i] *
+          (0.6 + tw * 0.4) /
+          StardustSprites.flareSize;
       _flareRst[j * 4] = s;
       _flareRst[j * 4 + 1] = 0;
       _flareRst[j * 4 + 2] = px[i] - s * fh;

@@ -4,8 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../theme/home_tokens.dart';
 import 'home_section.dart';
-import 'motion/press_tilt.dart';
-import 'motion/scroll_reveal.dart';
+import '../../../../core/widgets/luxe/press_tilt.dart';
+import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 /// Invitation for businesses to list on GemWorld, with a slow gold sheen.
 class HomeSellCard extends StatelessWidget {

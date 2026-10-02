@@ -6,8 +6,8 @@ import '../../../../core/widgets/app_network_image.dart';
 import '../home_content.dart';
 import '../theme/home_tokens.dart';
 import 'home_section.dart';
-import 'motion/press_tilt.dart';
-import 'motion/scroll_reveal.dart';
+import '../../../../core/widgets/luxe/press_tilt.dart';
+import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 /// Bento grid of the six catalogue worlds.
 class HomeCollections extends StatelessWidget {

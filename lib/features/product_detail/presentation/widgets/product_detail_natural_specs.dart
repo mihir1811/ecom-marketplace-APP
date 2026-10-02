@@ -91,7 +91,7 @@ class _ProductDetailNaturalSpecsState extends State<ProductDetailNaturalSpecs> {
           ),
         if (widget.specs.meleeQty != null) ...[
           const SizedBox(height: AppSpacing.s16),
-          _MeleeQtyBar(
+          ProductMeleeQtySelector(
             productId: widget.productId,
             qty: widget.specs.meleeQty!,
             lotPrice: widget.lotPrice,
@@ -103,8 +103,10 @@ class _ProductDetailNaturalSpecsState extends State<ProductDetailNaturalSpecs> {
   }
 }
 
-class _MeleeQtyBar extends ConsumerStatefulWidget {
-  const _MeleeQtyBar({
+/// Pieces / carat quantity selector for separable melee lots.
+class ProductMeleeQtySelector extends ConsumerStatefulWidget {
+  const ProductMeleeQtySelector({
+    super.key,
     required this.productId,
     required this.qty,
     required this.lotPrice,
@@ -117,10 +119,10 @@ class _MeleeQtyBar extends ConsumerStatefulWidget {
   final String currencySymbol;
 
   @override
-  ConsumerState<_MeleeQtyBar> createState() => _MeleeQtyBarState();
+  ConsumerState<ProductMeleeQtySelector> createState() => _MeleeQtyBarState();
 }
 
-class _MeleeQtyBarState extends ConsumerState<_MeleeQtyBar> {
+class _MeleeQtyBarState extends ConsumerState<ProductMeleeQtySelector> {
   late final TextEditingController _controller;
   var _syncing = false;
 

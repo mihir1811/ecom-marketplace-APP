@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'luxe_scope.dart';
+
 /// Which finder owns the Single/Melee screen background palette.
 enum MeleeBgFamily {
   labGrown,
@@ -114,6 +116,8 @@ class AppColors {
     MeleeBgFamily family = MeleeBgFamily.natural,
     bool melee = false,
   }) {
+    final luxe = LuxeScope.paletteOf(context);
+    if (luxe != null) return luxe.accent;
     if (family == MeleeBgFamily.natural && melee) {
       return naturalMeleeAccent;
     }
@@ -126,6 +130,8 @@ class AppColors {
     MeleeBgFamily family = MeleeBgFamily.natural,
     bool melee = false,
   }) {
+    final luxe = LuxeScope.paletteOf(context);
+    if (luxe != null) return luxe.accent.withValues(alpha: 0.45);
     if (family == MeleeBgFamily.natural && melee) {
       return naturalMeleeAccentLight;
     }
@@ -172,6 +178,8 @@ class AppColors {
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
   }) {
+    final luxe = LuxeScope.paletteOf(context);
+    if (luxe != null) return melee ? luxe.surfaceRaised : luxe.canvas;
     if (isDark(context)) return slateSurface;
     return screenBg(melee: melee, family: family);
   }
@@ -196,44 +204,54 @@ class AppColors {
 
   /// Screen background that adapts to the active theme.
   static Color bg(BuildContext context) =>
-      isDark(context) ? obsidianBg : creamBg;
+      LuxeScope.paletteOf(context)?.canvas ??
+      (isDark(context) ? obsidianBg : creamBg);
 
   /// Card / container surface that adapts to the active theme.
   static Color surface(BuildContext context) =>
-      isDark(context) ? slateSurface : sandSurface;
+      LuxeScope.paletteOf(context)?.surfaceRaised ??
+      (isDark(context) ? slateSurface : sandSurface);
 
   /// Elevated card surface (white card on light, slate card on dark).
   static Color card(BuildContext context) =>
-      isDark(context) ? slateSurface : warmWhite;
+      LuxeScope.paletteOf(context)?.surface ??
+      (isDark(context) ? slateSurface : warmWhite);
 
   /// Border color that adapts to the active theme.
   static Color border(BuildContext context) =>
-      isDark(context) ? slateBorder : warmBorder;
+      LuxeScope.paletteOf(context)?.hairline ??
+      (isDark(context) ? slateBorder : warmBorder);
 
   /// Input field fill that adapts to the active theme.
   static Color field(BuildContext context) =>
-      isDark(context) ? slateSurface : warmWhite;
+      LuxeScope.paletteOf(context)?.surface ??
+      (isDark(context) ? slateSurface : warmWhite);
 
   /// Primary text color that adapts to the active theme.
   static Color textPrimary(BuildContext context) =>
-      isDark(context) ? textPrimaryDark : textPrimaryLight;
+      LuxeScope.paletteOf(context)?.ink ??
+      (isDark(context) ? textPrimaryDark : textPrimaryLight);
 
   /// Secondary text color that adapts to the active theme.
   static Color textSecondary(BuildContext context) =>
-      isDark(context) ? textSecondaryDark : textSecondaryLight;
+      LuxeScope.paletteOf(context)?.inkMuted ??
+      (isDark(context) ? textSecondaryDark : textSecondaryLight);
 
   /// Muted text color that adapts to the active theme.
   static Color textMuted(BuildContext context) =>
-      isDark(context) ? textMutedDark : textMutedLight;
+      LuxeScope.paletteOf(context)?.inkFaint ??
+      (isDark(context) ? textMutedDark : textMutedLight);
 
   /// Selected chip / segment fill. Inverts against the surface so the
   /// chosen item stays obvious in both themes.
   static Color selectedFill(BuildContext context) =>
-      isDark(context) ? warmWhite : charcoal;
+      LuxeScope.paletteOf(context)?.ink ??
+      (isDark(context) ? warmWhite : charcoal);
 
   /// Text / icon color on [selectedFill].
   static Color onSelected(BuildContext context) =>
-      isDark(context) ? charcoal : warmWhite;
+      LuxeScope.paletteOf(context)?.canvas ??
+      (isDark(context) ? charcoal : warmWhite);
 
   /// Drawer / nav-row selected fill — soft elevate in dark, solid charcoal in light.
   static Color navSelectedFill(BuildContext context) =>

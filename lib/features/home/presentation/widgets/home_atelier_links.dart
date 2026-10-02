@@ -8,7 +8,7 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../theme/home_tokens.dart';
 import 'home_section.dart';
-import 'motion/scroll_reveal.dart';
+import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 /// One-tap shortcuts to the signed-in user's own spaces.
 class HomeAtelierLinks extends ConsumerWidget {

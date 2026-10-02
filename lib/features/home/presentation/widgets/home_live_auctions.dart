@@ -13,8 +13,8 @@ import '../../../auction/domain/models/auction_models.dart';
 import '../../../auction/presentation/widgets/auction_card.dart';
 import '../theme/home_tokens.dart';
 import 'home_section.dart';
-import 'motion/press_tilt.dart';
-import 'motion/scroll_reveal.dart';
+import '../../../../core/widgets/luxe/press_tilt.dart';
+import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 const _liveQuery = AuctionFeedQuery(kind: AuctionFeedKind.live);
 

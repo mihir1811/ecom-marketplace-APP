@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/widgets/search_action_bottom_bar.dart';
 import 'package:gemstone/features/diamonds/presentation/screens/lab_grown_diamond_search_screen.dart';
 import 'package:gemstone/features/diamonds/presentation/widgets/lab_grown_diamond_scope.dart';
 
 void main() {
-  testWidgets('lab grown search screen shows SHOW and CLEAR ALL buttons',
+  testWidgets('lab grown finder shows primary action, lab controls and reset',
       (tester) async {
     await tester.pumpWidget(
       const ProviderScope(
@@ -17,13 +16,17 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byType(SearchActionBottomBar), findsOneWidget);
     expect(find.textContaining('SHOW'), findsOneWidget);
-    expect(find.text('CLEAR ALL'), findsOneWidget);
     expect(find.text('Diamond Category'), findsOneWidget);
     expect(find.text('Growth Method (CVD / HPHT)'), findsOneWidget);
+    // Reset only appears once a filter is active.
+    expect(find.text('Reset'), findsNothing);
 
-    // Unmount to cancel carousel timers before the test ends.
+    await tester.tap(find.text('CVD'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Reset'), findsOneWidget);
+
+    // Unmount to cancel animation timers before the test ends.
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }

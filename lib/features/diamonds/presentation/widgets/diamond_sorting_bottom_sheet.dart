@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../domain/models/sorting_criteria.dart';
+import '../../../../core/theme/luxe_scope.dart';
 
 /// Production-grade multi-criteria sorting bottom sheet.
 /// Allows users to add, remove, and configure sorting criteria.
@@ -14,12 +15,15 @@ class DiamondSortingBottomSheet extends ConsumerStatefulWidget {
   const DiamondSortingBottomSheet({super.key});
 
   static Future<void> show(BuildContext context) {
+    final luxe = LuxeScope.isActive(context);
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const DiamondSortingBottomSheet(),
+      builder: (_) => luxe
+          ? const LuxeScope(child: DiamondSortingBottomSheet())
+          : const DiamondSortingBottomSheet(),
     );
   }
 

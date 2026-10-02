@@ -86,9 +86,9 @@ const homeMessages = <String, LocalizedMessage>{
     gujarati: 'સંગ્રહ જુઓ',
   ),
   HomeL10n.dragHint: LocalizedMessage(
-    english: 'Touch the stars · tap to transform',
-    hindi: 'तारों को छुएँ · बदलने के लिए टैप करें',
-    gujarati: 'તારાઓને સ્પર્શો · બદલવા ટૅપ કરો',
+    english: 'Drag to orbit 360° · tap to transform',
+    hindi: '360° घुमाने के लिए खींचें · बदलने के लिए टैप करें',
+    gujarati: '360° ફેરવવા ખેંચો · બદલવા ટૅપ કરો',
   ),
   HomeL10n.closeSearch: LocalizedMessage(
     english: 'Close search',

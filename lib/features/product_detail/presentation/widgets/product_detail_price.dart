@@ -12,6 +12,7 @@ import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../chat/presentation/open_product_seller_chat.dart';
 import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../domain/models/product_detail.dart';
+import '../../domain/models/product_price_labels.dart';
 
 /// Price block — the highest-priority number on the page.
 class ProductDetailPrice extends ConsumerStatefulWidget {
@@ -67,51 +68,18 @@ class _ProductDetailPriceState extends ConsumerState<ProductDetailPrice> {
     final unitKey = price.unitLabel == null
         ? null
         : catalogDisplayMessageKeys[price.unitLabel!];
-    final localizedUnit = unitKey == null
-        ? price.unitLabel
-        : context.tr(unitKey);
-    final unit = price.isOnRequest ||
-            price.unitAmountLabel == null ||
-            localizedUnit == null
-        ? null
-        : '${price.currencySymbol}${price.unitAmountLabel} $localizedUnit';
-    final discount = price.discountPercent;
+    final labels = ProductPriceLabels.resolve(
+      price,
+      amountOverride: widget.amountOverride,
+      showCatalogDiscount: widget.showCatalogDiscount,
+      localizedUnit: unitKey == null ? price.unitLabel : context.tr(unitKey),
+    );
     final override = widget.amountOverride;
-    final suppressDiscount = !widget.showCatalogDiscount || override != null;
-    final hasDiscount = !suppressDiscount && price.hasDiscount;
-    final formatAmount = override != null
-        ? formatCatalogPrice
-        : (price.displayAmountIsListPrice
-              ? formatGroupedWhole
-              : formatCatalogPrice);
-
-    // Catalog lot price from API — never scale with melee pcs/carat draft.
-    final amount = override ?? price.displayAmount;
-
-    late final String saleLabel;
-    late final String? listLabel;
-    if (price.isOnRequest && override == null) {
-      saleLabel = price.display;
-      listLabel = null;
-    } else if (!hasDiscount) {
-      saleLabel = '${price.currencySymbol}${formatAmount(amount)}';
-      listLabel = null;
-    } else if (price.listAmount != null && price.listAmount! > amount) {
-      listLabel =
-          '${price.currencySymbol}${formatAmount(price.listAmount!)}';
-      saleLabel = '${price.currencySymbol}${formatAmount(amount)}';
-    } else if (price.displayAmountIsListPrice) {
-      // List in amountLabel → discounted = list × (1 − %/100).
-      final list = amount;
-      final sale = list * (1 - discount! / 100);
-      listLabel = '${price.currencySymbol}${formatAmount(list)}';
-      saleLabel = '${price.currencySymbol}${formatAmount(sale)}';
-    } else {
-      // Net already in amountLabel → list inferred from %.
-      saleLabel = '${price.currencySymbol}${formatAmount(amount)}';
-      final list = catalogListFromNet(amount, discount!) ?? amount;
-      listLabel = '${price.currencySymbol}${formatAmount(list)}';
-    }
+    final hasDiscount = labels.hasDiscount;
+    final discount = labels.discountPercent;
+    final saleLabel = labels.sale;
+    final listLabel = labels.list;
+    final unit = labels.unit;
 
     final wishlisted = ref.watch(isInWishlistProvider(detail.id));
     final canChat = ref.watch(authProvider.select((s) => s.isSeller));

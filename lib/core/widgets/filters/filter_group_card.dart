@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
+import '../../theme/luxe_scope.dart';
 
 /// Rounded bordered container that visually groups related filter controls
 /// into one parent filter block.
@@ -23,6 +24,14 @@ class FilterGroupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Inside luxe sections the section itself is the card: group blocks are
+    // separated by whitespace instead of nested borders.
+    if (LuxeScope.paletteOf(context) != null) {
+      return Padding(
+        padding: margin ?? const EdgeInsets.only(bottom: AppSpacing.s20),
+        child: SizedBox(width: double.infinity, child: child),
+      );
+    }
     return Container(
       width: double.infinity,
       margin: margin ?? const EdgeInsets.only(bottom: AppSpacing.s24),

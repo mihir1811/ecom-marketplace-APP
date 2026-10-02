@@ -6,6 +6,8 @@ import '../../theme/app_typography.dart';
 import 'filter_group_card.dart';
 import 'filter_info_tooltip.dart';
 import 'filter_proportion_diagram.dart';
+import '../../theme/luxe_scope.dart';
+import '../../theme/luxe_tokens.dart';
 
 class FilterScrollableChips extends StatelessWidget {
   const FilterScrollableChips({
@@ -32,6 +34,7 @@ class FilterScrollableChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final containerBorderColor = AppColors.border(context);
+    final luxe = LuxeScope.paletteOf(context) != null;
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,10 +43,15 @@ class FilterScrollableChips extends StatelessWidget {
           children: [
             Text(
               title,
-              style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary(context),
-              ),
+              style: luxe
+                  ? LuxeType.label(
+                      AppColors.textPrimary(context),
+                      size: 13.5,
+                    ).copyWith(fontWeight: FontWeight.w600)
+                  : AppTypography.label.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary(context),
+                    ),
             ),
             const SizedBox(width: 6),
             FilterInfoTooltip(message: infoText, diagram: infoDiagram),
@@ -72,7 +80,9 @@ class FilterScrollableChips extends StatelessWidget {
                       color: isSelected
                           ? AppColors.selectedFill(context)
                           : (AppColors.card(context)),
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
+                      borderRadius: BorderRadius.circular(
+                        luxe ? 100 : AppSpacing.r8,
+                      ),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.selectedFill(context)
@@ -81,14 +91,21 @@ class FilterScrollableChips extends StatelessWidget {
                     ),
                     child: Text(
                       opt,
-                      style: AppTypography.caption.copyWith(
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: isSelected
-                            ? AppColors.onSelected(context)
-                            : (AppColors.textPrimary(context)),
-                      ),
+                      style: luxe
+                          ? LuxeType.label(
+                              isSelected
+                                  ? AppColors.onSelected(context)
+                                  : AppColors.textPrimary(context),
+                              size: 12.5,
+                            )
+                          : AppTypography.caption.copyWith(
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? AppColors.onSelected(context)
+                                  : (AppColors.textPrimary(context)),
+                            ),
                     ),
                   ),
                 ),

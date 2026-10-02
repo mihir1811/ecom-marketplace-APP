@@ -1,22 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../core/auth/account_access.dart';
-import '../../../../core/catalog/catalog_purchase_policy.dart';
-import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/haptics/app_haptics.dart';
-import '../../../../core/error/result.dart';
-import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_dialog.dart';
-import '../../../cart/application/cart_provider.dart';
-import '../../../product_offer/application/product_offer_providers.dart';
-import '../../application/jewelry_config_draft_provider.dart';
-import '../../application/melee_qty_draft_provider.dart';
+import '../../application/product_purchase_actions.dart';
 import '../../domain/models/product_detail.dart';
 
 /// Sticky commitment bar. Keep only the primary decision actions here.
@@ -25,12 +16,15 @@ class ProductDetailActionBar extends ConsumerWidget {
 
   final ProductDetail detail;
 
-  void _notify(
-    BuildContext context,
-    String message, {
-    void Function()? haptic,
-  }) {
-    (haptic ?? AppHaptics.medium)();
+  void _notify(BuildContext context, String message, PurchaseTone tone) {
+    switch (tone) {
+      case PurchaseTone.success:
+        AppHaptics.success();
+      case PurchaseTone.warning:
+        AppHaptics.warning();
+      case PurchaseTone.error:
+        AppHaptics.error();
+    }
     final messenger = ScaffoldMessenger.maybeOf(context);
     messenger?.hideCurrentSnackBar();
     messenger?.showSnackBar(
@@ -38,127 +32,9 @@ class ProductDetailActionBar extends ConsumerWidget {
     );
   }
 
-  Future<void> _addToCart(BuildContext context, WidgetRef ref) async {
-    if (!ref.read(authProvider).isAuthenticated) {
-      _notify(
-        context,
-        'Please sign in to add items to your cart',
-        haptic: AppHaptics.warning,
-      );
-      context.push(AppRouteNames.login);
-      return;
-    }
-    if (!AccountAccess.guard(context, ref)) return;
-    final auth = ref.read(authProvider);
-    final blockMessage = detail.addToCartBlockMessage(
-      userId: auth.user?.id,
-      sellerId: auth.sellerId,
-    );
-    if (blockMessage != null) {
-      _notify(context, blockMessage, haptic: AppHaptics.warning);
-      return;
-    }
-
-    var quantity = 1;
-    Map<String, dynamic>? specifications;
-    final jewelryDetail = detail.jewelryDetail;
-    if (jewelryDetail != null) {
-      ref
-          .read(jewelryConfigDraftProvider(detail.id).notifier)
-          .ensureSeeded(jewelryDetail);
-      final draft = ref.read(jewelryConfigDraftProvider(detail.id));
-      if (draft == null) {
-        _notify(
-          context,
-          'Select jewelry options before adding to cart',
-          haptic: AppHaptics.error,
-        );
-        return;
-      }
-      quantity = draft.quantity;
-      specifications = draft.toCartSpecifications();
-    }
-    final meleeQty = detail.naturalSpecTabs?.meleeQty;
-    if (meleeQty != null) {
-      ref
-          .read(meleeQtyDraftProvider(detail.id).notifier)
-          .ensureSeeded(meleeQty);
-      final draft = ref.read(meleeQtyDraftProvider(detail.id));
-      if (draft == null || (draft.pieces < 1 && draft.carat <= 0)) {
-        _notify(
-          context,
-          'Enter how many pieces or carats to add',
-          haptic: AppHaptics.error,
-        );
-        return;
-      }
-      if (draft.inCarat) {
-        final maxCt = meleeQty.totalCarat;
-        if (maxCt != null && draft.carat > maxCt + 1e-9) {
-          _notify(
-            context,
-            'Only ${maxCt.toStringAsFixed(2)} ct available',
-            haptic: AppHaptics.warning,
-          );
-          return;
-        }
-      } else {
-        final maxPcs = meleeQty.totalPcs;
-        if (maxPcs != null && draft.pieces > maxPcs) {
-          _notify(
-            context,
-            'Only $maxPcs pcs available',
-            haptic: AppHaptics.warning,
-          );
-          return;
-        }
-      }
-      // Partial melee amount lives in specifications; quantity is the cart line.
-      quantity = 1;
-      final calculated = draft.proportionalPrice(
-        detail.price.displayAmount,
-        meleeQty,
-      );
-      specifications = draft.toSpecifications(calculatedPrice: calculated);
-    }
-
-    final result = await ref
-        .read(cartProvider.notifier)
-        .addProduct(
-          productId: detail.id,
-          productType: detail.apiProductType,
-          quantity: quantity,
-          specifications: specifications,
-        );
-    if (!context.mounted) return;
-    switch (result) {
-      case Success():
-        _notify(context, 'Added to cart', haptic: AppHaptics.success);
-      case ResultFailure(:final failure):
-        _notify(context, failure.message, haptic: AppHaptics.error);
-    }
-  }
-
-  Future<void> _makeOffer(BuildContext context, WidgetRef ref) async {
-    if (!ref.read(authProvider).isAuthenticated) {
-      _notify(
-        context,
-        'Please sign in to make an offer',
-        haptic: AppHaptics.warning,
-      );
-      context.push(AppRouteNames.login);
-      return;
-    }
-    if (!AccountAccess.guard(context, ref)) return;
-    if (_isOwnListing(ref)) {
-      _notify(
-        context,
-        'You cannot make an offer on your own listing',
-        haptic: AppHaptics.warning,
-      );
-      return;
-    }
-
+  Future<({String amount, String? message})?> _askOffer(
+    BuildContext context,
+  ) async {
     final minHint = detail.minimumOfferPrice;
     final controller = TextEditingController(
       text: minHint != null ? minHint.toStringAsFixed(2) : '',
@@ -215,74 +91,29 @@ class ProductDetailActionBar extends ConsumerWidget {
         ],
       ),
     );
-    if (submitted != true || !context.mounted) {
-      controller.dispose();
-      messageCtrl.dispose();
-      return;
-    }
-
-    final raw = controller.text.trim();
-    final message = messageCtrl.text.trim().isEmpty
-        ? null
-        : messageCtrl.text.trim();
+    final amount = controller.text;
+    final message = messageCtrl.text.trim();
     controller.dispose();
     messageCtrl.dispose();
-    if (raw.isEmpty) return;
-    final amount = raw.contains('.') ? raw : '$raw.00';
-
-    final result = await ref
-        .read(productOfferMutationProvider.notifier)
-        .create(
-          productId: detail.id,
-          productType: detail.apiProductType,
-          amount: amount,
-          message: message,
-        );
-    if (!context.mounted) return;
-    switch (result) {
-      case Success():
-        _notify(context, 'Offer submitted', haptic: AppHaptics.success);
-      case ResultFailure(:final failure):
-        _notify(context, failure.message, haptic: AppHaptics.error);
-    }
-  }
-
-  bool _isOwnListing(WidgetRef ref) {
-    final auth = ref.read(authProvider);
-    return detail.isOwnedByCurrentAccount(
-      userId: auth.user?.id,
-      sellerId: auth.sellerId,
-    );
+    if (submitted != true) return null;
+    return (amount: amount, message: message.isEmpty ? null : message);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final purchasable = detail.isPurchasable;
-    final mutating = ref.watch(cartIsMutatingProvider);
-    final inCart = ref.watch(isProductInCartProvider(detail.id));
-    final offerMutating = ref.watch(productOfferMutationProvider).isLoading;
-    final auth = ref.watch(authProvider);
-    final ownListing = detail.isOwnedByCurrentAccount(
-      userId: auth.user?.id,
-      sellerId: auth.sellerId,
-    );
-    final blockMessage = detail.addToCartBlockMessage(
-      userId: auth.user?.id,
-      sellerId: auth.sellerId,
-    );
-    final showOffer = detail.canMakeAnOffer && !ownListing;
-    final addLabel = ownListing
-        ? 'Your listing'
-        : blockMessage != null
-        ? (CatalogPurchasePolicy.isOnHoldOrMemo(detail.availabilityStatus) ||
-                  CatalogPurchasePolicy.isOnHoldOrMemo(
-                    detail.availability?.label,
-                  )
-              ? 'On hold / memo'
-              : 'Unavailable')
-        : inCart
-        ? 'View in cart'
-        : 'Add to cart';
+    final state = ProductPurchaseActions.watchState(ref, detail);
+    void notify(String message, PurchaseTone tone) =>
+        _notify(context, message, tone);
+    final showOffer = state.showOffer;
+    final offerMutating = state.offerBusy;
+    final mutating = state.busy;
+    final addLabel = switch (state.kind) {
+      CartButtonKind.ownListing => 'Your listing',
+      CartButtonKind.onHoldMemo => 'On hold / memo',
+      CartButtonKind.unavailable => 'Unavailable',
+      CartButtonKind.viewInCart => 'View in cart',
+      CartButtonKind.add => 'Add to cart',
+    };
 
     return Container(
       decoration: BoxDecoration(
@@ -300,7 +131,14 @@ class ProductDetailActionBar extends ConsumerWidget {
               child: OutlinedButton(
                 onPressed: offerMutating
                     ? null
-                    : () => _makeOffer(context, ref),
+                    : () => ProductPurchaseActions.makeOffer(
+                        context,
+                        ref,
+                        detail,
+                        ask: () => _askOffer(context),
+                        copy: PurchaseCopy.english,
+                        notify: notify,
+                      ),
                 child: offerMutating
                     ? const SizedBox(
                         width: 18,
@@ -315,11 +153,15 @@ class ProductDetailActionBar extends ConsumerWidget {
           Expanded(
             flex: showOffer ? 2 : 1,
             child: ElevatedButton(
-              onPressed: ownListing || !purchasable || mutating
+              onPressed: !state.enabled
                   ? null
-                  : inCart
-                  ? () => context.push(AppRouteNames.cart)
-                  : () => _addToCart(context, ref),
+                  : () => ProductPurchaseActions.primary(
+                      context,
+                      ref,
+                      detail,
+                      copy: PurchaseCopy.english,
+                      notify: notify,
+                    ),
               child: mutating
                   ? const SizedBox(
                       width: 18,

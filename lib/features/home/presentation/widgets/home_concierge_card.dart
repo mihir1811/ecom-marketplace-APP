@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../theme/home_tokens.dart';
 import 'home_section.dart';
-import 'motion/press_tilt.dart';
-import 'motion/scroll_reveal.dart';
+import '../../../../core/widgets/luxe/press_tilt.dart';
+import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 /// Gem AI entry: an obsidian card with a travelling gold edge and a
 /// typewriter demo of the kinds of requests the concierge understands.

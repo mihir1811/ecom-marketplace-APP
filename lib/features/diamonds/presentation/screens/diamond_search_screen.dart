@@ -1,31 +1,44 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/catalog_search_filter_layout.dart';
+import '../../../../core/theme/luxe_scope.dart';
+import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/catalog_search_filter_shell.dart';
-import '../../../../core/widgets/paired_showcase_carousel.dart';
-import '../../../../core/widgets/showcase_select_card.dart';
 import '../../../../core/widgets/filters/catalog_expandable_advanced_filters.dart';
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
 import '../../../../core/widgets/filters/catalog_search_add_field.dart';
 import '../../../../core/widgets/filters/filter_proportion_diagram.dart';
+import '../../../../core/widgets/luxe/luxe_button.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
+import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
-import '../widgets/diamond_shape_shine.dart';
-import '../widgets/diamond_svg_data.dart';
+import '../../domain/models/diamond_filter_summary.dart';
+import '../widgets/diamond_flow_actions.dart';
+import '../widgets/diamond_shape_picker.dart';
 import '../widgets/filter_category_basic.dart';
+import '../widgets/filter_color_selector.dart';
 import '../widgets/filter_origin_dropdown.dart';
 
-enum Section { basic, preferences, measurements, advanced }
-
+/// Diamond finder (natural and lab grown).
+///
+/// Layout: editorial header with the catalog mode switch → pinned section
+/// index → the essentials (shape, size & price, colour & clarity) open by
+/// default → refinements in collapsible sections that report how many
+/// filters each holds → sticky "Show diamonds" bar with the active count.
 class DiamondSearchScreen extends ConsumerStatefulWidget {
   const DiamondSearchScreen({
     super.key,
@@ -49,16 +62,22 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   final ScrollController catalogScrollController = ScrollController();
   @override
   final GlobalKey catalogNavKey = GlobalKey();
+  @override
+  double get catalogNavHeight => 56;
 
-  final TextEditingController _companyController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  Section _activeSection = Section.basic;
-  bool _expandAdvanced = false;
+  final _offset = ValueNotifier<double>(0);
+  final _companyController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _sectionKeys = {
+    for (final s in DiamondFinderSection.values)
+      s: GlobalKey<LuxeSectionState>(),
+  };
+  final _pillKeys = {
+    for (final s in DiamondFinderSection.values) s: GlobalKey(),
+  };
+  DiamondFinderSection _active = DiamondFinderSection.shape;
 
-  final GlobalKey _basicKey = GlobalKey();
-  final GlobalKey _prefKey = GlobalKey();
-  final GlobalKey _measKey = GlobalKey();
-  final GlobalKey _advancedKey = GlobalKey();
+  bool get _isLab => widget.catalog == DiamondCatalogType.labGrown;
 
   @override
   void initState() {
@@ -68,35 +87,63 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
 
   @override
   void dispose() {
-    catalogScrollController.removeListener(_onScroll);
-    catalogScrollController.dispose();
+    catalogScrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    _offset.dispose();
     _companyController.dispose();
     _locationController.dispose();
     super.dispose();
   }
 
+  List<DiamondFinderSection> _visibleSections(bool melee) => [
+    DiamondFinderSection.shape,
+    DiamondFinderSection.sizePrice,
+    DiamondFinderSection.colorClarity,
+    if (!melee) DiamondFinderSection.grading,
+    if (!melee) DiamondFinderSection.inclusions,
+    DiamondFinderSection.listing,
+    DiamondFinderSection.seller,
+    DiamondFinderSection.measurements,
+    if (!melee) DiamondFinderSection.proportions,
+  ];
+
   void _onScroll() {
+    _offset.value = catalogScrollController.offset;
     if (catalogSpyLocked) return;
-    final filterState = ref.read(diamondSearchProvider);
-    final useMeleeFilters = _usesMeleeFilters(filterState);
+    final melee = diamondUsesMeleeFilters(
+      ref.read(diamondSearchProvider),
+      isLab: _isLab,
+    );
     final active =
         catalogActiveSectionFromScroll([
-          (_basicKey, Section.basic),
-          (_prefKey, Section.preferences),
-          (_measKey, Section.measurements),
-          if (!useMeleeFilters) (_advancedKey, Section.advanced),
+          for (final s in _visibleSections(melee)) (_sectionKeys[s]!, s),
         ]) ??
-        Section.basic;
-    if (active != _activeSection) {
-      setState(() => _activeSection = active);
+        DiamondFinderSection.shape;
+    _setActive(active);
+  }
+
+  void _setActive(DiamondFinderSection section) {
+    if (section == _active) return;
+    setState(() => _active = section);
+    final pill = _pillKeys[section]!.currentContext;
+    if (pill != null) {
+      Scrollable.ensureVisible(
+        pill,
+        alignment: 0.5,
+        duration: LuxeMotion.medium,
+        curve: LuxeMotion.settle,
+      );
     }
   }
 
-  bool _usesMeleeFilters(DiamondFilterState state) {
-    if (widget.catalog == DiamondCatalogType.labGrown) {
-      return state.labCategory == 'Lab Melee';
-    }
-    return state.labNatural.usesMeleeFilters;
+  void _jumpTo(DiamondFinderSection section) {
+    AppHaptics.selection();
+    _setActive(section);
+    _sectionKeys[section]!.currentState?.expand();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => catalogScrollToSection(_sectionKeys[section]!),
+    );
   }
 
   void _commitPendingSearchFields() {
@@ -115,9 +162,23 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
 
   void _onShowDiamonds() {
     _commitPendingSearchFields();
-    // Drop any cached pages so results always refetch with current filters.
+    // Drop cached pages so results always refetch with current filters.
     ref.invalidate(diamondListProvider);
     context.push(widget.resultsRoute);
+  }
+
+  void _resetAll() {
+    final notifier = ref.read(diamondSearchProvider.notifier);
+    final previous = ref.read(diamondSearchProvider);
+    notifier.reset();
+    _companyController.clear();
+    _locationController.clear();
+    showLuxeToast(
+      context,
+      context.tr(DiamondFlowL10n.filtersCleared),
+      actionLabel: context.tr(DiamondFlowL10n.undo),
+      onAction: () => notifier.replaceFilters(previous),
+    );
   }
 
   @override
@@ -132,178 +193,214 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       }
     });
 
-    final useMeleeFilters = ref.watch(
-      diamondSearchProvider.select(_usesMeleeFilters),
-    );
-
-    if (useMeleeFilters && _activeSection == Section.advanced) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _activeSection = Section.basic);
-      });
-    }
-
-    final sections = <CatalogSearchNavSection<Section>>[
-      CatalogSearchNavSection(
-        id: Section.basic,
-        label: context.tr(CatalogL10n.basic),
-        icon: Icons.diamond_outlined,
-        key: _basicKey,
-      ),
-      CatalogSearchNavSection(
-        id: Section.preferences,
-        label: context.tr(CatalogL10n.prefShort),
-        icon: Icons.tune,
-        key: _prefKey,
-      ),
-      CatalogSearchNavSection(
-        id: Section.measurements,
-        label: context.tr(CatalogL10n.measurementsShort),
-        icon: Icons.straighten,
-        key: _measKey,
-      ),
-      if (!useMeleeFilters)
-        CatalogSearchNavSection(
-          id: Section.advanced,
-          label: context.tr(CatalogL10n.advancedShort),
-          icon: Icons.add,
-          key: _advancedKey,
-        ),
-    ];
-
-    final meleeFamily = widget.catalog.isLabGrown
-        ? MeleeBgFamily.labGrown
-        : MeleeBgFamily.natural;
-    final accent = AppColors.finderAccent(
-      context,
-      family: meleeFamily,
-      melee: useMeleeFilters,
-    );
-
-    return CatalogSearchFilterShell(
-      title: widget.title,
-      isMelee: useMeleeFilters,
-      meleeFamily: meleeFamily,
-      onScrollNotification: catalogHandleScrollNotification,
-      stickyNav: CatalogSearchSectionNav<Section>(
-        navKey: catalogNavKey,
-        sections: sections,
-        activeId: _activeSection,
-        accentColor: accent,
-        onSectionTap: (section) {
-          setState(() {
-            _activeSection = section.id;
-            if (section.id == Section.advanced) {
-              _expandAdvanced = true;
-            }
-          });
-          catalogScrollToSection(section.key);
-          if (section.id == Section.advanced) {
-            Future.delayed(const Duration(milliseconds: 350), () {
-              if (mounted) setState(() => _expandAdvanced = false);
-            });
-          }
+    return LuxeScope(
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) context.resetTo(AppRouteNames.home);
         },
+        child: Builder(builder: _buildScaffold),
       ),
-      scrollController: catalogScrollController,
-      primaryLabel: context.tr(CatalogL10n.showDiamonds),
-      onPrimary: _onShowDiamonds,
-      onClear: () {
-        ref.read(diamondSearchProvider.notifier).reset();
-        _companyController.clear();
-        _locationController.clear();
-      },
-      bodyChildren: [
-        _buildShapeCarousel(),
-        const SizedBox(height: AppSpacing.s24),
-        CatalogSearchSection(
-          sectionKey: _basicKey,
-          title: context.tr(CatalogL10n.basic),
-          child: FilterCategoryBasic(
-            sectionTitle: widget.catalog.label,
-            showOriginToggle: widget.catalog == DiamondCatalogType.natural,
-            isLabCatalog: widget.catalog == DiamondCatalogType.labGrown,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.s32),
-        CatalogSearchSection(
-          sectionKey: _prefKey,
-          title: context.tr(CatalogL10n.preferences),
-          child: _buildPreferenceFilters(),
-        ),
-        const SizedBox(height: AppSpacing.s32),
-        CatalogSearchSection(
-          sectionKey: _measKey,
-          title: context.tr(CatalogL10n.measurements),
-          child: _buildMeasurementFilters(),
-        ),
-        if (!useMeleeFilters) ...[
-          const SizedBox(height: AppSpacing.s32),
-          CatalogSearchSection(
-            sectionKey: _advancedKey,
-            title: context.tr(CatalogL10n.advanced),
-            child: _buildAdvancedFilters(),
-          ),
-        ],
-        const SizedBox(height: AppSpacing.s32),
-      ],
     );
   }
 
-  Widget _buildShapeCarousel() {
-    final shapes = ref.watch(diamondSearchProvider.select((s) => s.shapes));
-    final notifier = ref.read(diamondSearchProvider.notifier);
-    final useMelee = ref.watch(diamondSearchProvider.select(_usesMeleeFilters));
-    final family = widget.catalog.isLabGrown
-        ? MeleeBgFamily.labGrown
-        : MeleeBgFamily.natural;
-    final accent = AppColors.finderAccent(
-      context,
-      family: family,
-      melee: useMelee,
+  Widget _buildScaffold(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final melee = ref.watch(
+      diamondSearchProvider.select(
+        (s) => diamondUsesMeleeFilters(s, isLab: _isLab),
+      ),
     );
-    final accentSoft = AppColors.finderAccentSoft(
-      context,
-      family: family,
-      melee: useMelee,
+    final summary = ref.watch(
+      diamondSearchProvider.select(DiamondFilterSummary.of),
     );
+    final sections = _visibleSections(melee);
+    final background = AppColors.screenBgFor(context, melee: melee);
 
-    return PairedShowcaseCarousel(
-      title: context.tr(CatalogL10n.selectDiamondShapes),
-      itemCount: kAllShapes.length,
-      itemBuilder: (context, index) {
-        final item = kAllShapes[index];
-        final name = item['name']!;
-        final imagePath = item['image'];
-        final isSelected = shapes.contains(name);
-        final fallback = renderShapeSvg(
-          name,
-          size: 48,
-          color: isSelected ? accent : accentSoft,
-        );
-
-        return ShowcaseSelectCard(
-          name: name,
-          isSelected: isSelected,
-          activeColor: accent,
-          onTap: () => notifier.toggleShape(name),
-          media: DiamondShapeShine(
-            child: imagePath != null
-                ? Image.asset(
-                    imagePath,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => fallback,
-                  )
-                : fallback,
+    return AppScaffold(
+      backgroundColor: background,
+      appBar: LuxeTopBar(
+        eyebrow: context.tr(DiamondFlowL10n.finderEyebrow),
+        title: widget.catalog.label,
+        scrollOffset: _offset,
+        onBack: () => context.resetTo(AppRouteNames.home),
+        actions: const [DiamondFlowActions()],
+      ),
+      bottomNavigationBar: _FinderActionBar(
+        activeCount: summary.total,
+        onReset: summary.total == 0 ? null : _resetAll,
+        onShow: _onShowDiamonds,
+      ),
+      body: AnimatedContainer(
+        duration: AppColors.meleeBgDuration,
+        curve: Curves.easeInOut,
+        color: background,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: catalogHandleScrollNotification,
+          child: CustomScrollView(
+            controller: catalogScrollController,
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
+              SliverToBoxAdapter(child: _intro(context)),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SectionIndexDelegate(
+                  background: background,
+                  hairline: p.hairline,
+                  child: _SectionIndex(
+                    key: catalogNavKey,
+                    sections: sections,
+                    active: _active,
+                    summary: summary,
+                    pillKeys: _pillKeys,
+                    labelOf: (s) => _title(context, s),
+                    onTap: _jumpTo,
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+                sliver: SliverList.list(
+                  children: [
+                    for (final s in sections)
+                      _section(context, s, summary, melee),
+                  ],
+                ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  Widget _intro(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final animate = !MediaQuery.disableAnimationsOf(context);
+    Widget headline = Text(
+      context.tr(
+        _isLab
+            ? DiamondFlowL10n.finderHeadlineLab
+            : DiamondFlowL10n.finderHeadlineNatural,
+      ),
+      style: LuxeType.display(36, p.ink),
+    );
+    if (animate) {
+      headline = headline
+          .animate()
+          .fadeIn(duration: 600.ms)
+          .moveY(begin: 14, end: 0, duration: 800.ms, curve: LuxeMotion.settle);
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          headline,
+          const SizedBox(height: 8),
+          Text(
+            context.tr(DiamondFlowL10n.finderIntro),
+            style: LuxeType.body(p.inkMuted, size: 14),
+          ),
+          const SizedBox(height: 18),
+          DiamondCatalogModeControls(
+            showOriginToggle: !_isLab,
+            isLabCatalog: _isLab,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _title(BuildContext context, DiamondFinderSection s) => context.tr(
+    switch (s) {
+      DiamondFinderSection.shape => DiamondFlowL10n.sectionShape,
+      DiamondFinderSection.sizePrice => DiamondFlowL10n.sectionSizePrice,
+      DiamondFinderSection.colorClarity => DiamondFlowL10n.sectionColorClarity,
+      DiamondFinderSection.grading => DiamondFlowL10n.sectionGrading,
+      DiamondFinderSection.inclusions => DiamondFlowL10n.sectionInclusions,
+      DiamondFinderSection.listing => DiamondFlowL10n.sectionListing,
+      DiamondFinderSection.seller => DiamondFlowL10n.sectionSeller,
+      DiamondFinderSection.measurements => DiamondFlowL10n.sectionMeasurements,
+      DiamondFinderSection.proportions => DiamondFlowL10n.sectionProportions,
+    },
+  );
+
+  Widget _section(
+    BuildContext context,
+    DiamondFinderSection s,
+    DiamondFilterSummary summary,
+    bool melee,
+  ) {
+    final count = summary.count(s);
+    final essential =
+        s == DiamondFinderSection.shape ||
+        s == DiamondFinderSection.sizePrice ||
+        s == DiamondFinderSection.colorClarity;
+    final (icon, child) = switch (s) {
+      DiamondFinderSection.shape => (
+        Icons.diamond_outlined,
+        const DiamondShapePicker(),
+      ),
+      DiamondFinderSection.sizePrice => (
+        Icons.scale_outlined,
+        DiamondSizePriceFilters(isLabCatalog: _isLab),
+      ),
+      DiamondFinderSection.colorClarity => (
+        Icons.palette_outlined,
+        const Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [ColorTabsSelector(), ClarityCardsSection()],
+        ),
+      ),
+      DiamondFinderSection.grading => (
+        Icons.workspace_premium_outlined,
+        const DiamondGradingFilters(),
+      ),
+      DiamondFinderSection.inclusions => (
+        Icons.blur_on_rounded,
+        const DiamondInclusionFilters(),
+      ),
+      DiamondFinderSection.listing => (
+        Icons.tune_rounded,
+        DiamondListingOptionsFilters(isLabCatalog: _isLab),
+      ),
+      DiamondFinderSection.seller => (
+        Icons.storefront_outlined,
+        _buildPreferenceFilters(),
+      ),
+      DiamondFinderSection.measurements => (
+        Icons.straighten_rounded,
+        _buildMeasurementFilters(),
+      ),
+      DiamondFinderSection.proportions => (
+        Icons.change_history_rounded,
+        _buildAdvancedFilters(),
+      ),
+    };
+
+    final summaryText = count == 0
+        ? context.tr(DiamondFlowL10n.any)
+        : s == DiamondFinderSection.shape
+        ? ref.read(diamondSearchProvider).shapes.join(' · ')
+        : context.tr(DiamondFlowL10n.selectedCount, {'count': count});
+
+    return LuxeSection(
+      key: _sectionKeys[s],
+      title: _title(context, s),
+      icon: icon,
+      summary: summaryText,
+      activeCount: count,
+      initiallyExpanded: essential,
+      child: child,
     );
   }
 
   Widget _buildPreferenceFilters() {
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final isLab = widget.catalog == DiamondCatalogType.labGrown;
 
     return CatalogPreferencesFilters(
       locationField: CatalogSearchAddField(
@@ -317,15 +414,15 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         onAdd: notifier.addVendorLocation,
         onRemove: notifier.removeVendorLocation,
       ),
-      originDropdown: isLab
+      originDropdown: _isLab
           ? null
           : FilterOriginDropdown(
               selectedOrigin: state.selectedOrigin,
               onSelected: notifier.updateOriginCountry,
             ),
-      roughSourceOptions: isLab ? null : DiamondFilterState.roughSources,
-      selectedRoughSource: isLab ? null : state.selectedRoughSource,
-      onRoughSourceChanged: isLab ? null : notifier.updateRoughSource,
+      roughSourceOptions: _isLab ? null : DiamondFilterState.roughSources,
+      selectedRoughSource: _isLab ? null : state.selectedRoughSource,
+      onRoughSourceChanged: _isLab ? null : notifier.updateRoughSource,
       minSellerRating: state.minSellerRating,
       onSellerRatingChanged: notifier.updateSellerRating,
       companyField: CatalogSearchAddField(
@@ -370,7 +467,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     final notifier = ref.read(diamondSearchProvider.notifier);
 
     return CatalogExpandableAdvancedFilters(
-      expandAdvanced: _expandAdvanced,
+      expandAdvanced: true,
       ranges: [
         CatalogAdvancedRangeSpec(
           title: context.tr(CatalogL10n.tablePercentage),
@@ -461,6 +558,183 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           infoDiagram: FilterProportionDiagramKind.culet,
         ),
       ],
+    );
+  }
+}
+
+/// Pinned, horizontally scrolling index of finder sections. Pills carry a
+/// dot when their section holds active filters.
+class _SectionIndex extends StatelessWidget {
+  const _SectionIndex({
+    required this.sections,
+    required this.active,
+    required this.summary,
+    required this.pillKeys,
+    required this.labelOf,
+    required this.onTap,
+    super.key,
+  });
+
+  final List<DiamondFinderSection> sections;
+  final DiamondFinderSection active;
+  final DiamondFilterSummary summary;
+  final Map<DiamondFinderSection, GlobalKey> pillKeys;
+  final String Function(DiamondFinderSection) labelOf;
+  final ValueChanged<DiamondFinderSection> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      itemCount: sections.length,
+      separatorBuilder: (_, _) => const SizedBox(width: 8),
+      itemBuilder: (context, i) {
+        final s = sections[i];
+        final selected = s == active;
+        final hasActive = summary.count(s) > 0;
+        return Semantics(
+          button: true,
+          selected: selected,
+          label: labelOf(s),
+          excludeSemantics: true,
+          child: GestureDetector(
+            key: pillKeys[s],
+            onTap: () => onTap(s),
+            child: AnimatedContainer(
+              duration: LuxeMotion.medium,
+              curve: LuxeMotion.settle,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              alignment: Alignment.center,
+              decoration: ShapeDecoration(
+                color: selected ? p.ink : p.surface,
+                shape: StadiumBorder(
+                  side: BorderSide(color: selected ? p.ink : p.hairline),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    labelOf(s),
+                    style: LuxeType.label(
+                      selected ? p.canvas : p.inkMuted,
+                      size: 12.5,
+                    ),
+                  ),
+                  if (hasActive) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: p.accent,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SectionIndexDelegate extends SliverPersistentHeaderDelegate {
+  _SectionIndexDelegate({
+    required this.child,
+    required this.background,
+    required this.hairline,
+  });
+
+  final Widget child;
+  final Color background;
+  final Color hairline;
+
+  @override
+  double get minExtent => 56;
+  @override
+  double get maxExtent => 56;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlaps) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: background.withValues(alpha: 0.88),
+            border: Border(
+              bottom: BorderSide(
+                color: overlaps ? hairline : Colors.transparent,
+                width: 0.6,
+              ),
+            ),
+          ),
+          child: SizedBox.expand(child: child),
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SectionIndexDelegate old) =>
+      old.child != child || old.background != background;
+}
+
+/// Sticky footer: reset (when anything is set) and the primary search.
+class _FinderActionBar extends StatelessWidget {
+  const _FinderActionBar({
+    required this.activeCount,
+    required this.onReset,
+    required this.onShow,
+  });
+
+  final int activeCount;
+  final VoidCallback? onReset;
+  final VoidCallback onShow;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
+        color: p.surface,
+        border: Border(top: BorderSide(color: p.hairline, width: 0.6)),
+      ),
+      child: Row(
+        children: [
+          AnimatedSize(
+            duration: LuxeMotion.medium,
+            curve: LuxeMotion.settle,
+            child: onReset == null
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: LuxeButton(
+                      label: context.tr(DiamondFlowL10n.reset),
+                      onPressed: onReset,
+                      variant: LuxeButtonVariant.secondary,
+                    ),
+                  ),
+          ),
+          Expanded(
+            child: LuxeButton(
+              label: context.tr(CatalogL10n.showDiamonds),
+              onPressed: onShow,
+              expand: true,
+              badge: activeCount,
+              trailingIcon: Icons.arrow_forward_rounded,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -8,7 +8,7 @@ import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/language_menu_button.dart';
 import '../theme/home_tokens.dart';
 import 'home_section.dart';
-import 'motion/scroll_reveal.dart';
+import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 /// Closing colophon: wordmark, promise line, legal links and preferences.
 class HomeFooter extends ConsumerWidget {

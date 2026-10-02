@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../haptics/app_haptics.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
+import '../../theme/luxe_scope.dart';
+import '../../theme/luxe_tokens.dart';
 
 class FilterBooleanCheckbox extends StatelessWidget {
   const FilterBooleanCheckbox({
@@ -17,6 +19,40 @@ class FilterBooleanCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final luxe = LuxeScope.paletteOf(context);
+    if (luxe != null) {
+      return MergeSemantics(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            AppHaptics.selection();
+            onChanged(!value);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(label, style: LuxeType.body(luxe.ink, size: 14)),
+                ),
+                Switch(
+                  value: value,
+                  activeThumbColor: luxe.canvas,
+                  activeTrackColor: luxe.ink,
+                  inactiveThumbColor: luxe.inkFaint,
+                  inactiveTrackColor: luxe.surfaceRaised,
+                  trackOutlineColor: WidgetStatePropertyAll(luxe.hairline),
+                  onChanged: (v) {
+                    AppHaptics.selection();
+                    onChanged(v);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Row(
       children: [
         Checkbox(
