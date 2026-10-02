@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/catalog_listing_header_row.dart';
 import '../../../../core/widgets/catalog_empty_state.dart';
@@ -89,15 +89,12 @@ class _GemstoneListingsScreenState
               sortLabel: sortOption.label,
               onSortTap: () => _openSortSheet(context),
               isGrid: viewMode == GemstoneViewMode.grid,
-              onGrid: () =>
-                  ref.read(gemstoneViewModeProvider.notifier).state =
-                      GemstoneViewMode.grid,
-              onList: () =>
-                  ref.read(gemstoneViewModeProvider.notifier).state =
-                      GemstoneViewMode.list,
+              onGrid: () => ref.read(gemstoneViewModeProvider.notifier).state =
+                  GemstoneViewMode.grid,
+              onList: () => ref.read(gemstoneViewModeProvider.notifier).state =
+                  GemstoneViewMode.list,
               countLabel: countLabel,
-              onEditFilters: () =>
-                  context.pushReplacement(AppRouteNames.gemstones),
+              onEditFilters: () => context.resetTo(AppRouteNames.gemstones),
             ),
             const Divider(height: 0),
             Expanded(
@@ -114,8 +111,7 @@ class _GemstoneListingsScreenState
                       title: context.tr(CatalogL10n.noGemstones),
                       message: context.tr(CatalogL10n.adjustSearchCriteria),
                       actionLabel: context.tr(CatalogL10n.editFilters),
-                      onAction: () =>
-                          context.pushReplacement(AppRouteNames.gemstones),
+                      onAction: () => context.resetTo(AppRouteNames.gemstones),
                     );
                   }
                   return RefreshIndicator(

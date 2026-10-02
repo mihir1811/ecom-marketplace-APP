@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 
+import '../router/app_navigation.dart';
+import '../router/route_names.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import 'app_top_bar.dart';
@@ -40,62 +42,77 @@ class CatalogSearchFilterShell extends StatelessWidget {
   final String? clearLabel;
   final bool Function(ScrollNotification notification)? onScrollNotification;
 
+  void _leaveToHome(BuildContext context) {
+    context.resetTo(AppRouteNames.home);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MeleeBackgroundShell(
-      isMelee: isMelee,
-      family: meleeFamily,
-      child: AppScaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppTopBar(title: title, transparent: true),
-        body: Column(
-          children: [
-            const GlobalSearchBar(),
-            Expanded(
-              child: SafeArea(
-                top: false,
-                child: Stack(
-                  children: [
-                    Column(
-                      children: [
-                        stickyNav,
-                        Expanded(
-                          child: NotificationListener<ScrollNotification>(
-                            onNotification:
-                                onScrollNotification ?? (_) => false,
-                            child: SingleChildScrollView(
-                              controller: scrollController,
-                              padding: const EdgeInsets.only(
-                                left: AppSpacing.s16,
-                                right: AppSpacing.s16,
-                                bottom: 120,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: bodyChildren,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _leaveToHome(context);
+      },
+      child: MeleeBackgroundShell(
+        isMelee: isMelee,
+        family: meleeFamily,
+        child: AppScaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppTopBar(
+            title: title,
+            transparent: true,
+            onBack: () => _leaveToHome(context),
+          ),
+          body: Column(
+            children: [
+              const GlobalSearchBar(),
+              Expanded(
+                child: SafeArea(
+                  top: false,
+                  child: Stack(
+                    children: [
+                      Column(
+                        children: [
+                          stickyNav,
+                          Expanded(
+                            child: NotificationListener<ScrollNotification>(
+                              onNotification:
+                                  onScrollNotification ?? (_) => false,
+                              child: SingleChildScrollView(
+                                controller: scrollController,
+                                padding: const EdgeInsets.only(
+                                  left: AppSpacing.s16,
+                                  right: AppSpacing.s16,
+                                  bottom: 120,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: bodyChildren,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: SearchActionBottomBar(
-                        primaryLabel: primaryLabel,
-                        onPrimary: onPrimary,
-                        clearLabel:
-                            clearLabel ?? context.tr(RemainingL10n.clearAll),
-                        onClear: onClear,
+                        ],
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: SearchActionBottomBar(
+                          primaryLabel: primaryLabel,
+                          onPrimary: onPrimary,
+                          clearLabel:
+                              clearLabel ?? context.tr(RemainingL10n.clearAll),
+                          onClear: onClear,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

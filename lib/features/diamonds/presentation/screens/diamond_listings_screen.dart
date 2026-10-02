@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
@@ -209,9 +208,8 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                           );
                         }
                         return RefreshIndicator(
-                          onRefresh: () => ref
-                              .read(diamondListProvider.notifier)
-                              .refresh(),
+                          onRefresh: () =>
+                              ref.read(diamondListProvider.notifier).refresh(),
                           child: viewMode == ViewMode.grid
                               ? DiamondGridView(
                                   key: const ValueKey('diamond-grid'),
@@ -227,9 +225,8 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
                                 ),
                         );
                       },
-                      loading: () => CatalogListLoading(
-                        isGrid: viewMode == ViewMode.grid,
-                      ),
+                      loading: () =>
+                          CatalogListLoading(isGrid: viewMode == ViewMode.grid),
                       error: (error, _) => _buildError(error.toString()),
                     ),
                   ),
@@ -313,13 +310,7 @@ class _DiamondListingHeader extends ConsumerWidget {
       onGrid: () => onSwitchViewMode(ViewMode.grid),
       onList: () => onSwitchViewMode(ViewMode.list),
       countLabel: countLabel,
-      onEditFilters: () {
-        if (context.canPop()) {
-          context.goBack();
-        } else {
-          context.openRoute(searchRoute);
-        }
-      },
+      onEditFilters: () => context.resetTo(searchRoute),
     );
   }
 }

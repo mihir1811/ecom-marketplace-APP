@@ -23,27 +23,28 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
   bool _isStandardExpanded = false;
   bool _isOvertonesExpanded = false;
 
-  /// Pale D–Z swatches already read as white, so the inverted white
-  /// selected fill is invisible in dark mode. Bronze stays readable.
+  /// Selected grades use a dark fill so the letter stays readable.
   Color _standardGradeSelectedFill(BuildContext context) =>
       AppColors.isDark(context) ? AppColors.bronze : AppColors.charcoal;
+
+  /// Same yellow from D to Z. Opacity runs 0 at D through 1 at Z.
+  static const Color _standardGradeYellow = Color(0xFFFFEB3B);
+  static const Color _standardGradeYellowBorder = Color(0xFFF9A825);
+
+  double _gradeOpacity(String letter) {
+    const letters = DiamondFilterState.colors;
+    final index = letters.indexOf(letter);
+    if (index <= 0 || letters.length < 2) return 0;
+    return index / (letters.length - 1);
+  }
 
   Color _getStandardColorBg(
     BuildContext context,
     String letter,
     bool isSelected,
   ) {
-    if (isSelected) {
-      return _standardGradeSelectedFill(context);
-    }
-    const allLetters = DiamondFilterState.colors;
-    final idx = allLetters.indexOf(letter);
-    final fraction = idx / (allLetters.length - 1);
-
-    const Color startColor = Color(0xFFE4E2DC);
-    const Color endColor = Color(0xFFF0D24A);
-
-    return Color.lerp(startColor, endColor, fraction) ?? startColor;
+    if (isSelected) return _standardGradeSelectedFill(context);
+    return _standardGradeYellow.withValues(alpha: _gradeOpacity(letter));
   }
 
   Widget _buildChunkRow({
@@ -73,7 +74,11 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                   border: Border.all(
                     color: isSelected
                         ? _standardGradeSelectedFill(context)
-                        : const Color(0xFFC8C3B8),
+                        : Color.lerp(
+                            AppColors.border(context),
+                            _standardGradeYellowBorder,
+                            _gradeOpacity(colorLetter),
+                          )!,
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),

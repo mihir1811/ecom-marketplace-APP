@@ -34,6 +34,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
     this.onSellerWalletTap,
     this.onSellerMessagesTap,
     this.extraActions = const [],
+    this.onBack,
     this.centerTitle = false,
     this.backgroundColor,
     this.elevation = 0,
@@ -59,6 +60,9 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
   final VoidCallback? onSellerWalletTap;
   final VoidCallback? onSellerMessagesTap;
   final List<Widget> extraActions;
+
+  /// When set, the back button uses this instead of popping the stack.
+  final VoidCallback? onBack;
   final bool centerTitle;
   final Color? backgroundColor;
   final double elevation;
@@ -184,7 +188,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
     final effectiveLeading =
         leading ??
         (showBack
-            ? BackButton(onPressed: () => context.goBack())
+            ? BackButton(onPressed: onBack ?? () => context.goBack())
             : (showDrawerButton && authState.isAuthenticated
                   ? const AppDrawerButton()
                   : null));
