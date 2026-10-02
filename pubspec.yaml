@@ -53,6 +53,7 @@ dependencies:
   share_plus: ^13.3.0
   firebase_core: ^4.15.0
   firebase_messaging: ^16.7.0
+  flutter_animate: ^4.5.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -82,6 +83,9 @@ flutter:
     - assets/policies/policies.json
     - assets/policies/policies_hi.json
     - assets/policies/policies_gu.json
+
+  shaders:
+    - shaders/home_cosmos.frag
 
   # To add assets to your application, add an assets section, like this:
   # assets:

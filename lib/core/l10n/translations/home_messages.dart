@@ -1,0 +1,309 @@
+import '../localized_message.dart';
+
+/// Stable keys for the home experience copy.
+abstract final class HomeL10n {
+  static const heroEyebrow = 'home.heroEyebrow';
+  static const heroTitleLine1 = 'home.heroTitleLine1';
+  static const heroTitleLine2 = 'home.heroTitleLine2';
+  static const searchPrefix = 'home.searchPrefix';
+  static const searchPlaceholder = 'home.searchPlaceholder';
+  static const exploreCollections = 'home.exploreCollections';
+  static const dragHint = 'home.dragHint';
+  static const closeSearch = 'home.closeSearch';
+  static const collectionsEyebrow = 'home.collectionsEyebrow';
+  static const collectionsTitle = 'home.collectionsTitle';
+  static const atelierTitle = 'home.atelierTitle';
+  static const orders = 'home.orders';
+  static const wishlist = 'home.wishlist';
+  static const myBids = 'home.myBids';
+  static const wallet = 'home.wallet';
+  static const dashboard = 'home.dashboard';
+  static const auctionsEyebrow = 'home.auctionsEyebrow';
+  static const auctionsTitle = 'home.auctionsTitle';
+  static const currentBid = 'home.currentBid';
+  static const endsIn = 'home.endsIn';
+  static const ended = 'home.ended';
+  static const live = 'home.live';
+  static const shapesEyebrow = 'home.shapesEyebrow';
+  static const shapesTitle = 'home.shapesTitle';
+  static const exploreShape = 'home.exploreShape';
+  static const conciergeEyebrow = 'home.conciergeEyebrow';
+  static const conciergeTitle = 'home.conciergeTitle';
+  static const conciergeBody = 'home.conciergeBody';
+  static const conciergePrompt1 = 'home.conciergePrompt1';
+  static const conciergePrompt2 = 'home.conciergePrompt2';
+  static const conciergePrompt3 = 'home.conciergePrompt3';
+  static const conciergeCta = 'home.conciergeCta';
+  static const promiseEyebrow = 'home.promiseEyebrow';
+  static const promiseTitle = 'home.promiseTitle';
+  static const pillarCertifiedTitle = 'home.pillarCertifiedTitle';
+  static const pillarCertifiedBody = 'home.pillarCertifiedBody';
+  static const pillarSellersTitle = 'home.pillarSellersTitle';
+  static const pillarSellersBody = 'home.pillarSellersBody';
+  static const pillarPaymentsTitle = 'home.pillarPaymentsTitle';
+  static const pillarPaymentsBody = 'home.pillarPaymentsBody';
+  static const sellEyebrow = 'home.sellEyebrow';
+  static const appearance = 'home.appearance';
+  static const light = 'home.light';
+  static const dark = 'home.dark';
+  static const rights = 'home.rights';
+  static const notifications = 'home.notifications';
+  static const auctions = 'home.auctions';
+  static const formGlyph = 'home.formGlyph';
+  static const formGem = 'home.formGem';
+  static const formGalaxy = 'home.formGalaxy';
+}
+
+const homeMessages = <String, LocalizedMessage>{
+  HomeL10n.heroEyebrow: LocalizedMessage(
+    english: 'Certified · Verified · Protected',
+    hindi: 'प्रमाणित · सत्यापित · सुरक्षित',
+    gujarati: 'પ્રમાણિત · ચકાસાયેલ · સુરક્ષિત',
+  ),
+  HomeL10n.heroTitleLine1: LocalizedMessage(
+    english: 'Rare beauty,',
+    hindi: 'दुर्लभ सौंदर्य,',
+    gujarati: 'દુર્લભ સૌંદર્ય,',
+  ),
+  HomeL10n.heroTitleLine2: LocalizedMessage(
+    english: 'honestly traded.',
+    hindi: 'पूरी ईमानदारी से।',
+    gujarati: 'પૂરી પ્રામાણિકતાથી.',
+  ),
+  HomeL10n.searchPrefix: LocalizedMessage(
+    english: 'Search',
+    hindi: 'खोजें',
+    gujarati: 'શોધો',
+  ),
+  HomeL10n.searchPlaceholder: LocalizedMessage(
+    english: 'Search by shape, carat, brand or stone',
+    hindi: 'आकार, कैरेट, ब्रांड या रत्न से खोजें',
+    gujarati: 'આકાર, કેરેટ, બ્રાન્ડ અથવા રત્નથી શોધો',
+  ),
+  HomeL10n.exploreCollections: LocalizedMessage(
+    english: 'Explore the collections',
+    hindi: 'संग्रह देखें',
+    gujarati: 'સંગ્રહ જુઓ',
+  ),
+  HomeL10n.dragHint: LocalizedMessage(
+    english: 'Touch the stars · tap to transform',
+    hindi: 'तारों को छुएँ · बदलने के लिए टैप करें',
+    gujarati: 'તારાઓને સ્પર્શો · બદલવા ટૅપ કરો',
+  ),
+  HomeL10n.closeSearch: LocalizedMessage(
+    english: 'Close search',
+    hindi: 'खोज बंद करें',
+    gujarati: 'શોધ બંધ કરો',
+  ),
+  HomeL10n.collectionsEyebrow: LocalizedMessage(
+    english: 'The collections',
+    hindi: 'संग्रह',
+    gujarati: 'સંગ્રહ',
+  ),
+  HomeL10n.collectionsTitle: LocalizedMessage(
+    english: 'Six worlds of the rare.',
+    hindi: 'दुर्लभता के छह संसार।',
+    gujarati: 'દુર્લભતાના છ વિશ્વ.',
+  ),
+  HomeL10n.atelierTitle: LocalizedMessage(
+    english: 'Your atelier',
+    hindi: 'आपका एटेलियर',
+    gujarati: 'તમારું એટેલિયર',
+  ),
+  HomeL10n.orders: LocalizedMessage(
+    english: 'Orders',
+    hindi: 'ऑर्डर',
+    gujarati: 'ઓર્ડર',
+  ),
+  HomeL10n.wishlist: LocalizedMessage(
+    english: 'Wishlist',
+    hindi: 'विशलिस्ट',
+    gujarati: 'વિશલિસ્ટ',
+  ),
+  HomeL10n.myBids: LocalizedMessage(
+    english: 'My bids',
+    hindi: 'मेरी बोलियाँ',
+    gujarati: 'મારી બોલીઓ',
+  ),
+  HomeL10n.wallet: LocalizedMessage(
+    english: 'Wallet',
+    hindi: 'वॉलेट',
+    gujarati: 'વૉલેટ',
+  ),
+  HomeL10n.dashboard: LocalizedMessage(
+    english: 'Dashboard',
+    hindi: 'डैशबोर्ड',
+    gujarati: 'ડેશબોર્ડ',
+  ),
+  HomeL10n.auctionsEyebrow: LocalizedMessage(
+    english: 'Live now',
+    hindi: 'अभी लाइव',
+    gujarati: 'હમણાં લાઇવ',
+  ),
+  HomeL10n.auctionsTitle: LocalizedMessage(
+    english: 'Auctions in the room.',
+    hindi: 'चल रही नीलामियाँ।',
+    gujarati: 'ચાલુ હરાજીઓ.',
+  ),
+  HomeL10n.currentBid: LocalizedMessage(
+    english: 'Current bid',
+    hindi: 'मौजूदा बोली',
+    gujarati: 'હાલની બોલી',
+  ),
+  HomeL10n.endsIn: LocalizedMessage(
+    english: 'Ends in',
+    hindi: 'समाप्ति में',
+    gujarati: 'પૂર્ણ થવામાં',
+  ),
+  HomeL10n.ended: LocalizedMessage(
+    english: 'Closing',
+    hindi: 'समाप्त हो रही है',
+    gujarati: 'પૂર્ણ થઈ રહી છે',
+  ),
+  HomeL10n.live: LocalizedMessage(
+    english: 'Live',
+    hindi: 'लाइव',
+    gujarati: 'લાઇવ',
+  ),
+  HomeL10n.shapesEyebrow: LocalizedMessage(
+    english: 'The diamond atelier',
+    hindi: 'हीरा एटेलियर',
+    gujarati: 'હીરા એટેલિયર',
+  ),
+  HomeL10n.shapesTitle: LocalizedMessage(
+    english: 'Begin with a shape.',
+    hindi: 'आकार से शुरुआत करें।',
+    gujarati: 'આકારથી શરૂઆત કરો.',
+  ),
+  HomeL10n.exploreShape: LocalizedMessage(
+    english: 'Explore {shape} diamonds',
+    hindi: '{shape} हीरे देखें',
+    gujarati: '{shape} હીરા જુઓ',
+  ),
+  HomeL10n.conciergeEyebrow: LocalizedMessage(
+    english: 'Gem AI concierge',
+    hindi: 'जेम AI कंसीयर्ज',
+    gujarati: 'જેમ AI કન્સિયર્જ',
+  ),
+  HomeL10n.conciergeTitle: LocalizedMessage(
+    english: 'Describe it.\nWe will find it.',
+    hindi: 'बताइए।\nहम ढूँढ लेंगे।',
+    gujarati: 'વર્ણન કરો.\nઅમે શોધી આપીશું.',
+  ),
+  HomeL10n.conciergeBody: LocalizedMessage(
+    english: 'Ask in your own words — budget, occasion, cut or carat.',
+    hindi: 'अपने शब्दों में पूछें — बजट, अवसर, कट या कैरेट।',
+    gujarati: 'તમારા શબ્દોમાં પૂછો — બજેટ, પ્રસંગ, કટ કે કેરેટ.',
+  ),
+  HomeL10n.conciergePrompt1: LocalizedMessage(
+    english: 'An oval diamond near 1.5 ct, G colour, VS1',
+    hindi: 'लगभग 1.5 कैरेट का ओवल हीरा, G रंग, VS1',
+    gujarati: 'આશરે 1.5 કેરેટનો ઓવલ હીરો, G રંગ, VS1',
+  ),
+  HomeL10n.conciergePrompt2: LocalizedMessage(
+    english: 'A Colombian emerald for an anniversary ring',
+    hindi: 'सालगिरह की अंगूठी के लिए कोलंबियाई पन्ना',
+    gujarati: 'વર્ષગાંઠની વીંટી માટે કોલંબિયન પન્ના',
+  ),
+  HomeL10n.conciergePrompt3: LocalizedMessage(
+    english: 'Lab-grown studs under a set budget',
+    hindi: 'तय बजट में लैब-ग्रोन स्टड्स',
+    gujarati: 'નિશ્ચિત બજેટમાં લેબ-ગ્રોન સ્ટડ્સ',
+  ),
+  HomeL10n.conciergeCta: LocalizedMessage(
+    english: 'Ask the concierge',
+    hindi: 'कंसीयर्ज से पूछें',
+    gujarati: 'કન્સિયર્જને પૂછો',
+  ),
+  HomeL10n.promiseEyebrow: LocalizedMessage(
+    english: 'The GemWorld promise',
+    hindi: 'जेमवर्ल्ड का वादा',
+    gujarati: 'જેમવર્લ્ડનું વચન',
+  ),
+  HomeL10n.promiseTitle: LocalizedMessage(
+    english: 'Trust, cut\nto perfection.',
+    hindi: 'भरोसा,\nबेहतरीन तराश में।',
+    gujarati: 'વિશ્વાસ,\nશ્રેષ્ઠ ઘાટમાં.',
+  ),
+  HomeL10n.pillarCertifiedTitle: LocalizedMessage(
+    english: 'Certified stones',
+    hindi: 'प्रमाणित रत्न',
+    gujarati: 'પ્રમાણિત રત્નો',
+  ),
+  HomeL10n.pillarCertifiedBody: LocalizedMessage(
+    english: 'Graded stones with certificates you can check before you buy.',
+    hindi:
+        'ग्रेड किए गए रत्न, जिनके प्रमाणपत्र आप खरीदने से पहले देख सकते हैं।',
+    gujarati: 'ગ્રેડ કરેલા રત્નો, જેના પ્રમાણપત્રો તમે ખરીદતા પહેલાં જોઈ શકો.',
+  ),
+  HomeL10n.pillarSellersTitle: LocalizedMessage(
+    english: 'Transparent sellers',
+    hindi: 'पारदर्शी विक्रेता',
+    gujarati: 'પારદર્શક વિક્રેતાઓ',
+  ),
+  HomeL10n.pillarSellersBody: LocalizedMessage(
+    english: 'Every listing traces back to a verified business profile.',
+    hindi: 'हर लिस्टिंग एक सत्यापित व्यावसायिक प्रोफ़ाइल से जुड़ी है।',
+    gujarati: 'દરેક લિસ્ટિંગ ચકાસાયેલ વ્યવસાય પ્રોફાઇલ સાથે જોડાયેલ છે.',
+  ),
+  HomeL10n.pillarPaymentsTitle: LocalizedMessage(
+    english: 'Protected payments',
+    hindi: 'सुरक्षित भुगतान',
+    gujarati: 'સુરક્ષિત ચુકવણી',
+  ),
+  HomeL10n.pillarPaymentsBody: LocalizedMessage(
+    english: 'Secure checkout and dedicated support at every step.',
+    hindi: 'सुरक्षित चेकआउट और हर कदम पर समर्पित सहायता।',
+    gujarati: 'સુરક્ષિત ચેકઆઉટ અને દરેક પગલે સમર્પિત સહાય.',
+  ),
+  HomeL10n.sellEyebrow: LocalizedMessage(
+    english: 'For houses & dealers',
+    hindi: 'ज्वेलर्स और डीलरों के लिए',
+    gujarati: 'જ્વેલર્સ અને ડીલરો માટે',
+  ),
+  HomeL10n.appearance: LocalizedMessage(
+    english: 'Appearance',
+    hindi: 'रूप',
+    gujarati: 'દેખાવ',
+  ),
+  HomeL10n.light: LocalizedMessage(
+    english: 'Light',
+    hindi: 'लाइट',
+    gujarati: 'લાઇટ',
+  ),
+  HomeL10n.dark: LocalizedMessage(
+    english: 'Dark',
+    hindi: 'डार्क',
+    gujarati: 'ડાર્ક',
+  ),
+  HomeL10n.rights: LocalizedMessage(
+    english: '© {year} GemWorld. All rights reserved.',
+    hindi: '© {year} जेमवर्ल्ड. सर्वाधिकार सुरक्षित।',
+    gujarati: '© {year} જેમવર્લ્ડ. સર્વ હક સુરક્ષિત.',
+  ),
+  HomeL10n.notifications: LocalizedMessage(
+    english: 'Notifications',
+    hindi: 'सूचनाएँ',
+    gujarati: 'સૂચનાઓ',
+  ),
+  HomeL10n.auctions: LocalizedMessage(
+    english: 'Auctions',
+    hindi: 'नीलामी',
+    gujarati: 'હરાજી',
+  ),
+  HomeL10n.formGlyph: LocalizedMessage(
+    english: 'The GemWorld mark',
+    hindi: 'जेमवर्ल्ड की पहचान',
+    gujarati: 'જેમવર્લ્ડની ઓળખ',
+  ),
+  HomeL10n.formGem: LocalizedMessage(
+    english: '57 facets of light',
+    hindi: 'प्रकाश के 57 पहलू',
+    gujarati: 'પ્રકાશના 57 પાસાં',
+  ),
+  HomeL10n.formGalaxy: LocalizedMessage(
+    english: 'Every gem began as stardust',
+    hindi: 'हर रत्न की शुरुआत तारों की धूल से हुई',
+    gujarati: 'દરેક રત્નની શરૂઆત તારાઓની ધૂળથી થઈ',
+  ),
+};
