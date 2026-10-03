@@ -11,7 +11,6 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
-import '../../../../core/widgets/luxe/luxe_product_card.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../../product_detail/product_detail_navigation.dart';
@@ -34,93 +33,51 @@ class GemstoneListingsScreen extends ConsumerStatefulWidget {
       _GemstoneListingsScreenState();
 }
 
-class _GemstoneListingsScreenState
-    extends ConsumerState<GemstoneListingsScreen> {
-  static const _gap = 12.0;
-  static const _pad = 16.0;
-  static const _listStride = LuxeProductListCard.thumbSize + 12 + _gap;
-
-  final _scroll = ScrollController();
-  final _offset = ValueNotifier<double>(0);
-  final _headerKey = GlobalKey();
-  final _entered = <String>{};
-
+class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
+    with LuxeListingMixin {
   @override
   void initState() {
     super.initState();
-    _scroll.addListener(_onScroll);
+    initListing();
   }
 
   @override
   void dispose() {
-    _scroll
-      ..removeListener(_onScroll)
-      ..dispose();
-    _offset.dispose();
+    disposeListing();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (!_scroll.hasClients) return;
-    _offset.value = _scroll.offset;
+  @override
+  bool get listingCanLoadMore {
+    final s = ref.read(gemstoneListProvider).valueOrNull;
+    return s != null &&
+        s.hasMore &&
+        !s.isLoadingMore &&
+        !s.isInitialLoading &&
+        !s.isRefreshing;
+  }
 
-    final listState = ref.read(gemstoneListProvider).valueOrNull;
-    if (listState == null ||
-        !listState.hasMore ||
-        listState.isLoadingMore ||
-        listState.isInitialLoading ||
-        listState.isRefreshing) {
-      return;
-    }
-    final position = _scroll.position;
-    // Prefetch ~1 viewport before the end so the next page arrives seamlessly.
-    if (position.pixels >=
-        position.maxScrollExtent - position.viewportDimension) {
+  @override
+  void listingLoadMore() =>
       ref.read(gemstoneListProvider.notifier).loadNextPage();
-    }
-  }
 
-  double get _headerExtent {
-    final box = _headerKey.currentContext?.findRenderObject();
-    return box is RenderBox && box.hasSize ? box.size.height : 0;
-  }
+  @override
+  int get listingItemCount =>
+      ref.read(gemstoneListProvider).valueOrNull?.gemstones.length ?? 0;
 
-  double _gridStride(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final cell = (width - _pad * 2 - _gap) / 2;
-    return cell +
-        luxeGridCardTextExtent(MediaQuery.textScalerOf(context)) +
-        _gap;
-  }
+  @override
+  LuxeViewMode get listingViewMode =>
+      ref.read(gemstoneViewModeProvider) == GemstoneViewMode.grid
+      ? LuxeViewMode.grid
+      : LuxeViewMode.list;
 
-  /// Switches layout while keeping the first visible stone in view.
-  void _switchViewMode(LuxeViewMode next) {
-    final current = ref.read(gemstoneViewModeProvider);
-    final nextMode = next == LuxeViewMode.grid
-        ? GemstoneViewMode.grid
-        : GemstoneViewMode.list;
-    if (current == nextMode) return;
-    final count =
-        ref.read(gemstoneListProvider).valueOrNull?.gemstones.length ?? 0;
-    final into = (_scroll.hasClients ? _scroll.offset : 0) - _headerExtent;
-    final index = count == 0 || into <= 0
-        ? 0
-        : (current == GemstoneViewMode.grid
-                  ? (into / _gridStride(context)).floor() * 2
-                  : (into / _listStride).floor())
-              .clamp(0, count - 1);
-    ref.read(gemstoneViewModeProvider.notifier).state = nextMode;
-    if (index == 0) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scroll.hasClients) return;
-      final target =
-          _headerExtent +
-          (nextMode == GemstoneViewMode.grid
-              ? (index ~/ 2) * _gridStride(context)
-              : index * _listStride);
-      _scroll.jumpTo(target.clamp(0.0, _scroll.position.maxScrollExtent));
-    });
-  }
+  @override
+  void listingApplyViewMode(LuxeViewMode mode) =>
+      ref
+          .read(gemstoneViewModeProvider.notifier)
+          .state = mode == LuxeViewMode.grid
+      ? GemstoneViewMode.grid
+      : GemstoneViewMode.list;
 
   void _editFilters() => context.resetTo(AppRouteNames.gemstones);
 
@@ -154,56 +111,36 @@ class _GemstoneListingsScreenState
       appBar: LuxeTopBar(
         title: context.tr(RemainingL10n.gemstones),
         subtitle: const _CountLine(),
-        scrollOffset: _offset,
+        scrollOffset: listingOffset,
         actions: const [CatalogFlowActions()],
       ),
       body: ComparisonTrayHost(
-        child: Stack(
-          children: [
-            RefreshIndicator(
-              color: p.ink,
-              backgroundColor: p.surface,
-              onRefresh: () =>
-                  ref.read(gemstoneListProvider.notifier).refresh(),
-              child: CustomScrollView(
-                controller: _scroll,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: KeyedSubtree(
-                      key: _headerKey,
-                      child: _ActiveFilterPills(
-                        onEdit: _editFilters,
-                        onResetAll: _resetFilters,
-                      ),
-                    ),
-                  ),
-                  LuxePinnedBar(
-                    child: Center(
-                      child: _Toolbar(
-                        onEditFilters: _editFilters,
-                        onSort: () => _openSort(context),
-                        onSwitchViewMode: _switchViewMode,
-                      ),
-                    ),
-                  ),
-                  ..._content(context),
-                ],
-              ),
-            ),
-            Positioned(
-              right: 16,
-              bottom: 16,
-              child: LuxeBackToTop(
-                offset: _offset,
-                tooltip: context.tr(DiamondFlowL10n.backToTop),
-                onTap: () => _scroll.animateTo(
-                  0,
-                  duration: const Duration(milliseconds: 900),
-                  curve: LuxeMotion.settle,
+        child: LuxeListingScrollView(
+          controller: listingScroll,
+          offset: listingOffset,
+          onRefresh: () => ref.read(gemstoneListProvider.notifier).refresh(),
+          onBackToTop: listingBackToTop,
+          backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
+          slivers: [
+            SliverToBoxAdapter(
+              child: KeyedSubtree(
+                key: listingHeaderKey,
+                child: _ActiveFilterPills(
+                  onEdit: _editFilters,
+                  onResetAll: _resetFilters,
                 ),
               ),
             ),
+            LuxePinnedBar(
+              child: Center(
+                child: _Toolbar(
+                  onEditFilters: _editFilters,
+                  onSort: () => _openSort(context),
+                  onSwitchViewMode: switchListingViewMode,
+                ),
+              ),
+            ),
+            ..._content(context),
           ],
         ),
       ),
@@ -212,101 +149,51 @@ class _GemstoneListingsScreenState
 
   List<Widget> _content(BuildContext context) {
     final stateAsync = ref.watch(gemstoneListProvider);
-    final viewMode = ref.watch(gemstoneViewModeProvider);
-    final grid = viewMode == GemstoneViewMode.grid;
-
-    Widget fill(Widget child) =>
-        SliverFillRemaining(hasScrollBody: false, child: child);
-
-    final error = stateAsync.whenOrNull(error: (e, _) => e.toString());
+    final grid = ref.watch(gemstoneViewModeProvider) == GemstoneViewMode.grid;
     final state = stateAsync.valueOrNull;
-    if (error != null) return [fill(_errorView(error))];
-    if (state == null || state.isInitialLoading) {
-      return [LuxeListingSkeletons(grid: grid, padding: _pad, gap: _gap)];
-    }
-    if (state.errorMessage != null && state.gemstones.isEmpty) {
-      return [fill(_errorView(state.errorMessage!))];
-    }
-    if (state.gemstones.isEmpty) {
-      return [
-        fill(
-          LuxeStateView(
-            icon: Icons.auto_awesome_outlined,
-            title: context.tr(GemstoneFlowL10n.emptyTitle),
-            message: context.tr(DiamondFlowL10n.emptyBody),
-            actionLabel: context.tr(DiamondFlowL10n.editFilters),
-            onAction: _editFilters,
-            secondaryLabel: context.tr(CatalogL10n.resetFilters),
-            onSecondary: _resetFilters,
-          ),
-        ),
-      ];
-    }
-
-    final gemstones = state.gemstones;
-
-    Widget card(int i) {
-      final g = gemstones[i];
-      void open() => openGemstoneDetail(context, g);
-      final child = grid
-          ? GemstoneLuxeGridCard(gemstone: g, onTap: open)
-          : GemstoneLuxeListCard(gemstone: g, onTap: open);
-      return LuxeEntranceOnce(
-        key: ValueKey('${viewMode.name}-${g.id}'),
-        id: '${viewMode.name}-${g.id}',
-        seen: _entered,
-        index: i,
-        child: RepaintBoundary(child: child),
-      );
-    }
-
-    final width = MediaQuery.sizeOf(context).width;
-    final cell = (width - _pad * 2 - _gap) / 2;
-    final extent =
-        cell + luxeGridCardTextExtent(MediaQuery.textScalerOf(context));
-
-    return [
-      SliverPadding(
-        padding: const EdgeInsets.fromLTRB(_pad, 6, _pad, 0),
-        sliver: grid
-            ? SliverGrid.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: _gap,
-                  crossAxisSpacing: _gap,
-                  mainAxisExtent: extent,
-                ),
-                itemCount: gemstones.length,
-                itemBuilder: (context, i) => card(i),
-              )
-            : SliverList.separated(
-                itemCount: gemstones.length,
-                separatorBuilder: (_, _) => const SizedBox(height: _gap),
-                itemBuilder: (context, i) => card(i),
-              ),
+    final error =
+        stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
+        state?.errorMessage;
+    return luxeResultSlivers(
+      context: context,
+      initialLoading:
+          !stateAsync.hasError && (state == null || state.isInitialLoading),
+      error: error,
+      items: state?.gemstones ?? const [],
+      isLoadingMore: state?.isLoadingMore ?? false,
+      viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
+      idOf: (g) => g.id,
+      cardOf: (g, mode) => mode == LuxeViewMode.grid
+          ? GemstoneLuxeGridCard(
+              gemstone: g,
+              onTap: () => openGemstoneDetail(context, g),
+            )
+          : GemstoneLuxeListCard(
+              gemstone: g,
+              onTap: () => openGemstoneDetail(context, g),
+            ),
+      entered: listingEntered,
+      loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
+      emptyView: LuxeStateView(
+        icon: Icons.auto_awesome_outlined,
+        title: context.tr(GemstoneFlowL10n.emptyTitle),
+        message: context.tr(DiamondFlowL10n.emptyBody),
+        actionLabel: context.tr(DiamondFlowL10n.editFilters),
+        onAction: _editFilters,
+        secondaryLabel: context.tr(CatalogL10n.resetFilters),
+        onSecondary: _resetFilters,
       ),
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 96),
-          child: state.isLoadingMore
-              ? LuxeLoadingMore(label: context.tr(DiamondFlowL10n.loadingMore))
-              : const SizedBox.shrink(),
-        ),
+      errorView: (message) => LuxeStateView(
+        icon: Icons.cloud_off_rounded,
+        tone: LuxeTone.error,
+        title: context.tr(GemstoneFlowL10n.errorTitle),
+        message: message,
+        actionLabel: context.tr(CatalogL10n.retry),
+        onAction: () =>
+            ref.read(gemstoneListProvider.notifier).applyFiltersAndReload(),
+        secondaryLabel: context.tr(DiamondFlowL10n.editFilters),
+        onSecondary: _editFilters,
       ),
-    ];
-  }
-
-  Widget _errorView(String message) {
-    return LuxeStateView(
-      icon: Icons.cloud_off_rounded,
-      tone: LuxeTone.error,
-      title: context.tr(GemstoneFlowL10n.errorTitle),
-      message: message,
-      actionLabel: context.tr(CatalogL10n.retry),
-      onAction: () =>
-          ref.read(gemstoneListProvider.notifier).applyFiltersAndReload(),
-      secondaryLabel: context.tr(DiamondFlowL10n.editFilters),
-      onSecondary: _editFilters,
     );
   }
 }

@@ -9,6 +9,7 @@ import 'translations/catalog_messages.dart';
 import 'translations/core_messages.dart';
 import 'translations/diamond_flow_messages.dart';
 import 'translations/gemstone_flow_messages.dart';
+import 'translations/catalog_flow_messages.dart';
 import 'translations/home_messages.dart';
 import 'translations/remaining_messages.dart';
 
@@ -18,6 +19,7 @@ export 'translations/catalog_messages.dart';
 export 'translations/core_messages.dart';
 export 'translations/diamond_flow_messages.dart';
 export 'translations/gemstone_flow_messages.dart';
+export 'translations/catalog_flow_messages.dart';
 export 'translations/home_messages.dart';
 export 'translations/remaining_messages.dart';
 export 'catalog_filter_value_labels.dart';
@@ -49,6 +51,7 @@ class AppLocalizations {
     ...homeMessages,
     ...diamondFlowMessages,
     ...gemstoneFlowMessages,
+    ...catalogFlowMessages,
   };
 
   /// Complete immutable message catalog, exposed for validation tests.

@@ -126,6 +126,9 @@ class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState> {
     );
   }
 
+  /// Restores a previous draft (e.g. undo after reset).
+  void replaceDraft(BullionsFilterState next) => state = next;
+
   void reset() {
     state = BullionsFilterState(
       metalFilter: state.metalFilter,

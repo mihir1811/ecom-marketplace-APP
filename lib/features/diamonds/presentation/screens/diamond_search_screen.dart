@@ -7,7 +7,6 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/luxe_scope.dart';
-import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/catalog_search_filter_shell.dart';
 import '../../../../core/widgets/filters/catalog_expandable_advanced_filters.dart';
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
@@ -16,8 +15,6 @@ import '../../../../core/widgets/filters/catalog_search_add_field.dart';
 import '../../../../core/widgets/filters/filter_proportion_diagram.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_finder.dart';
-import '../../../../core/widgets/luxe/luxe_layout.dart';
-import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
@@ -172,65 +169,30 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     final sections = _visibleSections(melee);
     final background = AppColors.screenBgFor(context, melee: melee);
 
-    return AppScaffold(
-      backgroundColor: background,
-      appBar: LuxeTopBar(
-        eyebrow: context.tr(DiamondFlowL10n.finderEyebrow),
-        title: widget.catalog.label,
-        scrollOffset: finderOffset,
-        onBack: () => context.resetTo(AppRouteNames.home),
-        actions: const [CatalogFlowActions()],
-      ),
-      bottomNavigationBar: LuxeFinderActionBar(
+    return LuxeFinderScaffold<DiamondFinderSection>(
+      eyebrow: context.tr(DiamondFlowL10n.finderEyebrow),
+      title: widget.catalog.label,
+      onBack: () => context.resetTo(AppRouteNames.home),
+      actions: const [CatalogFlowActions()],
+      background: background,
+      intro: _intro(context),
+      sections: sections,
+      active: finderActive,
+      labelOf: (s) => _title(context, s),
+      countOf: summary.count,
+      pillKeyOf: finderPillKey,
+      onJump: finderJumpTo,
+      navKey: catalogNavKey,
+      sectionBuilder: (s) => _section(context, s, summary, melee),
+      scrollController: catalogScrollController,
+      scrollOffset: finderOffset,
+      onScrollNotification: catalogHandleScrollNotification,
+      actionBar: LuxeFinderActionBar(
         activeCount: summary.total,
         onReset: summary.total == 0 ? null : _resetAll,
         onShow: _onShowDiamonds,
         showLabel: context.tr(CatalogL10n.showDiamonds),
         resetLabel: context.tr(DiamondFlowL10n.reset),
-      ),
-      body: AnimatedContainer(
-        duration: AppColors.meleeBgDuration,
-        curve: Curves.easeInOut,
-        color: background,
-        child: NotificationListener<ScrollNotification>(
-          onNotification: catalogHandleScrollNotification,
-          child: CustomScrollView(
-            controller: catalogScrollController,
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              SliverToBoxAdapter(child: _intro(context)),
-              LuxePinnedBar(
-                background: background,
-                child: LuxeFinderIndex<DiamondFinderSection>(
-                  key: catalogNavKey,
-                  sections: sections,
-                  active: finderActive,
-                  labelOf: (s) => _title(context, s),
-                  countOf: summary.count,
-                  pillKeyOf: finderPillKey,
-                  onTap: finderJumpTo,
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
-                // Sections are built eagerly (there are only a handful) so
-                // every section key resolves and any pill can jump straight
-                // to its section, and expanded state survives scrolling.
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (final s in sections)
-                        _section(context, s, summary, melee),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -317,19 +279,15 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       ),
     };
 
-    final summaryText = count == 0
-        ? context.tr(DiamondFlowL10n.any)
-        : s == DiamondFinderSection.shape
-        ? ref.read(diamondSearchProvider).shapes.join(' · ')
-        : context.tr(DiamondFlowL10n.selectedCount, {'count': count});
-
-    return LuxeSection(
-      key: finderSectionKey(s),
+    return finderSection(
+      s,
       title: _title(context, s),
       icon: icon,
-      summary: summaryText,
-      activeCount: count,
+      count: count,
       initiallyExpanded: essential,
+      names: s == DiamondFinderSection.shape
+          ? ref.read(diamondSearchProvider).shapes
+          : const [],
       child: child,
     );
   }

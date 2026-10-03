@@ -11,7 +11,16 @@ class WatchFilterSwatchPillGrid extends StatelessWidget {
     required this.selected,
     required this.onToggle,
     super.key,
+    this.padding = const EdgeInsets.fromLTRB(
+      AppSpacing.s16,
+      AppSpacing.s4,
+      AppSpacing.s16,
+      AppSpacing.s12,
+    ),
   });
+
+  /// Outer padding; luxe finder sections pass their own inset.
+  final EdgeInsetsGeometry padding;
 
   final List<String> options;
   final Set<String> selected;
@@ -20,18 +29,14 @@ class WatchFilterSwatchPillGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.s16,
-        AppSpacing.s4,
-        AppSpacing.s16,
-        AppSpacing.s12,
-      ),
+      padding: padding,
       child: LayoutBuilder(
         builder: (context, constraints) {
           const columns = 3;
           const gap = AppSpacing.s12;
-          final cellW =
-              (constraints.maxWidth - gap * (columns - 1)) / columns;
+          // Floor so rounding never pushes the last cell onto a new row.
+          final cellW = ((constraints.maxWidth - gap * (columns - 1)) / columns)
+              .floorToDouble();
 
           return Wrap(
             spacing: gap,
@@ -87,14 +92,16 @@ class _WatchFilterSwatchPill extends StatelessWidget {
                   color: selected
                       ? AppColors.selectedFill(context)
                       : (style.needsBorder
-                          ? AppColors.border(context)
-                          : Colors.transparent),
+                            ? AppColors.border(context)
+                            : Colors.transparent),
                   width: selected ? 2 : 1,
                 ),
                 boxShadow: selected
                     ? [
                         BoxShadow(
-                          color: AppColors.selectedFill(context).withValues(alpha: 0.18),
+                          color: AppColors.selectedFill(
+                            context,
+                          ).withValues(alpha: 0.18),
                           blurRadius: 4,
                           offset: const Offset(0, 1),
                         ),

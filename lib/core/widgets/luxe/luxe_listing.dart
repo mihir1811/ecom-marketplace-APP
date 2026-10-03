@@ -603,3 +603,457 @@ Future<T?> showLuxeChoiceSheet<T>(
     },
   );
 }
+
+/// Grid / list spacing shared by every luxe results screen.
+abstract final class LuxeListingMetrics {
+  static const gap = 12.0;
+  static const pad = 16.0;
+
+  /// Row stride of [LuxeProductListCard] including the gap.
+  static const listStride = LuxeProductListCard.thumbSize + 12 + gap;
+
+  static double gridCell(BuildContext context) =>
+      (MediaQuery.sizeOf(context).width - pad * 2 - gap) / 2;
+
+  /// Fixed tile extent of [LuxeProductGridCard] at the current text scale.
+  static double gridExtent(BuildContext context) =>
+      gridCell(context) +
+      luxeGridCardTextExtent(MediaQuery.textScalerOf(context));
+}
+
+/// Scroll offset, next-page prefetch, back-to-top and position-preserving
+/// grid ↔ list switching shared by every luxe results screen.
+///
+/// Call [initListing] / [disposeListing] from the state's lifecycle and put
+/// [listingHeaderKey] on whatever sits above the pinned toolbar.
+mixin LuxeListingMixin<W extends StatefulWidget> on State<W> {
+  final listingScroll = ScrollController();
+  final listingOffset = ValueNotifier<double>(0);
+  final listingHeaderKey = GlobalKey();
+
+  /// Ids whose entrance animation already played.
+  final listingEntered = <String>{};
+
+  /// True when another page may be requested right now.
+  bool get listingCanLoadMore;
+  void listingLoadMore();
+  int get listingItemCount;
+  LuxeViewMode get listingViewMode;
+  void listingApplyViewMode(LuxeViewMode mode);
+
+  void initListing() => listingScroll.addListener(_onListingScroll);
+
+  void disposeListing() {
+    listingScroll
+      ..removeListener(_onListingScroll)
+      ..dispose();
+    listingOffset.dispose();
+  }
+
+  void _onListingScroll() {
+    if (!listingScroll.hasClients) return;
+    listingOffset.value = listingScroll.offset;
+    if (!listingCanLoadMore) return;
+    final position = listingScroll.position;
+    // Prefetch ~1 viewport before the end so the next page arrives seamlessly.
+    if (position.pixels >=
+        position.maxScrollExtent - position.viewportDimension) {
+      listingLoadMore();
+    }
+  }
+
+  double get _headerExtent {
+    final box = listingHeaderKey.currentContext?.findRenderObject();
+    return box is RenderBox && box.hasSize ? box.size.height : 0;
+  }
+
+  double _stride(LuxeViewMode mode) => mode == LuxeViewMode.grid
+      ? LuxeListingMetrics.gridExtent(context) + LuxeListingMetrics.gap
+      : LuxeListingMetrics.listStride;
+
+  /// Switches layout while keeping the first visible item in view.
+  void switchListingViewMode(LuxeViewMode next) {
+    final current = listingViewMode;
+    if (current == next) return;
+    final count = listingItemCount;
+    final into =
+        (listingScroll.hasClients ? listingScroll.offset : 0) - _headerExtent;
+    final index = count == 0 || into <= 0
+        ? 0
+        : ((into / _stride(current)).floor() *
+                  (current == LuxeViewMode.grid ? 2 : 1))
+              .clamp(0, count - 1);
+    listingApplyViewMode(next);
+    if (index == 0) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !listingScroll.hasClients) return;
+      final rows = next == LuxeViewMode.grid ? index ~/ 2 : index;
+      final target = _headerExtent + rows * _stride(next);
+      listingScroll.jumpTo(
+        target.clamp(0.0, listingScroll.position.maxScrollExtent),
+      );
+    });
+  }
+
+  void listingBackToTop() => listingScroll.animateTo(
+    0,
+    duration: const Duration(milliseconds: 900),
+    curve: LuxeMotion.settle,
+  );
+}
+
+/// Results slivers for a paginated catalog: skeletons while the first page
+/// loads, an error or empty state, then the staggered grid / list and the
+/// loading-more row.
+List<Widget> luxeResultSlivers<T>({
+  required BuildContext context,
+  required bool initialLoading,
+  required String? error,
+  required List<T> items,
+  required bool isLoadingMore,
+  required LuxeViewMode viewMode,
+  required String Function(T) idOf,
+  required Widget Function(T item, LuxeViewMode mode) cardOf,
+  required Set<String> entered,
+  required Widget emptyView,
+  required Widget Function(String message) errorView,
+  required String loadingMoreLabel,
+}) {
+  const pad = LuxeListingMetrics.pad;
+  const gap = LuxeListingMetrics.gap;
+  final grid = viewMode == LuxeViewMode.grid;
+  Widget fill(Widget child) =>
+      SliverFillRemaining(hasScrollBody: false, child: child);
+
+  if (initialLoading) {
+    return [LuxeListingSkeletons(grid: grid, padding: pad, gap: gap)];
+  }
+  if (error != null && items.isEmpty) return [fill(errorView(error))];
+  if (items.isEmpty) return [fill(emptyView)];
+
+  Widget card(int i) {
+    final item = items[i];
+    final id = '${viewMode.name}-${idOf(item)}';
+    return LuxeEntranceOnce(
+      key: ValueKey(id),
+      id: id,
+      seen: entered,
+      index: i,
+      child: RepaintBoundary(child: cardOf(item, viewMode)),
+    );
+  }
+
+  return [
+    SliverPadding(
+      padding: const EdgeInsets.fromLTRB(pad, 6, pad, 0),
+      sliver: grid
+          ? SliverGrid.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: gap,
+                crossAxisSpacing: gap,
+                mainAxisExtent: LuxeListingMetrics.gridExtent(context),
+              ),
+              itemCount: items.length,
+              itemBuilder: (context, i) => card(i),
+            )
+          : SliverList.separated(
+              itemCount: items.length,
+              separatorBuilder: (_, _) => const SizedBox(height: gap),
+              itemBuilder: (context, i) => card(i),
+            ),
+    ),
+    SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 96),
+        child: isLoadingMore
+            ? LuxeLoadingMore(label: loadingMoreLabel)
+            : const SizedBox.shrink(),
+      ),
+    ),
+  ];
+}
+
+/// Scrollable results body: pull-to-refresh, the caller's slivers and a
+/// floating back-to-top control.
+class LuxeListingScrollView extends StatelessWidget {
+  const LuxeListingScrollView({
+    required this.controller,
+    required this.offset,
+    required this.slivers,
+    required this.onRefresh,
+    required this.onBackToTop,
+    required this.backToTopLabel,
+    super.key,
+  });
+
+  final ScrollController controller;
+  final ValueListenable<double> offset;
+  final List<Widget> slivers;
+  final Future<void> Function() onRefresh;
+  final VoidCallback onBackToTop;
+  final String backToTopLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return Stack(
+      children: [
+        RefreshIndicator(
+          color: p.ink,
+          backgroundColor: p.surface,
+          onRefresh: onRefresh,
+          child: CustomScrollView(
+            controller: controller,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: slivers,
+          ),
+        ),
+        Positioned(
+          right: 16,
+          bottom: 16,
+          child: LuxeBackToTop(
+            offset: offset,
+            tooltip: backToTopLabel,
+            onTap: onBackToTop,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Rounded luxe search input with a clear action.
+class LuxeSearchField extends StatefulWidget {
+  const LuxeSearchField({
+    required this.controller,
+    required this.hintText,
+    required this.onChanged,
+    super.key,
+    this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+  final String hintText;
+  final ValueChanged<String> onChanged;
+  final ValueChanged<String>? onSubmitted;
+
+  @override
+  State<LuxeSearchField> createState() => _LuxeSearchFieldState();
+}
+
+class _LuxeSearchFieldState extends State<LuxeSearchField> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onText);
+  }
+
+  @override
+  void didUpdateWidget(LuxeSearchField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onText);
+      widget.controller.addListener(_onText);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onText);
+    super.dispose();
+  }
+
+  void _onText() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final hasText = widget.controller.text.isNotEmpty;
+    final radius = BorderRadius.circular(28);
+    return TextField(
+      controller: widget.controller,
+      onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
+      textInputAction: TextInputAction.search,
+      scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+      style: LuxeType.body(p.ink, size: 14.5),
+      decoration: InputDecoration(
+        hintText: widget.hintText,
+        prefixIcon: Icon(Icons.search_rounded, size: 20, color: p.inkMuted),
+        suffixIcon: hasText
+            ? IconButton(
+                tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+                icon: Icon(Icons.close_rounded, size: 18, color: p.inkMuted),
+                onPressed: () {
+                  AppHaptics.selection();
+                  widget.controller.clear();
+                  widget.onChanged('');
+                },
+              )
+            : null,
+        border: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: p.hairline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: p.hairline),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: p.ink, width: 1.2),
+        ),
+      ),
+    );
+  }
+}
+
+/// One quick-filter chip: value, label and an optional tone dot.
+class LuxeQuickChip<T> {
+  const LuxeQuickChip({required this.value, required this.label, this.tone});
+
+  final T value;
+  final String label;
+  final Color? tone;
+}
+
+/// Horizontally scrolling stadium chips for listing-level quick filters
+/// (categories, metals, variants). Selection is decided by [isSelected].
+class LuxeQuickChips<T> extends StatelessWidget {
+  const LuxeQuickChips({
+    required this.chips,
+    required this.isSelected,
+    required this.onTap,
+    super.key,
+    this.dense = false,
+  });
+
+  final List<LuxeQuickChip<T>> chips;
+  final bool Function(T) isSelected;
+  final ValueChanged<T> onTap;
+
+  /// Smaller secondary row (e.g. variants under metals).
+  final bool dense;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return SizedBox(
+      height: dense ? 34 : 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: chips.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final chip = chips[i];
+          final selected = isSelected(chip.value);
+          return Semantics(
+            button: true,
+            selected: selected,
+            label: chip.label,
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: () {
+                AppHaptics.selection();
+                onTap(chip.value);
+              },
+              child: AnimatedContainer(
+                duration: LuxeMotion.medium,
+                curve: LuxeMotion.settle,
+                padding: EdgeInsets.symmetric(horizontal: dense ? 12 : 16),
+                alignment: Alignment.center,
+                decoration: ShapeDecoration(
+                  color: selected ? p.ink : p.surface,
+                  shape: StadiumBorder(
+                    side: BorderSide(color: selected ? p.ink : p.hairline),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (chip.tone != null) ...[
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: chip.tone,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      chip.label,
+                      style: LuxeType.label(
+                        selected ? p.canvas : p.inkMuted,
+                        size: dense ? 12 : 12.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Eyebrow-style row heading with an optional trailing text action.
+class LuxeRowHeading extends StatelessWidget {
+  const LuxeRowHeading({
+    required this.title,
+    super.key,
+    this.subtitle,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final String? subtitle;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 8, 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title.toUpperCase(), style: LuxeType.eyebrow(p.accent)),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: LuxeType.label(p.inkMuted, size: 12.5),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (actionLabel != null)
+            TextButton(
+              onPressed: onAction,
+              style: TextButton.styleFrom(foregroundColor: p.accent),
+              child: Text(
+                actionLabel!,
+                style: LuxeType.label(p.accent, size: 12.5),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}

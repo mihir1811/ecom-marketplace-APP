@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -63,8 +63,7 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
 
   void _ensurePageController(double maxWidth) {
     if (maxWidth <= 0 || _brands.isEmpty) return;
-    final nextFraction =
-        ((_cardWidth + _gap) / maxWidth).clamp(0.2, 0.85);
+    final nextFraction = ((_cardWidth + _gap) / maxWidth).clamp(0.2, 0.85);
     if (_pageController != null &&
         _viewportFraction != null &&
         (_viewportFraction! - nextFraction).abs() < 0.01) {
@@ -109,46 +108,12 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Shop by Brand',
-                        style: AppTypography.title.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: AppColors.textPrimary(context),
-                        ),
-                      ),
-                      Text(
-                        'Select one or more luxury houses',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.textMuted(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => showWatchBrandsDirectory(context),
-                  child: Text(
-                    'View All Brands',
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.bronze,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          LuxeRowHeading(
+            title: 'Shop by Brand',
+            subtitle: 'Select one or more luxury houses',
+            actionLabel: 'View All Brands',
+            onAction: () => showWatchBrandsDirectory(context),
           ),
-          const SizedBox(height: AppSpacing.s12),
           SizedBox(
             height: _height,
             child: LayoutBuilder(
@@ -156,7 +121,8 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
                 final width = constraints.maxWidth;
                 final controller = _pageController;
                 final fraction = _viewportFraction;
-                final needsSync = controller == null ||
+                final needsSync =
+                    controller == null ||
                     fraction == null ||
                     (((_cardWidth + _gap) / width).clamp(0.2, 0.85) - fraction)
                             .abs() >=
@@ -274,10 +240,7 @@ class _BrandLogoCard extends StatelessWidget {
                         1,
                         0,
                       ])
-                    : const ColorFilter.mode(
-                        Colors.transparent,
-                        BlendMode.dst,
-                      ),
+                    : const ColorFilter.mode(Colors.transparent, BlendMode.dst),
                 child: Image.asset(
                   logo,
                   fit: BoxFit.contain,
@@ -319,76 +282,13 @@ class WatchCategoryChips extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(watchFilterProvider.select((s) => s.categories));
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-        itemCount: WatchFilterState.categoryOptions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.s8),
-        itemBuilder: (context, index) {
-          final category = WatchFilterState.categoryOptions[index];
-          return _CategoryChip(
-            label: category.toUpperCase(),
-            selected: selected.contains(category),
-            onTap: () =>
-                ref.read(watchFilterProvider.notifier).toggleCategory(category),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (!selected) AppHaptics.selection();
-        onTap();
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 140),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.s16,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.selectedFill(context)
-              : AppColors.card(context),
-          borderRadius: BorderRadius.circular(AppSpacing.r8),
-          border: Border.all(
-            color: selected
-                ? AppColors.selectedFill(context)
-                : AppColors.border(context),
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              color: selected
-                  ? AppColors.onSelected(context)
-                  : AppColors.textPrimary(context),
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ),
-      ),
+    return LuxeQuickChips<String>(
+      chips: [
+        for (final c in WatchFilterState.categoryOptions)
+          LuxeQuickChip(value: c, label: c),
+      ],
+      isSelected: selected.contains,
+      onTap: ref.read(watchFilterProvider.notifier).toggleCategory,
     );
   }
 }

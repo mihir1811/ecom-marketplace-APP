@@ -59,7 +59,14 @@ ProductDetail bullionProductDetail(Bullion b) {
       unitLabel: 'per gram',
       unitAmountLabel: perGram?.toStringAsFixed(2),
     ),
-    highlights: const [],
+    // Shown as the at-a-glance tiles on the luxe detail screen.
+    highlights: [
+      if (b.weightLabel.trim().isNotEmpty)
+        ProductHighlight('Weight', b.weightLabel.trim()),
+      ProductHighlight('Purity', purity.isEmpty ? '-' : purity),
+      ProductHighlight('Metal', metalLabel),
+      if (b.shape.trim().isNotEmpty) ProductHighlight('Form', b.shape.trim()),
+    ],
     certification: ProductCertification(
       authority: b.certification,
       referenceLabel: 'Mint',

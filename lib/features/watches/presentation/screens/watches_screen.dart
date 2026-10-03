@@ -1,24 +1,34 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/l10n/app_localizations.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/catalog_listing_header_row.dart';
-import '../../../../core/widgets/catalog_screen_shell.dart';
-import '../../../../core/widgets/catalog_empty_state.dart';
-import '../../../../core/widgets/catalog_error_state.dart';
-import '../../../../core/widgets/listing_search_filter_bar.dart';
-import '../../../../core/widgets/simple_sort_sheet.dart';
+import '../../../../core/theme/luxe_scope.dart';
+import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/app_system_back_scope.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
+import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
+import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/watch_filter_provider.dart';
 import '../../application/watch_list_provider.dart';
 import '../../domain/models/watch_filter_state.dart';
 import '../widgets/watch_brand_carousel.dart';
-import '../widgets/watch_grid_view.dart';
-import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
+import '../widgets/watch_filter_labels.dart';
+import '../widgets/watch_luxe_cards.dart';
 
+/// Luxury watch catalogue, built from the same luxe listing pieces as the
+/// diamond and gemstone results.
+///
+/// Search, style chips and the brand carousel scroll away; the filter /
+/// sort / view toolbar stays pinned. Cards enter with a short stagger,
+/// skeletons cover loading, and empty / error states offer the next step.
 class WatchesScreen extends ConsumerStatefulWidget {
   const WatchesScreen({super.key});
 
@@ -26,206 +36,224 @@ class WatchesScreen extends ConsumerStatefulWidget {
   ConsumerState<WatchesScreen> createState() => _WatchesScreenState();
 }
 
-class _WatchesScreenState extends ConsumerState<WatchesScreen> {
-  final _scrollController = ScrollController();
+class _WatchesScreenState extends ConsumerState<WatchesScreen>
+    with LuxeListingMixin {
   final _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
+    initListing();
     final q = ref.read(watchFilterProvider).searchQuery;
     if (q.isNotEmpty) _searchController.text = q;
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    _searchDebounce?.cancel();
     _searchController.dispose();
+    disposeListing();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 240) {
-      ref.read(watchListProvider.notifier).loadNextPage();
-    }
+  @override
+  bool get listingCanLoadMore {
+    final s = ref.read(watchListProvider).valueOrNull;
+    return s != null &&
+        s.hasMore &&
+        !s.isLoadingMore &&
+        !s.isInitialLoading &&
+        !s.isRefreshing;
+  }
+
+  @override
+  void listingLoadMore() => ref.read(watchListProvider.notifier).loadNextPage();
+
+  @override
+  int get listingItemCount =>
+      ref.read(watchListProvider).valueOrNull?.watches.length ?? 0;
+
+  @override
+  LuxeViewMode get listingViewMode =>
+      ref.read(watchViewModeProvider) == WatchViewMode.grid
+      ? LuxeViewMode.grid
+      : LuxeViewMode.list;
+
+  @override
+  void listingApplyViewMode(LuxeViewMode mode) =>
+      ref.read(watchViewModeProvider.notifier).state = mode == LuxeViewMode.grid
+      ? WatchViewMode.grid
+      : WatchViewMode.list;
+
+  /// Debounced so typing does not refetch on every keystroke.
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+      if (mounted) ref.read(watchFilterProvider.notifier).setSearchQuery(value);
+    });
+  }
+
+  void _onSearchSubmitted(String value) {
+    _searchDebounce?.cancel();
+    ref.read(watchFilterProvider.notifier).setSearchQuery(value);
   }
 
   void _openFilters() {
+    // Flush a pending search first so the draft starts from it and a late
+    // debounce can't overwrite the draft while the filters are open.
+    if (_searchDebounce?.isActive ?? false) {
+      _searchDebounce!.cancel();
+      ref
+          .read(watchFilterProvider.notifier)
+          .setSearchQuery(_searchController.text);
+    }
     ref.read(watchFilterDraftProvider.notifier).syncFromApplied();
     context.push(AppRouteNames.watchesFilters);
   }
 
+  void _clearAll() {
+    _searchDebounce?.cancel();
+    ref.read(watchFilterProvider.notifier).reset();
+    _searchController.clear();
+  }
+
+  Future<void> _openSort() async {
+    final selected = await showLuxeChoiceSheet<WatchSortOption>(
+      context,
+      title: context.tr(CatalogFlowL10n.watchSort),
+      options: WatchSortOption.values,
+      current: ref.read(watchSortProvider),
+      labelOf: (o) => o.label,
+    );
+    if (selected != null && mounted) {
+      ref.read(watchSortProvider.notifier).state = selected;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CatalogScreenShell(
-      title: context.tr(CatalogL10n.luxuryWatches),
-      child: ComparisonTrayHost(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: AppSpacing.s8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-              child: _WatchSearchBar(
-                searchController: _searchController,
-                onOpenFilters: _openFilters,
-              ),
+    return AppSystemBackScope(
+      child: LuxeScope(child: Builder(builder: _buildScaffold)),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return AppScaffold(
+      backgroundColor: p.canvas,
+      appBar: LuxeTopBar(
+        title: context.tr(CatalogL10n.luxuryWatches),
+        subtitle: Consumer(
+          builder: (context, ref, _) => WatchCountLine(
+            total: ref.watch(
+              watchListProvider.select((v) {
+                final s = v.valueOrNull;
+                return s == null || s.isInitialLoading ? null : s.totalCount;
+              }),
             ),
-            const SizedBox(height: AppSpacing.s12),
-            Expanded(
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.only(bottom: AppSpacing.s12),
-                      child: WatchCategoryChips(),
+          ),
+        ),
+        scrollOffset: listingOffset,
+        actions: const [CatalogFlowActions()],
+      ),
+      body: ComparisonTrayHost(
+        child: LuxeListingScrollView(
+          controller: listingScroll,
+          offset: listingOffset,
+          onRefresh: () => ref.read(watchListProvider.notifier).refresh(),
+          onBackToTop: listingBackToTop,
+          backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                key: listingHeaderKey,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+                    child: LuxeSearchField(
+                      controller: _searchController,
+                      hintText: context.tr(CatalogL10n.searchWatches),
+                      onChanged: _onSearchChanged,
+                      onSubmitted: _onSearchSubmitted,
                     ),
                   ),
-                  const SliverToBoxAdapter(child: WatchBrandCarousel()),
-                  const SliverToBoxAdapter(child: _WatchHeaderRow()),
-                  _WatchResultsSliver(searchController: _searchController),
+                  const WatchCategoryChips(),
+                  const SizedBox(height: 22),
+                  const WatchBrandCarousel(),
+                  WatchActiveFilterPills(
+                    provider: watchFilterProvider,
+                    onEdit: _openFilters,
+                    onReset: _clearAll,
+                  ),
                 ],
               ),
             ),
+            LuxePinnedBar(
+              child: Center(
+                child: WatchListingToolbar(
+                  filters: watchFilterProvider,
+                  sort: watchSortProvider,
+                  onFilters: _openFilters,
+                  onSort: _openSort,
+                  onViewMode: switchListingViewMode,
+                ),
+              ),
+            ),
+            ..._content(context),
           ],
         ),
       ),
     );
   }
-}
 
-class _WatchSearchBar extends ConsumerWidget {
-  const _WatchSearchBar({
-    required this.searchController,
-    required this.onOpenFilters,
-  });
-
-  final TextEditingController searchController;
-  final VoidCallback onOpenFilters;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final activeFilterCount = ref.watch(
-      watchFilterProvider.select((s) => s.activeCount),
-    );
-
-    return ListingSearchFilterBar(
-      controller: searchController,
-      hintText: context.tr(CatalogL10n.searchWatches),
-      mutedColor: AppColors.textMuted(context),
-      activeFilterCount: activeFilterCount,
-      onFilterTap: onOpenFilters,
-      onChanged: (v) =>
-          ref.read(watchFilterProvider.notifier).setSearchQuery(v),
-      onSubmitted: (v) =>
-          ref.read(watchFilterProvider.notifier).setSearchQuery(v),
-    );
-  }
-}
-
-class _WatchHeaderRow extends ConsumerWidget {
-  const _WatchHeaderRow();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final sortLabel = ref.watch(watchSortProvider.select((s) => s.label));
-    final isGrid = ref.watch(
-      watchViewModeProvider.select((mode) => mode == WatchViewMode.grid),
-    );
-    final countLabel = ref.watch(
-      watchListProvider.select((value) {
-        final listState = value.valueOrNull;
-        return listState == null || listState.isInitialLoading
-            ? context.tr(CatalogL10n.loading)
-            : context.tr(CatalogL10n.showingProducts, {
-                'count': listState.totalCount,
-              });
-      }),
-    );
-
-    return CatalogListingHeaderRow(
-      sortLabel: sortLabel,
-      onSortTap: () => showSimpleSortSheet<WatchSortOption>(
-        context: context,
-        options: WatchSortOption.values,
-        labelOf: (o) => o.label,
-        current: ref.read(watchSortProvider),
-      ).then((selected) {
-        if (selected != null) {
-          ref.read(watchSortProvider.notifier).state = selected;
-        }
-      }),
-      isGrid: isGrid,
-      onGrid: () =>
-          ref.read(watchViewModeProvider.notifier).state = WatchViewMode.grid,
-      onList: () =>
-          ref.read(watchViewModeProvider.notifier).state = WatchViewMode.list,
-      countLabel: countLabel,
-    );
-  }
-}
-
-class _WatchResultsSliver extends ConsumerWidget {
-  const _WatchResultsSliver({required this.searchController});
-
-  final TextEditingController searchController;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final listState = ref.watch(watchListProvider).valueOrNull;
-    final isGrid = ref.watch(
-      watchViewModeProvider.select((mode) => mode == WatchViewMode.grid),
-    );
-
-    if (listState == null || listState.isInitialLoading) {
-      return const SliverFillRemaining(
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      );
-    }
-
-    if (listState.errorMessage != null && listState.watches.isEmpty) {
-      return SliverFillRemaining(
-        child: CatalogErrorState(
-          message: listState.errorMessage!,
-          onRetry: () => ref.read(watchListProvider.notifier).refresh(),
-        ),
-      );
-    }
-
-    if (listState.watches.isEmpty) {
-      return SliverFillRemaining(
-        child: CatalogEmptyState(
-          icon: Icons.watch_outlined,
-          title: context.tr(CatalogL10n.noWatches),
-          message: context.tr(CatalogL10n.adjustWatchFilters),
-          actionLabel: context.tr(CatalogL10n.clearAll),
-          onAction: () {
-            ref.read(watchFilterProvider.notifier).reset();
-            searchController.clear();
-          },
-        ),
-      );
-    }
-
-    return SliverMainAxisGroup(
-      slivers: [
-        if (isGrid)
-          WatchGridSliver(
-            watches: listState.watches,
-            isLoadingMore: listState.isLoadingMore,
-          )
-        else
-          WatchListSliver(
-            watches: listState.watches,
-            isLoadingMore: listState.isLoadingMore,
-          ),
-        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.s24)),
-      ],
+  List<Widget> _content(BuildContext context) {
+    final stateAsync = ref.watch(watchListProvider);
+    final grid = ref.watch(watchViewModeProvider) == WatchViewMode.grid;
+    final state = stateAsync.valueOrNull;
+    final error =
+        stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
+        state?.errorMessage;
+    return luxeResultSlivers(
+      context: context,
+      initialLoading:
+          !stateAsync.hasError && (state == null || state.isInitialLoading),
+      error: error,
+      items: state?.watches ?? const [],
+      isLoadingMore: state?.isLoadingMore ?? false,
+      viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
+      idOf: (w) => w.id,
+      cardOf: (w, mode) => mode == LuxeViewMode.grid
+          ? WatchLuxeGridCard(
+              watch: w,
+              onTap: () => openWatchDetail(context, w),
+            )
+          : WatchLuxeListCard(
+              watch: w,
+              onTap: () => openWatchDetail(context, w),
+            ),
+      entered: listingEntered,
+      loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
+      emptyView: LuxeStateView(
+        icon: Icons.watch_outlined,
+        title: context.tr(CatalogL10n.noWatches),
+        message: context.tr(CatalogL10n.adjustWatchFilters),
+        actionLabel: context.tr(DiamondFlowL10n.editFilters),
+        onAction: _openFilters,
+        secondaryLabel: context.tr(CatalogL10n.clearAll),
+        onSecondary: _clearAll,
+      ),
+      errorView: (message) => LuxeStateView(
+        icon: Icons.cloud_off_rounded,
+        tone: LuxeTone.error,
+        title: context.tr(CatalogFlowL10n.errorTitle),
+        message: message,
+        actionLabel: context.tr(CatalogL10n.retry),
+        onAction: () => ref.read(watchListProvider.notifier).refresh(),
+        secondaryLabel: context.tr(DiamondFlowL10n.editFilters),
+        onSecondary: _openFilters,
+      ),
     );
   }
 }

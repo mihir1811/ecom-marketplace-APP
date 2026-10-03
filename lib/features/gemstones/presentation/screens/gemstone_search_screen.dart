@@ -7,15 +7,12 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/luxe_scope.dart';
-import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/catalog_search_filter_shell.dart';
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
 import '../../../../core/widgets/filters/catalog_search_add_field.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_finder.dart';
-import '../../../../core/widgets/luxe/luxe_layout.dart';
-import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
 import '../../../diamonds/presentation/widgets/filter_origin_dropdown.dart';
 import '../../application/gemstone_list_provider.dart';
@@ -157,73 +154,38 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     final sections = _visibleSections(melee);
     final background = AppColors.screenBgFor(context, melee: melee);
 
-    return AppScaffold(
-      backgroundColor: background,
-      appBar: LuxeTopBar(
-        eyebrow: context.tr(GemstoneFlowL10n.finderEyebrow),
-        title: context.tr(RemainingL10n.gemstones),
-        scrollOffset: finderOffset,
-        onBack: () => context.resetTo(AppRouteNames.home),
-        actions: const [CatalogFlowActions()],
+    return LuxeFinderScaffold<GemstoneFinderSection>(
+      eyebrow: context.tr(GemstoneFlowL10n.finderEyebrow),
+      title: context.tr(RemainingL10n.gemstones),
+      onBack: () => context.resetTo(AppRouteNames.home),
+      actions: const [CatalogFlowActions()],
+      background: background,
+      intro: LuxeFinderIntro(
+        headline: context.tr(
+          isLab
+              ? GemstoneFlowL10n.finderHeadlineLab
+              : GemstoneFlowL10n.finderHeadline,
+        ),
+        intro: context.tr(GemstoneFlowL10n.finderIntro),
+        controls: const GemstoneCatalogModeControls(),
       ),
-      bottomNavigationBar: LuxeFinderActionBar(
+      sections: sections,
+      active: finderActive,
+      labelOf: (s) => _title(context, s),
+      countOf: summary.count,
+      pillKeyOf: finderPillKey,
+      onJump: finderJumpTo,
+      navKey: catalogNavKey,
+      sectionBuilder: (s) => _section(context, s, summary),
+      scrollController: catalogScrollController,
+      scrollOffset: finderOffset,
+      onScrollNotification: catalogHandleScrollNotification,
+      actionBar: LuxeFinderActionBar(
         activeCount: summary.total,
         onReset: summary.total == 0 ? null : _resetAll,
         onShow: _onShowGemstones,
         showLabel: context.tr(CatalogL10n.searchGemstones),
         resetLabel: context.tr(DiamondFlowL10n.reset),
-      ),
-      body: AnimatedContainer(
-        duration: AppColors.meleeBgDuration,
-        curve: Curves.easeInOut,
-        color: background,
-        child: NotificationListener<ScrollNotification>(
-          onNotification: catalogHandleScrollNotification,
-          child: CustomScrollView(
-            controller: catalogScrollController,
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              SliverToBoxAdapter(
-                child: LuxeFinderIntro(
-                  headline: context.tr(
-                    isLab
-                        ? GemstoneFlowL10n.finderHeadlineLab
-                        : GemstoneFlowL10n.finderHeadline,
-                  ),
-                  intro: context.tr(GemstoneFlowL10n.finderIntro),
-                  controls: const GemstoneCatalogModeControls(),
-                ),
-              ),
-              LuxePinnedBar(
-                background: background,
-                child: LuxeFinderIndex<GemstoneFinderSection>(
-                  key: catalogNavKey,
-                  sections: sections,
-                  active: finderActive,
-                  labelOf: (s) => _title(context, s),
-                  countOf: summary.count,
-                  pillKeyOf: finderPillKey,
-                  onTap: finderJumpTo,
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
-                // Built eagerly so every section key resolves and any pill
-                // can jump straight to its section.
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (final s in sections) _section(context, s, summary),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -289,24 +251,17 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     };
 
     final state = ref.read(gemstoneSearchProvider);
-    final names = switch (s) {
-      GemstoneFinderSection.gemType => state.selectedGemstoneTypes,
-      GemstoneFinderSection.shape => state.selectedShapes,
-      _ => const <String>[],
-    };
-    final summaryText = count == 0
-        ? context.tr(DiamondFlowL10n.any)
-        : names.isNotEmpty && names.length == count
-        ? names.join(' · ')
-        : context.tr(DiamondFlowL10n.selectedCount, {'count': count});
-
-    return LuxeSection(
-      key: finderSectionKey(s),
+    return finderSection(
+      s,
       title: _title(context, s),
       icon: icon,
-      summary: summaryText,
-      activeCount: count,
+      count: count,
       initiallyExpanded: essential,
+      names: switch (s) {
+        GemstoneFinderSection.gemType => state.selectedGemstoneTypes,
+        GemstoneFinderSection.shape => state.selectedShapes,
+        _ => const <String>[],
+      },
       child: child,
     );
   }

@@ -3,18 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/widgets/filters/catalog_availability_filter.dart';
 import '../../../../core/widgets/filters/catalog_standard_range_filters.dart';
 import '../../../../core/widgets/filters/filter_boolean_checkbox.dart';
-import '../../../../core/widgets/filters/filter_chip.dart';
 import '../../../../core/widgets/filters/filter_scrollable_chips.dart';
 import '../../../../core/widgets/filters/filter_section_header.dart';
 import '../../../../core/widgets/filters/melee_range_filters.dart';
+import '../../../../core/widgets/luxe/luxe_chip_group.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_shape_picker.dart';
 import '../../../diamonds/presentation/widgets/diamond_shape_picker.dart'
     show shapeOutlineIcon, shapePhotoFor;
-import '../../../diamonds/presentation/widgets/filter_category_basic.dart'
-    show DiamondDropdownField;
 import '../../application/gemstone_search_provider.dart';
 import '../../domain/gemstone_assets.dart';
 import '../../domain/models/gemstone_filter_state.dart';
@@ -85,21 +84,11 @@ class GemstoneCatalogModeControls extends ConsumerWidget {
 
 /// Gemstone type: featured photo tiles, a searchable list of every type and
 /// the birthstone calendar.
-class GemstoneTypeFilters extends ConsumerStatefulWidget {
+class GemstoneTypeFilters extends ConsumerWidget {
   const GemstoneTypeFilters({super.key});
 
   @override
-  ConsumerState<GemstoneTypeFilters> createState() =>
-      _GemstoneTypeFiltersState();
-}
-
-class _GemstoneTypeFiltersState extends ConsumerState<GemstoneTypeFilters> {
-  static const _step = 12;
-  int _visible = _step;
-  String _query = '';
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final p = LuxePalette.of(context);
     final selected = ref.watch(
       gemstoneSearchProvider.select((s) => s.selectedGemstoneTypes),
@@ -108,17 +97,6 @@ class _GemstoneTypeFiltersState extends ConsumerState<GemstoneTypeFilters> {
       gemstoneSearchProvider.select((s) => s.selectedBirthstoneMonths),
     );
     final notifier = ref.read(gemstoneSearchProvider.notifier);
-
-    final all = GemstoneFilterState.allGemstoneTypes;
-    final q = _query.trim().toLowerCase();
-    final matches = q.isEmpty
-        ? all
-        : [
-            for (final t in all)
-              if (t.toLowerCase().contains(q)) t,
-          ];
-    final shown = matches.take(_visible).toList();
-    final hidden = matches.length - shown.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -145,82 +123,17 @@ class _GemstoneTypeFiltersState extends ConsumerState<GemstoneTypeFilters> {
           collapseLabel: context.tr(CatalogL10n.viewLess),
         ),
         const SizedBox(height: 14),
-        FilterSectionHeader(title: context.tr(CatalogL10n.gemstoneType)),
-        const SizedBox(height: 8),
-        TextField(
-          onChanged: (v) => setState(() {
-            _query = v;
-            _visible = _step;
-          }),
-          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
-          textInputAction: TextInputAction.search,
-          decoration: InputDecoration(
-            isDense: true,
-            hintText: context.tr(CatalogL10n.searchGemstoneTypes),
-            prefixIcon: const Icon(Icons.search_rounded, size: 18),
-            suffixIcon: _query.isEmpty
-                ? null
-                : IconButton(
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).deleteButtonTooltip,
-                    icon: const Icon(Icons.close_rounded, size: 16),
-                    onPressed: () => setState(() {
-                      _query = '';
-                      _visible = _step;
-                      FocusScope.of(context).unfocus();
-                    }),
-                  ),
-          ),
+        LuxeChipGroup(
+          title: context.tr(CatalogL10n.gemstoneType),
+          options: GemstoneFilterState.allGemstoneTypes,
+          selected: selected,
+          onToggle: notifier.toggleGemstoneType,
+          initialVisible: 12,
+          searchHint: context.tr(CatalogL10n.searchGemstoneTypes),
+          emptyLabel: context.tr(CatalogL10n.noGemstones),
+          showAllLabel: context.tr(CatalogFlowL10n.showAll),
+          showLessLabel: context.tr(CatalogL10n.viewLess),
         ),
-        const SizedBox(height: 12),
-        AnimatedSize(
-          duration: LuxeMotion.medium,
-          curve: LuxeMotion.settle,
-          alignment: Alignment.topCenter,
-          child: matches.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    context.tr(CatalogL10n.noGemstones),
-                    style: LuxeType.body(p.inkMuted, size: 13),
-                  ),
-                )
-              : Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final type in shown)
-                      FilterChipWidget(
-                        label: type,
-                        isSelected: selected.contains(type),
-                        onTap: () => notifier.toggleGemstoneType(type),
-                      ),
-                  ],
-                ),
-        ),
-        if (matches.length > _step)
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: () => setState(
-                () => _visible = hidden > 0 ? _visible + _step * 2 : _step,
-              ),
-              style: TextButton.styleFrom(foregroundColor: p.accent),
-              icon: Icon(
-                hidden > 0
-                    ? Icons.expand_more_rounded
-                    : Icons.expand_less_rounded,
-                size: 18,
-              ),
-              label: Text(
-                hidden > 0
-                    ? context.tr(CatalogL10n.othersCount, {'count': hidden})
-                    : context.tr(CatalogL10n.viewLess),
-                style: LuxeType.label(p.accent, size: 12.5),
-              ),
-            ),
-          ),
         const SizedBox(height: 16),
         FilterSectionHeader(
           title: context.tr(CatalogL10n.birthstones),
@@ -384,28 +297,13 @@ class GemstoneSizePriceFilters extends ConsumerWidget {
 }
 
 /// Certifying lab, cut grade and treatments (single stones).
-class GemstoneGradingFilters extends ConsumerStatefulWidget {
+class GemstoneGradingFilters extends ConsumerWidget {
   const GemstoneGradingFilters({super.key});
 
   @override
-  ConsumerState<GemstoneGradingFilters> createState() =>
-      _GemstoneGradingFiltersState();
-}
-
-class _GemstoneGradingFiltersState
-    extends ConsumerState<GemstoneGradingFilters> {
-  static const _treatmentStep = 8;
-  bool _allTreatments = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gemstoneSearchProvider);
     final notifier = ref.read(gemstoneSearchProvider.notifier);
-    const treatments = GemstoneFilterState.treatments;
-    final shownTreatments = _allTreatments
-        ? treatments
-        : treatments.take(_treatmentStep).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -429,48 +327,15 @@ class _GemstoneGradingFiltersState
           infoText: context.tr(CatalogL10n.gemstoneCutHelp),
         ),
         const SizedBox(height: 20),
-        FilterSectionHeader(
+        LuxeChipGroup(
           title: context.tr(CatalogL10n.treatments),
           infoText: 'Filter by enhancement processes applied to the gemstone.',
-        ),
-        const SizedBox(height: 8),
-        AnimatedSize(
-          duration: LuxeMotion.medium,
-          curve: LuxeMotion.settle,
-          alignment: Alignment.topCenter,
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final t in shownTreatments)
-                FilterChipWidget(
-                  label: t,
-                  isSelected: state.selectedTreatments.contains(t),
-                  onTap: () => notifier.toggleTreatment(t),
-                ),
-            ],
-          ),
-        ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: () => setState(() => _allTreatments = !_allTreatments),
-            style: TextButton.styleFrom(foregroundColor: p.accent),
-            icon: Icon(
-              _allTreatments
-                  ? Icons.expand_less_rounded
-                  : Icons.expand_more_rounded,
-              size: 18,
-            ),
-            label: Text(
-              _allTreatments
-                  ? context.tr(CatalogL10n.viewLess)
-                  : context.tr(CatalogL10n.othersCount, {
-                      'count': treatments.length - _treatmentStep,
-                    }),
-              style: LuxeType.label(p.accent, size: 12.5),
-            ),
-          ),
+          options: GemstoneFilterState.treatments,
+          selected: state.selectedTreatments,
+          onToggle: notifier.toggleTreatment,
+          initialVisible: 8,
+          showAllLabel: context.tr(CatalogFlowL10n.showAll),
+          showLessLabel: context.tr(CatalogL10n.viewLess),
         ),
       ],
     );
@@ -480,17 +345,6 @@ class _GemstoneGradingFiltersState
 /// Separable (melee), media, offer and availability listing options.
 class GemstoneListingOptionsFilters extends ConsumerWidget {
   const GemstoneListingOptionsFilters({super.key});
-
-  String _availabilityLabel(BuildContext context, String option) {
-    return switch (option) {
-      'All' => context.tr(RemainingL10n.all),
-      'Available' => context.tr(CatalogL10n.available),
-      'On Memo' => context.tr(CatalogL10n.onMemo),
-      'On Hold' => context.tr(CatalogL10n.onHold),
-      'Sold' => context.tr(CatalogL10n.sold),
-      _ => option,
-    };
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -516,17 +370,9 @@ class GemstoneListingOptionsFilters extends ConsumerWidget {
           onChanged: (_) => notifier.toggleMakeAnOffer(),
         ),
         const SizedBox(height: 16),
-        FilterSectionHeader(title: context.tr(CatalogL10n.availability)),
-        const SizedBox(height: 8),
-        DiamondDropdownField<String>(
+        CatalogAvailabilityFilter(
           value: state.selectedAvailability,
-          items: [
-            for (final opt in GemstoneFilterState.availabilityOptions)
-              DropdownMenuItem(
-                value: opt,
-                child: Text(_availabilityLabel(context, opt)),
-              ),
-          ],
+          options: GemstoneFilterState.availabilityOptions,
           onChanged: notifier.updateAvailability,
         ),
       ],

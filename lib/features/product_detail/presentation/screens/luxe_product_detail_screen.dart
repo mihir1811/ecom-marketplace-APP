@@ -23,6 +23,7 @@ import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../chat/presentation/open_product_seller_chat.dart';
 import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
+import '../../domain/models/product_bullion_detail.dart';
 import '../../domain/models/product_detail.dart';
 import '../../domain/models/product_price_labels.dart';
 import '../widgets/luxe/luxe_detail_gallery.dart';
@@ -32,28 +33,32 @@ import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_suggested_products.dart';
 import 'certificate_viewer_screen.dart';
 
-/// Luxe stone detail shared by natural diamonds, lab-grown diamonds and
-/// gemstones (single and melee).
+/// Luxe product detail shared by natural and lab-grown diamonds,
+/// gemstones, watches and bullion (single and melee).
 ///
 /// Reading order follows the buying decision: the stone (gallery), what it
 /// is (title, grades, badges), what it costs (price card), why to trust it
 /// (at-a-glance grades, certificate), the full record (spec tabs), who sells
 /// it, then related stones. The purchase bar stays pinned.
-class StoneDetailScreen extends ConsumerStatefulWidget {
-  const StoneDetailScreen({required this.detail, super.key});
+class LuxeProductDetailScreen extends ConsumerStatefulWidget {
+  const LuxeProductDetailScreen({required this.detail, super.key});
 
   final ProductDetail detail;
 
   static bool supports(ProductDetail detail) =>
       detail.segment == ProductSegment.naturalDiamond ||
       detail.segment == ProductSegment.labGrownDiamond ||
-      detail.segment == ProductSegment.gemstone;
+      detail.segment == ProductSegment.gemstone ||
+      detail.segment == ProductSegment.watch ||
+      detail.segment == ProductSegment.bullion;
 
   @override
-  ConsumerState<StoneDetailScreen> createState() => _StoneDetailScreenState();
+  ConsumerState<LuxeProductDetailScreen> createState() =>
+      _LuxeProductDetailScreenState();
 }
 
-class _StoneDetailScreenState extends ConsumerState<StoneDetailScreen> {
+class _LuxeProductDetailScreenState
+    extends ConsumerState<LuxeProductDetailScreen> {
   static const _wide = 900.0;
   final _scroll = ScrollController();
   final _offset = ValueNotifier<double>(0);
@@ -399,6 +404,41 @@ class _Summary extends StatelessWidget {
   }
 }
 
+/// Diamond reports read "Report no."; other records keep their own label
+/// (e.g. "Certificate", "Mint").
+String _referenceLabel(BuildContext context, ProductCertification cert) {
+  final label = cert.referenceLabel?.trim();
+  if (label == null || label.isEmpty || label == 'Report') {
+    return context.tr(DiamondFlowL10n.reportNumber);
+  }
+  return label;
+}
+
+/// Bullion overview and specification rows as luxe spec tabs; seller info
+/// is shown by the shared seller panel below.
+ProductTabbedSpecs? _bullionTabs(ProductBullionDetail? bullion) {
+  if (bullion == null) return null;
+  return ProductTabbedSpecs(
+    tabs: [
+      ProductSpecTab(
+        title: 'Overview',
+        isComment: true,
+        commentBody: bullion.overview.trim().isEmpty
+            ? 'No overview available'
+            : bullion.overview,
+      ),
+      if (bullion.specRows.isNotEmpty)
+        ProductSpecTab(
+          title: 'Specifications',
+          rows: [
+            for (final r in bullion.specRows)
+              ProductSpec(r.label, r.value.trim().isEmpty ? '-' : r.value),
+          ],
+        ),
+    ],
+  );
+}
+
 bool _isMissing(String value) {
   final v = value.trim();
   return v.isEmpty ||
@@ -664,7 +704,7 @@ class _Certificate extends StatelessWidget {
                     if (cert.referenceValue != null) ...[
                       const SizedBox(height: 2),
                       Text(
-                        '${context.tr(DiamondFlowL10n.reportNumber)} '
+                        '${_referenceLabel(context, cert)} '
                         '${cert.referenceValue}',
                         style: LuxeType.figure(p.inkMuted, size: 12.5),
                       ),
@@ -706,7 +746,7 @@ class _Record extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final specs = detail.naturalSpecTabs;
+    final specs = detail.naturalSpecTabs ?? _bullionTabs(detail.bullionDetail);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

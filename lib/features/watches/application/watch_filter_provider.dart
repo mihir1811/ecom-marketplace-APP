@@ -122,6 +122,9 @@ abstract class WatchFilterStateMutator extends Notifier<WatchFilterState> {
   void setFullSetIncluded(bool v) =>
       state = state.copyWith(fullSetIncluded: v);
 
+  /// Restores a previous draft (e.g. undo after reset).
+  void replaceDraft(WatchFilterState next) => state = next;
+
   /// Clears all draft filter fields (keeps listing search query only).
   void resetDraftKeepingSearch() {
     state = WatchFilterState(searchQuery: state.searchQuery);

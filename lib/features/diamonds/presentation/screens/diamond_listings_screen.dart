@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
@@ -13,7 +12,6 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
-import '../../../../core/widgets/luxe/luxe_product_card.dart';
 import '../../../ai_chat/application/ai_pending_filters.dart';
 import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_project_listing_actions.dart';
@@ -47,22 +45,14 @@ class DiamondListingsScreen extends ConsumerStatefulWidget {
       _DiamondListingsScreenState();
 }
 
-class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
-  static const _gap = 12.0;
-  static const _pad = 16.0;
-  static const _listStride = LuxeProductListCard.thumbSize + 12 + _gap;
-
-  final _scroll = ScrollController();
-  final _offset = ValueNotifier<double>(0);
-  final _headerKey = GlobalKey();
-  final _entered = <String>{};
-
+class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
+    with LuxeListingMixin {
   bool get _isLab => widget.searchRoute == AppRouteNames.labGrownDiamonds;
 
   @override
   void initState() {
     super.initState();
-    _scroll.addListener(_onScroll);
+    initListing();
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _applyPendingAiFilters(),
     );
@@ -81,71 +71,38 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
 
   @override
   void dispose() {
-    _scroll
-      ..removeListener(_onScroll)
-      ..dispose();
-    _offset.dispose();
+    disposeListing();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (!_scroll.hasClients) return;
-    _offset.value = _scroll.offset;
+  @override
+  bool get listingCanLoadMore {
+    final s = ref.read(diamondListProvider).valueOrNull;
+    return s != null &&
+        s.hasMore &&
+        !s.isLoadingMore &&
+        !s.isInitialLoading &&
+        !s.isRefreshing;
+  }
 
-    final listState = ref.read(diamondListProvider).valueOrNull;
-    if (listState == null ||
-        !listState.hasMore ||
-        listState.isLoadingMore ||
-        listState.isInitialLoading ||
-        listState.isRefreshing) {
-      return;
-    }
-    final position = _scroll.position;
-    // Prefetch ~1 viewport before the end so the next page arrives seamlessly.
-    if (position.pixels >=
-        position.maxScrollExtent - position.viewportDimension) {
+  @override
+  void listingLoadMore() =>
       ref.read(diamondListProvider.notifier).loadNextPage();
-    }
-  }
 
-  double get _headerExtent {
-    final box = _headerKey.currentContext?.findRenderObject();
-    return box is RenderBox && box.hasSize ? box.size.height : 0;
-  }
+  @override
+  int get listingItemCount =>
+      ref.read(diamondListProvider).valueOrNull?.diamonds.length ?? 0;
 
-  double _gridStride(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final cell = (width - _pad * 2 - _gap) / 2;
-    return cell +
-        luxeGridCardTextExtent(MediaQuery.textScalerOf(context)) +
-        _gap;
-  }
+  @override
+  LuxeViewMode get listingViewMode =>
+      ref.read(diamondViewModeProvider) == ViewMode.grid
+      ? LuxeViewMode.grid
+      : LuxeViewMode.list;
 
-  void _switchViewMode(ViewMode next) {
-    final current = ref.read(diamondViewModeProvider);
-    if (current == next) return;
-    AppHaptics.selection();
-    final count =
-        ref.read(diamondListProvider).valueOrNull?.diamonds.length ?? 0;
-    final into = (_scroll.hasClients ? _scroll.offset : 0) - _headerExtent;
-    final index = count == 0 || into <= 0
-        ? 0
-        : (current == ViewMode.grid
-                  ? (into / _gridStride(context)).floor() * 2
-                  : (into / _listStride).floor())
-              .clamp(0, count - 1);
-    ref.read(diamondViewModeProvider.notifier).state = next;
-    if (index == 0) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scroll.hasClients) return;
-      final target =
-          _headerExtent +
-          (next == ViewMode.grid
-              ? (index ~/ 2) * _gridStride(context)
-              : index * _listStride);
-      _scroll.jumpTo(target.clamp(0.0, _scroll.position.maxScrollExtent));
-    });
-  }
+  @override
+  void listingApplyViewMode(LuxeViewMode mode) =>
+      ref.read(diamondViewModeProvider.notifier).state =
+          mode == LuxeViewMode.grid ? ViewMode.grid : ViewMode.list;
 
   void _editFilters() => context.resetTo(widget.searchRoute);
 
@@ -165,67 +122,48 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
       appBar: LuxeTopBar(
         title: title,
         subtitle: const _CountLine(),
-        scrollOffset: _offset,
+        scrollOffset: listingOffset,
         actions: const [CatalogFlowActions()],
       ),
       body: Column(
         children: [
           Expanded(
             child: ComparisonTrayHost(
-              child: Stack(
-                children: [
-                  RefreshIndicator(
-                    color: p.ink,
-                    backgroundColor: p.surface,
-                    onRefresh: () =>
-                        ref.read(diamondListProvider.notifier).refresh(),
-                    child: CustomScrollView(
-                      controller: _scroll,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: Column(
-                            key: _headerKey,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _ActiveFilterPills(
-                                onEdit: _editFilters,
-                                onResetAll: () => ref
-                                    .read(diamondListProvider.notifier)
-                                    .resetFiltersAndReload(),
-                              ),
-                              const DiamondListingStatsBar(),
-                            ],
-                          ),
+              child: LuxeListingScrollView(
+                controller: listingScroll,
+                offset: listingOffset,
+                onRefresh: () =>
+                    ref.read(diamondListProvider.notifier).refresh(),
+                onBackToTop: listingBackToTop,
+                backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      key: listingHeaderKey,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _ActiveFilterPills(
+                          onEdit: _editFilters,
+                          onResetAll: () => ref
+                              .read(diamondListProvider.notifier)
+                              .resetFiltersAndReload(),
                         ),
-                        LuxePinnedBar(
-                          child: Center(
-                            child: _Toolbar(
-                              onEditFilters: _editFilters,
-                              onSwitchViewMode: _switchViewMode,
-                            ),
-                          ),
-                        ),
-                        const SliverToBoxAdapter(
-                          child: DiamondProjectListingActions(),
-                        ),
-                        ..._content(context),
+                        const DiamondListingStatsBar(),
                       ],
                     ),
                   ),
-                  Positioned(
-                    right: 16,
-                    bottom: 16,
-                    child: LuxeBackToTop(
-                      offset: _offset,
-                      tooltip: context.tr(DiamondFlowL10n.backToTop),
-                      onTap: () => _scroll.animateTo(
-                        0,
-                        duration: const Duration(milliseconds: 900),
-                        curve: LuxeMotion.settle,
+                  LuxePinnedBar(
+                    child: Center(
+                      child: _Toolbar(
+                        onEditFilters: _editFilters,
+                        onSwitchViewMode: switchListingViewMode,
                       ),
                     ),
                   ),
+                  const SliverToBoxAdapter(
+                    child: DiamondProjectListingActions(),
+                  ),
+                  ..._content(context),
                 ],
               ),
             ),
@@ -238,113 +176,57 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen> {
 
   List<Widget> _content(BuildContext context) {
     final stateAsync = ref.watch(diamondListProvider);
-    final viewMode = ref.watch(diamondViewModeProvider);
-    final grid = viewMode == ViewMode.grid;
-
-    Widget fill(Widget child) =>
-        SliverFillRemaining(hasScrollBody: false, child: child);
-
-    final error = stateAsync.whenOrNull(error: (e, _) => e.toString());
-    final state = stateAsync.valueOrNull;
-    if (error != null) return [fill(_errorView(error))];
-    if (state == null || state.isInitialLoading) {
-      return [LuxeListingSkeletons(grid: grid, padding: _pad, gap: _gap)];
-    }
-    if (state.errorMessage != null && state.diamonds.isEmpty) {
-      return [fill(_errorView(state.errorMessage!))];
-    }
-    if (state.diamonds.isEmpty) {
-      return [
-        fill(
-          LuxeStateView(
-            icon: Icons.diamond_outlined,
-            title: context.tr(DiamondFlowL10n.emptyTitle),
-            message: context.tr(DiamondFlowL10n.emptyBody),
-            actionLabel: context.tr(DiamondFlowL10n.editFilters),
-            onAction: _editFilters,
-            secondaryLabel: context.tr(CatalogL10n.resetFilters),
-            onSecondary: () =>
-                ref.read(diamondListProvider.notifier).resetFiltersAndReload(),
-          ),
-        ),
-      ];
-    }
-
+    final grid = ref.watch(diamondViewModeProvider) == ViewMode.grid;
     final showProjectPick = ref.watch(
       authProvider.select((s) => s.isSeller || s.sellerId != null),
     );
-    final diamonds = state.diamonds;
-
-    Widget card(int i) {
-      final d = diamonds[i];
-      void open() => openDiamondDetail(context, d);
-      final child = grid
+    final state = stateAsync.valueOrNull;
+    final error =
+        stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
+        state?.errorMessage;
+    return luxeResultSlivers(
+      context: context,
+      initialLoading:
+          !stateAsync.hasError && (state == null || state.isInitialLoading),
+      error: error,
+      items: state?.diamonds ?? const [],
+      isLoadingMore: state?.isLoadingMore ?? false,
+      viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
+      idOf: (d) => d.id,
+      cardOf: (d, mode) => mode == LuxeViewMode.grid
           ? DiamondLuxeGridCard(
               diamond: d,
               showProjectPick: showProjectPick,
-              onTap: open,
+              onTap: () => openDiamondDetail(context, d),
             )
           : DiamondLuxeListCard(
               diamond: d,
               showProjectPick: showProjectPick,
-              onTap: open,
-            );
-      return LuxeEntranceOnce(
-        key: ValueKey('${viewMode.name}-${d.id}'),
-        id: '${viewMode.name}-${d.id}',
-        seen: _entered,
-        index: i,
-        child: RepaintBoundary(child: child),
-      );
-    }
-
-    final width = MediaQuery.sizeOf(context).width;
-    final cell = (width - _pad * 2 - _gap) / 2;
-    final extent =
-        cell + luxeGridCardTextExtent(MediaQuery.textScalerOf(context));
-
-    return [
-      SliverPadding(
-        padding: const EdgeInsets.fromLTRB(_pad, 6, _pad, 0),
-        sliver: grid
-            ? SliverGrid.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: _gap,
-                  crossAxisSpacing: _gap,
-                  mainAxisExtent: extent,
-                ),
-                itemCount: diamonds.length,
-                itemBuilder: (context, i) => card(i),
-              )
-            : SliverList.separated(
-                itemCount: diamonds.length,
-                separatorBuilder: (_, _) => const SizedBox(height: _gap),
-                itemBuilder: (context, i) => card(i),
-              ),
+              onTap: () => openDiamondDetail(context, d),
+            ),
+      entered: listingEntered,
+      loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
+      emptyView: LuxeStateView(
+        icon: Icons.diamond_outlined,
+        title: context.tr(DiamondFlowL10n.emptyTitle),
+        message: context.tr(DiamondFlowL10n.emptyBody),
+        actionLabel: context.tr(DiamondFlowL10n.editFilters),
+        onAction: _editFilters,
+        secondaryLabel: context.tr(CatalogL10n.resetFilters),
+        onSecondary: () =>
+            ref.read(diamondListProvider.notifier).resetFiltersAndReload(),
       ),
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 96),
-          child: state.isLoadingMore
-              ? LuxeLoadingMore(label: context.tr(DiamondFlowL10n.loadingMore))
-              : const SizedBox.shrink(),
-        ),
+      errorView: (message) => LuxeStateView(
+        icon: Icons.cloud_off_rounded,
+        tone: LuxeTone.error,
+        title: context.tr(DiamondFlowL10n.errorTitle),
+        message: message,
+        actionLabel: context.tr(CatalogL10n.retry),
+        onAction: () =>
+            ref.read(diamondListProvider.notifier).applyFiltersAndSort(),
+        secondaryLabel: context.tr(DiamondFlowL10n.editFilters),
+        onSecondary: _editFilters,
       ),
-    ];
-  }
-
-  Widget _errorView(String message) {
-    return LuxeStateView(
-      icon: Icons.cloud_off_rounded,
-      tone: LuxeTone.error,
-      title: context.tr(DiamondFlowL10n.errorTitle),
-      message: message,
-      actionLabel: context.tr(CatalogL10n.retry),
-      onAction: () =>
-          ref.read(diamondListProvider.notifier).applyFiltersAndSort(),
-      secondaryLabel: context.tr(DiamondFlowL10n.editFilters),
-      onSecondary: _editFilters,
     );
   }
 }
@@ -420,7 +302,7 @@ class _Toolbar extends ConsumerWidget {
   const _Toolbar({required this.onEditFilters, required this.onSwitchViewMode});
 
   final VoidCallback onEditFilters;
-  final ValueChanged<ViewMode> onSwitchViewMode;
+  final ValueChanged<LuxeViewMode> onSwitchViewMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -445,9 +327,7 @@ class _Toolbar extends ConsumerWidget {
       viewMode: viewMode == ViewMode.grid
           ? LuxeViewMode.grid
           : LuxeViewMode.list,
-      onViewMode: (m) => onSwitchViewMode(
-        m == LuxeViewMode.grid ? ViewMode.grid : ViewMode.list,
-      ),
+      onViewMode: onSwitchViewMode,
       gridLabel: context.tr(DiamondFlowL10n.grid),
       listLabel: context.tr(DiamondFlowL10n.list),
     );

@@ -1,11 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../haptics/app_haptics.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/luxe_tokens.dart';
+import '../../theme/app_colors.dart';
+import '../app_scaffold.dart';
 import '../catalog_search_filter_shell.dart';
 import 'luxe_button.dart';
 import 'luxe_layout.dart';
+import 'luxe_listing.dart';
 
 /// Scroll-spy, pill index and jump-to-section behaviour shared by every
 /// luxe finder (diamonds, gemstones, …).
@@ -63,6 +68,33 @@ mixin LuxeFinderMixin<W extends StatefulWidget, S>
   }
 
   void disposeFinder() => finderOffset.dispose();
+
+  /// Collapsible section for [section] with its active-filter badge and a
+  /// one-line summary ("Any", the picked names, or "3 selected").
+  Widget finderSection(
+    S section, {
+    required String title,
+    required IconData icon,
+    required int count,
+    required Widget child,
+    bool initiallyExpanded = false,
+    List<String> names = const [],
+  }) {
+    final summary = count == 0
+        ? context.tr(DiamondFlowL10n.any)
+        : names.isNotEmpty && names.length == count
+        ? names.join(' · ')
+        : context.tr(DiamondFlowL10n.selectedCount, {'count': count});
+    return LuxeSection(
+      key: finderSectionKey(section),
+      title: title,
+      icon: icon,
+      summary: summary,
+      activeCount: count,
+      initiallyExpanded: initiallyExpanded,
+      child: child,
+    );
+  }
 }
 
 /// Horizontally scrolling index of finder sections. Pills carry a dot when
@@ -241,6 +273,113 @@ class LuxeFinderActionBar extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Page frame shared by every luxe finder / filter screen: luxe top bar,
+/// editorial intro, pinned section index, eagerly built collapsible
+/// sections and a sticky action bar.
+///
+/// Pair it with [LuxeFinderMixin] on the screen state.
+class LuxeFinderScaffold<S> extends StatelessWidget {
+  const LuxeFinderScaffold({
+    required this.title,
+    required this.intro,
+    required this.sections,
+    required this.active,
+    required this.labelOf,
+    required this.countOf,
+    required this.pillKeyOf,
+    required this.onJump,
+    required this.navKey,
+    required this.sectionBuilder,
+    required this.scrollController,
+    required this.scrollOffset,
+    required this.onScrollNotification,
+    required this.actionBar,
+    super.key,
+    this.eyebrow,
+    this.onBack,
+    this.actions = const [],
+    this.background,
+  });
+
+  final String title;
+  final String? eyebrow;
+  final VoidCallback? onBack;
+  final List<Widget> actions;
+
+  /// Page tint; defaults to the luxe canvas (melee finders pass a tint).
+  final Color? background;
+  final Widget intro;
+  final List<S> sections;
+  final S active;
+  final String Function(S) labelOf;
+  final int Function(S) countOf;
+  final GlobalKey Function(S) pillKeyOf;
+  final ValueChanged<S> onJump;
+  final GlobalKey navKey;
+  final Widget Function(S) sectionBuilder;
+  final ScrollController scrollController;
+  final ValueListenable<double> scrollOffset;
+  final NotificationListenerCallback<ScrollNotification> onScrollNotification;
+  final Widget actionBar;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = background ?? LuxePalette.of(context).canvas;
+    return AppScaffold(
+      backgroundColor: bg,
+      appBar: LuxeTopBar(
+        eyebrow: eyebrow,
+        title: title,
+        scrollOffset: scrollOffset,
+        onBack: onBack,
+        actions: actions,
+      ),
+      bottomNavigationBar: actionBar,
+      body: AnimatedContainer(
+        duration: AppColors.meleeBgDuration,
+        curve: Curves.easeInOut,
+        color: bg,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: onScrollNotification,
+          child: CustomScrollView(
+            controller: scrollController,
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
+              SliverToBoxAdapter(child: intro),
+              LuxePinnedBar(
+                background: bg,
+                child: LuxeFinderIndex<S>(
+                  key: navKey,
+                  sections: sections,
+                  active: active,
+                  labelOf: labelOf,
+                  countOf: countOf,
+                  pillKeyOf: pillKeyOf,
+                  onTap: onJump,
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+                // Built eagerly so every section key resolves and any pill
+                // can jump straight to its section; expanded state also
+                // survives scrolling.
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [for (final s in sections) sectionBuilder(s)],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

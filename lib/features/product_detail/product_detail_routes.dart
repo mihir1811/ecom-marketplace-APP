@@ -9,7 +9,7 @@ import '../../core/widgets/app_top_bar.dart';
 import '../../core/widgets/catalog_empty_state.dart';
 import 'domain/models/product_detail.dart';
 import 'product_detail_navigation.dart';
-import 'presentation/screens/stone_detail_screen.dart';
+import 'presentation/screens/luxe_product_detail_screen.dart';
 import 'presentation/screens/product_detail_screen.dart';
 
 final List<RouteBase> productDetailRoutes = [
@@ -25,8 +25,8 @@ final List<RouteBase> productDetailRoutes = [
       };
       if (detail is ProductDetail) {
         rememberProductDetail(detail);
-        if (StoneDetailScreen.supports(detail)) {
-          return StoneDetailScreen(detail: detail);
+        if (LuxeProductDetailScreen.supports(detail)) {
+          return LuxeProductDetailScreen(detail: detail);
         }
         return ProductDetailScreen(detail: detail);
       }

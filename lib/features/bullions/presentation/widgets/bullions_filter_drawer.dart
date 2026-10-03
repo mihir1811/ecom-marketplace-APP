@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/filters/filter_accordion_section.dart';
+import '../../../../core/theme/luxe_scope.dart';
+import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/catalog_search_filter_shell.dart';
+import '../../../../core/widgets/filters/catalog_availability_filter.dart';
 import '../../../../core/widgets/filters/filter_boolean_checkbox.dart';
-import '../../../../core/widgets/filters/filter_full_screen_shell.dart';
+import '../../../../core/widgets/luxe/luxe_chip_group.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
+import '../../../../core/widgets/luxe/luxe_finder.dart';
+import '../../../../core/widgets/luxe/luxe_range_fields.dart';
 import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
 import '../../domain/models/bullions_filter_state.dart';
+import '../../domain/models/bullions_filter_summary.dart';
+import 'bullion_filter_labels.dart';
 
-/// Full-screen bullion filters (same chrome as jewelry filters).
+/// Bullion filters on the shared luxe finder layout: editorial intro,
+/// pinned section index, collapsible sections with live counts and a sticky
+/// Reset / Show results bar. Edits a draft applied on "Show results".
 class BullionsFilterDrawer extends ConsumerStatefulWidget {
   const BullionsFilterDrawer({super.key});
 
@@ -23,561 +29,291 @@ class BullionsFilterDrawer extends ConsumerStatefulWidget {
       _BullionsFilterDrawerState();
 }
 
-class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer> {
-  final Map<String, bool> _expanded = {
-    'shape': true,
-    'availability': true,
-    'price': true,
-    'weight': true,
-    'quantity': true,
-    'condition': true,
-    'certification': true,
-    'mint': true,
-    'dimensions': true,
-  };
+class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer>
+    with
+        CatalogSearchScrollMixin,
+        LuxeFinderMixin<BullionsFilterDrawer, BullionsFilterSection> {
+  @override
+  final ScrollController catalogScrollController = ScrollController();
+  @override
+  final GlobalKey catalogNavKey = GlobalKey();
+  @override
+  double get catalogNavHeight => 56;
 
-  late final Map<String, TextEditingController> _controllers;
+  @override
+  List<BullionsFilterSection> get finderVisibleSections =>
+      BullionsFilterSection.values;
+
+  BullionsFilterDraftNotifier get _n =>
+      ref.read(bullionsFilterDraftProvider.notifier);
 
   @override
   void initState() {
     super.initState();
-    final draft = ref.read(bullionsFilterDraftProvider);
-    _controllers = {
-      'priceMin': TextEditingController(text: _text(draft.priceMin)),
-      'priceMax': TextEditingController(text: _text(draft.priceMax)),
-      'weightMin': TextEditingController(text: _text(draft.weightMin)),
-      'weightMax': TextEditingController(text: _text(draft.weightMax)),
-      'quantityMin': TextEditingController(text: _text(draft.quantityMin)),
-      'quantityMax': TextEditingController(text: _text(draft.quantityMax)),
-      'lengthMin': TextEditingController(text: _text(draft.lengthMin)),
-      'lengthMax': TextEditingController(text: _text(draft.lengthMax)),
-      'widthMin': TextEditingController(text: _text(draft.widthMin)),
-      'widthMax': TextEditingController(text: _text(draft.widthMax)),
-      'heightMin': TextEditingController(text: _text(draft.heightMin)),
-      'heightMax': TextEditingController(text: _text(draft.heightMax)),
-    };
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(bullionsFilterDraftProvider.notifier).syncFromApplied();
-    });
+    catalogScrollController.addListener(finderOnScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _n.syncFromApplied());
   }
 
   @override
   void dispose() {
-    for (final controller in _controllers.values) {
-      controller.dispose();
-    }
+    catalogScrollController
+      ..removeListener(finderOnScroll)
+      ..dispose();
+    disposeFinder();
     super.dispose();
   }
 
-  String _text(double value) => value > 0 ? value.toStringAsFixed(0) : '';
+  void _reset() {
+    final previous = ref.read(bullionsFilterDraftProvider);
+    _n.reset();
+    showLuxeToast(
+      context,
+      context.tr(DiamondFlowL10n.filtersCleared),
+      actionLabel: context.tr(DiamondFlowL10n.undo),
+      onAction: () => _n.replaceDraft(previous),
+    );
+  }
 
-  double _parse(String key) => double.tryParse(_controllers[key]!.text) ?? 0;
-
-  void _syncControllers(BullionsFilterState draft) {
-    final next = {
-      'priceMin': draft.priceMin,
-      'priceMax': draft.priceMax,
-      'weightMin': draft.weightMin,
-      'weightMax': draft.weightMax,
-      'quantityMin': draft.quantityMin,
-      'quantityMax': draft.quantityMax,
-      'lengthMin': draft.lengthMin,
-      'lengthMax': draft.lengthMax,
-      'widthMin': draft.widthMin,
-      'widthMax': draft.widthMax,
-      'heightMin': draft.heightMin,
-      'heightMax': draft.heightMax,
-    };
-    next.forEach((key, value) {
-      final newText = _text(value);
-      if (_controllers[key]!.text != newText) {
-        _controllers[key]!.text = newText;
-      }
-    });
+  void _showResults() {
+    _n.apply();
+    ref.read(bullionsListProvider.notifier).refresh();
+    context.goBack();
   }
 
   @override
   Widget build(BuildContext context) {
+    return LuxeScope(child: Builder(builder: _buildScaffold));
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final draft = ref.watch(bullionsFilterDraftProvider);
-    _syncControllers(draft);
-
-    final notifier = ref.read(bullionsFilterDraftProvider.notifier);
-    final resultCount = ref.watch(
-      bullionsListProvider.select((v) => v.valueOrNull?.totalCount),
-    );
-
-    return FilterFullScreenShell(
-      onReset: () {
-        notifier.reset();
-        _syncControllers(ref.read(bullionsFilterDraftProvider));
-      },
-      showResultsLabel: resultCount == null
-          ? context.tr(CatalogL10n.showResults)
-          : '${context.tr(CatalogL10n.showResults)} ($resultCount)',
-      onShowResults: () {
-        notifier.apply();
-        ref.read(bullionsListProvider.notifier).refresh();
-        context.goBack();
-      },
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: AppSpacing.s24),
-        children: [
-          _section(
-            'shape',
-            context.tr(CatalogL10n.shape),
-            _chipGrid(
-              BullionsFilterState.shapeOptions,
-              draft.shapes,
-              notifier.toggleShape,
-            ),
-          ),
-          _section(
-            'availability',
-            context.tr(CatalogL10n.availability),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s20,
-                    0,
-                    AppSpacing.s20,
-                    AppSpacing.s8,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.border(context)),
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: draft.selectedAvailability,
-                        items: BullionsFilterState.availabilityOptions
-                            .map(
-                              (opt) => DropdownMenuItem<String>(
-                                value: opt,
-                                child: Text(_availabilityLabel(context, opt)),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: notifier.updateAvailability,
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s20,
-                    AppSpacing.s4,
-                    AppSpacing.s20,
-                    AppSpacing.s8,
-                  ),
-                  child: FilterBooleanCheckbox(
-                    label: context.tr(CatalogL10n.makeOffer),
-                    value: draft.makeAnOffer,
-                    onChanged: (v) => notifier.setMakeAnOffer(v ?? false),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _section(
-            'price',
-            context.tr(CatalogL10n.priceRange),
-            _rangeInputs(
-              label: context.tr(CatalogL10n.currentRange),
-              minKey: 'priceMin',
-              maxKey: 'priceMax',
-              minLabel: 'Min (\$)',
-              maxLabel: 'Max (\$)',
-              onChanged: () => notifier.setPriceRange(
-                min: _parse('priceMin'),
-                max: _parse('priceMax'),
-              ),
-            ),
-          ),
-          _section(
-            'weight',
-            context.tr(CatalogL10n.weight),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.s20,
-                    ),
-                    child: Wrap(
-                      alignment: WrapAlignment.start,
-                      crossAxisAlignment: WrapCrossAlignment.start,
-                      spacing: AppSpacing.s8,
-                      runSpacing: AppSpacing.s8,
-                      children: [
-                        for (final item
-                            in BullionsFilterState.weightChipOptions)
-                          _MiniChip(
-                            label: item,
-                            selected: draft.weightChips.contains(item),
-                            onTap: () => notifier.toggleWeightChip(item),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s12),
-                _rangeInputs(
-                  label: context.tr(CatalogL10n.currentRange),
-                  minKey: 'weightMin',
-                  maxKey: 'weightMax',
-                  minLabel: 'Min',
-                  maxLabel: 'Max',
-                  onChanged: () => notifier.setWeightRange(
-                    min: _parse('weightMin'),
-                    max: _parse('weightMax'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _section(
-            'quantity',
-            context.tr(CatalogL10n.quantity),
-            _rangeInputs(
-              label: context.tr(CatalogL10n.currentRange),
-              minKey: 'quantityMin',
-              maxKey: 'quantityMax',
-              minLabel: 'Min',
-              maxLabel: 'Max',
-              onChanged: () => notifier.setQuantityRange(
-                min: _parse('quantityMin'),
-                max: _parse('quantityMax'),
-              ),
-            ),
-          ),
-          _section(
-            'condition',
-            context.tr(CatalogL10n.condition),
-            _chipGrid(
-              BullionsFilterState.conditionOptions,
-              draft.conditions,
-              notifier.toggleCondition,
-            ),
-          ),
-          _section(
-            'certification',
-            'Certification',
-            _chipGrid(
-              BullionsFilterState.certificationOptions,
-              draft.certifications,
-              notifier.toggleCertification,
-            ),
-          ),
-          _section(
-            'mint',
-            context.tr(CatalogL10n.mintMark),
-            _chipGrid(
-              BullionsFilterState.mintMarkOptions,
-              draft.mintMarks,
-              notifier.toggleMintMark,
-            ),
-          ),
-          _section(
-            'dimensions',
-            context.tr(CatalogL10n.dimensions),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _rangeInputs(
-                  label: context.tr(CatalogL10n.length),
-                  minKey: 'lengthMin',
-                  maxKey: 'lengthMax',
-                  minLabel: 'Min',
-                  maxLabel: 'Max',
-                  onChanged: () => notifier.setLengthRange(
-                    min: _parse('lengthMin'),
-                    max: _parse('lengthMax'),
-                  ),
-                ),
-                _rangeInputs(
-                  label: context.tr(CatalogL10n.width),
-                  minKey: 'widthMin',
-                  maxKey: 'widthMax',
-                  minLabel: 'Min',
-                  maxLabel: 'Max',
-                  onChanged: () => notifier.setWidthRange(
-                    min: _parse('widthMin'),
-                    max: _parse('widthMax'),
-                  ),
-                ),
-                _rangeInputs(
-                  label: context.tr(CatalogL10n.height),
-                  minKey: 'heightMin',
-                  maxKey: 'heightMax',
-                  minLabel: 'Min',
-                  maxLabel: 'Max',
-                  onChanged: () => notifier.setHeightRange(
-                    min: _parse('heightMin'),
-                    max: _parse('heightMax'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+    final summary = BullionsFilterSummary.of(draft);
+    return LuxeFinderScaffold<BullionsFilterSection>(
+      eyebrow: context.tr(CatalogFlowL10n.bullionFilterEyebrow),
+      title: context.tr(CatalogL10n.bullions),
+      onBack: () => context.goBack(),
+      intro: LuxeFinderIntro(
+        headline: context.tr(CatalogFlowL10n.bullionFilterHeadline),
+        intro: context.tr(CatalogFlowL10n.bullionFilterIntro),
+      ),
+      sections: BullionsFilterSection.values,
+      active: finderActive,
+      labelOf: (s) => bullionSectionTitle(context, s),
+      countOf: summary.count,
+      pillKeyOf: finderPillKey,
+      onJump: finderJumpTo,
+      navKey: catalogNavKey,
+      sectionBuilder: (s) => _section(context, s, draft, summary),
+      scrollController: catalogScrollController,
+      scrollOffset: finderOffset,
+      onScrollNotification: catalogHandleScrollNotification,
+      actionBar: LuxeFinderActionBar(
+        activeCount: summary.total,
+        onReset: summary.total == 0 ? null : _reset,
+        onShow: _showResults,
+        showLabel: context.tr(CatalogL10n.showResults),
+        resetLabel: context.tr(DiamondFlowL10n.reset),
       ),
     );
   }
 
-  Widget _section(String key, String title, Widget child) {
-    final open = _expanded[key] ?? false;
-    return FilterAccordionSection(
-      title: title,
-      expanded: open,
-      onToggle: () => setState(() => _expanded[key] = !open),
+  Widget _section(
+    BuildContext context,
+    BullionsFilterSection s,
+    BullionsFilterState d,
+    BullionsFilterSummary summary,
+  ) {
+    const hints = BullionsFilterState.rangePlaceholders;
+    LuxeRangeFields range({
+      String? title,
+      required double min,
+      required double max,
+      required String minKey,
+      required String maxKey,
+      required void Function(double min, double max) onChanged,
+      String? prefix,
+      String? suffix,
+    }) {
+      return LuxeRangeFields(
+        title: title,
+        min: min,
+        max: max,
+        minHint: hints[minKey] ?? '0',
+        maxHint: hints[maxKey],
+        prefix: prefix,
+        suffix: suffix,
+        minLabel: context.tr(CatalogFlowL10n.min),
+        maxLabel: context.tr(CatalogFlowL10n.max),
+        invalidLabel: context.tr(CatalogFlowL10n.invalidRange),
+        onChanged: onChanged,
+      );
+    }
+
+    final (icon, child) = switch (s) {
+      BullionsFilterSection.formWeight => (
+        Icons.view_in_ar_outlined,
+        _stack([
+          _chips(
+            context,
+            context.tr(CatalogL10n.shape),
+            BullionsFilterState.shapeOptions,
+            d.shapes,
+            _n.toggleShape,
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.weight),
+            BullionsFilterState.weightChipOptions,
+            d.weightChips,
+            _n.toggleWeightChip,
+          ),
+          range(
+            title: context.tr(CatalogL10n.currentRange),
+            min: d.weightMin,
+            max: d.weightMax,
+            minKey: 'weightMin',
+            maxKey: 'weightMax',
+            onChanged: (min, max) => _n.setWeightRange(min: min, max: max),
+          ),
+        ]),
+      ),
+      BullionsFilterSection.price => (
+        Icons.payments_outlined,
+        range(
+          min: d.priceMin,
+          max: d.priceMax,
+          minKey: 'priceMin',
+          maxKey: 'priceMax',
+          prefix: '${AppCurrency.symbol} ',
+          onChanged: (min, max) => _n.setPriceRange(min: min, max: max),
+        ),
+      ),
+      BullionsFilterSection.quantity => (
+        Icons.inventory_2_outlined,
+        range(
+          min: d.quantityMin,
+          max: d.quantityMax,
+          minKey: 'quantityMin',
+          maxKey: 'quantityMax',
+          onChanged: (min, max) => _n.setQuantityRange(min: min, max: max),
+        ),
+      ),
+      BullionsFilterSection.provenance => (
+        Icons.verified_outlined,
+        _stack([
+          _chips(
+            context,
+            context.tr(CatalogL10n.condition),
+            BullionsFilterState.conditionOptions,
+            d.conditions,
+            _n.toggleCondition,
+          ),
+          _chips(
+            context,
+            'Certification',
+            BullionsFilterState.certificationOptions,
+            d.certifications,
+            _n.toggleCertification,
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.mintMark),
+            BullionsFilterState.mintMarkOptions,
+            d.mintMarks,
+            _n.toggleMintMark,
+          ),
+        ]),
+      ),
+      BullionsFilterSection.listing => (
+        Icons.tune_rounded,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CatalogAvailabilityFilter(
+              value: d.selectedAvailability,
+              options: BullionsFilterState.availabilityOptions,
+              onChanged: _n.updateAvailability,
+            ),
+            const SizedBox(height: 4),
+            FilterBooleanCheckbox(
+              label: context.tr(CatalogL10n.makeOffer),
+              value: d.makeAnOffer,
+              onChanged: (v) => _n.setMakeAnOffer(v ?? false),
+            ),
+          ],
+        ),
+      ),
+      BullionsFilterSection.dimensions => (
+        Icons.straighten_rounded,
+        _stack([
+          range(
+            title: context.tr(CatalogL10n.length),
+            min: d.lengthMin,
+            max: d.lengthMax,
+            minKey: 'lengthMin',
+            maxKey: 'lengthMax',
+            suffix: 'mm',
+            onChanged: (min, max) => _n.setLengthRange(min: min, max: max),
+          ),
+          range(
+            title: context.tr(CatalogL10n.width),
+            min: d.widthMin,
+            max: d.widthMax,
+            minKey: 'widthMin',
+            maxKey: 'widthMax',
+            suffix: 'mm',
+            onChanged: (min, max) => _n.setWidthRange(min: min, max: max),
+          ),
+          range(
+            title: context.tr(CatalogL10n.height),
+            min: d.heightMin,
+            max: d.heightMax,
+            minKey: 'heightMin',
+            maxKey: 'heightMax',
+            suffix: 'mm',
+            onChanged: (min, max) => _n.setHeightRange(min: min, max: max),
+          ),
+        ]),
+      ),
+    };
+
+    return finderSection(
+      s,
+      title: bullionSectionTitle(context, s),
+      icon: icon,
+      count: summary.count(s),
+      initiallyExpanded:
+          s == BullionsFilterSection.formWeight ||
+          s == BullionsFilterSection.price,
+      names: s == BullionsFilterSection.provenance
+          ? [...d.conditions, ...d.certifications, ...d.mintMarks]
+          : const [],
       child: child,
     );
   }
 
-  String _availabilityLabel(BuildContext context, String option) {
-    return switch (option) {
-      'All' => context.tr(RemainingL10n.all),
-      'Available' => context.tr(CatalogL10n.available),
-      'On Memo' => context.tr(CatalogL10n.onMemo),
-      'On Hold' => context.tr(CatalogL10n.onHold),
-      'Sold' => context.tr(CatalogL10n.sold),
-      _ => option,
-    };
-  }
+  Widget _stack(List<Widget> children) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      for (var i = 0; i < children.length; i++) ...[
+        if (i > 0) const SizedBox(height: 22),
+        children[i],
+      ],
+    ],
+  );
 
-  Widget _chipGrid(
-    List<String> values,
+  Widget _chips(
+    BuildContext context,
+    String title,
+    List<String> options,
     Set<String> selected,
     void Function(String) onToggle,
   ) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
-        child: Wrap(
-          alignment: WrapAlignment.start,
-          crossAxisAlignment: WrapCrossAlignment.start,
-          runAlignment: WrapAlignment.start,
-          spacing: AppSpacing.s8,
-          runSpacing: AppSpacing.s8,
-          children: [
-            for (final value in values)
-              _SelectableChip(
-                label: value,
-                selected: selected.contains(value),
-                onTap: () => onToggle(value),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _rangeInputs({
-    required String label,
-    required String minKey,
-    required String maxKey,
-    required String minLabel,
-    required String maxLabel,
-    required VoidCallback onChanged,
-  }) {
-    final muted = AppColors.textMuted(context);
-    const placeholders = BullionsFilterState.rangePlaceholders;
-    final minHint = placeholders[minKey] ?? '0';
-    final maxHint = placeholders[maxKey] ?? '0';
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.s20,
-        0,
-        AppSpacing.s20,
-        AppSpacing.s16,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          Row(
-            children: [
-              Expanded(
-                child: _NumberField(
-                  controller: _controllers[minKey]!,
-                  label: minLabel,
-                  hintText: minHint,
-                  muted: muted,
-                  onChanged: (_) => onChanged(),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.s12),
-              Expanded(
-                child: _NumberField(
-                  controller: _controllers[maxKey]!,
-                  label: maxLabel,
-                  hintText: maxHint,
-                  muted: muted,
-                  onChanged: (_) => onChanged(),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SelectableChip extends StatelessWidget {
-  const _SelectableChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        AppHaptics.selection();
-        onTap();
-      },
-      borderRadius: BorderRadius.circular(AppSpacing.r8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.s12,
-          vertical: AppSpacing.s8,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.selectedFill(context)
-              : AppColors.card(context),
-          borderRadius: BorderRadius.circular(AppSpacing.r8),
-          border: Border.all(
-            color: selected
-                ? AppColors.selectedFill(context)
-                : AppColors.border(context),
-          ),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.caption.copyWith(
-            color: selected
-                ? AppColors.onSelected(context)
-                : AppColors.textPrimary(context),
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniChip extends StatelessWidget {
-  const _MiniChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        AppHaptics.selection();
-        onTap();
-      },
-      borderRadius: BorderRadius.circular(AppSpacing.r8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.s12,
-          vertical: AppSpacing.s8,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.selectedFill(context)
-              : AppColors.card(context),
-          borderRadius: BorderRadius.circular(AppSpacing.r8),
-          border: Border.all(
-            color: selected
-                ? AppColors.selectedFill(context)
-                : AppColors.border(context),
-          ),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.caption.copyWith(
-            color: selected
-                ? AppColors.onSelected(context)
-                : AppColors.textPrimary(context),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NumberField extends StatelessWidget {
-  const _NumberField({
-    required this.controller,
-    required this.label,
-    required this.hintText,
-    required this.muted,
-    required this.onChanged,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final String hintText;
-  final Color muted;
-  final ValueChanged<String> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTypography.caption.copyWith(color: muted)),
-        const SizedBox(height: AppSpacing.s4),
-        TextField(
-          controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          onChanged: onChanged,
-          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-          decoration: InputDecoration(
-            isDense: true,
-            hintText: hintText,
-            hintStyle: AppTypography.caption.copyWith(color: muted),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s12,
-              vertical: AppSpacing.s12,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppSpacing.r8),
-            ),
-          ),
-        ),
-      ],
+    return LuxeChipGroup(
+      title: title,
+      options: options,
+      selected: selected,
+      onToggle: onToggle,
     );
   }
 }

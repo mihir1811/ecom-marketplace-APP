@@ -14,10 +14,12 @@ import 'package:gemstone/core/widgets/filters/filter_text_segmented_control.dart
 import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
 import 'package:gemstone/core/widgets/filters/filter_group_card.dart';
 import 'package:gemstone/core/widgets/filters/filter_scrollable_chips.dart';
+import 'package:gemstone/core/widgets/filters/catalog_availability_filter.dart';
 import 'package:gemstone/core/widgets/filters/filter_boolean_checkbox.dart';
 import 'package:gemstone/core/widgets/filters/melee_range_filters.dart';
 import 'package:gemstone/core/widgets/filters/catalog_standard_range_filters.dart';
 import '../../../../core/theme/luxe_scope.dart';
+import '../../../../core/widgets/luxe/luxe_dropdown_field.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 
 /// Whether the current catalog shows melee (sieve / per-piece) filters.
@@ -91,17 +93,6 @@ class DiamondListingOptionsFilters extends ConsumerWidget {
 
   final bool isLabCatalog;
 
-  String _availabilityLabel(BuildContext context, String option) {
-    return switch (option) {
-      'All' => context.tr(RemainingL10n.all),
-      'Available' => context.tr(CatalogL10n.available),
-      'On Memo' => context.tr(CatalogL10n.onMemo),
-      'On Hold' => context.tr(CatalogL10n.onHold),
-      'Sold' => context.tr(CatalogL10n.sold),
-      _ => option,
-    };
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(diamondSearchProvider);
@@ -128,17 +119,9 @@ class DiamondListingOptionsFilters extends ConsumerWidget {
           onChanged: (_) => notifier.toggleMakeAnOffer(),
         ),
         const SizedBox(height: AppSpacing.s16),
-        FilterSectionHeader(title: context.tr(CatalogL10n.availability)),
-        const SizedBox(height: AppSpacing.s8),
-        DiamondDropdownField<String>(
+        CatalogAvailabilityFilter(
           value: state.selectedAvailability,
-          items: [
-            for (final opt in DiamondFilterState.availabilityOptions)
-              DropdownMenuItem(
-                value: opt,
-                child: Text(_availabilityLabel(context, opt)),
-              ),
-          ],
+          options: DiamondFilterState.availabilityOptions,
           onChanged: notifier.updateAvailability,
         ),
       ],
@@ -389,52 +372,8 @@ class DiamondInclusionFilters extends ConsumerWidget {
   }
 }
 
-/// Rounded dropdown that follows the ambient (luxe-aware) palette.
-class DiamondDropdownField<T> extends StatelessWidget {
-  const DiamondDropdownField({
-    required this.value,
-    required this.items,
-    required this.onChanged,
-    super.key,
-    this.hint,
-  });
-
-  final T? value;
-  final List<DropdownMenuItem<T>> items;
-  final ValueChanged<T?> onChanged;
-  final String? hint;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        border: Border.all(color: AppColors.border(context)),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          isExpanded: true,
-          value: value,
-          hint: hint == null ? null : Text(hint!),
-          borderRadius: BorderRadius.circular(14),
-          dropdownColor: AppColors.card(context),
-          icon: Icon(
-            Icons.expand_more_rounded,
-            color: AppColors.textSecondary(context),
-          ),
-          style: AppTypography.body.copyWith(
-            fontSize: 14,
-            color: AppColors.textPrimary(context),
-          ),
-          items: items,
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-}
+/// Kept for existing call sites; the shared field lives in core.
+typedef DiamondDropdownField<T> = LuxeDropdownField<T>;
 
 class ClarityCardsSection extends ConsumerStatefulWidget {
   const ClarityCardsSection({super.key});

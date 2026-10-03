@@ -13,7 +13,16 @@ class WatchDialStyleIndexGrid extends StatelessWidget {
     required this.selected,
     required this.onToggle,
     super.key,
+    this.padding = const EdgeInsets.fromLTRB(
+      AppSpacing.s16,
+      AppSpacing.s4,
+      AppSpacing.s16,
+      AppSpacing.s12,
+    ),
   });
+
+  /// Outer padding; luxe finder sections pass their own inset.
+  final EdgeInsetsGeometry padding;
 
   final Set<String> selected;
   final void Function(String) onToggle;
@@ -21,18 +30,14 @@ class WatchDialStyleIndexGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.s16,
-        AppSpacing.s4,
-        AppSpacing.s16,
-        AppSpacing.s12,
-      ),
+      padding: padding,
       child: LayoutBuilder(
         builder: (context, constraints) {
           const columns = 3;
           const gap = AppSpacing.s12;
-          final cellW =
-              (constraints.maxWidth - gap * (columns - 1)) / columns;
+          // Floor so rounding never pushes the last cell onto a new row.
+          final cellW = ((constraints.maxWidth - gap * (columns - 1)) / columns)
+              .floorToDouble();
 
           return Wrap(
             spacing: gap,
@@ -206,13 +211,12 @@ class _DialFacePainter extends CustomPainter {
           fontSizeFactor: 0.24,
         );
       case _DialIndexStyle.roman:
-        _paintTexts(
-          canvas,
-          center,
-          radius,
-          const ['XII', 'III', 'VI', 'IX'],
-          fontSizeFactor: 0.16,
-        );
+        _paintTexts(canvas, center, radius, const [
+          'XII',
+          'III',
+          'VI',
+          'IX',
+        ], fontSizeFactor: 0.16);
     }
   }
 
