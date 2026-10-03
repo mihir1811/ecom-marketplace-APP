@@ -78,6 +78,7 @@ flutter:
     - public/images/hero_diamond.png
     - public/images/gemstones/
     - public/images/jewelryCategoryImages/
+    - public/images/jewelryShowcase/
     - public/images/watch_logo/
     - assets/shapes/
     - assets/policies/policies.json

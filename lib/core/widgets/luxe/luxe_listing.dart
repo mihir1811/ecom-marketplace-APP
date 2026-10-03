@@ -935,13 +935,20 @@ class _LuxeSearchFieldState extends State<LuxeSearchField> {
   }
 }
 
-/// One quick-filter chip: value, label and an optional tone dot.
+/// One quick-filter chip: value, label and an optional tone dot or custom
+/// leading mark (e.g. a metal swatch).
 class LuxeQuickChip<T> {
-  const LuxeQuickChip({required this.value, required this.label, this.tone});
+  const LuxeQuickChip({
+    required this.value,
+    required this.label,
+    this.tone,
+    this.leading,
+  });
 
   final T value;
   final String label;
   final Color? tone;
+  final Widget? leading;
 }
 
 /// Horizontally scrolling stadium chips for listing-level quick filters
@@ -1000,7 +1007,10 @@ class LuxeQuickChips<T> extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (chip.tone != null) ...[
+                    if (chip.leading != null) ...[
+                      chip.leading!,
+                      const SizedBox(width: 8),
+                    ] else if (chip.tone != null) ...[
                       Container(
                         width: 8,
                         height: 8,

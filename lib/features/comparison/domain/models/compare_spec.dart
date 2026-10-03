@@ -1,4 +1,6 @@
 import '../../../../core/l10n/translations/account_commerce_messages.dart';
+import '../../../../core/l10n/translations/catalog_messages.dart';
+import '../../../../core/l10n/translations/jewelry_flow_messages.dart';
 import 'compare_category.dart';
 
 /// How a comparable spec picks a "leading" value among selected items.
@@ -142,11 +144,37 @@ const watchCompareSpecs = <CompareSpecDef>[
   ),
 ];
 
+/// Spec rows for fine jewelry comparison.
+const jewelryCompareSpecs = <CompareSpecDef>[
+  CompareSpecDef(
+    key: 'price',
+    label: AccountCommerceL10n.price,
+    winRule: CompareWinRule.lowerBetter,
+  ),
+  CompareSpecDef(key: 'category', label: JewelryFlowL10n.category),
+  CompareSpecDef(key: 'metal', label: CatalogL10n.metal),
+  CompareSpecDef(key: 'purity', label: CatalogL10n.metalPurity),
+  CompareSpecDef(
+    key: 'metalWeight',
+    label: CatalogL10n.metalWeight,
+    winRule: CompareWinRule.higherBetter,
+  ),
+  CompareSpecDef(key: 'stone', label: CatalogL10n.stone),
+  CompareSpecDef(
+    key: 'stoneWeight',
+    label: CatalogL10n.stoneWeight,
+    winRule: CompareWinRule.higherBetter,
+  ),
+  CompareSpecDef(key: 'certificate', label: AccountCommerceL10n.certificate),
+  CompareSpecDef(key: 'gender', label: AccountCommerceL10n.gender),
+];
+
 List<CompareSpecDef> specsForCategory(CompareCategory category) {
   return switch (category) {
     CompareCategory.diamond => diamondCompareSpecs,
     CompareCategory.gemstone => gemstoneCompareSpecs,
     CompareCategory.watch => watchCompareSpecs,
+    CompareCategory.jewelry => jewelryCompareSpecs,
   };
 }
 

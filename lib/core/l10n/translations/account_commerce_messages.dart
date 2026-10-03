@@ -252,6 +252,8 @@ abstract final class AccountCommerceL10n {
   static const compareGemstones = 'commerce.category.gemstones';
   static const compareWatch = 'commerce.category.watch';
   static const compareWatches = 'commerce.category.watches';
+  static const compareJewelry = 'commerce.category.jewelry';
+  static const compareJewelryPieces = 'commerce.category.jewelryPieces';
   static const price = 'commerce.spec.price';
   static const caratWeight = 'commerce.spec.caratWeight';
   static const shape = 'commerce.spec.shape';
@@ -1632,6 +1634,16 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     english: 'watches',
     hindi: 'निगरानी',
     gujarati: 'ઘડિયાળો',
+  ),
+  AccountCommerceL10n.compareJewelry: LocalizedMessage(
+    english: 'jewelry piece',
+    hindi: 'ज्वेलरी पीस',
+    gujarati: 'જ્વેલરી પીસ',
+  ),
+  AccountCommerceL10n.compareJewelryPieces: LocalizedMessage(
+    english: 'jewelry pieces',
+    hindi: 'ज्वेलरी पीस',
+    gujarati: 'જ્વેલરી પીસ',
   ),
   AccountCommerceL10n.price: LocalizedMessage(
     english: 'Price',

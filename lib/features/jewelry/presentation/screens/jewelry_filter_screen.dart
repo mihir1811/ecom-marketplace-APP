@@ -3,21 +3,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_swatches.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/catalog_search_filter_shell.dart';
+import '../../../../core/widgets/filters/catalog_availability_filter.dart';
 import '../../../../core/widgets/filters/filter_boolean_checkbox.dart';
-import '../../../../core/widgets/filters/filter_chip.dart';
-import '../../../../core/widgets/filters/filter_full_screen_shell.dart';
 import '../../../../core/widgets/filters/filter_range_slider.dart';
 import '../../../../core/widgets/filters/filter_section_header.dart';
+import '../../../../core/widgets/luxe/luxe_chip_group.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
+import '../../../../core/widgets/luxe/luxe_finder.dart';
+import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../../core/widgets/luxe/luxe_metal_swatch.dart';
+import '../../../../core/widgets/luxe/luxe_shape_picker.dart';
+import '../../../diamonds/presentation/widgets/diamond_shape_picker.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
-import '../widgets/jewelry_product_card.dart';
+import '../../domain/models/jewelry_filter_summary.dart';
+import '../widgets/jewelry_filter_labels.dart';
 
+/// Jewelry filters on the shared luxe finder layout: editorial intro,
+/// pinned section index, collapsible sections with live counts and a
+/// sticky Reset / Show results bar.
+///
+/// Edits a draft that is applied on "Show results". Size filters appear
+/// only for collections that have them (rings, bracelets, chains,
+/// necklaces).
 class JewelryFilterScreen extends ConsumerStatefulWidget {
   const JewelryFilterScreen({super.key});
 
@@ -26,814 +38,434 @@ class JewelryFilterScreen extends ConsumerStatefulWidget {
       _JewelryFilterScreenState();
 }
 
-class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen> {
-  final Map<String, bool> _expanded = {
-    'availability': true,
-    'media': true,
-    'gender': true,
-    'price': true,
-    'occasion': true,
-    'metal': false,
-    'stone': false,
-    'braceletSize': false,
-    'braceletLength': false,
-    'chainLength': false,
-    'necklaceLength': false,
-    'ringSize': false,
-    'cert': false,
-    'condition': false,
-    'delivery': false,
-  };
+class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
+    with
+        CatalogSearchScrollMixin,
+        LuxeFinderMixin<JewelryFilterScreen, JewelryFilterSection> {
+  @override
+  final ScrollController catalogScrollController = ScrollController();
+  @override
+  final GlobalKey catalogNavKey = GlobalKey();
+  @override
+  double get catalogNavHeight => 56;
 
-  bool _metalAdvancedOpen = false;
-  bool _stoneAdvancedOpen = false;
-  String _stoneSearch = '';
+  @override
+  List<JewelryFilterSection> get finderVisibleSections {
+    final category = ref.read(jewelryFilterDraftProvider).category;
+    final sized = jewelrySizeKindsFor(category).isNotEmpty;
+    return [
+      for (final s in JewelryFilterSection.values)
+        if (s != JewelryFilterSection.size || sized) s,
+    ];
+  }
+
+  JewelryFilterDraftNotifier get _n =>
+      ref.read(jewelryFilterDraftProvider.notifier);
 
   @override
   void initState() {
     super.initState();
+    catalogScrollController.addListener(finderOnScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(jewelryFilterDraftProvider.notifier).syncFromApplied();
+      if (mounted) _n.syncFromApplied();
     });
   }
 
   @override
+  void dispose() {
+    catalogScrollController
+      ..removeListener(finderOnScroll)
+      ..dispose();
+    disposeFinder();
+    super.dispose();
+  }
+
+  void _reset() {
+    final previous = ref.read(jewelryFilterDraftProvider);
+    _n.reset();
+    showLuxeToast(
+      context,
+      context.tr(DiamondFlowL10n.filtersCleared),
+      actionLabel: context.tr(DiamondFlowL10n.undo),
+      onAction: () => _n.replaceDraft(previous),
+    );
+  }
+
+  void _showResults() {
+    _n.apply();
+    ref.read(jewelryListProvider.notifier).refresh();
+    context.goBack();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    return LuxeScope(child: Builder(builder: _buildScaffold));
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final draft = ref.watch(jewelryFilterDraftProvider);
-    final listState = ref.watch(jewelryListProvider).valueOrNull;
-    final n = ref.read(jewelryFilterDraftProvider.notifier);
-    final resultCount = listState?.totalCount;
+    final summary = JewelryFilterSummary.of(draft);
+    return LuxeFinderScaffold<JewelryFilterSection>(
+      eyebrow: context.tr(JewelryFlowL10n.filterEyebrow),
+      title: jewelryCollectionTitle(context, draft.category),
+      onBack: () => context.goBack(),
+      intro: LuxeFinderIntro(
+        headline: context.tr(JewelryFlowL10n.filterHeadline),
+        intro: context.tr(JewelryFlowL10n.filterIntro),
+      ),
+      sections: finderVisibleSections,
+      active: finderActive,
+      labelOf: (s) => jewelrySectionTitle(context, s),
+      countOf: summary.count,
+      pillKeyOf: finderPillKey,
+      onJump: finderJumpTo,
+      navKey: catalogNavKey,
+      sectionBuilder: (s) => _section(context, s, draft, summary),
+      scrollController: catalogScrollController,
+      scrollOffset: finderOffset,
+      onScrollNotification: catalogHandleScrollNotification,
+      actionBar: LuxeFinderActionBar(
+        activeCount: summary.total,
+        onReset: summary.total == 0 ? null : _reset,
+        onShow: _showResults,
+        showLabel: context.tr(CatalogL10n.showResults),
+        resetLabel: context.tr(DiamondFlowL10n.reset),
+      ),
+    );
+  }
 
-    return FilterFullScreenShell(
-      onReset: n.reset,
-      showResultsLabel: resultCount == null
-          ? context.tr(CatalogL10n.showResults)
-          : '${context.tr(CatalogL10n.showResults)} ($resultCount)',
-      onShowResults: () {
-        n.apply();
-        ref.read(jewelryListProvider.notifier).refresh();
-        context.goBack();
-      },
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: AppSpacing.s24),
-        children: [
-          _section(
-            'availability',
-            context.tr(CatalogL10n.availability),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    0,
-                    AppSpacing.s16,
-                    AppSpacing.s8,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.border(context)),
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: draft.selectedAvailability,
-                        items: JewelryFilterState.availabilityOptions
-                            .map(
-                              (opt) => DropdownMenuItem<String>(
-                                value: opt,
-                                child: Text(_availabilityLabel(context, opt)),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: n.updateAvailability,
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    0,
-                    AppSpacing.s16,
-                    AppSpacing.s12,
-                  ),
-                  child: FilterBooleanCheckbox(
-                    label: context.tr(CatalogL10n.makeOffer),
-                    value: draft.makeAnOffer,
-                    onChanged: (v) => n.setMakeAnOffer(v ?? false),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _section(
-            'media',
-            context.tr(CatalogL10n.withMedia),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.s16,
-              ),
-              child: FilterBooleanCheckbox(
-                label: context.tr(CatalogL10n.mediaOnly),
-                value: draft.withMediaOnly,
-                onChanged: (v) => n.setWithMediaOnly(v ?? false),
-              ),
-            ),
-          ),
-          _section(
-            'gender',
+  Widget _section(
+    BuildContext context,
+    JewelryFilterSection s,
+    JewelryFilterState d,
+    JewelryFilterSummary summary,
+  ) {
+    final (icon, child) = switch (s) {
+      JewelryFilterSection.style => (
+        Icons.auto_awesome_outlined,
+        _stack([
+          _chips(
+            context,
             context.tr(CatalogL10n.gender),
-            _chipWrap(
-              JewelryFilterState.genderOptions,
-              draft.genders,
-              n.toggleGender,
-            ),
+            JewelryFilterState.genderOptions,
+            d.genders,
+            _n.toggleGender,
           ),
-          _section(
-            'price',
-            context.tr(CatalogL10n.priceRange),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.s16,
-              ),
-              child: FilterRangeSlider(
-                title: context.tr(CatalogL10n.price),
-                minLimit: JewelryFilterState.priceMinLimit,
-                maxLimit: JewelryFilterState.priceMaxLimit,
-                currentMin: draft.priceMin,
-                currentMax: draft.priceMax,
-                unitPrefix: AppCurrency.symbol,
-                isInteger: true,
-                onChanged: n.setPriceRange,
-                onClear: n.clearPriceRange,
-              ),
-            ),
-          ),
-          _section(
-            'occasion',
+          _chips(
+            context,
             context.tr(CatalogL10n.occasion),
-            _chipWrap(
-              JewelryFilterState.occasionOptions,
-              draft.occasions,
-              n.toggleOccasion,
-            ),
+            JewelryFilterState.occasionOptions,
+            d.occasions,
+            _n.toggleOccasion,
+            initialVisible: 8,
           ),
-          _section(
-            'metal',
-            context.tr(CatalogL10n.metal),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    0,
-                    AppSpacing.s16,
-                    AppSpacing.s8,
-                  ),
-                  child: FilterSectionHeader(
-                    title: context.tr(CatalogL10n.metalType),
-                  ),
-                ),
-                _chipWrap(
-                  JewelryFilterState.metalTypeOptions,
-                  draft.metalTypes,
-                  n.toggleMetalType,
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    AppSpacing.s12,
-                    AppSpacing.s16,
-                    AppSpacing.s8,
-                  ),
-                  child: FilterSectionHeader(
-                    title: context.tr(CatalogL10n.metalColor),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s16,
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Wrap(
-                      alignment: WrapAlignment.start,
-                      spacing: AppSpacing.s12,
-                      runSpacing: AppSpacing.s12,
-                      children: [
-                        for (final color
-                            in JewelryFilterState.metalColorOptions)
-                          _MetalColorSwatch(
-                            label: color,
-                            selected: draft.metalColors.contains(color),
-                            onTap: () => n.toggleMetalColor(color),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    AppSpacing.s16,
-                    AppSpacing.s16,
-                    AppSpacing.s8,
-                  ),
-                  child: FilterSectionHeader(
-                    title: context.tr(CatalogL10n.metalPurity),
-                  ),
-                ),
-                _chipWrap(
-                  JewelryFilterState.metalPurityOptions,
-                  draft.metalPurities,
-                  n.toggleMetalPurity,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s16,
-                    vertical: AppSpacing.s8,
-                  ),
-                  child: FilterRangeSlider(
-                    title: context.tr(CatalogL10n.metalWeight),
-                    minLimit: JewelryFilterState.metalWeightMinLimit,
-                    maxLimit: JewelryFilterState.metalWeightMaxLimit,
-                    currentMin: draft.metalWeightMin,
-                    currentMax: draft.metalWeightMax,
-                    unitSuffix: 'g',
-                    isInteger: true,
-                    onChanged: n.setMetalWeight,
-                    onClear: n.clearMetalWeight,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s16,
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: () => setState(
-                        () => _metalAdvancedOpen = !_metalAdvancedOpen,
-                      ),
-                      icon: Icon(
-                        _metalAdvancedOpen
-                            ? Icons.keyboard_arrow_up
-                            : Icons.keyboard_arrow_down,
-                        size: 18,
-                      ),
-                      label: Text(context.tr(CatalogL10n.advanced)),
-                    ),
-                  ),
-                ),
-                if (_metalAdvancedOpen) ...[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.s16,
-                      0,
-                      AppSpacing.s16,
-                      AppSpacing.s8,
-                    ),
-                    child: FilterSectionHeader(
-                      title: context.tr(CatalogL10n.metalFinish),
-                    ),
-                  ),
-                  _chipWrap(
-                    JewelryFilterState.metalFinishOptions,
-                    draft.metalFinishes,
-                    n.toggleMetalFinish,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.s16,
-                      0,
-                      AppSpacing.s16,
-                      AppSpacing.s8,
-                    ),
-                    child: FilterSectionHeader(
-                      title: context.tr(CatalogL10n.plating),
-                    ),
-                  ),
-                  _chipWrap(
-                    JewelryFilterState.platingOptions,
-                    draft.platings,
-                    n.togglePlating,
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.s8),
-              ],
-            ),
-          ),
-          _section(
-            'stone',
-            context.tr(CatalogL10n.stone),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    0,
-                    AppSpacing.s16,
-                    AppSpacing.s12,
-                  ),
-                  child: Row(
-                    children: [
-                      for (final opt
-                          in JewelryFilterState.stoneTypeOptions) ...[
-                        if (opt !=
-                            JewelryFilterState.stoneTypeOptions.first)
-                          const SizedBox(width: AppSpacing.s8),
-                        Expanded(
-                          child: FilterChipWidget(
-                            label: opt,
-                            isSelected:
-                                (draft.stoneType ?? 'Natural') == opt,
-                            onTap: () => n.setStoneType(opt),
-                            centerLabel: true,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    0,
-                    AppSpacing.s16,
-                    AppSpacing.s8,
-                  ),
-                  child: FilterSectionHeader(
-                    title: context.tr(CatalogL10n.stoneCategory),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s16,
-                  ),
-                  child: TextField(
-                    onChanged: (v) => setState(() => _stoneSearch = v),
-                    scrollPadding: const EdgeInsets.fromLTRB(
-                      20,
-                      20,
-                      20,
-                      80,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: context.tr(CatalogL10n.search),
-                      prefixIcon: const Icon(Icons.search, size: 20),
-                      isDense: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppSpacing.r12,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s8),
-                _chipWrap(
-                  JewelryFilterState.stoneCategoryOptions
-                      .where(
-                        (o) => o.toLowerCase().contains(
-                          _stoneSearch.toLowerCase(),
-                        ),
-                      )
-                      .toList(),
-                  draft.stoneCategories,
-                  n.toggleStoneCategory,
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    AppSpacing.s12,
-                    AppSpacing.s16,
-                    AppSpacing.s8,
-                  ),
-                  child: FilterSectionHeader(
-                    title: context.tr(CatalogL10n.stoneShape),
-                  ),
-                ),
-                _chipWrap(
-                  JewelryFilterState.stoneShapeOptions,
-                  draft.stoneShapes,
-                  n.toggleStoneShape,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s16,
-                    vertical: AppSpacing.s8,
-                  ),
-                  child: FilterRangeSlider(
-                    title: context.tr(CatalogL10n.stoneWeight),
-                    minLimit: JewelryFilterState.stoneWeightMinLimit,
-                    maxLimit: JewelryFilterState.stoneWeightMaxLimit,
-                    currentMin: draft.stoneWeightMin,
-                    currentMax: draft.stoneWeightMax,
-                    unitSuffix: 'ct',
-                    onChanged: n.setStoneWeight,
-                    onClear: n.clearStoneWeight,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s16,
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: () => setState(
-                        () => _stoneAdvancedOpen = !_stoneAdvancedOpen,
-                      ),
-                      icon: Icon(
-                        _stoneAdvancedOpen
-                            ? Icons.keyboard_arrow_up
-                            : Icons.keyboard_arrow_down,
-                        size: 18,
-                      ),
-                      label: Text(context.tr(CatalogL10n.advanced)),
-                    ),
-                  ),
-                ),
-                if (_stoneAdvancedOpen) ...[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.s16,
-                      0,
-                      AppSpacing.s16,
-                      AppSpacing.s8,
-                    ),
-                    child: FilterSectionHeader(
-                      title: context.tr(CatalogL10n.stoneColor),
-                    ),
-                  ),
-                  _chipWrap(
-                    JewelryFilterState.stoneColorOptions,
-                    draft.stoneColors,
-                    n.toggleStoneColor,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.s16,
-                      0,
-                      AppSpacing.s16,
-                      AppSpacing.s8,
-                    ),
-                    child: FilterSectionHeader(
-                      title: context.tr(CatalogL10n.stoneClarity),
-                    ),
-                  ),
-                  _chipWrap(
-                    JewelryFilterState.stoneClarityOptions,
-                    draft.stoneClarities,
-                    n.toggleStoneClarity,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.s16,
-                      0,
-                      AppSpacing.s16,
-                      AppSpacing.s8,
-                    ),
-                    child: FilterSectionHeader(
-                      title: context.tr(CatalogL10n.stoneSetting),
-                    ),
-                  ),
-                  _chipWrap(
-                    JewelryFilterState.stoneSettingOptions,
-                    draft.stoneSettings,
-                    n.toggleStoneSetting,
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.s8),
-              ],
-            ),
-          ),
-          ..._categorySpecificSections(draft, n),
-          _section(
-            'cert',
-            context.tr(CatalogL10n.certification),
-            _chipWrap(
-              JewelryFilterState.certificationOptions,
-              draft.certifications,
-              n.toggleCertification,
-            ),
-          ),
-          _section(
-            'condition',
-            context.tr(CatalogL10n.condition),
-            _chipWrap(
-              JewelryFilterState.conditionOptions,
-              draft.conditions,
-              n.toggleCondition,
-            ),
-          ),
-          _section(
-            'delivery',
-            context.tr(CatalogL10n.deliveryTime),
-            _chipWrap(
-              JewelryFilterState.deliveryTimeOptions,
-              {if (draft.deliveryTime != null) draft.deliveryTime!},
-              (v) =>
-                  n.setDeliveryTime(draft.deliveryTime == v ? null : v),
-            ),
-          ),
-        ],
+        ]),
       ),
-    );
-  }
-
-  List<Widget> _categorySpecificSections(
-    JewelryFilterState draft,
-    JewelryFilterDraftNotifier n,
-  ) {
-    final parent = JewelryFilterState.parentCategoryOrDefault(draft.category);
-    return switch (parent) {
-      'Bracelets' => [
-        _section(
-          'braceletSize',
-          context.tr(CatalogL10n.braceletSize),
-          _chipWrap(
-            JewelryFilterState.braceletSizeOptions,
-            draft.braceletSizes,
-            n.toggleBraceletSize,
-          ),
+      JewelryFilterSection.price => (
+        Icons.payments_outlined,
+        FilterRangeSlider(
+          title: context.tr(CatalogL10n.price),
+          minLimit: JewelryFilterState.priceMinLimit,
+          maxLimit: JewelryFilterState.priceMaxLimit,
+          currentMin: d.priceMin,
+          currentMax: d.priceMax,
+          unitPrefix: AppCurrency.symbol,
+          isInteger: true,
+          onChanged: _n.setPriceRange,
+          onClear: _n.clearPriceRange,
         ),
-        _section(
-          'braceletLength',
-          context.tr(CatalogL10n.braceletLength),
-          _chipWrap(
-            JewelryFilterState.braceletLengthOptions,
-            draft.braceletLengths,
-            n.toggleBraceletLength,
-          ),
-        ),
-      ],
-      'Chains' => [
-        _section(
-          'chainLength',
-          context.tr(CatalogL10n.chainLength),
-          _chipWrap(
-            JewelryFilterState.chainLengthOptions,
-            draft.chainLengths,
-            n.toggleChainLength,
-          ),
-        ),
-      ],
-      'Necklaces' => [
-        _section(
-          'necklaceLength',
-          context.tr(CatalogL10n.necklaceLength),
-          _chipWrap(
-            JewelryFilterState.necklaceLengthOptions,
-            draft.necklaceLengths,
-            n.toggleNecklaceLength,
-          ),
-        ),
-      ],
-      'Rings' => [
-        _section(
-          'ringSize',
-          context.tr(CatalogL10n.ringSize),
-          _chipWrap(
-            JewelryFilterState.ringSizeOptions,
-            draft.ringSizes,
-            n.toggleRingSize,
-          ),
-        ),
-      ],
-      _ => const <Widget>[],
-    };
-  }
-
-  Widget _section(String key, String title, Widget child) {
-    final open = _expanded[key] ?? false;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        InkWell(
-          onTap: () => setState(() => _expanded[key] = !open),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s16,
-              vertical: AppSpacing.s16,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: AppTypography.label.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                Icon(
-                  open ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (open) child,
-        const Divider(height: 1),
-      ],
-    );
-  }
-
-  String _availabilityLabel(BuildContext context, String option) {
-    return switch (option) {
-      'All' => context.tr(RemainingL10n.all),
-      'Available' => context.tr(CatalogL10n.available),
-      'On Memo' => context.tr(CatalogL10n.onMemo),
-      'On Hold' => context.tr(CatalogL10n.onHold),
-      'Sold' => context.tr(CatalogL10n.sold),
-      _ => option,
-    };
-  }
-
-  Widget _chipWrap(
-    List<String> options,
-    Set<String> selected,
-    void Function(String) onToggle,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.s16,
-        0,
-        AppSpacing.s16,
-        AppSpacing.s12,
       ),
-      child: SizedBox(
-        width: double.infinity,
-        child: Wrap(
-          alignment: WrapAlignment.start,
-          crossAxisAlignment: WrapCrossAlignment.start,
-          spacing: AppSpacing.s8,
-          runSpacing: AppSpacing.s8,
-          children: [
-            for (final opt in options)
-              FilterChipWidget(
-                label: opt,
-                isSelected: selected.contains(opt),
-                onTap: () => onToggle(opt),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
+      JewelryFilterSection.metal => (
+        Icons.blur_circular_rounded,
+        _stack([
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FilterSectionHeader(title: context.tr(CatalogL10n.metalColor)),
+              const SizedBox(height: 12),
+              LuxeMetalSwatchPicker(
+                options: JewelryFilterState.metalColorOptions,
+                selected: d.metalColors,
+                onToggle: _n.toggleMetalColor,
+                labelOf: context.trCatalogValue,
               ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MetalColorSwatch extends StatelessWidget {
-  const _MetalColorSwatch({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 64,
-        child: Column(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: selected
-                      ? AppColors.selectedFill(context)
-                      : AppColors.border(context),
-                  width: selected ? 2 : 1,
-                ),
-              ),
-              child: ClipOval(child: _MetalColorCircle(label: label)),
-            ),
-            if (selected)
-              const Padding(
-                padding: EdgeInsets.only(top: 2),
-                child: Icon(Icons.check, size: 14, color: AppColors.bronze),
-              ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.caption.copyWith(fontSize: 10),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MetalColorCircle extends StatelessWidget {
-  const _MetalColorCircle({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    if (label == 'Two-Tone') {
-      return const SizedBox.expand(
-        child: CustomPaint(
-          painter: _HalfCircleMetalPainter(
-            colors: [AppSwatches.yellowGold, AppSwatches.whiteGold],
-          ),
-        ),
-      );
-    }
-    if (label == 'Tri-Color') {
-      return const SizedBox.expand(
-        child: CustomPaint(
-          painter: _TriSegmentMetalPainter(
-            colors: [
-              AppSwatches.yellowGold,
-              AppSwatches.whiteGold,
-              AppSwatches.roseGold,
             ],
           ),
-        ),
-      );
-    }
-    return ColoredBox(color: jewelryMetalSwatch(label));
-  }
-}
+          _chips(
+            context,
+            context.tr(CatalogL10n.metalType),
+            JewelryFilterState.metalTypeOptions,
+            d.metalTypes,
+            _n.toggleMetalType,
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.metalPurity),
+            JewelryFilterState.metalPurityOptions,
+            d.metalPurities,
+            _n.toggleMetalPurity,
+          ),
+          FilterRangeSlider(
+            title: context.tr(CatalogL10n.metalWeight),
+            minLimit: JewelryFilterState.metalWeightMinLimit,
+            maxLimit: JewelryFilterState.metalWeightMaxLimit,
+            currentMin: d.metalWeightMin,
+            currentMax: d.metalWeightMax,
+            unitSuffix: 'g',
+            isInteger: true,
+            onChanged: _n.setMetalWeight,
+            onClear: _n.clearMetalWeight,
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.metalFinish),
+            JewelryFilterState.metalFinishOptions,
+            d.metalFinishes,
+            _n.toggleMetalFinish,
+            initialVisible: 5,
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.plating),
+            JewelryFilterState.platingOptions,
+            d.platings,
+            _n.togglePlating,
+            initialVisible: 4,
+          ),
+        ]),
+      ),
+      JewelryFilterSection.stone => (
+        Icons.diamond_outlined,
+        _stack([
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FilterSectionHeader(title: context.tr(CatalogL10n.stoneType)),
+              const SizedBox(height: 10),
+              LuxeSegmented<String?>(
+                options: const [null, ...JewelryFilterState.stoneTypeOptions],
+                selected: d.stoneType,
+                labelOf: (o) => o == null
+                    ? context.tr(DiamondFlowL10n.any)
+                    : context.trCatalogValue(o),
+                onChanged: (o) =>
+                    o == null ? _n.clearStoneType() : _n.setStoneType(o),
+              ),
+            ],
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.stoneCategory),
+            JewelryFilterState.stoneCategoryOptions,
+            d.stoneCategories,
+            _n.toggleStoneCategory,
+            initialVisible: 6,
+            searchHint: context.tr(CatalogL10n.search),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FilterSectionHeader(title: context.tr(CatalogL10n.stoneShape)),
+              const SizedBox(height: 10),
+              LuxeShapePicker(
+                shapes: [
+                  for (final name in JewelryFilterState.stoneShapeOptions)
+                    LuxeShapeOption(
+                      value: name,
+                      label: context.trCatalogValue(name),
+                      image: shapePhotoFor(name),
+                    ),
+                ],
+                selected: d.stoneShapes.toList(),
+                onToggle: _n.toggleStoneShape,
+                iconBuilder: shapeOutlineIcon,
+                expandLabel: context.tr(DiamondFlowL10n.allShapes),
+                collapseLabel: context.tr(DiamondFlowL10n.fewerShapes),
+              ),
+            ],
+          ),
+          FilterRangeSlider(
+            title: context.tr(CatalogL10n.stoneWeight),
+            minLimit: JewelryFilterState.stoneWeightMinLimit,
+            maxLimit: JewelryFilterState.stoneWeightMaxLimit,
+            currentMin: d.stoneWeightMin,
+            currentMax: d.stoneWeightMax,
+            unitSuffix: 'ct',
+            onChanged: _n.setStoneWeight,
+            onClear: _n.clearStoneWeight,
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.stoneColor),
+            JewelryFilterState.stoneColorOptions,
+            d.stoneColors,
+            _n.toggleStoneColor,
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.stoneClarity),
+            JewelryFilterState.stoneClarityOptions,
+            d.stoneClarities,
+            _n.toggleStoneClarity,
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.stoneSetting),
+            JewelryFilterState.stoneSettingOptions,
+            d.stoneSettings,
+            _n.toggleStoneSetting,
+          ),
+        ]),
+      ),
+      JewelryFilterSection.size => (
+        Icons.straighten_rounded,
+        _stack([
+          for (final kind in jewelrySizeKindsFor(d.category))
+            switch (kind) {
+              JewelrySizeKind.ring => _chips(
+                context,
+                context.tr(CatalogL10n.ringSize),
+                JewelryFilterState.ringSizeOptions,
+                d.ringSizes,
+                _n.toggleRingSize,
+              ),
+              JewelrySizeKind.braceletSize => _chips(
+                context,
+                context.tr(CatalogL10n.braceletSize),
+                JewelryFilterState.braceletSizeOptions,
+                d.braceletSizes,
+                _n.toggleBraceletSize,
+              ),
+              JewelrySizeKind.braceletLength => _chips(
+                context,
+                context.tr(CatalogL10n.braceletLength),
+                JewelryFilterState.braceletLengthOptions,
+                d.braceletLengths,
+                _n.toggleBraceletLength,
+              ),
+              JewelrySizeKind.chain => _chips(
+                context,
+                context.tr(CatalogL10n.chainLength),
+                JewelryFilterState.chainLengthOptions,
+                d.chainLengths,
+                _n.toggleChainLength,
+              ),
+              JewelrySizeKind.necklace => _chips(
+                context,
+                context.tr(CatalogL10n.necklaceLength),
+                JewelryFilterState.necklaceLengthOptions,
+                d.necklaceLengths,
+                _n.toggleNecklaceLength,
+              ),
+            },
+        ]),
+      ),
+      JewelryFilterSection.quality => (
+        Icons.verified_outlined,
+        _stack([
+          _chips(
+            context,
+            context.tr(CatalogL10n.certification),
+            JewelryFilterState.certificationOptions,
+            d.certifications,
+            _n.toggleCertification,
+            initialVisible: 6,
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.condition),
+            JewelryFilterState.conditionOptions,
+            d.conditions,
+            _n.toggleCondition,
+          ),
+        ]),
+      ),
+      JewelryFilterSection.listing => (
+        Icons.tune_rounded,
+        _stack([
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              CatalogAvailabilityFilter(
+                value: d.selectedAvailability,
+                options: JewelryFilterState.availabilityOptions,
+                onChanged: _n.updateAvailability,
+              ),
+              const SizedBox(height: 4),
+              FilterBooleanCheckbox(
+                label: context.tr(CatalogL10n.makeOffer),
+                value: d.makeAnOffer,
+                onChanged: (v) => _n.setMakeAnOffer(v ?? false),
+              ),
+              FilterBooleanCheckbox(
+                label: context.tr(CatalogL10n.mediaOnly),
+                value: d.withMediaOnly,
+                onChanged: (v) => _n.setWithMediaOnly(v ?? false),
+              ),
+            ],
+          ),
+          _chips(
+            context,
+            context.tr(CatalogL10n.deliveryTime),
+            JewelryFilterState.deliveryTimeOptions,
+            {?d.deliveryTime},
+            (v) => _n.setDeliveryTime(d.deliveryTime == v ? null : v),
+          ),
+        ]),
+      ),
+    };
 
-class _HalfCircleMetalPainter extends CustomPainter {
-  const _HalfCircleMetalPainter({required this.colors});
-
-  final List<Color> colors;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.shortestSide / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    paint.color = colors[0];
-    canvas.drawArc(
-      rect,
-      -3.141592653589793 / 2,
-      3.141592653589793,
-      true,
-      paint,
+    final essential =
+        s == JewelryFilterSection.style ||
+        s == JewelryFilterSection.price ||
+        s == JewelryFilterSection.metal;
+    return finderSection(
+      s,
+      title: jewelrySectionTitle(context, s),
+      icon: icon,
+      count: summary.count(s),
+      initiallyExpanded: essential,
+      names: switch (s) {
+        JewelryFilterSection.style => [...d.genders, ...d.occasions],
+        JewelryFilterSection.metal when d.metalTypes.isEmpty &&
+            d.metalFinishes.isEmpty &&
+            d.platings.isEmpty =>
+          [...d.metalColors, ...d.metalPurities],
+        _ => const [],
+      },
+      child: child,
     );
-
-    paint.color = colors[1];
-    canvas.drawArc(rect, 3.141592653589793 / 2, 3.141592653589793, true, paint);
   }
 
-  @override
-  bool shouldRepaint(covariant _HalfCircleMetalPainter oldDelegate) =>
-      oldDelegate.colors != colors;
-}
+  Widget _stack(List<Widget> children) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      for (var i = 0; i < children.length; i++) ...[
+        if (i > 0) const SizedBox(height: 22),
+        children[i],
+      ],
+    ],
+  );
 
-class _TriSegmentMetalPainter extends CustomPainter {
-  const _TriSegmentMetalPainter({required this.colors});
-
-  final List<Color> colors;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.shortestSide / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-    final paint = Paint()..style = PaintingStyle.fill;
-    const sweep = 2 * 3.141592653589793 / 3;
-    var start = -3.141592653589793 / 2;
-
-    for (final color in colors) {
-      paint.color = color;
-      canvas.drawArc(rect, start, sweep, true, paint);
-      start += sweep;
-    }
+  Widget _chips(
+    BuildContext context,
+    String? title,
+    List<String> options,
+    Set<String> selected,
+    void Function(String) onToggle, {
+    int? initialVisible,
+    String? searchHint,
+  }) {
+    return LuxeChipGroup(
+      title: title,
+      options: options,
+      selected: selected,
+      onToggle: onToggle,
+      labelOf: context.trCatalogValue,
+      initialVisible: initialVisible,
+      searchHint: searchHint,
+      showAllLabel: context.tr(CatalogFlowL10n.showAll),
+      showLessLabel: context.tr(CatalogFlowL10n.showLess),
+    );
   }
-
-  @override
-  bool shouldRepaint(covariant _TriSegmentMetalPainter oldDelegate) =>
-      oldDelegate.colors != colors;
 }

@@ -16,13 +16,14 @@ import '../../domain/models/product_bullion_detail.dart';
 import '../../domain/models/product_detail.dart';
 import '../../domain/models/product_price_labels.dart';
 import '../widgets/luxe/luxe_detail_parts.dart';
+import '../widgets/luxe/luxe_jewelry_detail.dart';
 import '../widgets/luxe/luxe_purchase_bar.dart';
 import '../widgets/product_detail_natural_specs.dart';
 import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_suggested_products.dart';
 
 /// Luxe product detail shared by natural and lab-grown diamonds,
-/// gemstones, watches and bullion (single and melee).
+/// gemstones, fine jewelry, watches and bullion (single and melee).
 ///
 /// Reading order follows the buying decision: the stone (gallery), what it
 /// is (title, grades, badges), what it costs (price card), why to trust it
@@ -37,6 +38,7 @@ class LuxeProductDetailScreen extends ConsumerStatefulWidget {
       detail.segment == ProductSegment.naturalDiamond ||
       detail.segment == ProductSegment.labGrownDiamond ||
       detail.segment == ProductSegment.gemstone ||
+      detail.segment == ProductSegment.jewelry ||
       detail.segment == ProductSegment.watch ||
       detail.segment == ProductSegment.bullion;
 
@@ -96,9 +98,11 @@ class _LuxeProductDetailScreenState
       headerActions: (glass) => [_HeaderActions(detail: detail, glass: glass)],
       summary: _Summary(detail: detail, labels: labels),
       record: _Record(detail: detail, isSeller: auth.isSeller),
-      bottomBar: auth.showProtected
-          ? LuxePurchaseBar(detail: detail, priceLabels: labels)
-          : null,
+      bottomBar: !auth.showProtected
+          ? null
+          : detail.jewelryDetail != null
+          ? LuxeJewelryPurchaseBar(detail: detail)
+          : LuxePurchaseBar(detail: detail, priceLabels: labels),
     );
   }
 }
@@ -218,11 +222,20 @@ class _Summary extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 20),
-        enter(LuxePriceCard(labels: labels), 4),
-        const SizedBox(height: 26),
-        if (detail.highlights.isNotEmpty) ...[
-          enter(LuxeGlance(highlights: detail.highlights), 5),
+        if (detail.jewelryDetail != null) ...[
+          // Jewelry is priced per chosen variant, so the card lives with
+          // the configurator.
+          enter(LuxeJewelryPurchasePanel(detail: detail), 4),
+          const SizedBox(height: 26),
+          enter(LuxeJewelryGlance(detail: detail), 5),
           const SizedBox(height: 16),
+        ] else ...[
+          enter(LuxePriceCard(labels: labels), 4),
+          const SizedBox(height: 26),
+          if (detail.highlights.isNotEmpty) ...[
+            enter(LuxeGlance(highlights: detail.highlights), 5),
+            const SizedBox(height: 16),
+          ],
         ],
         if (detail.certification != null &&
             !luxeIsMissing(detail.certification!.authority))
@@ -280,7 +293,10 @@ class _Record extends StatelessWidget {
             currencySymbol: detail.price.currencySymbol,
           ),
         ],
-        if (specs != null && specs.tabs.isNotEmpty) ...[
+        if (detail.jewelryDetail != null) ...[
+          const SizedBox(height: 32),
+          ScrollReveal(child: LuxeJewelryRecord(detail: detail)),
+        ] else if (specs != null && specs.tabs.isNotEmpty) ...[
           const SizedBox(height: 32),
           ScrollReveal(child: LuxeSpecTabs(specs: specs)),
         ],

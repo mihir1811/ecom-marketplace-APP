@@ -13,8 +13,12 @@ final List<RouteBase> jewelryRoutes = [
   GoRoute(
     path: AppRouteNames.jewelryListing,
     builder: (context, state) {
-      final category = state.uri.queryParameters['category'];
-      return JewelryListingScreen(initialCategory: category);
+      final params = state.uri.queryParameters;
+      return JewelryListingScreen(
+        initialCategory: params['category'],
+        initialStyle: params['style'],
+        initialMetal: params['metal'],
+      );
     },
   ),
   GoRoute(

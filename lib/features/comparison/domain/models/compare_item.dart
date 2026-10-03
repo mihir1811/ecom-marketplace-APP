@@ -1,6 +1,7 @@
 import '../../../diamonds/domain/models/diamond.dart';
 import '../../../diamonds/domain/models/diamond_display.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
+import '../../../jewelry/domain/models/jewelry.dart';
 import '../../../watches/domain/models/watch.dart';
 import 'compare_category.dart';
 import '../../../../core/utils/app_currency.dart';
@@ -120,6 +121,45 @@ class CompareItem {
         'year': '${w.year}',
       },
       numericValues: {'price': w.price, 'year': w.year.toDouble()},
+    );
+  }
+
+  factory CompareItem.fromJewelry(Jewelry j) {
+    String text(String v) => v.trim().isEmpty ? 'N/A' : v.trim();
+    String weight(double v, String unit) => v > 0
+        ? '${v.toStringAsFixed(v == v.roundToDouble() ? 0 : 2)}$unit'
+        : 'N/A';
+    final metal = [
+      j.metalColor,
+      j.metalType,
+    ].where((v) => v.trim().isNotEmpty).toSet().join(' · ');
+    final stone = [
+      j.stoneType,
+      j.stoneShape,
+    ].where((v) => v.trim().isNotEmpty).join(' · ');
+    return CompareItem(
+      id: j.id,
+      category: CompareCategory.jewelry,
+      title: j.name,
+      price: j.price,
+      imageUrl: j.displayImageUrl,
+      subtitle: j.category,
+      displayValues: {
+        'price': AppCurrency.format(_fmtPrice(j.price)),
+        'category': text(j.subCategory ?? j.category),
+        'metal': text(metal),
+        'purity': text(j.metalPurity),
+        'metalWeight': weight(j.metalWeightG, 'g'),
+        'stone': text(stone),
+        'stoneWeight': weight(j.stoneWeightCt, 'ct'),
+        'certificate': text(j.certification),
+        'gender': text(j.gender),
+      },
+      numericValues: {
+        'price': j.price,
+        'metalWeight': j.metalWeightG > 0 ? j.metalWeightG : null,
+        'stoneWeight': j.stoneWeightCt > 0 ? j.stoneWeightCt : null,
+      },
     );
   }
 

@@ -34,10 +34,15 @@ class LuxePurchaseBar extends ConsumerWidget {
     required this.detail,
     required this.priceLabels,
     super.key,
+    this.caption,
   });
 
   final ProductDetail detail;
   final ProductPriceLabels priceLabels;
+
+  /// Quiet line under the price (e.g. "2 × ₹1,20,000"); replaces the
+  /// struck list price when set.
+  final String? caption;
 
   void _notify(BuildContext context, String message, PurchaseTone tone) {
     final added = message == context.tr(DiamondFlowL10n.addedToCart);
@@ -87,18 +92,34 @@ class LuxePurchaseBar extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      priceLabels.sale,
-                      style: LuxeType.figure(
-                        p.ink,
-                        size: 18,
-                      ).copyWith(fontWeight: FontWeight.w600),
+                  AnimatedSwitcher(
+                    duration: LuxeMotion.medium,
+                    switchInCurve: LuxeMotion.settle,
+                    layoutBuilder: (current, previous) => Stack(
+                      alignment: Alignment.centerLeft,
+                      children: [...previous, ?current],
+                    ),
+                    child: FittedBox(
+                      key: ValueKey(priceLabels.sale),
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        priceLabels.sale,
+                        style: LuxeType.figure(
+                          p.ink,
+                          size: 18,
+                        ).copyWith(fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ),
-                  if (priceLabels.list != null)
+                  if (caption != null)
+                    Text(
+                      caption!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.label(p.inkMuted, size: 11.5),
+                    )
+                  else if (priceLabels.list != null)
                     Text(
                       priceLabels.list!,
                       maxLines: 1,

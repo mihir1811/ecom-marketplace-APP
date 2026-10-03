@@ -185,12 +185,17 @@ class LuxeFloatingHeader extends StatelessWidget {
     required this.solidAfter,
     super.key,
     this.actions,
+    this.darkBackdrop = false,
   });
 
   final String title;
   final ValueListenable<double> offset;
   final double solidAfter;
   final List<Widget> Function(bool glass)? actions;
+
+  /// True when the header first floats over a dark stage, so the status bar
+  /// stays light until the bar turns solid.
+  final bool darkBackdrop;
 
   @override
   Widget build(BuildContext context) {
@@ -246,8 +251,20 @@ class LuxeFloatingHeader extends StatelessWidget {
             ),
           );
         }
+        if (darkBackdrop && glass && !p.isDark) {
+          // Smoked glass controls while over the dark stage.
+          final theme = Theme.of(context);
+          bar = Theme(
+            data: theme.copyWith(
+              colorScheme: theme.colorScheme.copyWith(
+                brightness: Brightness.dark,
+              ),
+            ),
+            child: bar,
+          );
+        }
         return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: p.isDark
+          value: p.isDark || (darkBackdrop && glass)
               ? SystemUiOverlayStyle.light
               : SystemUiOverlayStyle.dark,
           child: bar,
@@ -368,9 +385,12 @@ class LuxeDetailBadge extends StatelessWidget {
 
 /// Price card: struck list price with saving, serif sale price, unit.
 class LuxePriceCard extends StatelessWidget {
-  const LuxePriceCard({required this.labels, super.key});
+  const LuxePriceCard({required this.labels, super.key, this.footer});
 
   final ProductPriceLabels labels;
+
+  /// Extra lines under the price (tax note, reference, …).
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -415,21 +435,42 @@ class LuxePriceCard extends StatelessWidget {
               ],
             ),
           if (labels.hasDiscount) const SizedBox(height: 6),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              labels.sale,
-              style: LuxeType.display(
-                40,
-                p.ink,
-              ).copyWith(fontFeatures: const [FontFeature.liningFigures()]),
+          // The figure rolls in when it changes (e.g. a new variant).
+          AnimatedSwitcher(
+            duration: LuxeMotion.medium,
+            switchInCurve: LuxeMotion.settle,
+            layoutBuilder: (current, previous) => Stack(
+              alignment: Alignment.centerLeft,
+              children: [...previous, ?current],
+            ),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween(
+                  begin: const Offset(0, 0.35),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: FittedBox(
+              key: ValueKey(labels.sale),
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                labels.sale,
+                style: LuxeType.display(
+                  40,
+                  p.ink,
+                ).copyWith(fontFeatures: const [FontFeature.liningFigures()]),
+              ),
             ),
           ),
           if (labels.unit != null) ...[
             const SizedBox(height: 4),
             Text(labels.unit!, style: LuxeType.label(p.inkMuted, size: 13)),
           ],
+          if (footer != null) ...[const SizedBox(height: 10), footer!],
         ],
       ),
     );
@@ -578,51 +619,58 @@ class LuxeCertificateCard extends StatelessWidget {
   }
 }
 
-/// Specification tabs with an animated switch between rows.
-class LuxeSpecTabs extends StatefulWidget {
-  const LuxeSpecTabs({required this.specs, super.key});
+/// One label / value row of a spec list. [emphasis] sets the value in the
+/// serif display face (totals); [tone] colours it (e.g. a saving).
+class LuxeSpecLine {
+  const LuxeSpecLine(this.label, this.value, {this.emphasis = false, this.tone});
 
-  final ProductTabbedSpecs specs;
-
-  @override
-  State<LuxeSpecTabs> createState() => _LuxeSpecTabsState();
+  final String label;
+  final String value;
+  final bool emphasis;
+  final Color? tone;
 }
 
-class _LuxeSpecTabsState extends State<LuxeSpecTabs> {
-  int _index = 0;
+/// Hairline-separated label / value rows.
+class LuxeSpecList extends StatelessWidget {
+  const LuxeSpecList({required this.lines, super.key});
+
+  final List<LuxeSpecLine> lines;
 
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final tabs = widget.specs.tabs;
-    final index = _index.clamp(0, tabs.length - 1);
-    final tab = tabs[index];
-
-    Widget rows(List<ProductSpec> specs) => Column(
+    return Column(
       children: [
-        for (var i = 0; i < specs.length; i++)
+        for (var i = 0; i < lines.length; i++)
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              border: i == specs.length - 1
+              border: i == lines.length - 1
                   ? null
                   : Border(bottom: BorderSide(color: p.hairline, width: 0.6)),
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: lines[i].emphasis
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Text(
-                    specs[i].label,
-                    style: LuxeType.label(p.inkMuted, size: 13),
+                    lines[i].label,
+                    style: LuxeType.label(
+                      lines[i].emphasis ? p.ink : p.inkMuted,
+                      size: 13,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    specs[i].value,
+                    lines[i].value,
                     textAlign: TextAlign.right,
-                    style: LuxeType.label(p.ink, size: 13.5),
+                    style: lines[i].emphasis
+                        ? LuxeType.display(22, lines[i].tone ?? p.ink)
+                        : LuxeType.label(lines[i].tone ?? p.ink, size: 13.5),
                   ),
                 ),
               ],
@@ -630,41 +678,61 @@ class _LuxeSpecTabsState extends State<LuxeSpecTabs> {
           ),
       ],
     );
+  }
+}
 
-    final Widget body;
-    if (tab.isComment) {
-      body = Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Text(
-          tab.commentBody ?? 'No Comment Available',
-          style: LuxeType.body(p.inkMuted, size: 14),
-        ),
-      );
-    } else if (tab.hasSections) {
-      body = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final section in tab.sections) ...[
-            const SizedBox(height: 14),
-            Text(
-              section.title.toUpperCase(),
-              style: LuxeType.eyebrow(p.accent),
-            ),
-            rows(section.rows),
-          ],
-        ],
-      );
-    } else {
-      body = rows(tab.rows);
-    }
+/// Eyebrow-titled group of spec rows inside a tab.
+class LuxeSpecGroup extends StatelessWidget {
+  const LuxeSpecGroup({required this.title, required this.lines, super.key});
+
+  final String title;
+  final List<LuxeSpecLine> lines;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 14),
+        Text(title.toUpperCase(), style: LuxeType.eyebrow(p.accent)),
+        LuxeSpecList(lines: lines),
+      ],
+    );
+  }
+}
+
+/// Serif-titled panel with a tab selector (segmented for up to three tabs,
+/// scrolling chips beyond) and an animated card body.
+class LuxeTabbedPanel extends StatefulWidget {
+  const LuxeTabbedPanel({
+    required this.title,
+    required this.tabs,
+    required this.bodyOf,
+    super.key,
+  });
+
+  final String title;
+  final List<String> tabs;
+  final Widget Function(BuildContext context, int index) bodyOf;
+
+  @override
+  State<LuxeTabbedPanel> createState() => _LuxeTabbedPanelState();
+}
+
+class _LuxeTabbedPanelState extends State<LuxeTabbedPanel> {
+  int _index = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final tabs = widget.tabs;
+    final index = _index.clamp(0, tabs.length - 1);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          context.tr(DiamondFlowL10n.specifications),
-          style: LuxeType.display(28, p.ink),
-        ),
+        Text(widget.title, style: LuxeType.display(28, p.ink)),
         const SizedBox(height: 14),
         if (tabs.length > 1)
           tabs.length <= 3
@@ -672,7 +740,7 @@ class _LuxeSpecTabsState extends State<LuxeSpecTabs> {
                   options: [for (var i = 0; i < tabs.length; i++) i],
                   selected: index,
                   onChanged: (i) => setState(() => _index = i),
-                  labelOf: (i) => tabs[i].title,
+                  labelOf: (i) => tabs[i],
                   dense: true,
                 )
               : SizedBox(
@@ -682,7 +750,7 @@ class _LuxeSpecTabsState extends State<LuxeSpecTabs> {
                     itemCount: tabs.length,
                     separatorBuilder: (_, _) => const SizedBox(width: 8),
                     itemBuilder: (context, i) => ChoiceChip(
-                      label: Text(tabs[i].title),
+                      label: Text(tabs[i]),
                       selected: i == index,
                       onSelected: (_) {
                         AppHaptics.selection();
@@ -710,10 +778,59 @@ class _LuxeSpecTabsState extends State<LuxeSpecTabs> {
                 child: child,
               ),
             ),
-            child: KeyedSubtree(key: ValueKey(index), child: body),
+            child: KeyedSubtree(
+              key: ValueKey(index),
+              child: widget.bodyOf(context, index),
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Specification tabs with an animated switch between rows.
+class LuxeSpecTabs extends StatelessWidget {
+  const LuxeSpecTabs({required this.specs, super.key});
+
+  final ProductTabbedSpecs specs;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final tabs = specs.tabs;
+
+    List<LuxeSpecLine> lines(List<ProductSpec> rows) => [
+      for (final r in rows) LuxeSpecLine(r.label, r.value),
+    ];
+
+    Widget body(BuildContext context, int index) {
+      final tab = tabs[index];
+      if (tab.isComment) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Text(
+            tab.commentBody ?? 'No Comment Available',
+            style: LuxeType.body(p.inkMuted, size: 14),
+          ),
+        );
+      }
+      if (tab.hasSections) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final section in tab.sections)
+              LuxeSpecGroup(title: section.title, lines: lines(section.rows)),
+          ],
+        );
+      }
+      return LuxeSpecList(lines: lines(tab.rows));
+    }
+
+    return LuxeTabbedPanel(
+      title: context.tr(DiamondFlowL10n.specifications),
+      tabs: [for (final t in tabs) t.title],
+      bodyOf: body,
     );
   }
 }

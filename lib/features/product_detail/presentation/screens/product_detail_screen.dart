@@ -14,7 +14,6 @@ import '../widgets/product_detail_assurance.dart';
 import '../widgets/product_detail_bullion_section.dart';
 import '../widgets/product_detail_header.dart';
 import '../widgets/product_detail_highlights.dart';
-import '../widgets/product_detail_jewelry_section.dart';
 import '../widgets/product_detail_media.dart';
 import '../widgets/product_detail_natural_specs.dart';
 import '../widgets/product_detail_price.dart';
@@ -22,7 +21,8 @@ import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_specs.dart';
 import '../widgets/product_detail_suggested_products.dart';
 
-/// One product detail screen for every marketplace segment.
+/// Legacy product detail screen. Every segment now opens
+/// LuxeProductDetailScreen; jewelry lives there only.
 class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({required this.detail, super.key});
 
@@ -165,13 +165,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ..._summaryBlocks(detail, isSeller: auth.isSeller),
                   ],
                   const SizedBox(height: AppSpacing.s40),
-                  if (detail.jewelryDetail != null) ...[
-                    ProductDetailJewelrySection(
-                      detail: detail,
-                      jewelry: detail.jewelryDetail!,
-                    ),
-                    const SizedBox(height: AppSpacing.s32),
-                  ] else if (detail.bullionDetail != null) ...[
+                  if (detail.bullionDetail != null) ...[
                     ProductDetailBullionSection(
                       detail: detail,
                       bullion: detail.bullionDetail!,

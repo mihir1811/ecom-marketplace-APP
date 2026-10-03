@@ -24,6 +24,23 @@ class JewelryFilterNotifier extends Notifier<JewelryFilterState> {
     );
   }
 
+  /// Opens a collection in one update (one reload): [category] (null shows
+  /// every category), an optional single [style] and [metal] colour.
+  void openCollection({String? category, String? style, String? metal}) {
+    final c = category?.trim();
+    state = state.copyWith(
+      category: c,
+      clearCategory: c == null || c.isEmpty,
+      subCategories: {if (style != null && style.trim().isNotEmpty) style},
+      metalColors: metal == null || metal.trim().isEmpty ? null : {metal},
+    );
+  }
+
+  /// Quick metal-tone toggle from the results header.
+  void toggleMetalColor(String color) {
+    state = state.copyWith(metalColors: _toggle(state.metalColors, color));
+  }
+
   void toggleSubCategory(String subCategory) {
     state = state.copyWith(
       subCategories: _toggle(state.subCategories, subCategory),
@@ -167,6 +184,8 @@ class JewelryFilterDraftNotifier extends Notifier<JewelryFilterState> {
 
   void setStoneType(String v) => state = state.copyWith(stoneType: v);
 
+  void clearStoneType() => state = state.copyWith(clearStoneType: true);
+
   void toggleStoneCategory(String v) =>
       state = state.copyWith(stoneCategories: _toggle(state.stoneCategories, v));
 
@@ -215,12 +234,18 @@ class JewelryFilterDraftNotifier extends Notifier<JewelryFilterState> {
       ? state.copyWith(clearDeliveryTime: true)
       : state.copyWith(deliveryTime: v);
 
+  /// Clears the filter-screen selections; search, category and the style
+  /// chips chosen on the results page are kept.
   void reset() {
     state = JewelryFilterState(
       searchQuery: state.searchQuery,
       category: state.category,
+      subCategories: state.subCategories,
     );
   }
+
+  /// Restores an earlier draft (undo after reset).
+  void replaceDraft(JewelryFilterState previous) => state = previous;
 
   void apply() {
     ref.read(jewelryFilterProvider.notifier).replaceWith(state);

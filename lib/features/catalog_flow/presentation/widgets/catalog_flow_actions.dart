@@ -14,9 +14,16 @@ import '../../../notifications/application/notifications_provider.dart';
 /// gemstones): catalog search, notifications and cart (the latter two when
 /// signed in).
 class CatalogFlowActions extends ConsumerWidget {
-  const CatalogFlowActions({super.key, this.showSearch = true});
+  const CatalogFlowActions({
+    super.key,
+    this.showSearch = true,
+    this.glass = false,
+  });
 
   final bool showSearch;
+
+  /// Frosted treatment for use over imagery or a dark stage.
+  final bool glass;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,6 +45,7 @@ class CatalogFlowActions extends ConsumerWidget {
             icon: Icons.search_rounded,
             tooltip: context.tr(HomeL10n.searchPrefix),
             size: 40,
+            glass: glass,
             onPressed: () => showHomeSearch(context),
           ),
         if (auth.signedIn) ...[
@@ -46,6 +54,7 @@ class CatalogFlowActions extends ConsumerWidget {
             icon: Icons.notifications_none_rounded,
             tooltip: context.tr(HomeL10n.notifications),
             size: 40,
+            glass: glass,
             badge: unread,
             onPressed: () => context.switchToRoute(
               auth.seller
@@ -58,6 +67,7 @@ class CatalogFlowActions extends ConsumerWidget {
             icon: Icons.shopping_bag_outlined,
             tooltip: context.tr(CoreL10n.cart),
             size: 40,
+            glass: glass,
             badge: cartCount,
             onPressed: () => context.openRoute(AppRouteNames.cart),
           ),
