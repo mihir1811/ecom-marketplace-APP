@@ -32,27 +32,28 @@ import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_suggested_products.dart';
 import 'certificate_viewer_screen.dart';
 
-/// Diamond detail (natural and lab grown, single and melee).
+/// Luxe stone detail shared by natural diamonds, lab-grown diamonds and
+/// gemstones (single and melee).
 ///
 /// Reading order follows the buying decision: the stone (gallery), what it
 /// is (title, grades, badges), what it costs (price card), why to trust it
 /// (at-a-glance grades, certificate), the full record (spec tabs), who sells
 /// it, then related stones. The purchase bar stays pinned.
-class DiamondDetailScreen extends ConsumerStatefulWidget {
-  const DiamondDetailScreen({required this.detail, super.key});
+class StoneDetailScreen extends ConsumerStatefulWidget {
+  const StoneDetailScreen({required this.detail, super.key});
 
   final ProductDetail detail;
 
   static bool supports(ProductDetail detail) =>
       detail.segment == ProductSegment.naturalDiamond ||
-      detail.segment == ProductSegment.labGrownDiamond;
+      detail.segment == ProductSegment.labGrownDiamond ||
+      detail.segment == ProductSegment.gemstone;
 
   @override
-  ConsumerState<DiamondDetailScreen> createState() =>
-      _DiamondDetailScreenState();
+  ConsumerState<StoneDetailScreen> createState() => _StoneDetailScreenState();
 }
 
-class _DiamondDetailScreenState extends ConsumerState<DiamondDetailScreen> {
+class _StoneDetailScreenState extends ConsumerState<StoneDetailScreen> {
   static const _wide = 900.0;
   final _scroll = ScrollController();
   final _offset = ValueNotifier<double>(0);
@@ -400,7 +401,12 @@ class _Summary extends StatelessWidget {
 
 bool _isMissing(String value) {
   final v = value.trim();
-  return v.isEmpty || v == 'N/A' || v == '—' || v == '-';
+  return v.isEmpty ||
+      v == 'N/A' ||
+      v == '—' ||
+      v == '-' ||
+      // Uncertified stones: the spec tabs already state it plainly.
+      v.toLowerCase() == 'not certified';
 }
 
 class _Eyebrow extends StatelessWidget {

@@ -203,6 +203,24 @@ mixin CatalogSearchScrollMixin<T extends StatefulWidget> on State<T> {
     return false;
   }
 
+  /// Centres a section pill inside its own horizontal strip only.
+  ///
+  /// [Scrollable.ensureVisible] would also scroll every enclosing scrollable,
+  /// yanking the page back to the pinned index while the user scrolls.
+  void revealSectionPill(GlobalKey pillKey) {
+    final ctx = pillKey.currentContext;
+    final object = ctx?.findRenderObject();
+    if (ctx == null || object == null || !object.attached) return;
+    final strip = Scrollable.maybeOf(ctx);
+    if (strip == null || strip.position.axis != Axis.horizontal) return;
+    strip.position.ensureVisible(
+      object,
+      alignment: 0.5,
+      duration: const Duration(milliseconds: 380),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   void catalogScrollToSection(GlobalKey key) {
     _catalogSpyLocked = true;
     final ctx = key.currentContext;

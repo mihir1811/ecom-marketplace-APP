@@ -1,17 +1,12 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/luxe_scope.dart';
-import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/catalog_search_filter_shell.dart';
 import '../../../../core/widgets/filters/catalog_expandable_advanced_filters.dart';
@@ -19,15 +14,16 @@ import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
 import '../../../../core/widgets/filters/catalog_search_add_field.dart';
 import '../../../../core/widgets/filters/filter_proportion_diagram.dart';
-import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
+import '../../../../core/widgets/luxe/luxe_finder.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
 import '../../domain/models/diamond_filter_summary.dart';
-import '../widgets/diamond_flow_actions.dart';
+import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
 import '../widgets/diamond_shape_picker.dart';
 import '../widgets/filter_category_basic.dart';
 import '../widgets/filter_color_selector.dart';
@@ -57,7 +53,9 @@ class DiamondSearchScreen extends ConsumerStatefulWidget {
 }
 
 class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
-    with CatalogSearchScrollMixin {
+    with
+        CatalogSearchScrollMixin,
+        LuxeFinderMixin<DiamondSearchScreen, DiamondFinderSection> {
   @override
   final ScrollController catalogScrollController = ScrollController();
   @override
@@ -65,36 +63,32 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   @override
   double get catalogNavHeight => 56;
 
-  final _offset = ValueNotifier<double>(0);
   final _companyController = TextEditingController();
   final _locationController = TextEditingController();
-  final _sectionKeys = {
-    for (final s in DiamondFinderSection.values)
-      s: GlobalKey<LuxeSectionState>(),
-  };
-  final _pillKeys = {
-    for (final s in DiamondFinderSection.values) s: GlobalKey(),
-  };
-  DiamondFinderSection _active = DiamondFinderSection.shape;
 
   bool get _isLab => widget.catalog == DiamondCatalogType.labGrown;
 
   @override
   void initState() {
     super.initState();
-    catalogScrollController.addListener(_onScroll);
+    catalogScrollController.addListener(finderOnScroll);
   }
 
   @override
   void dispose() {
     catalogScrollController
-      ..removeListener(_onScroll)
+      ..removeListener(finderOnScroll)
       ..dispose();
-    _offset.dispose();
+    disposeFinder();
     _companyController.dispose();
     _locationController.dispose();
     super.dispose();
   }
+
+  @override
+  List<DiamondFinderSection> get finderVisibleSections => _visibleSections(
+    diamondUsesMeleeFilters(ref.read(diamondSearchProvider), isLab: _isLab),
+  );
 
   List<DiamondFinderSection> _visibleSections(bool melee) => [
     DiamondFinderSection.shape,
@@ -107,44 +101,6 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     DiamondFinderSection.measurements,
     if (!melee) DiamondFinderSection.proportions,
   ];
-
-  void _onScroll() {
-    _offset.value = catalogScrollController.offset;
-    if (catalogSpyLocked) return;
-    final melee = diamondUsesMeleeFilters(
-      ref.read(diamondSearchProvider),
-      isLab: _isLab,
-    );
-    final active =
-        catalogActiveSectionFromScroll([
-          for (final s in _visibleSections(melee)) (_sectionKeys[s]!, s),
-        ]) ??
-        DiamondFinderSection.shape;
-    _setActive(active);
-  }
-
-  void _setActive(DiamondFinderSection section) {
-    if (section == _active) return;
-    setState(() => _active = section);
-    final pill = _pillKeys[section]!.currentContext;
-    if (pill != null) {
-      Scrollable.ensureVisible(
-        pill,
-        alignment: 0.5,
-        duration: LuxeMotion.medium,
-        curve: LuxeMotion.settle,
-      );
-    }
-  }
-
-  void _jumpTo(DiamondFinderSection section) {
-    AppHaptics.selection();
-    _setActive(section);
-    _sectionKeys[section]!.currentState?.expand();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => catalogScrollToSection(_sectionKeys[section]!),
-    );
-  }
 
   void _commitPendingSearchFields() {
     final notifier = ref.read(diamondSearchProvider.notifier);
@@ -205,7 +161,6 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   }
 
   Widget _buildScaffold(BuildContext context) {
-    final p = LuxePalette.of(context);
     final melee = ref.watch(
       diamondSearchProvider.select(
         (s) => diamondUsesMeleeFilters(s, isLab: _isLab),
@@ -222,14 +177,16 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       appBar: LuxeTopBar(
         eyebrow: context.tr(DiamondFlowL10n.finderEyebrow),
         title: widget.catalog.label,
-        scrollOffset: _offset,
+        scrollOffset: finderOffset,
         onBack: () => context.resetTo(AppRouteNames.home),
-        actions: const [DiamondFlowActions()],
+        actions: const [CatalogFlowActions()],
       ),
-      bottomNavigationBar: _FinderActionBar(
+      bottomNavigationBar: LuxeFinderActionBar(
         activeCount: summary.total,
         onReset: summary.total == 0 ? null : _resetAll,
         onShow: _onShowDiamonds,
+        showLabel: context.tr(CatalogL10n.showDiamonds),
+        resetLabel: context.tr(DiamondFlowL10n.reset),
       ),
       body: AnimatedContainer(
         duration: AppColors.meleeBgDuration,
@@ -244,29 +201,31 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
             ),
             slivers: [
               SliverToBoxAdapter(child: _intro(context)),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _SectionIndexDelegate(
-                  background: background,
-                  hairline: p.hairline,
-                  child: _SectionIndex(
-                    key: catalogNavKey,
-                    sections: sections,
-                    active: _active,
-                    summary: summary,
-                    pillKeys: _pillKeys,
-                    labelOf: (s) => _title(context, s),
-                    onTap: _jumpTo,
-                  ),
+              LuxePinnedBar(
+                background: background,
+                child: LuxeFinderIndex<DiamondFinderSection>(
+                  key: catalogNavKey,
+                  sections: sections,
+                  active: finderActive,
+                  labelOf: (s) => _title(context, s),
+                  countOf: summary.count,
+                  pillKeyOf: finderPillKey,
+                  onTap: finderJumpTo,
                 ),
               ),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
-                sliver: SliverList.list(
-                  children: [
-                    for (final s in sections)
-                      _section(context, s, summary, melee),
-                  ],
+                // Sections are built eagerly (there are only a handful) so
+                // every section key resolves and any pill can jump straight
+                // to its section, and expanded state survives scrolling.
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final s in sections)
+                        _section(context, s, summary, melee),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -277,39 +236,16 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   }
 
   Widget _intro(BuildContext context) {
-    final p = LuxePalette.of(context);
-    final animate = !MediaQuery.disableAnimationsOf(context);
-    Widget headline = Text(
-      context.tr(
+    return LuxeFinderIntro(
+      headline: context.tr(
         _isLab
             ? DiamondFlowL10n.finderHeadlineLab
             : DiamondFlowL10n.finderHeadlineNatural,
       ),
-      style: LuxeType.display(36, p.ink),
-    );
-    if (animate) {
-      headline = headline
-          .animate()
-          .fadeIn(duration: 600.ms)
-          .moveY(begin: 14, end: 0, duration: 800.ms, curve: LuxeMotion.settle);
-    }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          headline,
-          const SizedBox(height: 8),
-          Text(
-            context.tr(DiamondFlowL10n.finderIntro),
-            style: LuxeType.body(p.inkMuted, size: 14),
-          ),
-          const SizedBox(height: 18),
-          DiamondCatalogModeControls(
-            showOriginToggle: !_isLab,
-            isLabCatalog: _isLab,
-          ),
-        ],
+      intro: context.tr(DiamondFlowL10n.finderIntro),
+      controls: DiamondCatalogModeControls(
+        showOriginToggle: !_isLab,
+        isLabCatalog: _isLab,
       ),
     );
   }
@@ -388,7 +324,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         : context.tr(DiamondFlowL10n.selectedCount, {'count': count});
 
     return LuxeSection(
-      key: _sectionKeys[s],
+      key: finderSectionKey(s),
       title: _title(context, s),
       icon: icon,
       summary: summaryText,
@@ -558,183 +494,6 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           infoDiagram: FilterProportionDiagramKind.culet,
         ),
       ],
-    );
-  }
-}
-
-/// Pinned, horizontally scrolling index of finder sections. Pills carry a
-/// dot when their section holds active filters.
-class _SectionIndex extends StatelessWidget {
-  const _SectionIndex({
-    required this.sections,
-    required this.active,
-    required this.summary,
-    required this.pillKeys,
-    required this.labelOf,
-    required this.onTap,
-    super.key,
-  });
-
-  final List<DiamondFinderSection> sections;
-  final DiamondFinderSection active;
-  final DiamondFilterSummary summary;
-  final Map<DiamondFinderSection, GlobalKey> pillKeys;
-  final String Function(DiamondFinderSection) labelOf;
-  final ValueChanged<DiamondFinderSection> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    return ListView.separated(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      itemCount: sections.length,
-      separatorBuilder: (_, _) => const SizedBox(width: 8),
-      itemBuilder: (context, i) {
-        final s = sections[i];
-        final selected = s == active;
-        final hasActive = summary.count(s) > 0;
-        return Semantics(
-          button: true,
-          selected: selected,
-          label: labelOf(s),
-          excludeSemantics: true,
-          child: GestureDetector(
-            key: pillKeys[s],
-            onTap: () => onTap(s),
-            child: AnimatedContainer(
-              duration: LuxeMotion.medium,
-              curve: LuxeMotion.settle,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              alignment: Alignment.center,
-              decoration: ShapeDecoration(
-                color: selected ? p.ink : p.surface,
-                shape: StadiumBorder(
-                  side: BorderSide(color: selected ? p.ink : p.hairline),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    labelOf(s),
-                    style: LuxeType.label(
-                      selected ? p.canvas : p.inkMuted,
-                      size: 12.5,
-                    ),
-                  ),
-                  if (hasActive) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: p.accent,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _SectionIndexDelegate extends SliverPersistentHeaderDelegate {
-  _SectionIndexDelegate({
-    required this.child,
-    required this.background,
-    required this.hairline,
-  });
-
-  final Widget child;
-  final Color background;
-  final Color hairline;
-
-  @override
-  double get minExtent => 56;
-  @override
-  double get maxExtent => 56;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlaps) {
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: background.withValues(alpha: 0.88),
-            border: Border(
-              bottom: BorderSide(
-                color: overlaps ? hairline : Colors.transparent,
-                width: 0.6,
-              ),
-            ),
-          ),
-          child: SizedBox.expand(child: child),
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(_SectionIndexDelegate old) =>
-      old.child != child || old.background != background;
-}
-
-/// Sticky footer: reset (when anything is set) and the primary search.
-class _FinderActionBar extends StatelessWidget {
-  const _FinderActionBar({
-    required this.activeCount,
-    required this.onReset,
-    required this.onShow,
-  });
-
-  final int activeCount;
-  final VoidCallback? onReset;
-  final VoidCallback onShow;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      decoration: BoxDecoration(
-        color: p.surface,
-        border: Border(top: BorderSide(color: p.hairline, width: 0.6)),
-      ),
-      child: Row(
-        children: [
-          AnimatedSize(
-            duration: LuxeMotion.medium,
-            curve: LuxeMotion.settle,
-            child: onReset == null
-                ? const SizedBox.shrink()
-                : Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: LuxeButton(
-                      label: context.tr(DiamondFlowL10n.reset),
-                      onPressed: onReset,
-                      variant: LuxeButtonVariant.secondary,
-                    ),
-                  ),
-          ),
-          Expanded(
-            child: LuxeButton(
-              label: context.tr(CatalogL10n.showDiamonds),
-              onPressed: onShow,
-              expand: true,
-              badge: activeCount,
-              trailingIcon: Icons.arrow_forward_rounded,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -48,9 +48,6 @@ class _HomeHeroState extends State<HomeHero>
   final _progress = ValueNotifier<double>(0);
   final _hintVisible = ValueNotifier<bool>(true);
   int? _activePointer;
-  Offset _downAt = Offset.zero;
-  Duration _downTime = Duration.zero;
-  double _travel = 0;
   VelocityTracker? _tracker;
   late final Ticker _ticker = createTicker(_onTick);
   StardustSprites? _sprites;
@@ -131,23 +128,24 @@ class _HomeHeroState extends State<HomeHero>
     if (_hintVisible.value) _hintVisible.value = false;
   }
 
+  // Dragging orbits the camera 360° exactly as before; the touch scatter is
+  // an add-on in screen space. Neither pauses or advances the formation
+  // cycle, and lifting the finger always lets every star spring home.
   void _onPointerDown(PointerDownEvent e) {
     if (_activePointer != null) return;
     _activePointer = e.pointer;
-    _downAt = e.localPosition;
-    _downTime = e.timeStamp;
-    _travel = 0;
     _tracker = VelocityTracker.withKind(e.kind)
       ..addPosition(e.timeStamp, e.position);
     _field
       ..beginDrag()
+      ..burst(e.localPosition)
       ..setPointer(e.localPosition);
+    if (e.kind == PointerDeviceKind.touch) AppHaptics.light();
     _dismissHint();
   }
 
   void _onPointerMove(PointerMoveEvent e) {
     if (e.pointer != _activePointer) return;
-    _travel += e.delta.distance;
     _tracker?.addPosition(e.timeStamp, e.position);
     _field
       ..dragBy(e.delta)
@@ -157,31 +155,21 @@ class _HomeHeroState extends State<HomeHero>
 
   void _onPointerUp(PointerUpEvent e) {
     if (e.pointer != _activePointer) return;
-    _activePointer = null;
-    final quick = e.timeStamp - _downTime < const Duration(milliseconds: 350);
-    if (_travel < 10 && quick) {
-      _field.endDrag(Offset.zero);
-      _onTap(_downAt);
-    } else {
-      final v = _tracker?.getVelocity().pixelsPerSecond ?? Offset.zero;
-      _field.endDrag(_reduceMotion ? Offset.zero : v);
-    }
-    _field.setPointer(null);
+    final v = _tracker?.getVelocity().pixelsPerSecond ?? Offset.zero;
+    _release(_reduceMotion ? Offset.zero : v);
   }
 
   void _onPointerCancel(PointerCancelEvent e) {
     if (e.pointer != _activePointer) return;
-    _activePointer = null;
-    _field
-      ..endDrag(Offset.zero)
-      ..setPointer(null);
+    _release(Offset.zero);
   }
 
-  void _onTap(Offset local) {
-    AppHaptics.light();
-    _field.shockwave(local, _scale * 1.4);
-    _field.advance();
-    if (_reduceMotion) _settleStatic();
+  void _release(Offset velocity) {
+    _activePointer = null;
+    _tracker = null;
+    _field
+      ..endDrag(velocity)
+      ..setPointer(null);
   }
 
   void _select(StarForm form) {
@@ -301,20 +289,16 @@ class _HomeHeroState extends State<HomeHero>
                           EagerGestureRecognizer
                         >(EagerGestureRecognizer.new, (_) {}),
                   },
-                  child: MouseRegion(
-                    onHover: (e) => _field.setPointer(e.localPosition),
-                    onExit: (_) => _field.setPointer(null),
-                    child: Listener(
-                      behavior: HitTestBehavior.opaque,
-                      onPointerDown: _onPointerDown,
-                      onPointerMove: _onPointerMove,
-                      onPointerUp: _onPointerUp,
-                      onPointerCancel: _onPointerCancel,
-                      child: RepaintBoundary(
-                        child: CustomPaint(
-                          painter: _painter,
-                          child: const SizedBox.expand(),
-                        ),
+                  child: Listener(
+                    behavior: HitTestBehavior.opaque,
+                    onPointerDown: _onPointerDown,
+                    onPointerMove: _onPointerMove,
+                    onPointerUp: _onPointerUp,
+                    onPointerCancel: _onPointerCancel,
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        painter: _painter,
+                        child: const SizedBox.expand(),
                       ),
                     ),
                   ),

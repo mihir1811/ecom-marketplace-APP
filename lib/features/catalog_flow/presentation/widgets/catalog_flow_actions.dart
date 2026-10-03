@@ -10,10 +10,11 @@ import '../../../cart/application/cart_provider.dart';
 import '../../../home/presentation/widgets/home_search_overlay.dart';
 import '../../../notifications/application/notifications_provider.dart';
 
-/// Trailing top-bar actions shared by the diamond flow: catalog search,
-/// notifications and cart (the latter two when signed in).
-class DiamondFlowActions extends ConsumerWidget {
-  const DiamondFlowActions({super.key, this.showSearch = true});
+/// Trailing top-bar actions shared by the luxe catalog flows (diamonds,
+/// gemstones): catalog search, notifications and cart (the latter two when
+/// signed in).
+class CatalogFlowActions extends ConsumerWidget {
+  const CatalogFlowActions({super.key, this.showSearch = true});
 
   final bool showSearch;
 

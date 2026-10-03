@@ -24,7 +24,12 @@ class GlyphCloud {
 /// springs plus a per-star wandering offset make them meander and settle
 /// slowly instead of snapping. The camera can be orbited a full 360° by
 /// dragging, with gentle inertia; when idle it resumes a slow automatic
-/// orbit. Screen positions are projected once per step for the painter.
+/// orbit.
+///
+/// Touch is an additive layer: a screen-space scatter offset per star that a
+/// finger pushes away and a soft, critically damped spring eases back home.
+/// It never touches the formation physics, so the glyph → gem → galaxy cycle
+/// keeps running underneath. Screen positions are projected once per step.
 class StardustField extends ChangeNotifier {
   StardustField({this.count = 2600, int seed = 11})
     : _rng = math.Random(seed),
@@ -57,7 +62,11 @@ class StardustField extends ChangeNotifier {
       _jx = Float32List(count),
       _jy = Float32List(count),
       _jz = Float32List(count),
-      _ambient = Uint8List(count) {
+      _ambient = Uint8List(count),
+      _ox = Float32List(count),
+      _oy = Float32List(count),
+      _ovx = Float32List(count),
+      _ovy = Float32List(count) {
     _seed();
   }
 
@@ -84,6 +93,9 @@ class StardustField extends ChangeNotifier {
   final Int32List _edge;
   final Float32List _edgeT, _jx, _jy, _jz;
   final Uint8List _ambient;
+
+  /// Screen-space scatter offset (px) and its velocity, per star.
+  final Float32List _ox, _oy, _ovx, _ovy;
 
   static const _morph = 4.2;
   static const _maxDelay = 1.6;
@@ -119,8 +131,8 @@ class StardustField extends ChangeNotifier {
   double _idle = 10;
 
   Offset? _pointer;
-  Offset? _lastPointer;
-  double _pointerPower = 0;
+  Offset? _burstAt;
+  bool _scatterAwake = false;
 
   /// 0..1 strength of the warm core glow for the current blend.
   double get coreGlow {
@@ -317,40 +329,76 @@ class StardustField extends ChangeNotifier {
 
   // ---- Interaction -----------------------------------------------------
 
-  /// Hover / touch position in painter-local pixels (null when lifted).
-  void setPointer(Offset? local) {
-    _pointer = local;
-    if (local != null) _lastPointer = local;
-  }
+  // Scatter spring: ζ ≈ 1 so stars glide home steadily without wobbling.
+  static const _scatterK = 1.5;
+  static const _scatterC = 2.5;
+  static const _scatterPush = 2400.0;
+  static const _burstSpeed = 190.0;
 
-  /// Soft outward kick from a tapped screen point.
-  void shockwave(Offset at, double radiusPx) {
-    final cy = math.cos(yaw), syw = math.sin(yaw);
-    final cp = math.cos(pitch), sp = math.sin(pitch);
+  /// Touch position in painter-local pixels (null when lifted). Only a
+  /// pressed pointer scatters; once lifted every star springs home.
+  void setPointer(Offset? local) => _pointer = local;
+
+  /// Outward burst from a freshly touched point.
+  void burst(Offset at) => _burstAt = at;
+
+  void _stepScatter(double dt, double scale) {
+    final p = _pointer;
+    final b = _burstAt;
+    _burstAt = null;
+    if (p == null && b == null && !_scatterAwake) return;
+    final reach = scale * 0.21;
+    final reach2 = reach * reach;
+    final burstR = reach * 1.35;
+    final burstR2 = burstR * burstR;
+    final decay = math.min(1.0, _scatterC * dt);
+    var awake = false;
     for (var i = 0; i < count; i++) {
-      final dx = sx[i] - at.dx, dy = sy[i] - at.dy;
-      final d = math.sqrt(dx * dx + dy * dy);
-      if (d > radiusPx || d < 0.001) continue;
-      final f = (1 - d / radiusPx) * 1.1;
-      _addCameraVector(i, dx / d * f, -dy / d * f, cy, syw, cp, sp);
+      var ox = _ox[i], oy = _oy[i], vx = _ovx[i], vy = _ovy[i];
+      final px = sx[i] + ox, py = sy[i] + oy;
+      if (p != null) {
+        final dx = px - p.dx, dy = py - p.dy;
+        final d2 = dx * dx + dy * dy;
+        if (d2 < reach2 && d2 > 0.01) {
+          final d = math.sqrt(d2);
+          final f = 1 - d / reach;
+          final push = f * f * _scatterPush * dt / d;
+          vx += dx * push;
+          vy += dy * push;
+        }
+      }
+      if (b != null) {
+        final dx = px - b.dx, dy = py - b.dy;
+        final d2 = dx * dx + dy * dy;
+        if (d2 < burstR2 && d2 > 0.01) {
+          final d = math.sqrt(d2);
+          final kick = (1 - d / burstR) * _burstSpeed / d;
+          vx += dx * kick;
+          vy += dy * kick;
+        }
+      }
+      vx += -ox * _scatterK * dt;
+      vy += -oy * _scatterK * dt;
+      vx -= vx * decay;
+      vy -= vy * decay;
+      ox += vx * dt;
+      oy += vy * dt;
+      if (ox.abs() > 0.05 ||
+          oy.abs() > 0.05 ||
+          vx.abs() > 0.05 ||
+          vy.abs() > 0.05) {
+        awake = true;
+      } else {
+        ox = oy = vx = vy = 0;
+      }
+      _ox[i] = ox;
+      _oy[i] = oy;
+      _ovx[i] = vx;
+      _ovy[i] = vy;
+      sx[i] += ox;
+      sy[i] += oy;
     }
-  }
-
-  /// Adds a camera-space (x right, y up) velocity to star [i] in model space.
-  void _addCameraVector(
-    int i,
-    double fx,
-    double fy,
-    double cy,
-    double sy,
-    double cp,
-    double sp,
-  ) {
-    final y1 = fy * cp;
-    final z1 = -fy * sp;
-    _vx[i] += fx * cy - z1 * sy;
-    _vy[i] += y1;
-    _vz[i] += fx * sy + z1 * cy;
+    _scatterAwake = awake || p != null;
   }
 
   // ---- Simulation ------------------------------------------------------
@@ -385,15 +433,6 @@ class StardustField extends ChangeNotifier {
     }
     _stepCamera(dt);
 
-    final pointer = _pointer;
-    _pointerPower +=
-        ((pointer == null ? 0 : 1) - _pointerPower) * math.min(1.0, dt * 3);
-    final p = pointer ?? _lastPointer;
-    final reach = scale * 0.38;
-    final touching = p != null && _pointerPower > 0.01;
-    final cy = math.cos(yaw), syw = math.sin(yaw);
-    final cp = math.cos(pitch), sp = math.sin(pitch);
-
     for (var i = 0; i < count; i++) {
       final raw = (time - _morphStart - _delay[i]) / _morph;
       final w = raw <= 0 ? 0.0 : (raw >= 1 ? 1.0 : _ease(raw));
@@ -420,22 +459,9 @@ class StardustField extends ChangeNotifier {
       ty += math.sin(time * _wf[b + 1] + _wp[b + 1]) * wander;
       tz += math.sin(time * _wf[b + 2] + _wp[b + 2]) * wander;
 
-      var ax = (tx - _x[i]) * _k - _vx[i] * _c;
-      var ay = (ty - _y[i]) * _k - _vy[i] * _c;
-      var az = (tz - _z[i]) * _k - _vz[i] * _c;
-
-      if (touching) {
-        final dx = sx[i] - p.dx, dy = sy[i] - p.dy;
-        final d2 = dx * dx + dy * dy;
-        if (d2 < reach * reach && d2 > 0.01) {
-          final d = math.sqrt(d2);
-          final f = math.pow(1 - d / reach, 2) * _pointerPower * dt;
-          // Gentle push plus a lazy curl around the finger (camera space).
-          final fx = (dx / d * 0.9 - dy / d * 0.45) * f;
-          final fy = -(dy / d * 0.9 + dx / d * 0.45) * f;
-          _addCameraVector(i, fx, fy, cy, syw, cp, sp);
-        }
-      }
+      final ax = (tx - _x[i]) * _k - _vx[i] * _c;
+      final ay = (ty - _y[i]) * _k - _vy[i] * _c;
+      final az = (tz - _z[i]) * _k - _vz[i] * _c;
 
       _vx[i] += ax * dt;
       _vy[i] += ay * dt;
@@ -445,6 +471,7 @@ class StardustField extends ChangeNotifier {
       _z[i] += _vz[i] * dt;
     }
     _project(center, scale);
+    _stepScatter(dt, scale);
     notifyListeners();
   }
 

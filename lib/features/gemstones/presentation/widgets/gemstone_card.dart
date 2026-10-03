@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -9,7 +8,6 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/catalog_card_image_pager.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
-import '../../../../core/widgets/catalog_content_sized_grid.dart';
 import '../../../../core/widgets/catalog_discount_price.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_card_shell.dart';
@@ -24,11 +22,7 @@ import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/gemstone.dart';
 
 class GemstoneCardGrid extends ConsumerWidget {
-  const GemstoneCardGrid({
-    required this.gemstone,
-    this.onTap,
-    super.key,
-  });
+  const GemstoneCardGrid({required this.gemstone, this.onTap, super.key});
 
   final Gemstone gemstone;
   final VoidCallback? onTap;
@@ -64,9 +58,8 @@ class GemstoneCardGrid extends ConsumerWidget {
                   right: AppSpacing.s4,
                   child: WishlistToggleButton(
                     item: WishlistItem.fromGemstone(gemstone),
-                    onAdded: () => rememberProductDetail(
-                      gemstoneProductDetail(gemstone),
-                    ),
+                    onAdded: () =>
+                        rememberProductDetail(gemstoneProductDetail(gemstone)),
                   ),
                 ),
                 Positioned(
@@ -84,9 +77,7 @@ class GemstoneCardGrid extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: AvailabilityStatusBadge(
-                    status: gemstone.availability,
-                  ),
+                  child: AvailabilityStatusBadge(status: gemstone.availability),
                 ),
               ],
             ),
@@ -187,11 +178,7 @@ class GemstoneCardGrid extends ConsumerWidget {
 
 /// Horizontal list card matching [WatchCardList] layout with gemstone data.
 class GemstoneCardList extends ConsumerWidget {
-  const GemstoneCardList({
-    required this.gemstone,
-    this.onTap,
-    super.key,
-  });
+  const GemstoneCardList({required this.gemstone, this.onTap, super.key});
 
   final Gemstone gemstone;
   final VoidCallback? onTap;
@@ -228,18 +215,15 @@ class GemstoneCardList extends ConsumerWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: AvailabilityStatusBadge(
-                    status: gemstone.availability,
-                  ),
+                  child: AvailabilityStatusBadge(status: gemstone.availability),
                 ),
                 Positioned(
                   top: AppSpacing.s8,
                   right: AppSpacing.s8,
                   child: WishlistToggleButton(
                     item: WishlistItem.fromGemstone(gemstone),
-                    onAdded: () => rememberProductDetail(
-                      gemstoneProductDetail(gemstone),
-                    ),
+                    onAdded: () =>
+                        rememberProductDetail(gemstoneProductDetail(gemstone)),
                   ),
                 ),
                 Positioned(
@@ -345,103 +329,6 @@ class GemstoneCardList extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class GemstoneListView extends StatelessWidget {
-  const GemstoneListView({
-    required this.gemstones,
-    required this.scrollController,
-    this.isLoadingMore = false,
-    super.key,
-  });
-
-  final List<Gemstone> gemstones;
-  final ScrollController scrollController;
-  final bool isLoadingMore;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      scrollCacheExtent: const ScrollCacheExtent.pixels(600),
-      controller: scrollController,
-      addAutomaticKeepAlives: false,
-      padding: const EdgeInsets.only(
-        left: AppSpacing.s16,
-        right: AppSpacing.s16,
-        top: AppSpacing.s8,
-        bottom: AppSpacing.s24,
-      ),
-      itemCount: gemstones.length + (isLoadingMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index >= gemstones.length) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.s16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.charcoal,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.s12),
-                Text(
-                  'Loading more...',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMuted(context),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-        final gemstone = gemstones[index];
-        return RepaintBoundary(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-            child: GemstoneCardList(
-              key: ValueKey(gemstone.id),
-              gemstone: gemstone,
-              onTap: () => openGemstoneDetail(context, gemstone),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class GemstoneGridView extends StatelessWidget {
-  const GemstoneGridView({
-    required this.gemstones,
-    required this.scrollController,
-    this.isLoadingMore = false,
-    super.key,
-  });
-
-  final List<Gemstone> gemstones;
-  final ScrollController scrollController;
-  final bool isLoadingMore;
-
-  @override
-  Widget build(BuildContext context) {
-    return CatalogContentSizedGrid(
-      controller: scrollController,
-      itemCount: gemstones.length,
-      isLoadingMore: isLoadingMore,
-      itemBuilder: (context, index) {
-        final gemstone = gemstones[index];
-        return GemstoneCardGrid(
-          key: ValueKey(gemstone.id),
-          gemstone: gemstone,
-          onTap: () => openGemstoneDetail(context, gemstone),
-        );
-      },
     );
   }
 }
