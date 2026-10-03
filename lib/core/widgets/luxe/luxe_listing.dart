@@ -144,21 +144,47 @@ class LuxeListingToolbar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          SizedBox(
-            width: 92,
-            child: LuxeSegmented<LuxeViewMode>(
-              options: LuxeViewMode.values,
-              selected: viewMode,
-              height: 38,
-              dense: true,
-              onChanged: onViewMode,
-              labelOf: (m) => m == LuxeViewMode.grid ? gridLabel : listLabel,
-              iconOf: (m) => m == LuxeViewMode.grid
-                  ? Icons.grid_view_rounded
-                  : Icons.view_agenda_outlined,
-            ),
+          LuxeViewToggle(
+            viewMode: viewMode,
+            onChanged: onViewMode,
+            gridLabel: gridLabel,
+            listLabel: listLabel,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Compact grid / list switch.
+class LuxeViewToggle extends StatelessWidget {
+  const LuxeViewToggle({
+    required this.viewMode,
+    required this.onChanged,
+    required this.gridLabel,
+    required this.listLabel,
+    super.key,
+  });
+
+  final LuxeViewMode viewMode;
+  final ValueChanged<LuxeViewMode> onChanged;
+  final String gridLabel;
+  final String listLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 92,
+      child: LuxeSegmented<LuxeViewMode>(
+        options: LuxeViewMode.values,
+        selected: viewMode,
+        height: 38,
+        dense: true,
+        onChanged: onChanged,
+        labelOf: (m) => m == LuxeViewMode.grid ? gridLabel : listLabel,
+        iconOf: (m) => m == LuxeViewMode.grid
+            ? Icons.grid_view_rounded
+            : Icons.view_agenda_outlined,
       ),
     );
   }

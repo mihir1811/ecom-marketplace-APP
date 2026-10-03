@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/widgets/luxe/luxe_button.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-
+/// Luxe failure state for the 360° viewer with a retry action.
 class DiamondViewerErrorView extends StatelessWidget {
   const DiamondViewerErrorView({
     required this.message,
@@ -17,48 +18,60 @@ class DiamondViewerErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget body = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 84,
+          height: 84,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: LuxeStage.glass,
+            border: Border.all(color: LuxeStage.glassBorder),
+          ),
+          child: const Icon(
+            Icons.threed_rotation_rounded,
+            size: 34,
+            color: LuxeStage.gold,
+          ),
+        ),
+        const SizedBox(height: 22),
+        Text(
+          'Unable to open 360° view',
+          textAlign: TextAlign.center,
+          style: LuxeType.display(26, LuxeStage.ink),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: LuxeType.body(LuxeStage.inkMuted, size: 14),
+        ),
+        if (onRetry != null) ...[
+          const SizedBox(height: 24),
+          LuxeButton(
+            label: context.tr(CatalogL10n.tryAgain),
+            icon: Icons.refresh_rounded,
+            variant: LuxeButtonVariant.accent,
+            onPressed: onRetry,
+          ),
+        ],
+      ],
+    );
+    if (!MediaQuery.disableAnimationsOf(context)) {
+      body = body
+          .animate()
+          .fadeIn(duration: 500.ms)
+          .moveY(begin: 14, end: 0, duration: 700.ms, curve: LuxeMotion.settle);
+    }
     return ColoredBox(
-      color: AppColors.charcoal,
+      color: LuxeStage.obsidian,
       child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.s24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.threed_rotation,
-                size: 48,
-                color: AppColors.bronzeLight,
-              ),
-              const SizedBox(height: AppSpacing.s16),
-              Text(
-                'Unable to open 360° view',
-                style: AppTypography.title.copyWith(
-                  color: AppColors.warmWhite,
-                  fontWeight: FontWeight.w700,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.s8),
-              Text(
-                message,
-                style: AppTypography.body.copyWith(
-                  color: AppColors.bronzeLight,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (onRetry != null) ...[
-                const SizedBox(height: AppSpacing.s24),
-                FilledButton(
-                  onPressed: onRetry,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.bronze,
-                    foregroundColor: AppColors.warmWhite,
-                  ),
-                  child: Text(context.tr(CatalogL10n.tryAgain)),
-                ),
-              ],
-            ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(28),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: body,
           ),
         ),
       ),

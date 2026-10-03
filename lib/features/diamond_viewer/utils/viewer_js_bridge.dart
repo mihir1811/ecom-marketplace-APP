@@ -99,7 +99,9 @@ abstract final class ViewerJsBridge {
       if (canvas.width < 160 || canvas.height < 160) continue;
       try {
         var ctx = canvas.getContext('2d');
-        if (!ctx) continue;
+        // A sized canvas without a 2D context already holds a WebGL
+        // context: the 3D viewer is drawing.
+        if (!ctx) return 'ok';
         var sample = ctx.getImageData(
           0,
           0,
@@ -116,7 +118,8 @@ abstract final class ViewerJsBridge {
         }
         if (seen > 8 && (max - min) > 24) return 'ok';
       } catch (e) {
-        // Tainted / WebGL canvas — keep waiting for image frames.
+        // Tainted canvas: cross-origin diamond frames have been drawn.
+        return 'ok';
       }
     }
 

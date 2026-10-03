@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 
+/// Luxe loading stage for the 360° viewer: a slowly turning brilliant,
+/// a quiet caption and a hairline gold progress bar.
 class DiamondViewerLoadingView extends StatelessWidget {
   const DiamondViewerLoadingView({super.key, this.progress = 0});
 
@@ -12,45 +13,66 @@ class DiamondViewerLoadingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final clamped = progress.clamp(0.0, 1.0);
+    final animate = !MediaQuery.disableAnimationsOf(context);
+
+    Widget gem = Container(
+      width: 86,
+      height: 86,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: LuxeStage.glassBorder),
+        gradient: RadialGradient(
+          colors: [LuxeStage.gold.withValues(alpha: 0.16), Colors.transparent],
+        ),
+      ),
+      child: const Icon(
+        Icons.diamond_outlined,
+        size: 38,
+        color: LuxeStage.gold,
+      ),
+    );
+    if (animate) {
+      gem = gem
+          .animate(onPlay: (c) => c.repeat())
+          .rotate(duration: 6.seconds, curve: Curves.linear)
+          .animate(onPlay: (c) => c.repeat(reverse: true))
+          .scaleXY(begin: 0.96, end: 1.04, duration: 1400.ms);
+    }
+
     return ColoredBox(
-      color: AppColors.charcoal,
+      color: LuxeStage.obsidian,
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.s24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(
-                width: 36,
-                height: 36,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: AppColors.warmWhite,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s16),
+              gem,
+              const SizedBox(height: 26),
               Text(
-                'Loading 360° viewer…',
-                style: AppTypography.label.copyWith(
-                  color: AppColors.warmWhite,
-                  fontWeight: FontWeight.w600,
-                ),
+                'PREPARING 360° VIEW',
+                style: LuxeType.eyebrow(LuxeStage.gold),
               ),
-              if (clamped > 0) ...[
-                const SizedBox(height: AppSpacing.s16),
-                SizedBox(
-                  width: 180,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppSpacing.circular),
-                    child: LinearProgressIndicator(
-                      value: clamped,
-                      minHeight: 4,
-                      backgroundColor: AppColors.charcoalLight,
-                      color: AppColors.bronze,
-                    ),
+              const SizedBox(height: 8),
+              Text(
+                'Loading every facet in high resolution…',
+                textAlign: TextAlign.center,
+                style: LuxeType.body(LuxeStage.inkMuted, size: 13.5),
+              ),
+              const SizedBox(height: 22),
+              SizedBox(
+                width: 180,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    // Indeterminate until the page reports progress.
+                    value: clamped > 0 ? clamped : null,
+                    minHeight: 2,
+                    backgroundColor: LuxeStage.glassBorder,
+                    color: LuxeStage.gold,
                   ),
                 ),
-              ],
+              ),
             ],
           ),
         ),

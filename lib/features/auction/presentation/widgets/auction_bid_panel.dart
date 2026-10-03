@@ -1,113 +1,172 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../domain/models/auction_models.dart';
 import 'auction_card.dart';
+import 'auction_clock.dart';
 
-/// Bid summary shown in the product-detail column.
-class AuctionBidPanel extends StatefulWidget {
+/// Bid summary card on the auction detail: phase, the current (or opening)
+/// bid as the hero figure, a live countdown, reserve and the viewer's own
+/// standing. Only the countdown text ticks; the card itself never rebuilds
+/// on the clock.
+class AuctionBidPanel extends StatelessWidget {
   const AuctionBidPanel({required this.auction, super.key});
 
   final AuctionListing auction;
 
   @override
-  State<AuctionBidPanel> createState() => _AuctionBidPanelState();
-}
-
-class _AuctionBidPanelState extends State<AuctionBidPanel> {
-  Timer? _ticker;
-
-  @override
-  void initState() {
-    super.initState();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _ticker?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final auction = widget.auction;
-    final deadline = auction.isUpcoming ? auction.startTime : auction.endTime;
+    final p = LuxePalette.of(context);
+    final a = auction;
+    final deadline = auctionDeadline(a);
+    final highest = a.highestBidAmount;
+    final bidCount = a.bids.length;
+
+    Widget pill(String text, Color tone, IconData icon) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: ShapeDecoration(
+        color: tone.withValues(alpha: 0.1),
+        shape: const StadiumBorder(),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: tone),
+          const SizedBox(width: 5),
+          Text(text, style: LuxeType.label(tone, size: 11.5)),
+        ],
+      ),
+    );
+
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.s16),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
       decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border(context)),
+        color: p.surface,
+        borderRadius: BorderRadius.circular(LuxeSpace.radius),
+        border: Border.all(color: p.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              AuctionPhaseBadge(auction: a, glass: false),
+              const Spacer(),
+              Text(
+                '$bidCount bid${bidCount == 1 ? '' : 's'}',
+                style: LuxeType.label(p.inkMuted, size: 12.5),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           Text(
-            auction.phaseLabel,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.bronze,
-              fontWeight: FontWeight.w700,
+            (highest == null ? 'Opening bid' : 'Current bid').toUpperCase(),
+            style: LuxeType.eyebrow(p.inkMuted),
+          ),
+          const SizedBox(height: 6),
+          TweenAnimationBuilder<double>(
+            // Rolls up to each new bid as it arrives over the socket.
+            tween: Tween(end: highest ?? a.minimumBid),
+            duration: LuxeMotion.reveal,
+            curve: LuxeMotion.settle,
+            builder: (context, value, _) => FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                highest == null
+                    ? AppCurrency.usd(value)
+                    : auctionBidAmount(value),
+                style: LuxeType.display(
+                  40,
+                  p.ink,
+                ).copyWith(fontFeatures: const [FontFeature.liningFigures()]),
+              ),
             ),
           ),
-          if (auction.highestBidAmount != null) ...[
-            const SizedBox(height: 8),
+          if (highest != null) ...[
+            const SizedBox(height: 2),
             Text(
-              'Current bid ${auctionBidAmount(auction.highestBidAmount!)}',
-              style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+              'Opening bid ${AppCurrency.usd(a.minimumBid)}',
+              style: LuxeType.label(p.inkFaint, size: 12),
             ),
           ],
           if (deadline != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              auction.isUpcoming ? 'Starts' : 'Ends',
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textMuted(context),
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              decoration: BoxDecoration(
+                color: p.surfaceRaised,
+                borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
               ),
-            ),
-            Text(
-              _remaining(deadline),
-              style: AppTypography.title.copyWith(
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            ),
-            Text(
-              auctionWhen(deadline),
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textMuted(context),
+              child: Row(
+                children: [
+                  Icon(
+                    a.isUpcoming
+                        ? Icons.schedule_rounded
+                        : Icons.timer_outlined,
+                    size: 20,
+                    color: p.accent,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          a.isUpcoming ? 'Starts in' : 'Ends in',
+                          style: LuxeType.label(p.inkMuted, size: 11.5),
+                        ),
+                        const SizedBox(height: 2),
+                        AuctionCountdown(
+                          deadline: deadline,
+                          style: LuxeType.figure(
+                            p.ink,
+                            size: 17,
+                          ).copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    auctionWhen(deadline),
+                    style: LuxeType.label(p.inkFaint, size: 11.5),
+                  ),
+                ],
               ),
             ),
           ],
-          if (!auction.isReserveMet)
-            Text(
-              'Reserve not met',
-              style: AppTypography.caption.copyWith(color: AppColors.terracotta),
-            ),
-          if (auction.bids.isNotEmpty)
-            Text(
-              '${auction.bids.length} bid${auction.bids.length == 1 ? '' : 's'}',
-              style: AppTypography.caption,
-            ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (a.isReserveMet)
+                pill('Reserve met', p.positive, Icons.check_circle_outline)
+              else
+                pill('Reserve not met', p.caution, Icons.info_outline_rounded),
+              if (a.myHighestBid != null)
+                pill(
+                  'Your bid ${auctionBidAmount(a.myHighestBid!)}',
+                  p.accent,
+                  Icons.person_outline_rounded,
+                ),
+              if (auctionOutcomeLabel(a.userOutcome) != null)
+                pill(
+                  auctionOutcomeLabel(a.userOutcome)!,
+                  p.accent,
+                  Icons.emoji_events_outlined,
+                ),
+              if (a.catalogPrice != null && a.catalogPrice! > 0)
+                pill(
+                  'Catalogue ${auctionBidAmount(a.catalogPrice!)}',
+                  p.inkMuted,
+                  Icons.sell_outlined,
+                ),
+            ],
+          ),
         ],
       ),
     );
   }
-}
-
-String _remaining(DateTime deadline) {
-  final diff = deadline.difference(DateTime.now());
-  if (diff.isNegative) return 'Ended';
-  final days = diff.inDays;
-  final hours = diff.inHours.remainder(24);
-  final minutes = diff.inMinutes.remainder(60);
-  final seconds = diff.inSeconds.remainder(60);
-  String two(int n) => n.toString().padLeft(2, '0');
-  return '${days}d ${two(hours)}h ${two(minutes)}m ${two(seconds)}s';
 }

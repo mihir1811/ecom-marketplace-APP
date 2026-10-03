@@ -110,7 +110,10 @@ class StardustField extends ChangeNotifier {
   static const _c = 2.75;
   static const _camDistance = 4.2;
   static const _homePitch = 0.3;
-  static const _galaxyTilt = 0.55;
+  static const _galaxyTilt = 0.7;
+
+  /// Rigid rotation of the spiral pattern (rad/s).
+  static const _patternSpeed = 0.11;
 
   late final List<int> _edges = _meshEdges();
 
@@ -181,24 +184,32 @@ class StardustField extends ChangeNotifier {
         _wp[i * 3 + k] = _rng.nextDouble() * math.pi * 2;
       }
 
-      // Two-armed spiral: dense bulge, tightly wound arms, faint disk dust.
+      // Two-armed logarithmic spiral: warm dense bulge, two crisp arms that
+      // thin toward the rim, and a faint inter-arm haze.
       final kind = _rng.nextDouble();
-      if (kind < 0.22) {
-        _galR[i] = (_gauss() * 0.12).abs();
+      if (kind < 0.18) {
+        _galR[i] = (_gauss() * 0.11).abs();
         _galA[i] = _rng.nextDouble() * math.pi * 2;
-        _galH[i] = _gauss() * 0.06;
-      } else if (kind < 0.36) {
-        _galR[i] = 0.1 + _rng.nextDouble() * 0.95;
+        _galH[i] = _gauss() * 0.05;
+        // Older, warmer light in the core.
+        if (_rng.nextDouble() < 0.55) rgb[i] = 0xFFD39A;
+      } else if (kind < 0.28) {
+        _galR[i] = 0.12 + _rng.nextDouble() * 0.9;
         _galA[i] = _rng.nextDouble() * math.pi * 2;
-        _galH[i] = _gauss() * 0.025;
-      } else {
-        final rad = 0.08 + math.pow(_rng.nextDouble(), 1.15) * 0.98;
-        final arm = _rng.nextBool() ? 0.0 : math.pi;
-        _galR[i] = rad + _gauss() * 0.025;
-        _galA[i] = arm + rad * 7.2 + _gauss() * 0.22 * (1.3 - rad * 0.6);
         _galH[i] = _gauss() * 0.02;
+      } else {
+        final rad = 0.1 + math.pow(_rng.nextDouble(), 0.9) * 0.92;
+        final arm = _rng.nextBool() ? 0.0 : math.pi;
+        // Arms are tight near the core and fan out (and fade) outward.
+        final spread = 0.1 + rad * 0.16;
+        _galR[i] = rad + _gauss() * 0.018;
+        _galA[i] = arm + math.log(rad / 0.1) * 2.6 + _gauss() * spread;
+        _galH[i] = _gauss() * 0.014;
+        // Young blue-white stars trace the arms.
+        if (_rng.nextDouble() < 0.35) rgb[i] = 0xE6EEFF;
       }
-      _galW[i] = 0.12 / (math.sqrt(_galR[i]) + 0.22);
+      // Small epicycle frequency; the arms themselves rotate rigidly.
+      _galW[i] = 0.3 + _rng.nextDouble() * 0.5;
 
       // Length-weighted edge pick keeps the wireframe evenly lit.
       final e = _rng.nextDouble() * weights.last;
@@ -511,14 +522,21 @@ class StardustField extends ChangeNotifier {
   (double, double, double) _target(StarForm f, int i) {
     if (f == StarForm.galaxy || _ambient[i] == 1) {
       final outer = f == StarForm.galaxy ? 1.0 : 1.75;
-      final a = _galA[i] + time * _galW[i] * (outer == 1 ? 1 : 0.35);
-      final r = _galR[i] * outer;
+      // The whole pattern turns as one (a density wave), so the two arms
+      // keep their shape forever instead of winding up into rings; each
+      // star only sways on a small bounded epicycle along its arm.
+      final epicycle = math.sin(time * _galW[i] + twinklePhase[i]) * 0.035;
+      final a =
+          _galA[i] +
+          time * _patternSpeed * (outer == 1 ? 1 : 0.35) +
+          epicycle;
+      final r = _galR[i] * outer * (1 + epicycle * 0.4);
       final lx = r * math.cos(a);
       final ly = _galH[i];
       final lz = r * math.sin(a);
-      const ct = 0.8525, st = 0.5227; // cos/sin of _galaxyTilt
+      const ct = 0.7648, st = 0.6442; // cos/sin of _galaxyTilt
       assert((math.cos(_galaxyTilt) - ct).abs() < 1e-3);
-      // Tilt the disk toward the camera so the spiral opens up.
+      // Tilt the disk toward the camera so both arms read clearly.
       return (lx, ly * ct + lz * st, -ly * st + lz * ct);
     }
     if (f == StarForm.glyph) {

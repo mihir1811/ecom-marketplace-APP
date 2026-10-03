@@ -241,11 +241,16 @@ class _DiamondViewerState extends State<DiamondViewer> {
     }
 
     final elapsed = DateTime.now().difference(_pageReadyAt ?? DateTime.now());
-    final giveUp = status == 'empty'
-        ? const Duration(seconds: 6)
-        : const Duration(seconds: 25);
-    if (elapsed >= giveUp) {
+    if (status == 'empty' && elapsed >= const Duration(seconds: 6)) {
       _fail(context.tr(CatalogL10n.viewerNoMedia));
+      return;
+    }
+    // The page is still drawing (large Vision360 shells, WebGL we cannot
+    // sample): reveal it rather than failing a viewer that may be working.
+    if (status == 'pending' && elapsed >= const Duration(seconds: 12)) {
+      _probeTimer?.cancel();
+      _timeout?.cancel();
+      _emit(const DiamondViewerReady(engineHint: 'page'));
       return;
     }
 

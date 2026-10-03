@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 
 /// One outcome count, such as won auctions or bids received.
 class AuctionStandingItem {
@@ -17,7 +16,8 @@ class AuctionStandingItem {
   final int count;
 }
 
-/// Horizontal outcome counts for the signed-in buyer or seller.
+/// Horizontal outcome counts for the signed-in buyer or seller. Tiles act
+/// as filters when [onSelected] is set; the selected tile turns ink.
 class AuctionStandingStrip extends StatelessWidget {
   const AuctionStandingStrip({
     required this.items,
@@ -32,58 +32,65 @@ class AuctionStandingStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
     return SizedBox(
-      height: 84,
+      height: 80,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: items.length,
-        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.s8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final item = items[index];
           final selected = item.id == selectedId;
-          return Material(
-            color: selected ? AppColors.bronze : AppColors.card(context),
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: onSelected == null ? null : () => onSelected!(item.id),
-              child: Container(
-                width: 112,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s12,
-                  vertical: AppSpacing.s8,
-                ),
+          return Semantics(
+            button: onSelected != null,
+            selected: selected,
+            label: '${item.label} ${item.count}',
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: onSelected == null
+                  ? null
+                  : () {
+                      AppHaptics.selection();
+                      onSelected!(item.id);
+                    },
+              child: AnimatedContainer(
+                duration: LuxeMotion.medium,
+                curve: LuxeMotion.settle,
+                width: 116,
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: selected
-                        ? AppColors.bronze
-                        : AppColors.border(context),
-                  ),
+                  color: selected ? p.ink : p.surface,
+                  borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+                  border: Border.all(color: selected ? p.ink : p.hairline),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      '${item.count}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.title.copyWith(
-                        color: selected
-                            ? AppColors.warmWhite
-                            : AppColors.textPrimary(context),
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(end: item.count.toDouble()),
+                      duration: LuxeMotion.reveal,
+                      curve: LuxeMotion.settle,
+                      builder: (context, v, _) => Text(
+                        '${v.round()}',
+                        maxLines: 1,
+                        style: LuxeType.display(
+                          26,
+                          selected ? p.canvas : p.ink,
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       item.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.caption.copyWith(
-                        color: selected
-                            ? AppColors.warmWhite
-                            : AppColors.textMuted(context),
+                      style: LuxeType.label(
+                        selected ? p.canvas : p.inkMuted,
+                        size: 11.5,
                       ),
                     ),
                   ],

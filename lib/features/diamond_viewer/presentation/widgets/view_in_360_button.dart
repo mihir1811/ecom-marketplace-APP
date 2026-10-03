@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../domain/models/diamond_viewer_args.dart';
 import '../../utils/viewer_url_resolver.dart';
 
@@ -48,63 +46,47 @@ class ViewIn360Button extends StatelessWidget {
     final resolved = ViewerUrlResolver.resolve(viewerUrl);
     if (resolved == null) return const SizedBox.shrink();
 
+    void go() =>
+        open(context, viewerUrl: resolved, title: title, subtitle: subtitle);
+
     if (compact) {
-      return FilledButton.tonalIcon(
-        onPressed: () => open(
-          context,
-          viewerUrl: resolved,
-          title: title,
-          subtitle: subtitle,
-        ),
-        icon: const Icon(Icons.threed_rotation, size: 18),
-        label: Text(label),
+      return FilledButton.icon(
+        onPressed: go,
+        icon: const Icon(Icons.threed_rotation_rounded, size: 18),
+        label: Text(label, style: LuxeType.label(LuxeStage.ink)),
         style: FilledButton.styleFrom(
-          foregroundColor: AppColors.warmWhite,
-          backgroundColor: AppColors.charcoal,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s16,
-            vertical: AppSpacing.s12,
+          foregroundColor: LuxeStage.gold,
+          backgroundColor: LuxeStage.obsidian,
+          shape: const StadiumBorder(
+            side: BorderSide(color: LuxeStage.glassBorder),
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       );
     }
 
     return Material(
-      color: AppColors.charcoal,
-      borderRadius: BorderRadius.circular(AppSpacing.r16),
+      color: LuxeStage.obsidian,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+        side: const BorderSide(color: LuxeStage.glassBorder),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppSpacing.r16),
-        onTap: () => open(
-          context,
-          viewerUrl: resolved,
-          title: title,
-          subtitle: subtitle,
-        ),
+        onTap: go,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s16,
-            vertical: AppSpacing.s12,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              const Icon(
-                Icons.threed_rotation,
-                color: AppColors.warmWhite,
-              ),
-              const SizedBox(width: AppSpacing.s12),
+              const Icon(Icons.threed_rotation_rounded, color: LuxeStage.gold),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  label,
-                  style: AppTypography.label.copyWith(
-                    color: AppColors.warmWhite,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: Text(label, style: LuxeType.label(LuxeStage.ink)),
               ),
               const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: AppColors.warmWhite,
+                Icons.arrow_forward_rounded,
+                size: 16,
+                color: LuxeStage.gold,
               ),
             ],
           ),

@@ -1,176 +1,195 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/router/app_navigation.dart';
-
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/catalog_card_image_pager.dart';
+import '../../../../core/widgets/luxe/luxe_product_card.dart';
 import '../../domain/models/auction_models.dart';
+import 'auction_clock.dart';
 
+/// Auction result card on the shared luxe card layout: phase and a live
+/// countdown over the photo, title, the viewer's standing, and the
+/// current (or opening) bid.
 class AuctionCard extends StatelessWidget {
   const AuctionCard({required this.auction, this.grid = false, super.key});
 
   final AuctionListing auction;
   final bool grid;
 
+  void _open(BuildContext context) =>
+      context.openRoute(AppRouteNames.auctionDetailPath(auction.id));
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surface(context),
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () =>
-            context.openRoute(AppRouteNames.auctionDetailPath(auction.id)),
-        child: grid ? _grid(context) : _list(context),
-      ),
+    final a = auction;
+    final deadline = auctionDeadline(a);
+    final countdown = deadline != null && (a.isLive || a.isUpcoming)
+        ? _CountdownChip(deadline: deadline, upcoming: a.isUpcoming)
+        : null;
+    final price = _BidFigure(auction: a);
+
+    if (grid) {
+      return LuxeProductGridCard(
+        onTap: () => _open(context),
+        media: _AuctionThumb(url: a.imageUrl),
+        title: a.title,
+        subtitle: _standing(a) ?? a.sellerName ?? _typeLabel(a.productType),
+        meta: _when(a),
+        price: price,
+        overlays: LuxeMediaOverlays(
+          topLeft: AuctionPhaseBadge(auction: a),
+          bottomLeft: countdown,
+        ),
+      );
+    }
+    return LuxeProductListCard(
+      onTap: () => _open(context),
+      media: _AuctionThumb(url: a.imageUrl),
+      title: a.title,
+      subtitle: _standing(a) ?? a.sellerName ?? _typeLabel(a.productType),
+      detail: [
+        if (_standing(a) != null && a.sellerName != null) a.sellerName!,
+        ?_when(a),
+      ].join(' · '),
+      price: price,
+      thumbTopLeft: AuctionPhaseBadge(auction: a),
+      thumbBottomLeft: countdown,
     );
   }
+}
 
-  Widget _list(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.s12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _Thumb(url: auction.imageUrl),
-          const SizedBox(width: AppSpacing.s12),
-          Expanded(child: _details(context)),
-        ],
-      ),
-    );
+/// "Won · Your bid $1,200 · 3 bids" for the viewer's own activity.
+String? _standing(AuctionListing a) {
+  final parts = [
+    ?auctionOutcomeLabel(a.userOutcome),
+    if (a.myHighestBid != null) 'Your bid ${auctionBidAmount(a.myHighestBid!)}',
+    if (a.myHighestBid != null && a.myBidCount > 1) '${a.myBidCount} bids',
+  ];
+  return parts.isEmpty ? null : parts.join(' · ');
+}
+
+String? _when(AuctionListing a) {
+  if (a.isUpcoming && a.startTime != null) {
+    return 'Starts ${auctionWhen(a.startTime!)}';
   }
+  if (a.endTime != null) return 'Ends ${auctionWhen(a.endTime!)}';
+  return 'Min ${AppCurrency.usd(a.minimumBid)}';
+}
 
-  Widget _grid(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+String _typeLabel(String type) => switch (type) {
+  'diamond' => 'Diamond',
+  'gemstone' => 'Gemstone',
+  'meleeDiamond' => 'Melee diamond',
+  'jewellery' => 'Jewellery',
+  _ => type,
+};
+
+/// Current bid (or opening bid) with a quiet caption.
+class _BidFigure extends StatelessWidget {
+  const _BidFigure({required this.auction});
+
+  final AuctionListing auction;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final highest = auction.highestBidAmount;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       children: [
-        Expanded(child: _Thumb(url: auction.imageUrl, expand: true)),
-        Padding(
-          padding: const EdgeInsets.all(AppSpacing.s12),
-          child: _details(context),
-        ),
-      ],
-    );
-  }
-
-  Widget _details(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          auction.phaseLabel,
-          style: AppTypography.caption.copyWith(
-            color: AppColors.bronze,
-            fontWeight: FontWeight.w600,
+        Flexible(
+          child: Text(
+            highest == null
+                ? AppCurrency.usd(auction.minimumBid)
+                : auctionBidAmount(highest),
+            maxLines: 1,
+            overflow: TextOverflow.fade,
+            softWrap: false,
+            style: LuxeType.figure(
+              p.ink,
+              size: 15,
+            ).copyWith(fontWeight: FontWeight.w600),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(width: 6),
         Text(
-          auction.title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-        ),
-        if (!grid && auction.sellerName != null) ...[
-          const SizedBox(height: 2),
-          Text(
-            auction.sellerName!,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-            ),
-          ),
-        ],
-        if (auctionOutcomeLabel(auction.userOutcome) != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            auctionOutcomeLabel(auction.userOutcome)!,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.bronze,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-        if (auction.myHighestBid != null) ...[
-          const SizedBox(height: 2),
-          Text(
-            'Your bid ${auctionBidAmount(auction.myHighestBid!)}'
-            '${auction.myBidCount > 1 ? ' · ${auction.myBidCount} bids' : ''}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.caption,
-          ),
-        ],
-        const SizedBox(height: 8),
-        Text(
-          auction.highestBidAmount == null
-              ? AppCurrency.usd(auction.minimumBid)
-              : auctionBidAmount(auction.highestBidAmount!),
+          highest == null ? 'opening' : 'current bid',
           maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.body.copyWith(fontWeight: FontWeight.w700),
-        ),
-        Text(
-          auction.endTime == null
-              ? 'Min ${AppCurrency.usd(auction.minimumBid)}'
-              : 'Ends ${_when(auction.endTime!)}',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textMuted(context),
-          ),
+          style: LuxeType.label(p.inkFaint, size: 11),
         ),
       ],
     );
   }
 }
 
-class _Thumb extends StatelessWidget {
-  const _Thumb({required this.url, this.expand = false});
+class _CountdownChip extends StatelessWidget {
+  const _CountdownChip({required this.deadline, required this.upcoming});
+
+  final DateTime deadline;
+  final bool upcoming;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: ShapeDecoration(
+        color: p.isDark ? const Color(0x99000000) : const Color(0xEBFFFFFF),
+        shape: const StadiumBorder(),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            upcoming ? Icons.schedule_rounded : Icons.timer_outlined,
+            size: 12,
+            color: p.ink,
+          ),
+          const SizedBox(width: 4),
+          AuctionCountdown(
+            deadline: deadline,
+            short: true,
+            style: LuxeType.figure(p.ink, size: 11),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AuctionThumb extends StatelessWidget {
+  const _AuctionThumb({required this.url});
 
   final String? url;
-  final bool expand;
 
   @override
   Widget build(BuildContext context) {
-    final image = url;
-    return ClipRRect(
-      borderRadius: expand
-          ? const BorderRadius.vertical(top: Radius.circular(14))
-          : BorderRadius.circular(10),
-      child: SizedBox(
-        width: expand ? double.infinity : 84,
-        height: expand ? double.infinity : 84,
-        child: image == null
-            ? ColoredBox(
-                color: AppColors.card(context),
-                child: Icon(
-                  Icons.gavel_outlined,
-                  color: AppColors.textMuted(context),
-                ),
-              )
-            : Image.network(
-                image,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => ColoredBox(
-                  color: AppColors.card(context),
-                  child: Icon(
-                    Icons.image_not_supported_outlined,
-                    color: AppColors.textMuted(context),
-                  ),
-                ),
-              ),
+    final p = LuxePalette.of(context);
+    final fallback = ColoredBox(
+      color: p.surfaceRaised,
+      child: Center(
+        child: Icon(Icons.gavel_rounded, size: 40, color: p.accent),
       ),
+    );
+    final image = url?.trim();
+    return CatalogCardImagePager(
+      imageUrls: image == null || image.isEmpty ? const [] : [image],
+      fallback: fallback,
+      memCacheWidth: 480,
     );
   }
 }
 
-String auctionWhen(DateTime value) => _when(value);
+/// "2026-10-04 18:00" in local time.
+String auctionWhen(DateTime value) {
+  final local = value.toLocal();
+  String two(int n) => n.toString().padLeft(2, '0');
+  return '${local.year}-${two(local.month)}-${two(local.day)} '
+      '${two(local.hour)}:${two(local.minute)}';
+}
 
 /// Whole-dollar bid. Fractional cents are not shown.
 String auctionBidAmount(num amount) =>
@@ -183,11 +202,4 @@ String? auctionOutcomeLabel(String? outcome) {
     'lost' => 'Lost',
     _ => null,
   };
-}
-
-String _when(DateTime value) {
-  final local = value.toLocal();
-  String two(int n) => n.toString().padLeft(2, '0');
-  return '${local.year}-${two(local.month)}-${two(local.day)} '
-      '${two(local.hour)}:${two(local.minute)}';
 }

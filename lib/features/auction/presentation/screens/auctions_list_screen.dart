@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/theme/luxe_scope.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/app_top_bar.dart';
-import '../../../../core/widgets/catalog_empty_state.dart';
-import '../../../../core/widgets/view_mode_toggle.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
+import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
 import '../../application/auction_providers.dart';
+import '../../domain/models/auction_models.dart';
 import '../widgets/auction_card.dart';
 import '../widgets/auction_standing_strip.dart';
 
-/// Live auctions, my activity, or my wins.
+/// Live auctions, my activity, or my wins on the shared luxe listing
+/// layout: standing / outcome filters scroll away, the product-type chips
+/// and grid / list switch stay pinned, cards carry live countdowns.
 class AuctionsListScreen extends ConsumerStatefulWidget {
   const AuctionsListScreen({
     required this.kind,
@@ -28,10 +33,19 @@ class AuctionsListScreen extends ConsumerStatefulWidget {
   ConsumerState<AuctionsListScreen> createState() => _AuctionsListScreenState();
 }
 
-class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen> {
+class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
+    with LuxeListingMixin {
+  static const _productTypes = [
+    'all',
+    'diamond',
+    'gemstone',
+    'meleeDiamond',
+    'jewellery',
+  ];
+
   String? _productType;
   String _outcome = 'all';
-  bool _grid = false;
+  LuxeViewMode _viewMode = LuxeViewMode.list;
 
   AuctionFeedQuery get _query => AuctionFeedQuery(
     kind: widget.kind,
@@ -40,186 +54,204 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    initListing();
+  }
+
+  @override
+  void dispose() {
+    disposeListing();
+    super.dispose();
+  }
+
+  @override
+  bool get listingCanLoadMore {
+    final s = ref.read(auctionFeedProvider(_query));
+    return s.hasMore && !s.isLoadingMore && !s.isLoading;
+  }
+
+  @override
+  void listingLoadMore() =>
+      ref.read(auctionFeedProvider(_query).notifier).loadMore();
+
+  @override
+  int get listingItemCount =>
+      ref.read(auctionFeedProvider(_query)).items.length;
+
+  @override
+  LuxeViewMode get listingViewMode => _viewMode;
+
+  @override
+  void listingApplyViewMode(LuxeViewMode mode) =>
+      setState(() => _viewMode = mode);
+
+  void _setOutcome(String value) {
+    if (value == _outcome) return;
+    setState(() => _outcome = value);
+    _toTop();
+  }
+
+  void _setProductType(String value) {
+    final next = value == 'all' ? null : value;
+    if (next == _productType) return;
+    setState(() => _productType = next);
+    _toTop();
+  }
+
+  /// A new filter starts a fresh feed; show it from the top.
+  void _toTop() {
+    if (listingScroll.hasClients && listingScroll.offset > 0) {
+      listingScroll.jumpTo(0);
+    }
+  }
+
+  static String _typeLabel(String type) => switch (type) {
+    'all' => 'All',
+    'diamond' => 'Diamonds',
+    'gemstone' => 'Gemstones',
+    'meleeDiamond' => 'Melee',
+    'jewellery' => 'Jewellery',
+    _ => type,
+  };
+
+  static String _outcomeLabel(String outcome) => switch (outcome) {
+    'all' => 'All',
+    'participating' => 'In progress',
+    'won' => 'Won',
+    'lost' => 'Lost',
+    _ => outcome,
+  };
+
+  @override
   Widget build(BuildContext context) {
+    return LuxeScope(child: Builder(builder: _buildScaffold));
+  }
+
+  Widget _buildScaffold(BuildContext context) {
+    final p = LuxePalette.of(context);
     final feed = ref.watch(auctionFeedProvider(_query));
+    final notifier = ref.read(auctionFeedProvider(_query).notifier);
+
     return AppScaffold(
-      backgroundColor: AppColors.bg(context),
-      appBar: AppTopBar(title: widget.title),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (widget.kind == AuctionFeedKind.activity && feed.summary != null)
-            AuctionStandingStrip(
-              selectedId: _outcome,
-              onSelected: (value) => setState(() => _outcome = value),
-              items: [
-                AuctionStandingItem(
-                  id: 'all',
-                  label: 'Participated',
-                  count: feed.summary!.participated,
+      backgroundColor: p.canvas,
+      appBar: LuxeTopBar(
+        eyebrow: 'Auction house',
+        title: widget.title,
+        scrollOffset: listingOffset,
+        actions: const [CatalogFlowActions()],
+      ),
+      body: LuxeListingScrollView(
+        controller: listingScroll,
+        offset: listingOffset,
+        onRefresh: notifier.refresh,
+        onBackToTop: listingBackToTop,
+        backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
+        slivers: [
+          SliverToBoxAdapter(
+            child: KeyedSubtree(key: listingHeaderKey, child: _header(feed)),
+          ),
+          LuxePinnedBar(
+            child: Row(
+              children: [
+                Expanded(
+                  child: LuxeQuickChips<String>(
+                    chips: [
+                      for (final t in _productTypes)
+                        LuxeQuickChip(value: t, label: _typeLabel(t)),
+                    ],
+                    isSelected: (t) => t == (_productType ?? 'all'),
+                    onTap: _setProductType,
+                  ),
                 ),
-                AuctionStandingItem(
-                  id: 'participating',
-                  label: 'In progress',
-                  count: feed.summary!.participating,
-                ),
-                AuctionStandingItem(
-                  id: 'won',
-                  label: 'Won',
-                  count: feed.summary!.won,
-                ),
-                AuctionStandingItem(
-                  id: 'lost',
-                  label: 'Lost',
-                  count: feed.summary!.lost,
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: LuxeViewToggle(
+                    viewMode: _viewMode,
+                    onChanged: switchListingViewMode,
+                    gridLabel: context.tr(DiamondFlowL10n.grid),
+                    listLabel: context.tr(DiamondFlowL10n.list),
+                  ),
                 ),
               ],
-            )
-          else if (widget.outcomes.isNotEmpty)
-            _Chips(
-              labels: widget.outcomes,
-              selected: _outcome,
-              onSelected: (value) => setState(() => _outcome = value),
-            ),
-          _Chips(
-            labels: const [
-              'all',
-              'diamond',
-              'gemstone',
-              'meleeDiamond',
-              'jewellery',
-            ],
-            selected: _productType ?? 'all',
-            onSelected: (value) => setState(() {
-              _productType = value == 'all' ? null : value;
-            }),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s16,
-                0,
-                AppSpacing.s16,
-                AppSpacing.s8,
-              ),
-              child: ViewModeToggle(
-                isGrid: _grid,
-                onGrid: () => setState(() => _grid = true),
-                onList: () => setState(() => _grid = false),
-              ),
             ),
           ),
-          Expanded(child: _body(feed)),
+          ...luxeResultSlivers<AuctionListing>(
+            context: context,
+            initialLoading: feed.isLoading && feed.items.isEmpty,
+            error: feed.errorMessage,
+            items: feed.items,
+            isLoadingMore: feed.isLoadingMore,
+            viewMode: _viewMode,
+            idOf: (a) => a.id,
+            cardOf: (a, mode) =>
+                AuctionCard(auction: a, grid: mode == LuxeViewMode.grid),
+            entered: listingEntered,
+            loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
+            emptyView: LuxeStateView(
+              icon: Icons.gavel_rounded,
+              title: 'No auctions',
+              message: 'Nothing matches this filter yet.',
+              actionLabel: _productType != null || _outcome != 'all'
+                  ? context.tr(CatalogL10n.clearAll)
+                  : null,
+              onAction: () => setState(() {
+                _productType = null;
+                _outcome = 'all';
+              }),
+            ),
+            errorView: (message) => LuxeStateView(
+              icon: Icons.cloud_off_rounded,
+              tone: LuxeTone.error,
+              title: 'Auctions unavailable',
+              message: message,
+              actionLabel: context.tr(CatalogL10n.retry),
+              onAction: notifier.refresh,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _body(AuctionFeedState feed) {
-    if (feed.isLoading && feed.items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (feed.errorMessage != null && feed.items.isEmpty) {
-      return CatalogEmptyState(
-        title: 'Auctions unavailable',
-        message: feed.errorMessage!,
-        icon: Icons.cloud_off_outlined,
-        actionLabel: 'Retry',
-        onAction: () =>
-            ref.read(auctionFeedProvider(_query).notifier).refresh(),
+  Widget _header(AuctionFeedState feed) {
+    final summary = feed.summary;
+    if (widget.kind == AuctionFeedKind.activity && summary != null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(0, 8, 0, 6),
+        child: AuctionStandingStrip(
+          selectedId: _outcome,
+          onSelected: _setOutcome,
+          items: [
+            AuctionStandingItem(
+              id: 'all',
+              label: 'Participated',
+              count: summary.participated,
+            ),
+            AuctionStandingItem(
+              id: 'participating',
+              label: 'In progress',
+              count: summary.participating,
+            ),
+            AuctionStandingItem(id: 'won', label: 'Won', count: summary.won),
+            AuctionStandingItem(id: 'lost', label: 'Lost', count: summary.lost),
+          ],
+        ),
       );
     }
-    if (feed.items.isEmpty) {
-      return const CatalogEmptyState(
-        title: 'No auctions',
-        message: 'Nothing matches this filter yet.',
-        icon: Icons.gavel_outlined,
+    if (widget.outcomes.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(0, 8, 0, 6),
+        child: LuxeQuickChips<String>(
+          chips: [
+            for (final o in widget.outcomes)
+              LuxeQuickChip(value: o, label: _outcomeLabel(o)),
+          ],
+          isSelected: (o) => o == _outcome,
+          onTap: _setOutcome,
+        ),
       );
     }
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification.metrics.extentAfter < 400) {
-          ref.read(auctionFeedProvider(_query).notifier).loadMore();
-        }
-        return false;
-      },
-      child: _grid ? _gridView(feed) : _listView(feed),
-    );
-  }
-
-  Widget _listView(AuctionFeedState feed) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      itemCount: feed.items.length + (feed.isLoadingMore ? 1 : 0),
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.s12),
-      itemBuilder: (context, index) {
-        if (index >= feed.items.length) return const _MoreLoader();
-        return AuctionCard(auction: feed.items[index]);
-      },
-    );
-  }
-
-  Widget _gridView(AuctionFeedState feed) {
-    final extra = feed.isLoadingMore ? 1 : 0;
-    return GridView.builder(
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: AppSpacing.s12,
-        crossAxisSpacing: AppSpacing.s12,
-        childAspectRatio: 0.62,
-      ),
-      itemCount: feed.items.length + extra,
-      itemBuilder: (context, index) {
-        if (index >= feed.items.length) return const _MoreLoader();
-        return AuctionCard(auction: feed.items[index], grid: true);
-      },
-    );
-  }
-}
-
-class _MoreLoader extends StatelessWidget {
-  const _MoreLoader();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(AppSpacing.s16),
-      child: Center(child: CircularProgressIndicator()),
-    );
-  }
-}
-
-class _Chips extends StatelessWidget {
-  const _Chips({
-    required this.labels,
-    required this.selected,
-    required this.onSelected,
-  });
-
-  final List<String> labels;
-  final String selected;
-  final ValueChanged<String> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-        itemCount: labels.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final label = labels[index];
-          return ChoiceChip(
-            label: Text(label == 'all' ? 'All' : label),
-            selected: selected == label,
-            onSelected: (_) => onSelected(label),
-          );
-        },
-      ),
-    );
+    return const SizedBox(height: 4);
   }
 }

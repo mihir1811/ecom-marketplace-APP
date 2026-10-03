@@ -7,8 +7,9 @@ import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/widgets/luxe/luxe_button.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../payment/presentation/payment_flow.dart';
 import '../../application/auction_providers.dart';
@@ -56,6 +57,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
 
   @override
   Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
     final auction = widget.auction;
     final auth = ref.watch(
       authProvider.select(
@@ -82,132 +84,138 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
     final suggestions = _suggestions(auction);
     final ownBidId = _ownBidId(auction, auth.userId, myBidId);
 
-    return Material(
-      color: AppColors.surface(context),
+    Widget note(IconData icon, String text) => Row(
+      children: [
+        Icon(icon, size: 18, color: p.accent),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(text, style: LuxeType.label(p.inkMuted, size: 13.5)),
+        ),
+      ],
+    );
+
+    final Widget content;
+    if (owns) {
+      content = note(Icons.storefront_outlined, 'This is your auction.');
+    } else if (won) {
+      content = Row(
+        children: [
+          LuxeButton(
+            label: 'Decline win',
+            variant: LuxeButtonVariant.secondary,
+            onPressed: submitting ? null : _decline,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: LuxeButton(
+              label: 'Pay',
+              icon: Icons.lock_outline_rounded,
+              expand: true,
+              loading: submitting,
+              onPressed: submitting ? null : _pay,
+            ),
+          ),
+        ],
+      );
+    } else if (!auction.isLive) {
+      content = note(
+        auction.isUpcoming ? Icons.schedule_rounded : Icons.lock_clock_outlined,
+        auction.isUpcoming
+            ? 'Bidding opens when the auction starts.'
+            : 'This auction is closed.',
+      );
+    } else if (!auth.signedIn) {
+      content = LuxeButton(
+        label: 'Sign in to bid',
+        icon: Icons.login_rounded,
+        expand: true,
+        onPressed: () => context.push(AppRouteNames.login),
+      );
+    } else {
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              for (var i = 0; i < suggestions.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                Expanded(
+                  child: _SuggestionChip(
+                    amount: auctionBidAmount(suggestions[i].amount),
+                    label: suggestions[i].label,
+                    selected: _amount.text == suggestions[i].amount.toString(),
+                    onTap: submitting
+                        ? null
+                        : () {
+                            AppHaptics.selection();
+                            setState(() {
+                              _amount.text = suggestions[i].amount.toString();
+                            });
+                          },
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _amount,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onChanged: (_) => setState(() {}),
+                  style: LuxeType.figure(p.ink, size: 16),
+                  decoration: const InputDecoration(
+                    labelText: 'Your bid',
+                    prefixText: r'$ ',
+                    isDense: true,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              LuxeButton(
+                label: 'Place bid',
+                icon: Icons.gavel_rounded,
+                loading: submitting,
+                onPressed: submitting ? null : _bid,
+              ),
+            ],
+          ),
+          if (ownBidId != null)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: submitting ? null : () => _cancel(ownBidId),
+                style: TextButton.styleFrom(foregroundColor: p.caution),
+                icon: const Icon(Icons.undo_rounded, size: 16),
+                label: Text(
+                  'Cancel my bid',
+                  style: LuxeType.label(p.caution, size: 12.5),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: p.surface,
+        border: Border(top: BorderSide(color: p.hairline, width: 0.6)),
+      ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s16,
-            AppSpacing.s12,
-            AppSpacing.s16,
-            AppSpacing.s12,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: AnimatedSize(
+            duration: LuxeMotion.medium,
+            curve: LuxeMotion.settle,
+            alignment: Alignment.bottomCenter,
+            child: content,
           ),
-          child: owns
-              ? const Text('This is your auction.')
-              : won
-              ? Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: submitting ? null : _decline,
-                        child: const Text('Decline win'),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.s12),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: submitting ? null : _pay,
-                        child: const Text('Pay'),
-                      ),
-                    ),
-                  ],
-                )
-              : !auction.isLive
-              ? Text(
-                  auction.isUpcoming
-                      ? 'Bidding opens when the auction starts.'
-                      : 'This auction is closed.',
-                )
-              : !auth.signedIn
-              ? FilledButton(
-                  onPressed: () => context.push(AppRouteNames.login),
-                  child: const Text('Sign in to bid'),
-                )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextField(
-                      controller: _amount,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: const InputDecoration(
-                        labelText: 'Bid',
-                        prefixText: r'$',
-                        isDense: true,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s8),
-                    Row(
-                      children: [
-                        for (var i = 0; i < suggestions.length; i++) ...[
-                          if (i > 0) const SizedBox(width: AppSpacing.s8),
-                          Expanded(
-                            child: Material(
-                              color: AppColors.surface(context),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(
-                                  color: AppColors.border(context),
-                                ),
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: InkWell(
-                                onTap: submitting
-                                    ? null
-                                    : () => setState(() {
-                                        _amount.text = suggestions[i].amount
-                                            .toString();
-                                      }),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: 8,
-                                  ),
-                                  child: Text(
-                                    '${auctionBidAmount(suggestions[i].amount)}\n${suggestions[i].label}',
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.s8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: FilledButton(
-                            onPressed: submitting ? null : _bid,
-                            child: const Text('Place bid'),
-                          ),
-                        ),
-                        PopupMenuButton<String>(
-                          tooltip: 'More',
-                          enabled: !submitting,
-                          onSelected: (value) {
-                            if (value == 'cancel' && ownBidId != null) {
-                              _cancel(ownBidId);
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              value: 'cancel',
-                              enabled: ownBidId != null,
-                              child: const Text('Cancel bid'),
-                            ),
-                          ],
-                          icon: const Icon(Icons.more_vert),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
         ),
       ),
     );
@@ -402,9 +410,65 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
   }
 
   void _toast(String message) {
-    AppHaptics.medium();
-    ScaffoldMessenger.maybeOf(context)
-      ?..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    showLuxeToast(context, message, tone: LuxeTone.info);
+  }
+}
+
+/// Quick-bid preset: amount over its rule ("+5%").
+class _SuggestionChip extends StatelessWidget {
+  const _SuggestionChip({
+    required this.amount,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String amount;
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '$amount $label',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: LuxeMotion.medium,
+          curve: LuxeMotion.settle,
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? p.ink : p.surfaceRaised,
+            borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+            border: Border.all(color: selected ? p.ink : p.hairline),
+          ),
+          child: Column(
+            children: [
+              Text(
+                amount,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: LuxeType.figure(
+                  selected ? p.canvas : p.ink,
+                  size: 13.5,
+                ).copyWith(fontWeight: FontWeight.w600),
+              ),
+              Text(
+                label,
+                style: LuxeType.label(
+                  selected ? p.canvas : p.inkMuted,
+                  size: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
