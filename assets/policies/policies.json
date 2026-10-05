@@ -3,9 +3,9 @@
     {
       "id": "terms",
       "title": "Terms & Conditions",
-      "subtitle": "B2B diamond marketplace use, KYC/AML, escrow, and liability",
+      "subtitle": "Marketplace use, orders, wallet, KYC/AML, escrow, and liability",
       "eyebrow": "GemWorld Marketplace",
-      "effectiveDate": "28 September 2026",
+      "effectiveDate": "5 October 2026",
       "intro": "These Terms and Conditions (\"Terms\") are a legally binding agreement between you (\"User,\" \"you,\" \"your,\" which includes both Buyers and Sellers as defined below) and GemWorld, a company operating under the laws of India (\"Company,\" \"we,\" \"us,\" \"our,\" \"Platform\"), governing your access to and use of the GemWorld mobile application, associated website, and related services (collectively, the \"Platform\").",
       "secondaryIntro": "By downloading, installing, registering on, accessing, or using the Platform in any manner, you unconditionally agree to be bound by these Terms, our Privacy Policy, our AML/KYC requirements, and any other policies referenced herein (together, the \"Agreement\"). If you do not agree, you must not access or use the Platform.",
       "sections": [
@@ -27,6 +27,10 @@
             "\"Buyer\" means a registered User who uses the Platform to purchase Diamonds.",
             "\"Seller\" means a registered User, including manufacturers, miners, laboratories, wholesalers, and traders, who lists Diamonds for sale on the Platform.",
             "\"Diamond(s)\" means natural diamonds and/or laboratory-grown/CVD (Chemical Vapour Deposition) or HPHT diamonds, whether loose or set, listed for sale on the Platform.",
+            "\"Product(s)\" means any item listed for sale on the Platform, including Diamonds, coloured gemstones, jewellery, watches, and bullion. Unless the context requires otherwise, every reference in these Terms to \"Diamond(s)\" applies equally to all Products.",
+            "\"Wallet\" means the GemWorld account balance described in Section 28.",
+            "\"Offer\" means a price proposal made by a Buyer to a Seller for a Product through the Platform's offer feature.",
+            "\"Gem AI\" means the Platform's AI-powered assistant and related automated search, recommendation, and analytics tools.",
             "\"Listing\" means a Seller's offer to sell a specific Diamond or parcel of Diamonds on the Platform, including all accompanying descriptions, images, certificates, and pricing.",
             "\"Certifying Body\" means an independent gemological grading laboratory (including but not limited to GIA, IGI, HRD, GCAL, or such other laboratory as we may recognize from time to time) that issues a Certificate for a Diamond.",
             "\"Certificate\" or \"Grading Report\" means the report issued by a Certifying Body describing a Diamond's characteristics (carat, cut, color, clarity, origin — natural or lab-grown — and other attributes).",
@@ -41,7 +45,7 @@
           "number": "3",
           "title": "Eligibility, Registration and Account Verification (KYC/AML)",
           "paragraphs": [
-            "Eligibility. You must be at least 18 years of age (or the age of majority in your jurisdiction, if higher) and have the legal capacity to enter into binding contracts to register on the Platform. The Platform is intended for use by businesses (manufacturers, wholesalers, traders, laboratories, and professional buyers) and is a business-to-business (B2B) marketplace unless expressly stated otherwise.",
+            "Eligibility. You must be at least 18 years of age (or the age of majority in your jurisdiction, if higher) and have the legal capacity to enter into binding contracts to register on the Platform. You may register with an Individual account (to buy for personal use) or a Business account (for manufacturers, wholesalers, traders, retailers, laboratories, and professional buyers). Only verified Business accounts may list Products for sale. Business accounts are subject to business verification and must provide accurate company, tax (including GSTIN, where applicable), and ownership details.",
             "KYC/AML Verification. Prior to activating trading privileges, every User must complete identity verification (\"KYC\") and, where applicable, business/entity verification, which may include government-issued identification, business registration documents, tax identification, beneficial ownership information, and bank/payment account verification. We reserve the right to engage Third-Party Providers to conduct KYC, sanctions screening (including against OFAC, UN, EU, and other applicable sanctions/watch lists), and anti-money-laundering (\"AML\") checks.",
             "Ongoing Screening. We may re-verify Users periodically or on a risk basis and may suspend an account pending verification without liability to you.",
             "Accuracy of Information. You represent that all information provided during registration and KYC is true, current, and complete, and you agree to promptly update it. Providing false, misleading, or incomplete information is a material breach of these Terms and may result in immediate suspension, forfeiture of pending Transactions, and reporting to relevant authorities.",
@@ -143,7 +147,8 @@
           "paragraphs": [
             "We may suspend or terminate your account or restrict access to the Platform, at our sole discretion and without liability, immediately and without notice, where we reasonably suspect: breach of these Terms; fraudulent, unlawful, or abusive conduct; a KYC/AML/sanctions concern; a chargeback or payment dispute; or where required by law, a regulator, or a Third-Party Provider.",
             "You may close your account at any time, subject to settlement of all pending Transactions, outstanding fees, and any open disputes.",
-            "Sections that by their nature should survive termination (including Sections 4, 6, 9, 12–20) survive termination of your account or these Terms."
+            "Account Deletion. You may request deletion of your account from the app settings or by emailing m.gemworld@gmail.com. Before deletion, pending Orders, refunds, disputes, and payouts must be settled, and any eligible Wallet balance will be handled as set out in Section 28. We may retain records required for tax, accounting, AML, fraud prevention, dispute, and legal purposes, as described in our Privacy Policy.",
+            "Sections that by their nature should survive termination (including Sections 4, 6, 9, 12–20, 28–29 as to outstanding balances and payouts, and 38) survive termination of your account or these Terms."
           ]
         },
         {
@@ -249,6 +254,144 @@
         },
         {
           "number": "24",
+          "title": "Product Categories, Pricing and Product Representations",
+          "paragraphs": [
+            "Categories. The Platform lists natural and laboratory-grown diamonds, coloured gemstones, jewellery, watches, and bullion. Category-specific rules in our Seller Policy and Product Listing Policy apply in addition to these Terms, including hallmarking requirements for gold jewellery and bullion under Bureau of Indian Standards (BIS) rules where applicable, and authenticity documentation for branded watches.",
+            "Images and 360° Views. Photographs, videos, and 360° views are supplied by Sellers to help you assess a Product. Colour, brilliance, and size may appear different depending on lighting, magnification, and your device's display. The Listing details and the Certificate prevail over any image.",
+            "Prices. Prices are set by Sellers and are shown in the currency displayed at checkout. Applicable taxes, shipping, insurance, and other charges are shown before you pay. Bullion and other precious-metal prices may change with market rates until an Order is placed and paid.",
+            "Pricing and Listing Errors. If a Product is listed at a price or with a description that is clearly erroneous (for example, due to a technical, typographical, or data-feed error), the Seller or the Company may cancel the affected Order, and any amount paid will be refunded in full. Exploiting such errors is prohibited under Section 9.",
+            "Availability. Products marked \"On Hold\" or \"On Memo\" are reserved and cannot be purchased. A Product's availability is not guaranteed until the Seller accepts your Order."
+          ]
+        },
+        {
+          "number": "25",
+          "title": "Orders, Seller Acceptance and Cancellation",
+          "paragraphs": [
+            "Placing an Order. When you check out, you make an offer to buy the selected Products and authorise collection of the amount shown. Payment may be taken at checkout, but a binding contract of sale is formed only when the Seller accepts the Order on the Platform.",
+            "Seller Acceptance or Rejection. A Seller may accept or reject an Order (in whole or in part), for example where a Product is no longer available or fails verification. If an Order or any item is rejected, cancelled, or not accepted within the time shown, the amount paid for the affected items will be refunded to the original payment method or to your Wallet, as indicated, in line with our Refund & Return Policy.",
+            "Multiple Sellers. An Order containing Products from more than one Seller creates a separate contract with each Seller, and each part may be accepted, shipped, returned, or refunded separately.",
+            "Buyer Cancellation. You may request cancellation of an Order before it is dispatched, subject to our Refund & Return Policy. Customised, made-to-order, and auction purchases may not be cancellable except as stated in that policy or required by law.",
+            "Order Tracking. Order status and shipment tracking shown on the Platform are based on information from Sellers and carriers and are provided for convenience; we do not guarantee their accuracy or timeliness."
+          ]
+        },
+        {
+          "number": "26",
+          "title": "Offers and Price Negotiation",
+          "paragraphs": [
+            "Where a Listing allows it, a Buyer may submit an Offer to the Seller. Offers must be genuine and made with the intention and ability to pay.",
+            "An Offer remains open until the Seller accepts or rejects it or it expires. Once an Offer is accepted, the Buyer must complete checkout at the accepted price within the period shown on the Platform; otherwise the accepted Offer may lapse and the Product may be sold to others.",
+            "Repeated non-payment of accepted Offers, Offers made to manipulate pricing, and using the offer or chat features to arrange a sale outside the Platform are prohibited and may lead to action under Section 9."
+          ]
+        },
+        {
+          "number": "27",
+          "title": "Auctions",
+          "paragraphs": [
+            "The Platform provides online auction functionality that Sellers may use to sell Products. Every bid is a binding commitment to buy the Product at the bid amount if you win. Winning bidders must complete payment within forty-eight (48) hours of the auction closing unless the auction page states otherwise.",
+            "Auctions are governed by our Auction Policy, which forms part of this Agreement. Shill bidding, fake bids, and collusion are prohibited, and we may cancel or suspend any auction in the circumstances described in that policy."
+          ]
+        },
+        {
+          "number": "28",
+          "title": "GemWorld Wallet",
+          "paragraphs": [
+            "Nature of the Wallet. The Wallet is a closed-loop account balance that can be used only to pay for purchases and fees on the Platform. It is not a bank account, deposit, or savings product, does not earn interest, and cannot be transferred to another User.",
+            "Credits. Your Wallet may be credited through top-ups made via our payment partners (such as Razorpay), refunds, referral commissions, and, for Sellers, eligible sale proceeds. Top-ups are confirmed only after the payment partner verifies the payment.",
+            "Using the Wallet. At checkout you may choose to pay all or part of an Order from your Wallet balance. Amounts paid from the Wallet for an Order that is later rejected, cancelled, or refunded are normally returned to the Wallet.",
+            "Withdrawals. Where enabled, eligible balances (such as Seller proceeds and referral commissions) may be withdrawn to your verified bank account, subject to KYC, minimum amounts, applicable fees and taxes, and the processing times shown in the app.",
+            "Errors and Holds. We may correct any amount credited to your Wallet in error, and may hold or freeze Wallet balances during a fraud, AML, chargeback, or dispute review, or where required by law, a regulator, or a payment partner.",
+            "Account Closure. On closure of your account, any eligible Wallet balance, after deducting amounts you owe, will be refunded to your verified bank account or original payment method, subject to applicable law. Wallet services are provided in compliance with applicable Reserve Bank of India requirements, through licensed payment partners where required."
+          ]
+        },
+        {
+          "number": "29",
+          "title": "Seller Payouts and Bank Accounts",
+          "paragraphs": [
+            "Sellers and other payees must register a bank account held in their own name or in the name of their registered business. We or our payment partners may verify the account before releasing any payout.",
+            "Payouts for a Transaction are released after the applicable release conditions are met (for example, confirmed delivery and expiry of the return or inspection window), net of applicable fees, commissions, refunds, chargebacks, and set-offs.",
+            "Where required by law, we may collect tax at source under the Goods and Services Tax laws and deduct tax at source under the Income-tax Act, 1961 from amounts payable to Sellers, and will report such amounts as required.",
+            "We are not responsible for delayed or misdirected payouts caused by incorrect or outdated bank details provided by you."
+          ]
+        },
+        {
+          "number": "30",
+          "title": "Promotions, Discounts and Promo Codes",
+          "paragraphs": [
+            "Sellers may create discounts and promo codes for their Products. The Seller is solely responsible for the terms, funding, and honouring of its promotions, and must not inflate a \"original\" or \"was\" price to make a discount appear larger.",
+            "Promo codes are valid only for the period, Products, number of uses, and other conditions stated. Unless stated otherwise, only one promo code may be applied per Order; promo codes have no cash value, are not transferable, and cannot be exchanged for Wallet balance.",
+            "We may withdraw or modify a promotion where it is offered in error or misused. Discounts obtained through fraud, multiple accounts, or other misuse may be reversed or recovered under Section 9."
+          ]
+        },
+        {
+          "number": "31",
+          "title": "Referral Program",
+          "paragraphs": [
+            "Users may invite others to join the Platform using their referral code or link. A referral relationship is created only when the referred User registers and the reference is accepted on the Platform.",
+            "Where offered, a referral commission is earned on eligible purchases made by referred Users, at the rates and on the conditions shown in the app. Commissions are credited to your Wallet and are reversed if the related Order is cancelled, rejected, refunded, or found to be fraudulent.",
+            "Self-referrals, fake or duplicate accounts, spam, and misleading promotion of the Platform are prohibited. We may change, suspend, or end the Referral Program at any time, without affecting commissions already validly earned. You are responsible for any taxes on commissions you receive."
+          ]
+        },
+        {
+          "number": "32",
+          "title": "Messaging, Inquiries, Reviews and Shared Links",
+          "paragraphs": [
+            "Messaging and Inquiries. The Platform allows Buyers and Sellers to communicate through chat and inquiries, including sending images. You must use these features lawfully and respectfully, only for genuine enquiries about Products and Transactions, and must not share contact or payment details to move a Transaction off the Platform. Messages may be stored and reviewed by us for safety, fraud prevention, support, and dispute resolution, as described in our Privacy Policy.",
+            "Reviews and Ratings. Reviews and ratings must reflect your genuine experience with a Product or Seller. Paid, incentivised (without clear disclosure), fake, or retaliatory reviews are prohibited. We may moderate, refuse, or remove reviews that breach these Terms or applicable law, and reviews are licensed to us under Section 12.",
+            "Shared Links and Wishlists. When you share a Product link, recipients can view the publicly available Listing information. Wishlists, comparisons, saved projects, and recently viewed lists are personal tools and do not reserve any Product."
+          ]
+        },
+        {
+          "number": "33",
+          "title": "Gem AI and Automated Tools",
+          "paragraphs": [
+            "Gem AI helps you search for and discover Products and answers general questions. Its responses are generated automatically and may be inaccurate, incomplete, or out of date. Gem AI output is not professional gemological, grading, valuation, investment, legal, or tax advice. Always verify information against the Listing and Certificate, which prevail over any AI output.",
+            "Do not submit sensitive personal, financial, or identity information to Gem AI. Your inputs may be processed by us and by third-party AI service providers to deliver and improve the feature, as described in our Privacy Policy.",
+            "You must not misuse Gem AI, including by attempting to manipulate it into revealing other Users' data or system information, bypassing its safeguards, or generating unlawful content.",
+            "Comparison tools, saved diamond projects, price statistics, charts, and Seller analytics are informational only. They are based on available Platform data, may not reflect the whole market, and must not be relied on as a valuation."
+          ]
+        },
+        {
+          "number": "34",
+          "title": "Seller API Keys and Data Sharing",
+          "paragraphs": [
+            "Sellers may generate API keys that let third parties access their inventory data or act on their Listings with the permissions the Seller selects (for example, viewing, holding, selling, adding, or updating Listings).",
+            "You are solely responsible for whom you give an API key to, the permissions you grant, and every action performed using your keys, which will be treated as actions taken by you. You must keep keys confidential and revoke them promptly if they are compromised or no longer needed.",
+            "API keys may be used only to access your own data and Listings, not to scrape, copy, or interfere with other Users' data. We may rate-limit, suspend, or revoke API keys, and may change or discontinue API access, at any time."
+          ]
+        },
+        {
+          "number": "35",
+          "title": "Communications and Notifications",
+          "paragraphs": [
+            "By registering, you consent to receive transactional communications by email, SMS, push notification, and in-app message, including one-time passwords, order, payment, shipment, refund, auction, offer, and account security updates. These are necessary to operate your account and cannot be switched off while your account is active.",
+            "With your consent, we may also send promotional communications. You can opt out of promotional messages at any time through app settings or the unsubscribe link provided. You are responsible for keeping your email address and phone number current."
+          ]
+        },
+        {
+          "number": "36",
+          "title": "Individual Buyers and Consumer Rights",
+          "paragraphs": [
+            "If you buy through an Individual account for personal use, you may have rights under the Consumer Protection Act, 2019 and the Consumer Protection (E-Commerce) Rules, 2020. Nothing in these Terms excludes or limits any right that cannot lawfully be excluded or limited, and any limitation in these Terms applies to you only to the extent permitted by those laws.",
+            "In line with those rules, Seller details (such as business name, address, and GSTIN, where applicable), the total price including all charges, and return, refund, warranty, delivery, and grievance information are made available before purchase and on your invoice. We do not knowingly permit Sellers to falsely represent themselves as consumers or to post fake reviews."
+          ]
+        },
+        {
+          "number": "37",
+          "title": "Policies Forming Part of These Terms",
+          "paragraphs": [
+            "The following policies, as published on the Platform and updated from time to time, form part of this Agreement:"
+          ],
+          "bullets": [
+            "Privacy Policy and Cookies Policy;",
+            "Refund & Return Policy and Shipping & Delivery Policy;",
+            "Seller Policy, Buyer Policy, and Product Listing Policy;",
+            "Auction Policy and Payment Policy;",
+            "Intellectual Property Policy and Contact & Dispute Policy."
+          ],
+          "closing": "If a policy conflicts with these Terms, these Terms prevail, except where the policy sets out more specific rules for its subject matter (for example, return windows or auction payment deadlines), in which case the specific policy applies to that subject."
+        },
+        {
+          "number": "38",
           "title": "General Provisions",
           "paragraphs": [
             "Entire Agreement. This Agreement (Terms, Privacy Policy, and any referenced policies) constitutes the entire agreement between you and the Company regarding the Platform and supersedes all prior agreements on the subject.",
@@ -257,29 +400,9 @@
             "Assignment. You may not assign or transfer your rights or obligations under these Terms without our prior written consent. We may assign these Terms in connection with a merger, acquisition, or sale of assets.",
             "Relationship of Parties. Nothing herein creates any partnership, joint venture, agency, or employment relationship between you and the Company.",
             "Notices. Notices to you may be given by email, in-app notification, or posting on the Platform. Notices to the Company must be sent to m.gemworld@gmail.com.",
-            "Grievance Officer. In accordance with applicable Indian law, grievances regarding the Platform may be addressed to our Grievance Officer at m.gemworld@gmail.com.",
+            "Grievance Officer. In accordance with the Information Technology Act, 2000, the rules made under it, and the Consumer Protection (E-Commerce) Rules, 2020, grievances regarding the Platform, any Product, or any Seller may be addressed to our Grievance Officer at m.gemworld@gmail.com. We will acknowledge each grievance within forty-eight (48) hours and endeavour to resolve it within one (1) month of receipt.",
             "Language. These Terms are drafted in English. Any translation is provided for convenience only, and the English version shall prevail in case of conflict.",
             "Contact. Questions about these Terms may be directed to m.gemworld@gmail.com or through the Help Center."
-          ]
-        },
-        {
-          "number": "Appendix A",
-          "title": "Open Items and Recommended Next Steps",
-          "paragraphs": [
-            "The following open items are flagged for review by you and your legal counsel before launch. They are points that experience with marketplace platforms suggests are commonly missed, and they sit outside the numbered Sections above:"
-          ],
-          "bullets": [
-            "Confirm whether any Buyers could be classified as \"consumers\" rather than businesses in any target market — this changes which liability exclusions and cancellation/refund rights are enforceable (many countries mandate consumer rights that cannot be waived).",
-            "Confirm licensing requirements for holding or moving funds in each country you operate in (money transmitter, payment institution, or escrow licences) — operating without one is a criminal, not merely a contractual, risk.",
-            "Decide and document your Refund, Cancellation and Returns Policy — it is only referenced generally in Section 16 and needs concrete timelines (for example, inspection-window length and return-shipping cost allocation).",
-            "Confirm the standalone Privacy Policy addresses GDPR (if you have EU/UK users), India's DPDP Act, and other applicable data-protection regimes, as it is referenced throughout these Terms.",
-            "Draft a Community/Trust & Safety Policy covering fake-review handling, Seller rating manipulation, and counterfeit-certificate reporting.",
-            "Decide the anti-circumvention policy in detail (Section 9) — many marketplaces define a specific \"no off-platform deals for N months after introduction\" rule with liquidated damages.",
-            "Confirm insurance coverage: whether the Company needs its own contingent cargo/marine insurance, professional indemnity (E&O) insurance, and cyber-liability insurance, given the liability caps in Section 14.",
-            "Age and eligibility: if you ever allow individual (non-business) consumer Buyers, add jewellery-specific consumer protections (for example, cooling-off periods in some countries).",
-            "Confirm Google Play policy compliance separately — the Play Store has its own Payments Policy, Financial Services requirements, and User Data policy that may restrict how escrow and payment facilitation are described in-app, independently of these Terms.",
-            "Set up a formal incident-response and breach-notification procedure (many jurisdictions impose statutory notification deadlines after a data breach, separate from anything in these Terms).",
-            "Consider a separate, shorter Seller Agreement with commercial terms (fees, exclusivity, minimum listing standards) rather than folding everything into consumer-facing Terms."
           ]
         }
       ]
