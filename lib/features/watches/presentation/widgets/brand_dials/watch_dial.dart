@@ -1523,8 +1523,8 @@ class _HandsPainter extends CustomPainter {
     final hrs = now.hour % 12 + mins / 60;
     final ha = hrs / 12 * _tau, ma = mins / 60 * _tau, sa = secs / 60 * _tau;
 
-    // Running seconds on chronograph sub-dials; central hand is the
-    // chronograph, resting at 12.
+    // Chronograph registers: running seconds live on one sub-dial; the
+    // other counters rest at 12 until a timing session starts.
     switch (style) {
       case WatchDialStyle.speedmaster:
         _subHand(canvas, Offset(-r * 0.38, 0), r * 0.16, sa, Colors.white);
@@ -1592,28 +1592,17 @@ class _HandsPainter extends CustomPainter {
       WatchDialStyle.monaco => _red,
       _ => _whiteGold,
     };
-    final chrono =
-        style == WatchDialStyle.speedmaster ||
-        style == WatchDialStyle.navitimer ||
-        style == WatchDialStyle.monaco ||
-        style == WatchDialStyle.bigBang;
-    final centralSeconds = chrono ? 0.0 : sa;
+    // Central seconds always track wall-clock time — including chronograph
+    // faces (Omega, Hublot, TAG Heuer, Breitling) that previously parked
+    // the central hand at 12.
     final p = Paint()
       ..color = secondsColor
       ..strokeWidth = r * 0.016
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(
-      _at(centralSeconds + math.pi, r * 0.16),
-      _at(centralSeconds, r * 0.74),
-      p,
-    );
+    canvas.drawLine(_at(sa + math.pi, r * 0.16), _at(sa, r * 0.74), p);
     if (style == WatchDialStyle.submariner) {
-      canvas.drawCircle(_at(centralSeconds, r * 0.56), r * 0.035, p);
-      canvas.drawCircle(
-        _at(centralSeconds, r * 0.56),
-        r * 0.024,
-        Paint()..color = _lume,
-      );
+      canvas.drawCircle(_at(sa, r * 0.56), r * 0.035, p);
+      canvas.drawCircle(_at(sa, r * 0.56), r * 0.024, Paint()..color = _lume);
     }
     canvas.drawCircle(Offset.zero, r * 0.035, Paint()..color = secondsColor);
     canvas.drawCircle(
