@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/l10n/app_localizations.dart';
-
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/result.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/widgets/luxe/luxe_button.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../application/cart_provider.dart';
 import 'cart_section_card.dart';
 
@@ -22,6 +21,7 @@ class CartPromoSection extends ConsumerStatefulWidget {
 class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
   final _promoController = TextEditingController();
   bool _hasText = false;
+  bool _expanded = false;
 
   @override
   void initState() {
@@ -47,16 +47,16 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
         .read(cartProvider.notifier)
         .applyPromo(_promoController.text);
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     switch (result) {
       case Success():
-        AppHaptics.success();
-        messenger.showSnackBar(
-          SnackBar(content: Text(context.tr(AccountCommerceL10n.promoApplied))),
+        FocusScope.of(context).unfocus();
+        showLuxeToast(
+          context,
+          context.tr(AccountCommerceL10n.promoApplied),
+          tone: LuxeTone.success,
         );
       case ResultFailure(:final failure):
-        AppHaptics.error();
-        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+        showLuxeToast(context, failure.message, tone: LuxeTone.error);
     }
   }
 
@@ -64,10 +64,7 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
     final result = await ref.read(cartProvider.notifier).removePromo(code);
     if (!mounted) return;
     if (result case ResultFailure(:final failure)) {
-      AppHaptics.error();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      showLuxeToast(context, failure.message, tone: LuxeTone.error);
     } else {
       AppHaptics.medium();
       _promoController.clear();
@@ -76,90 +73,116 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
 
   @override
   Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
     final promo = ref.watch(cartPromoProvider);
     final mutating = ref.watch(cartIsMutatingProvider);
     final canApply = _hasText && !mutating && !promo.applied;
 
-    return CartSectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.local_offer_outlined,
-                size: 20,
-                color: AppColors.bronze,
+    if (promo.applied) {
+      return CartSectionCard(
+        padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: p.positive.withValues(alpha: 0.12),
               ),
-              const SizedBox(width: AppSpacing.s8),
-              Text(
-                context.tr(AccountCommerceL10n.promoCode),
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.s12),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _promoController,
-                  enabled: !mutating && !promo.applied,
-                  decoration: InputDecoration(
-                    hintText: context.tr(AccountCommerceL10n.enterCode),
-                    isDense: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    ),
-                  ),
-                  onSubmitted: (_) {
-                    if (canApply) _apply();
-                  },
-                ),
-              ),
-              const SizedBox(width: AppSpacing.s8),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: canApply || promo.applied
-                      ? AppColors.selectedFill(context)
-                      : AppColors.surface(context),
-                  foregroundColor: canApply || promo.applied
-                      ? AppColors.onSelected(context)
-                      : AppColors.textSecondary(context),
-                  disabledBackgroundColor: AppColors.surface(context),
-                  disabledForegroundColor: AppColors.textSecondary(context),
-                  side: BorderSide(
-                    color: canApply || promo.applied
-                        ? Colors.transparent
-                        : AppColors.border(context),
-                  ),
-                ),
-                onPressed: mutating
-                    ? null
-                    : promo.applied && promo.code != null
-                    ? () => _remove(promo.code!)
-                    : (canApply ? _apply : null),
-                child: Text(
-                  promo.applied
-                      ? context.tr(AccountCommerceL10n.remove)
-                      : 'Apply',
-                ),
-              ),
-            ],
-          ),
-          if (promo.applied)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.s8),
+              child: Icon(Icons.local_offer_rounded, size: 16, color: p.positive),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
               child: Text(
-                'Code ${promo.code} applied',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.bronze,
-                  fontWeight: FontWeight.w600,
-                ),
+                context.tr(ExperienceL10n.cartPromoApplied, {
+                  'code': promo.code ?? '',
+                }),
+                style: LuxeType.label(p.ink, size: 14),
               ),
             ),
+            TextButton(
+              onPressed: mutating || promo.code == null
+                  ? null
+                  : () => _remove(promo.code!),
+              style: TextButton.styleFrom(foregroundColor: p.caution),
+              child: Text(context.tr(AccountCommerceL10n.remove)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return CartSectionCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: () {
+              AppHaptics.selection();
+              setState(() => _expanded = !_expanded);
+            },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+              child: Row(
+                children: [
+                  Icon(Icons.local_offer_outlined, size: 18, color: p.accent),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      context.tr(ExperienceL10n.cartHavePromo),
+                      style: LuxeType.label(p.ink, size: 14),
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _expanded ? 0.5 : 0,
+                    duration: LuxeMotion.medium,
+                    curve: LuxeMotion.settle,
+                    child: Icon(Icons.expand_more_rounded, color: p.inkMuted),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          AnimatedSize(
+            duration: LuxeMotion.medium,
+            curve: LuxeMotion.settle,
+            alignment: Alignment.topCenter,
+            child: !_expanded
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _promoController,
+                            enabled: !mutating,
+                            textCapitalization: TextCapitalization.characters,
+                            textInputAction: TextInputAction.done,
+                            decoration: InputDecoration(
+                              hintText: context.tr(
+                                AccountCommerceL10n.enterCode,
+                              ),
+                              isDense: true,
+                            ),
+                            onSubmitted: (_) {
+                              if (canApply) _apply();
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        LuxeButton(
+                          label: context.tr(ExperienceL10n.cartApply),
+                          height: 46,
+                          loading: mutating && _hasText,
+                          onPressed: canApply ? _apply : null,
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
         ],
       ),
     );

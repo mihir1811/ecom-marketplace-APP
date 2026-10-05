@@ -1,8 +1,11 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/router/route_names.dart';
 import '../../application/ai_chat_back_navigation.dart';
@@ -11,7 +14,8 @@ import '../../application/ai_chat_visibility.dart';
 import 'gem_ai_chat_panel.dart';
 import 'gem_ai_fab.dart';
 
-/// App-wide Gem AI layer: fixed FAB + animated slide-up chat panel.
+/// App-wide Gem AI layer: edge-docking orb + chat panel that blooms out of
+/// the orb's position.
 class GemAiOverlay extends ConsumerStatefulWidget {
   const GemAiOverlay({super.key});
 
@@ -23,10 +27,11 @@ class _GemAiOverlayState extends ConsumerState<GemAiOverlay>
     with SingleTickerProviderStateMixin {
   late final AnimationController _anim;
   late final Animation<double> _fade;
-  late final Animation<Offset> _slide;
   late final Animation<double> _scale;
   bool _visible = false;
-  Offset? _fabOffset;
+  // Dock position survives route changes: edge side + vertical fraction.
+  bool _dockRight = true;
+  double _dockFraction = 1;
 
   @override
   void initState() {
@@ -34,26 +39,18 @@ class _GemAiOverlayState extends ConsumerState<GemAiOverlay>
     appRouter.routerDelegate.addListener(_onRoute);
     _anim = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 520),
-      reverseDuration: const Duration(milliseconds: 380),
+      duration: const Duration(milliseconds: 620),
+      reverseDuration: const Duration(milliseconds: 320),
     );
     _fade = CurvedAnimation(
       parent: _anim,
-      curve: Curves.easeOutCubic,
+      curve: const Interval(0, 0.6, curve: Curves.easeOut),
       reverseCurve: Curves.easeInCubic,
     );
-    _slide = Tween<Offset>(begin: const Offset(0.06, 0.14), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _anim,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
-          ),
-        );
-    _scale = Tween<double>(begin: 0.94, end: 1).animate(
+    _scale = Tween<double>(begin: 0.12, end: 1).animate(
       CurvedAnimation(
         parent: _anim,
-        curve: Curves.easeOutCubic,
+        curve: const Cubic(0.16, 1, 0.3, 1),
         reverseCurve: Curves.easeInCubic,
       ),
     );
@@ -161,6 +158,20 @@ class _GemAiOverlayState extends ConsumerState<GemAiOverlay>
       return const SizedBox.shrink();
     }
 
+    final media = MediaQuery.of(context);
+    final geo = GemAiDockGeometry(
+      media.size,
+      GemAiDockGeometry.insetsOf(media),
+    );
+    final orb =
+        geo.rest(right: _dockRight, fraction: _dockFraction) +
+        const Offset(GemAiDockGeometry.size / 2, GemAiDockGeometry.size / 2);
+    // The panel scales out of (and back into) the orb.
+    final origin = Alignment(
+      (orb.dx / media.size.width) * 2 - 1,
+      (orb.dy / media.size.height) * 2 - 1,
+    );
+
     return SizedBox.expand(
       child: Stack(
         clipBehavior: Clip.none,
@@ -172,8 +183,11 @@ class _GemAiOverlayState extends ConsumerState<GemAiOverlay>
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: notifier.close,
-                  child: ColoredBox(
-                    color: Colors.black.withValues(alpha: 0.32),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                    child: ColoredBox(
+                      color: Colors.black.withValues(alpha: 0.38),
+                    ),
                   ),
                 ),
               ),
@@ -181,36 +195,28 @@ class _GemAiOverlayState extends ConsumerState<GemAiOverlay>
             Positioned.fill(
               child: FadeTransition(
                 opacity: _fade,
-                child: SlideTransition(
-                  position: _slide,
-                  child: ScaleTransition(
-                    scale: _scale,
-                    alignment: Alignment.bottomRight,
-                    child: const _GemAiPanelHost(),
-                  ),
+                child: ScaleTransition(
+                  scale: _scale,
+                  alignment: origin,
+                  child: _GemAiPanelHost(alignRight: _dockRight),
                 ),
               ),
             ),
           ],
-          GemAiDraggableFabHost(
-            isOpen: ui.isOpen,
-            offset: _fabOffset,
-            onOffsetChanged: (next) => setState(() => _fabOffset = next),
-            onDragDelta: (delta) {
-              final media = MediaQuery.of(context);
-              final padding = GemAiDraggableFabHost.barrierInsets(media);
-              final current =
-                  _fabOffset ??
-                  GemAiDraggableFabHost.defaultOffset(media.size, padding);
-              setState(() {
-                _fabOffset = GemAiDraggableFabHost.clampToScreen(
-                  current + delta,
-                  media.size,
-                  padding,
-                );
-              });
-            },
-            onPressed: () => _onFabPressed(isOpen: ui.isOpen),
+          Positioned.fill(
+            child: GemAiDock(
+              hidden: ui.isOpen,
+              right: _dockRight,
+              fraction: _dockFraction,
+              semanticLabel: ui.isOpen
+                  ? context.tr(RemainingL10n.closeGemAi)
+                  : context.tr(RemainingL10n.openGemAi),
+              onPressed: () => _onFabPressed(isOpen: ui.isOpen),
+              onDocked: (right, fraction) => setState(() {
+                _dockRight = right;
+                _dockFraction = fraction;
+              }),
+            ),
           ),
         ],
       ),
@@ -219,7 +225,9 @@ class _GemAiOverlayState extends ConsumerState<GemAiOverlay>
 }
 
 class _GemAiPanelHost extends ConsumerWidget {
-  const _GemAiPanelHost();
+  const _GemAiPanelHost({required this.alignRight});
+
+  final bool alignRight;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -236,6 +244,7 @@ class _GemAiPanelHost extends ConsumerWidget {
             return PopScope(
               canPop: false,
               child: GemAiChatPanel(
+                alignRight: alignRight,
                 onClose: () => ref.read(aiChatUiProvider.notifier).close(),
               ),
             );

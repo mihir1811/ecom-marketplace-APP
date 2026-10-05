@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/l10n/app_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/result.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
+import '../../../../core/widgets/luxe/luxe_quantity_stepper.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../../product_detail/application/catalog_product_detail_loader.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/cart_provider.dart';
 import '../../domain/models/cart_item.dart';
 
+/// Cart line: image, title, seller, price, quantity and remove.
+/// Tapping the card opens the product detail.
 class CartItemCard extends ConsumerStatefulWidget {
   const CartItemCard({required this.item, super.key});
 
@@ -28,6 +28,7 @@ class CartItemCard extends ConsumerStatefulWidget {
 
 class _CartItemCardState extends ConsumerState<CartItemCard> {
   bool _opening = false;
+  bool _removing = false;
 
   Future<void> _openProduct() async {
     if (_opening) return;
@@ -48,92 +49,74 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
         openProductDetail(context, detail);
         return;
       }
-      AppHaptics.error();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.tr(AccountCommerceL10n.productOpenFailed)),
-          duration: const Duration(seconds: 2),
-        ),
+      showLuxeToast(
+        context,
+        context.tr(AccountCommerceL10n.productOpenFailed),
+        tone: LuxeTone.error,
       );
     } finally {
       if (mounted) setState(() => _opening = false);
     }
   }
 
+  Future<void> _remove() async {
+    setState(() => _removing = true);
+    final result = await ref
+        .read(cartProvider.notifier)
+        .removeItem(widget.item.cartId);
+    if (!mounted) return;
+    setState(() => _removing = false);
+    if (result case ResultFailure(:final failure)) {
+      showLuxeToast(context, failure.message, tone: LuxeTone.error);
+    } else {
+      AppHaptics.medium();
+    }
+  }
+
+  Future<void> _setQuantity(int next) async {
+    final result = await ref
+        .read(cartProvider.notifier)
+        .updateQuantity(cartId: widget.item.cartId, quantity: next);
+    if (!mounted) return;
+    if (result case ResultFailure(:final failure)) {
+      showLuxeToast(context, failure.message, tone: LuxeTone.error);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
     final item = widget.item;
     final mutating = ref.watch(cartIsMutatingProvider);
     final available = item.isAvailable;
-    final muted = AppColors.textMuted(context);
+    final busy = mutating || _opening || _removing;
+    final unavailableLabel = item.availabilityLabel ?? 'Unavailable';
 
-    return Opacity(
-      opacity: available ? 1 : 0.72,
+    return AnimatedOpacity(
+      duration: LuxeMotion.fast,
+      opacity: _removing ? 0.45 : 1,
       child: Material(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r16),
+        color: p.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(LuxeSpace.radius),
+          side: BorderSide(
+            color: available ? p.hairline : p.caution.withValues(alpha: 0.4),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: _opening ? null : _openProduct,
-          borderRadius: BorderRadius.circular(AppSpacing.r16),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppSpacing.r16),
-              border: Border.all(
-                color: available
-                    ? AppColors.border(context)
-                    : AppColors.error.withValues(alpha: 0.35),
-              ),
-            ),
-            padding: const EdgeInsets.all(AppSpacing.s12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    _Thumb(item: item),
-                    if (!available)
-                      Positioned.fill(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: AppColors.charcoal.withValues(alpha: 0.45),
-                            borderRadius: BorderRadius.circular(AppSpacing.r12),
-                          ),
-                          child: Center(
-                            child: Text(
-                              item.availabilityLabel ?? 'Unavailable',
-                              textAlign: TextAlign.center,
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.warmWhite,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (_opening)
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: AppColors.charcoal.withValues(alpha: 0.35),
-                          borderRadius: BorderRadius.circular(AppSpacing.r12),
-                        ),
-                        child: const Center(
-                          child: SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.warmWhite,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                _Thumb(
+                  item: item,
+                  opening: _opening,
+                  dimmed: !available,
                 ),
-                const SizedBox(width: AppSpacing.s12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,121 +125,138 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Text(
-                              item.title,
-                              style: AppTypography.label.copyWith(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                                color: available
-                                    ? AppColors.textPrimary(context)
-                                    : muted,
-                                decoration: available
-                                    ? null
-                                    : TextDecoration.lineThrough,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                item.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: LuxeType.display(
+                                  19,
+                                  available ? p.ink : p.inkMuted,
+                                ).copyWith(
+                                  height: 1.1,
+                                  decoration: available
+                                      ? null
+                                      : TextDecoration.lineThrough,
+                                ),
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          IconButton(
-                            tooltip: context.tr(AccountCommerceL10n.remove),
-                            onPressed: mutating || _opening
-                                ? null
-                                : () async {
-                                    final result = await ref
-                                        .read(cartProvider.notifier)
-                                        .removeItem(item.cartId);
-                                    if (!context.mounted) return;
-                                    if (result case ResultFailure(
-                                      :final failure,
-                                    )) {
-                                      AppHaptics.error();
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(failure.message),
-                                        ),
-                                      );
-                                    } else {
-                                      AppHaptics.medium();
-                                    }
-                                  },
-                            icon: const Icon(Icons.delete_outline, size: 20),
-                            color: AppColors.textMuted(context),
-                            visualDensity: VisualDensity.compact,
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 34,
+                            height: 34,
+                            child: _removing
+                                ? Padding(
+                                    padding: const EdgeInsets.all(9),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.6,
+                                      color: p.inkMuted,
+                                    ),
+                                  )
+                                : IconButton(
+                                    tooltip: context.tr(
+                                      AccountCommerceL10n.remove,
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                    onPressed: busy ? null : _remove,
+                                    icon: Icon(
+                                      Icons.close_rounded,
+                                      size: 18,
+                                      color: p.inkMuted,
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
-                      if (!available) ...[
-                        const SizedBox(height: AppSpacing.s4),
-                        Text(
-                          item.availabilityLabel ?? 'Unavailable',
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.error,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
                       if (item.seller != null && item.seller!.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.s4),
-                        Text(
-                          item.seller!,
-                          style: AppTypography.caption.copyWith(color: muted),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.storefront_outlined,
+                              size: 13,
+                              color: p.inkFaint,
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                item.seller!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: LuxeType.label(p.inkMuted, size: 12),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
-                      const SizedBox(height: AppSpacing.s8),
-                      Text(
-                        AppCurrency.format(
-                          item.displayPriceUsd.toStringAsFixed(2),
-                        ),
-                        style: GoogleFonts.manrope(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: available
-                              ? AppColors.textPrimary(context)
-                              : muted,
-                          decoration: available
-                              ? null
-                              : TextDecoration.lineThrough,
-                        ),
-                      ),
-                      if (item.quantityEditable) ...[
-                        const SizedBox(height: AppSpacing.s12),
-                        _CartQuantityStepper(
-                          quantity: item.quantity,
-                          enabled: available && !mutating && !_opening,
-                          onChanged: (next) async {
-                            final result = await ref
-                                .read(cartProvider.notifier)
-                                .updateQuantity(
-                                  cartId: item.cartId,
-                                  quantity: next,
-                                );
-                            if (!context.mounted) return;
-                            if (result case ResultFailure(:final failure)) {
-                              AppHaptics.error();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(failure.message)),
-                              );
-                            } else {
-                              AppHaptics.selection();
-                            }
-                          },
-                        ),
-                      ] else if (item.quantity > 1) ...[
-                        const SizedBox(height: AppSpacing.s4),
-                        Text(
-                          context.tr(AccountCommerceL10n.quantity, {
-                            'count': item.quantity,
-                          }),
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textSecondary(context),
+                      if (!available) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: ShapeDecoration(
+                            color: p.caution.withValues(alpha: 0.12),
+                            shape: const StadiumBorder(),
+                          ),
+                          child: Text(
+                            unavailableLabel,
+                            style: LuxeType.label(p.caution, size: 11.5),
                           ),
                         ),
                       ],
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                AppCurrency.format(
+                                  item.displayPriceUsd.toStringAsFixed(2),
+                                ),
+                                style: LuxeType.figure(
+                                  available ? p.ink : p.inkFaint,
+                                  size: 17,
+                                ).copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  decoration: available
+                                      ? null
+                                      : TextDecoration.lineThrough,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (item.quantityEditable)
+                            IgnorePointer(
+                              ignoring: !available || busy,
+                              child: AnimatedOpacity(
+                                duration: LuxeMotion.fast,
+                                opacity: !available || busy ? 0.5 : 1,
+                                child: Transform.scale(
+                                  scale: 0.86,
+                                  alignment: Alignment.centerRight,
+                                  child: LuxeQuantityStepper(
+                                    value: item.quantity,
+                                    onChanged: _setQuantity,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else if (item.quantity > 1)
+                            Text(
+                              context.tr(AccountCommerceL10n.quantity, {
+                                'count': item.quantity,
+                              }),
+                              style: LuxeType.label(p.inkMuted, size: 12),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -269,113 +269,67 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
   }
 }
 
-class _CartQuantityStepper extends StatelessWidget {
-  const _CartQuantityStepper({
-    required this.quantity,
-    required this.enabled,
-    required this.onChanged,
+class _Thumb extends StatelessWidget {
+  const _Thumb({
+    required this.item,
+    required this.opening,
+    required this.dimmed,
   });
 
-  final int quantity;
-  final bool enabled;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r32),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _QtyIconButton(
-            icon: Icons.remove,
-            onTap: enabled && quantity > 1
-                ? () => onChanged(quantity - 1)
-                : null,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-            child: Text(
-              '$quantity',
-              style: AppTypography.label.copyWith(
-                color: AppColors.textPrimary(context),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          _QtyIconButton(
-            icon: Icons.add,
-            onTap: enabled ? () => onChanged(quantity + 1) : null,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QtyIconButton extends StatelessWidget {
-  const _QtyIconButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.r32),
-      child: SizedBox(
-        width: 36,
-        height: 36,
-        child: Icon(
-          icon,
-          size: 16,
-          color: onTap == null
-              ? AppColors.textMuted(context)
-              : AppColors.textPrimary(context),
-        ),
-      ),
-    );
-  }
-}
-
-class _Thumb extends StatelessWidget {
-  const _Thumb({required this.item});
-
   final CartItem item;
+  final bool opening;
+  final bool dimmed;
+
+  static const double size = 92;
 
   @override
   Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    Widget fallback() => Center(
+      child: item.shape != null
+          ? renderShapeSvg(item.shape!, size: 40, color: p.accent)
+          : Icon(Icons.diamond_outlined, color: p.accent),
+    );
+
     return Container(
-      width: 72,
-      height: 72,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        color: AppColors.surface(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
+        color: p.surfaceRaised,
+        borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
       ),
       clipBehavior: Clip.antiAlias,
-      child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-          ? AppNetworkImage(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (item.imageUrl != null && item.imageUrl!.isNotEmpty)
+            AppNetworkImage(
               url: item.imageUrl!,
               fit: BoxFit.cover,
-              width: 72,
-              height: 72,
-              memCacheWidth: 144,
-              error: _fallback(),
+              width: size,
+              height: size,
+              memCacheWidth: 184,
+              error: fallback(),
             )
-          : _fallback(),
-    );
-  }
-
-  Widget _fallback() {
-    return Center(
-      child: item.shape != null
-          ? renderShapeSvg(item.shape!, size: 36, color: AppColors.bronze)
-          : const Icon(Icons.diamond_outlined, color: AppColors.bronze),
+          else
+            fallback(),
+          if (dimmed) ColoredBox(color: p.canvas.withValues(alpha: 0.5)),
+          if (opening)
+            ColoredBox(
+              color: Colors.black.withValues(alpha: 0.3),
+              child: const Center(
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

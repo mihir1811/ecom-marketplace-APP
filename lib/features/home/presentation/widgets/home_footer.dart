@@ -7,10 +7,12 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/language_menu_button.dart';
 import '../theme/home_tokens.dart';
+import 'home_gem_stage.dart';
 import 'home_section.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
-/// Closing colophon: wordmark, promise line, legal links and preferences.
+/// Closing colophon (wordmark, promise line, legal links, preferences)
+/// followed by the full-screen live gem stage as the last section.
 class HomeFooter extends ConsumerWidget {
   const HomeFooter({super.key});
 
@@ -30,15 +32,17 @@ class HomeFooter extends ConsumerWidget {
       child: Text(context.tr(key), style: HomeType.label(palette.inkMuted)),
     );
 
-    return Padding(
-      // Bottom room keeps the floating Gem AI button off the legal line.
-      padding: EdgeInsets.fromLTRB(gutter, HomeSpace.section + 12, gutter, 96),
+    final colophon = Padding(
+      padding: EdgeInsets.fromLTRB(
+        gutter,
+        HomeSpace.section + 12,
+        gutter,
+        HomeSpace.section,
+      ),
       child: ScrollReveal(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(height: 0.8, color: palette.hairline),
-            const SizedBox(height: 36),
             ShaderMask(
               blendMode: BlendMode.srcIn,
               shaderCallback: (rect) => LinearGradient(
@@ -107,6 +111,15 @@ class HomeFooter extends ConsumerWidget {
           ],
         ),
       ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        colophon,
+        // The live gem stage closes the page, full screen.
+        const HomeGemStage(),
+      ],
     );
   }
 }

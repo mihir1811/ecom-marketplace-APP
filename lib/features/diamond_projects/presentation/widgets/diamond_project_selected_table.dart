@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../core/l10n/app_localizations.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../domain/models/diamond_project_item.dart';
 
@@ -27,65 +27,86 @@ class DiamondProjectSelectedTable extends StatelessWidget {
     final listHeight = items.length > 8
         ? 360.0
         : (items.length * _rowHeight).clamp(88.0, 360.0);
-    final muted = AppTypography.caption.copyWith(
-      fontWeight: FontWeight.w700,
-      color: AppColors.textMuted(context),
-    );
+    final p = LuxePalette.of(context);
+    final muted = LuxeType.eyebrow(
+      p.inkMuted,
+    ).copyWith(fontSize: 9.5, letterSpacing: 1.4);
 
-    return DecoratedBox(
+    return Container(
       decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.border(context)),
+        color: p.surface,
+        borderRadius: BorderRadius.circular(LuxeSpace.radius),
+        border: Border.all(color: p.hairline),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.s16),
-            child: Text(
-              context.tr(CatalogL10n.selectedDiamonds),
-              style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary(context),
-              ),
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    context.tr(CatalogL10n.selectedDiamonds),
+                    style: LuxeType.display(21, p.ink),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: ShapeDecoration(
+                    color: p.accentSoft,
+                    shape: const StadiumBorder(),
+                  ),
+                  child: Text(
+                    '${items.length}',
+                    style: LuxeType.figure(p.accent, size: 12),
+                  ),
+                ),
+              ],
             ),
           ),
-          const Divider(height: 1),
-          Row(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width: _dataWidth,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.s16,
-                        vertical: AppSpacing.s8,
+          Divider(height: 1, color: p.hairline),
+          ColoredBox(
+            color: p.surfaceRaised.withValues(alpha: 0.5),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: _dataWidth,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s16,
+                          vertical: AppSpacing.s8,
+                        ),
+                        child: _HeaderCells(style: muted),
                       ),
-                      child: _HeaderCells(style: muted),
                     ),
                   ),
                 ),
-              ),
-              SizedBox(
-                width: _removeWidth,
-                height: _rowHeight,
-                child: Icon(
-                  Icons.close,
-                  size: 14,
-                  color: AppColors.textMuted(context).withValues(alpha: 0),
+                SizedBox(
+                  width: _removeWidth,
+                  height: _rowHeight,
+                  child: Icon(
+                    Icons.close,
+                    size: 14,
+                    color: p.inkMuted.withValues(alpha: 0),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1, color: p.hairline),
           SizedBox(
             height: listHeight,
             child: ListView.separated(
               itemCount: items.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
+              separatorBuilder: (_, _) => Divider(height: 1, color: p.hairline),
               itemBuilder: (context, index) {
                 final item = items[index];
                 return SizedBox(
@@ -109,11 +130,14 @@ class DiamondProjectSelectedTable extends StatelessWidget {
                         child: IconButton(
                           key: ValueKey('remove-${item.diamondId}'),
                           tooltip: context.tr(CatalogL10n.removeSelection),
-                          onPressed: () => onRemove(item.diamondId),
+                          onPressed: () {
+                            AppHaptics.light();
+                            onRemove(item.diamondId);
+                          },
                           icon: Icon(
-                            Icons.close,
-                            size: 16,
-                            color: AppColors.textMuted(context),
+                            Icons.remove_circle_outline_rounded,
+                            size: 18,
+                            color: p.caution,
                           ),
                           visualDensity: VisualDensity.compact,
                           padding: EdgeInsets.zero,
@@ -164,9 +188,8 @@ class _DataCells extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = AppTypography.caption.copyWith(
-      color: AppColors.textPrimary(context),
-    );
+    final p = LuxePalette.of(context);
+    final style = LuxeType.figure(p.ink, size: 12.5);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
       child: Row(

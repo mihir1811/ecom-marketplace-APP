@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/chart_value_tooltip.dart';
 import '../../domain/models/diamond_project_stats.dart';
+import 'diamond_project_panel.dart';
 
 /// Vertical histogram for price / $/ct / carat buckets.
 class DiamondProjectHistogramCard extends StatefulWidget {
@@ -41,73 +42,58 @@ class _DiamondProjectHistogramCardState
       0,
       (m, e) => e.count > m ? e.count : m,
     );
-    final barColor = AppColors.textPrimary(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    final p = LuxePalette.of(context);
+    final barColor = p.ink;
+    return DiamondProjectPanel(
+      title: widget.title,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.entries.isEmpty)
             Text(
-              widget.title,
-              style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary(context),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.s16),
-            if (widget.entries.isEmpty)
-              Text(
-                context.tr(CatalogL10n.projectNoData),
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textMuted(context),
-                ),
-              )
-            else
-              Builder(
-                builder: (context) {
-                  final slots = _HistogramSlots.of(context);
-                  return SizedBox(
-                    height: slots.chartHeight,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (var i = 0; i < widget.entries.length; i++)
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.s4,
-                              ),
-                              child: _Bar(
-                                entry: widget.entries[i],
-                                max: max == 0 ? 1 : max,
-                                slots: slots,
-                                barKey: ValueKey('histogram-bar-$i'),
-                                barColor: barColor,
-                                selected: _selectedIndex == i,
-                                showTooltip: _selectedIndex == i,
-                                onTap: () {
-                                  setState(() {
-                                    _selectedIndex = _selectedIndex == i
-                                        ? null
-                                        : i;
-                                  });
-                                },
-                              ),
+              context.tr(CatalogL10n.projectNoData),
+              style: LuxeType.label(p.inkFaint, size: 12.5),
+            )
+          else
+            Builder(
+              builder: (context) {
+                final slots = _HistogramSlots.of(context);
+                return SizedBox(
+                  height: slots.chartHeight,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (var i = 0; i < widget.entries.length; i++)
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.s4,
+                            ),
+                            child: _Bar(
+                              entry: widget.entries[i],
+                              max: max == 0 ? 1 : max,
+                              slots: slots,
+                              barKey: ValueKey('histogram-bar-$i'),
+                              barColor: barColor,
+                              selected: _selectedIndex == i,
+                              showTooltip: _selectedIndex == i,
+                              onTap: () {
+                                AppHaptics.selection();
+                                setState(() {
+                                  _selectedIndex = _selectedIndex == i
+                                      ? null
+                                      : i;
+                                });
+                              },
                             ),
                           ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-          ],
-        ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
       ),
     );
   }
@@ -162,17 +148,15 @@ class _Bar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final valueStyle = AppTypography.caption.copyWith(
-      fontSize: _HistogramSlots.valueFontSize,
-      height: _HistogramSlots.valueHeight,
-      fontWeight: FontWeight.w600,
-      color: selected ? AppColors.info : AppColors.textPrimary(context),
-    );
-    final labelStyle = AppTypography.caption.copyWith(
-      color: AppColors.textMuted(context),
-      fontSize: _HistogramSlots.labelFontSize,
-      height: _HistogramSlots.labelHeight,
-    );
+    final p = LuxePalette.of(context);
+    final valueStyle = LuxeType.figure(
+      selected ? p.accent : p.ink,
+      size: _HistogramSlots.valueFontSize,
+    ).copyWith(height: _HistogramSlots.valueHeight);
+    final labelStyle = LuxeType.label(
+      p.inkMuted,
+      size: _HistogramSlots.labelFontSize,
+    ).copyWith(height: _HistogramSlots.labelHeight);
     final fraction = (entry.count / max).clamp(0.0, 1.0);
 
     return GestureDetector(
@@ -216,13 +200,17 @@ class _Bar extends StatelessWidget {
                         child: DecoratedBox(
                           key: barKey,
                           decoration: BoxDecoration(
-                            color: selected
-                                ? barColor.withValues(alpha: 0.85)
-                                : barColor,
-                            borderRadius: BorderRadius.circular(AppSpacing.r4),
-                            border: selected
-                                ? Border.all(color: AppColors.info, width: 2)
-                                : null,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(7),
+                              bottom: Radius.circular(2),
+                            ),
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: selected
+                                  ? [p.accent, p.accent.withValues(alpha: 0.7)]
+                                  : [barColor, barColor.withValues(alpha: 0.7)],
+                            ),
                           ),
                         ),
                       ),

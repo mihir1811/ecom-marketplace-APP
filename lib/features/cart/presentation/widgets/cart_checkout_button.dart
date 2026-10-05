@@ -3,35 +3,37 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/l10n/app_localizations.dart';
-
 import '../../../../core/auth/account_access.dart';
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/navigator_keys.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/luxe/luxe_button.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../buyer/application/buyer_orders_provider.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
-import '../../application/fees_providers.dart';
-import '../../domain/models/fee_rule.dart';
 import '../../../payment/domain/models/payment_models.dart';
 import '../../../payment/presentation/payment_flow.dart';
 import '../../../payment/presentation/widgets/payment_success_dialog.dart';
 import '../../../wallet/application/wallet_provider.dart';
 import '../../../wallet/domain/models/wallet.dart';
 import '../../application/cart_provider.dart';
+import '../../application/fees_providers.dart';
+import '../../domain/models/cart_item.dart';
 import '../../domain/models/cart_order_estimate.dart';
+import '../../domain/models/fee_rule.dart';
+import 'cart_section_card.dart';
 import 'delivery_address_sheet.dart';
 
-/// Checkout CTA — create-order → Razorpay / wallet → verify.
-class CartCheckoutButton extends ConsumerWidget {
-  const CartCheckoutButton({super.key});
+/// Sticky checkout bar: payable total and the primary CTA —
+/// create-order → Razorpay / wallet → verify.
+class CartCheckoutBar extends ConsumerWidget {
+  const CartCheckoutBar({super.key});
 
   Future<void> _addAddress(BuildContext context, WidgetRef ref) async {
     // Never prefills — always a blank form for a new address.
@@ -42,10 +44,7 @@ class CartCheckoutButton extends ConsumerWidget {
         .saveAndSelectAddress(saved);
     if (!context.mounted) return;
     if (result case ResultFailure(:final failure)) {
-      AppHaptics.error();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      showLuxeToast(context, failure.message, tone: LuxeTone.error);
     } else {
       AppHaptics.medium();
     }
@@ -121,6 +120,288 @@ class CartCheckoutButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final m = _CheckoutModel.watch(ref);
+    final p = LuxePalette.of(context);
+    final checkout = m.checkout;
+    final estimate = m.estimate;
+    final busy = m.busy;
+
+    String label;
+    if (!m.hasAddress) {
+      label = context.tr(AccountCommerceL10n.addDeliveryAddress);
+    } else if (m.hasUnavailable) {
+      label = context.tr(AccountCommerceL10n.removeUnavailable);
+    } else if (checkout.phase == CheckoutPhase.creatingOrder) {
+      label = 'Creating order…';
+    } else if (checkout.phase == CheckoutPhase.awaitingPayment) {
+      label = 'Complete payment…';
+    } else if (checkout.phase == CheckoutPhase.verifying) {
+      label = m.useWallet ? 'Paying with wallet…' : 'Verifying payment…';
+    } else if (m.fullyCoveredByWallet) {
+      label = context.tr(AccountCommerceL10n.payWallet);
+    } else {
+      label = context.tr(AccountCommerceL10n.continueCheckout);
+    }
+
+    String? subtitle;
+    if (!m.hasAddress) {
+      subtitle = 'Required before payment';
+    } else if (m.hasUnavailable) {
+      subtitle = 'Unavailable items are excluded from the total';
+    } else if (estimate.hasLiveRate && m.useWallet && m.walletAppliedInr > 0) {
+      subtitle = m.fullyCoveredByWallet
+          ? 'Wallet ${AppCurrency.inr(m.walletAppliedInr)}'
+          : 'Wallet ${AppCurrency.inr(m.walletAppliedInr)} · '
+                'pay ${AppCurrency.inr(m.remainingInr)}';
+    } else if (estimate.hasLiveRate) {
+      subtitle =
+          '${AppCurrency.usd(estimate.totalUsd)} USD · '
+          '${estimate.liveRateLabel}';
+    }
+
+    final total = estimate.hasLiveRate
+        ? AppCurrency.inr(estimate.totalInr)
+        : AppCurrency.usd(estimate.totalUsd);
+    final blocked = !m.hasAddress || m.hasUnavailable;
+
+    void onPressed() {
+      if (!m.hasAddress) {
+        _addAddress(context, ref);
+      } else if (m.hasUnavailable) {
+        AppHaptics.warning();
+        showLuxeToast(
+          context,
+          'Remove unavailable items before checkout.',
+          tone: LuxeTone.error,
+        );
+      } else if (m.canCheckout) {
+        AppHaptics.medium();
+        _pay(
+          context,
+          ref,
+          payableInr: estimate.totalInr,
+          summary: _summary(
+            itemCount: m.items.where((e) => e.isAvailable).length,
+            estimate: estimate,
+            useWallet: m.useWallet,
+            fullyCoveredByWallet: m.fullyCoveredByWallet,
+            walletAppliedInr: m.walletAppliedInr,
+            remainingInr: m.remainingInr,
+          ),
+        );
+      } else {
+        AppHaptics.warning();
+        showLuxeToast(
+          context,
+          'Select a delivery address to continue.',
+          tone: LuxeTone.error,
+        );
+      }
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: p.surface,
+        border: Border(top: BorderSide(color: p.hairline)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: p.isDark ? 0.4 : 0.07),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr(ExperienceL10n.cartTotal).toUpperCase(),
+                        style: LuxeType.eyebrow(
+                          p.inkMuted,
+                        ).copyWith(fontSize: 10),
+                      ),
+                      const SizedBox(height: 2),
+                      AnimatedSwitcher(
+                        duration: LuxeMotion.medium,
+                        switchInCurve: LuxeMotion.settle,
+                        transitionBuilder: (c, a) => FadeTransition(
+                          opacity: a,
+                          child: SlideTransition(
+                            position: Tween(
+                              begin: const Offset(0, 0.3),
+                              end: Offset.zero,
+                            ).animate(a),
+                            child: c,
+                          ),
+                        ),
+                        layoutBuilder: (current, previous) => Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [...previous, ?current],
+                        ),
+                        child: FittedBox(
+                          key: ValueKey(total),
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            total,
+                            style: LuxeType.figure(
+                              p.ink,
+                              size: 24,
+                            ).copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.lock_outline_rounded,
+                        size: 13,
+                        color: p.positive,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        context.tr(ExperienceL10n.cartSecure),
+                        style: LuxeType.label(p.inkMuted, size: 11.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (subtitle != null && !busy) ...[
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: LuxeType.label(
+                  blocked ? p.caution : p.inkFaint,
+                  size: 11.5,
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            LuxeButton(
+              label: label,
+              expand: true,
+              loading: busy,
+              icon: !m.hasAddress
+                  ? Icons.add_location_alt_outlined
+                  : (m.hasUnavailable ? Icons.error_outline_rounded : null),
+              trailingIcon: blocked ? null : Icons.arrow_forward_rounded,
+              onPressed: busy ? null : onPressed,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Verification and wallet options that shape the payable total.
+class CartPaymentOptions extends ConsumerWidget {
+  const CartPaymentOptions({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final m = _CheckoutModel.watch(ref);
+    final fees = m.fees;
+    final verificationOffered = fees.offersGemworldVerification;
+    final verificationOn =
+        m.checkout.wantGemworldVerification && verificationOffered;
+
+    return CartSectionCard(
+      title: context.tr(ExperienceL10n.cartPaymentOptions),
+      icon: Icons.tune_rounded,
+      padding: const EdgeInsets.fromLTRB(18, 16, 10, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (verificationOffered)
+            _CheckoutToggleTile(
+              title: context.tr(AccountCommerceL10n.verificationFee),
+              subtitle: fees.gemworldVerificationPercent > 0
+                  ? 'Adds ${_percentLabel(fees.gemworldVerificationPercent)}% '
+                        'verification commission to the total'
+                  : 'Adds verification commission to the total',
+              value: verificationOn,
+              enabled: !m.busy,
+              icon: Icons.verified_outlined,
+              onChanged: (v) => ref
+                  .read(paymentCheckoutProvider.notifier)
+                  .setWantGemworldVerification(v),
+            ),
+          _WalletPayOption(
+            busy: m.busy,
+            walletAsync: m.walletAsync,
+            walletBalance: m.walletBalance,
+            payableInr: m.estimate.totalInr,
+            remainingInr: m.remainingInr,
+            walletAppliedInr: m.walletAppliedInr,
+            hasLiveRate: m.estimate.hasLiveRate,
+            useWallet: m.useWallet,
+            onChanged: (v) =>
+                ref.read(paymentCheckoutProvider.notifier).setUseWallet(v),
+            onRetryWallet: () => ref.read(walletProvider.notifier).refresh(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Checkout inputs and the derived payable estimate, shared by the bar and
+/// the payment options so both always agree.
+class _CheckoutModel {
+  const _CheckoutModel._({
+    required this.hasAddress,
+    required this.canCheckout,
+    required this.hasUnavailable,
+    required this.checkout,
+    required this.items,
+    required this.fees,
+    required this.walletAsync,
+    required this.walletBalance,
+    required this.busy,
+    required this.estimate,
+    required this.useWallet,
+    required this.walletAppliedInr,
+    required this.remainingInr,
+    required this.fullyCoveredByWallet,
+  });
+
+  final bool hasAddress;
+  final bool canCheckout;
+  final bool hasUnavailable;
+  final CheckoutState checkout;
+  final List<CartItem> items;
+  final FeeRulesCatalog fees;
+  final AsyncValue<Wallet> walletAsync;
+  final double walletBalance;
+  final bool busy;
+  final CartOrderEstimate estimate;
+  final bool useWallet;
+  final double walletAppliedInr;
+  final double remainingInr;
+  final bool fullyCoveredByWallet;
+
+  static _CheckoutModel watch(WidgetRef ref) {
     final hasAddress = ref.watch(cartHasAddressProvider);
     final canCheckout = ref.watch(cartCanCheckoutProvider);
     final hasUnavailable = ref.watch(cartHasUnavailableItemsProvider);
@@ -133,7 +414,6 @@ class CartCheckoutButton extends ConsumerWidget {
         ref.watch(activeFeesProvider).valueOrNull ?? FeeRulesCatalog.empty;
     ref.watch(exchangeRateProvider);
     final walletAsync = ref.watch(walletProvider);
-    final busy = mutating || checkout.isBusy;
 
     final estimate = CartOrderEstimate.compute(
       merchandiseUsd: merchandiseUsd,
@@ -150,172 +430,29 @@ class CartCheckoutButton extends ConsumerWidget {
       ],
     );
 
-    final wallet = walletAsync.valueOrNull;
-    final walletBalance = wallet?.balance ?? 0;
+    final walletBalance = walletAsync.valueOrNull?.balance ?? 0;
     final useWallet = checkout.useWallet;
     final walletAppliedInr = useWallet
         ? math.min(walletBalance, estimate.totalInr)
         : 0.0;
     final remainingInr = math.max(0.0, estimate.totalInr - walletAppliedInr);
-    final fullyCoveredByWallet =
-        useWallet && estimate.hasLiveRate && remainingInr <= 0.009;
-    final verificationOffered = fees.offersGemworldVerification;
-    final verificationOn =
-        checkout.wantGemworldVerification && verificationOffered;
 
-    String label;
-    if (!hasAddress) {
-      label = context.tr(AccountCommerceL10n.addDeliveryAddress);
-    } else if (hasUnavailable) {
-      label = context.tr(AccountCommerceL10n.removeUnavailable);
-    } else if (checkout.phase == CheckoutPhase.creatingOrder) {
-      label = 'Creating order…';
-    } else if (checkout.phase == CheckoutPhase.awaitingPayment) {
-      label = 'Complete payment…';
-    } else if (checkout.phase == CheckoutPhase.verifying) {
-      label = useWallet ? 'Paying with wallet…' : 'Verifying payment…';
-    } else if (fullyCoveredByWallet) {
-      label = context.tr(AccountCommerceL10n.payWallet);
-    } else {
-      label = context.tr(AccountCommerceL10n.continueCheckout);
-    }
-
-    String? subtitle;
-    if (!hasAddress) {
-      subtitle = 'Required before payment';
-    } else if (hasUnavailable) {
-      subtitle = 'Unavailable items are excluded from the total';
-    } else if (!busy &&
-        estimate.hasLiveRate &&
-        useWallet &&
-        walletAppliedInr > 0) {
-      subtitle = fullyCoveredByWallet
-          ? 'Wallet ${AppCurrency.inr(walletAppliedInr)}'
-          : 'Wallet ${AppCurrency.inr(walletAppliedInr)} · pay ${AppCurrency.inr(remainingInr)}';
-    } else if (!busy && estimate.hasLiveRate) {
-      subtitle =
-          '${AppCurrency.usd(estimate.totalUsd)} USD · ${estimate.liveRateLabel}';
-    } else if (!busy) {
-      subtitle = AppCurrency.usd(estimate.totalUsd);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (verificationOffered) ...[
-          _CheckoutToggleTile(
-            title: context.tr(AccountCommerceL10n.verificationFee),
-            subtitle: fees.gemworldVerificationPercent > 0
-                ? 'Adds ${_percentLabel(fees.gemworldVerificationPercent)}% verification commission to the total'
-                : 'Adds verification commission to the total',
-            value: verificationOn,
-            enabled: !busy,
-            onChanged: (v) => ref
-                .read(paymentCheckoutProvider.notifier)
-                .setWantGemworldVerification(v),
-          ),
-          const SizedBox(height: AppSpacing.s4),
-        ],
-        _WalletPayOption(
-          busy: busy,
-          walletAsync: walletAsync,
-          walletBalance: walletBalance,
-          payableInr: estimate.totalInr,
-          remainingInr: remainingInr,
-          walletAppliedInr: walletAppliedInr,
-          hasLiveRate: estimate.hasLiveRate,
-          useWallet: checkout.useWallet,
-          onChanged: (v) =>
-              ref.read(paymentCheckoutProvider.notifier).setUseWallet(v),
-          onRetryWallet: () => ref.read(walletProvider.notifier).refresh(),
-        ),
-        const SizedBox(height: AppSpacing.s8),
-        SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.selectedFill(context),
-              foregroundColor: AppColors.onSelected(context),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppSpacing.r12),
-              ),
-            ),
-            onPressed: busy
-                ? null
-                : () {
-                    if (!hasAddress) {
-                      _addAddress(context, ref);
-                    } else if (hasUnavailable) {
-                      AppHaptics.warning();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Remove unavailable items before checkout.',
-                          ),
-                        ),
-                      );
-                    } else if (canCheckout) {
-                      _pay(
-                        context,
-                        ref,
-                        payableInr: estimate.totalInr,
-                        summary: _summary(
-                          itemCount: items.where((e) => e.isAvailable).length,
-                          estimate: estimate,
-                          useWallet: useWallet,
-                          fullyCoveredByWallet: fullyCoveredByWallet,
-                          walletAppliedInr: walletAppliedInr,
-                          remainingInr: remainingInr,
-                        ),
-                      );
-                    } else {
-                      AppHaptics.warning();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Select a delivery address to continue.',
-                          ),
-                        ),
-                      );
-                    }
-                  },
-            child: busy
-                ? SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.onSelected(context),
-                    ),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        label,
-                        style: AppTypography.label.copyWith(
-                          color: AppColors.onSelected(context),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (subtitle != null)
-                        Text(
-                          subtitle,
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.onSelected(
-                              context,
-                            ).withValues(alpha: 0.75),
-                            fontSize: 11,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                    ],
-                  ),
-          ),
-        ),
-      ],
+    return _CheckoutModel._(
+      hasAddress: hasAddress,
+      canCheckout: canCheckout,
+      hasUnavailable: hasUnavailable,
+      checkout: checkout,
+      items: items,
+      fees: fees,
+      walletAsync: walletAsync,
+      walletBalance: walletBalance,
+      busy: mutating || checkout.isBusy,
+      estimate: estimate,
+      useWallet: useWallet,
+      walletAppliedInr: walletAppliedInr,
+      remainingInr: remainingInr,
+      fullyCoveredByWallet:
+          useWallet && estimate.hasLiveRate && remainingInr <= 0.009,
     );
   }
 }
@@ -347,12 +484,9 @@ class _CheckoutToggleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleColor = enabled
-        ? AppColors.textPrimary(context)
-        : AppColors.textMuted(context);
-    final subtitleColor = enabled
-        ? AppColors.textSecondary(context)
-        : AppColors.textMuted(context);
+    final p = LuxePalette.of(context);
+    final titleColor = enabled ? p.ink : p.inkFaint;
+    final subtitleColor = enabled ? p.inkMuted : p.inkFaint;
 
     return Material(
       color: Colors.transparent,
@@ -360,24 +494,13 @@ class _CheckoutToggleTile extends StatelessWidget {
         contentPadding: EdgeInsets.zero,
         secondary: icon == null
             ? null
-            : Icon(
-                icon,
-                color: enabled
-                    ? AppColors.bronze
-                    : AppColors.textMuted(context),
-              ),
-        title: Text(
-          title,
-          style: AppTypography.label.copyWith(
-            fontWeight: FontWeight.w600,
-            color: titleColor,
-          ),
-        ),
+            : Icon(icon, color: enabled ? p.accent : p.inkFaint, size: 22),
+        title: Text(title, style: LuxeType.label(titleColor, size: 14)),
         subtitle: GestureDetector(
           onTap: onSubtitleTap,
           child: Text(
             subtitle,
-            style: AppTypography.caption.copyWith(color: subtitleColor),
+            style: LuxeType.body(subtitleColor, size: 12.5),
           ),
         ),
         value: value,
@@ -387,14 +510,11 @@ class _CheckoutToggleTile extends StatelessWidget {
                 onChanged(v);
               }
             : null,
-        activeThumbColor: AppColors.warmWhite,
-        activeTrackColor: AppColors.bronze,
-        inactiveThumbColor: enabled
-            ? (AppColors.isDark(context)
-                  ? AppColors.textSecondaryDark
-                  : AppColors.charcoalLight)
-            : AppColors.textMuted(context),
-        inactiveTrackColor: AppColors.border(context),
+        activeThumbColor: p.canvas,
+        activeTrackColor: p.accent,
+        inactiveThumbColor: enabled ? p.inkMuted : p.inkFaint,
+        inactiveTrackColor: p.surfaceRaised,
+        trackOutlineColor: WidgetStatePropertyAll(p.hairline),
       ),
     );
   }

@@ -4,13 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
 import '../../../wallet/application/wallet_provider.dart';
 import '../../application/cart_provider.dart';
@@ -76,28 +73,36 @@ class CartTotalsSection extends ConsumerWidget {
         totals.totalDiscountUsd > 0 &&
         unavailableCount == 0;
 
+    final p = LuxePalette.of(context);
+    String verificationLabel() {
+      final rules = fees.ofType(FeeType.gemworldVerification);
+      if (rules.isEmpty || rules.first.name.trim().isEmpty) {
+        return context.tr(AccountCommerceL10n.verificationFee);
+      }
+      return rules.first.name;
+    }
+
     return CartSectionCard(
+      title: context.tr(AccountCommerceL10n.orderSummary),
+      icon: Icons.receipt_long_outlined,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.tr(AccountCommerceL10n.orderSummary),
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.6,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s16),
           if (unavailableCount > 0) ...[
-            Text(
-              '$unavailableCount unavailable item${unavailableCount == 1 ? '' : 's'} excluded from total',
-              style: AppTypography.caption.copyWith(
-                color: AppColors.error,
-                fontWeight: FontWeight.w600,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: p.caution.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$unavailableCount unavailable item'
+                '${unavailableCount == 1 ? '' : 's'} excluded from total',
+                style: LuxeType.label(p.caution, size: 12),
               ),
             ),
-            const SizedBox(height: AppSpacing.s12),
+            const SizedBox(height: 12),
           ],
           if (showItemsSubtotal) ...[
             _usdOnlyRow(
@@ -110,17 +115,24 @@ class CartTotalsSection extends ConsumerWidget {
                 context,
                 context.tr(AccountCommerceL10n.automaticDiscount),
                 -totals.automaticDiscountUsd,
+                positive: true,
               ),
             if (totals.promoDiscountUsd > 0)
               _usdOnlyRow(
                 context,
                 context.tr(AccountCommerceL10n.promoDiscount),
                 -totals.promoDiscountUsd,
+                positive: true,
               ),
             if (totals.totalDiscountUsd > 0 &&
                 totals.promoDiscountUsd <= 0 &&
                 totals.automaticDiscountUsd <= 0)
-              _usdOnlyRow(context, 'Discount', -totals.totalDiscountUsd),
+              _usdOnlyRow(
+                context,
+                'Discount',
+                -totals.totalDiscountUsd,
+                positive: true,
+              ),
           ] else if (unavailableCount > 0 &&
               availableSubtotalUsd > merchandiseUsd) ...[
             _usdOnlyRow(
@@ -133,16 +145,7 @@ class CartTotalsSection extends ConsumerWidget {
           if (wantVerification && estimate.verificationUsd > 0)
             _inrRow(
               context,
-              fees.ofType(FeeType.gemworldVerification).isNotEmpty
-                  ? (fees
-                            .ofType(FeeType.gemworldVerification)
-                            .first
-                            .name
-                            .trim()
-                            .isEmpty
-                        ? context.tr(AccountCommerceL10n.verificationFee)
-                        : fees.ofType(FeeType.gemworldVerification).first.name)
-                  : context.tr(AccountCommerceL10n.verificationFee),
+              verificationLabel(),
               estimate.verificationInr,
               fallbackUsd: estimate.verificationUsd,
               hasRate: estimate.hasLiveRate,
@@ -151,91 +154,106 @@ class CartTotalsSection extends ConsumerWidget {
             for (final fee in estimate.feeLines)
               _inrRow(context, _feeLabel(fee), fee.amountInr, hasRate: true),
           ] else if (feesAsync.isLoading) ...[
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.s8),
-              child: Text(
-                'Loading fees…',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textMuted(context),
-                ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  LuxeSkeleton(width: 120, height: 12),
+                  LuxeSkeleton(width: 64, height: 12),
+                ],
               ),
             ),
           ] else if (merchandiseUsd > 0) ...[
             Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+              padding: const EdgeInsets.only(bottom: 10),
               child: Text(
                 'Fees appear once the live exchange rate loads.',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textMuted(context),
-                ),
+                style: LuxeType.label(p.inkFaint, size: 12),
               ),
             ),
           ],
           if (summary.appliedPromoCodes.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.s8),
+            const SizedBox(height: 4),
             Wrap(
               spacing: 6,
+              runSpacing: 6,
               children: [
                 for (final promo in summary.appliedPromoCodes)
-                  Chip(
-                    label: Text(promo.code),
-                    visualDensity: VisualDensity.compact,
-                    backgroundColor: AppColors.surface(context),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: ShapeDecoration(
+                      color: p.accentSoft,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Text(
+                      promo.code,
+                      style: LuxeType.label(p.accent, size: 11.5),
+                    ),
                   ),
               ],
             ),
+            const SizedBox(height: 4),
           ],
-          const Divider(height: 28),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Divider(height: 1, color: p.hairline),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Total',
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
-                ),
+                context.tr(ExperienceL10n.cartTotal),
+                style: LuxeType.display(24, p.ink),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    estimate.hasLiveRate
-                        ? _inrLabel(estimate.totalInr)
-                        : AppCurrency.usd(estimate.totalUsd),
-                    style: GoogleFonts.manrope(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.bronze,
-                    ),
-                  ),
-                  if (estimate.hasLiveRate) ...[
-                    const SizedBox(height: 2),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
                     Text(
-                      '${AppCurrency.usd(estimate.totalUsd)} · ${estimate.liveRateLabel}',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textMuted(context),
-                        fontWeight: FontWeight.w500,
-                      ),
+                      estimate.hasLiveRate
+                          ? _inrLabel(estimate.totalInr)
+                          : AppCurrency.usd(estimate.totalUsd),
+                      style: LuxeType.figure(
+                        p.ink,
+                        size: 22,
+                      ).copyWith(fontWeight: FontWeight.w600),
                     ),
-                  ],
-                  if (estimate.totalFromApi) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      'From cart API',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textMuted(context),
+                    if (estimate.hasLiveRate) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '${AppCurrency.usd(estimate.totalUsd)} · '
+                        '${estimate.liveRateLabel}',
+                        textAlign: TextAlign.end,
+                        style: LuxeType.label(p.inkFaint, size: 11.5),
                       ),
-                    ),
+                    ],
+                    if (estimate.totalFromApi) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'From cart API',
+                        style: LuxeType.label(p.inkFaint, size: 11),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ],
           ),
           if (useWallet && estimate.hasLiveRate && walletAppliedInr > 0) ...[
-            const SizedBox(height: AppSpacing.s12),
-            _inrRow(context, 'Wallet', -walletAppliedInr, hasRate: true),
+            const SizedBox(height: 12),
+            _inrRow(
+              context,
+              'Wallet',
+              -walletAppliedInr,
+              hasRate: true,
+              positive: true,
+            ),
             _inrRow(
               context,
               remainingInr <= 0.009
@@ -243,6 +261,7 @@ class CartTotalsSection extends ConsumerWidget {
                   : context.tr(AccountCommerceL10n.payRazorpay),
               remainingInr,
               hasRate: true,
+              strong: true,
             ),
           ],
         ],
@@ -258,18 +277,14 @@ class CartTotalsSection extends ConsumerWidget {
   }
 
   Widget _subtotalRow(BuildContext context, CartOrderEstimate estimate) {
+    final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Subtotal',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary(context),
-            ),
-          ),
+          Text('Subtotal', style: LuxeType.body(p.inkMuted, size: 13.5)),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -277,16 +292,12 @@ class CartTotalsSection extends ConsumerWidget {
                 estimate.hasLiveRate
                     ? _inrLabel(estimate.merchandiseInr)
                     : AppCurrency.usd(estimate.merchandiseUsd),
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: LuxeType.figure(p.ink, size: 14.5),
               ),
               if (estimate.hasLiveRate)
                 Text(
                   AppCurrency.usd(estimate.merchandiseUsd),
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMuted(context),
-                  ),
+                  style: LuxeType.label(p.inkFaint, size: 11.5),
                 ),
             ],
           ),
@@ -301,44 +312,51 @@ class CartTotalsSection extends ConsumerWidget {
     double inrValue, {
     required bool hasRate,
     double? fallbackUsd,
+    bool positive = false,
+    bool strong = false,
   }) {
+    final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
             child: Text(
               label,
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondary(context),
-              ),
+              style: strong
+                  ? LuxeType.label(p.ink, size: 13.5)
+                  : LuxeType.body(p.inkMuted, size: 13.5),
             ),
           ),
+          const SizedBox(width: 12),
           Text(
             hasRate ? _inrLabel(inrValue) : AppCurrency.usd(fallbackUsd ?? 0),
-            style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
+            style: LuxeType.figure(positive ? p.positive : p.ink, size: 14.5),
           ),
         ],
       ),
     );
   }
 
-  Widget _usdOnlyRow(BuildContext context, String label, double usdValue) {
+  Widget _usdOnlyRow(
+    BuildContext context,
+    String label,
+    double usdValue, {
+    bool positive = false,
+  }) {
+    final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary(context),
-            ),
+          Flexible(
+            child: Text(label, style: LuxeType.body(p.inkMuted, size: 13.5)),
           ),
           Text(
             AppCurrency.usd(usdValue),
-            style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+            style: LuxeType.figure(positive ? p.positive : p.ink, size: 14),
           ),
         ],
       ),

@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_shadows.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../application/diamond_project_listing_pick_provider.dart';
 
 /// Sticky bottom tray when ≥1 diamond is picked for project analysis.
@@ -18,53 +16,91 @@ class DiamondProjectPickBottomBar extends ConsumerWidget {
     final canUse = ref.watch(
       authProvider.select((s) => s.isSeller || s.sellerId != null),
     );
-    if (!canUse) return const SizedBox.shrink();
+    final count = canUse
+        ? ref.watch(diamondProjectListingPickProvider.select((s) => s.length))
+        : 0;
 
-    final count = ref.watch(
-      diamondProjectListingPickProvider.select((s) => s.length),
+    return AnimatedSize(
+      duration: LuxeMotion.medium,
+      curve: LuxeMotion.settle,
+      alignment: Alignment.bottomCenter,
+      child: count == 0
+          ? const SizedBox(width: double.infinity)
+          : _Tray(
+              count: count,
+              onClear: () {
+                AppHaptics.selection();
+                ref.read(diamondProjectListingPickProvider.notifier).clear();
+              },
+            ),
     );
-    if (count == 0) return const SizedBox.shrink();
+  }
+}
 
+class _Tray extends StatelessWidget {
+  const _Tray({required this.count, required this.onClear});
+
+  final int count;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
     final label = count == 1 ? 'diamond' : 'diamonds';
 
-    return Material(
-      elevation: 8,
-      color: AppColors.card(context),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: p.surface,
+        border: Border(top: BorderSide(color: p.hairline)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: p.isDark ? 0.4 : 0.07),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
       child: SafeArea(
         top: false,
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: AppColors.border(context))),
-            boxShadow: AppShadows.modalLight,
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s16,
-            vertical: AppSpacing.s12,
-          ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 8, 10),
           child: Row(
             children: [
-              const Icon(Icons.check_circle, size: 18, color: AppColors.bronze),
-              const SizedBox(width: AppSpacing.s8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: ShapeDecoration(
+                  color: p.ink,
+                  shape: const StadiumBorder(),
+                ),
+                child: AnimatedSwitcher(
+                  duration: LuxeMotion.fast,
+                  transitionBuilder: (c, a) =>
+                      ScaleTransition(scale: a, child: c),
+                  child: Text(
+                    '$count',
+                    key: ValueKey(count),
+                    style: LuxeType.figure(p.canvas, size: 13),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '$count $label selected',
-                  style: AppTypography.label.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
+                  '$label selected',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  style: LuxeType.label(p.ink, size: 13.5),
                 ),
               ),
               TextButton(
-                onPressed: () =>
-                    ref.read(diamondProjectListingPickProvider.notifier).clear(),
+                onPressed: onClear,
+                style: TextButton.styleFrom(foregroundColor: p.caution),
                 child: Text(
                   context.tr(CatalogL10n.clearAll),
-                  style: AppTypography.caption.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary(context),
-                  ),
+                  style: LuxeType.label(p.caution, size: 13),
                 ),
               ),
             ],

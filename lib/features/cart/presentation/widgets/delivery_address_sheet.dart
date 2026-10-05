@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-
-import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/widgets/luxe/luxe_button.dart';
+import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../domain/models/delivery_address.dart';
 
 /// Modal form for adding / editing a delivery address.
@@ -13,14 +11,12 @@ Future<DeliveryAddress?> showDeliveryAddressSheet(
   BuildContext context, {
   DeliveryAddress? initial,
 }) {
-  return showModalBottomSheet<DeliveryAddress>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: AppColors.warmWhite,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
+  return showLuxeSheet<DeliveryAddress>(
+    context,
+    title: initial?.id != null
+        ? context.tr(AccountCommerceL10n.editAddress)
+        : context.tr(AccountCommerceL10n.addAddress),
+    subtitle: context.tr(AccountCommerceL10n.deliverTo),
     builder: (context) => _DeliveryAddressSheet(initial: initial),
   );
 }
@@ -95,154 +91,107 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottom = MediaQuery.viewInsetsOf(context).bottom;
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottom),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.s24,
-          AppSpacing.s16,
-          AppSpacing.s24,
-          AppSpacing.s24,
-        ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on,
-                    color: AppColors.bronze,
-                    size: 20,
-                  ),
-                  const SizedBox(width: AppSpacing.s8),
-                  Text(
-                    context.tr(AccountCommerceL10n.deliverTo),
-                    style: AppTypography.title.copyWith(
-                      color: AppColors.bronze,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      'Cancel',
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.bronze,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.s16),
-              _field(
-                _name,
-                context.tr(AccountCommerceL10n.fullNameField),
-                required: true,
-              ),
-              _field(
-                _phone,
-                context.tr(AccountCommerceL10n.phone),
-                required: true,
-                keyboard: TextInputType.phone,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              ),
-              _field(
-                _line1,
-                context.tr(AccountCommerceL10n.addressLine1),
-                required: true,
-              ),
-              _field(_line2, context.tr(AccountCommerceL10n.addressLine2)),
-              _field(
-                _city,
-                context.tr(AccountCommerceL10n.city),
-                required: true,
-              ),
-              _field(
-                _state,
-                context.tr(AccountCommerceL10n.state),
-                required: true,
-              ),
-              _field(
-                _postal,
-                context.tr(AccountCommerceL10n.postalCodeCaps),
-                required: true,
-              ),
-              _field(
-                _country,
-                context.tr(AccountCommerceL10n.country),
-                required: true,
-              ),
-              _field(_label, context.tr(AccountCommerceL10n.addressLabel)),
-              const SizedBox(height: AppSpacing.s16),
-              SizedBox(
-                height: 52,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.charcoal,
-                    foregroundColor: AppColors.warmWhite,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.r12),
-                    ),
-                  ),
-                  onPressed: _save,
-                  child: Text(
-                    widget.initial?.id != null
-                        ? context.tr(AccountCommerceL10n.updateAddress)
-                        : context.tr(AccountCommerceL10n.saveAddress),
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.warmWhite,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+    Widget pair(Widget a, Widget b) => Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: a),
+        const SizedBox(width: 12),
+        Expanded(child: b),
+      ],
+    );
+
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _field(
+            _name,
+            context.tr(AccountCommerceL10n.fullNameField),
+            required: true,
+            icon: Icons.person_outline_rounded,
           ),
-        ),
+          _field(
+            _phone,
+            context.tr(AccountCommerceL10n.phone),
+            required: true,
+            keyboard: TextInputType.phone,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            icon: Icons.call_outlined,
+          ),
+          _field(
+            _line1,
+            context.tr(AccountCommerceL10n.addressLine1),
+            required: true,
+            icon: Icons.home_outlined,
+          ),
+          _field(_line2, context.tr(AccountCommerceL10n.addressLine2)),
+          pair(
+            _field(
+              _city,
+              context.tr(AccountCommerceL10n.city),
+              required: true,
+            ),
+            _field(
+              _state,
+              context.tr(AccountCommerceL10n.state),
+              required: true,
+            ),
+          ),
+          pair(
+            _field(
+              _postal,
+              context.tr(AccountCommerceL10n.postalCodeCaps),
+              required: true,
+            ),
+            _field(
+              _country,
+              context.tr(AccountCommerceL10n.country),
+              required: true,
+            ),
+          ),
+          _field(
+            _label,
+            context.tr(AccountCommerceL10n.addressLabel),
+            icon: Icons.bookmark_border_rounded,
+          ),
+          const SizedBox(height: 8),
+          LuxeButton(
+            label: widget.initial?.id != null
+                ? context.tr(AccountCommerceL10n.updateAddress)
+                : context.tr(AccountCommerceL10n.saveAddress),
+            icon: Icons.check_rounded,
+            expand: true,
+            onPressed: _save,
+          ),
+        ],
       ),
     );
   }
 
   Widget _field(
     TextEditingController controller,
-    String hint, {
+    String label, {
     bool required = false,
     TextInputType? keyboard,
     List<TextInputFormatter>? inputFormatters,
+    IconData? icon,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+      padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboard,
         inputFormatters: inputFormatters,
+        textInputAction: TextInputAction.next,
         validator: required
             ? (v) => (v == null || v.trim().isEmpty)
                   ? context.tr(AccountCommerceL10n.required)
                   : null
             : null,
         decoration: InputDecoration(
-          hintText: hint,
-          filled: true,
-          fillColor: AppColors.warmWhite,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s16,
-            vertical: AppSpacing.s16,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.r12),
-            borderSide: const BorderSide(color: AppColors.warmBorder),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.r12),
-            borderSide: const BorderSide(color: AppColors.warmBorder),
-          ),
+          labelText: required ? '$label *' : label,
+          prefixIcon: icon == null ? null : Icon(icon, size: 19),
         ),
       ),
     );

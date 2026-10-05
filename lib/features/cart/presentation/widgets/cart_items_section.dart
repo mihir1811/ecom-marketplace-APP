@@ -1,38 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../application/cart_provider.dart';
 import 'cart_item_card.dart';
 
-/// Line items + count caption; rebuilds only when items change.
+/// Line items; rebuilds only when items change. Lines stagger in on first
+/// show and the list eases its height as lines are removed.
 class CartItemsSection extends ConsumerWidget {
   const CartItemsSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final items = ref.watch(cartItemsProvider);
-    final count = items.length;
-    const muted = AppColors.textMutedLight;
+    final still = MediaQuery.disableAnimationsOf(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '$count item${count == 1 ? '' : 's'} in your cart',
-          style: AppTypography.caption.copyWith(
-            color: muted,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.s12),
-        for (final item in items) ...[
-          CartItemCard(item: item),
-          const SizedBox(height: AppSpacing.s12),
+    return AnimatedSize(
+      duration: LuxeMotion.medium,
+      curve: LuxeMotion.settle,
+      alignment: Alignment.topCenter,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < items.length; i++)
+            Padding(
+              key: ValueKey(items[i].cartId),
+              padding: const EdgeInsets.only(bottom: 12),
+              child: still
+                  ? CartItemCard(item: items[i])
+                  : CartItemCard(item: items[i])
+                        .animate()
+                        .fadeIn(delay: (60 * i).ms, duration: 360.ms)
+                        .moveY(
+                          begin: 14,
+                          end: 0,
+                          delay: (60 * i).ms,
+                          duration: 600.ms,
+                          curve: LuxeMotion.settle,
+                        ),
+            ),
         ],
-      ],
+      ),
     );
   }
 }

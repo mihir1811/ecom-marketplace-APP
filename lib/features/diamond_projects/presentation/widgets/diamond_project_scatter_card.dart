@@ -2,12 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/chart_value_tooltip.dart';
 import '../../domain/models/diamond_project_stats.dart';
+import 'diamond_project_panel.dart';
 
 /// Carat vs price-per-carat scatter with IQR outliers in red.
 class DiamondProjectScatterCard extends StatefulWidget {
@@ -33,113 +33,108 @@ class _DiamondProjectScatterCardState extends State<DiamondProjectScatterCard> {
 
   @override
   Widget build(BuildContext context) {
-    final axisColor = AppColors.border(context);
-    final gridColor = axisColor.withValues(alpha: 0.45);
-    final labelColor = AppColors.textMuted(context);
-    final pointColor = AppColors.textPrimary(context);
+    final p = LuxePalette.of(context);
+    final axisColor = p.hairline;
+    final gridColor = axisColor.withValues(alpha: 0.6);
+    final labelColor = p.inkFaint;
+    final pointColor = p.ink.withValues(alpha: 0.78);
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.tr(CatalogL10n.caratVsPpc),
-              style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary(context),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.s16),
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return GestureDetector(
-                    onTapDown: (details) {
-                      final index = _ScatterPainter.findNearestPoint(
-                        widget.stats.scatter,
-                        Size(constraints.maxWidth, constraints.maxHeight),
-                        details.localPosition,
-                      );
-                      if (index == null) {
-                        setState(() => _selectedIndex = null);
-                        return;
-                      }
-                      setState(() {
-                        _selectedIndex =
-                            _selectedIndex == index ? null : index;
-                      });
-                    },
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        CustomPaint(
-                          painter: _ScatterPainter(
-                            widget.stats.scatter,
-                            axisColor: axisColor,
-                            gridColor: gridColor,
-                            labelColor: labelColor,
-                            pointColor: pointColor,
-                            selectedIndex: _selectedIndex,
-                          ),
-                          child: const SizedBox.expand(),
+    return DiamondProjectPanel(
+      title: context.tr(CatalogL10n.caratVsPpc),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return GestureDetector(
+                  onTapDown: (details) {
+                    final index = _ScatterPainter.findNearestPoint(
+                      widget.stats.scatter,
+                      Size(constraints.maxWidth, constraints.maxHeight),
+                      details.localPosition,
+                    );
+                    if (index == null) {
+                      setState(() => _selectedIndex = null);
+                      return;
+                    }
+                    AppHaptics.selection();
+                    setState(() {
+                      _selectedIndex = _selectedIndex == index ? null : index;
+                    });
+                  },
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      CustomPaint(
+                        painter: _ScatterPainter(
+                          widget.stats.scatter,
+                          axisColor: axisColor,
+                          gridColor: gridColor,
+                          labelColor: labelColor,
+                          pointColor: pointColor,
+                          outlierColor: p.caution,
+                          highlightColor: p.accent,
+                          selectedIndex: _selectedIndex,
                         ),
-                        if (_selectedIndex != null)
-                          _scatterTooltip(
-                            widget.stats.scatter[_selectedIndex!],
-                            Size(constraints.maxWidth, constraints.maxHeight),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            Row(
-              children: [
-                const CircleAvatar(
-                  radius: 4,
-                  backgroundColor: AppColors.error,
-                ),
-                const SizedBox(width: AppSpacing.s8),
-                Flexible(
-                  child: Text(
-                    context.tr(CatalogL10n.ppcOutliers, {
-                      'count': '${widget.stats.outliers.length}',
-                    }),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondary(context),
-                    ),
+                        child: const SizedBox.expand(),
+                      ),
+                      if (_selectedIndex != null)
+                        _scatterTooltip(
+                          widget.stats.scatter[_selectedIndex!],
+                          Size(constraints.maxWidth, constraints.maxHeight),
+                        ),
+                    ],
                   ),
-                ),
-              ],
+                );
+              },
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _LegendDot(color: pointColor),
+              const SizedBox(width: 6),
+              Text(
+                context.tr(CatalogL10n.stock),
+                style: LuxeType.label(p.inkMuted, size: 11.5),
+              ),
+              const SizedBox(width: 16),
+              _LegendDot(color: p.caution),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  context.tr(CatalogL10n.ppcOutliers, {
+                    'count': '${widget.stats.outliers.length}',
+                  }),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: LuxeType.label(p.inkMuted, size: 11.5),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _scatterTooltip(
-    DiamondProjectScatterPoint point,
-    Size size,
-  ) {
+  Widget _scatterTooltip(DiamondProjectScatterPoint point, Size size) {
     if (widget.stats.scatter.isEmpty) return const SizedBox.shrink();
 
     final plot = _ScatterPainter.plotRect(size);
     final data = _ScatterPainter.dataBounds(widget.stats.scatter);
-    final xAxis = _ScatterPainter.niceAxis(data.minX, data.maxX, targetTicks: 4);
-    final yAxis = _ScatterPainter.niceAxis(data.minY, data.maxY, targetTicks: 5);
+    final xAxis = _ScatterPainter.niceAxis(
+      data.minX,
+      data.maxX,
+      targetTicks: 4,
+    );
+    final yAxis = _ScatterPainter.niceAxis(
+      data.minY,
+      data.maxY,
+      targetTicks: 5,
+    );
     final dx = _ScatterPainter.map(
       point.item.carat,
       xAxis.min,
@@ -174,6 +169,8 @@ class _ScatterPainter extends CustomPainter {
     required this.gridColor,
     required this.labelColor,
     required this.pointColor,
+    required this.outlierColor,
+    required this.highlightColor,
     this.selectedIndex,
   });
 
@@ -182,6 +179,8 @@ class _ScatterPainter extends CustomPainter {
   final Color gridColor;
   final Color labelColor;
   final Color pointColor;
+  final Color outlierColor;
+  final Color highlightColor;
   final int? selectedIndex;
 
   static const _left = 56.0;
@@ -299,11 +298,7 @@ class _ScatterPainter extends CustomPainter {
     for (final tick in yAxis.ticks) {
       final dy = map(tick, minY, maxY, plot.bottom, plot.top);
       canvas.drawLine(Offset(plot.left, dy), Offset(plot.right, dy), grid);
-      canvas.drawLine(
-        Offset(plot.left - 4, dy),
-        Offset(plot.left, dy),
-        axis,
-      );
+      canvas.drawLine(Offset(plot.left - 4, dy), Offset(plot.left, dy), axis);
       _drawLabel(
         canvas,
         _formatPpc(tick),
@@ -321,7 +316,7 @@ class _ScatterPainter extends CustomPainter {
         Offset(dx, dy),
         selected ? 5.5 : (point.isOutlier ? 3.5 : 2.4),
         Paint()
-          ..color = point.isOutlier ? AppColors.error : pointColor
+          ..color = point.isOutlier ? outlierColor : pointColor
           ..style = PaintingStyle.fill,
       );
       if (selected) {
@@ -329,7 +324,7 @@ class _ScatterPainter extends CustomPainter {
           Offset(dx, dy),
           7.5,
           Paint()
-            ..color = AppColors.info
+            ..color = highlightColor
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2,
         );
@@ -400,12 +395,12 @@ class _ScatterPainter extends CustomPainter {
     final nice = residual <= 1
         ? 1.0
         : residual <= 2
-            ? 2.0
-            : residual <= 2.5
-                ? 2.5
-                : residual <= 5
-                    ? 5.0
-                    : 10.0;
+        ? 2.0
+        : residual <= 2.5
+        ? 2.5
+        : residual <= 5
+        ? 5.0
+        : 10.0;
     return nice * mag;
   }
 
@@ -447,13 +442,7 @@ class _ScatterPainter extends CustomPainter {
     required Alignment align,
   }) {
     final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: AppTypography.caption.copyWith(
-          color: labelColor,
-          fontSize: 10,
-        ),
-      ),
+      text: TextSpan(text: text, style: LuxeType.figure(labelColor, size: 10)),
       textDirection: TextDirection.ltr,
       maxLines: 1,
     )..layout();
@@ -471,5 +460,20 @@ class _ScatterPainter extends CustomPainter {
       oldDelegate.gridColor != gridColor ||
       oldDelegate.labelColor != labelColor ||
       oldDelegate.pointColor != pointColor ||
+      oldDelegate.outlierColor != outlierColor ||
+      oldDelegate.highlightColor != highlightColor ||
       oldDelegate.selectedIndex != selectedIndex;
+}
+
+class _LegendDot extends StatelessWidget {
+  const _LegendDot({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 8,
+    height: 8,
+    decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+  );
 }

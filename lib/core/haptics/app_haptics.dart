@@ -49,6 +49,16 @@ abstract final class AppHaptics {
   /// Distinct warning for destructive confirms and blocking states.
   static void warning() => _play(_Kind.warning, HapticFeedback.heavyImpact);
 
+  /// Magnetic dock: a firm impact as an element lands on a screen edge,
+  /// followed by a soft settle tap, so the snap is felt rather than seen.
+  static void magneticSnap() {
+    _play(_Kind.snap, () async {
+      await HapticFeedback.heavyImpact();
+      await Future<void>.delayed(const Duration(milliseconds: 85));
+      await HapticFeedback.lightImpact();
+    });
+  }
+
   /// Distinct error/validation pattern. Not for ordinary recoverable UI noise.
   static void error() {
     _play(_Kind.error, () async {
@@ -115,6 +125,7 @@ enum _Kind {
   success(2),
   heavy(3),
   warning(3),
+  snap(3),
   error(4);
 
   const _Kind(this.rank);

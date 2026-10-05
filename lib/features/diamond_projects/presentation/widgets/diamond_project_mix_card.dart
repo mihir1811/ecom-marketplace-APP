@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/chart_value_tooltip.dart';
 import '../../domain/models/diamond_project_stats.dart';
+import 'diamond_project_panel.dart';
 
-/// Horizontal bar mix (shape / color / clarity).
+/// Horizontal bar mix (shape / color / clarity) with share of stones.
 class DiamondProjectMixCard extends StatefulWidget {
   const DiamondProjectMixCard({
     required this.title,
@@ -35,18 +35,18 @@ class _DiamondProjectMixCardState extends State<DiamondProjectMixCard> {
 
   @override
   Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
     final max = widget.entries.fold<int>(
       0,
       (m, e) => e.count > m ? e.count : m,
     );
-    return _ProjectCard(
+    final total = widget.entries.fold<int>(0, (s, e) => s + e.count);
+    return DiamondProjectPanel(
       title: widget.title,
       child: widget.entries.isEmpty
           ? Text(
               context.tr(CatalogL10n.projectNoData),
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textMuted(context),
-              ),
+              style: LuxeType.label(p.inkFaint, size: 12.5),
             )
           : Column(
               children: [
@@ -54,15 +54,17 @@ class _DiamondProjectMixCardState extends State<DiamondProjectMixCard> {
                   _MixRow(
                     entry: widget.entries[i],
                     max: max == 0 ? 1 : max,
+                    total: total == 0 ? 1 : total,
+                    index: i,
                     selected: _selectedIndex == i,
-                    showTooltip: _selectedIndex == i,
                     onTap: () {
+                      AppHaptics.selection();
                       setState(() {
                         _selectedIndex = _selectedIndex == i ? null : i;
                       });
                     },
                   ),
-                  const SizedBox(height: AppSpacing.s8),
+                  if (i < widget.entries.length - 1) const SizedBox(height: 10),
                 ],
               ],
             ),
@@ -74,19 +76,24 @@ class _MixRow extends StatelessWidget {
   const _MixRow({
     required this.entry,
     required this.max,
+    required this.total,
+    required this.index,
     required this.selected,
-    required this.showTooltip,
     required this.onTap,
   });
 
   final NamedCount entry;
   final int max;
+  final int total;
+  final int index;
   final bool selected;
-  final bool showTooltip;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final share = entry.count / total * 100;
+    final still = MediaQuery.disableAnimationsOf(context);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -96,87 +103,78 @@ class _MixRow extends StatelessWidget {
           Row(
             children: [
               SizedBox(
-                width: 56,
+                width: 62,
                 child: Text(
                   entry.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypography.caption.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: selected
-                        ? AppColors.info
-                        : AppColors.textPrimary(context),
+                  style: LuxeType.label(
+                    selected ? p.accent : p.ink,
+                    size: 12.5,
                   ),
                 ),
               ),
               Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppSpacing.r4),
-                  child: LinearProgressIndicator(
-                    value: entry.count / max,
-                    minHeight: 10,
-                    backgroundColor: AppColors.surface(context),
-                    color: selected
-                        ? AppColors.info
-                        : AppColors.textPrimary(context),
+                child: Container(
+                  height: 10,
+                  decoration: ShapeDecoration(
+                    color: p.surfaceRaised,
+                    shape: const StadiumBorder(),
+                  ),
+                  alignment: Alignment.centerLeft,
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: still ? 1 : 0, end: 1),
+                    duration: Duration(milliseconds: 700 + 60 * index),
+                    curve: LuxeMotion.settle,
+                    builder: (context, t, _) => FractionallySizedBox(
+                      widthFactor: (entry.count / max * t).clamp(0.02, 1.0),
+                      child: AnimatedContainer(
+                        duration: LuxeMotion.fast,
+                        decoration: ShapeDecoration(
+                          shape: const StadiumBorder(),
+                          gradient: LinearGradient(
+                            colors: selected
+                                ? [p.accent, p.accent]
+                                : [p.ink.withValues(alpha: 0.75), p.ink],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.s8),
-              Text(
-                '${entry.count}',
-                style: AppTypography.caption.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary(context),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 64,
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '${entry.count}',
+                        style: LuxeType.figure(p.ink, size: 12.5),
+                      ),
+                      TextSpan(
+                        text: '  ${share.toStringAsFixed(share < 10 ? 1 : 0)}%',
+                        style: LuxeType.figure(p.inkFaint, size: 11),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
                 ),
               ),
             ],
           ),
-          if (showTooltip)
+          if (selected)
             Positioned(
-              top: -40,
-              left: 56,
+              top: -42,
+              left: 62,
               child: ChartValueTooltip(
                 label: entry.label,
                 value: '${entry.count}',
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProjectCard extends StatelessWidget {
-  const _ProjectCard({required this.title, required this.child});
-
-  final String title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: AppTypography.label.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary(context),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.s12),
-            child,
-          ],
-        ),
       ),
     );
   }
