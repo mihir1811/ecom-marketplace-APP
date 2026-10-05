@@ -18,11 +18,10 @@ class _FieldGem {
     required this.cut,
     required this.look,
     required this.band,
-    required this.hx,
-    required this.hy,
+    required this.s,
+    required this.q,
     required this.hz,
-    required this.limX,
-    required this.limY,
+    required this.limS,
     required this.speed,
     required this.scale,
     required this.phase,
@@ -30,15 +29,18 @@ class _FieldGem {
     required this.spinX,
     required this.spinY,
     required this.spinZ,
-  }) : pose = GemPose(x: hx, y: hy, z: hz, scale: scale);
+  }) : pose = GemPose(z: hz, scale: scale);
 
   final GemCut cut;
   final GemLook look;
   final _Band band;
 
-  /// Rest position; it drifts along the flow and wraps inside ±lim.
-  double hx, hy, hz;
-  final double limX, limY, speed;
+  /// Rest position in flow coordinates: [s] runs along the flow and wraps
+  /// inside ±[limS], [q] is the lane across it.
+  double s;
+  final double q, hz;
+  final double limS, speed;
+  double hx = 0, hy = 0;
   final double scale, phase, bob;
   final double spinX, spinY, spinZ;
   final GemPose pose;
@@ -46,28 +48,20 @@ class _FieldGem {
   double wx = 0, wy = 0, wz = 0;
   double flash = 0;
 
-  /// 0..1 touch light; rises fast under the finger, fades after.
+  /// 0..1 light from the finger; rises fast near it, lingers after.
   double lit = 0;
 }
 
-/// A short-lived four-point sparkle (jewelry-stage style) near the touch.
-class _Spark {
-  _Spark(this.x, this.y, this.vx, this.vy, this.life, this.size, this.tint);
-
-  double x, y;
-  final double vx, vy;
-  final double life;
-  final double size;
-  final double tint;
-  double age = 0;
-}
-
-/// Physics for a field of 3D stones drifting from the top-left to the
-/// bottom-right corner.
+/// Physics for a dense herd of 3D stones streaming together from the
+/// top-left to the bottom-right corner through deep darkness, modelled on
+/// the Lusion / Oryzo coffee-bean footer.
 ///
-/// Touch barely parts the stones; instead it lights them: stones under and
-/// around the finger flare, glint and twinkle, sparks scatter from the
-/// fingertip and a warm light follows it. A tap flashes the nearest stone.
+/// The finger (or mouse) is a solid body moving through the cloud: it
+/// carves a clean round void, stones bank up into a ring around its edge,
+/// a swipe drags and flings the stones it sweeps through and sets them
+/// tumbling, and they flow back to fill the wake once it passes. A warm
+/// light rides with the finger so the stones around it catch fire. A tap
+/// sends a shockwave through the cloud.
 class GemFieldController extends ChangeNotifier {
   GemFieldController({required this.seed, required this.reduceMotion});
 
@@ -75,29 +69,35 @@ class GemFieldController extends ChangeNotifier {
   bool reduceMotion;
 
   final List<_FieldGem> _gems = [];
-  final List<_Spark> _sparks = [];
-  final math.Random _rng = math.Random(11);
   Size _size = Size.zero;
   double _time = 0;
   double _flowX = 0, _flowY = 0;
 
   Offset? _pointer;
+  Offset _cursor = Offset.zero;
+  double _presence = 0;
   Offset _pointerVelocity = Offset.zero;
+  Duration? _lastMove;
   Offset _downAt = Offset.zero;
   Duration _downTime = Duration.zero;
   Offset _glowAt = Offset.zero;
   double _glow = 0;
   double _eyeX = 0, _eyeY = 0;
   double _energy = 0;
-  double _sparkBudget = 0;
+
+  Offset _waveAt = Offset.zero;
+  double _waveAge = -1;
 
   static const _cuts = GemCut.values;
 
   /// World units across the field width.
   static const worldWidth = 6.4;
 
-  /// Touch light radius in logical pixels (scaled by depth).
-  static const lightRadius = 150.0;
+  /// Radius of the void carved around the finger, in logical pixels.
+  double get voidRadius => (_size.shortestSide * 0.2).clamp(64.0, 130.0);
+
+  /// Radius of the light carried by the finger, in logical pixels.
+  double get lightRadius => voidRadius * 2.3;
 
   double get unit => _size.width / worldWidth;
 
@@ -110,7 +110,11 @@ class GemFieldController extends ChangeNotifier {
   );
 
   bool get settled =>
-      _pointer == null && _energy < 0.002 && _sparks.isEmpty && _glow == 0;
+      _pointer == null &&
+      _presence == 0 &&
+      _energy < 0.002 &&
+      _glow == 0 &&
+      _waveAge < 0;
 
   /// Seeds stones for [size]; keeps them when the size barely changes.
   void layout(Size size) {
@@ -126,35 +130,35 @@ class GemFieldController extends ChangeNotifier {
     final rng = math.Random(seed);
     const halfW = worldWidth / 2;
     final halfH = size.height / unit / 2;
-    // Three times the original density, capped for frame budget.
-    final count = (size.width * size.height / 5200 * 3).round().clamp(
-      60,
-      170,
-    );
+    // Dense like a pour of beans, capped for frame budget.
+    final count = (size.width * size.height / 1450).round().clamp(70, 190);
 
     // Flow along the screen diagonal: top-left → bottom-right.
     final len = math.sqrt(halfW * halfW + halfH * halfH);
     _flowX = halfW / len;
     _flowY = -halfH / len;
+    // Half the screen's extent across the flow.
+    final across = 2 * halfW * halfH / len;
 
-    // Jittered grid keeps coverage even without clumps.
-    final cols = math.max(4, math.sqrt(count * halfW / halfH).round());
-    final rows = (count / cols).ceil();
     for (var i = 0; i < count; i++) {
-      final col = i % cols, row = i ~/ cols;
-      final z = -3.8 + rng.nextDouble() * 4.9;
-      final band = z < -1.7
+      // A shallow depth slab keeps the herd close and tight.
+      final z = -2.4 + rng.nextDouble() * 3.3;
+      final band = z < -1.4
           ? _Band.far
-          : z > 0.35
+          : z > 0.45
           ? _Band.near
           : _Band.focus;
       // Wider bounds at depth so the frame stays filled under perspective;
       // the margin lets stones enter and leave fully off screen.
       final spread = 9 / (9 - z);
-      final limX = (halfW + 0.7) / spread;
-      final limY = (halfH + 0.7) / spread;
-      final x = -limX + (col + 0.15 + rng.nextDouble() * 0.7) * 2 * limX / cols;
-      final y = limY - (row + 0.15 + rng.nextDouble() * 0.7) * 2 * limY / rows;
+      final limS = (len + 0.8) / spread;
+      // Stratified along the flow so the herd has no gaps; lanes bunch
+      // toward the middle of the stream so it reads as one body.
+      final s0 = -limS + (i + 0.2 + rng.nextDouble() * 0.6) * 2 * limS / count;
+      final q0 =
+          (rng.nextDouble() + rng.nextDouble() - 1) * (across + 0.5) / spread;
+      final x = s0 * _flowX - q0 * _flowY;
+      final y = s0 * _flowY + q0 * _flowX;
       final pick = rng.nextDouble();
       final look = pick < 0.12
           ? GemLook.champagne
@@ -165,26 +169,33 @@ class GemFieldController extends ChangeNotifier {
         cut: _cuts[rng.nextInt(_cuts.length)],
         look: look,
         band: band,
-        hx: x,
-        hy: y,
+        s: s0,
+        q: q0,
         hz: z,
-        limX: limX,
-        limY: limY,
-        // Nearer stones travel faster for depth parallax.
-        speed: (0.22 + 0.16 * ((z + 3.8) / 4.9)) * (0.85 + rng.nextDouble() * 0.3),
-        scale: 0.17 + rng.nextDouble() * 0.17,
+        limS: limS,
+        // One pace for the whole herd; nearer stones a touch faster for
+        // depth parallax.
+        speed:
+            (0.72 + 0.16 * ((z + 2.4) / 3.3)) *
+            (0.97 + rng.nextDouble() * 0.06),
+        scale: 0.16 + rng.nextDouble() * 0.16,
         phase: rng.nextDouble(),
-        bob: 0.03 + rng.nextDouble() * 0.05,
+        bob: 0.02 + rng.nextDouble() * 0.03,
         spinX: (rng.nextDouble() - 0.5) * 0.5,
         spinY: (0.15 + rng.nextDouble() * 0.35) * (rng.nextBool() ? 1 : -1),
         spinZ: (rng.nextDouble() - 0.5) * 0.3,
       );
+      g
+        ..hx = x
+        ..hy = y
+        ..pose.x = x
+        ..pose.y = y;
       g.pose
         ..rx = rng.nextDouble() * math.pi * 2
         ..ry = rng.nextDouble() * math.pi * 2
         ..rz = rng.nextDouble() * math.pi * 2;
       if (first && !reduceMotion) {
-        // Entrance: stones drift in from the top-left and settle.
+        // Entrance: stones pour in from the top-left and settle.
         g.pose
           ..x = x - 1.5
           ..y = y + 1.5;
@@ -202,76 +213,153 @@ class GemFieldController extends ChangeNotifier {
     final idle = reduceMotion ? 0.0 : 1.0;
     var energy = 0.0;
 
+    // The body follows the finger tightly; it fades in on contact and out
+    // on release so the void opens and closes instead of popping.
+    if (pointer != null) {
+      _cursor = _presence == 0
+          ? pointer
+          : Offset.lerp(_cursor, pointer, 1 - math.exp(-38 * dt))!;
+      _presence = math.min(1, _presence + dt * 7);
+    } else {
+      _presence = math.max(0, _presence - dt * 3.2);
+    }
+    final presence = _presence * _presence * (3 - 2 * _presence);
+
     // Camera parallax follows the finger, gently.
     final targetEyeX = pointer == null || reduceMotion
         ? 0.0
-        : (pointer.dx / _size.width - 0.5) * 0.35;
+        : (pointer.dx / _size.width - 0.5) * 0.3;
     final targetEyeY = pointer == null || reduceMotion
         ? 0.0
-        : -(pointer.dy / _size.height - 0.5) * 0.25;
+        : -(pointer.dy / _size.height - 0.5) * 0.2;
     final ease = 1 - math.exp(-3 * dt);
     _eyeX += (targetEyeX - _eyeX) * ease;
     _eyeY += (targetEyeY - _eyeY) * ease;
 
-    // Warm light that follows the finger and fades on release.
+    // Warm light carried by the finger, trailing it slightly.
     if (pointer != null) {
-      _glowAt = Offset.lerp(_glowAt, pointer, 1 - math.exp(-20 * dt))!;
-      _glow = math.min(1, _glow + dt * 5);
+      _glowAt = _glow == 0
+          ? pointer
+          : Offset.lerp(_glowAt, pointer, 1 - math.exp(-14 * dt))!;
+      _glow = math.min(1, _glow + dt * 4);
     } else {
-      _glow = math.max(0, _glow - dt * 2.2);
+      _glow = math.max(0, _glow - dt * 1.6);
     }
+
+    // Shockwave from a tap: a ring that expands and fades.
+    double waveR = 0, waveStrength = 0;
+    if (_waveAge >= 0) {
+      _waveAge += dt;
+      const life = 0.7;
+      if (_waveAge > life) {
+        _waveAge = -1;
+      } else {
+        final t = _waveAge / life;
+        waveR = voidRadius * (0.4 + 3.2 * (1 - (1 - t) * (1 - t)));
+        waveStrength = (1 - t) * (1 - t);
+      }
+    }
+
+    final r0 = voidRadius;
+    final reach = r0 * 1.45;
+    final lightR = lightRadius;
+    final cursor = _cursor;
+    final vel = _pointerVelocity;
 
     for (final g in _gems) {
       final p = g.pose;
 
-      // Continuous diagonal flow with wrap-around (torus), teleporting the
-      // pose with its rest point so wraps happen off screen, unseen.
+      // The herd streams along the diagonal and wraps along the flow,
+      // teleporting the pose with its rest point so wraps happen off
+      // screen, unseen.
       if (idle > 0) {
-        final d = g.speed * dt;
-        g.hx += _flowX * d;
-        g.hy += _flowY * d;
-        if (g.hx > g.limX) {
-          g.hx -= 2 * g.limX;
-          p.x -= 2 * g.limX;
-        }
-        if (g.hy < -g.limY) {
-          g.hy += 2 * g.limY;
-          p.y += 2 * g.limY;
+        g.s += g.speed * dt;
+        if (g.s > g.limS) {
+          g.s -= 2 * g.limS;
+          p.x -= 2 * g.limS * _flowX;
+          p.y -= 2 * g.limS * _flowY;
         }
       }
+      // One shared ripple travels down the stream, so neighbours sway
+      // together like a herd instead of wandering on their own.
+      final lane = g.q + 0.16 * math.sin(g.s * 0.85 - _time * 1.3) * idle;
+      g.hx = g.s * _flowX - lane * _flowY;
+      g.hy = g.s * _flowY + lane * _flowX;
 
+      // Soft, slightly under-damped spring home: stones swing back into
+      // the wake with a little give, like beans settling.
       final ty = g.hy + math.sin(_time * 0.7 + g.phase * 6.283) * g.bob * idle;
-      var ax = (g.hx - p.x) * 10 - g.vx * 4.2;
-      var ay = (ty - p.y) * 10 - g.vy * 4.2;
-      var az = (g.hz - p.z) * 10 - g.vz * 4.2;
+      var ax = (g.hx - p.x) * 6.5 - g.vx * 3.4;
+      var ay = (ty - p.y) * 6.5 - g.vy * 3.4;
+      var az = (g.hz - p.z) * 6.5 - g.vz * 3.4;
 
       var lightTarget = 0.0;
-      if (pointer != null) {
+      if (presence > 0 || waveStrength > 0) {
         final sp = cam.project(p.x, p.y, p.z);
-        final k = cam.depthScale(p.z);
-        final radius = lightRadius * k;
-        final dx = sp.dx - pointer.dx, dy = sp.dy - pointer.dy;
-        final dist = math.sqrt(dx * dx + dy * dy);
-        if (dist < radius) {
-          final f = 1 - dist / radius;
-          lightTarget = math.sqrt(f);
-          final s = f * f;
-          final ux = dist < 0.001 ? 0.0 : dx / dist;
-          final uy = dist < 0.001 ? -1.0 : dy / dist;
-          // Minimal parting: a soft nudge, no scatter.
-          ax += ux * s * 9 / k;
-          ay -= uy * s * 9 / k;
-          ax += _pointerVelocity.dx / unit * s * 0.6;
-          ay -= _pointerVelocity.dy / unit * s * 0.6;
-          // Lit stones turn to catch the light — that is what sparkles.
-          g.wx += uy * s * 9 * dt;
-          g.wy += ux * s * 9 * dt;
+        // Pixels → world at this stone's depth.
+        final toWorld = 1 / (unit * cam.depthScale(p.z));
+        var pushX = 0.0, pushY = 0.0;
+
+        if (presence > 0) {
+          final dx = sp.dx - cursor.dx, dy = sp.dy - cursor.dy;
+          final dist = math.sqrt(dx * dx + dy * dy);
+          if (dist < reach) {
+            final ux = dist < 0.001 ? 0.0 : dx / dist;
+            final uy = dist < 0.001 ? -1.0 : dy / dist;
+            // Stiff contact inside the void, a soft cushion just outside
+            // it: stones are shoved clear and bank up into a ring.
+            var push = dist < r0 ? (r0 - dist) * 62 + 30 : 0.0;
+            push += (reach - math.max(dist, r0)) * 14;
+            push *= presence * toWorld;
+            pushX = ux * push;
+            pushY = -uy * push;
+            // Squeezed in depth too, so the void reads as a solid body.
+            az += (p.z >= 0 ? 1 : -1) * push * 0.18;
+
+            // Entrainment: stones the finger sweeps through are dragged
+            // toward its velocity, then flung on as it passes.
+            final f = 1 - dist / reach;
+            final drag = f * f * 7 * presence;
+            ax += (vel.dx * toWorld - g.vx) * drag;
+            ay += (-vel.dy * toWorld - g.vy) * drag;
+          }
+          if (dist < lightR) {
+            final f = 1 - dist / lightR;
+            lightTarget = math.sqrt(f * f * (3 - 2 * f)) * presence;
+          }
+        }
+
+        if (waveStrength > 0) {
+          final dx = sp.dx - _waveAt.dx, dy = sp.dy - _waveAt.dy;
+          final dist = math.sqrt(dx * dx + dy * dy);
+          const width = 46.0;
+          final band = (dist - waveR).abs();
+          if (band < width) {
+            final f = 1 - band / width;
+            final ux = dist < 0.001 ? 0.0 : dx / dist;
+            final uy = dist < 0.001 ? -1.0 : dy / dist;
+            final push = f * f * waveStrength * 900 * toWorld;
+            pushX += ux * push;
+            pushY -= uy * push;
+            lightTarget = math.max(lightTarget, f * waveStrength);
+          }
+        }
+
+        // Shoved stones tumble: torque from the push across each axis.
+        if (pushX != 0 || pushY != 0) {
+          ax += pushX;
+          ay += pushY;
+          g.wx -= pushY * dt * 0.45;
+          g.wy += pushX * dt * 0.45;
+          g.wz += (pushX - pushY) * dt * 0.12 * (g.spinY >= 0 ? 1 : -1);
         }
       }
+
       if (lightTarget > g.lit) {
-        g.lit += (lightTarget - g.lit) * math.min(1.0, dt * 14);
+        g.lit += (lightTarget - g.lit) * math.min(1.0, dt * 12);
       } else {
-        g.lit = math.max(lightTarget, g.lit - dt * 1.1);
+        // Light lingers on stones the finger has passed.
+        g.lit = math.max(lightTarget, g.lit - dt * 0.9);
       }
 
       g.vx += ax * dt;
@@ -281,7 +369,12 @@ class GemFieldController extends ChangeNotifier {
       p.y += g.vy * dt;
       p.z += g.vz * dt;
 
-      final spinEase = 1 - math.exp(-1.1 * dt);
+      // Tumble is capped, then bleeds back to the idle spin.
+      const maxSpin = 13.0;
+      g.wx = g.wx.clamp(-maxSpin, maxSpin);
+      g.wy = g.wy.clamp(-maxSpin, maxSpin);
+      g.wz = g.wz.clamp(-maxSpin, maxSpin);
+      final spinEase = 1 - math.exp(-0.95 * dt);
       g.wx += (g.spinX * idle - g.wx) * spinEase;
       g.wy += (g.spinY * idle - g.wy) * spinEase;
       g.wz += (g.spinZ * idle - g.wz) * spinEase;
@@ -301,58 +394,29 @@ class GemFieldController extends ChangeNotifier {
     }
     _energy = energy / _gems.length;
 
-    // Sparks: emitted around the fingertip while touching.
-    if (pointer != null) {
-      _sparkBudget += dt * (18 + _pointerVelocity.distance * 0.03);
-      while (_sparkBudget >= 1) {
-        _sparkBudget -= 1;
-        _spawnSpark(pointer, 70);
-      }
-    }
-    for (final s in _sparks) {
-      s
-        ..age += dt
-        ..x += s.vx * dt
-        ..y += s.vy * dt;
-    }
-    _sparks.removeWhere((s) => s.age >= s.life);
-
-    _pointerVelocity *= math.exp(-8 * dt);
+    _pointerVelocity *= math.exp(-6 * dt);
     notifyListeners();
-  }
-
-  void _spawnSpark(Offset around, double radius) {
-    if (_sparks.length > 120) return;
-    final a = _rng.nextDouble() * math.pi * 2;
-    final r = math.sqrt(_rng.nextDouble()) * radius;
-    _sparks.add(
-      _Spark(
-        around.dx + math.cos(a) * r,
-        around.dy + math.sin(a) * r,
-        math.cos(a) * 14,
-        math.sin(a) * 14 - 6,
-        0.5 + _rng.nextDouble() * 0.6,
-        2.5 + _rng.nextDouble() * 4.5,
-        _rng.nextDouble(),
-      ),
-    );
   }
 
   void pointerDown(Offset at, Duration stamp) {
     _pointer = at;
     _downAt = at;
     _downTime = stamp;
-    _glowAt = at;
+    _lastMove = stamp;
     _pointerVelocity = Offset.zero;
-    for (var i = 0; i < 8; i++) {
-      _spawnSpark(at, 40);
-    }
   }
 
   void pointerMove(Offset at, Offset delta, Duration stamp) {
     _pointer = at;
-    // Smoothed px/s from event deltas.
-    _pointerVelocity = _pointerVelocity * 0.6 + delta * (60 * 0.4);
+    // Smoothed px/s from event timing, capped so a flick stays graceful.
+    final last = _lastMove;
+    _lastMove = stamp;
+    final secs = last == null
+        ? 1 / 60
+        : ((stamp - last).inMicroseconds / 1e6).clamp(1 / 240, 1 / 20);
+    var v = delta / secs;
+    if (v.distance > 4200) v = v / v.distance * 4200;
+    _pointerVelocity = Offset.lerp(_pointerVelocity, v, 0.45)!;
   }
 
   void pointerUp(Duration stamp) {
@@ -360,39 +424,38 @@ class GemFieldController extends ChangeNotifier {
         _pointer != null &&
         (_pointer! - _downAt).distance < 12 &&
         stamp - _downTime < const Duration(milliseconds: 300);
-    if (tap) _tapFlare(_downAt);
+    if (tap) _tapPulse(_downAt);
     _pointer = null;
+    _lastMove = null;
   }
 
-  void pointerCancel() => _pointer = null;
+  void pointerCancel() {
+    _pointer = null;
+    _lastMove = null;
+  }
 
-  /// A tap lights a ring of stones and flares the nearest one.
-  void _tapFlare(Offset at) {
+  /// A tap sends a shockwave through the cloud and flares the nearest
+  /// stone.
+  void _tapPulse(Offset at) {
     final cam = camera;
     _FieldGem? nearest;
     var nearestD = double.infinity;
     for (final g in _gems) {
       final p = g.pose;
-      final sp = cam.project(p.x, p.y, p.z);
-      final d = (sp - at).distance;
-      final radius = lightRadius * 1.3 * cam.depthScale(p.z);
-      if (d < radius) {
-        g.lit = math.max(g.lit, 1 - d / radius);
-        g.wy += 4 * (1 - d / radius) * (g.spinY >= 0 ? 1 : -1);
-      }
+      final d = (cam.project(p.x, p.y, p.z) - at).distance;
       if (d < nearestD) {
         nearestD = d;
         nearest = g;
       }
     }
-    if (nearest != null && nearestD < 70) {
+    if (nearest != null && nearestD < voidRadius) {
       nearest
         ..flash = 1
+        ..lit = 1
         ..wy += 10;
     }
-    for (var i = 0; i < 22; i++) {
-      _spawnSpark(at, 90);
-    }
+    _waveAt = at;
+    _waveAge = 0;
     AppHaptics.light();
   }
 
@@ -404,8 +467,10 @@ class GemFieldController extends ChangeNotifier {
     ]..sort((a, b) => a.pose.z.compareTo(b.pose.z));
     batch.reset();
     for (final g in items) {
-      // Far stones sink into the dark unless the touch lights them.
-      final fog01 = ((-g.pose.z - 0.6) / 4).clamp(0.0, 0.7) * (1 - g.lit * 0.6);
+      // Stones rest deep in the dark, deeper with distance, and surface
+      // only where the finger's light reaches them.
+      final depth = ((0.9 - g.pose.z) / 3.3).clamp(0.0, 1.0);
+      final fog01 = ((0.6 + 0.28 * depth) * (1 - g.lit * 0.95)).clamp(0.0, 0.9);
       batch.addGem(
         mesh: GemMesh.of(g.cut),
         pose: g.pose,
@@ -416,58 +481,42 @@ class GemFieldController extends ChangeNotifier {
         fogColor: fog,
         flash: g.flash,
         light: g.lit,
+        lightFrom: g.lit > 0
+            ? _glowAt - cam.project(g.pose.x, g.pose.y, g.pose.z)
+            : Offset.zero,
         phase: g.phase,
-        glint: band != _Band.far || g.lit > 0.2,
+        glint: g.lit > 0.15 || g.flash > 0,
         flat: band == _Band.far,
       );
     }
     batch.paint(canvas, glintSprite: GemGlintSprite.image);
   }
 
+  /// A faint warm pool under the finger; the stones carry the light.
   void _paintLight(Canvas canvas) {
-    if (_glow > 0) {
-      const r = lightRadius * 1.25;
-      canvas.drawCircle(
-        _glowAt,
-        r,
-        Paint()
-          ..blendMode = BlendMode.plus
-          ..shader = ui.Gradient.radial(_glowAt, r, [
-            Color.fromRGBO(255, 236, 200, 0.16 * _glow),
-            Color.fromRGBO(221, 191, 136, 0.06 * _glow),
+    if (_glow <= 0) return;
+    final r = lightRadius;
+    canvas.drawCircle(
+      _glowAt,
+      r,
+      Paint()
+        ..blendMode = BlendMode.plus
+        ..shader = ui.Gradient.radial(
+          _glowAt,
+          r,
+          [
+            Color.fromRGBO(255, 226, 180, 0.07 * _glow),
+            Color.fromRGBO(221, 191, 136, 0.025 * _glow),
             const Color(0x00000000),
-          ], const [0, 0.45, 1]),
-      );
-    }
-    if (_sparks.isEmpty) return;
-    final line = Paint()
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 0.9
-      ..blendMode = BlendMode.plus;
-    final dot = Paint()..blendMode = BlendMode.plus;
-    for (final s in _sparks) {
-      final t = s.age / s.life;
-      // Quick bloom, slow fade.
-      final a = (t < 0.2 ? t / 0.2 : 1 - (t - 0.2) / 0.8).clamp(0.0, 1.0);
-      final c = Offset(s.x, s.y);
-      final color = Color.lerp(
-        const Color(0xFFDDBF88),
-        const Color(0xFFFFFFFF),
-        s.tint,
-      )!;
-      final len = s.size * (1.2 + a * 1.4);
-      line.color = color.withValues(alpha: a * 0.9);
-      canvas
-        ..drawLine(c.translate(-len, 0), c.translate(len, 0), line)
-        ..drawLine(c.translate(0, -len), c.translate(0, len), line);
-      dot.color = color.withValues(alpha: a);
-      canvas.drawCircle(c, s.size * 0.22, dot);
-    }
+          ],
+          const [0, 0.4, 1],
+        ),
+    );
   }
 }
 
-/// Full-bleed field of 3D diamonds of every cut drifting diagonally that
-/// light up and sparkle under touch. Pauses while scrolled off screen and
+/// Full-bleed field of 3D diamonds of every cut streaming diagonally that
+/// part around the finger, tumble when swept and catch its light. Pauses while scrolled off screen and
 /// honours reduced motion.
 ///
 /// Touches below [touchTopInset] are claimed eagerly so the page does not

@@ -8,8 +8,9 @@ import 'home_header.dart';
 
 /// Last section of home, one full screen tall: a dark field of live 3D
 /// diamonds in every cut drifting from the top-left to the bottom-right.
-/// Touch lights the stones under the finger so they flare and glint; the
-/// page does not scroll while touching the stones below the copy.
+/// The finger parts the stones like a body moving through them and lights
+/// them warm; the page does not scroll while touching the stones below the
+/// copy.
 class HomeGemStage extends StatelessWidget {
   const HomeGemStage({super.key});
 

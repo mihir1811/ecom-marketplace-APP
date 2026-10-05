@@ -74,20 +74,11 @@ class _LuxeShapePickerState extends State<LuxeShapePicker> {
               itemBuilder: (context, i) => tile(widget.shapes[i], 84),
             ),
           ),
-          secondChild: LayoutBuilder(
-            builder: (context, constraints) {
-              const gap = 8.0;
-              final columns = (constraints.maxWidth / 88).floor().clamp(3, 8);
-              // Floor so rounding never pushes the last tile onto a new row.
-              final w = ((constraints.maxWidth - gap * (columns - 1)) / columns)
-                  .floorToDouble();
-              return Wrap(
-                alignment: WrapAlignment.center,
-                spacing: gap,
-                runSpacing: gap,
-                children: [for (final s in widget.shapes) tile(s, w)],
-              );
-            },
+          secondChild: LuxeShapeGrid(
+            shapes: widget.shapes,
+            selected: widget.selected,
+            onToggle: widget.onToggle,
+            iconBuilder: widget.iconBuilder,
           ),
         ),
         const SizedBox(height: 6),
@@ -111,6 +102,50 @@ class _LuxeShapePickerState extends State<LuxeShapePicker> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Every shape as a centred grid of cards, sized to fill the row.
+class LuxeShapeGrid extends StatelessWidget {
+  const LuxeShapeGrid({
+    required this.shapes,
+    required this.selected,
+    required this.onToggle,
+    required this.iconBuilder,
+    super.key,
+  });
+
+  final List<LuxeShapeOption> shapes;
+  final List<String> selected;
+  final ValueChanged<String> onToggle;
+  final LuxeShapeIconBuilder iconBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 8.0;
+        final columns = (constraints.maxWidth / 88).floor().clamp(3, 8);
+        // Floor so rounding never pushes the last tile onto a new row.
+        final w = ((constraints.maxWidth - gap * (columns - 1)) / columns)
+            .floorToDouble();
+        return Wrap(
+          alignment: WrapAlignment.center,
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final s in shapes)
+              _ShapeTile(
+                shape: s,
+                width: w,
+                selected: selected.contains(s.value),
+                iconBuilder: iconBuilder,
+                onTap: () => onToggle(s.value),
+              ),
+          ],
+        );
+      },
     );
   }
 }

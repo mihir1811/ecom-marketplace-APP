@@ -79,10 +79,7 @@ class GemCamera {
 
   Offset project(double x, double y, double z) {
     final k = depthScale(z) * unit;
-    return Offset(
-      center.dx + (x - eyeX) * k,
-      center.dy - (y - eyeY) * k,
-    );
+    return Offset(center.dx + (x - eyeX) * k, center.dy - (y - eyeY) * k);
   }
 }
 
@@ -168,6 +165,8 @@ class GemBatch {
     double flash = 0,
     bool glint = true,
     double light = 0,
+    Offset lightFrom = Offset.zero,
+    Color lightColor = const Color(0xFFFFD39A),
     double phase = 0,
     bool flat = false,
   }) {
@@ -200,6 +199,15 @@ class GemBatch {
     final brilliance = look.brilliance * (1 + flash * 0.9 + lit * 1.5);
     final fireGain = look.fire * (0.75 + lit * 0.9);
     final ambient = 0.05 + lit * 0.06;
+    // Point light at the touch: [lightFrom] is the screen-space direction
+    // from the stone toward it, so facets turned to the finger glow warm.
+    var plx = lightFrom.dx, ply = -lightFrom.dy, plz = 0.55;
+    final pl = math.sqrt(plx * plx + ply * ply + plz * plz);
+    plx /= pl;
+    ply /= pl;
+    plz /= pl;
+    final warmR = lightColor.r * lit, warmG = lightColor.g * lit;
+    final warmB = lightColor.b * lit;
 
     var bestSpark = 0.0;
     var bestX = 0.0, bestY = 0.0, bestZ = 0.0;
@@ -213,10 +221,8 @@ class GemBatch {
       // Transform corners; cull against the view vector at corner 0.
       final b = t * 9;
       final wx0 = (m00 * v[b] + m01 * v[b + 1] + m02 * v[b + 2]) * s + pose.x;
-      final wy0 =
-          (m10 * v[b] + m11 * v[b + 1] + m12 * v[b + 2]) * s + pose.y;
-      final wz0 =
-          (m20 * v[b] + m21 * v[b + 1] + m22 * v[b + 2]) * s + pose.z;
+      final wy0 = (m10 * v[b] + m11 * v[b + 1] + m12 * v[b + 2]) * s + pose.y;
+      final wz0 = (m20 * v[b] + m21 * v[b + 1] + m22 * v[b + 2]) * s + pose.z;
       if (nx * (eyeX - wx0) + ny * (eyeY - wy0) + nz * (eyeZ - wz0) <= 0) {
         continue;
       }
@@ -281,7 +287,8 @@ class GemBatch {
         final internal = kind == GemFacetKind.pavilion
             ? 0.55 + 0.45 * math.sin(seed * 12 + time * 0.8 + ry * 3)
             : 1.0;
-        final env = (key32 * 2.2 + key8 * 0.35) * internal +
+        final env =
+            (key32 * 2.2 + key8 * 0.35) * internal +
             fill4 * 0.4 +
             rim8 * 0.9 +
             ambient +
@@ -295,6 +302,15 @@ class GemBatch {
         var r = bodyR * shade + lightR * lum;
         var g = bodyG * shade + lightG * lum;
         var bl = bodyB * shade + lightB * lum;
+        if (lit > 0) {
+          final face = math.max(0.0, nx * plx + ny * ply + nz * plz);
+          final hit = math.max(0.0, rx * plx + ry * ply + rz * plz);
+          final hit4 = hit * hit * hit * hit;
+          final warm = 0.12 + face * 0.5 + hit4 * hit4 * 1.4;
+          r += warmR * warm;
+          g += warmG * warm;
+          bl += warmB * warm;
+        }
 
         // Dispersion: a hue that drifts with the reflection direction.
         final fireAmt = fireGain * math.min(1.0, key8 * 1.6);
@@ -309,7 +325,8 @@ class GemBatch {
         g = g * keep + fogG * (1 - keep);
         bl = bl * keep + fogB * (1 - keep);
 
-        color = 0xFF000000 |
+        color =
+            0xFF000000 |
             ((r.clamp(0.0, 1.0) * 255).round() << 16) |
             ((g.clamp(0.0, 1.0) * 255).round() << 8) |
             (bl.clamp(0.0, 1.0) * 255).round();
@@ -367,7 +384,8 @@ abstract final class GemGlintSprite {
         Color(0x00FFF4E2),
       ]);
     canvas.drawCircle(c, size * 0.16, core);
-    final ray = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.6);
+    final ray = Paint()
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.6);
     for (final vertical in [false, true]) {
       ray.shader = ui.Gradient.linear(
         vertical ? const Offset(size / 2, 0) : const Offset(0, size / 2),

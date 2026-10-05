@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../../core/widgets/luxe/luxe_wheel.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -193,7 +194,6 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
                       painter: _LoupePainter(
                         rotation: _page() * math.pi / 10,
                         color: p.accent,
-                        plate: p.surface,
                         hairline: isSelected ? p.accent : p.hairline,
                       ),
                     ),
@@ -206,6 +206,7 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
                   },
                   child: PageView.builder(
                     controller: _controller,
+                    clipBehavior: Clip.none,
                     itemCount: _brands.length * _loops,
                     onPageChanged: (i) {
                       AppHaptics.selection();
@@ -316,8 +317,8 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
   }
 }
 
-/// One watch in the coverflow: scales, tilts and fades with its distance
-/// from the centre, like the home shape atelier.
+/// One watch on the [LuxeWheel]: neighbours sink along the arc and lean
+/// outward, like the shape dials.
 class _BrandWatchItem extends StatelessWidget {
   const _BrandWatchItem({
     required this.controller,
@@ -341,28 +342,10 @@ class _BrandWatchItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     final flagship = WatchFlagship.of(brand);
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        final page = controller.hasClients && controller.position.haveDimensions
-            ? controller.page ?? fallbackPage
-            : fallbackPage;
-        final d = page - index;
-        final ad = d.abs().clamp(0.0, 2.0);
-        final m = Matrix4.identity()
-          ..setEntry(3, 2, 0.0015)
-          ..translateByDouble(0.0, ad * 18, 0.0, 1.0)
-          ..rotateY(d.clamp(-1.0, 1.0) * 0.6)
-          ..scaleByDouble(1 - ad * 0.3, 1 - ad * 0.3, 1.0, 1.0);
-        return Opacity(
-          opacity: (1 - ad * 0.38).clamp(0.0, 1.0),
-          child: Transform(
-            alignment: Alignment.center,
-            transform: m,
-            child: child,
-          ),
-        );
-      },
+    return LuxeWheelItem(
+      controller: controller,
+      index: index,
+      fallbackPage: fallbackPage,
       child: Semantics(
         button: true,
         selected: selected,
@@ -383,11 +366,7 @@ class _BrandWatchItem extends StatelessWidget {
                   alignment: Alignment.center,
                   children: [
                     if (flagship != null)
-                      WatchDial(
-                        style: flagship.style,
-                        clock: clock,
-                        size: size,
-                      )
+                      WatchDial(style: flagship.style, clock: clock, size: size)
                     else
                       Text(
                         brand,
@@ -428,34 +407,23 @@ class _BrandWatchItem extends StatelessWidget {
   }
 }
 
-/// Jeweller's-loupe dial: a plate with a ring of fine graduations
-/// (same treatment as the home shape atelier).
+/// Jeweller's-loupe ring of fine graduations, no plate (same treatment as
+/// the shape dials).
 class _LoupePainter extends CustomPainter {
   _LoupePainter({
     required this.rotation,
     required this.color,
-    required this.plate,
     required this.hairline,
   });
 
   final double rotation;
   final Color color;
-  final Color plate;
   final Color hairline;
 
   @override
   void paint(Canvas canvas, Size size) {
     final c = size.center(Offset.zero);
     final r = size.width / 2;
-    canvas.drawCircle(
-      c,
-      r - 14,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [plate, plate.withValues(alpha: 0)],
-          stops: const [0.55, 1],
-        ).createShader(Rect.fromCircle(center: c, radius: r - 14)),
-    );
     canvas.drawCircle(
       c,
       r - 2,
@@ -484,7 +452,6 @@ class _LoupePainter extends CustomPainter {
   bool shouldRepaint(_LoupePainter old) =>
       old.rotation != rotation ||
       old.color != color ||
-      old.plate != plate ||
       old.hairline != hairline;
 }
 

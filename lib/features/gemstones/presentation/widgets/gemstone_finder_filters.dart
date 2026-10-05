@@ -11,6 +11,7 @@ import '../../../../core/widgets/filters/filter_section_header.dart';
 import '../../../../core/widgets/filters/melee_range_filters.dart';
 import '../../../../core/widgets/luxe/luxe_chip_group.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../../core/widgets/luxe/luxe_shape_dial.dart';
 import '../../../../core/widgets/luxe/luxe_shape_picker.dart';
 import '../../../diamonds/presentation/widgets/diamond_shape_picker.dart'
     show shapeOutlineIcon, shapePhotoFor;
@@ -106,7 +107,7 @@ class GemstoneTypeFilters extends ConsumerWidget {
           style: LuxeType.eyebrow(p.inkMuted),
         ),
         const SizedBox(height: 10),
-        LuxeShapePicker(
+        LuxeShapeDialPicker(
           shapes: [
             for (final name in kFeaturedGemstones)
               LuxeShapeOption(
@@ -119,8 +120,10 @@ class GemstoneTypeFilters extends ConsumerWidget {
           onToggle: notifier.toggleGemstoneType,
           iconBuilder: (value, _, size) =>
               GemstoneHueOrb(hue: gemstoneHue(value), size: size + 8),
-          expandLabel: context.tr(CatalogL10n.viewMore),
-          collapseLabel: context.tr(CatalogL10n.viewLess),
+          selectLabel: (gem) =>
+              context.tr(DiamondFlowL10n.selectShape, {'shape': gem}),
+          selectedLabel: (gem) =>
+              context.tr(DiamondFlowL10n.shapeSelected, {'shape': gem}),
         ),
         const SizedBox(height: 14),
         LuxeChipGroup(
@@ -204,7 +207,7 @@ class GemstoneHueOrb extends StatelessWidget {
   }
 }
 
-/// Gemstone shapes on the shared [LuxeShapePicker], drawn with the closest
+/// Gemstone shapes on the shared [LuxeShapeDialPicker], drawn with the closest
 /// diamond shape artwork.
 class GemstoneShapePicker extends ConsumerWidget {
   const GemstoneShapePicker({super.key});
@@ -215,7 +218,7 @@ class GemstoneShapePicker extends ConsumerWidget {
       gemstoneSearchProvider.select((s) => s.selectedShapes),
     );
     const art = GemstoneFilterState.shapeSvgNames;
-    return LuxeShapePicker(
+    return LuxeShapeDialPicker(
       shapes: [
         for (final name in GemstoneFilterState.shapes)
           LuxeShapeOption(
@@ -228,6 +231,10 @@ class GemstoneShapePicker extends ConsumerWidget {
       onToggle: ref.read(gemstoneSearchProvider.notifier).toggleShape,
       iconBuilder: (value, color, size) =>
           shapeOutlineIcon(art[value] ?? value, color, size),
+      selectLabel: (shape) =>
+          context.tr(DiamondFlowL10n.selectShape, {'shape': shape}),
+      selectedLabel: (shape) =>
+          context.tr(DiamondFlowL10n.shapeSelected, {'shape': shape}),
       expandLabel: context.tr(DiamondFlowL10n.allShapes),
       collapseLabel: context.tr(DiamondFlowL10n.fewerShapes),
     );
