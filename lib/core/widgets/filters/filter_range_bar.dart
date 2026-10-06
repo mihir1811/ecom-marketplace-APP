@@ -6,7 +6,7 @@ import '../../haptics/app_haptics.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 
-/// Two-thumb drag bar that sits under a min / max field pair.
+/// Two-thumb drag bar that sits above a min / max field pair.
 ///
 /// Spans wider than [_curveThreshold] (prices, piece counts) use a quadratic
 /// scale so the low end, where most searches happen, gets most of the track.

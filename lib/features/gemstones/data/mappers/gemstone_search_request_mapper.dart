@@ -47,9 +47,15 @@ abstract final class GemstoneSearchRequestMapper {
     );
     _putStringList(body, 'fluorescence', filters.selectedFluorescence);
 
-    final origin = filters.selectedOrigin ?? filters.selectedOriginCountry;
-    if (!isLab && origin != null && origin.trim().isNotEmpty) {
-      body['origins'] = [_mapOrigin(origin.trim())];
+    if (!isLab) {
+      final origins = {
+        for (final o in [
+          ?filters.selectedOrigin,
+          ...filters.selectedOriginCountries,
+        ])
+          if (o.trim().isNotEmpty) _mapOrigin(o.trim()),
+      };
+      _putStringList(body, 'origins', origins.toList());
     }
 
     final grade = filters.selectedQualityGrade;
@@ -66,6 +72,8 @@ abstract final class GemstoneSearchRequestMapper {
 
     _putStringList(body, 'companies', filters.companyNames);
     _putStringList(body, 'locations', filters.vendorLocations);
+    _putStringList(body, 'exclude_companies', filters.excludedCompanyNames);
+    _putStringList(body, 'exclude_locations', filters.excludedVendorLocations);
 
     if (isMelee) {
       _putRange(
@@ -169,8 +177,13 @@ abstract final class GemstoneSearchRequestMapper {
 
     if (filters.searchByMedia) body['has_image'] = true;
     if (filters.makeAnOffer) body['is_make_an_offer_allowed'] = true;
-    final availability = _mapAvailability(filters.selectedAvailability);
-    if (availability != null) body['available'] = availability;
+    // `available` takes a single status, so it is only sent when exactly
+    // one is picked; several statuses fall back to no availability filter.
+    final statuses = filters.selectedAvailabilities
+        .map(_mapAvailability)
+        .whereType<String>()
+        .toSet();
+    if (statuses.length == 1) body['available'] = statuses.single;
 
     return body;
   }
@@ -194,7 +207,9 @@ abstract final class GemstoneSearchRequestMapper {
 
   static List<String> _gemTypes(GemstoneFilterState filters) {
     final types = <String>{
-      ...filters.selectedGemstoneTypes.map((t) => t.trim()).where((t) => t.isNotEmpty),
+      ...filters.selectedGemstoneTypes
+          .map((t) => t.trim())
+          .where((t) => t.isNotEmpty),
     };
     for (final month in filters.selectedBirthstoneMonths) {
       final stone = GemstoneFilterState.birthstones[month];
@@ -225,8 +240,10 @@ abstract final class GemstoneSearchRequestMapper {
     final v = value.trim();
     return switch (v.toLowerCase()) {
       'gübelin' || 'gubelin' => 'Gubelin',
-      'others' || 'other' || 'non-certified' || 'non certified' =>
-        'Non-certified',
+      'others' ||
+      'other' ||
+      'non-certified' ||
+      'non certified' => 'Non-certified',
       _ => v,
     };
   }
@@ -236,8 +253,10 @@ abstract final class GemstoneSearchRequestMapper {
     String key,
     List<String> values,
   ) {
-    final cleaned =
-        values.map((v) => v.trim()).where((v) => v.isNotEmpty).toList();
+    final cleaned = values
+        .map((v) => v.trim())
+        .where((v) => v.isNotEmpty)
+        .toList();
     if (cleaned.isEmpty) return;
     body[key] = cleaned;
   }

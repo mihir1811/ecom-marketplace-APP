@@ -25,7 +25,7 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
       state = state.copyWith(
         stoneType: next,
         selectedOrigin: null,
-        selectedOriginCountry: null,
+        selectedOriginCountries: const [],
       );
     } else {
       state = state.copyWith(stoneType: next);
@@ -37,7 +37,8 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
     var colors = state.selectedColors;
     if (next == 'Melee' && colors.contains('Multi')) {
       colors = List<String>.unmodifiable([
-        for (final c in colors) if (c != 'Multi') c,
+        for (final c in colors)
+          if (c != 'Multi') c,
         if (!colors.contains('Other')) 'Other',
       ]);
     }
@@ -179,8 +180,9 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
 
   void updateFluorescenceColor(String? color) {
     state = state.copyWith(
-      selectedFluorescenceColor:
-          state.selectedFluorescenceColor == color ? null : color,
+      selectedFluorescenceColor: state.selectedFluorescenceColor == color
+          ? null
+          : color,
     );
   }
 
@@ -204,9 +206,10 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
     state = state.copyWith(searchByMedia: !state.searchByMedia);
   }
 
-  void updateAvailability(String? value) {
-    final next = (value == null || value.trim().isEmpty) ? 'All' : value.trim();
-    state = state.copyWith(selectedAvailability: next);
+  void setAvailabilities(List<String> values) {
+    state = state.copyWith(
+      selectedAvailabilities: List<String>.unmodifiable(values),
+    );
   }
 
   void toggleMakeAnOffer() {
@@ -235,48 +238,78 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
     );
   }
 
-  void addVendorLocation(String location) {
-    final loc = location.trim();
+  /// Adds a location to the include list, or to the exclude list when
+  /// [exclude] is set. A location lives in at most one of the two lists.
+  void addVendorLocation(String value, {bool exclude = false}) {
+    final loc = value.trim();
     if (loc.isEmpty) return;
-    final exists = state.vendorLocations.any(
-      (item) => item.toLowerCase() == loc.toLowerCase(),
+    final (include, excluded) = _addToSide(
+      loc,
+      include: state.vendorLocations,
+      exclude: state.excludedVendorLocations,
+      toExclude: exclude,
     );
-    if (exists) return;
     state = state.copyWith(
-      vendorLocations: List<String>.unmodifiable([...state.vendorLocations, loc]),
+      vendorLocations: include,
+      excludedVendorLocations: excluded,
     );
   }
 
-  void removeVendorLocation(String location) {
+  void removeVendorLocation(String value) {
     state = state.copyWith(
-      vendorLocations: List<String>.unmodifiable(
-        state.vendorLocations.where((item) => item != location),
-      ),
+      vendorLocations: _without(state.vendorLocations, value),
+      excludedVendorLocations: _without(state.excludedVendorLocations, value),
     );
   }
 
-  void addCompanyName(String name) {
-    final value = name.trim();
-    if (value.isEmpty) return;
-    final exists = state.companyNames.any(
-      (item) => item.toLowerCase() == value.toLowerCase(),
+  /// Company counterpart of [addVendorLocation].
+  void addCompanyName(String value, {bool exclude = false}) {
+    final name = value.trim();
+    if (name.isEmpty) return;
+    final (include, excluded) = _addToSide(
+      name,
+      include: state.companyNames,
+      exclude: state.excludedCompanyNames,
+      toExclude: exclude,
     );
-    if (exists) return;
     state = state.copyWith(
-      companyNames: List<String>.unmodifiable([...state.companyNames, value]),
+      companyNames: include,
+      excludedCompanyNames: excluded,
     );
   }
 
-  void removeCompanyName(String name) {
+  void removeCompanyName(String value) {
     state = state.copyWith(
-      companyNames: List<String>.unmodifiable(
-        state.companyNames.where((item) => item != name),
-      ),
+      companyNames: _without(state.companyNames, value),
+      excludedCompanyNames: _without(state.excludedCompanyNames, value),
     );
   }
 
-  void updateOriginCountry(String? country) {
-    state = state.copyWith(selectedOriginCountry: country);
+  static List<String> _without(List<String> list, String value) =>
+      List<String>.unmodifiable(list.where((item) => item != value));
+
+  /// Puts [value] on the requested side, dropping any case-insensitive
+  /// duplicate from either side first.
+  static (List<String>, List<String>) _addToSide(
+    String value, {
+    required List<String> include,
+    required List<String> exclude,
+    required bool toExclude,
+  }) {
+    bool same(String item) => item.toLowerCase() == value.toLowerCase();
+    final nextInclude = [...include.where((i) => !same(i))];
+    final nextExclude = [...exclude.where((i) => !same(i))];
+    (toExclude ? nextExclude : nextInclude).add(value);
+    return (
+      List<String>.unmodifiable(nextInclude),
+      List<String>.unmodifiable(nextExclude),
+    );
+  }
+
+  void setOriginCountries(List<String> countries) {
+    state = state.copyWith(
+      selectedOriginCountries: List<String>.unmodifiable(countries),
+    );
   }
 
   void updateLengthRange(double min, double max) {
@@ -296,10 +329,7 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
   }
 
   void reset() {
-    state = const GemstoneFilterState(
-      stoneType: 'Natural',
-      lotType: 'Single',
-    );
+    state = const GemstoneFilterState(stoneType: 'Natural', lotType: 'Single');
   }
 
   /// Replaces the full filter snapshot (e.g. Gem AI “See more”).
@@ -311,8 +341,8 @@ class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
 /// Global provider for accessing and modifying the gemstone search criteria state.
 final gemstoneSearchProvider =
     NotifierProvider<GemstoneSearchNotifier, GemstoneFilterState>(
-  GemstoneSearchNotifier.new,
-);
+      GemstoneSearchNotifier.new,
+    );
 
 /// Derived provider that estimates matching gemstone count from filter state.
 final matchingGemstoneCountProvider = Provider<int>((ref) {
@@ -326,8 +356,10 @@ final matchingGemstoneCountProvider = Provider<int>((ref) {
     multiplier *= (state.selectedGemstoneTypes.length * 0.08).clamp(0.08, 1.0);
   }
   if (state.selectedBirthstoneMonths.isNotEmpty) {
-    multiplier *=
-        (state.selectedBirthstoneMonths.length / 12.0).clamp(0.10, 1.0);
+    multiplier *= (state.selectedBirthstoneMonths.length / 12.0).clamp(
+      0.10,
+      1.0,
+    );
   }
   if (state.selectedShapes.isNotEmpty) {
     multiplier *= (state.selectedShapes.length * 0.12).clamp(0.12, 1.0);
@@ -337,8 +369,10 @@ final matchingGemstoneCountProvider = Provider<int>((ref) {
   multiplier *= (caratSpan / GemstoneFilterState.caratMax).clamp(0.02, 1.0);
 
   final priceSpan = state.maxTotalPrice - state.minTotalPrice;
-  multiplier *=
-      (priceSpan / GemstoneFilterState.totalPriceMax).clamp(0.02, 1.0);
+  multiplier *= (priceSpan / GemstoneFilterState.totalPriceMax).clamp(
+    0.02,
+    1.0,
+  );
 
   if (state.selectedColors.isNotEmpty) {
     multiplier *= (state.selectedColors.length / 11.0).clamp(0.10, 1.0);
@@ -372,9 +406,12 @@ final matchingGemstoneCountProvider = Provider<int>((ref) {
     multiplier *= (state.selectedCutGrades.length / 5.0).clamp(0.25, 1.0);
   }
   if (state.searchByMedia) multiplier *= 0.60;
-    if (state.vendorLocations.isNotEmpty) multiplier *= 0.70;
-    if (state.companyNames.isNotEmpty) multiplier *= 0.75;
-  if (state.selectedOriginCountry != null) multiplier *= 0.65;
+  if (state.vendorLocations.isNotEmpty) multiplier *= 0.70;
+  if (state.companyNames.isNotEmpty) multiplier *= 0.75;
+  if (state.excludedVendorLocations.isNotEmpty) multiplier *= 0.90;
+  if (state.excludedCompanyNames.isNotEmpty) multiplier *= 0.90;
+  if (state.selectedOriginCountries.isNotEmpty) multiplier *= 0.65;
+  if (state.selectedAvailabilities.isNotEmpty) multiplier *= 0.70;
 
   return (86300 * multiplier).round().clamp(0, 86300);
 });

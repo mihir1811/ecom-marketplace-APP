@@ -161,7 +161,26 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
+        FilterRangeBar(
+          min: widget.currentMin,
+          max: widget.currentMax,
+          minLimit: widget.minLimit,
+          maxLimit: widget.maxLimit,
+          fractionDigits: widget.maxLimit - widget.minLimit <= 10 ? 2 : 1,
+          unitSuffix: widget.unit.isEmpty
+              ? ''
+              : (widget.unit == '%' || widget.unit == '°'
+                    ? widget.unit
+                    : ' ${widget.unit}'),
+          onDragUpdate: _mirrorDrag,
+          // Only one thumb moves per drag, so exactly one side changes.
+          onChangeEnd: (min, max) {
+            if (min != widget.currentMin) widget.onMinChanged(min);
+            if (max != widget.currentMax) widget.onMaxChanged(max);
+          },
+        ),
+        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
@@ -272,25 +291,6 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 2),
-        FilterRangeBar(
-          min: widget.currentMin,
-          max: widget.currentMax,
-          minLimit: widget.minLimit,
-          maxLimit: widget.maxLimit,
-          fractionDigits: widget.maxLimit - widget.minLimit <= 10 ? 2 : 1,
-          unitSuffix: widget.unit.isEmpty
-              ? ''
-              : (widget.unit == '%' || widget.unit == '°'
-                    ? widget.unit
-                    : ' ${widget.unit}'),
-          onDragUpdate: _mirrorDrag,
-          // Only one thumb moves per drag, so exactly one side changes.
-          onChangeEnd: (min, max) {
-            if (min != widget.currentMin) widget.onMinChanged(min);
-            if (max != widget.currentMax) widget.onMaxChanged(max);
-          },
         ),
       ],
     );

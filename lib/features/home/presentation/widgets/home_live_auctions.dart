@@ -48,7 +48,7 @@ class HomeLiveAuctions extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: gutter - 10),
+              padding: EdgeInsets.symmetric(horizontal: gutter),
               child: HomeSectionHeading(
                 index: '02',
                 leading: const _LivePulse(),
@@ -70,7 +70,7 @@ class HomeLiveAuctions extends ConsumerWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(gutter - 10, 4, gutter - 10, 18),
+                padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 18),
                 itemCount: loading ? 3 : live.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, i) => SizedBox(
@@ -92,9 +92,9 @@ class HomeLiveAuctions extends ConsumerWidget {
 }
 
 /// Warm honey-amber stage behind the live auctions so the rail reads as
-/// its own component on the cream page: an apricot-to-caramel wash, a soft
-/// glow in the top corner and faint loupe rings (cognac and ember in dark
-/// mode). Inset with rounded corners like a display case.
+/// its own component on the cream page: a full-width apricot-to-caramel
+/// wash with a soft glow in the top corner and faint loupe rings (cognac
+/// and ember in dark mode).
 class _AuctionBand extends StatelessWidget {
   const _AuctionBand({required this.child});
 
@@ -103,31 +103,12 @@ class _AuctionBand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = HomePalette.of(context).isDark;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          border: Border.all(
-            color: dark ? const Color(0x40D9BB84) : const Color(0x59B07A45),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: dark ? const Color(0x66000000) : const Color(0x297A4A1E),
-              blurRadius: 30,
-              offset: const Offset(0, 14),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
-          child: CustomPaint(
-            painter: _BandPainter(dark: dark),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 30, bottom: 22),
-              child: child,
-            ),
-          ),
+    return ClipRect(
+      child: CustomPaint(
+        painter: _BandPainter(dark: dark),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 30, bottom: 22),
+          child: child,
         ),
       ),
     );

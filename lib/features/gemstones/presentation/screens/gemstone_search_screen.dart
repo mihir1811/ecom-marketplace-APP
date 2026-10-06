@@ -11,10 +11,11 @@ import '../../../../core/widgets/catalog_search_filter_shell.dart';
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
 import '../../../../core/widgets/filters/catalog_search_add_field.dart';
+import '../../../../core/widgets/filters/filter_section_header.dart';
+import '../../../../core/widgets/luxe/luxe_multi_select_field.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_finder.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
-import '../../../diamonds/presentation/widgets/filter_origin_dropdown.dart';
 import '../../application/gemstone_list_provider.dart';
 import '../../application/gemstone_search_provider.dart';
 import '../../domain/models/gemstone_filter_state.dart';
@@ -50,6 +51,10 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
 
   final _companyController = TextEditingController();
   final _locationController = TextEditingController();
+
+  /// Whether the company / location fields currently add exclusions.
+  bool _excludeCompany = false;
+  bool _excludeLocation = false;
 
   @override
   void initState() {
@@ -88,11 +93,11 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     final company = _companyController.text.trim();
     final location = _locationController.text.trim();
     if (company.isNotEmpty) {
-      notifier.addCompanyName(company);
+      notifier.addCompanyName(company, exclude: _excludeCompany);
       _companyController.clear();
     }
     if (location.isNotEmpty) {
-      notifier.addVendorLocation(location);
+      notifier.addVendorLocation(location, exclude: _excludeLocation);
       _locationController.clear();
     }
   }
@@ -122,10 +127,14 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
   Widget build(BuildContext context) {
     // Keep text fields in sync when filters are reset from the results screen.
     ref.listen<GemstoneFilterState>(gemstoneSearchProvider, (previous, next) {
-      if (next.companyNames.isEmpty && _companyController.text.isNotEmpty) {
+      if (next.companyNames.isEmpty &&
+          next.excludedCompanyNames.isEmpty &&
+          _companyController.text.isNotEmpty) {
         _companyController.clear();
       }
-      if (next.vendorLocations.isEmpty && _locationController.text.isNotEmpty) {
+      if (next.vendorLocations.isEmpty &&
+          next.excludedVendorLocations.isEmpty &&
+          _locationController.text.isNotEmpty) {
         _locationController.clear();
       }
     });
@@ -272,36 +281,66 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     final notifier = ref.read(gemstoneSearchProvider.notifier);
     final isLab = (state.stoneType ?? '').toLowerCase().contains('lab');
 
+    final includeExcludeHelp = context.tr(CatalogL10n.includeExcludeHelp);
     return CatalogPreferencesFilters(
       locationField: CatalogSearchAddField(
         title: context.tr(CatalogL10n.vendorLocation),
         infoText:
-            'Search for gemstones located in a specific city, state, or region.',
+            'Search for gemstones located in a specific city, state, or region. '
+            '$includeExcludeHelp',
         hintText: context.tr(CatalogL10n.searchLocation),
+        excludeHintText: context.tr(CatalogL10n.excludeLocationHint),
         controller: _locationController,
         clearOnAdd: true,
         values: state.vendorLocations,
+        excludedValues: state.excludedVendorLocations,
         onAdd: notifier.addVendorLocation,
+        onAddExcluded: (v) => notifier.addVendorLocation(v, exclude: true),
         onRemove: notifier.removeVendorLocation,
+        excludeMode: _excludeLocation,
+        onExcludeModeChanged: (v) => setState(() => _excludeLocation = v),
       ),
       originDropdown: isLab
           ? null
-          : FilterOriginDropdown(
-              useDiamondOriginHelp: false,
-              options: GemstoneFilterState.origins,
-              flags: GemstoneFilterState.originFlags,
-              selectedOrigin: state.selectedOriginCountry,
-              onSelected: notifier.updateOriginCountry,
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FilterSectionHeader(
+                  title: context.tr(CatalogL10n.originCountry),
+                  infoText: context.tr(CatalogL10n.originCountryHelp),
+                ),
+                const SizedBox(height: 8),
+                LuxeMultiSelectField(
+                  options: GemstoneFilterState.origins,
+                  selected: state.selectedOriginCountries,
+                  onChanged: notifier.setOriginCountries,
+                  hint: context.tr(CatalogL10n.selectOriginCountries),
+                  sheetTitle: context.tr(CatalogL10n.originCountry),
+                  searchHint: context.tr(CatalogL10n.searchCountries),
+                  leadingOf: (c) {
+                    final flag = GemstoneFilterState.originFlags[c];
+                    return flag == null
+                        ? null
+                        : Text(flag, style: const TextStyle(fontSize: 18));
+                  },
+                ),
+              ],
             ),
       companyField: CatalogSearchAddField(
         title: context.tr(CatalogL10n.companyName),
-        infoText: context.tr(CatalogL10n.gemstoneCompanyHelp),
+        infoText:
+            '${context.tr(CatalogL10n.gemstoneCompanyHelp)} $includeExcludeHelp',
         hintText: context.tr(CatalogL10n.searchCompany),
+        excludeHintText: context.tr(CatalogL10n.excludeCompanyHint),
         controller: _companyController,
         clearOnAdd: true,
         values: state.companyNames,
+        excludedValues: state.excludedCompanyNames,
         onAdd: notifier.addCompanyName,
+        onAddExcluded: (v) => notifier.addCompanyName(v, exclude: true),
         onRemove: notifier.removeCompanyName,
+        excludeMode: _excludeCompany,
+        onExcludeModeChanged: (v) => setState(() => _excludeCompany = v),
       ),
     );
   }

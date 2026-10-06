@@ -12,6 +12,7 @@ import '../../../../core/widgets/filters/filter_section_header.dart';
 import '../../../../core/widgets/filters/melee_range_filters.dart';
 import '../../../../core/widgets/luxe/luxe_chip_group.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../../core/widgets/luxe/luxe_multi_select_field.dart';
 import '../../../../core/widgets/luxe/luxe_shape_dial.dart';
 import '../../../../core/widgets/luxe/luxe_shape_picker.dart';
 import '../../application/gemstone_search_provider.dart';
@@ -367,10 +368,15 @@ class GemstoneListingOptionsFilters extends ConsumerWidget {
           onChanged: (_) => notifier.toggleMakeAnOffer(),
         ),
         const SizedBox(height: 16),
-        CatalogAvailabilityFilter(
-          value: state.selectedAvailability,
+        FilterSectionHeader(title: context.tr(CatalogL10n.availability)),
+        const SizedBox(height: 8),
+        LuxeMultiSelectField(
           options: GemstoneFilterState.availabilityOptions,
-          onChanged: notifier.updateAvailability,
+          selected: state.selectedAvailabilities,
+          onChanged: notifier.setAvailabilities,
+          hint: context.tr(CatalogL10n.selectAvailability),
+          sheetTitle: context.tr(CatalogL10n.availability),
+          labelOf: (o) => catalogAvailabilityLabel(context, o),
         ),
       ],
     );

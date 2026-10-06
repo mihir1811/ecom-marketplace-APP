@@ -208,6 +208,18 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
               ),
           ],
         ),
+        const SizedBox(height: AppSpacing.s4),
+        FilterRangeBar(
+          min: widget.currentMin,
+          max: widget.currentMax,
+          minLimit: widget.minLimit,
+          maxLimit: widget.maxLimit,
+          isInteger: widget.isInteger,
+          unitPrefix: widget.unitPrefix,
+          unitSuffix: widget.unitSuffix,
+          onChangeEnd: widget.onChanged,
+          onDragUpdate: widget.syncInputsWhileDragging ? _mirrorDrag : null,
+        ),
         const SizedBox(height: AppSpacing.s12),
 
         // Manual Text inputs side by side
@@ -363,18 +375,6 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
               ),
             ),
           ],
-        ),
-        const SizedBox(height: AppSpacing.s4),
-        FilterRangeBar(
-          min: widget.currentMin,
-          max: widget.currentMax,
-          minLimit: widget.minLimit,
-          maxLimit: widget.maxLimit,
-          isInteger: widget.isInteger,
-          unitPrefix: widget.unitPrefix,
-          unitSuffix: widget.unitSuffix,
-          onChangeEnd: widget.onChanged,
-          onDragUpdate: widget.syncInputsWhileDragging ? _mirrorDrag : null,
         ),
       ],
     );

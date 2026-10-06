@@ -77,11 +77,13 @@ class GemstoneFilterSummary {
           flag(s.separable) +
           flag(s.searchByMedia) +
           flag(s.makeAnOffer) +
-          flag(s.selectedAvailability != d.selectedAvailability),
+          s.selectedAvailabilities.length,
       GemstoneFinderSection.seller:
           s.vendorLocations.length +
           s.companyNames.length +
-          flag(s.selectedOriginCountry != null) +
+          s.excludedVendorLocations.length +
+          s.excludedCompanyNames.length +
+          s.selectedOriginCountries.length +
           flag(s.selectedOrigin != null),
       GemstoneFinderSection.measurements:
           range(s.minLength, s.maxLength, d.minLength, d.maxLength) +

@@ -85,8 +85,10 @@ class GemstoneFilterState {
     'Zoisite',
   ];
 
-  static List<String> get allGemstoneTypes =>
-      [...primaryGemstoneTypes, ...extendedGemstoneTypes];
+  static List<String> get allGemstoneTypes => [
+    ...primaryGemstoneTypes,
+    ...extendedGemstoneTypes,
+  ];
 
   /// Month -> birthstone mapping displayed in the Birthstones grid.
   static const Map<String, String> birthstones = {
@@ -145,7 +147,10 @@ class GemstoneFilterState {
   /// Color swatches for the UI. Melee hides `Multi` (use `Other` instead).
   static List<String> colorsForDisplay({required bool isMelee}) {
     if (!isMelee) return colors;
-    return [for (final color in colors) if (color != 'Multi') color];
+    return [
+      for (final color in colors)
+        if (color != 'Multi') color,
+    ];
   }
 
   static const List<String> colorIntensities = [
@@ -224,9 +229,8 @@ class GemstoneFilterState {
     'Waxing',
   ];
 
-  /// Availability dropdown options. `'All'` means no filter.
+  /// Availability options (UI labels); none selected means no filter.
   static const List<String> availabilityOptions = [
-    'All',
     'Available',
     'On Memo',
     'On Hold',
@@ -351,7 +355,7 @@ class GemstoneFilterState {
     this.selectedQualityGrade,
     this.separable = false,
     this.searchByMedia = false,
-    this.selectedAvailability = 'All',
+    this.selectedAvailabilities = const [],
     this.makeAnOffer = false,
     this.selectedTreatments = const [],
     this.selectedCertifications = const [],
@@ -359,7 +363,9 @@ class GemstoneFilterState {
     this.selectedCutGrades = const [],
     this.vendorLocations = const [],
     this.companyNames = const [],
-    this.selectedOriginCountry,
+    this.excludedCompanyNames = const [],
+    this.excludedVendorLocations = const [],
+    this.selectedOriginCountries = const [],
     this.minLength = dimensionMin,
     this.maxLength = dimensionMax,
     this.minWidth = dimensionMin,
@@ -397,7 +403,9 @@ class GemstoneFilterState {
   final String? selectedQualityGrade;
   final bool separable;
   final bool searchByMedia;
-  final String selectedAvailability;
+
+  /// Availability labels from [availabilityOptions].
+  final List<String> selectedAvailabilities;
   final bool makeAnOffer;
   final List<String> selectedTreatments;
   final List<String> selectedCertifications;
@@ -405,7 +413,11 @@ class GemstoneFilterState {
   final List<String> selectedCutGrades;
   final List<String> vendorLocations;
   final List<String> companyNames;
-  final String? selectedOriginCountry;
+
+  /// Companies and locations hidden from results.
+  final List<String> excludedCompanyNames;
+  final List<String> excludedVendorLocations;
+  final List<String> selectedOriginCountries;
   final double minLength;
   final double maxLength;
   final double minWidth;
@@ -445,7 +457,7 @@ class GemstoneFilterState {
     Object? selectedQualityGrade = _unset,
     bool? separable,
     bool? searchByMedia,
-    String? selectedAvailability,
+    List<String>? selectedAvailabilities,
     bool? makeAnOffer,
     List<String>? selectedTreatments,
     List<String>? selectedCertifications,
@@ -453,7 +465,9 @@ class GemstoneFilterState {
     List<String>? selectedCutGrades,
     List<String>? vendorLocations,
     List<String>? companyNames,
-    Object? selectedOriginCountry = _unset,
+    List<String>? excludedCompanyNames,
+    List<String>? excludedVendorLocations,
+    List<String>? selectedOriginCountries,
     double? minLength,
     double? maxLength,
     double? minWidth,
@@ -464,8 +478,9 @@ class GemstoneFilterState {
     double? maxRatio,
   }) {
     return GemstoneFilterState(
-      stoneType:
-          identical(stoneType, _unset) ? this.stoneType : stoneType as String?,
+      stoneType: identical(stoneType, _unset)
+          ? this.stoneType
+          : stoneType as String?,
       lotType: identical(lotType, _unset) ? this.lotType : lotType as String?,
       selectedGemstoneTypes:
           selectedGemstoneTypes ?? this.selectedGemstoneTypes,
@@ -499,7 +514,8 @@ class GemstoneFilterState {
           : selectedQualityGrade as String?,
       separable: separable ?? this.separable,
       searchByMedia: searchByMedia ?? this.searchByMedia,
-      selectedAvailability: selectedAvailability ?? this.selectedAvailability,
+      selectedAvailabilities:
+          selectedAvailabilities ?? this.selectedAvailabilities,
       makeAnOffer: makeAnOffer ?? this.makeAnOffer,
       selectedTreatments: selectedTreatments ?? this.selectedTreatments,
       selectedCertifications:
@@ -510,9 +526,11 @@ class GemstoneFilterState {
       selectedCutGrades: selectedCutGrades ?? this.selectedCutGrades,
       vendorLocations: vendorLocations ?? this.vendorLocations,
       companyNames: companyNames ?? this.companyNames,
-      selectedOriginCountry: identical(selectedOriginCountry, _unset)
-          ? this.selectedOriginCountry
-          : selectedOriginCountry as String?,
+      excludedCompanyNames: excludedCompanyNames ?? this.excludedCompanyNames,
+      excludedVendorLocations:
+          excludedVendorLocations ?? this.excludedVendorLocations,
+      selectedOriginCountries:
+          selectedOriginCountries ?? this.selectedOriginCountries,
       minLength: minLength ?? this.minLength,
       maxLength: maxLength ?? this.maxLength,
       minWidth: minWidth ?? this.minWidth,
