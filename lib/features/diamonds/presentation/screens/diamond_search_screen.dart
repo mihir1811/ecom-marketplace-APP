@@ -245,6 +245,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     final count = summary.count(s);
     final essential =
         s == DiamondFinderSection.shape ||
+        s == DiamondFinderSection.listing ||
         s == DiamondFinderSection.sizePrice ||
         s == DiamondFinderSection.colorClarity;
     final (icon, child) = switch (s) {

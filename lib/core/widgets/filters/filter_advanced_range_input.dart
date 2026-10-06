@@ -99,6 +99,18 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
     super.dispose();
   }
 
+  /// Writes a live drag range into the inputs; a bound at its limit shows
+  /// as empty (the hint), the same as an untouched field.
+  void _mirrorDrag(double min, double max) {
+    void put(TextEditingController c, double v, double limit) {
+      final text = v == limit ? '' : v.toStringAsFixed(1);
+      if (c.text != text) c.text = text;
+    }
+
+    put(_minController, min, widget.minLimit);
+    put(_maxController, max, widget.maxLimit);
+  }
+
   void _handleMinSubmitted(String text) {
     if (text.trim().isEmpty) {
       if (widget.currentMin != widget.minLimit) {
@@ -273,6 +285,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               : (widget.unit == '%' || widget.unit == '°'
                     ? widget.unit
                     : ' ${widget.unit}'),
+          onDragUpdate: _mirrorDrag,
           // Only one thumb moves per drag, so exactly one side changes.
           onChangeEnd: (min, max) {
             if (min != widget.currentMin) widget.onMinChanged(min);

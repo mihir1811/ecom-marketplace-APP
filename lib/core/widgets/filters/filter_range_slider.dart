@@ -20,6 +20,8 @@ class FilterRangeSlider extends StatefulWidget {
     this.unitSuffix = '',
     this.isInteger = false,
     this.showClear = false,
+    this.showRangeSummary = true,
+    this.syncInputsWhileDragging = false,
     super.key,
   });
 
@@ -34,6 +36,12 @@ class FilterRangeSlider extends StatefulWidget {
   final String unitSuffix;
   final bool isInteger;
   final bool showClear;
+
+  /// Shows "(min - max)" after the title.
+  final bool showRangeSummary;
+
+  /// Mirrors the drag bar into the min / max inputs in real time.
+  final bool syncInputsWhileDragging;
 
   @override
   State<FilterRangeSlider> createState() => _FilterRangeSliderState();
@@ -119,6 +127,18 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
     return '${widget.unitPrefix}$formatted${widget.unitSuffix}';
   }
 
+  /// Writes a live drag range into the inputs; a bound at its limit shows
+  /// as empty (the hint), the same as an untouched field.
+  void _mirrorDrag(double min, double max) {
+    void put(TextEditingController c, double v, double limit) {
+      final text = v == limit ? '' : _formatValue(v);
+      if (c.text != text) c.text = text;
+    }
+
+    put(_minController, min, widget.minLimit);
+    put(_maxController, max, widget.maxLimit);
+  }
+
   void _handleMinSubmitted(String text) {
     if (text.trim().isEmpty) {
       widget.onChanged(widget.minLimit, widget.currentMax);
@@ -159,14 +179,16 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                     color: AppColors.textPrimary(context),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.s8),
-                Text(
-                  '(${_formatDisplayValue(widget.currentMin)} - ${_formatDisplayValue(widget.currentMax)})',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.bronze,
-                    fontWeight: FontWeight.w600,
+                if (widget.showRangeSummary) ...[
+                  const SizedBox(width: AppSpacing.s8),
+                  Text(
+                    '(${_formatDisplayValue(widget.currentMin)} - ${_formatDisplayValue(widget.currentMax)})',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.bronze,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
             if (widget.showClear)
@@ -352,6 +374,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
           unitPrefix: widget.unitPrefix,
           unitSuffix: widget.unitSuffix,
           onChangeEnd: widget.onChanged,
+          onDragUpdate: widget.syncInputsWhileDragging ? _mirrorDrag : null,
         ),
       ],
     );

@@ -19,6 +19,7 @@ class FilterRangeBar extends StatefulWidget {
     required this.minLimit,
     required this.maxLimit,
     required this.onChangeEnd,
+    this.onDragUpdate,
     this.isInteger = false,
     this.fractionDigits = 2,
     this.unitPrefix = '',
@@ -34,6 +35,10 @@ class FilterRangeBar extends StatefulWidget {
   /// Called once per drag with the new range. The thumb that was not
   /// dragged keeps its exact current value.
   final void Function(double min, double max) onChangeEnd;
+
+  /// Live range while a thumb is being dragged (nothing is committed), so
+  /// paired min / max inputs can mirror the bar in real time.
+  final void Function(double min, double max)? onDragUpdate;
   final bool isInteger;
   final int fractionDigits;
   final String unitPrefix;
@@ -77,19 +82,37 @@ class _FilterRangeBarState extends State<FilterRangeBar> {
     return '${widget.unitPrefix}$text${widget.unitSuffix}';
   }
 
-  void _end(RangeValues v) {
+  /// The range a drag at [v] means; the thumb that has not moved keeps its
+  /// exact current value. Null when neither thumb moved.
+  (double, double)? _rangeFor(RangeValues v) {
     final start = _dragStart;
+    final minMoved = start == null || (v.start - start.start).abs() > 1e-9;
+    final maxMoved = start == null || (v.end - start.end).abs() > 1e-9;
+    if (!minMoved && !maxMoved) return null;
+    final a = minMoved ? _fromPos(v.start) : widget.min;
+    final b = maxMoved ? _fromPos(v.end) : widget.max;
+    return (math.min(a, b), math.max(a, b));
+  }
+
+  void _update(RangeValues v) {
+    setState(() => _drag = v);
+    final range = _rangeFor(v) ?? (widget.min, widget.max);
+    widget.onDragUpdate?.call(range.$1, range.$2);
+  }
+
+  void _end(RangeValues v) {
+    final range = _rangeFor(v);
     setState(() {
       _drag = null;
       _dragStart = null;
     });
-    final minMoved = start == null || (v.start - start.start).abs() > 1e-9;
-    final maxMoved = start == null || (v.end - start.end).abs() > 1e-9;
-    if (!minMoved && !maxMoved) return;
-    final nextMin = minMoved ? _fromPos(v.start) : widget.min;
-    final nextMax = maxMoved ? _fromPos(v.end) : widget.max;
-    if (nextMin == widget.min && nextMax == widget.max) return;
-    widget.onChangeEnd(math.min(nextMin, nextMax), math.max(nextMin, nextMax));
+    if (range == null) {
+      // Released where it started: put the inputs back as they were.
+      widget.onDragUpdate?.call(widget.min, widget.max);
+      return;
+    }
+    if (range.$1 == widget.min && range.$2 == widget.max) return;
+    widget.onChangeEnd(range.$1, range.$2);
   }
 
   @override
@@ -137,7 +160,7 @@ class _FilterRangeBarState extends State<FilterRangeBar> {
               AppHaptics.selection();
               _dragStart = v;
             },
-            onChanged: (v) => setState(() => _drag = v),
+            onChanged: _update,
             onChangeEnd: _end,
           ),
         ),

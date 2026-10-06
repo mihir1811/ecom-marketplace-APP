@@ -165,6 +165,8 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
   List<Widget> _buildPcsFilters() {
     return [
       FilterRangeSlider(
+        showRangeSummary: false,
+        syncInputsWhileDragging: true,
         title: context.tr(CatalogL10n.totalPrice),
         minLimit: widget.totalPriceLimits.$1,
         maxLimit: widget.totalPriceLimits.$2,
@@ -182,6 +184,8 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       _caratPerPcsSlider(),
       const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
+        showRangeSummary: false,
+        syncInputsWhileDragging: true,
         title: context.tr(CatalogL10n.pricePerPiece),
         minLimit: widget.pricePerUnitLimits.$1,
         maxLimit: widget.pricePerUnitLimits.$2,
@@ -197,6 +201,8 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       ),
       const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
+        showRangeSummary: false,
+        syncInputsWhileDragging: true,
         title: context.tr(CatalogL10n.totalPieces),
         minLimit: widget.pcsLimits.$1,
         maxLimit: widget.pcsLimits.$2,
@@ -213,6 +219,8 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
 
   Widget _caratPerPcsSlider() {
     return FilterRangeSlider(
+      showRangeSummary: false,
+      syncInputsWhileDragging: true,
       title: context.tr(CatalogL10n.caratPerPiece),
       minLimit: widget.caratLimits.$1,
       maxLimit: widget.caratLimits.$2,
@@ -230,6 +238,8 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
   List<Widget> _buildCaratFilters() {
     return [
       FilterRangeSlider(
+        showRangeSummary: false,
+        syncInputsWhileDragging: true,
         title: context.tr(CatalogL10n.totalPrice),
         minLimit: widget.totalPriceLimits.$1,
         maxLimit: widget.totalPriceLimits.$2,
@@ -247,6 +257,8 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       _caratPerPcsSlider(),
       const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
+        showRangeSummary: false,
+        syncInputsWhileDragging: true,
         title: context.tr(CatalogL10n.pricePerCarat),
         minLimit: widget.pricePerUnitLimits.$1,
         maxLimit: widget.pricePerUnitLimits.$2,
@@ -262,6 +274,8 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       ),
       const SizedBox(height: AppSpacing.s20),
       FilterRangeSlider(
+        showRangeSummary: false,
+        syncInputsWhileDragging: true,
         title: context.tr(CatalogL10n.totalCarat),
         minLimit: widget.caratLimits.$1,
         maxLimit: widget.caratLimits.$2,

@@ -213,6 +213,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     final essential =
         s == GemstoneFinderSection.gemType ||
         s == GemstoneFinderSection.shape ||
+        s == GemstoneFinderSection.listing ||
         s == GemstoneFinderSection.sizePrice ||
         s == GemstoneFinderSection.colorQuality;
     final (icon, child) = switch (s) {

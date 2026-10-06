@@ -50,6 +50,8 @@ class CatalogStandardRangeFilters extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FilterRangeSlider(
+            showRangeSummary: false,
+            syncInputsWhileDragging: true,
             title: context.tr(CatalogL10n.totalPrice),
             minLimit: totalPriceLimits.$1,
             maxLimit: totalPriceLimits.$2,
@@ -63,6 +65,8 @@ class CatalogStandardRangeFilters extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.s20),
           FilterRangeSlider(
+            showRangeSummary: false,
+            syncInputsWhileDragging: true,
             title: context.tr(CatalogL10n.totalCarat),
             minLimit: totalCaratLimits.$1,
             maxLimit: totalCaratLimits.$2,
@@ -75,6 +79,8 @@ class CatalogStandardRangeFilters extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.s20),
           FilterRangeSlider(
+            showRangeSummary: false,
+            syncInputsWhileDragging: true,
             title: pricePerCaratTitle ?? context.tr(CatalogL10n.pricePerCarat),
             minLimit: pricePerCaratLimits.$1,
             maxLimit: pricePerCaratLimits.$2,
