@@ -83,7 +83,6 @@ class WatchListingToolbar extends ConsumerWidget {
     final grid = ref.watch(
       watchViewModeProvider.select((m) => m == WatchViewMode.grid),
     );
-    final sortLabel = ref.watch(sort.select((s) => s.label));
     final active = ref.watch(
       filters.select((s) => WatchFilterSummary.of(s).total),
     );
@@ -91,7 +90,6 @@ class WatchListingToolbar extends ConsumerWidget {
       filtersLabel: context.tr(DiamondFlowL10n.filters),
       activeFilters: active,
       onFilters: onFilters,
-      sortLabel: sortLabel,
       onSort: onSort,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
       onViewMode: onViewMode,

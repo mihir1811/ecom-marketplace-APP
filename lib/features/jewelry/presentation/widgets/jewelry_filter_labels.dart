@@ -83,7 +83,6 @@ class JewelryListingToolbar extends ConsumerWidget {
     final grid = ref.watch(
       jewelryViewModeProvider.select((m) => m == JewelryViewMode.grid),
     );
-    final sort = ref.watch(jewelrySortProvider);
     final active = ref.watch(
       jewelryFilterProvider.select((s) => JewelryFilterSummary.of(s).total),
     );
@@ -91,7 +90,6 @@ class JewelryListingToolbar extends ConsumerWidget {
       filtersLabel: context.tr(DiamondFlowL10n.filters),
       activeFilters: active,
       onFilters: onFilters,
-      sortLabel: jewelrySortLabel(context, sort),
       onSort: onSort,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
       onViewMode: onViewMode,

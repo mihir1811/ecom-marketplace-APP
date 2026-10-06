@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/widgets.dart';
 
@@ -60,6 +61,61 @@ class LuxeWheelItem extends StatelessWidget {
         },
         child: child,
       ),
+    );
+  }
+}
+
+/// Depth of field for a [LuxeWheel] carousel: the centred item stays full
+/// size and sharp while neighbours shrink, soften and fade with their
+/// distance from centre, so the eye lands on the focused item.
+class LuxeWheelFocus extends StatelessWidget {
+  const LuxeWheelFocus({
+    required this.controller,
+    required this.index,
+    required this.fallbackPage,
+    required this.child,
+    super.key,
+    this.sideScale = 0.66,
+    this.sideBlur = 3.2,
+    this.sideOpacity = 0.55,
+  });
+
+  final PageController controller;
+  final int index;
+
+  /// Page to assume before the controller has dimensions.
+  final double fallbackPage;
+  final Widget child;
+
+  /// Scale, blur sigma and opacity one slot (or more) away from centre.
+  final double sideScale;
+  final double sideBlur;
+  final double sideOpacity;
+
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.disableAnimationsOf(context);
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        final page = controller.hasClients && controller.position.haveDimensions
+            ? controller.page ?? fallbackPage
+            : fallbackPage;
+        final t = (index - page).abs().clamp(0.0, 1.0);
+        final sigma = still ? 0.0 : sideBlur * t;
+        Widget out = Transform.scale(
+          scale: 1 - (1 - sideScale) * t,
+          child: child,
+        );
+        if (sigma > 0.05) {
+          out = ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+            child: out,
+          );
+        }
+        return Opacity(opacity: 1 - (1 - sideOpacity) * t, child: out);
+      },
+      child: child,
     );
   }
 }

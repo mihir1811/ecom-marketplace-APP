@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import '../../../../core/widgets/luxe/luxe_alphabet_index.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/widgets/luxe/luxe_wheel.dart';
 import '../../../../core/l10n/app_localizations.dart';
@@ -23,8 +24,8 @@ import 'watch_brand_assets.dart';
 
 /// Shop by Brand: a coverflow of each house's flagship watch head (live
 /// time, no bracelet), styled like the home shape atelier. The centred
-/// watch sits inside a graduated loupe dial that turns with the carousel;
-/// neighbours tilt away at the sides. Tapping the centre (or the button)
+/// watch sits sharp inside a graduated loupe dial that turns with the
+/// carousel; neighbours tilt away, shrink and blur at the sides. Tapping the centre (or the button)
 /// toggles that brand filter; tapping a side watch brings it to centre.
 ///
 /// The strip loops endlessly and drifts to the next house every few
@@ -42,8 +43,10 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
   static const _brands = WatchBrandAssets.featuredBrands;
   static const _loops = 1000;
   static const _autoScrollInterval = Duration(seconds: 4);
-  static const _stageHeight = 230.0;
-  static const _loupeSize = 196.0;
+  static const _stageHeight = 210.0;
+
+  /// Hugs the centred watch (one ~0.34-wide slot) with a slim margin.
+  static const _loupeSize = 156.0;
 
   late final PageController _controller = PageController(
     viewportFraction: 0.34,
@@ -346,59 +349,68 @@ class _BrandWatchItem extends StatelessWidget {
       controller: controller,
       index: index,
       fallbackPage: fallbackPage,
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: flagship == null ? brand : '$brand ${flagship.model}',
-        excludeSemantics: true,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(4),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final size = math.min(
-                  constraints.maxWidth,
-                  constraints.maxHeight,
-                );
-                return Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    if (flagship != null)
-                      WatchDial(style: flagship.style, clock: clock, size: size)
-                    else
-                      Text(
-                        brand,
-                        textAlign: TextAlign.center,
-                        style: LuxeType.label(p.ink, size: 13),
-                      ),
-                    Positioned(
-                      top: (constraints.maxHeight - size) / 2 + 2,
-                      right: (constraints.maxWidth - size) / 2 + 2,
-                      child: AnimatedScale(
-                        scale: selected ? 1 : 0,
-                        duration: LuxeMotion.medium,
-                        curve: LuxeMotion.settle,
-                        child: Container(
-                          width: 22,
-                          height: 22,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: p.accent,
-                            border: Border.all(color: p.surface, width: 2),
-                          ),
-                          child: Icon(
-                            Icons.check_rounded,
-                            size: 13,
-                            color: p.onAccent,
+      child: LuxeWheelFocus(
+        controller: controller,
+        index: index,
+        fallbackPage: fallbackPage,
+        child: Semantics(
+          button: true,
+          selected: selected,
+          label: flagship == null ? brand : '$brand ${flagship.model}',
+          excludeSemantics: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final size = math.min(
+                    constraints.maxWidth,
+                    constraints.maxHeight,
+                  );
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (flagship != null)
+                        WatchDial(
+                          style: flagship.style,
+                          clock: clock,
+                          size: size,
+                        )
+                      else
+                        Text(
+                          brand,
+                          textAlign: TextAlign.center,
+                          style: LuxeType.label(p.ink, size: 13),
+                        ),
+                      Positioned(
+                        top: (constraints.maxHeight - size) / 2 + 2,
+                        right: (constraints.maxWidth - size) / 2 + 2,
+                        child: AnimatedScale(
+                          scale: selected ? 1 : 0,
+                          duration: LuxeMotion.medium,
+                          curve: LuxeMotion.settle,
+                          child: Container(
+                            width: 22,
+                            height: 22,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: p.accent,
+                              border: Border.all(color: p.surface, width: 2),
+                            ),
+                            child: Icon(
+                              Icons.check_rounded,
+                              size: 13,
+                              color: p.onAccent,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -491,15 +503,50 @@ class WatchBrandsDirectorySheet extends ConsumerStatefulWidget {
       _WatchBrandsDirectorySheetState();
 }
 
+/// A row in the flattened brand directory: a letter header or a brand.
+class _DirectoryRow {
+  const _DirectoryRow.header(this.text) : isHeader = true;
+  const _DirectoryRow.brand(this.text) : isHeader = false;
+
+  final String text;
+  final bool isHeader;
+}
+
 class _WatchBrandsDirectorySheetState
     extends ConsumerState<WatchBrandsDirectorySheet> {
+  static const _headerExtent = 36.0;
+  static const _brandExtent = 52.0;
+  static const _alphabet = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', //
+    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+  ];
+
   final _searchController = TextEditingController();
+  final _listController = ScrollController();
   String _query = '';
 
   @override
   void dispose() {
     _searchController.dispose();
+    _listController.dispose();
     super.dispose();
+  }
+
+  /// Jumps the list to [letter], or the nearest following (then preceding)
+  /// letter that has brands.
+  void _jumpTo(String letter, Map<String, double> offsets) {
+    if (!_listController.hasClients || offsets.isEmpty) return;
+    final i = _alphabet.indexOf(letter);
+    String? target;
+    for (var k = i; k < _alphabet.length && target == null; k++) {
+      if (offsets.containsKey(_alphabet[k])) target = _alphabet[k];
+    }
+    for (var k = i - 1; k >= 0 && target == null; k--) {
+      if (offsets.containsKey(_alphabet[k])) target = _alphabet[k];
+    }
+    if (target == null) return;
+    final max = _listController.position.maxScrollExtent;
+    _listController.jumpTo(offsets[target]!.clamp(0.0, max));
   }
 
   @override
@@ -522,6 +569,19 @@ class _WatchBrandsDirectorySheetState
               )
               .where((g) => g.brands.isNotEmpty)
               .toList();
+
+    final rows = <_DirectoryRow>[];
+    final offsets = <String, double>{};
+    var offset = 0.0;
+    for (final g in filtered) {
+      offsets[g.letter] = offset;
+      rows.add(_DirectoryRow.header(g.letter));
+      offset += _headerExtent;
+      for (final b in g.brands) {
+        rows.add(_DirectoryRow.brand(b));
+        offset += _brandExtent;
+      }
+    }
 
     return AppKeyboardInset(
       child: LayoutBuilder(
@@ -657,57 +717,83 @@ class _WatchBrandsDirectorySheetState
                             style: AppTypography.body.copyWith(color: muted),
                           ),
                         )
-                      : ListView.builder(
-                          padding: const EdgeInsets.only(
-                            bottom: AppSpacing.s40,
-                          ),
-                          itemCount: filtered.length,
-                          itemBuilder: (context, index) {
-                            final group = filtered[index];
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Container(
-                                  width: double.infinity,
-                                  color: AppColors.surface(context),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: AppSpacing.s8,
-                                  ),
-                                  child: Text(
-                                    group.letter,
-                                    textAlign: TextAlign.center,
-                                    style: AppTypography.label.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
+                      : Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Positioned.fill(
+                              child: ListView.builder(
+                                controller: _listController,
+                                padding: const EdgeInsets.only(
+                                  bottom: AppSpacing.s40,
                                 ),
-                                for (final brand in group.brands)
-                                  ListTile(
-                                    title: Text(
-                                      brand,
-                                      style: AppTypography.label.copyWith(
-                                        fontSize: 14,
+                                itemCount: rows.length,
+                                itemExtentBuilder: (i, _) => rows[i].isHeader
+                                    ? _headerExtent
+                                    : _brandExtent,
+                                itemBuilder: (context, i) {
+                                  final row = rows[i];
+                                  if (row.isHeader) {
+                                    return Container(
+                                      color: AppColors.surface(context),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        row.text,
+                                        style: AppTypography.label.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 1,
+                                        ),
                                       ),
-                                    ),
-                                    trailing: const Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 14,
-                                      color: AppColors.bronze,
-                                    ),
+                                    );
+                                  }
+                                  return InkWell(
                                     onTap: () {
                                       Navigator.pop(context);
-                                      final encodedBrand = Uri.encodeComponent(
-                                        brand,
-                                      );
                                       context.push(
-                                        '/watches/brand/$encodedBrand',
+                                        '/watches/brand/'
+                                        '${Uri.encodeComponent(row.text)}',
                                       );
                                     },
-                                  ),
-                              ],
-                            );
-                          },
+                                    child: Padding(
+                                      // Clear of the A–Z index on the right.
+                                      padding: const EdgeInsets.only(
+                                        left: AppSpacing.s20,
+                                        right: 44,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              row.text,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: AppTypography.label
+                                                  .copyWith(fontSize: 14),
+                                            ),
+                                          ),
+                                          const Icon(
+                                            Icons.arrow_forward_ios,
+                                            size: 14,
+                                            color: AppColors.bronze,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            Positioned(
+                              right: 4,
+                              top: 4,
+                              bottom: 4,
+                              width: 30,
+                              child: LuxeAlphabetIndex(
+                                letters: _alphabet,
+                                enabled: offsets.keys.toSet(),
+                                onLetter: (l) => _jumpTo(l, offsets),
+                              ),
+                            ),
+                          ],
                         ),
                 ),
                 Padding(

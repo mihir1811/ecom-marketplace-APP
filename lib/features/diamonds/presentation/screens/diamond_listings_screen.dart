@@ -297,7 +297,7 @@ class _ActiveFilterPills extends ConsumerWidget {
   }
 }
 
-/// Pinned row: Filters (with count), Sort (current key) and view toggle.
+/// Pinned row: Filters (with count), Sort and view toggle.
 class _Toolbar extends ConsumerWidget {
   const _Toolbar({required this.onEditFilters, required this.onSwitchViewMode});
 
@@ -307,22 +307,14 @@ class _Toolbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewMode = ref.watch(diamondViewModeProvider);
-    final sorting = ref.watch(diamondSortingProvider);
     final active = ref.watch(
       diamondSearchProvider.select((s) => DiamondFilterSummary.of(s).total),
     );
-    final sortLabel = sorting.isEmpty
-        ? context.tr(CatalogL10n.defaultSorting)
-        : ([...sorting]..sort((a, b) => a.priority.compareTo(b.priority)))
-              .first
-              .displayName;
 
     return LuxeListingToolbar(
       filtersLabel: context.tr(DiamondFlowL10n.filters),
       activeFilters: active,
       onFilters: onEditFilters,
-      sortLabel: sortLabel,
-      sortBadge: sorting.length > 1 ? sorting.length : 0,
       onSort: () => DiamondSortingBottomSheet.show(context),
       viewMode: viewMode == ViewMode.grid
           ? LuxeViewMode.grid

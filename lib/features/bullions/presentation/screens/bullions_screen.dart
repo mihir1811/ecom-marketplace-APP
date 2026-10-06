@@ -366,7 +366,6 @@ class _Toolbar extends ConsumerWidget {
     final grid = ref.watch(
       bullionsViewModeProvider.select((m) => m == BullionsViewMode.grid),
     );
-    final sortLabel = ref.watch(bullionsSortProvider.select((s) => s.label));
     final active = ref.watch(
       bullionsFilterProvider.select((s) => BullionsFilterSummary.of(s).total),
     );
@@ -374,7 +373,6 @@ class _Toolbar extends ConsumerWidget {
       filtersLabel: context.tr(DiamondFlowL10n.filters),
       activeFilters: active,
       onFilters: onFilters,
-      sortLabel: sortLabel,
       onSort: onSort,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
       onViewMode: onViewMode,

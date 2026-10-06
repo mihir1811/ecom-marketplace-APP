@@ -282,7 +282,6 @@ class _Toolbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewMode = ref.watch(gemstoneViewModeProvider);
-    final sort = ref.watch(gemstoneSortProvider);
     final active = ref.watch(
       gemstoneSearchProvider.select((s) => GemstoneFilterSummary.of(s).total),
     );
@@ -290,7 +289,6 @@ class _Toolbar extends ConsumerWidget {
       filtersLabel: context.tr(DiamondFlowL10n.filters),
       activeFilters: active,
       onFilters: onEditFilters,
-      sortLabel: sort.shortLabel,
       onSort: onSort,
       viewMode: viewMode == GemstoneViewMode.grid
           ? LuxeViewMode.grid

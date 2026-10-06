@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
@@ -129,7 +128,7 @@ class _LuxeShapeDialState extends State<LuxeShapeDial> {
                       controller: _controller,
                       index: i,
                       fallbackPage: _current.toDouble(),
-                      child: _DialFocus(
+                      child: LuxeWheelFocus(
                         controller: _controller,
                         index: i,
                         fallbackPage: _current.toDouble(),
@@ -152,52 +151,6 @@ class _LuxeShapeDialState extends State<LuxeShapeDial> {
           ),
         );
       },
-    );
-  }
-}
-
-/// Depth of field for the dial: the centred shape stays full size and sharp
-/// while neighbours shrink, soften and fade with their distance from centre,
-/// so the eye lands on the shape inside the loupe.
-class _DialFocus extends StatelessWidget {
-  const _DialFocus({
-    required this.controller,
-    required this.index,
-    required this.fallbackPage,
-    required this.child,
-  });
-
-  final PageController controller;
-  final int index;
-  final double fallbackPage;
-  final Widget child;
-
-  static const _sideScale = 0.66;
-  static const _sideBlur = 3.2;
-  static const _sideOpacity = 0.55;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = MediaQuery.disableAnimationsOf(context);
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        final page = controller.hasClients && controller.position.haveDimensions
-            ? controller.page ?? fallbackPage
-            : fallbackPage;
-        final t = (index - page).abs().clamp(0.0, 1.0);
-        final scale = 1 - (1 - _sideScale) * t;
-        final sigma = still ? 0.0 : _sideBlur * t;
-        Widget out = Transform.scale(scale: scale, child: child);
-        if (sigma > 0.05) {
-          out = ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-            child: out,
-          );
-        }
-        return Opacity(opacity: 1 - (1 - _sideOpacity) * t, child: out);
-      },
-      child: child,
     );
   }
 }

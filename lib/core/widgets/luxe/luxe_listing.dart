@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../haptics/app_haptics.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/luxe_tokens.dart';
 import 'luxe_button.dart';
 import 'luxe_feedback.dart';
@@ -91,28 +92,24 @@ class _PinnedBarDelegate extends SliverPersistentHeaderDelegate {
 /// Grid / list presentation of catalog results.
 enum LuxeViewMode { grid, list }
 
-/// Results toolbar: Filters (with active count), Sort (current key) and the
-/// grid / list switch.
+/// Results toolbar: Filters (with active count), Sort and the grid / list
+/// switch. The sort pill always reads just "Sort".
 class LuxeListingToolbar extends StatelessWidget {
   const LuxeListingToolbar({
     required this.filtersLabel,
     required this.activeFilters,
     required this.onFilters,
-    required this.sortLabel,
     required this.onSort,
     required this.viewMode,
     required this.onViewMode,
     required this.gridLabel,
     required this.listLabel,
     super.key,
-    this.sortBadge = 0,
   });
 
   final String filtersLabel;
   final int activeFilters;
   final VoidCallback onFilters;
-  final String sortLabel;
-  final int sortBadge;
   final VoidCallback onSort;
   final LuxeViewMode viewMode;
   final ValueChanged<LuxeViewMode> onViewMode;
@@ -137,8 +134,7 @@ class LuxeListingToolbar extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: LuxeToolbarPill(
                 icon: Icons.swap_vert_rounded,
-                label: sortLabel,
-                badge: sortBadge,
+                label: context.tr(DiamondFlowL10n.sort),
                 onTap: onSort,
               ),
             ),
