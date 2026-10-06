@@ -353,6 +353,9 @@ class _BrandWatchItem extends StatelessWidget {
         controller: controller,
         index: index,
         fallbackPage: fallbackPage,
+        // Neighbours stay recognisable: a hint of softness only.
+        sideBlur: 0.5,
+        sideOpacity: 0.9,
         child: Semantics(
           button: true,
           selected: selected,
@@ -491,6 +494,12 @@ Future<void> showWatchBrandsDirectory(BuildContext context) {
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: AppColors.bg(context),
+    // Standard sheet corners — the luxe default (28) reads oversized on a
+    // near-full-height sheet.
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.r24)),
+    ),
+    clipBehavior: Clip.antiAlias,
     builder: (context) => const WatchBrandsDirectorySheet(),
   );
 }

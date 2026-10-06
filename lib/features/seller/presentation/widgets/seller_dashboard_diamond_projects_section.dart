@@ -2,13 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../diamond_projects/domain/models/diamond_project_stats.dart';
-import '../../../diamond_projects/presentation/widgets/diamond_project_histogram_card.dart';
-import '../../../diamond_projects/presentation/widgets/diamond_project_kpi_grid.dart';
-import '../../../diamond_projects/presentation/widgets/diamond_project_mix_card.dart';
-import '../../../diamond_projects/presentation/widgets/diamond_project_price_stats_card.dart';
-import '../../../diamond_projects/presentation/widgets/diamond_project_scatter_card.dart';
-import '../../../diamond_projects/presentation/widgets/diamond_project_selected_table.dart';
+import '../../../../core/theme/luxe_scope.dart';
+import '../../../diamond_projects/presentation/widgets/diamond_project_overview.dart';
 import '../../../diamonds/domain/models/diamond_filter_state.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../application/seller_diamond_project_provider.dart';
@@ -45,7 +40,7 @@ class SellerDashboardDiamondProjectsSection extends ConsumerStatefulWidget {
 
 class _SellerDashboardDiamondProjectsSectionState
     extends ConsumerState<SellerDashboardDiamondProjectsSection> {
-  bool _showAnalytics = true;
+  DiamondProjectTab _tab = DiamondProjectTab.overview;
 
   @override
   void initState() {
@@ -81,7 +76,6 @@ class _SellerDashboardDiamondProjectsSectionState
 
   @override
   Widget build(BuildContext context) {
-    final p = context.atelier;
     final inventoryAsync = ref.watch(sellerDiamondProjectInventoryProvider);
     final inventory = inventoryAsync.valueOrNull;
     final stats = ref.watch(sellerDiamondProjectStatsProvider);
@@ -145,64 +139,47 @@ class _SellerDashboardDiamondProjectsSectionState
                           .read(sellerDiamondProjectInventoryProvider.notifier)
                           .clearFilters(),
                     )
-                  else ...[
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CountUpText(
-                            context.tr(CatalogL10n.matchingStonesCount, {
+                  else
+                    // Same hero, averages and Overview · Mix · Spread · Stones
+                    // tabs as the diamond project screen.
+                    LuxeScope(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          DiamondProjectHero(
+                            name: context.tr(CatalogL10n.matchingStonesCount, {
                               'count': '${inventory.totalCount}',
                             }),
-                            style: AtelierType.title(p.ink, size: 15),
+                            status: context.tr(CatalogL10n.liveInventory),
+                            statusIcon: Icons.inventory_2_outlined,
+                            highlighted: true,
+                            stats: stats,
                           ),
-                        ),
-                        AtelierButton(
-                          label: _showAnalytics
-                              ? context.tr(CatalogL10n.hideAnalytics)
-                              : context.tr(CatalogL10n.showAnalytics),
-                          icon: _showAnalytics
-                              ? Icons.visibility_off_outlined
-                              : Icons.insights_outlined,
-                          compact: true,
-                          variant: AtelierButtonVariant.ghost,
-                          onPressed: () {
-                            setState(() => _showAnalytics = !_showAnalytics);
-                          },
-                        ),
-                      ],
+                          const SizedBox(height: AtelierSpace.s16),
+                          DiamondProjectAverages(stats: stats),
+                          const SizedBox(height: AtelierSpace.s16),
+                          Center(
+                            child: DiamondProjectTabBar(
+                              selected: _tab,
+                              stoneCount: inventory.items.length,
+                              onChanged: (t) => setState(() => _tab = t),
+                            ),
+                          ),
+                          const SizedBox(height: AtelierSpace.s12),
+                          DiamondProjectTabView(
+                            tab: _tab,
+                            stats: stats,
+                            items: inventory.items,
+                            onRemove: (id) => ref
+                                .read(
+                                  sellerDiamondProjectInventoryProvider
+                                      .notifier,
+                                )
+                                .removeItem(id),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: AtelierSpace.s12),
-                    DiamondProjectKpiGrid(stats: stats),
-                    AnimatedSize(
-                      duration: AtelierMotion.slow,
-                      curve: AtelierMotion.emphasized,
-                      alignment: Alignment.topCenter,
-                      child: _showAnalytics
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                const SizedBox(height: AtelierSpace.s16),
-                                DiamondProjectPriceStatsCard(stats: stats),
-                                const SizedBox(height: AtelierSpace.s16),
-                                _AnalyticsChartsGrid(stats: stats),
-                                const SizedBox(height: AtelierSpace.s16),
-                                DiamondProjectScatterCard(stats: stats),
-                              ],
-                            )
-                          : const SizedBox(width: double.infinity),
-                    ),
-                    const SizedBox(height: AtelierSpace.s16),
-                    DiamondProjectSelectedTable(
-                      items: inventory.items,
-                      onRemove: (id) {
-                        ref
-                            .read(
-                              sellerDiamondProjectInventoryProvider.notifier,
-                            )
-                            .removeItem(id);
-                      },
-                    ),
-                  ],
                 ],
               ],
             ),
@@ -695,95 +672,6 @@ class _CompactRangeRowState extends State<_CompactRangeRow> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _AnalyticsChartsGrid extends StatelessWidget {
-  const _AnalyticsChartsGrid({required this.stats});
-
-  final DiamondProjectStats stats;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 720;
-        final mixes = [
-          DiamondProjectMixCard(
-            title: context.tr(CatalogL10n.shapeMix),
-            entries: stats.shapeMix,
-          ),
-          DiamondProjectMixCard(
-            title: context.tr(CatalogL10n.colorMix),
-            entries: stats.colorMix,
-          ),
-        ];
-        final charts = [
-          DiamondProjectMixCard(
-            title: context.tr(CatalogL10n.clarityMix),
-            entries: stats.clarityMix,
-          ),
-          DiamondProjectHistogramCard(
-            title: context.tr(CatalogL10n.priceDistribution),
-            entries: stats.priceBuckets,
-          ),
-          DiamondProjectHistogramCard(
-            title: context.tr(CatalogL10n.pricePerCaratDistribution),
-            entries: stats.ppcBuckets,
-          ),
-          DiamondProjectHistogramCard(
-            title: context.tr(CatalogL10n.caratDistribution),
-            entries: stats.caratBuckets,
-          ),
-        ];
-
-        if (!wide) {
-          return Column(
-            children: [
-              mixes[0],
-              const SizedBox(height: AtelierSpace.s12),
-              mixes[1],
-              const SizedBox(height: AtelierSpace.s12),
-              for (var i = 0; i < charts.length; i++) ...[
-                if (i > 0) const SizedBox(height: AtelierSpace.s12),
-                charts[i],
-              ],
-            ],
-          );
-        }
-
-        return Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: mixes[0]),
-                const SizedBox(width: AtelierSpace.s12),
-                Expanded(child: mixes[1]),
-              ],
-            ),
-            const SizedBox(height: AtelierSpace.s12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: charts[0]),
-                const SizedBox(width: AtelierSpace.s12),
-                Expanded(child: charts[1]),
-              ],
-            ),
-            const SizedBox(height: AtelierSpace.s12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: charts[2]),
-                const SizedBox(width: AtelierSpace.s12),
-                Expanded(child: charts[3]),
-              ],
-            ),
-          ],
-        );
-      },
     );
   }
 }

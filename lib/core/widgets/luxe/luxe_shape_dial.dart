@@ -132,8 +132,9 @@ class _LuxeShapeDialState extends State<LuxeShapeDial> {
                         controller: _controller,
                         index: i,
                         fallbackPage: _current.toDouble(),
-                        sideBlur: 1.2,
-                        sideOpacity: 0.8,
+                        // Neighbours stay recognisable: a hint of softness only.
+                        sideBlur: 0.5,
+                        sideOpacity: 0.9,
                         child: _ShapeItem(
                           shape: widget.shapes[i],
                           selected:

@@ -418,6 +418,7 @@ abstract final class CatalogL10n {
       'catalog.sellerDashboard.openProjectAllMatching';
   static const matchingStonesCount =
       'catalog.sellerDashboard.matchingStonesCount';
+  static const liveInventory = 'catalog.sellerDashboard.liveInventory';
   static const allShapes = 'catalog.sellerDashboard.allShapes';
   static const allFancyColors = 'catalog.sellerDashboard.allFancyColors';
   static const cutGradePoor = 'catalog.sellerDashboard.cutGradePoor';
@@ -1631,6 +1632,11 @@ const catalogMessages = <String, LocalizedMessage>{
     '{count} matching stones',
     '{count} मिलान वाले पत्थर',
     '{count} મેળ ખાતા પથ્થર',
+  ),
+  CatalogL10n.liveInventory: _M(
+    'Live inventory',
+    'लाइव इन्वेंटरी',
+    'લાઇવ ઇન્વેન્ટરી',
   ),
   CatalogL10n.allShapes: _M('All', 'सभी', 'બધા'),
   CatalogL10n.allFancyColors: _M('All', 'सभी', 'બધા'),
