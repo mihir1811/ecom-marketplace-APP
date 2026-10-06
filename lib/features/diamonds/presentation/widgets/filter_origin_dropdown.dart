@@ -106,10 +106,7 @@ class FilterOriginDropdown extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.s8),
         GestureDetector(
-          onTap: () => _showCountryPicker(
-            context,
-            resolvedPickerTitle,
-          ),
+          onTap: () => _showCountryPicker(context, resolvedPickerTitle),
           child: Container(
             height: 48,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -215,7 +212,10 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
         top: 24,
         left: 16,
         right: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        bottom:
+            MediaQuery.viewInsetsOf(context).bottom +
+            MediaQuery.paddingOf(context).bottom +
+            24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -93,7 +93,9 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
   Widget build(BuildContext context) {
     final topUp = ref.watch(walletTopUpProvider);
     final busy = topUp.isBusy;
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final bottomInset =
+        MediaQuery.viewInsetsOf(context).bottom +
+        MediaQuery.paddingOf(context).bottom;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(

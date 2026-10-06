@@ -43,29 +43,19 @@ class HomeCollections extends StatelessWidget {
                     height: tall,
                     child: Row(
                       children: [
-                        Expanded(
-                          child: _Tile(item: items[0], number: 1, hero: true),
-                        ),
+                        Expanded(child: _Tile(item: items[0], hero: true)),
                         const SizedBox(width: _gap),
                         Expanded(
                           child: Column(
                             children: [
                               SizedBox(
                                 height: small,
-                                child: _Tile(
-                                  item: items[1],
-                                  number: 2,
-                                  delay: 120,
-                                ),
+                                child: _Tile(item: items[1], delay: 120),
                               ),
                               const SizedBox(height: _gap),
                               SizedBox(
                                 height: small,
-                                child: _Tile(
-                                  item: items[2],
-                                  number: 3,
-                                  delay: 220,
-                                ),
+                                child: _Tile(item: items[2], delay: 220),
                               ),
                             ],
                           ),
@@ -76,18 +66,16 @@ class HomeCollections extends StatelessWidget {
                   const SizedBox(height: _gap),
                   SizedBox(
                     height: (w * 0.52).clamp(170.0, 320.0),
-                    child: _Tile(item: items[3], number: 4, wide: true),
+                    child: _Tile(item: items[3], wide: true),
                   ),
                   const SizedBox(height: _gap),
                   SizedBox(
                     height: col * 1.08,
                     child: Row(
                       children: [
-                        Expanded(child: _Tile(item: items[4], number: 5)),
+                        Expanded(child: _Tile(item: items[4])),
                         const SizedBox(width: _gap),
-                        Expanded(
-                          child: _Tile(item: items[5], number: 6, delay: 120),
-                        ),
+                        Expanded(child: _Tile(item: items[5], delay: 120)),
                       ],
                     ),
                   ),
@@ -104,14 +92,12 @@ class HomeCollections extends StatelessWidget {
 class _Tile extends StatelessWidget {
   const _Tile({
     required this.item,
-    required this.number,
     this.hero = false,
     this.wide = false,
     this.delay = 0,
   });
 
   final HomeCollection item;
-  final int number;
   final bool hero;
   final bool wide;
   final int delay;
@@ -173,14 +159,6 @@ class _Tile extends StatelessWidget {
                             Color(0xC7000000),
                           ],
                         ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 14,
-                      left: 16,
-                      child: Text(
-                        number.toString().padLeft(2, '0'),
-                        style: HomeType.eyebrow(const Color(0xCCFFFFFF)),
                       ),
                     ),
                     Positioned(

@@ -71,17 +71,18 @@ void main() {
                 () =>
                     selected.contains(v) ? selected.remove(v) : selected.add(v),
               ),
-              selectLabel: (s) => 'Select $s',
-              selectedLabel: (s) => '$s selected',
             ),
           ),
         ),
       ),
     );
-    await tester.tap(find.text('Select Round'));
+    await tester.tap(find.byType(LuxeShapeDial));
     await tester.pumpAndSettle();
     expect(selected, ['Round']);
-    expect(find.text('Round selected'), findsOneWidget);
+
+    await tester.tap(find.byType(LuxeShapeDial));
+    await tester.pumpAndSettle();
+    expect(selected, isEmpty);
     expect(tester.takeException(), isNull);
   });
 
@@ -102,8 +103,6 @@ void main() {
                       ? selected.remove(v)
                       : selected.add(v),
                 ),
-                selectLabel: (s) => 'Select $s',
-                selectedLabel: (s) => '$s selected',
                 expandLabel: 'All shapes',
                 collapseLabel: 'Fewer shapes',
               ),

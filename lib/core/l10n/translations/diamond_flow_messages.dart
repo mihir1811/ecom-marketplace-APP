@@ -24,8 +24,6 @@ abstract final class DiamondFlowL10n {
   static const undo = 'diamondFlow.undo';
   static const allShapes = 'diamondFlow.allShapes';
   static const fewerShapes = 'diamondFlow.fewerShapes';
-  static const selectShape = 'diamondFlow.selectShape';
-  static const shapeSelected = 'diamondFlow.shapeSelected';
 
   // Results
   static const resultsCount = 'diamondFlow.resultsCount';
@@ -177,16 +175,6 @@ const diamondFlowMessages = <String, LocalizedMessage>{
     english: 'Fewer shapes',
     hindi: 'कम आकार',
     gujarati: 'ઓછા આકાર',
-  ),
-  DiamondFlowL10n.selectShape: LocalizedMessage(
-    english: 'Select {shape}',
-    hindi: '{shape} चुनें',
-    gujarati: '{shape} પસંદ કરો',
-  ),
-  DiamondFlowL10n.shapeSelected: LocalizedMessage(
-    english: '{shape} selected',
-    hindi: '{shape} चुना गया',
-    gujarati: '{shape} પસંદ થયું',
   ),
   DiamondFlowL10n.resultsCount: LocalizedMessage(
     english: '{count} diamonds',

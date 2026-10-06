@@ -144,6 +144,7 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
     final result = await showModalBottomSheet<SellerOrderFilters>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: AppColors.card(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

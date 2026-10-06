@@ -1,16 +1,15 @@
 import '../localized_message.dart';
 
 /// Copy for the redesigned experience surfaces: the interactive gem stage,
-/// Gem AI concierge, cart and diamond project dashboard.
+/// Gem AI advisor, cart and diamond project dashboard.
 abstract final class ExperienceL10n {
   // Gem stage (home footer)
   static const stageEyebrow = 'experience.stageEyebrow';
   static const stageHeadline = 'experience.stageHeadline';
   static const stageBody = 'experience.stageBody';
-  static const stageHint = 'experience.stageHint';
 
   // Gem AI
-  static const aiConcierge = 'experience.aiConcierge';
+  static const aiAdvisor = 'experience.aiAdvisor';
   static const aiGreeting = 'experience.aiGreeting';
   static const aiTryAsking = 'experience.aiTryAsking';
   static const aiPrompt1 = 'experience.aiPrompt1';
@@ -72,13 +71,8 @@ const experienceMessages = <String, LocalizedMessage>{
     gujarati: 'રાઉન્ડથી હાર્ટ, પ્રિન્સેસથી પિયર સુધી — પથ્થરોને સ્પર્શો અને '
         'તેમને પ્રકાશમાં ઝળહળતા જુઓ.',
   ),
-  ExperienceL10n.stageHint: LocalizedMessage(
-    english: 'Touch the stones',
-    hindi: 'पत्थरों को छुएँ',
-    gujarati: 'પથ્થરોને સ્પર્શો',
-  ),
-  ExperienceL10n.aiConcierge: LocalizedMessage(
-    english: 'Your gem concierge',
+  ExperienceL10n.aiAdvisor: LocalizedMessage(
+    english: 'Your gem advisor',
     hindi: 'आपका रत्न सलाहकार',
     gujarati: 'તમારા રત્ન સલાહકાર',
   ),

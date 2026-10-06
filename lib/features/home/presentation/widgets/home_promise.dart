@@ -32,7 +32,6 @@ class HomePromise extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           HomeSectionHeading(
-            index: '04',
             eyebrow: context.tr(HomeL10n.promiseEyebrow),
             title: context.tr(HomeL10n.promiseTitle),
           ),

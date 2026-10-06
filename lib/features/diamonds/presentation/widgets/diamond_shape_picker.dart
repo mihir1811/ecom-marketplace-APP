@@ -38,10 +38,6 @@ class DiamondShapePicker extends ConsumerWidget {
       selected: selected,
       onToggle: ref.read(diamondSearchProvider.notifier).toggleShape,
       iconBuilder: shapeOutlineIcon,
-      selectLabel: (shape) =>
-          context.tr(DiamondFlowL10n.selectShape, {'shape': shape}),
-      selectedLabel: (shape) =>
-          context.tr(DiamondFlowL10n.shapeSelected, {'shape': shape}),
       expandLabel: context.tr(DiamondFlowL10n.allShapes),
       collapseLabel: context.tr(DiamondFlowL10n.fewerShapes),
     );

@@ -10,17 +10,17 @@ import '../../../../core/widgets/luxe/press_tilt.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 /// Gem AI entry: an obsidian card with a travelling gold edge and a
-/// typewriter demo of the kinds of requests the concierge understands.
-class HomeConciergeCard extends StatefulWidget {
-  const HomeConciergeCard({required this.onAsk, super.key});
+/// typewriter demo of the kinds of requests Gem AI understands.
+class HomeAiSearchCard extends StatefulWidget {
+  const HomeAiSearchCard({required this.onAsk, super.key});
 
   final VoidCallback onAsk;
 
   @override
-  State<HomeConciergeCard> createState() => _HomeConciergeCardState();
+  State<HomeAiSearchCard> createState() => _HomeAiSearchCardState();
 }
 
-class _HomeConciergeCardState extends State<HomeConciergeCard>
+class _HomeAiSearchCardState extends State<HomeAiSearchCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _edge = AnimationController(
     vsync: this,
@@ -52,7 +52,7 @@ class _HomeConciergeCardState extends State<HomeConciergeCard>
         offsetY: 40,
         child: PressTilt(
           maxTilt: 0.04,
-          semanticLabel: context.tr(HomeL10n.conciergeCta),
+          semanticLabel: context.tr(HomeL10n.aiSearchCta),
           onTap: widget.onAsk,
           child: CustomPaint(
             foregroundPainter: _EdgePainter(_edge),
@@ -75,7 +75,7 @@ class _HomeConciergeCardState extends State<HomeConciergeCard>
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          context.tr(HomeL10n.conciergeEyebrow).toUpperCase(),
+                          context.tr(HomeL10n.aiSearchEyebrow).toUpperCase(),
                           style: HomeType.eyebrow(HomeStage.gold),
                         ),
                       ),
@@ -83,12 +83,12 @@ class _HomeConciergeCardState extends State<HomeConciergeCard>
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    context.tr(HomeL10n.conciergeTitle),
+                    context.tr(HomeL10n.aiSearchTitle),
                     style: HomeType.display(36, HomeStage.ink),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    context.tr(HomeL10n.conciergeBody),
+                    context.tr(HomeL10n.aiSearchBody),
                     style: HomeType.body(HomeStage.inkMuted, size: 14),
                   ),
                   const SizedBox(height: 22),
@@ -98,7 +98,7 @@ class _HomeConciergeCardState extends State<HomeConciergeCard>
                     children: [
                       Flexible(
                         child: Text(
-                          context.tr(HomeL10n.conciergeCta),
+                          context.tr(HomeL10n.aiSearchCta),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: HomeType.label(HomeStage.gold, size: 14),
@@ -218,9 +218,9 @@ class _TypewriterField extends StatefulWidget {
 
 class _TypewriterFieldState extends State<_TypewriterField> {
   static const _prompts = [
-    HomeL10n.conciergePrompt1,
-    HomeL10n.conciergePrompt2,
-    HomeL10n.conciergePrompt3,
+    HomeL10n.aiSearchPrompt1,
+    HomeL10n.aiSearchPrompt2,
+    HomeL10n.aiSearchPrompt3,
   ];
   Timer? _timer;
   int _prompt = 0;

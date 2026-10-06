@@ -132,6 +132,8 @@ class _LuxeShapeDialState extends State<LuxeShapeDial> {
                         controller: _controller,
                         index: i,
                         fallbackPage: _current.toDouble(),
+                        sideBlur: 1.2,
+                        sideOpacity: 0.8,
                         child: _ShapeItem(
                           shape: widget.shapes[i],
                           selected:
@@ -268,7 +270,7 @@ class _DialPainter extends CustomPainter {
 }
 
 /// Multi-select finder picker on the [LuxeShapeDial]: swipe to a shape, then
-/// tap it (or the pill under it) to add or remove it from the filter. With
+/// tap it to add or remove it from the filter. With
 /// [expandLabel] / [collapseLabel] a "view all" control swaps the dial for a
 /// grid of every shape as cards.
 class LuxeShapeDialPicker extends StatefulWidget {
@@ -276,8 +278,6 @@ class LuxeShapeDialPicker extends StatefulWidget {
     required this.shapes,
     required this.selected,
     required this.onToggle,
-    required this.selectLabel,
-    required this.selectedLabel,
     super.key,
     this.iconBuilder,
     this.bleed = 18,
@@ -288,8 +288,6 @@ class LuxeShapeDialPicker extends StatefulWidget {
   final List<LuxeShapeOption> shapes;
   final List<String> selected;
   final ValueChanged<String> onToggle;
-  final String Function(String shape) selectLabel;
-  final String Function(String shape) selectedLabel;
   final LuxeShapeIconBuilder? iconBuilder;
   final double bleed;
   final String? expandLabel;
@@ -315,7 +313,6 @@ class _LuxeShapeDialPickerState extends State<LuxeShapeDialPicker> {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     final shape = widget.shapes[_current];
-    final on = widget.selected.contains(shape.value);
     final dial = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -325,7 +322,7 @@ class _LuxeShapeDialPickerState extends State<LuxeShapeDialPicker> {
           iconBuilder: widget.iconBuilder,
           initialIndex: _current,
           bleed: widget.bleed,
-          height: 240,
+          height: 184,
           onChanged: (i) => setState(() => _current = i),
           onCentreTap: _toggle,
         ),
@@ -350,54 +347,6 @@ class _LuxeShapeDialPickerState extends State<LuxeShapeDialPicker> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: LuxeType.displayItalic(28, p.ink),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Center(
-          child: AnimatedContainer(
-            duration: LuxeMotion.medium,
-            curve: LuxeMotion.settle,
-            decoration: ShapeDecoration(
-              color: on ? p.ink : Colors.transparent,
-              shape: StadiumBorder(side: BorderSide(color: p.ink)),
-            ),
-            child: Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                customBorder: const StadiumBorder(),
-                onTap: () => _toggle(_current),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 11,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        on ? Icons.check_rounded : Icons.add_rounded,
-                        size: 17,
-                        color: on ? p.canvas : p.ink,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          on
-                              ? widget.selectedLabel(shape.label)
-                              : widget.selectLabel(shape.label),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: LuxeType.label(
-                            on ? p.canvas : p.ink,
-                            size: 13.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           ),
         ),
       ],

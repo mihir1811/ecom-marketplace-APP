@@ -9,8 +9,8 @@ import 'filter_section_header.dart';
 
 /// Search text field with an Add action — used in catalog preference filters.
 ///
-/// Pass [onAddExcluded] to turn on include / exclude: an Include | Exclude
-/// switch picks which list the next entry joins, and the two lists show as
+/// Pass [onAddExcluded] to turn on include / exclude: an "Exclude" checkbox
+/// picks which list the next entry joins (unchecked includes), and the two lists show as
 /// "Showing only" (filled) and "Hiding" (struck, terracotta) chip groups.
 class CatalogSearchAddField extends StatefulWidget {
   const CatalogSearchAddField({
@@ -122,7 +122,7 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
               ),
             ),
             if (widget.supportsExclude)
-              _IncludeExcludeSwitch(
+              _ExcludeCheckbox(
                 exclude: widget.excludeMode,
                 onChanged: (v) => widget.onExcludeModeChanged?.call(v),
               ),
@@ -313,84 +313,59 @@ class _GroupLabel extends StatelessWidget {
   }
 }
 
-/// Compact two-way pill: Include (charcoal) | Exclude (terracotta).
-class _IncludeExcludeSwitch extends StatelessWidget {
-  const _IncludeExcludeSwitch({required this.exclude, required this.onChanged});
+/// "Exclude" checkbox: unchecked adds to the include list (default), checked
+/// adds to the exclude list.
+class _ExcludeCheckbox extends StatelessWidget {
+  const _ExcludeCheckbox({required this.exclude, required this.onChanged});
 
   final bool exclude;
   final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    Widget seg(String label, IconData icon, {required bool value}) {
-      final active = exclude == value;
-      final color = value ? AppColors.terracotta : AppColors.charcoal;
-      final fg = active
-          ? AppColors.warmWhite
-          : AppColors.textSecondary(context);
-      return Semantics(
-        button: true,
-        selected: active,
-        label: label,
-        excludeSemantics: true,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            if (active) return;
-            AppHaptics.selection();
-            onChanged(value);
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOutCubic,
-            constraints: const BoxConstraints(minHeight: 30),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: ShapeDecoration(
-              color: active ? color : Colors.transparent,
-              shape: const StadiumBorder(),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 13, color: fg),
-                const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: AppTypography.caption.copyWith(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: fg,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+    final label = context.tr(CatalogL10n.filterExclude);
+    void toggle() {
+      AppHaptics.selection();
+      onChanged(!exclude);
     }
 
-    return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: ShapeDecoration(
-        color: AppColors.field(context),
-        shape: StadiumBorder(
-          side: BorderSide(color: AppColors.border(context)),
+    return Semantics(
+      checked: exclude,
+      label: label,
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: toggle,
+        borderRadius: BorderRadius.circular(AppSpacing.r8),
+        child: Padding(
+          padding: const EdgeInsets.only(right: AppSpacing.s4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: Checkbox(
+                  value: exclude,
+                  onChanged: (_) => toggle(),
+                  activeColor: AppColors.terracotta,
+                  checkColor: AppColors.warmWhite,
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+              Text(
+                label,
+                style: AppTypography.caption.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: exclude
+                      ? AppColors.terracotta
+                      : AppColors.textSecondary(context),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          seg(
-            context.tr(CatalogL10n.filterInclude),
-            Icons.check_rounded,
-            value: false,
-          ),
-          seg(
-            context.tr(CatalogL10n.filterExclude),
-            Icons.block_rounded,
-            value: true,
-          ),
-        ],
       ),
     );
   }

@@ -119,10 +119,6 @@ class GemstoneTypeFilters extends ConsumerWidget {
           onToggle: notifier.toggleGemstoneType,
           iconBuilder: (value, _, size) =>
               GemstoneHueOrb(hue: gemstoneHue(value), size: size + 8),
-          selectLabel: (gem) =>
-              context.tr(DiamondFlowL10n.selectShape, {'shape': gem}),
-          selectedLabel: (gem) =>
-              context.tr(DiamondFlowL10n.shapeSelected, {'shape': gem}),
         ),
         const SizedBox(height: 14),
         LuxeChipGroup(

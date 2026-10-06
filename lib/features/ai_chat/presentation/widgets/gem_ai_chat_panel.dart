@@ -16,7 +16,7 @@ import '../../domain/models/ai_chat_message.dart';
 import '../../domain/models/ai_chat_reply.dart';
 import 'ai_chat_product_list_section.dart';
 
-/// Gem AI concierge panel: floating luxe card with conversation, history,
+/// Gem AI advisor panel: floating luxe card with conversation, history,
 /// reply-language menu, photo attach and suggested prompts.
 class GemAiChatPanel extends ConsumerStatefulWidget {
   const GemAiChatPanel({
@@ -321,7 +321,7 @@ class _Header extends StatelessWidget {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        context.tr(ExperienceL10n.aiConcierge),
+                        context.tr(ExperienceL10n.aiAdvisor),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: LuxeType.label(p.inkMuted, size: 11.5),

@@ -24,16 +24,13 @@ abstract final class HomeL10n {
   static const endsIn = 'home.endsIn';
   static const ended = 'home.ended';
   static const live = 'home.live';
-  static const shapesEyebrow = 'home.shapesEyebrow';
-  static const shapesTitle = 'home.shapesTitle';
-  static const exploreShape = 'home.exploreShape';
-  static const conciergeEyebrow = 'home.conciergeEyebrow';
-  static const conciergeTitle = 'home.conciergeTitle';
-  static const conciergeBody = 'home.conciergeBody';
-  static const conciergePrompt1 = 'home.conciergePrompt1';
-  static const conciergePrompt2 = 'home.conciergePrompt2';
-  static const conciergePrompt3 = 'home.conciergePrompt3';
-  static const conciergeCta = 'home.conciergeCta';
+  static const aiSearchEyebrow = 'home.aiSearchEyebrow';
+  static const aiSearchTitle = 'home.aiSearchTitle';
+  static const aiSearchBody = 'home.aiSearchBody';
+  static const aiSearchPrompt1 = 'home.aiSearchPrompt1';
+  static const aiSearchPrompt2 = 'home.aiSearchPrompt2';
+  static const aiSearchPrompt3 = 'home.aiSearchPrompt3';
+  static const aiSearchCta = 'home.aiSearchCta';
   static const promiseEyebrow = 'home.promiseEyebrow';
   static const promiseTitle = 'home.promiseTitle';
   static const pillarCertifiedTitle = 'home.pillarCertifiedTitle';
@@ -165,55 +162,40 @@ const homeMessages = <String, LocalizedMessage>{
     hindi: 'लाइव',
     gujarati: 'લાઇવ',
   ),
-  HomeL10n.shapesEyebrow: LocalizedMessage(
-    english: 'The diamond atelier',
-    hindi: 'हीरा एटेलियर',
-    gujarati: 'હીરા એટેલિયર',
+  HomeL10n.aiSearchEyebrow: LocalizedMessage(
+    english: 'Gem AI search',
+    hindi: 'जेम AI सर्च',
+    gujarati: 'જેમ AI સર્ચ',
   ),
-  HomeL10n.shapesTitle: LocalizedMessage(
-    english: 'Begin with a shape.',
-    hindi: 'आकार से शुरुआत करें।',
-    gujarati: 'આકારથી શરૂઆત કરો.',
-  ),
-  HomeL10n.exploreShape: LocalizedMessage(
-    english: 'Explore {shape} diamonds',
-    hindi: '{shape} हीरे देखें',
-    gujarati: '{shape} હીરા જુઓ',
-  ),
-  HomeL10n.conciergeEyebrow: LocalizedMessage(
-    english: 'Gem AI concierge',
-    hindi: 'जेम AI कंसीयर्ज',
-    gujarati: 'જેમ AI કન્સિયર્જ',
-  ),
-  HomeL10n.conciergeTitle: LocalizedMessage(
+  HomeL10n.aiSearchTitle: LocalizedMessage(
     english: 'Describe it.\nWe will find it.',
     hindi: 'बताइए।\nहम ढूँढ लेंगे।',
     gujarati: 'વર્ણન કરો.\nઅમે શોધી આપીશું.',
   ),
-  HomeL10n.conciergeBody: LocalizedMessage(
+  HomeL10n.aiSearchBody: LocalizedMessage(
     english: 'Ask in your own words — budget, occasion, cut or carat.',
     hindi: 'अपने शब्दों में पूछें — बजट, अवसर, कट या कैरेट।',
     gujarati: 'તમારા શબ્દોમાં પૂછો — બજેટ, પ્રસંગ, કટ કે કેરેટ.',
   ),
-  HomeL10n.conciergePrompt1: LocalizedMessage(
+  HomeL10n.aiSearchPrompt1: LocalizedMessage(
     english: 'An oval diamond near 1.5 ct, G colour, VS1',
     hindi: 'लगभग 1.5 कैरेट का ओवल हीरा, G रंग, VS1',
     gujarati: 'આશરે 1.5 કેરેટનો ઓવલ હીરો, G રંગ, VS1',
   ),
-  HomeL10n.conciergePrompt2: LocalizedMessage(
+  HomeL10n.aiSearchPrompt2: LocalizedMessage(
     english: 'A Colombian emerald for an anniversary ring',
     hindi: 'सालगिरह की अंगूठी के लिए कोलंबियाई पन्ना',
     gujarati: 'વર્ષગાંઠની વીંટી માટે કોલંબિયન પન્ના',
   ),
-  HomeL10n.conciergePrompt3: LocalizedMessage(
+  HomeL10n.aiSearchPrompt3: LocalizedMessage(
     english: 'Lab-grown studs under a set budget',
     hindi: 'तय बजट में लैब-ग्रोन स्टड्स',
     gujarati: 'નિશ્ચિત બજેટમાં લેબ-ગ્રોન સ્ટડ્સ',
   ),
-  HomeL10n.conciergeCta: LocalizedMessage(
-    english: 'Ask the concierge',
-    hindi: 'कंसीयर्ज से पूछें',
-    gujarati: 'કન્સિયર્જને પૂછો',
+  HomeL10n.aiSearchCta: LocalizedMessage(
+    english: 'Ask Gem AI',
+    hindi: 'जेम AI से पूछें',
+    gujarati: 'જેમ AI ને પૂછો',
   ),
   HomeL10n.promiseEyebrow: LocalizedMessage(
     english: 'The GemWorld promise',

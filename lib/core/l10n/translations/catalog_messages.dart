@@ -422,7 +422,6 @@ abstract final class CatalogL10n {
   static const allFancyColors = 'catalog.sellerDashboard.allFancyColors';
   static const cutGradePoor = 'catalog.sellerDashboard.cutGradePoor';
   static const certOther = 'catalog.sellerDashboard.certOther';
-  static const filterInclude = 'catalog.filter.include';
   static const filterExclude = 'catalog.filter.exclude';
   static const filterShowingOnly = 'catalog.filter.showingOnly';
   static const filterHiding = 'catalog.filter.hiding';
@@ -1637,7 +1636,6 @@ const catalogMessages = <String, LocalizedMessage>{
   CatalogL10n.allFancyColors: _M('All', 'सभी', 'બધા'),
   CatalogL10n.cutGradePoor: _M('Poor', 'खराब', 'નબળું'),
   CatalogL10n.certOther: _M('Other', 'अन्य', 'અન્ય'),
-  CatalogL10n.filterInclude: _M('Include', 'शामिल करें', 'સમાવો'),
   CatalogL10n.filterExclude: _M('Exclude', 'बाहर रखें', 'બાકાત રાખો'),
   CatalogL10n.filterShowingOnly: _M(
     'Showing only',
@@ -1656,9 +1654,9 @@ const catalogMessages = <String, LocalizedMessage>{
     'છુપાવવા માટે સ્થાન',
   ),
   CatalogL10n.includeExcludeHelp: _M(
-    'Include shows only these sellers; Exclude hides them from results.',
-    'शामिल करें केवल इन विक्रेताओं को दिखाता है; बाहर रखें इन्हें परिणामों से छिपाता है।',
-    'સમાવો ફક્ત આ વેચાણકર્તાઓ બતાવે છે; બાકાત રાખો તેમને પરિણામોમાંથી છુપાવે છે.',
+    'Added entries show only these results. Tick Exclude to hide them instead.',
+    'जोड़ी गई प्रविष्टियाँ केवल ये परिणाम दिखाती हैं। इन्हें छिपाने के लिए बाहर रखें चुनें।',
+    'ઉમેરેલી એન્ટ્રીઓ ફક્ત આ પરિણામો બતાવે છે. તેમને છુપાવવા બાકાત રાખો પસંદ કરો.',
   ),
   CatalogL10n.selectAvailability: _M(
     'Any availability',

@@ -55,7 +55,10 @@ Future<T?> showAppModalSheet<T>({
     useSafeArea: true,
     builder: (context) {
       return AppKeyboardInset(
-        child: Theme(data: theme, child: builder(context)),
+        child: SafeArea(
+          top: false,
+          child: Theme(data: theme, child: builder(context)),
+        ),
       );
     },
   );

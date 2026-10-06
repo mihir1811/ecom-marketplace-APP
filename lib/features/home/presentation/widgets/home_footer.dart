@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/router/app_navigation.dart';
-import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/language_menu_button.dart';
 import '../theme/home_tokens.dart';
@@ -11,7 +9,7 @@ import 'home_gem_stage.dart';
 import 'home_section.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
-/// Closing colophon (wordmark, promise line, legal links, preferences)
+/// Closing colophon (wordmark, promise line, preferences)
 /// followed by the full-screen live gem stage as the last section.
 class HomeFooter extends ConsumerWidget {
   const HomeFooter({super.key});
@@ -21,16 +19,6 @@ class HomeFooter extends ConsumerWidget {
     final palette = HomePalette.of(context);
     final gutter = homeGutter(context);
     final dark = ref.watch(themePreferenceProvider);
-
-    Widget link(String key, String route) => TextButton(
-      onPressed: () => context.openRoute(route),
-      style: TextButton.styleFrom(
-        foregroundColor: palette.ink,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-        minimumSize: const Size(44, 44),
-      ),
-      child: Text(context.tr(key), style: HomeType.label(palette.inkMuted)),
-    );
 
     final colophon = Padding(
       padding: EdgeInsets.fromLTRB(
@@ -68,18 +56,6 @@ class HomeFooter extends ConsumerWidget {
               style: HomeType.body(palette.inkMuted, size: 13.5),
             ),
             const SizedBox(height: 22),
-            Wrap(
-              spacing: 18,
-              children: [
-                link(RemainingL10n.aboutGemWorld, AppRouteNames.aboutUs),
-                link(
-                  RemainingL10n.termsConditions,
-                  AppRouteNames.termsAndConditions,
-                ),
-                link(RemainingL10n.policies, AppRouteNames.policies),
-              ],
-            ),
-            const SizedBox(height: 18),
             Row(
               children: [
                 Expanded(

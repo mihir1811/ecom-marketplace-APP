@@ -10,8 +10,9 @@ enum LuxeTone { neutral, success, error, info }
 
 /// Floating toast for confirmations and recoverable errors.
 ///
-/// Uses the nearest [ScaffoldMessenger], so it survives navigation, and
-/// adds a leading tone icon plus an optional action (e.g. "View cart").
+/// Uses the nearest [ScaffoldMessenger], so it survives navigation, with an
+/// optional action (e.g. "Undo"). Always auto-dismisses after [duration],
+/// even when it carries an action.
 void showLuxeToast(
   BuildContext context,
   String message, {
@@ -30,13 +31,6 @@ void showLuxeToast(
     case LuxeTone.info || LuxeTone.neutral:
       AppHaptics.light();
   }
-  final p = LuxePalette.of(context);
-  final (icon, iconColor) = switch (tone) {
-    LuxeTone.success => (Icons.check_circle_rounded, const Color(0xFF7BC8A0)),
-    LuxeTone.error => (Icons.error_outline_rounded, const Color(0xFFE59A7E)),
-    LuxeTone.info => (Icons.info_outline_rounded, p.accent),
-    LuxeTone.neutral => (Icons.auto_awesome_outlined, p.accent),
-  };
   const ink = Color(0xFFF3EEE6);
   messenger
     ..hideCurrentSnackBar()
@@ -44,6 +38,8 @@ void showLuxeToast(
       SnackBar(
         behavior: SnackBarBehavior.floating,
         duration: duration,
+        // Snack bars with an action persist by default; keep this one timed.
+        persist: false,
         backgroundColor: const Color(0xFF16140F),
         elevation: 0,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -51,15 +47,7 @@ void showLuxeToast(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
         ),
-        content: Row(
-          children: [
-            Icon(icon, size: 20, color: iconColor),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(message, style: LuxeType.label(ink, size: 13.5)),
-            ),
-          ],
-        ),
+        content: Text(message, style: LuxeType.label(ink, size: 13.5)),
         action: actionLabel == null
             ? null
             : SnackBarAction(

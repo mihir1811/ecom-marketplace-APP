@@ -43,43 +43,88 @@ class HomeLiveAuctions extends ConsumerWidget {
     final gutter = homeGutter(context);
     return Padding(
       padding: const EdgeInsets.only(top: HomeSpace.section),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: gutter),
-            child: HomeSectionHeading(
-              index: '02',
-              leading: const _LivePulse(),
-              eyebrow: context.tr(HomeL10n.auctionsEyebrow),
-              title: context.tr(HomeL10n.auctionsTitle),
-              trailing: HomeArrowLink(
-                label: context.tr(RemainingL10n.homeSeeAll),
-                onTap: () => context.openRoute(AppRouteNames.auctions),
-              ),
-            ),
-          ),
-          const SizedBox(height: 22),
-          SizedBox(
-            height: _railHeight,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
+      child: _AuctionBand(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: gutter),
-              itemCount: loading ? 3 : live.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemBuilder: (context, i) => SizedBox(
-                width: _cardWidth,
-                child: ScrollReveal(
-                  delay: HomeMotion.stagger * i.clamp(0, 4),
-                  child: loading
-                      ? const _SkeletonCard()
-                      : _AuctionCard(auction: live[i]),
+              child: HomeSectionHeading(
+                index: '02',
+                leading: const _LivePulse(),
+                eyebrow: context.tr(HomeL10n.auctionsEyebrow),
+                title: context.tr(HomeL10n.auctionsTitle),
+                trailing: HomeArrowLink(
+                  label: context.tr(RemainingL10n.homeSeeAll),
+                  onTap: () => context.openRoute(AppRouteNames.auctions),
                 ),
               ),
             ),
+            const SizedBox(height: 22),
+            SizedBox(
+              height: _railHeight,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: gutter),
+                itemCount: loading ? 3 : live.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                itemBuilder: (context, i) => SizedBox(
+                  width: _cardWidth,
+                  child: ScrollReveal(
+                    delay: HomeMotion.stagger * i.clamp(0, 4),
+                    child: loading
+                        ? const _SkeletonCard()
+                        : _AuctionCard(auction: live[i]),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Warm amber band behind the live auctions so the rail reads as its own
+/// stage on the cream page: a champagne-to-apricot wash with a soft glow
+/// in the top corner (cognac and ember in dark mode).
+class _AuctionBand extends StatelessWidget {
+  const _AuctionBand({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = HomePalette.of(context).isDark;
+    final edge = dark ? const Color(0x33D9BB84) : const Color(0x339C7A45);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: dark
+              ? const [Color(0xFF1F1610), Color(0xFF2B1C12), Color(0xFF21160F)]
+              : const [Color(0xFFF5E8D3), Color(0xFFF0D9BC), Color(0xFFEACDAF)],
+          stops: const [0, 0.55, 1],
+        ),
+        border: Border.symmetric(horizontal: BorderSide(color: edge)),
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(0.85, -0.9),
+            radius: 1.1,
+            colors: dark
+                ? const [Color(0x405A3A1E), Color(0x005A3A1E)]
+                : const [Color(0xB3FFF7EA), Color(0x00FFF7EA)],
           ),
-        ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 36),
+          child: child,
+        ),
       ),
     );
   }

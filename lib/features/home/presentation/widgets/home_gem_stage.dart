@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/app_navigation.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/gem3d/gem_field.dart';
 import '../theme/home_tokens.dart';
 import 'home_header.dart';
@@ -10,7 +11,7 @@ import 'home_header.dart';
 /// diamonds in every cut drifting from the top-left to the bottom-right.
 /// The finger parts the stones like a body moving through them and lights
 /// them warm; the page does not scroll while touching the stones below the
-/// copy.
+/// copy. Legal links sit along the bottom edge.
 class HomeGemStage extends StatelessWidget {
   const HomeGemStage({super.key});
 
@@ -23,39 +24,16 @@ class HomeGemStage extends StatelessWidget {
     final copyTop = media.padding.top + HomeHeader.barHeight + 28;
     // Touches above this line still scroll the page back up.
     final touchTop = copyTop + 200;
-    final still = MediaQuery.disableAnimationsOf(context);
 
-    Widget hint = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-      decoration: const ShapeDecoration(
-        color: HomeStage.glass,
-        shape: StadiumBorder(
-          side: BorderSide(color: HomeStage.glassBorder),
-        ),
+    Widget link(String key, String route) => TextButton(
+      onPressed: () => context.openRoute(route),
+      style: TextButton.styleFrom(
+        foregroundColor: HomeStage.ink,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+        minimumSize: const Size(44, 44),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.touch_app_outlined,
-            size: 16,
-            color: HomeStage.gold,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            context.tr(ExperienceL10n.stageHint),
-            style: HomeType.label(HomeStage.ink, size: 12.5),
-          ),
-        ],
-      ),
+      child: Text(context.tr(key), style: HomeType.label(HomeStage.inkMuted)),
     );
-    if (!still) {
-      hint = hint
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .moveY(begin: 0, end: -4, duration: 1400.ms, curve: Curves.easeInOut)
-          .then()
-          .shimmer(duration: 1600.ms, color: const Color(0x33FFFFFF));
-    }
 
     return ClipRRect(
       borderRadius: palette.isDark
@@ -66,10 +44,7 @@ class HomeGemStage extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            GemField(
-              background: HomeStage.obsidian,
-              touchTopInset: touchTop,
-            ),
+            GemField(background: HomeStage.obsidian, touchTopInset: touchTop),
             // Scrims keep copy legible over the stones; they never block
             // touches so the whole stage stays playable.
             const IgnorePointer(
@@ -117,10 +92,31 @@ class HomeGemStage extends StatelessWidget {
                         style: HomeType.body(HomeStage.inkMuted, size: 13.5),
                       ),
                     ),
-                    const Spacer(),
-                    Center(child: hint),
                   ],
                 ),
+              ),
+            ),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: media.padding.bottom + 20,
+              child: Column(
+                children: [
+                  Container(width: 48, height: 1, color: HomeStage.glassBorder),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 14,
+                    children: [
+                      link(RemainingL10n.aboutGemWorld, AppRouteNames.aboutUs),
+                      link(
+                        RemainingL10n.termsConditions,
+                        AppRouteNames.termsAndConditions,
+                      ),
+                      link(RemainingL10n.policies, AppRouteNames.policies),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],

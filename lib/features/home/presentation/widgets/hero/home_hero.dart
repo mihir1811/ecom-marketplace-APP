@@ -23,7 +23,6 @@ class HomeHero extends StatefulWidget {
     required this.topInset,
     required this.scrollOffset,
     required this.onSearch,
-    required this.onAskAi,
     required this.onExplore,
     super.key,
   });
@@ -34,7 +33,6 @@ class HomeHero extends StatefulWidget {
   final double topInset;
   final ValueListenable<double> scrollOffset;
   final VoidCallback onSearch;
-  final VoidCallback onAskAi;
   final VoidCallback onExplore;
 
   @override
@@ -233,7 +231,6 @@ class _HomeHeroState extends State<HomeHero>
                         child: _HeroCopy(
                           animate: !_reduceMotion,
                           onSearch: widget.onSearch,
-                          onAskAi: widget.onAskAi,
                           onExplore: widget.onExplore,
                         ),
                       ),
@@ -446,13 +443,11 @@ class _HeroCopy extends StatelessWidget {
   const _HeroCopy({
     required this.animate,
     required this.onSearch,
-    required this.onAskAi,
     required this.onExplore,
   });
 
   final bool animate;
   final VoidCallback onSearch;
-  final VoidCallback onAskAi;
   final VoidCallback onExplore;
 
   Widget _enter(Widget child, int delayMs, {double dy = 14}) {
@@ -539,11 +534,7 @@ class _HeroCopy extends StatelessWidget {
         ),
         const SizedBox(height: 22),
         _enter(
-          _HeroSearchPill(
-            animate: animate,
-            onSearch: onSearch,
-            onAskAi: onAskAi,
-          ),
+          _HeroSearchPill(animate: animate, onSearch: onSearch),
           860,
           dy: 18,
         ),
@@ -554,17 +545,12 @@ class _HeroCopy extends StatelessWidget {
   }
 }
 
-/// Glass search entry with a rotating category word and a Gem AI shortcut.
+/// Glass search entry with a rotating category word.
 class _HeroSearchPill extends StatefulWidget {
-  const _HeroSearchPill({
-    required this.animate,
-    required this.onSearch,
-    required this.onAskAi,
-  });
+  const _HeroSearchPill({required this.animate, required this.onSearch});
 
   final bool animate;
   final VoidCallback onSearch;
-  final VoidCallback onAskAi;
 
   @override
   State<_HeroSearchPill> createState() => _HeroSearchPillState();
@@ -658,29 +644,7 @@ class _HeroSearchPillState extends State<_HeroSearchPill> {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(7),
-                  child: Tooltip(
-                    message: context.tr(RemainingL10n.askGemAi2),
-                    child: Material(
-                      color: HomeStage.gold,
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: widget.onAskAi,
-                        child: const SizedBox(
-                          width: 42,
-                          height: 42,
-                          child: Icon(
-                            Icons.auto_awesome,
-                            size: 18,
-                            color: HomeStage.obsidian,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                const SizedBox(width: 20),
               ],
             ),
           ),

@@ -66,7 +66,9 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
         .where((p) => !p.isDeleted && !p.isSold && !p.isOnAuction)
         .toList();
     final maxDays = settings.asData?.value.maxDays ?? 11;
-    final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    final bottom =
+        MediaQuery.viewInsetsOf(context).bottom +
+        MediaQuery.paddingOf(context).bottom;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottom),
@@ -76,7 +78,9 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
         children: [
           Text('Create auction', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          Text('Max duration $maxDays days. Shared start and end for every item.'),
+          Text(
+            'Max duration $maxDays days. Shared start and end for every item.',
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -110,7 +114,8 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
                         final selected = _selected.contains(product.id);
                         return CheckboxListTile(
                           value: selected,
-                          onChanged: (value) => _toggle(product, value ?? false),
+                          onChanged: (value) =>
+                              _toggle(product, value ?? false),
                           title: Text(product.stockNumber),
                           subtitle: selected
                               ? Row(
@@ -192,7 +197,13 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
       initialTime: TimeOfDay.fromDateTime(initial),
     );
     if (time == null || !mounted) return;
-    final next = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final next = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
     setState(() {
       if (isStart) {
         _start = next;
@@ -226,7 +237,9 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
       if (product == null) continue;
       final minBid = double.tryParse(_bids[id]?.text.trim() ?? '');
       if (minBid == null || minBid <= 0) {
-        setState(() => _error = 'Enter a minimum bid for ${product.stockNumber}.');
+        setState(
+          () => _error = 'Enter a minimum bid for ${product.stockNumber}.',
+        );
         return;
       }
       final reserve = double.tryParse(_reserves[id]?.text.trim() ?? '');
@@ -277,7 +290,9 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
     if (!mounted) return;
     switch (result) {
       case Success(:final value):
-        _done('${value.message} Created ${value.created}, failed ${value.failed}.');
+        _done(
+          '${value.message} Created ${value.created}, failed ${value.failed}.',
+        );
       case ResultFailure(:final failure):
         setState(() {
           _submitting = false;
@@ -287,9 +302,9 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
   }
 
   void _done(String message) {
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.maybeOf(
+      context,
+    )?.showSnackBar(SnackBar(content: Text(message)));
     Navigator.pop(context, true);
   }
 }

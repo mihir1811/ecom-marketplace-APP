@@ -34,7 +34,10 @@ Future<void> showProductShareSheet({
           left: AppSpacing.s16,
           right: AppSpacing.s16,
           top: AppSpacing.s8,
-          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom + AppSpacing.s24,
+          bottom:
+              MediaQuery.viewInsetsOf(sheetContext).bottom +
+              MediaQuery.paddingOf(sheetContext).bottom +
+              AppSpacing.s24,
         ),
         child: _ProductShareSheet(
           productId: productId,

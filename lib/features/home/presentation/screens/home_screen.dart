@@ -13,14 +13,13 @@ import '../theme/home_tokens.dart';
 import '../widgets/hero/home_hero.dart';
 import '../widgets/home_atelier_links.dart';
 import '../widgets/home_collections.dart';
-import '../widgets/home_concierge_card.dart';
+import '../widgets/home_ai_search_card.dart';
 import '../widgets/home_footer.dart';
 import '../widgets/home_header.dart';
 import '../widgets/home_live_auctions.dart';
 import '../widgets/home_promise.dart';
 import '../widgets/home_search_overlay.dart';
 import '../widgets/home_sell_card.dart';
-import '../widgets/home_shape_atelier.dart';
 
 /// GemWorld home: an immersive hero stage followed by editorial sections.
 class HomeScreen extends ConsumerStatefulWidget {
@@ -98,7 +97,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     topInset: topInset,
                     scrollOffset: _offset,
                     onSearch: _openSearch,
-                    onAskAi: _askGemAi,
                     onExplore: _exploreCollections,
                   ),
                 ),
@@ -109,8 +107,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: const HomeCollections(),
                 ),
                 const SliverToBoxAdapter(child: HomeLiveAuctions()),
-                const SliverToBoxAdapter(child: HomeShapeAtelier()),
-                SliverToBoxAdapter(child: HomeConciergeCard(onAsk: _askGemAi)),
+                SliverToBoxAdapter(child: HomeAiSearchCard(onAsk: _askGemAi)),
                 const SliverToBoxAdapter(child: HomePromise()),
                 if (!auth.isSeller)
                   SliverToBoxAdapter(

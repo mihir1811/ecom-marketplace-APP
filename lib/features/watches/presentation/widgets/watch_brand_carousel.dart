@@ -584,257 +584,253 @@ class _WatchBrandsDirectorySheetState
     }
 
     return AppKeyboardInset(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SizedBox(
-            height: constraints.maxHeight * 0.92,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s20,
-                    AppSpacing.s16,
-                    AppSpacing.s8,
-                    AppSpacing.s8,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Watch Brands',
-                              style: AppTypography.headline.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.s4),
-                            Text(
-                              'Search and select brands.',
-                              style: AppTypography.body.copyWith(
-                                fontSize: 14,
-                                color: AppColors.textSecondary(context),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s20,
-                  ),
-                  child: SizedBox(
-                    height: 44,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.field(context),
-                        borderRadius: BorderRadius.circular(AppSpacing.r12),
-                        border: Border.all(color: AppColors.border(context)),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        textAlignVertical: TextAlignVertical.center,
-                        onChanged: (v) => setState(() => _query = v),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          hintText: context.tr(CatalogL10n.searchBrands),
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: muted,
-                            size: 20,
-                          ),
-                          prefixIconConstraints: const BoxConstraints(
-                            minWidth: 40,
-                            minHeight: 44,
-                          ),
-                          suffixIcon: _query.isNotEmpty
-                              ? IconButton(
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() => _query = '');
-                                  },
-                                  icon: Icon(
-                                    Icons.clear,
-                                    color: muted,
-                                    size: 18,
-                                  ),
-                                )
-                              : null,
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.s8,
-                            vertical: 0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                if (selected.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.s8),
+      child: SafeArea(
+        top: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SizedBox(
+              height: constraints.maxHeight * 0.92,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.s20,
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.s20,
+                      AppSpacing.s16,
+                      AppSpacing.s8,
+                      AppSpacing.s8,
                     ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '${selected.length} selected',
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.bronze,
-                            fontWeight: FontWeight.w600,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Watch Brands',
+                                style: AppTypography.headline.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.s4),
+                              Text(
+                                'Search and select brands.',
+                                style: AppTypography.body.copyWith(
+                                  fontSize: 14,
+                                  color: AppColors.textSecondary(context),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const Spacer(),
-                        TextButton(
-                          onPressed: () => ref
-                              .read(watchFilterProvider.notifier)
-                              .clearBrands(),
-                          child: Text(context.tr(CatalogL10n.clear)),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
                         ),
                       ],
                     ),
                   ),
-                ],
-                const SizedBox(height: AppSpacing.s4),
-                Expanded(
-                  child: filtered.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No brands match "$_query"',
-                            style: AppTypography.body.copyWith(color: muted),
-                          ),
-                        )
-                      : Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Positioned.fill(
-                              child: ListView.builder(
-                                controller: _listController,
-                                padding: const EdgeInsets.only(
-                                  bottom: AppSpacing.s40,
-                                ),
-                                itemCount: rows.length,
-                                itemExtentBuilder: (i, _) => rows[i].isHeader
-                                    ? _headerExtent
-                                    : _brandExtent,
-                                itemBuilder: (context, i) {
-                                  final row = rows[i];
-                                  if (row.isHeader) {
-                                    return Container(
-                                      color: AppColors.surface(context),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        row.text,
-                                        style: AppTypography.label.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 1,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  return InkWell(
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      context.push(
-                                        '/watches/brand/'
-                                        '${Uri.encodeComponent(row.text)}',
-                                      );
-                                    },
-                                    child: Padding(
-                                      // Clear of the A–Z index on the right.
-                                      padding: const EdgeInsets.only(
-                                        left: AppSpacing.s20,
-                                        right: 44,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              row.text,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: AppTypography.label
-                                                  .copyWith(fontSize: 14),
-                                            ),
-                                          ),
-                                          const Icon(
-                                            Icons.arrow_forward_ios,
-                                            size: 14,
-                                            color: AppColors.bronze,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            Positioned(
-                              right: 4,
-                              top: 4,
-                              bottom: 4,
-                              width: 30,
-                              child: LuxeAlphabetIndex(
-                                letters: _alphabet,
-                                enabled: offsets.keys.toSet(),
-                                onLetter: (l) => _jumpTo(l, offsets),
-                              ),
-                            ),
-                          ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s20,
+                    ),
+                    child: SizedBox(
+                      height: 44,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.field(context),
+                          borderRadius: BorderRadius.circular(AppSpacing.r12),
+                          border: Border.all(color: AppColors.border(context)),
                         ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s16,
-                    AppSpacing.s8,
-                    AppSpacing.s16,
-                    AppSpacing.s16,
-                  ),
-                  child: SizedBox(
-                    height: 48,
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.charcoal,
-                        foregroundColor: AppColors.warmWhite,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        selected.isEmpty
-                            ? context.tr(CatalogL10n.done)
-                            : context.tr(CatalogL10n.applyBrandCount, {
-                                'count': selected.length,
-                                'brandLabel': context.tr(
-                                  selected.length == 1
-                                      ? CatalogL10n.brand
-                                      : CatalogL10n.brands,
-                                ),
-                              }),
-                        style: AppTypography.label.copyWith(
-                          color: AppColors.warmWhite,
-                          fontWeight: FontWeight.w700,
+                        child: TextField(
+                          controller: _searchController,
+                          textAlignVertical: TextAlignVertical.center,
+                          onChanged: (v) => setState(() => _query = v),
+                          decoration: InputDecoration(
+                            isDense: true,
+                            hintText: context.tr(CatalogL10n.searchBrands),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: muted,
+                              size: 20,
+                            ),
+                            prefixIconConstraints: const BoxConstraints(
+                              minWidth: 40,
+                              minHeight: 44,
+                            ),
+                            suffixIcon: _query.isNotEmpty
+                                ? IconButton(
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() => _query = '');
+                                    },
+                                    icon: Icon(
+                                      Icons.clear,
+                                      color: muted,
+                                      size: 18,
+                                    ),
+                                  )
+                                : null,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.s8,
+                              vertical: 0,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                  if (selected.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.s8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.s20,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            '${selected.length} selected',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.bronze,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () => ref
+                                .read(watchFilterProvider.notifier)
+                                .clearBrands(),
+                            child: Text(context.tr(CatalogL10n.clear)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.s4),
+                  Expanded(
+                    child: filtered.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No brands match "$_query"',
+                              style: AppTypography.body.copyWith(color: muted),
+                            ),
+                          )
+                        : Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Positioned.fill(
+                                child: ListView.builder(
+                                  controller: _listController,
+                                  padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.s40,
+                                  ),
+                                  itemCount: rows.length,
+                                  itemExtentBuilder: (i, _) => rows[i].isHeader
+                                      ? _headerExtent
+                                      : _brandExtent,
+                                  itemBuilder: (context, i) {
+                                    final row = rows[i];
+                                    if (row.isHeader) {
+                                      return Container(
+                                        color: AppColors.surface(context),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          row.text,
+                                          style: AppTypography.label.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 1,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    return InkWell(
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        context.push(
+                                          '/watches/brand/'
+                                          '${Uri.encodeComponent(row.text)}',
+                                        );
+                                      },
+                                      child: Padding(
+                                        // Clear of the A–Z index on the right.
+                                        padding: const EdgeInsets.only(
+                                          left: AppSpacing.s20,
+                                          right: 44,
+                                        ),
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            row.text,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: AppTypography.label.copyWith(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              Positioned(
+                                right: 4,
+                                top: 4,
+                                bottom: 4,
+                                width: 30,
+                                child: LuxeAlphabetIndex(
+                                  letters: _alphabet,
+                                  enabled: offsets.keys.toSet(),
+                                  onLetter: (l) => _jumpTo(l, offsets),
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.s16,
+                      AppSpacing.s8,
+                      AppSpacing.s16,
+                      AppSpacing.s16,
+                    ),
+                    child: SizedBox(
+                      height: 48,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.charcoal,
+                          foregroundColor: AppColors.warmWhite,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          selected.isEmpty
+                              ? context.tr(CatalogL10n.done)
+                              : context.tr(CatalogL10n.applyBrandCount, {
+                                  'count': selected.length,
+                                  'brandLabel': context.tr(
+                                    selected.length == 1
+                                        ? CatalogL10n.brand
+                                        : CatalogL10n.brands,
+                                  ),
+                                }),
+                          style: AppTypography.label.copyWith(
+                            color: AppColors.warmWhite,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

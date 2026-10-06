@@ -14,18 +14,20 @@ double homeGutter(BuildContext context) {
       : HomeSpace.gutter;
 }
 
-/// Section title block: numbered eyebrow, hairline and serif title.
+/// Section title block: optional number and hairline, eyebrow and serif
+/// title.
 class HomeSectionHeading extends StatelessWidget {
   const HomeSectionHeading({
-    required this.index,
     required this.eyebrow,
     required this.title,
     super.key,
+    this.index,
     this.trailing,
     this.leading,
   });
 
-  final String index;
+  /// Section number shown before a hairline; omitted when null.
+  final String? index;
   final String eyebrow;
   final String title;
   final Widget? trailing;
@@ -47,20 +49,22 @@ class HomeSectionHeading extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(index, style: HomeType.eyebrow(palette.accent)),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      width: 28,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          width: 28 * t,
-                          height: 1,
-                          color: palette.accent,
+                    if (index != null) ...[
+                      Text(index!, style: HomeType.eyebrow(palette.accent)),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: 28,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            width: 28 * t,
+                            height: 1,
+                            color: palette.accent,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
+                      const SizedBox(width: 10),
+                    ],
                     if (leading != null) ...[
                       leading!,
                       const SizedBox(width: 8),
