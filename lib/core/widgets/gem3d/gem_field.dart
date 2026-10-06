@@ -93,6 +93,13 @@ class GemFieldController extends ChangeNotifier {
   /// World units across the field width.
   static const worldWidth = 6.4;
 
+  /// Herd pace multiplier (2× the original drift).
+  static const _flowSpeed = 2.0;
+
+  /// Depth slab the stones live in: back edge and thickness.
+  static const _zNear = -1.9;
+  static const _zDepth = 2.8;
+
   /// Radius of the void carved around the finger, in logical pixels.
   double get voidRadius => (_size.shortestSide * 0.2).clamp(64.0, 130.0);
 
@@ -131,7 +138,7 @@ class GemFieldController extends ChangeNotifier {
     const halfW = worldWidth / 2;
     final halfH = size.height / unit / 2;
     // Dense like a pour of beans, capped for frame budget.
-    final count = (size.width * size.height / 1450).round().clamp(70, 190);
+    final count = (size.width * size.height / 1100).round().clamp(90, 250);
 
     // Flow along the screen diagonal: top-left → bottom-right.
     final len = math.sqrt(halfW * halfW + halfH * halfH);
@@ -141,8 +148,9 @@ class GemFieldController extends ChangeNotifier {
     final across = 2 * halfW * halfH / len;
 
     for (var i = 0; i < count; i++) {
-      // A shallow depth slab keeps the herd close and tight.
-      final z = -2.4 + rng.nextDouble() * 3.3;
+      // A shallow depth slab, pulled toward the viewer, keeps the herd
+      // close and tightly packed.
+      final z = _zNear + rng.nextDouble() * _zDepth;
       final band = z < -1.4
           ? _Band.far
           : z > 0.45
@@ -176,7 +184,8 @@ class GemFieldController extends ChangeNotifier {
         // One pace for the whole herd; nearer stones a touch faster for
         // depth parallax.
         speed:
-            (0.72 + 0.16 * ((z + 2.4) / 3.3)) *
+            _flowSpeed *
+            (0.72 + 0.16 * ((z - _zNear) / _zDepth)) *
             (0.97 + rng.nextDouble() * 0.06),
         scale: 0.16 + rng.nextDouble() * 0.16,
         phase: rng.nextDouble(),

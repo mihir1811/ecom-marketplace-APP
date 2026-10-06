@@ -83,6 +83,9 @@ class _SellerDashboardDiamondProjectsSectionState
     final hasData = inventory?.hasApplied == true;
 
     return AtelierCard(
+      // Tighter than the default card: the hero inside is already a framed
+      // surface, so a wide gutter only wastes width on phones.
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -114,7 +117,7 @@ class _SellerDashboardDiamondProjectsSectionState
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (isLoading) ...[
-                  const SizedBox(height: AtelierSpace.s20),
+                  const SizedBox(height: AtelierSpace.s16),
                   const Row(
                     children: [
                       Expanded(child: SkeletonBox(height: 72)),
@@ -127,7 +130,7 @@ class _SellerDashboardDiamondProjectsSectionState
                   const SizedBox(height: 12),
                   const SkeletonBox(height: 160),
                 ] else if (hasData) ...[
-                  const SizedBox(height: AtelierSpace.s20),
+                  const SizedBox(height: AtelierSpace.s16),
                   if (inventory!.isEmpty)
                     AtelierEmptyState(
                       compact: true,
@@ -153,11 +156,12 @@ class _SellerDashboardDiamondProjectsSectionState
                             status: context.tr(CatalogL10n.liveInventory),
                             statusIcon: Icons.inventory_2_outlined,
                             highlighted: true,
+                            compact: true,
                             stats: stats,
                           ),
                           const SizedBox(height: AtelierSpace.s16),
                           DiamondProjectAverages(stats: stats),
-                          const SizedBox(height: AtelierSpace.s16),
+                          const SizedBox(height: AtelierSpace.s12),
                           Center(
                             child: DiamondProjectTabBar(
                               selected: _tab,
@@ -165,7 +169,7 @@ class _SellerDashboardDiamondProjectsSectionState
                               onChanged: (t) => setState(() => _tab = t),
                             ),
                           ),
-                          const SizedBox(height: AtelierSpace.s12),
+                          const SizedBox(height: AtelierSpace.s10),
                           DiamondProjectTabView(
                             tab: _tab,
                             stats: stats,
@@ -198,46 +202,75 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final actions = Row(
-          mainAxisSize: MainAxisSize.min,
+    final p = context.atelier;
+    Widget actions({required bool roomy}) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Labelled when there is room; an icon button on phones so the
+        // title and overline stay on one line.
+        if (roomy)
+          AtelierButton(
+            label: context.tr(CatalogL10n.filters),
+            icon: Icons.tune_rounded,
+            compact: true,
+            variant: AtelierButtonVariant.secondary,
+            onPressed: onFilter,
+          )
+        else
+          AtelierIconButton(
+            icon: Icons.tune_rounded,
+            tooltip: context.tr(CatalogL10n.filters),
+            filled: true,
+            onPressed: onFilter,
+          ),
+        const SizedBox(width: AtelierSpace.s8),
+        AtelierIconButton(
+          icon: Icons.refresh_rounded,
+          tooltip: context.tr(RemainingL10n.refresh),
+          filled: true,
+          onPressed: onRefresh,
+        ),
+      ],
+    );
+    // Actions ride on the title row so they don't cost a row of their own.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            AtelierButton(
-              label: context.tr(CatalogL10n.filters),
-              icon: Icons.tune_rounded,
-              compact: true,
-              variant: AtelierButtonVariant.secondary,
-              onPressed: onFilter,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Inventory intelligence'.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AtelierType.overline(p.gold),
+                  ),
+                  const SizedBox(height: AtelierSpace.s4),
+                  Text(
+                    context.tr(CatalogL10n.sellerDiamondProjectsTitle),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AtelierType.display(p.ink, size: 22),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(width: AtelierSpace.s8),
-            AtelierIconButton(
-              icon: Icons.refresh_rounded,
-              tooltip: context.tr(RemainingL10n.refresh),
-              filled: true,
-              onPressed: onRefresh,
-            ),
+            actions(roomy: MediaQuery.sizeOf(context).width >= 480),
           ],
-        );
-        final header = AtelierSectionHeader(
-          overline: 'Inventory intelligence',
-          title: context.tr(CatalogL10n.sellerDiamondProjectsTitle),
-          subtitle: context.tr(CatalogL10n.sellerDiamondProjectsSubtitle),
-        );
-        if (constraints.maxWidth < 520) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [header, const SizedBox(height: 14), actions],
-          );
-        }
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(child: header),
-            actions,
-          ],
-        );
-      },
+        ),
+        const SizedBox(height: AtelierSpace.s6),
+        Text(
+          context.tr(CatalogL10n.sellerDiamondProjectsSubtitle),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+          style: AtelierType.caption(p.muted, size: 12.5),
+        ),
+      ],
     );
   }
 }

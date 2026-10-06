@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_tokens.dart';
-import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
@@ -29,8 +28,13 @@ class DiamondProjectHero extends StatelessWidget {
     required this.stats,
     this.statusIcon,
     this.highlighted = false,
+    this.compact = false,
     super.key,
   });
+
+  /// Tighter padding and type for embedding inside another card
+  /// (seller dashboard); the standalone project screen uses the roomy size.
+  final bool compact;
 
   final String name;
   final String status;
@@ -39,6 +43,17 @@ class DiamondProjectHero extends StatelessWidget {
   /// Green status pill (e.g. saved / live) instead of the neutral glass one.
   final bool highlighted;
   final DiamondProjectStats stats;
+
+  /// `$1,234,567` — grouped so large inventory values stay readable.
+  static String _money(num amount) {
+    final digits = amount.round().abs().toString();
+    final out = StringBuffer(amount < 0 ? '-\$' : '\$');
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) out.write(',');
+      out.write(digits[i]);
+    }
+    return out.toString();
+  }
 
   static GemCut cutFor(String? shape) {
     final s = (shape ?? '').toLowerCase();
@@ -57,14 +72,18 @@ class DiamondProjectHero extends StatelessWidget {
     Widget figure(String value, String label) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: LuxeType.figure(
-            LuxeStage.ink,
-            size: 17,
-          ).copyWith(fontWeight: FontWeight.w600),
+        // Shrinks instead of truncating, so figures are never cut off.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            value,
+            maxLines: 1,
+            style: LuxeType.figure(
+              LuxeStage.ink,
+              size: compact ? 15 : 17,
+            ).copyWith(fontWeight: FontWeight.w600),
+          ),
         ),
         const SizedBox(height: 2),
         Text(
@@ -78,7 +97,7 @@ class DiamondProjectHero extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(compact ? 22 : 28),
         gradient: const RadialGradient(
           center: Alignment(0.75, -0.4),
           radius: 1.2,
@@ -86,7 +105,9 @@ class DiamondProjectHero extends StatelessWidget {
         ),
         border: Border.all(color: LuxeStage.glassBorder),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 12, 20),
+      padding: compact
+          ? const EdgeInsets.fromLTRB(16, 14, 8, 14)
+          : const EdgeInsets.fromLTRB(20, 18, 12, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -135,14 +156,14 @@ class DiamondProjectHero extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: compact ? 10 : 14),
                     Text(
                       name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: LuxeType.display(28, LuxeStage.ink),
+                      style: LuxeType.display(compact ? 22 : 28, LuxeStage.ink),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: compact ? 12 : 16),
                     Text(
                       context.tr(ExperienceL10n.projectValue).toUpperCase(),
                       style: LuxeType.eyebrow(
@@ -154,24 +175,27 @@ class DiamondProjectHero extends StatelessWidget {
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        AppCurrency.usd(stats.totalPrice, decimals: 0),
-                        style: LuxeType.display(36, LuxeStage.gold),
+                        _money(stats.totalPrice),
+                        style: LuxeType.display(
+                          compact ? 30 : 36,
+                          LuxeStage.gold,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               GemView(
-                size: 118,
+                size: compact ? 88 : 118,
                 cut: cutFor(dominant),
                 interactive: true,
                 semanticLabel: dominant,
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          SizedBox(height: compact ? 12 : 18),
           Container(height: 0.6, color: LuxeStage.glassBorder),
-          const SizedBox(height: 14),
+          SizedBox(height: compact ? 10 : 14),
           Row(
             children: [
               Expanded(
