@@ -48,25 +48,29 @@ class HomeLiveAuctions extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: gutter),
+              padding: EdgeInsets.symmetric(horizontal: gutter - 10),
               child: HomeSectionHeading(
                 index: '02',
                 leading: const _LivePulse(),
                 eyebrow: context.tr(HomeL10n.auctionsEyebrow),
                 title: context.tr(HomeL10n.auctionsTitle),
                 trailing: HomeArrowLink(
+                  // Bronze is too faint on the honey band; ink reads clearly.
+                  color: HomePalette.of(context).isDark
+                      ? null
+                      : HomePalette.of(context).ink,
                   label: context.tr(RemainingL10n.homeSeeAll),
                   onTap: () => context.openRoute(AppRouteNames.auctions),
                 ),
               ),
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: 18),
             SizedBox(
-              height: _railHeight,
+              height: _railHeight + 22,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: gutter),
+                padding: EdgeInsets.fromLTRB(gutter - 10, 4, gutter - 10, 18),
                 itemCount: loading ? 3 : live.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, i) => SizedBox(
@@ -87,9 +91,10 @@ class HomeLiveAuctions extends ConsumerWidget {
   }
 }
 
-/// Warm amber band behind the live auctions so the rail reads as its own
-/// stage on the cream page: a champagne-to-apricot wash with a soft glow
-/// in the top corner (cognac and ember in dark mode).
+/// Warm honey-amber stage behind the live auctions so the rail reads as
+/// its own component on the cream page: an apricot-to-caramel wash, a soft
+/// glow in the top corner and faint loupe rings (cognac and ember in dark
+/// mode). Inset with rounded corners like a display case.
 class _AuctionBand extends StatelessWidget {
   const _AuctionBand({required this.child});
 
@@ -98,36 +103,82 @@ class _AuctionBand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = HomePalette.of(context).isDark;
-    final edge = dark ? const Color(0x33D9BB84) : const Color(0x339C7A45);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: dark
-              ? const [Color(0xFF1F1610), Color(0xFF2B1C12), Color(0xFF21160F)]
-              : const [Color(0xFFF5E8D3), Color(0xFFF0D9BC), Color(0xFFEACDAF)],
-          stops: const [0, 0.55, 1],
-        ),
-        border: Border.symmetric(horizontal: BorderSide(color: edge)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(0.85, -0.9),
-            radius: 1.1,
-            colors: dark
-                ? const [Color(0x405A3A1E), Color(0x005A3A1E)]
-                : const [Color(0xB3FFF7EA), Color(0x00FFF7EA)],
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(
+            color: dark ? const Color(0x40D9BB84) : const Color(0x59B07A45),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: dark ? const Color(0x66000000) : const Color(0x297A4A1E),
+              blurRadius: 30,
+              offset: const Offset(0, 14),
+            ),
+          ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 36),
-          child: child,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(32),
+          child: CustomPaint(
+            painter: _BandPainter(dark: dark),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 30, bottom: 22),
+              child: child,
+            ),
+          ),
         ),
       ),
     );
   }
+}
+
+class _BandPainter extends CustomPainter {
+  const _BandPainter({required this.dark});
+
+  final bool dark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: dark
+              ? const [Color(0xFF2E1D12), Color(0xFF3B2416), Color(0xFF24170F)]
+              : const [Color(0xFFF6DFC0), Color(0xFFEDC79C), Color(0xFFE2B184)],
+          stops: const [0, 0.5, 1],
+        ).createShader(rect),
+    );
+    // Lamp glow over the top-right corner.
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(0.9, -0.95),
+          radius: 0.95,
+          colors: dark
+              ? const [Color(0x598A5528), Color(0x008A5528)]
+              : const [Color(0xCCFFF6E6), Color(0x00FFF6E6)],
+        ).createShader(rect),
+    );
+    // Loupe rings rising from the lower-left corner.
+    final ring = Paint()
+      ..style = PaintingStyle.stroke
+      ..color = dark ? const Color(0x14F1DDB5) : const Color(0x40FFFFFF);
+    final centre = Offset(size.width * 0.05, size.height * 1.02);
+    for (var i = 1; i <= 5; i++) {
+      ring.strokeWidth = i.isOdd ? 1.2 : 0.7;
+      canvas.drawCircle(centre, size.width * 0.22 * i, ring);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_BandPainter old) => old.dark != dark;
 }
 
 class _AuctionCard extends StatelessWidget {
@@ -154,6 +205,13 @@ class _AuctionCard extends StatelessWidget {
           color: palette.surface,
           borderRadius: BorderRadius.circular(HomeSpace.radius),
           border: Border.all(color: palette.hairline),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x267A4A1E),
+              blurRadius: 16,
+              offset: Offset(0, 8),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

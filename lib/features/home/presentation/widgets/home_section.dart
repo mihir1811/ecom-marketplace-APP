@@ -112,27 +112,35 @@ class HomeSectionHeading extends StatelessWidget {
 
 /// Text link with an arrow, used for "See all" style actions.
 class HomeArrowLink extends StatelessWidget {
-  const HomeArrowLink({required this.label, required this.onTap, super.key});
+  const HomeArrowLink({
+    required this.label,
+    required this.onTap,
+    super.key,
+    this.color,
+  });
 
   final String label;
   final VoidCallback onTap;
 
+  /// Defaults to the palette accent.
+  final Color? color;
+
   @override
   Widget build(BuildContext context) {
-    final palette = HomePalette.of(context);
+    final tint = color ?? HomePalette.of(context).accent;
     return TextButton(
       onPressed: onTap,
       style: TextButton.styleFrom(
-        foregroundColor: palette.accent,
+        foregroundColor: tint,
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
         minimumSize: const Size(48, 44),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: HomeType.label(palette.accent)),
+          Text(label, style: HomeType.label(tint)),
           const SizedBox(width: 6),
-          Icon(Icons.arrow_forward_rounded, size: 16, color: palette.accent),
+          Icon(Icons.arrow_forward_rounded, size: 16, color: tint),
         ],
       ),
     );
