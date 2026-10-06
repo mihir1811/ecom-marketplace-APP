@@ -37,6 +37,11 @@ abstract final class AppHaptics {
     allowRepeat: true,
   );
 
+  /// Level 2 — firm detent while scrubbing an index or dial; repeats are
+  /// allowed so every step is felt, even mid-flick.
+  static void detent() =>
+      _play(_Kind.detent, HapticFeedback.mediumImpact, allowRepeat: true);
+
   /// Level 2 — a meaningful action completed or was triggered.
   static void medium() => _play(_Kind.medium, HapticFeedback.mediumImpact);
 
@@ -122,6 +127,7 @@ enum _Kind {
   selection(1),
   light(1),
   medium(2),
+  detent(2),
   success(2),
   heavy(3),
   warning(3),

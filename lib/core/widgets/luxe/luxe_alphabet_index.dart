@@ -9,10 +9,11 @@ import '../../theme/luxe_tokens.dart';
 
 /// Side A–Z index with a "repelling finger" bulge.
 ///
-/// While a finger rests on the strip, the letters around it lift off the
-/// column and wrap round the finger on a semicircle, as if pushed away by
-/// an opposite gravity; letters further out stay in the column, so the
-/// chain never breaks. Every letter rides its own under-damped spring, so
+/// While a finger rests on the strip, the letters around it are pushed
+/// away from it, as if by an opposite gravity: they lift off the column
+/// into a tall half-oval that eases back into the column through soft
+/// shoulders, so the chain bends but never breaks or kinks.
+/// Near the finger the letters also spread apart vertically. Every letter rides its own under-damped spring, so
 /// the bulge follows the finger with a soft, bouncy lag and snaps back with
 /// a little overshoot on release. A loupe bubble shows the current letter.
 ///
@@ -56,17 +57,25 @@ class _LuxeAlphabetIndexState extends State<LuxeAlphabetIndex>
     with SingleTickerProviderStateMixin {
   // Spring tuning: letters bounce a little, the finger trace is near
   // critically damped (smooth but immediate), the bulge itself overshoots.
-  static const _letterK = 560.0;
-  static const _letterZeta = 0.52;
-  static const _fingerK = 1400.0;
-  static const _fingerZeta = 0.9;
-  static const _bulgeK = 260.0;
-  static const _bulgeZeta = 0.48;
+  static const _letterK = 520.0;
+  static const _letterZeta = 0.6;
+  static const _fingerK = 1100.0;
+  static const _fingerZeta = 0.95;
+  static const _bulgeK = 240.0;
+  static const _bulgeZeta = 0.5;
 
   static const _maxSlot = 18.0;
 
-  /// Radius of the arc the letters wrap around the finger on.
-  static const _arcRadius = 58.0;
+  /// How far the bulge pushes letters out (the oval's horizontal radius).
+  static const _bulgeWidth = 86.0;
+
+  /// Vertical radius of the bulge in letter slots: taller than wide, so the
+  /// bend reads as a half oval rather than a circle.
+  static const _bulgeSlots = 6.5;
+
+  /// How much letters near the finger spread apart vertically, as a
+  /// fraction of the bulge height.
+  static const _spread = 0.36;
 
   late final Ticker _ticker = createTicker(_tick);
   final _repaint = _Repaint();
@@ -122,13 +131,14 @@ class _LuxeAlphabetIndexState extends State<LuxeAlphabetIndex>
     if (first) {
       _finger = local.dy;
       _fingerV = 0;
-      AppHaptics.light();
+      AppHaptics.medium();
     }
     _pick(local.dy);
     _wake();
   }
 
   void _up() {
+    if (_fingerTarget != null) AppHaptics.light();
     _fingerTarget = null;
     _active = -1;
     _wake();
@@ -141,7 +151,7 @@ class _LuxeAlphabetIndexState extends State<LuxeAlphabetIndex>
     _active = i;
     final letter = widget.letters[i];
     if (widget.enabled.contains(letter)) {
-      AppHaptics.selection();
+      AppHaptics.detent();
     }
     widget.onLetter(letter);
   }
@@ -228,26 +238,16 @@ class _LuxeAlphabetIndexState extends State<LuxeAlphabetIndex>
     );
 
     final slot = _slot;
-    const r = _arcRadius;
-    // Rest spacing maps onto the arc so that ±r of column becomes a
-    // half circle: the letters spread ~1.6× apart round the finger.
-    const l = r / (math.pi / 2);
+    final height = slot * _bulgeSlots;
     for (var i = 0; i < _bodies.length; i++) {
       final b = _bodies[i];
-      final rest = _restY(i);
-      final dy = rest - _finger;
-      final phi = dy / l;
-      final phiC = phi.clamp(-math.pi / 2, math.pi / 2);
-      // Flat top inside the arc, smooth hand-off back to the column.
-      final edge = (phi.abs() - math.pi / 2 * 0.85) / (math.pi / 2 * 0.4);
-      final w = edge <= 0 ? 1.0 : (edge >= 1 ? 0.0 : 1 - _smooth(edge));
-      final arcX = -r * math.cos(phiC);
-      final arcY = _finger + r * math.sin(phiC);
-      final amt = _bulge * w;
-      final tx = arcX * amt;
-      final ty = (arcY - rest) * amt;
+      final dy = _restY(i) - _finger;
+      final u = dy / height;
+      final inside = u.abs() < 1;
+      final tx = inside ? -_bulgeWidth * _oval(u) * _bulge : 0.0;
+      final ty = inside ? height * _spread * _push(u) * _bulge : 0.0;
       final near = math.exp(-math.pow(dy / slot, 2) * 1.1);
-      final ts = 1 + _bulge * (0.38 * w + 0.85 * near);
+      final ts = 1 + _bulge * (0.45 * (inside ? _oval(u) : 0) + 0.75 * near);
 
       energy += _springStep(b.dx, b.vx, tx, _letterK, _letterZeta, dt, (x, v) {
         b
@@ -268,7 +268,20 @@ class _LuxeAlphabetIndexState extends State<LuxeAlphabetIndex>
     return energy;
   }
 
-  static double _smooth(double t) => t * t * (3 - 2 * t);
+  /// Bulge profile on u ∈ (-1, 1): an oval body (≈ 1 − u²/2 at the top,
+  /// like an ellipse) whose shoulders meet the column with zero slope and
+  /// finite curvature, so there is no corner where the bend begins.
+  static double _oval(double u) {
+    final s = u * u;
+    return (1 - s) * (1 - s) * (1 + 1.5 * s);
+  }
+
+  /// Vertical spread: letters move away from the finger, most at mid-bulge
+  /// and not at all at the centre or the shoulders; letter order is kept.
+  static double _push(double u) {
+    final s = 1 - u * u;
+    return u * s * s;
+  }
 
   // ---------------------------------------------------------------- build
 
@@ -409,7 +422,7 @@ class _IndexPainter extends CustomPainter {
       final on = s.widget.enabled.contains(letter);
       final r = 24.0 * bulge.clamp(0.0, 1.1);
       final y = s._finger.clamp(r, size.height - r);
-      final c = Offset(cx - _LuxeAlphabetIndexState._arcRadius - 50, y);
+      final c = Offset(cx - _LuxeAlphabetIndexState._bulgeWidth - 56, y);
       canvas.drawCircle(
         c.translate(0, 3),
         r,
