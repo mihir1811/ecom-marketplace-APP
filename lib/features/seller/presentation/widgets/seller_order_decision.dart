@@ -5,11 +5,12 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
-import '../../../../core/widgets/app_dialog.dart';
 import '../../application/seller_orders_provider.dart';
 import '../../domain/models/seller_order.dart';
+import '../atelier/atelier_components.dart';
+import '../atelier/atelier_feedback.dart';
+import '../atelier/atelier_theme.dart';
 
 /// Amount as the API priced it: both currencies when both are present.
 String sellerOrderAmountLabel(SellerOrder order) {
@@ -27,6 +28,18 @@ String sellerOrderAmountLabel(SellerOrder order) {
       : AppCurrency.usd(amount);
 }
 
+/// The same amount split for visual hierarchy: USD leads, INR follows.
+({String primary, String? secondary}) sellerOrderAmountParts(
+  SellerOrder order,
+) {
+  final usd = order.amountUsd;
+  final inr = order.amountInr;
+  if (usd != null && usd > 0 && inr != null && inr > 0) {
+    return (primary: AppCurrency.usd(usd), secondary: AppCurrency.inr(inr));
+  }
+  return (primary: sellerOrderAmountLabel(order), secondary: null);
+}
+
 String sellerOrderDateLabel(DateTime? date) {
   if (date == null) return '—';
   String two(int v) => v.toString().padLeft(2, '0');
@@ -34,11 +47,29 @@ String sellerOrderDateLabel(DateTime? date) {
       '${two(date.hour)}:${two(date.minute)}';
 }
 
+/// "5m ago" / "3h ago" / date — for scanning lists quickly.
+String sellerOrderRelativeTime(DateTime? date) {
+  if (date == null) return '—';
+  final diff = DateTime.now().difference(date.toLocal());
+  if (diff.isNegative || diff.inMinutes < 1) return 'Just now';
+  if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+  if (diff.inHours < 24) return '${diff.inHours}h ago';
+  if (diff.inDays < 7) return '${diff.inDays}d ago';
+  return sellerOrderDateLabel(date).split(',').first;
+}
+
 Color sellerOrderStatusColor(SellerOrderStatus status) => switch (status) {
   SellerOrderStatus.pending => AppColors.bronze,
   SellerOrderStatus.accepted => AppColors.success,
   SellerOrderStatus.rejected => AppColors.error,
   SellerOrderStatus.unknown => AppColors.charcoalLight,
+};
+
+AtelierTone sellerOrderStatusTone(SellerOrderStatus status) => switch (status) {
+  SellerOrderStatus.pending => AtelierTone.gold,
+  SellerOrderStatus.accepted => AtelierTone.emerald,
+  SellerOrderStatus.rejected => AtelierTone.ruby,
+  SellerOrderStatus.unknown => AtelierTone.neutral,
 };
 
 IconData sellerOrderStatusIcon(SellerOrderStatus status) => switch (status) {
@@ -61,33 +92,10 @@ class SellerOrderStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = sellerOrderStatusColor(order.status);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(sellerOrderStatusIcon(order.status), size: 14, color: color),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              sellerOrderStatusLabel(order),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.caption.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return AtelierPill(
+      label: sellerOrderStatusLabel(order),
+      tone: sellerOrderStatusTone(order.status),
+      icon: sellerOrderStatusIcon(order.status),
     );
   }
 }
@@ -109,52 +117,31 @@ class SellerOrderDecisionButtons extends ConsumerWidget {
     final busy = ref.watch(
       sellerOrderActionsProvider.select((ids) => ids.contains(order.id)),
     );
-    final height = compact ? 40.0 : 48.0;
 
     return Row(
       children: [
         Expanded(
-          child: SizedBox(
-            height: height,
-            child: OutlinedButton.icon(
-              onPressed: busy
-                  ? null
-                  : () => confirmRejectSellerOrder(context, ref, order),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: BorderSide(
-                  color: AppColors.error.withValues(alpha: busy ? 0.3 : 0.6),
-                ),
-              ),
-              icon: const Icon(Icons.close, size: 18),
-              label: const Text('Reject Order'),
-            ),
+          child: AtelierButton(
+            label: 'Reject Order',
+            icon: Icons.close_rounded,
+            compact: compact,
+            variant: AtelierButtonVariant.danger,
+            onPressed: busy
+                ? null
+                : () => confirmRejectSellerOrder(context, ref, order),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
-          child: SizedBox(
-            height: height,
-            child: FilledButton.icon(
-              onPressed: busy
-                  ? null
-                  : () => confirmAcceptSellerOrder(context, ref, order),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.charcoal,
-                foregroundColor: AppColors.warmWhite,
-              ),
-              icon: busy
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.warmWhite,
-                      ),
-                    )
-                  : const Icon(Icons.check, size: 18),
-              label: Text(busy ? 'Updating…' : 'Accept Order'),
-            ),
+          child: AtelierButton(
+            label: busy ? 'Updating…' : 'Accept Order',
+            icon: Icons.check_rounded,
+            compact: compact,
+            loading: busy,
+            variant: AtelierButtonVariant.gold,
+            onPressed: busy
+                ? null
+                : () => confirmAcceptSellerOrder(context, ref, order),
           ),
         ),
       ],
@@ -172,25 +159,27 @@ Future<void> confirmAcceptSellerOrder(
   // Captured now: the card that opened the dialog moves to another tab (and
   // is disposed) as soon as the order is accepted.
   final messenger = ScaffoldMessenger.of(context);
-  final done = await showAppDialog<bool>(
+  final palette = context.atelier;
+  final done = await showAtelierDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (_) => SellerActionConfirmDialog(
       title: 'Confirm Order',
       message: 'Are you sure you want to accept this order?',
       confirmLabel: 'Confirm',
+      icon: Icons.verified_outlined,
       content: _OrderSummaryLine(order: order),
-      onConfirm: (ref) => _decide(
-        ref.read(sellerOrderActionsProvider.notifier).accept(order),
-      ),
+      onConfirm: (ref) =>
+          _decide(ref.read(sellerOrderActionsProvider.notifier).accept(order)),
     ),
   );
   if (done != true) return;
   AppHaptics.success();
-  messenger.showSnackBar(
-    const SnackBar(
-      content: Text('Order accepted. The customer sees it as confirmed.'),
-    ),
+  showAtelierToastOn(
+    messenger,
+    palette,
+    'Order accepted. The customer sees it as confirmed.',
+    tone: AtelierTone.emerald,
   );
 }
 
@@ -209,19 +198,19 @@ Future<void> confirmRejectSellerOrder(
   SellerOrder order,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
-  final done = await showAppDialog<bool>(
+  final palette = context.atelier;
+  final done = await showAtelierDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (_) => _RejectOrderDialog(order: order),
   );
   if (done != true) return;
   AppHaptics.success();
-  messenger.showSnackBar(
-    const SnackBar(
-      content: Text(
-        'Order rejected. The customer has been refunded to their wallet.',
-      ),
-    ),
+  showAtelierToastOn(
+    messenger,
+    palette,
+    'Order rejected. The customer has been refunded to their wallet.',
+    tone: AtelierTone.ruby,
   );
 }
 
@@ -247,6 +236,7 @@ class SellerActionConfirmDialog extends ConsumerStatefulWidget {
     this.content,
     this.destructive = false,
     this.canConfirm = true,
+    this.icon,
     super.key,
   });
 
@@ -256,6 +246,7 @@ class SellerActionConfirmDialog extends ConsumerStatefulWidget {
   final Widget? content;
   final bool destructive;
   final bool canConfirm;
+  final IconData? icon;
 
   /// Performs the action; returns the failure, or `null` on success.
   final Future<Failure?> Function(WidgetRef ref) onConfirm;
@@ -291,73 +282,53 @@ class _SellerActionConfirmDialogState
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.destructive ? AppColors.error : AppColors.charcoal;
     return PopScope(
       canPop: !_busy,
-      child: AlertDialog(
-        title: Text(widget.title),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.message,
-                style: AppTypography.body.copyWith(
-                  color: AppColors.textSecondary(context),
-                ),
+      child: AtelierDialogFrame(
+        title: widget.title,
+        message: widget.message,
+        icon:
+            widget.icon ??
+            (widget.destructive
+                ? Icons.report_gmailerrorred_rounded
+                : Icons.task_alt_rounded),
+        tone: widget.destructive ? AtelierTone.ruby : AtelierTone.gold,
+        content: (widget.content == null && _error == null)
+            ? null
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ?widget.content,
+                  AnimatedSize(
+                    duration: AtelierMotion.base,
+                    curve: AtelierMotion.emphasized,
+                    child: _error == null
+                        ? const SizedBox(width: double.infinity)
+                        : Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: AtelierNotice(
+                              text: _error!,
+                              tone: AtelierTone.ruby,
+                              icon: Icons.error_outline_rounded,
+                            ),
+                          ),
+                  ),
+                ],
               ),
-              if (widget.content != null) ...[
-                const SizedBox(height: 12),
-                widget.content!,
-              ],
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 18,
-                      color: AppColors.error,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        _error!,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.error,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
         actions: [
-          TextButton(
+          AtelierButton(
+            label: 'Cancel',
+            variant: AtelierButtonVariant.secondary,
             onPressed: _busy ? null : () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
           ),
-          FilledButton(
+          AtelierButton(
+            label: widget.confirmLabel,
+            loading: _busy,
+            variant: widget.destructive
+                ? AtelierButtonVariant.danger
+                : AtelierButtonVariant.primary,
             onPressed: _busy || !widget.canConfirm ? null : _confirm,
-            style: FilledButton.styleFrom(
-              backgroundColor: color,
-              foregroundColor: AppColors.warmWhite,
-            ),
-            child: _busy
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.warmWhite,
-                    ),
-                  )
-                : Text(widget.confirmLabel),
           ),
         ],
       ),
@@ -372,21 +343,37 @@ class _OrderSummaryLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface(context),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border(context)),
+        color: p.sunken,
+        borderRadius: BorderRadius.circular(AtelierRadius.md),
       ),
-      child: Text(
-        '#${order.shortId} · ${order.customerLabel} · '
-        '${sellerOrderAmountLabel(order)}',
-        style: AppTypography.caption.copyWith(
-          color: AppColors.textPrimary(context),
-          fontWeight: FontWeight.w600,
-        ),
+      child: Row(
+        children: [
+          AtelierMonogram(name: order.customerLabel, size: 34),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '#${order.shortId} · ${order.customerLabel}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.label(p.ink),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  sellerOrderAmountLabel(order),
+                  style: AtelierType.figure(p.inkSoft, size: 12.5),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -422,6 +409,7 @@ class _RejectOrderDialogState extends State<_RejectOrderDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     final reason = _resolvedReason;
     return SellerActionConfirmDialog(
       title: 'Reject Order',
@@ -446,55 +434,97 @@ class _RejectOrderDialogState extends State<_RejectOrderDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _OrderSummaryLine(order: widget.order),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             'The customer is refunded to their GemWorld wallet. This cannot '
             'be undone.',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-            ),
+            style: AtelierType.caption(p.muted),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Reason',
-            style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 18),
+          Text('REASON', style: AtelierType.overline(p.muted)),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
               for (final option in _rejectReasons)
-                ChoiceChip(
-                  label: Text(option),
+                AtelierChoiceChip(
+                  label: option,
                   selected: _reason == option,
-                  onSelected: (_) => setState(() => _reason = option),
+                  onTap: () => setState(() => _reason = option),
                 ),
             ],
           ),
-          if (_reason == 'Other') ...[
-            const SizedBox(height: 12),
-            TextField(
-              controller: _otherCtrl,
-              maxLength: 200,
-              onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
-                labelText: 'Describe the reason',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
+          AnimatedSize(
+            duration: AtelierMotion.base,
+            curve: AtelierMotion.emphasized,
+            child: _reason == 'Other'
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: AtelierTextArea(
+                      controller: _otherCtrl,
+                      label: 'Describe the reason',
+                      maxLength: 200,
+                      maxLines: 1,
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
           const SizedBox(height: 12),
-          TextField(
+          AtelierTextArea(
             controller: _noteCtrl,
-            maxLines: 3,
+            label: 'Note to customer (optional)',
             maxLength: 1000,
-            decoration: const InputDecoration(
-              labelText: 'Note to customer (optional)',
-              border: OutlineInputBorder(),
-            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Soft filled text input used in workspace dialogs.
+class AtelierTextArea extends StatelessWidget {
+  const AtelierTextArea({
+    required this.controller,
+    required this.label,
+    this.maxLines = 3,
+    this.maxLength,
+    this.onChanged,
+    super.key,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final int maxLines;
+  final int? maxLength;
+  final ValueChanged<String>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      maxLength: maxLength,
+      onChanged: onChanged,
+      cursorColor: p.gold,
+      style: AtelierType.body(p.ink),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: AtelierType.caption(p.muted, size: 13),
+        floatingLabelStyle: AtelierType.caption(p.gold, size: 13),
+        filled: true,
+        fillColor: p.sunken,
+        counterStyle: AtelierType.caption(p.muted, size: 10.5),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AtelierRadius.md),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AtelierRadius.md),
+          borderSide: BorderSide(color: p.gold),
+        ),
       ),
     );
   }

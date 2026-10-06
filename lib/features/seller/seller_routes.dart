@@ -9,7 +9,7 @@ import 'presentation/screens/seller_dashboard_screen.dart';
 import 'presentation/screens/seller_help_center_screen.dart';
 import 'presentation/screens/seller_inquiry_detail_screen.dart';
 import 'presentation/screens/seller_inquiry_form_screen.dart';
-import 'presentation/screens/seller_inquiry_inbox_screen.dart';
+import 'presentation/screens/seller_inquiries_screen.dart';
 import 'presentation/screens/seller_offers_screen.dart';
 import 'presentation/screens/seller_order_detail_screen.dart';
 import 'presentation/screens/seller_orders_screen.dart';
@@ -21,8 +21,8 @@ import 'presentation/screens/seller_profile_screen.dart';
 import 'presentation/screens/seller_promotions_screen.dart';
 import 'presentation/widgets/seller_layout.dart';
 import '../reference/presentation/screens/seller_references_screen.dart';
-import '../wallet/presentation/screens/seller_wallet_screen.dart';
-import '../notifications/presentation/screens/notifications_screen.dart';
+import 'presentation/screens/seller_wallet_screen.dart';
+import 'presentation/screens/seller_notifications_screen.dart';
 
 /// Modular routes for the authenticated seller workspace.
 ///
@@ -62,8 +62,7 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerInquiries,
-        builder: (context, state) =>
-            const SellerInquiryInboxScreen(showHeader: false),
+        builder: (context, state) => const SellerInquiriesScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerInquiryNew,
@@ -104,7 +103,7 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerNotifications,
-        builder: (context, state) => const NotificationsScreen(),
+        builder: (context, state) => const SellerNotificationsScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerReferences,

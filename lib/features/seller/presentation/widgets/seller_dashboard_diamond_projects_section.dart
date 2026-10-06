@@ -2,13 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/app_dialog.dart';
-import '../../../../core/widgets/catalog_empty_state.dart';
-import '../../../../core/widgets/filters/filter_boolean_checkbox.dart';
-import '../../../../core/widgets/filters/filter_chip.dart';
 import '../../../diamond_projects/domain/models/diamond_project_stats.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_project_histogram_card.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_project_kpi_grid.dart';
@@ -19,14 +12,12 @@ import '../../../diamond_projects/presentation/widgets/diamond_project_selected_
 import '../../../diamonds/domain/models/diamond_filter_state.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../application/seller_diamond_project_provider.dart';
+import '../atelier/atelier_components.dart';
+import '../atelier/atelier_feedback.dart';
+import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_theme.dart';
 
-const _dashboardCutGrades = [
-  'Excellent',
-  'Very Good',
-  'Good',
-  'Fair',
-  'Poor',
-];
+const _dashboardCutGrades = ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'];
 
 const _dashboardCutGradeKeys = <String, String>{
   'Excellent': RemainingL10n.cutGradeExcellent,
@@ -68,7 +59,7 @@ class _SellerDashboardDiamondProjectsSectionState
     final notifier = ref.read(sellerDiamondProjectFiltersProvider.notifier);
     final initial = ref.read(sellerDiamondProjectFiltersProvider);
 
-    await showAppDialog<void>(
+    await showAtelierDialog<void>(
       context: context,
       builder: (dialogContext) {
         return _SellerDiamondProjectFilterDialog(
@@ -90,160 +81,186 @@ class _SellerDashboardDiamondProjectsSectionState
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     final inventoryAsync = ref.watch(sellerDiamondProjectInventoryProvider);
     final inventory = inventoryAsync.valueOrNull;
     final stats = ref.watch(sellerDiamondProjectStatsProvider);
     final isLoading = inventoryAsync.isLoading;
     final hasData = inventory?.hasApplied == true;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _SectionHeader(
-          onFilter: _openFilterDialog,
-          onRefresh: isLoading
-              ? null
-              : () => ref
-                  .read(sellerDiamondProjectInventoryProvider.notifier)
-                  .applyFilters(),
-        ),
-        if (inventoryAsync.hasError) ...[
-          const SizedBox(height: AppSpacing.s12),
-          Text(
-            inventoryAsync.error.toString(),
-            style: AppTypography.body.copyWith(color: AppColors.error),
+    return AtelierCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(
+            onFilter: _openFilterDialog,
+            onRefresh: isLoading
+                ? null
+                : () => ref
+                      .read(sellerDiamondProjectInventoryProvider.notifier)
+                      .applyFilters(),
           ),
-        ],
-        if (isLoading && !hasData) ...[
-          const SizedBox(height: AppSpacing.s24),
-          const Center(child: CircularProgressIndicator()),
-        ] else if (hasData) ...[
-          const SizedBox(height: AppSpacing.s16),
-          if (isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: AppSpacing.s24),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (inventory!.isEmpty)
-            CatalogEmptyState(
-              icon: Icons.diamond_outlined,
-              title: context.tr(CatalogL10n.noDiamonds),
-              message: context.tr(CatalogL10n.adjustSearchCriteria),
-              actionLabel: context.tr(CatalogL10n.clearFilters),
+          if (inventoryAsync.hasError) ...[
+            const SizedBox(height: AtelierSpace.s16),
+            AtelierNotice(
+              text: inventoryAsync.error.toString(),
+              tone: AtelierTone.ruby,
+              icon: Icons.error_outline_rounded,
+              actionLabel: context.tr(RemainingL10n.retry),
               onAction: () => ref
                   .read(sellerDiamondProjectInventoryProvider.notifier)
-                  .clearFilters(),
-            )
-          else ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    context.tr(CatalogL10n.matchingStonesCount, {
-                      'count': '${inventory.totalCount}',
-                    }),
-                    style: AppTypography.title.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary(context),
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    setState(() => _showAnalytics = !_showAnalytics);
-                  },
-                  child: Text(
-                    _showAnalytics
-                        ? context.tr(CatalogL10n.hideAnalytics)
-                        : context.tr(CatalogL10n.showAnalytics),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.s12),
-            DiamondProjectKpiGrid(stats: stats),
-            if (_showAnalytics) ...[
-              const SizedBox(height: AppSpacing.s16),
-              DiamondProjectPriceStatsCard(stats: stats),
-              const SizedBox(height: AppSpacing.s16),
-              _AnalyticsChartsGrid(stats: stats),
-              const SizedBox(height: AppSpacing.s16),
-              DiamondProjectScatterCard(stats: stats),
-            ],
-            const SizedBox(height: AppSpacing.s16),
-            DiamondProjectSelectedTable(
-              items: inventory.items,
-              onRemove: (id) {
-                ref
-                    .read(sellerDiamondProjectInventoryProvider.notifier)
-                    .removeItem(id);
-              },
+                  .applyFilters(),
             ),
           ],
+          AnimatedSize(
+            duration: AtelierMotion.slow,
+            curve: AtelierMotion.emphasized,
+            alignment: Alignment.topCenter,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isLoading) ...[
+                  const SizedBox(height: AtelierSpace.s20),
+                  const Row(
+                    children: [
+                      Expanded(child: SkeletonBox(height: 72)),
+                      SizedBox(width: 10),
+                      Expanded(child: SkeletonBox(height: 72)),
+                      SizedBox(width: 10),
+                      Expanded(child: SkeletonBox(height: 72)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const SkeletonBox(height: 160),
+                ] else if (hasData) ...[
+                  const SizedBox(height: AtelierSpace.s20),
+                  if (inventory!.isEmpty)
+                    AtelierEmptyState(
+                      compact: true,
+                      icon: Icons.diamond_outlined,
+                      title: context.tr(CatalogL10n.noDiamonds),
+                      message: context.tr(CatalogL10n.adjustSearchCriteria),
+                      actionLabel: context.tr(CatalogL10n.clearFilters),
+                      onAction: () => ref
+                          .read(sellerDiamondProjectInventoryProvider.notifier)
+                          .clearFilters(),
+                    )
+                  else ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CountUpText(
+                            context.tr(CatalogL10n.matchingStonesCount, {
+                              'count': '${inventory.totalCount}',
+                            }),
+                            style: AtelierType.title(p.ink, size: 15),
+                          ),
+                        ),
+                        AtelierButton(
+                          label: _showAnalytics
+                              ? context.tr(CatalogL10n.hideAnalytics)
+                              : context.tr(CatalogL10n.showAnalytics),
+                          icon: _showAnalytics
+                              ? Icons.visibility_off_outlined
+                              : Icons.insights_outlined,
+                          compact: true,
+                          variant: AtelierButtonVariant.ghost,
+                          onPressed: () {
+                            setState(() => _showAnalytics = !_showAnalytics);
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AtelierSpace.s12),
+                    DiamondProjectKpiGrid(stats: stats),
+                    AnimatedSize(
+                      duration: AtelierMotion.slow,
+                      curve: AtelierMotion.emphasized,
+                      alignment: Alignment.topCenter,
+                      child: _showAnalytics
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const SizedBox(height: AtelierSpace.s16),
+                                DiamondProjectPriceStatsCard(stats: stats),
+                                const SizedBox(height: AtelierSpace.s16),
+                                _AnalyticsChartsGrid(stats: stats),
+                                const SizedBox(height: AtelierSpace.s16),
+                                DiamondProjectScatterCard(stats: stats),
+                              ],
+                            )
+                          : const SizedBox(width: double.infinity),
+                    ),
+                    const SizedBox(height: AtelierSpace.s16),
+                    DiamondProjectSelectedTable(
+                      items: inventory.items,
+                      onRemove: (id) {
+                        ref
+                            .read(
+                              sellerDiamondProjectInventoryProvider.notifier,
+                            )
+                            .removeItem(id);
+                      },
+                    ),
+                  ],
+                ],
+              ],
+            ),
+          ),
         ],
-      ],
+      ),
     );
   }
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.onFilter,
-    this.onRefresh,
-  });
+  const _SectionHeader({required this.onFilter, this.onRefresh});
 
   final VoidCallback onFilter;
   final VoidCallback? onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.tr(CatalogL10n.sellerDiamondProjectsTitle),
-                style: AppTypography.title.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary(context),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s4),
-              Text(
-                context.tr(CatalogL10n.sellerDiamondProjectsSubtitle),
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondary(context),
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-        ),
-        OutlinedButton.icon(
-          onPressed: onFilter,
-          icon: const Icon(Icons.tune, size: 16),
-          label: Text(context.tr(CatalogL10n.filters)),
-          style: OutlinedButton.styleFrom(
-            visualDensity: VisualDensity.compact,
-            foregroundColor: AppColors.textPrimary(context),
-          ),
-        ),
-        if (onRefresh != null) ...[
-          const SizedBox(width: AppSpacing.s8),
-          OutlinedButton.icon(
-            onPressed: onRefresh,
-            icon: const Icon(Icons.refresh, size: 16),
-            label: Text(context.tr(RemainingL10n.refresh)),
-            style: OutlinedButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              foregroundColor: AppColors.textPrimary(context),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final actions = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AtelierButton(
+              label: context.tr(CatalogL10n.filters),
+              icon: Icons.tune_rounded,
+              compact: true,
+              variant: AtelierButtonVariant.secondary,
+              onPressed: onFilter,
             ),
-          ),
-        ],
-      ],
+            const SizedBox(width: AtelierSpace.s8),
+            AtelierIconButton(
+              icon: Icons.refresh_rounded,
+              tooltip: context.tr(RemainingL10n.refresh),
+              filled: true,
+              onPressed: onRefresh,
+            ),
+          ],
+        );
+        final header = AtelierSectionHeader(
+          overline: 'Inventory intelligence',
+          title: context.tr(CatalogL10n.sellerDiamondProjectsTitle),
+          subtitle: context.tr(CatalogL10n.sellerDiamondProjectsSubtitle),
+        );
+        if (constraints.maxWidth < 520) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [header, const SizedBox(height: 14), actions],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(child: header),
+            actions,
+          ],
+        );
+      },
     );
   }
 }
@@ -282,80 +299,72 @@ class _SellerDiamondProjectFilterDialogState
           widget.notifier.replaceFilters(widget.initialFilters);
         }
       },
-      child: AlertDialog(
-      backgroundColor: AppColors.card(context),
-      insetPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s16,
-        vertical: AppSpacing.s24,
-      ),
-      title: Text(
-        context.tr(CatalogL10n.filtersToOpenDiamondProject),
-        style: AppTypography.title.copyWith(fontWeight: FontWeight.w700),
-      ),
-      content: SizedBox(
-        width: wide ? 760 : double.maxFinite,
-        child: SingleChildScrollView(
-          child: wide
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _SellerDiamondProjectFiltersLeft(
-                        state: state,
-                        notifier: notifier,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.s16),
-                    Expanded(
-                      child: _SellerDiamondProjectFiltersRight(
-                        state: state,
-                        notifier: notifier,
-                      ),
-                    ),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SellerDiamondProjectFiltersLeft(
-                      state: state,
-                      notifier: notifier,
-                    ),
-                    const SizedBox(height: AppSpacing.s16),
-                    _SellerDiamondProjectFiltersRight(
-                      state: state,
-                      notifier: notifier,
-                    ),
-                  ],
-                ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            widget.onClear();
-          },
-          child: Text(context.tr(CatalogL10n.clearFilters)),
-        ),
-        TextButton(
-          onPressed: () {
-            widget.notifier.replaceFilters(widget.initialFilters);
-            Navigator.of(context).pop();
-          },
-          child: Text(context.tr(CatalogL10n.cancel)),
-        ),
-        FilledButton(
-          onPressed: () {
-            _didApply = true;
-            widget.onApply();
-          },
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.info,
-            foregroundColor: AppColors.warmWhite,
+      child: AtelierDialogFrame(
+        maxWidth: wide ? 820 : 520,
+        title: context.tr(CatalogL10n.filtersToOpenDiamondProject),
+        icon: Icons.tune_rounded,
+        content: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.55,
           ),
-          child: Text(context.tr(CatalogL10n.applyFilters)),
+          child: SingleChildScrollView(
+            child: wide
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _SellerDiamondProjectFiltersLeft(
+                          state: state,
+                          notifier: notifier,
+                        ),
+                      ),
+                      const SizedBox(width: AtelierSpace.s24),
+                      Expanded(
+                        child: _SellerDiamondProjectFiltersRight(
+                          state: state,
+                          notifier: notifier,
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SellerDiamondProjectFiltersLeft(
+                        state: state,
+                        notifier: notifier,
+                      ),
+                      const SizedBox(height: AtelierSpace.s16),
+                      _SellerDiamondProjectFiltersRight(
+                        state: state,
+                        notifier: notifier,
+                      ),
+                    ],
+                  ),
+          ),
         ),
-      ],
+        actions: [
+          AtelierButton(
+            label: context.tr(CatalogL10n.clearFilters),
+            variant: AtelierButtonVariant.ghost,
+            onPressed: widget.onClear,
+          ),
+          AtelierButton(
+            label: context.tr(CatalogL10n.cancel),
+            variant: AtelierButtonVariant.secondary,
+            onPressed: () {
+              widget.notifier.replaceFilters(widget.initialFilters);
+              Navigator.of(context).pop();
+            },
+          ),
+          AtelierButton(
+            label: context.tr(CatalogL10n.applyFilters),
+            onPressed: () {
+              _didApply = true;
+              widget.onApply();
+            },
+          ),
+        ],
       ),
     );
   }
@@ -377,55 +386,55 @@ class _SellerDiamondProjectFiltersLeft extends StatelessWidget {
       children: [
         _FilterLabel(text: context.tr(CatalogL10n.shape)),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             for (final item in kAllShapes)
-              FilterChipWidget(
+              AtelierChoiceChip(
                 label: context.trCatalogValue(item['name']!),
-                isSelected: state.shapes.contains(item['name']),
+                selected: state.shapes.contains(item['name']),
                 onTap: () => notifier.toggleShape(item['name']!),
               ),
           ],
         ),
-        const SizedBox(height: AppSpacing.s16),
+        const SizedBox(height: AtelierSpace.s16),
         _FilterLabel(text: context.tr(CatalogL10n.color)),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: DiamondFilterState.colors.map((letter) {
             final selected = state.selectedStandardColors.contains(letter);
-            return FilterChipWidget(
+            return AtelierChoiceChip(
               label: letter,
-              isSelected: selected,
+              selected: selected,
               onTap: () => notifier.toggleStandardColor(letter),
             );
           }).toList(),
         ),
-        const SizedBox(height: AppSpacing.s16),
+        const SizedBox(height: AtelierSpace.s16),
         _FilterLabel(text: context.tr(CatalogL10n.clarity)),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: DiamondFilterState.clarities.map((grade) {
             final selected = state.selectedClarityGrades.contains(grade);
-            return FilterChipWidget(
+            return AtelierChoiceChip(
               label: grade,
-              isSelected: selected,
+              selected: selected,
               onTap: () => notifier.toggleClarityGradeGroup(grade),
             );
           }).toList(),
         ),
-        const SizedBox(height: AppSpacing.s16),
+        const SizedBox(height: AtelierSpace.s16),
         _FilterLabel(text: context.tr(CatalogL10n.cutGrade)),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: _dashboardCutGrades.map((grade) {
             final selected = state.selectedCuts.contains(grade);
-            return FilterChipWidget(
+            return AtelierChoiceChip(
               label: _cutGradeLabel(context, grade),
-              isSelected: selected,
+              selected: selected,
               onTap: () => notifier.toggleCut(grade),
             );
           }).toList(),
@@ -451,37 +460,37 @@ class _SellerDiamondProjectFiltersRight extends StatelessWidget {
       children: [
         _FilterLabel(text: context.tr(CatalogL10n.fancyColors)),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: DiamondFilterState.fancyColors.map((color) {
             final selected = state.selectedFancyColors.contains(color);
-            return FilterChipWidget(
+            return AtelierChoiceChip(
               label: color,
-              isSelected: selected,
+              selected: selected,
               onTap: () => notifier.toggleFancyColor(color),
             );
           }).toList(),
         ),
-        const SizedBox(height: AppSpacing.s16),
+        const SizedBox(height: AtelierSpace.s16),
         _FilterLabel(text: context.tr(CatalogL10n.certification)),
         Wrap(
-          spacing: AppSpacing.s12,
-          runSpacing: AppSpacing.s8,
+          spacing: AtelierSpace.s8,
+          runSpacing: AtelierSpace.s8,
           children: [
             for (final lab in _dashboardCertLabs)
-              FilterBooleanCheckbox(
+              AtelierChoiceChip(
                 label: lab,
-                value: state.selectedLabs.contains(lab),
-                onChanged: (_) => notifier.toggleLab(lab),
+                selected: state.selectedLabs.contains(lab),
+                onTap: () => notifier.toggleLab(lab),
               ),
-            FilterBooleanCheckbox(
+            AtelierChoiceChip(
               label: context.tr(CatalogL10n.certOther),
-              value: state.selectedLabs.contains('Others'),
-              onChanged: (_) => notifier.toggleLab('Others'),
+              selected: state.selectedLabs.contains('Others'),
+              onTap: () => notifier.toggleLab('Others'),
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.s16),
+        const SizedBox(height: AtelierSpace.s16),
         _CompactRangeRow(
           title: context.tr(CatalogL10n.caratWeight),
           min: state.minCarat,
@@ -491,7 +500,7 @@ class _SellerDiamondProjectFiltersRight extends StatelessWidget {
           onMinChanged: (v) => notifier.updateCaratRange(v, state.maxCarat),
           onMaxChanged: (v) => notifier.updateCaratRange(state.minCarat, v),
         ),
-        const SizedBox(height: AppSpacing.s12),
+        const SizedBox(height: AtelierSpace.s12),
         _CompactRangeRow(
           title: context.tr(CatalogL10n.ratio),
           min: state.minRatio,
@@ -501,7 +510,7 @@ class _SellerDiamondProjectFiltersRight extends StatelessWidget {
           onMinChanged: (v) => notifier.updateRatioRange(v, state.maxRatio),
           onMaxChanged: (v) => notifier.updateRatioRange(state.minRatio, v),
         ),
-        const SizedBox(height: AppSpacing.s12),
+        const SizedBox(height: AtelierSpace.s12),
         _FilterLabel(text: context.tr(CatalogL10n.measurements)),
         _CompactRangeRow(
           title: context.tr(CatalogL10n.length),
@@ -512,7 +521,7 @@ class _SellerDiamondProjectFiltersRight extends StatelessWidget {
           onMinChanged: (v) => notifier.updateLengthRange(v, state.maxLength),
           onMaxChanged: (v) => notifier.updateLengthRange(state.minLength, v),
         ),
-        const SizedBox(height: AppSpacing.s8),
+        const SizedBox(height: AtelierSpace.s8),
         _CompactRangeRow(
           title: context.tr(CatalogL10n.width),
           min: state.minWidth,
@@ -522,7 +531,7 @@ class _SellerDiamondProjectFiltersRight extends StatelessWidget {
           onMinChanged: (v) => notifier.updateWidthRange(v, state.maxWidth),
           onMaxChanged: (v) => notifier.updateWidthRange(state.minWidth, v),
         ),
-        const SizedBox(height: AppSpacing.s8),
+        const SizedBox(height: AtelierSpace.s8),
         _CompactRangeRow(
           title: context.tr(CatalogL10n.height),
           min: state.minHeight,
@@ -545,14 +554,10 @@ class _FilterLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+      padding: const EdgeInsets.only(bottom: AtelierSpace.s10),
       child: Text(
         text.toUpperCase(),
-        style: AppTypography.caption.copyWith(
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
-          color: AppColors.textSecondary(context),
-        ),
+        style: AtelierType.overline(context.atelier.muted),
       ),
     );
   }
@@ -588,8 +593,12 @@ class _CompactRangeRowState extends State<_CompactRangeRow> {
   @override
   void initState() {
     super.initState();
-    _minCtrl = TextEditingController(text: _fieldText(widget.min, widget.minLimit));
-    _maxCtrl = TextEditingController(text: _fieldText(widget.max, widget.maxLimit));
+    _minCtrl = TextEditingController(
+      text: _fieldText(widget.min, widget.minLimit),
+    );
+    _maxCtrl = TextEditingController(
+      text: _fieldText(widget.max, widget.maxLimit),
+    );
   }
 
   @override
@@ -622,67 +631,65 @@ class _CompactRangeRowState extends State<_CompactRangeRow> {
 
   void _commitMin(String text) {
     final parsed = _parse(text, widget.minLimit) ?? widget.minLimit;
-    widget.onMinChanged(
-      parsed.clamp(widget.minLimit, widget.max).toDouble(),
-    );
+    widget.onMinChanged(parsed.clamp(widget.minLimit, widget.max).toDouble());
   }
 
   void _commitMax(String text) {
     final parsed = _parse(text, widget.maxLimit) ?? widget.maxLimit;
-    widget.onMaxChanged(
-      parsed.clamp(widget.min, widget.maxLimit).toDouble(),
+    widget.onMaxChanged(parsed.clamp(widget.min, widget.maxLimit).toDouble());
+  }
+
+  InputDecoration _decoration(BuildContext context, String hint) {
+    final p = context.atelier;
+    return InputDecoration(
+      isDense: true,
+      filled: true,
+      fillColor: p.sunken,
+      hintText: hint,
+      hintStyle: AtelierType.caption(p.muted, size: 12.5),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AtelierRadius.sm),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AtelierRadius.sm),
+        borderSide: BorderSide(color: p.gold),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     return Row(
       children: [
         SizedBox(
-          width: 72,
+          width: 76,
           child: Text(
             widget.title,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary(context),
-            ),
+            style: AtelierType.label(p.inkSoft, size: 12.5),
           ),
         ),
         Expanded(
           child: TextField(
             controller: _minCtrl,
+            style: AtelierType.figure(p.ink, size: 13.5),
+            cursorColor: p.gold,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              isDense: true,
-              hintText: context.tr(CatalogL10n.minimum),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppSpacing.r8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 10,
-              ),
-            ),
+            decoration: _decoration(context, context.tr(CatalogL10n.minimum)),
             onSubmitted: _commitMin,
             onEditingComplete: () => _commitMin(_minCtrl.text),
           ),
         ),
-        const SizedBox(width: AppSpacing.s8),
+        const SizedBox(width: AtelierSpace.s8),
         Expanded(
           child: TextField(
             controller: _maxCtrl,
+            style: AtelierType.figure(p.ink, size: 13.5),
+            cursorColor: p.gold,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              isDense: true,
-              hintText: context.tr(CatalogL10n.maximum),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppSpacing.r8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 10,
-              ),
-            ),
+            decoration: _decoration(context, context.tr(CatalogL10n.maximum)),
             onSubmitted: _commitMax,
             onEditingComplete: () => _commitMax(_maxCtrl.text),
           ),
@@ -735,11 +742,11 @@ class _AnalyticsChartsGrid extends StatelessWidget {
           return Column(
             children: [
               mixes[0],
-              const SizedBox(height: AppSpacing.s12),
+              const SizedBox(height: AtelierSpace.s12),
               mixes[1],
-              const SizedBox(height: AppSpacing.s12),
+              const SizedBox(height: AtelierSpace.s12),
               for (var i = 0; i < charts.length; i++) ...[
-                if (i > 0) const SizedBox(height: AppSpacing.s12),
+                if (i > 0) const SizedBox(height: AtelierSpace.s12),
                 charts[i],
               ],
             ],
@@ -752,25 +759,25 @@ class _AnalyticsChartsGrid extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(child: mixes[0]),
-                const SizedBox(width: AppSpacing.s12),
+                const SizedBox(width: AtelierSpace.s12),
                 Expanded(child: mixes[1]),
               ],
             ),
-            const SizedBox(height: AppSpacing.s12),
+            const SizedBox(height: AtelierSpace.s12),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(child: charts[0]),
-                const SizedBox(width: AppSpacing.s12),
+                const SizedBox(width: AtelierSpace.s12),
                 Expanded(child: charts[1]),
               ],
             ),
-            const SizedBox(height: AppSpacing.s12),
+            const SizedBox(height: AtelierSpace.s12),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(child: charts[2]),
-                const SizedBox(width: AppSpacing.s12),
+                const SizedBox(width: AtelierSpace.s12),
                 Expanded(child: charts[3]),
               ],
             ),

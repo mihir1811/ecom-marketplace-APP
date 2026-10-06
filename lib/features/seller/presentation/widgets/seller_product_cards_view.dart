@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/widgets/catalog_missing_image.dart';
-import '../../../../core/widgets/marketplace_product_card_shell.dart';
 import '../../domain/models/seller_product.dart';
+import '../../domain/models/seller_product_column.dart';
+import '../atelier/atelier_components.dart';
+import '../atelier/atelier_feedback.dart';
+import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_theme.dart';
 
-import '../../../../core/l10n/app_localizations.dart';
-
+/// Gallery of inventory cards with selection, quick view, edit and delete.
 class SellerProductCardsView extends StatelessWidget {
   const SellerProductCardsView({
     required this.products,
@@ -20,6 +19,8 @@ class SellerProductCardsView extends StatelessWidget {
     required this.onToggleSelection,
     this.onEdit,
     this.onDelete,
+    this.onQuickView,
+    this.padding = const EdgeInsets.all(16),
     super.key,
   });
 
@@ -28,32 +29,49 @@ class SellerProductCardsView extends StatelessWidget {
   final void Function(String id, bool selected) onToggleSelection;
   final ValueChanged<SellerProduct>? onEdit;
   final ValueChanged<SellerProduct>? onDelete;
+  final ValueChanged<SellerProduct>? onQuickView;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth >= 900 ? 3 : 2;
-        final rowCount =
-            (products.length + crossAxisCount - 1) ~/ crossAxisCount;
-        return ListView.builder(
-          padding: const EdgeInsets.all(AppSpacing.s16),
+        final width = constraints.maxWidth;
+        final columns = width >= 1280
+            ? 5
+            : width >= 1000
+            ? 4
+            : width >= 680
+            ? 3
+            : 2;
+        return GridView.builder(
+          padding: padding,
+          physics: const AlwaysScrollableScrollPhysics(),
           addAutomaticKeepAlives: false,
-          itemCount: rowCount,
-          itemBuilder: (context, rowIndex) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: rowIndex == rowCount - 1 ? 0 : AppSpacing.s12,
-              ),
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (var col = 0; col < crossAxisCount; col++) ...[
-                      if (col > 0) const SizedBox(width: AppSpacing.s12),
-                      Expanded(child: _cell(rowIndex * crossAxisCount + col)),
-                    ],
-                  ],
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: AtelierSpace.s16,
+            crossAxisSpacing: AtelierSpace.s16,
+            mainAxisExtent: width < 400 ? 284 : 300,
+          ),
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final p = products[index];
+            return RepaintBoundary(
+              child: Reveal(
+                key: ValueKey(p.id),
+                // Only the first screenful staggers; later cells appear at once.
+                index: index < 12 ? index : 0,
+                child: _ProductCard(
+                  product: p,
+                  selected: selectedIds.contains(p.id),
+                  onSelected: (v) => onToggleSelection(p.id, v),
+                  onOpen: () => (onQuickView ?? onEdit)?.call(p),
+                  onEdit: onEdit == null ? null : () => onEdit!(p),
+                  onDelete: onDelete == null ? null : () => onDelete!(p),
+                  onQuickView: onQuickView == null
+                      ? null
+                      : () => onQuickView!(p),
                 ),
               ),
             );
@@ -62,250 +80,250 @@ class SellerProductCardsView extends StatelessWidget {
       },
     );
   }
-
-  Widget _cell(int index) {
-    if (index >= products.length) return const SizedBox.shrink();
-    final p = products[index];
-    return RepaintBoundary(
-      child: _ProductCard(
-        key: ValueKey(p.id),
-        product: p,
-        selected: selectedIds.contains(p.id),
-        onSelected: (v) => onToggleSelection(p.id, v),
-        onEdit: onEdit == null ? null : () => onEdit!(p),
-        onDelete: onDelete == null ? null : () => onDelete!(p),
-      ),
-    );
-  }
 }
+
+enum _CardAction { quickView, edit, delete }
 
 class _ProductCard extends StatelessWidget {
   const _ProductCard({
     required this.product,
     required this.selected,
     required this.onSelected,
+    required this.onOpen,
     this.onEdit,
     this.onDelete,
-    super.key,
+    this.onQuickView,
   });
 
   final SellerProduct product;
   final bool selected;
   final ValueChanged<bool> onSelected;
+  final VoidCallback onOpen;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onQuickView;
+
+  Future<void> _openMenu(BuildContext context) async {
+    final action = await showAtelierOptions<_CardAction>(
+      context: context,
+      title: sellerProductTitle(product),
+      subtitle: product.stockNumber,
+      options: [
+        AtelierOption(
+          value: _CardAction.quickView,
+          label: context.tr(RemainingL10n.quickView),
+          icon: Icons.visibility_outlined,
+        ),
+        AtelierOption(
+          value: _CardAction.edit,
+          label: context.tr(RemainingL10n.editProduct),
+          icon: Icons.edit_outlined,
+        ),
+        AtelierOption(
+          value: _CardAction.delete,
+          label: context.tr(RemainingL10n.deleteProduct),
+          icon: Icons.delete_outline_rounded,
+          destructive: true,
+        ),
+      ],
+    );
+    switch (action) {
+      case _CardAction.quickView:
+        onQuickView?.call();
+      case _CardAction.edit:
+        onEdit?.call();
+      case _CardAction.delete:
+        onDelete?.call();
+      case null:
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final textColor = AppColors.textPrimary(context);
-    final mutedColor = AppColors.textSecondary(context);
-    final title = _gridTitle(product);
-    final gradesLine = _gridGradesLine(product);
-    final metaLine = _gridMetaLine(context, product);
-    final priceLabel = _priceLabel(product.field('total_price'));
+    final p = context.atelier;
+    final grades = sellerProductGradesLine(product);
+    final meta = sellerProductMetaLine(context, product);
 
-    return MarketplaceProductCardShell(
-      onTap: onEdit,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          AspectRatio(
-            aspectRatio: 1.05,
-            child: Stack(
-              children: [
-                Positioned.fill(child: _ProductThumb(product: product)),
-                Positioned(
-                  top: AppSpacing.s8,
-                  left: AppSpacing.s8,
-                  child: Material(
-                    color: AppColors.card(context),
-                    borderRadius: BorderRadius.circular(AppSpacing.r4),
-                    child: SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: Checkbox(
-                        value: selected,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                        semanticLabel: context.tr(RemainingL10n.selectProduct, {
-                          'stockNumber': product.stockNumber,
-                        }),
-                        onChanged: (v) => onSelected(v ?? false),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: AppSpacing.s4,
-                  right: AppSpacing.s4,
-                  child: PopupMenuButton<_CardAction>(
-                    tooltip: context.tr(RemainingL10n.actions),
-                    padding: EdgeInsets.zero,
-                    icon: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.card(context).withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(AppSpacing.r8),
-                      ),
-                      child: const Icon(Icons.more_vert, size: 18),
-                    ),
-                    onSelected: (action) {
-                      switch (action) {
-                        case _CardAction.quickView:
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                context.tr(RemainingL10n.quickViewForStock, {
-                                  'stockNumber': product.stockNumber,
-                                }),
-                              ),
-                            ),
-                          );
-                        case _CardAction.edit:
-                          onEdit?.call();
-                        case _CardAction.delete:
-                          onDelete?.call();
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: _CardAction.quickView,
-                        child: _MenuRow(
-                          icon: Icons.visibility_outlined,
-                          label: context.tr(RemainingL10n.quickView),
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: _CardAction.edit,
-                        child: _MenuRow(
-                          icon: Icons.edit_outlined,
-                          label: context.tr(RemainingL10n.editProduct),
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: _CardAction.delete,
-                        child: _MenuRow(
-                          icon: Icons.delete_outline,
-                          label: context.tr(RemainingL10n.deleteProduct),
-                          danger: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (product.isOnAuction || product.isSold)
+    return Pressable(
+      onTap: onOpen,
+      onLongPress: () => onSelected(!selected),
+      semanticLabel: '${sellerProductTitle(product)}, ${product.stockNumber}',
+      child: AnimatedContainer(
+        duration: AtelierMotion.base,
+        curve: AtelierMotion.emphasized,
+        decoration: BoxDecoration(
+          color: p.surface,
+          borderRadius: BorderRadius.circular(AtelierRadius.lg),
+          border: Border.all(
+            color: selected ? p.gold : p.hairline,
+            width: selected ? 1.6 : 1,
+          ),
+          boxShadow: p.softShadow,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned.fill(child: _ProductThumb(product: product)),
                   Positioned(
-                    bottom: AppSpacing.s8,
-                    left: AppSpacing.s8,
-                    right: AppSpacing.s8,
+                    top: 10,
+                    left: 10,
+                    child: _SelectDot(
+                      selected: selected,
+                      label: context.tr(RemainingL10n.selectProduct, {
+                        'stockNumber': product.stockNumber,
+                      }),
+                      onTap: () => onSelected(!selected),
+                    ),
+                  ),
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: AtelierIconButton(
+                      icon: Icons.more_horiz_rounded,
+                      tooltip: context.tr(RemainingL10n.actions),
+                      size: 36,
+                      filled: true,
+                      onPressed: () => _openMenu(context),
+                    ),
+                  ),
+                  Positioned(
+                    left: 10,
+                    bottom: 10,
+                    right: 10,
                     child: Wrap(
-                      spacing: AppSpacing.s4,
-                      runSpacing: AppSpacing.s4,
+                      spacing: 6,
+                      runSpacing: 6,
                       children: [
                         if (product.isOnAuction)
-                          _StatusBadge(
+                          AtelierPill(
                             label: context.tr(RemainingL10n.onAuction),
-                            color: AppColors.terracotta,
+                            tone: AtelierTone.sapphire,
+                            icon: Icons.gavel_rounded,
+                            filled: true,
+                            dense: true,
                           ),
                         if (product.isSold)
-                          _StatusBadge(
+                          AtelierPill(
                             label: context.tr(RemainingL10n.sold),
-                            color: AppColors.error,
+                            tone: AtelierTone.ruby,
+                            filled: true,
+                            dense: true,
+                          ),
+                        if (product.isExpired)
+                          AtelierPill(
+                            label: context.tr(RemainingL10n.expired),
+                            tone: AtelierTone.amber,
+                            filled: true,
+                            dense: true,
                           ),
                       ],
                     ),
                   ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s12,
-                AppSpacing.s12,
-                AppSpacing.s12,
-                AppSpacing.s12,
+                ],
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
-                    style: AppTypography.label.copyWith(
-                      color: textColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    softWrap: true,
+                    sellerProductTitle(product),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: AtelierType.display(p.ink, size: 20),
                   ),
-                  if (gradesLine != null) ...[
-                    const SizedBox(height: AppSpacing.cardLineGap),
-                    Text(
-                      gradesLine,
-                      style: AppTypography.caption.copyWith(
-                        color: mutedColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        height: 1.35,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  if (metaLine != null) ...[
-                    const SizedBox(height: AppSpacing.cardLineGap),
-                    Text(
-                      metaLine,
-                      style: AppTypography.caption.copyWith(
-                        color: mutedColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        height: 1.35,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const Spacer(),
-                  const SizedBox(height: AppSpacing.cardPriceGap),
+                  const SizedBox(height: 3),
+                  Text(
+                    [?grades, ?meta].join('  ·  '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AtelierType.caption(p.muted, size: 11.5),
+                  ),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
                         child: Text(
-                          priceLabel,
-                          style: GoogleFonts.manrope(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ).copyWith(color: textColor),
+                          sellerProductPrice(product.field('total_price')),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          style: AtelierType.figure(p.ink, size: 15),
                         ),
                       ),
-                      const Icon(
-                        Icons.arrow_forward,
-                        size: 16,
-                        color: AppColors.bronze,
+                      Text(
+                        product.stockNumber,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AtelierType.caption(p.muted, size: 10.5),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-enum _CardAction { quickView, edit, delete }
+class _SelectDot extends StatelessWidget {
+  const _SelectDot({
+    required this.selected,
+    required this.label,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    return Semantics(
+      checked: selected,
+      child: Pressable(
+        onTap: onTap,
+        semanticLabel: label,
+        scale: 0.85,
+        child: AnimatedContainer(
+          duration: AtelierMotion.base,
+          curve: AtelierMotion.settle,
+          width: 26,
+          height: 26,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: selected ? p.gold : p.surface.withValues(alpha: 0.92),
+            border: Border.all(
+              color: selected ? p.gold : p.hairline,
+              width: 1.4,
+            ),
+          ),
+          child: AnimatedSwitcher(
+            duration: AtelierMotion.quick,
+            transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
+            child: selected
+                ? Icon(
+                    Icons.check_rounded,
+                    key: const ValueKey('on'),
+                    size: 16,
+                    color: p.onGold,
+                  )
+                : const SizedBox(key: ValueKey('off')),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _ProductThumb extends StatelessWidget {
   const _ProductThumb({required this.product});
@@ -314,114 +332,284 @@ class _ProductThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = _firstImageUrl(product);
-    if (url != null) {
-      return ColoredBox(
-        color: AppColors.surface(context),
-        child: AppNetworkImage(
-          url: url,
-          fit: BoxFit.contain,
-          memCacheWidth: 400,
-          error: const CatalogMissingImage(padding: AppSpacing.s24),
-        ),
-      );
-    }
-    return const CatalogMissingImage(padding: AppSpacing.s24);
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
+    final p = context.atelier;
+    final url = sellerProductImages(product).firstOrNull;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(AppSpacing.r4),
+        gradient: RadialGradient(colors: [p.raised, p.sunken], radius: 0.9),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.s8,
-          vertical: AppSpacing.s4,
-        ),
-        child: Text(
-          label,
-          style: AppTypography.caption.copyWith(
-            color: AppColors.warmWhite,
-            fontWeight: FontWeight.w700,
-            fontSize: 10,
-            height: 1.1,
-          ),
-        ),
-      ),
+      child: url != null
+          ? Padding(
+              padding: const EdgeInsets.all(10),
+              child: AppNetworkImage(
+                url: url,
+                fit: BoxFit.contain,
+                memCacheWidth: 400,
+                error: const _MissingImage(),
+              ),
+            )
+          : const _MissingImage(),
     );
   }
 }
 
-class _MenuRow extends StatelessWidget {
-  const _MenuRow({
-    required this.icon,
-    required this.label,
-    this.danger = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool danger;
+class _MissingImage extends StatelessWidget {
+  const _MissingImage();
 
   @override
   Widget build(BuildContext context) {
-    final color = danger ? AppColors.error : AppColors.textPrimary(context);
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: AppSpacing.s8),
-        Flexible(
-          child: Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+    final p = context.atelier;
+    return Center(
+      child: Icon(
+        Icons.diamond_outlined,
+        size: 38,
+        color: p.gold.withValues(alpha: 0.45),
+      ),
     );
   }
 }
 
-String _gridTitle(SellerProduct product) {
+/// Opens a product summary sheet with every non-empty field.
+Future<void> showSellerProductQuickView(
+  BuildContext context, {
+  required SellerProduct product,
+  VoidCallback? onEdit,
+  VoidCallback? onDelete,
+}) {
+  return showAtelierSheet<void>(
+    context: context,
+    title: sellerProductTitle(product),
+    subtitle: product.stockNumber,
+    builder: (sheetContext) {
+      final p = sheetContext.atelier;
+      final images = sellerProductImages(product);
+      final keyFields = <(String, String)>[
+        for (final id in const [
+          'shape',
+          'carat_weight',
+          'color',
+          'clarity',
+          'cut',
+          'polish',
+          'symmetry',
+          'measurement',
+          'ratio',
+          'price_per_carat',
+          'discount',
+          'rap',
+        ])
+          if (_present(product.field(id))) (_labelFor(id), product.field(id)!),
+      ];
+      final otherFields = <(String, String)>[
+        for (final col in kSellerProductColumns)
+          if (col.id != 'selection' &&
+              col.id != 'actions' &&
+              !col.id.startsWith('image') &&
+              !keyFields.any((k) => k.$1 == col.label) &&
+              _present(product.field(col.id)))
+            (col.label, product.field(col.id)!),
+      ];
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AtelierRadius.lg),
+            child: Container(
+              height: 220,
+              color: p.sunken,
+              child: images.isEmpty
+                  ? const _MissingImage()
+                  : PageView(
+                      children: [
+                        for (final url in images)
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: AppNetworkImage(
+                              url: url,
+                              fit: BoxFit.contain,
+                              error: const _MissingImage(),
+                            ),
+                          ),
+                      ],
+                    ),
+            ),
+          ),
+          if (images.length > 1) ...[
+            const SizedBox(height: 8),
+            Text(
+              '${images.length} images · swipe to browse',
+              textAlign: TextAlign.center,
+              style: AtelierType.caption(p.muted, size: 11),
+            ),
+          ],
+          const SizedBox(height: 18),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('TOTAL PRICE', style: AtelierType.overline(p.muted)),
+                    const SizedBox(height: 4),
+                    Text(
+                      sellerProductPrice(product.field('total_price')),
+                      style: AtelierType.display(p.ink, size: 32),
+                    ),
+                  ],
+                ),
+              ),
+              Wrap(
+                spacing: 6,
+                children: [
+                  AtelierPill(
+                    label: product.isNatural
+                        ? sheetContext.tr(RemainingL10n.naturalDiamond)
+                        : sheetContext.tr(RemainingL10n.meleeDiamond),
+                    tone: AtelierTone.gold,
+                    dense: true,
+                  ),
+                  AtelierPill(
+                    label: product.isExpired
+                        ? sheetContext.tr(RemainingL10n.expired)
+                        : sheetContext.tr(RemainingL10n.active),
+                    tone: product.isExpired
+                        ? AtelierTone.amber
+                        : AtelierTone.emerald,
+                    dense: true,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          if (keyFields.isNotEmpty)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth >= 480 ? 3 : 2;
+                final w = (constraints.maxWidth - 12 * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 16,
+                  children: [
+                    for (final (label, value) in keyFields)
+                      SizedBox(
+                        width: w,
+                        child: AtelierKeyValue(label: label, value: value),
+                      ),
+                  ],
+                );
+              },
+            ),
+          if (otherFields.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            Theme(
+              data: Theme.of(
+                sheetContext,
+              ).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                iconColor: p.gold,
+                collapsedIconColor: p.muted,
+                title: Text(
+                  'All details',
+                  style: AtelierType.title(p.ink, size: 14),
+                ),
+                children: [
+                  for (final (label, value) in otherFields)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 140,
+                            child: Text(
+                              label,
+                              style: AtelierType.caption(p.muted),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              value,
+                              style: AtelierType.label(p.ink, size: 12.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 22),
+          Row(
+            children: [
+              if (onDelete != null)
+                Expanded(
+                  child: AtelierButton(
+                    label: sheetContext.tr(RemainingL10n.delete),
+                    icon: Icons.delete_outline_rounded,
+                    variant: AtelierButtonVariant.danger,
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      onDelete();
+                    },
+                  ),
+                ),
+              if (onDelete != null && onEdit != null) const SizedBox(width: 10),
+              if (onEdit != null)
+                Expanded(
+                  child: AtelierButton(
+                    label: sheetContext.tr(RemainingL10n.editProduct),
+                    icon: Icons.edit_outlined,
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      onEdit();
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ],
+      );
+    },
+  );
+}
+
+String _labelFor(String id) =>
+    kSellerProductColumns.where((c) => c.id == id).firstOrNull?.label ?? id;
+
+bool _present(String? value) => sellerOptionalText(value) != null;
+
+/// "1.02ct Round" style headline for a product.
+String sellerProductTitle(SellerProduct product) {
   final carat = _caratLabel(product.field('carat_weight'));
-  final shape = _optionalText(product.field('shape'));
+  final shape = sellerOptionalText(product.field('shape'));
   if (carat != null && shape != null) return '$carat $shape';
   if (carat != null) return carat;
   if (shape != null) return shape;
   return product.stockNumber;
 }
 
-String? _gridGradesLine(SellerProduct product) {
+String? sellerProductGradesLine(SellerProduct product) {
   final parts = <String>[
-    ?_optionalText(product.field('color')),
-    ?_optionalText(product.field('clarity')),
-    ?_optionalText(product.field('cut')),
+    ?sellerOptionalText(product.field('color')),
+    ?sellerOptionalText(product.field('clarity')),
+    ?sellerOptionalText(product.field('cut')),
   ];
   if (parts.isEmpty) return null;
   return parts.join(' · ');
 }
 
-String? _gridMetaLine(BuildContext context, SellerProduct product) {
+String? sellerProductMetaLine(BuildContext context, SellerProduct product) {
   final parts = <String>[];
   final ppc = _parseAmount(product.field('price_per_carat'));
   if (ppc != null && ppc > 0) {
     parts.add('${AppCurrency.format(formatCatalogPrice(ppc))}/ct');
   }
-  final dims = _optionalText(product.field('measurement'));
+  final dims = sellerOptionalText(product.field('measurement'));
   if (dims != null) parts.add(dims);
   if (parts.isEmpty) {
     parts.add(
@@ -433,14 +621,14 @@ String? _gridMetaLine(BuildContext context, SellerProduct product) {
   return parts.join(' · ');
 }
 
-String _priceLabel(String? raw) {
+String sellerProductPrice(String? raw) {
   final amount = _parseAmount(raw);
   if (amount == null) return '—';
   return AppCurrency.format(formatCatalogPrice(amount));
 }
 
 String? _caratLabel(String? raw) {
-  final text = _optionalText(raw);
+  final text = sellerOptionalText(raw);
   if (text == null) return null;
   if (text.toLowerCase().endsWith('ct')) return text;
   final amount = _parseAmount(text);
@@ -448,15 +636,14 @@ String? _caratLabel(String? raw) {
   return '${text}ct';
 }
 
-String? _firstImageUrl(SellerProduct product) {
+/// Every http(s) image URL on the product, in column order.
+List<String> sellerProductImages(SellerProduct product) {
   const keys = ['image1', 'image2', 'image3', 'image4', 'image5', 'image6'];
-  for (final key in keys) {
-    final value = product.field(key)?.trim() ?? '';
-    if (value.startsWith('http://') || value.startsWith('https://')) {
-      return value;
-    }
-  }
-  return null;
+  return [
+    for (final key in keys)
+      if ((product.field(key)?.trim() ?? '').startsWith(RegExp('https?://')))
+        product.field(key)!.trim(),
+  ];
 }
 
 double? _parseAmount(String? raw) {
@@ -464,14 +651,15 @@ double? _parseAmount(String? raw) {
   return double.tryParse(raw.trim().replaceAll(',', ''));
 }
 
-String? _optionalText(String? value) {
+String? sellerOptionalText(String? value) {
   if (value == null) return null;
   final t = value.trim();
   if (t.isEmpty ||
       t == '-' ||
       t == '—' ||
       t == '–' ||
-      t.toLowerCase() == 'n/a') {
+      t.toLowerCase() == 'n/a' ||
+      t == 'placeholder') {
     return null;
   }
   return t;

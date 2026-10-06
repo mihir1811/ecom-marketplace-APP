@@ -3,21 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/result.dart';
-import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/catalog_error_state.dart';
 import '../../application/seller_products_provider.dart';
 import '../../domain/models/seller_product.dart';
+import '../atelier/atelier_components.dart';
+import '../atelier/atelier_feedback.dart';
+import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_theme.dart';
 import '../widgets/seller_product_cards_view.dart';
 import '../widgets/seller_product_column_picker.dart';
 import '../widgets/seller_product_data_table.dart';
-import 'seller_product_edit_screen.dart';
 
-import '../../../../core/l10n/app_localizations.dart';
-
+/// Seller inventory: natural / melee tabs, search, status filter, table or
+/// gallery views, column picker, selection and pagination.
 class SellerProductsScreen extends ConsumerStatefulWidget {
   const SellerProductsScreen({super.key});
 
@@ -26,95 +25,51 @@ class SellerProductsScreen extends ConsumerStatefulWidget {
       _SellerProductsScreenState();
 }
 
-class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final _searchController = TextEditingController();
-  final _columnPickerAnchorKey = GlobalKey();
-  OverlayEntry? _columnPickerOverlay;
+class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
+  late final TextEditingController _searchController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(_onTabChanged);
+    _searchController = TextEditingController(
+      text: ref.read(sellerProductsControllerProvider).searchQuery,
+    );
     Future.microtask(() {
       if (!mounted) return;
       ref.read(sellerProductsCatalogProvider.notifier).loadIfNeeded();
     });
   }
 
-  void _onTabChanged() {
-    if (_tabController.indexIsChanging) return;
-    AppHaptics.selection();
-    final tab = _tabController.index == 0
-        ? SellerProductDiamondTab.natural
-        : SellerProductDiamondTab.melee;
-    ref.read(sellerProductsControllerProvider.notifier).setTab(tab);
-  }
-
   @override
   void dispose() {
-    _removeColumnPicker();
-    _tabController.removeListener(_onTabChanged);
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _removeColumnPicker() {
-    _columnPickerOverlay?.remove();
-    _columnPickerOverlay = null;
-  }
-
-  void _toggleColumnPicker() {
-    if (_columnPickerOverlay != null) {
-      _removeColumnPicker();
-      return;
-    }
-
-    final box =
-        _columnPickerAnchorKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    final offset = box.localToGlobal(Offset.zero);
-    final ctrl = ref.read(sellerProductsControllerProvider.notifier);
-    final state = ref.read(sellerProductsControllerProvider);
-
-    _columnPickerOverlay = OverlayEntry(
-      builder: (context) => Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _removeColumnPicker,
-              behavior: HitTestBehavior.translucent,
-              child: const SizedBox.expand(),
-            ),
-          ),
-          Positioned(
-            left: (offset.dx - 240).clamp(
-              8.0,
-              MediaQuery.sizeOf(context).width - 296,
-            ),
-            top: offset.dy + box.size.height + 4,
-            child: SellerProductColumnPickerPanel(
-              visibleColumnIds: state.visibleColumnIds,
-              onColumnToggled: ctrl.toggleColumn,
-              onShowHideAll: ctrl.setAllColumnsVisible,
-              onReset: ctrl.resetColumnsToDefault,
-            ),
-          ),
-        ],
-      ),
-    );
-    Overlay.of(context).insert(_columnPickerOverlay!);
   }
 
   Future<void> _editProduct(SellerProduct product) async {
     await context.push(AppRouteNames.sellerProductEditPath(product.id));
   }
 
+  Future<void> _quickView(SellerProduct product) {
+    return showSellerProductQuickView(
+      context,
+      product: product,
+      onEdit: () => _editProduct(product),
+      onDelete: () => _deleteProduct(product),
+    );
+  }
+
   Future<void> _deleteProduct(SellerProduct product) async {
-    final ok = await confirmDeleteSellerProduct(context, product);
+    final ok = await showAtelierConfirm(
+      context: context,
+      title: context.tr(RemainingL10n.deleteProduct2),
+      message: context.tr(RemainingL10n.removeStockConfirm, {
+        'stockNumber': product.stockNumber,
+      }),
+      confirmLabel: context.tr(RemainingL10n.delete),
+      cancelLabel: context.tr(RemainingL10n.cancel),
+      destructive: true,
+    );
     if (!ok || !mounted) return;
     final result = await ref
         .read(sellerProductsCatalogProvider.notifier)
@@ -122,24 +77,80 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
     if (!mounted) return;
     switch (result) {
       case Success():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.tr(RemainingL10n.deletedProduct, {
-                'stockNumber': product.stockNumber,
-              }),
-            ),
-          ),
+        showAtelierToast(
+          context,
+          context.tr(RemainingL10n.deletedProduct, {
+            'stockNumber': product.stockNumber,
+          }),
+          tone: AtelierTone.emerald,
         );
       case ResultFailure(:final failure):
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
+        showAtelierToast(context, failure.message, tone: AtelierTone.ruby);
+    }
+  }
+
+  Future<void> _openColumnPicker() {
+    return showAtelierSheet<void>(
+      context: context,
+      title: context.tr(RemainingL10n.columns),
+      subtitle: 'Choose which fields the table shows.',
+      builder: (_) => Consumer(
+        builder: (context, ref, _) {
+          final state = ref.watch(sellerProductsControllerProvider);
+          final ctrl = ref.read(sellerProductsControllerProvider.notifier);
+          return SellerProductColumnPickerPanel(
+            visibleColumnIds: state.visibleColumnIds,
+            onColumnToggled: ctrl.toggleColumn,
+            onShowHideAll: ctrl.setAllColumnsVisible,
+            onReset: ctrl.resetColumnsToDefault,
+          );
+        },
+      ),
+    );
+  }
+
+  void _export() => showAtelierToast(context, 'Export isn’t available yet.');
+
+  Future<void> _openToolsMenu({
+    required bool canExport,
+    required bool busy,
+  }) async {
+    final action = await showAtelierOptions<String>(
+      context: context,
+      title: context.tr(RemainingL10n.actions),
+      options: [
+        if (canExport)
+          AtelierOption(
+            value: 'export',
+            label: context.tr(RemainingL10n.export),
+            icon: Icons.file_download_outlined,
+          ),
+        AtelierOption(
+          value: 'refresh',
+          label: context.tr(RemainingL10n.refresh),
+          icon: Icons.refresh_rounded,
+        ),
+      ],
+    );
+    if (!mounted) return;
+    switch (action) {
+      case 'export':
+        _export();
+      case 'refresh' when !busy:
+        await ref.read(sellerProductsCatalogProvider.notifier).refresh();
+    }
+  }
+
+  void _clearSelection(Set<String> ids) {
+    final ctrl = ref.read(sellerProductsControllerProvider.notifier);
+    for (final id in ids.toList()) {
+      ctrl.toggleProductSelection(id, false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     final catalogState = ref.watch(sellerProductsCatalogProvider);
     final catalog = catalogState.products;
     final state = ref.watch(sellerProductsControllerProvider);
@@ -153,144 +164,264 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
         : <SellerProduct>[];
     final columns = visibleColumnsInOrder(state);
     final maxPage = total == 0 ? 0 : ((total - 1) / state.rowsPerPage).floor();
+    final stats = _InventoryStats.of(catalog, state.tab);
+    final width = MediaQuery.sizeOf(context).width;
+    final gutter = AtelierSpace.gutter(width);
+    final isTable = state.viewMode == SellerProductsViewMode.grid;
+    final showSummary = width >= 600;
+    final narrow = width < 480;
+
+    Widget content;
+    if (catalogState.isLoading && catalog.isEmpty) {
+      content = isTable
+          ? AtelierSkeletonList(
+              count: 6,
+              height: 64,
+              padding: EdgeInsets.symmetric(horizontal: gutter),
+            )
+          : _GallerySkeleton(gutter: gutter);
+    } else if (catalogState.errorMessage != null && catalog.isEmpty) {
+      content = SingleChildScrollView(
+        child: AtelierErrorState(
+          title: 'Inventory unavailable',
+          message: catalogState.errorMessage!,
+          onRetry: () =>
+              ref.read(sellerProductsCatalogProvider.notifier).refresh(),
+        ),
+      );
+    } else if (pageItems.isEmpty) {
+      final searching = state.searchQuery.isNotEmpty;
+      content = ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          AtelierEmptyState(
+            icon: searching ? Icons.search_off_rounded : Icons.diamond_outlined,
+            title: context.tr(RemainingL10n.noProducts),
+            message: searching
+                ? 'Nothing matches “${state.searchQuery}”. Try a stock number, '
+                      'certificate, shape or colour.'
+                : 'Nothing listed under this status yet. Switch status or '
+                      'type to see the rest of your inventory.',
+            actionLabel: searching ? 'Clear search' : null,
+            onAction: searching
+                ? () {
+                    _searchController.clear();
+                    ctrl.setSearchQuery('');
+                  }
+                : null,
+          ),
+        ],
+      );
+    } else {
+      content = isTable
+          ? SellerProductDataTable(
+              products: pageItems,
+              columns: columns,
+              selectedIds: state.selectedProductIds,
+              onToggleSelection: ctrl.toggleProductSelection,
+              onToggleSelectAll: (selected) =>
+                  ctrl.toggleSelectAllOnPage(pageItems, selected),
+              onEdit: _editProduct,
+              onDelete: _deleteProduct,
+              onView: _quickView,
+              gutter: gutter,
+            )
+          : SellerProductCardsView(
+              products: pageItems,
+              padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 16),
+              selectedIds: state.selectedProductIds,
+              onToggleSelection: ctrl.toggleProductSelection,
+              onEdit: _editProduct,
+              onDelete: _deleteProduct,
+              onQuickView: _quickView,
+            );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TabBar(
-          controller: _tabController,
-          labelColor: AppColors.info,
-          unselectedLabelColor: AppColors.textSecondary(context),
-          indicatorColor: AppColors.info,
-          indicatorWeight: 3,
-          labelStyle: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
-          tabs: [
-            Tab(text: context.tr(RemainingL10n.naturalDiamonds)),
-            Tab(text: context.tr(RemainingL10n.meleeDiamonds)),
-          ],
-        ),
         Padding(
-          padding: const EdgeInsets.all(AppSpacing.s16),
+          padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(
-                height: 44,
-                width: double.infinity,
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: ctrl.setSearchQuery,
-                  decoration: InputDecoration(
-                    hintText: context.tr(
-                      RemainingL10n.searchStockCertificateShapeColorTags,
-                    ),
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
-                      borderSide: BorderSide(color: AppColors.border(context)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.r8),
-                      borderSide: BorderSide(color: AppColors.border(context)),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _StatusDropdown(
-                    value: state.statusFilter,
-                    onChanged: ctrl.setStatusFilter,
-                  ),
-                  _ViewModeToggle(
-                    mode: state.viewMode,
-                    onChanged: ctrl.setViewMode,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-          child: Row(
-            children: [
-              Text(
-                '$total total · use column picker to show all fields',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textMuted(context),
-                ),
-              ),
-              const Spacer(),
-              if (state.viewMode == SellerProductsViewMode.grid) ...[
-                IconButton(
-                  key: _columnPickerAnchorKey,
-                  tooltip: context.tr(RemainingL10n.columns),
-                  icon: const Icon(Icons.view_column_outlined),
-                  onPressed: _toggleColumnPicker,
-                ),
-                IconButton(
-                  tooltip: context.tr(RemainingL10n.export),
-                  icon: const Icon(Icons.download_outlined),
-                  onPressed: () {},
-                ),
+              if (showSummary) ...[
+                Reveal(child: _InventorySummary(stats: stats)),
+                const SizedBox(height: AtelierSpace.s16),
               ],
+              Reveal(
+                index: 1,
+                child: AtelierSegmented<SellerProductDiamondTab>(
+                  expand: true,
+                  segments: [
+                    AtelierSegment(
+                      value: SellerProductDiamondTab.natural,
+                      label: context.tr(RemainingL10n.naturalDiamonds),
+                      count: _InventoryStats.of(
+                        catalog,
+                        SellerProductDiamondTab.natural,
+                      ).total,
+                    ),
+                    AtelierSegment(
+                      value: SellerProductDiamondTab.melee,
+                      label: context.tr(RemainingL10n.meleeDiamonds),
+                      count: _InventoryStats.of(
+                        catalog,
+                        SellerProductDiamondTab.melee,
+                      ).total,
+                    ),
+                  ],
+                  selected: state.tab,
+                  onChanged: ctrl.setTab,
+                ),
+              ),
+              const SizedBox(height: AtelierSpace.s12),
+              Reveal(
+                index: 2,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AtelierSearchField(
+                        controller: _searchController,
+                        hint: context.tr(
+                          RemainingL10n.searchStockCertificateShapeColorTags,
+                        ),
+                        onChanged: ctrl.setSearchQuery,
+                      ),
+                    ),
+                    const SizedBox(width: AtelierSpace.s8),
+                    _ViewToggle(
+                      mode: state.viewMode,
+                      onChanged: ctrl.setViewMode,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AtelierSpace.s12),
+              Reveal(
+                index: 3,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AtelierSegmented<SellerProductStatusFilter>(
+                        dense: true,
+                        segments: [
+                          AtelierSegment(
+                            value: SellerProductStatusFilter.active,
+                            label: context.tr(RemainingL10n.active),
+                            count: stats.active,
+                          ),
+                          AtelierSegment(
+                            value: SellerProductStatusFilter.expired,
+                            label: context.tr(RemainingL10n.expired),
+                            count: stats.expired,
+                          ),
+                          AtelierSegment(
+                            value: SellerProductStatusFilter.all,
+                            label: context.tr(RemainingL10n.all),
+                            count: stats.total,
+                          ),
+                        ],
+                        selected: state.statusFilter,
+                        onChanged: ctrl.setStatusFilter,
+                      ),
+                    ),
+                    AnimatedSize(
+                      duration: AtelierMotion.base,
+                      curve: AtelierMotion.emphasized,
+                      child: isTable
+                          ? AtelierIconButton(
+                              icon: Icons.view_column_outlined,
+                              tooltip: context.tr(RemainingL10n.columns),
+                              onPressed: _openColumnPicker,
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    if (narrow)
+                      AtelierIconButton(
+                        icon: Icons.more_horiz_rounded,
+                        tooltip: context.tr(RemainingL10n.actions),
+                        onPressed: () => _openToolsMenu(
+                          canExport: isTable,
+                          busy: catalogState.isLoading,
+                        ),
+                      )
+                    else ...[
+                      if (isTable)
+                        AtelierIconButton(
+                          icon: Icons.file_download_outlined,
+                          tooltip: context.tr(RemainingL10n.export),
+                          onPressed: _export,
+                        ),
+                      AtelierIconButton(
+                        icon: Icons.refresh_rounded,
+                        tooltip: context.tr(RemainingL10n.refresh),
+                        onPressed: catalogState.isLoading
+                            ? null
+                            : () => ref
+                                  .read(sellerProductsCatalogProvider.notifier)
+                                  .refresh(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: AtelierSpace.s8),
+              Text(
+                isTable
+                    ? '$total total · use the column picker to show all fields'
+                    : '$total total · long-press a card to select',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AtelierType.caption(p.muted, size: 11.5),
+              ),
+              const SizedBox(height: AtelierSpace.s8),
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.s8),
-        Expanded(
-          child: catalogState.isLoading && catalog.isEmpty
-              ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-              : catalogState.errorMessage != null && catalog.isEmpty
-              ? CatalogErrorState(
-                  message: catalogState.errorMessage!,
-                  onRetry: () => ref
-                      .read(sellerProductsCatalogProvider.notifier)
-                      .refresh(),
-                )
-              : pageItems.isEmpty
-              ? Center(
-                  child: Text(
-                    context.tr(RemainingL10n.noProducts),
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.textMuted(context),
-                    ),
+        AnimatedSize(
+          duration: AtelierMotion.base,
+          curve: AtelierMotion.emphasized,
+          child: state.selectedProductIds.isEmpty
+              ? const SizedBox(width: double.infinity)
+              : Padding(
+                  padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 8),
+                  child: _SelectionBar(
+                    count: state.selectedProductIds.length,
+                    onSelectPage: () =>
+                        ctrl.toggleSelectAllOnPage(pageItems, true),
+                    onClear: () => _clearSelection(state.selectedProductIds),
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: () => ref
-                      .read(sellerProductsCatalogProvider.notifier)
-                      .refresh(),
-                  child: state.viewMode == SellerProductsViewMode.grid
-                      ? SellerProductDataTable(
-                          products: pageItems,
-                          columns: columns,
-                          selectedIds: state.selectedProductIds,
-                          onToggleSelection: ctrl.toggleProductSelection,
-                          onToggleSelectAll: (selected) =>
-                              ctrl.toggleSelectAllOnPage(pageItems, selected),
-                          onEdit: _editProduct,
-                          onDelete: _deleteProduct,
-                        )
-                      : SellerProductCardsView(
-                          products: pageItems,
-                          selectedIds: state.selectedProductIds,
-                          onToggleSelection: ctrl.toggleProductSelection,
-                          onEdit: _editProduct,
-                          onDelete: _deleteProduct,
-                        ),
                 ),
+        ),
+        if (catalogState.isLoading && catalog.isNotEmpty)
+          LinearProgressIndicator(
+            minHeight: 1.5,
+            color: p.gold,
+            backgroundColor: Colors.transparent,
+          ),
+        Expanded(
+          child: RefreshIndicator(
+            color: p.gold,
+            backgroundColor: p.surface,
+            onRefresh: () =>
+                ref.read(sellerProductsCatalogProvider.notifier).refresh(),
+            child: AnimatedSwitcher(
+              duration: AtelierMotion.base,
+              switchInCurve: AtelierMotion.emphasized,
+              child: KeyedSubtree(
+                key: ValueKey('${state.viewMode}-${state.tab}'),
+                child: content,
+              ),
+            ),
+          ),
         ),
         _PaginationBar(
           rowsPerPage: state.rowsPerPage,
-          page: state.page,
           total: total,
           start: total == 0 ? 0 : start + 1,
           end: end,
+          page: state.page,
           maxPage: maxPage,
           onRowsPerPageChanged: ctrl.setRowsPerPage,
           onPrevious: state.page > 0
@@ -305,80 +436,167 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen>
   }
 }
 
-class _StatusDropdown extends StatelessWidget {
-  const _StatusDropdown({required this.value, required this.onChanged});
+/// Counts for the current natural / melee tab (deleted items excluded).
+class _InventoryStats {
+  const _InventoryStats({
+    required this.total,
+    required this.active,
+    required this.expired,
+    required this.onAuction,
+    required this.sold,
+  });
 
-  final SellerProductStatusFilter value;
-  final ValueChanged<SellerProductStatusFilter> onChanged;
+  final int total;
+  final int active;
+  final int expired;
+  final int onAuction;
+  final int sold;
+
+  static _InventoryStats of(
+    List<SellerProduct> catalog,
+    SellerProductDiamondTab tab,
+  ) {
+    var total = 0, active = 0, expired = 0, auction = 0, sold = 0;
+    for (final p in catalog) {
+      if (p.isDeleted) continue;
+      final inTab = tab == SellerProductDiamondTab.natural
+          ? p.isNatural
+          : !p.isNatural;
+      if (!inTab) continue;
+      total++;
+      p.isExpired ? expired++ : active++;
+      if (p.isOnAuction) auction++;
+      if (p.isSold) sold++;
+    }
+    return _InventoryStats(
+      total: total,
+      active: active,
+      expired: expired,
+      onAuction: auction,
+      sold: sold,
+    );
+  }
+}
+
+class _InventorySummary extends StatelessWidget {
+  const _InventorySummary({required this.stats});
+
+  final _InventoryStats stats;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
+    final items = <(String, int, AtelierTone)>[
+      (context.tr(RemainingL10n.active), stats.active, AtelierTone.emerald),
+      (
+        context.tr(RemainingL10n.onAuction),
+        stats.onAuction,
+        AtelierTone.sapphire,
+      ),
+      (context.tr(RemainingL10n.sold), stats.sold, AtelierTone.gold),
+      (context.tr(RemainingL10n.expired), stats.expired, AtelierTone.amber),
+    ];
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          context.tr(RemainingL10n.status2),
-          style: AppTypography.caption.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary(context),
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0)
+            Container(
+              width: 1,
+              height: 30,
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              color: p.hairline,
+            ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CountUpText(
+                  '${items[i].$2}',
+                  style: AtelierType.display(p.ink, size: 26),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Container(
+                      width: 5,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: p.tone(items[i].$3),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Flexible(
+                      child: Text(
+                        items[i].$1,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AtelierType.caption(p.muted, size: 11),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        DropdownButton<SellerProductStatusFilter>(
-          value: value,
-          underline: const SizedBox.shrink(),
-          borderRadius: BorderRadius.circular(AppSpacing.r8),
-          items: [
-            DropdownMenuItem(
-              value: SellerProductStatusFilter.active,
-              child: Text(context.tr(RemainingL10n.active)),
-            ),
-            DropdownMenuItem(
-              value: SellerProductStatusFilter.expired,
-              child: Text(context.tr(RemainingL10n.expired)),
-            ),
-            DropdownMenuItem(
-              value: SellerProductStatusFilter.all,
-              child: Text(context.tr(RemainingL10n.all)),
-            ),
-          ],
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
-        ),
+        ],
       ],
     );
   }
 }
 
-class _ViewModeToggle extends StatelessWidget {
-  const _ViewModeToggle({required this.mode, required this.onChanged});
+class _ViewToggle extends StatelessWidget {
+  const _ViewToggle({required this.mode, required this.onChanged});
 
   final SellerProductsViewMode mode;
   final ValueChanged<SellerProductsViewMode> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
+    Widget option(SellerProductsViewMode value, IconData icon, String label) {
+      final selected = mode == value;
+      return Tooltip(
+        message: label,
+        child: Pressable(
+          onTap: () => onChanged(value),
+          semanticLabel: label,
+          child: AnimatedContainer(
+            duration: AtelierMotion.base,
+            curve: AtelierMotion.emphasized,
+            width: 40,
+            height: 30,
+            decoration: BoxDecoration(
+              color: selected ? p.lifted : Colors.transparent,
+              borderRadius: BorderRadius.circular(AtelierRadius.pill),
+              boxShadow: selected
+                  ? [BoxShadow(color: p.shadow, blurRadius: 8)]
+                  : null,
+            ),
+            child: Icon(icon, size: 17, color: selected ? p.ink : p.muted),
+          ),
+        ),
+      );
+    }
+
     return Container(
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppSpacing.r8),
-        border: Border.all(color: AppColors.border(context)),
+        color: p.sunken,
+        borderRadius: BorderRadius.circular(AtelierRadius.pill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _ToggleChip(
-            label: context.tr(RemainingL10n.grid),
-            icon: Icons.table_rows_outlined,
-            selected: mode == SellerProductsViewMode.grid,
-            onTap: () => onChanged(SellerProductsViewMode.grid),
+          option(
+            SellerProductsViewMode.grid,
+            Icons.table_rows_outlined,
+            context.tr(RemainingL10n.grid),
           ),
-          Container(width: 1, height: 32, color: AppColors.border(context)),
-          _ToggleChip(
-            label: context.tr(RemainingL10n.cards),
-            icon: Icons.grid_view,
-            selected: mode == SellerProductsViewMode.cards,
-            onTap: () => onChanged(SellerProductsViewMode.cards),
+          option(
+            SellerProductsViewMode.cards,
+            Icons.grid_view_rounded,
+            context.tr(RemainingL10n.cards),
           ),
         ],
       ),
@@ -386,54 +604,104 @@ class _ViewModeToggle extends StatelessWidget {
   }
 }
 
-class _ToggleChip extends StatelessWidget {
-  const _ToggleChip({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
+class _SelectionBar extends StatelessWidget {
+  const _SelectionBar({
+    required this.count,
+    required this.onSelectPage,
+    required this.onClear,
   });
 
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
+  final int count;
+  final VoidCallback onSelectPage;
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: selected ? AppColors.selectedFill(context) : Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          if (!selected) AppHaptics.selection();
-          onTap();
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: selected
-                    ? AppColors.onSelected(context)
-                    : AppColors.textPrimary(context),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: AppTypography.caption.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: selected
-                      ? AppColors.onSelected(context)
-                      : AppColors.textPrimary(context),
-                ),
-              ),
-            ],
-          ),
-        ),
+    final p = context.atelier;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
+      decoration: BoxDecoration(
+        color: p.isDark ? p.raised : p.onyx,
+        borderRadius: BorderRadius.circular(AtelierRadius.pill),
+        boxShadow: p.floatShadow,
       ),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle_rounded, size: 18, color: p.gold),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$count selected',
+              style: AtelierType.label(p.isDark ? p.ink : p.onOnyx, size: 13),
+            ),
+          ),
+          TextButton(
+            onPressed: onSelectPage,
+            style: TextButton.styleFrom(foregroundColor: p.gold),
+            child: Text(
+              'Select page',
+              style: AtelierType.label(p.gold, size: 12.5),
+            ),
+          ),
+          TextButton(
+            onPressed: onClear,
+            style: TextButton.styleFrom(
+              foregroundColor: p.isDark ? p.ink : p.onOnyx,
+            ),
+            child: Text(
+              'Clear',
+              style: AtelierType.label(p.isDark ? p.ink : p.onOnyx, size: 12.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GallerySkeleton extends StatelessWidget {
+  const _GallerySkeleton({required this.gutter});
+
+  final double gutter;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 680 ? 3 : 2;
+        return GridView.builder(
+          padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 16),
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: columns * 2,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            mainAxisExtent: 284,
+          ),
+          itemBuilder: (_, _) => Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: p.surface,
+              borderRadius: BorderRadius.circular(AtelierRadius.lg),
+              border: Border.all(color: p.hairline),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: SkeletonBox(height: double.infinity)),
+                SizedBox(height: 14),
+                SkeletonBox(width: 110, height: 16),
+                SizedBox(height: 8),
+                SkeletonBox(width: 150, height: 10),
+                SizedBox(height: 12),
+                SkeletonBox(width: 80, height: 14),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -441,10 +709,10 @@ class _ToggleChip extends StatelessWidget {
 class _PaginationBar extends StatelessWidget {
   const _PaginationBar({
     required this.rowsPerPage,
-    required this.page,
     required this.total,
     required this.start,
     required this.end,
+    required this.page,
     required this.maxPage,
     required this.onRowsPerPageChanged,
     required this.onPrevious,
@@ -452,66 +720,92 @@ class _PaginationBar extends StatelessWidget {
   });
 
   final int rowsPerPage;
-  final int page;
   final int total;
   final int start;
   final int end;
+  final int page;
   final int maxPage;
   final ValueChanged<int> onRowsPerPageChanged;
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
+  Future<void> _pickRows(BuildContext context) async {
+    final picked = await showAtelierOptions<int>(
+      context: context,
+      title: context.tr(RemainingL10n.rowsPerPage),
+      options: [
+        for (final n in const [10, 25, 50])
+          AtelierOption(value: n, label: '$n', selected: n == rowsPerPage),
+      ],
+    );
+    if (picked != null) onRowsPerPageChanged(picked);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.border(context))),
-        color: AppColors.card(context),
+        color: p.canvas,
+        border: Border(top: BorderSide(color: p.hairline)),
       ),
-      child: Row(
-        children: [
-          Text(
-            context.tr(RemainingL10n.rowsPerPage),
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Pressable(
+              onTap: () => _pickRows(context),
+              semanticLabel: context.tr(RemainingL10n.rowsPerPage),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: p.sunken,
+                  borderRadius: BorderRadius.circular(AtelierRadius.pill),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$rowsPerPage / page',
+                      style: AtelierType.figure(p.inkSoft, size: 12),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.expand_more_rounded, size: 16, color: p.muted),
+                  ],
+                ),
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          DropdownButton<int>(
-            value: rowsPerPage,
-            underline: const SizedBox.shrink(),
-            items: [
-              DropdownMenuItem(
-                value: 10,
-                child: Text(context.tr(RemainingL10n.message10)),
+            const Spacer(),
+            AnimatedSwitcher(
+              duration: AtelierMotion.base,
+              child: Text(
+                total == 0 ? '0 of 0' : '$start–$end of $total',
+                key: ValueKey('$start-$end-$total'),
+                style: AtelierType.figure(p.inkSoft, size: 12.5),
               ),
-              DropdownMenuItem(
-                value: 25,
-                child: Text(context.tr(RemainingL10n.message25)),
-              ),
-              DropdownMenuItem(
-                value: 50,
-                child: Text(context.tr(RemainingL10n.message50)),
-              ),
-            ],
-            onChanged: (v) {
-              if (v != null) onRowsPerPageChanged(v);
-            },
-          ),
-          const Spacer(),
-          Text(
-            total == 0 ? '0 of 0' : '$start–$end of $total',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary(context),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
-            onPressed: onPrevious,
-          ),
-          IconButton(icon: const Icon(Icons.chevron_right), onPressed: onNext),
-        ],
+            const SizedBox(width: 6),
+            AtelierIconButton(
+              icon: Icons.chevron_left_rounded,
+              tooltip: 'Previous page',
+              size: 36,
+              filled: true,
+              onPressed: onPrevious,
+            ),
+            const SizedBox(width: 6),
+            AtelierIconButton(
+              icon: Icons.chevron_right_rounded,
+              tooltip: 'Next page',
+              size: 36,
+              filled: true,
+              onPressed: onNext,
+            ),
+          ],
+        ),
       ),
     );
   }

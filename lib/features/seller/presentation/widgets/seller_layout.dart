@@ -8,12 +8,10 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
-import '../../../../core/widgets/app_top_bar.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
+import '../atelier/atelier_shell.dart';
+import '../atelier/atelier_theme.dart';
 import 'seller_drawer.dart';
 
 /// Opens the side drawer from seller (or buyer-hosted shared) screens.
@@ -54,22 +52,25 @@ class SellerLayout extends ConsumerWidget {
 
     if (!authState.isSeller) {
       _redirectHome(context);
-      return const AppScaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return AppScaffold(
+        backgroundColor: context.atelier.canvas,
+        body: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
 
     if (authState.isVerificationPending &&
         !_isAllowedWhilePending(selectedRoute)) {
       _redirectHome(context);
+      final p = context.atelier;
       return AppScaffold(
+        backgroundColor: p.canvas,
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.s16),
+            padding: const EdgeInsets.all(AtelierSpace.s24),
             child: Text(
               AccountAccess.pendingMessage,
               textAlign: TextAlign.center,
-              style: AppTypography.body,
+              style: AtelierType.body(p.inkSoft),
             ),
           ),
         ),
@@ -81,6 +82,31 @@ class SellerLayout extends ConsumerWidget {
     final isDetail = _isDetailRoute(selectedRoute);
     final router = GoRouter.of(context);
     final canPop = router.canPop();
+    final p = context.atelier;
+    final width = MediaQuery.sizeOf(context).width;
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final destinations = sellerPrimaryDestinations(
+      context,
+      pending: authState.isVerificationPending,
+    );
+    final useRail = width >= 1024 && !ownsOwnAppBar;
+    final useDock =
+        !useRail && !isDetail && !keyboardOpen && destinations.length >= 3;
+
+    Widget body = child;
+    if (useRail) {
+      body = Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SellerRail(
+            destinations: destinations,
+            location: selectedRoute,
+            extended: width >= 1320,
+          ),
+          Expanded(child: child),
+        ],
+      );
+    }
 
     return PopScope(
       // Drawer peers use `go` (no stack). Intercept system back so the app
@@ -94,28 +120,23 @@ class SellerLayout extends ConsumerWidget {
       },
       child: AppScaffold(
         drawer: SellerDrawer(selectedRoute: selectedRoute),
-        backgroundColor: AppColors.bg(context),
+        backgroundColor: p.canvas,
         appBar: ownsOwnAppBar
             ? null
-            : AppTopBar(
+            : AtelierTopBar(
                 title: _shellTitleFor(context, selectedRoute),
-                leading: isDetail
-                    ? BackButton(onPressed: () => context.goBack())
-                    // AppDrawerButton uses its own context (under Scaffold).
-                    // SellerLayout's context is an ancestor of the Scaffold and
-                    // cannot open the drawer.
-                    : const AppDrawerButton(),
-                showDrawerButton: false,
-                showCart: true,
-                showWallet: true,
-                showMessages: true,
-                showThemeToggle: true,
-                onSellerWalletTap: () =>
-                    context.switchToRoute(AppRouteNames.sellerWallet),
-                onSellerMessagesTap: () =>
-                    context.switchToRoute(AppRouteNames.sellerChat),
+                location: selectedRoute,
+                showBack: isDetail,
+                onBack: () => context.goBack(),
+                // Wallet is a dock / rail destination; keep it reachable
+                // from the bar wherever neither is shown.
+                showWalletAction:
+                    !useRail && !useDock && !authState.isVerificationPending,
               ),
-        body: child,
+        bottomNavigationBar: useDock
+            ? SellerDock(destinations: destinations, location: selectedRoute)
+            : null,
+        body: body,
       ),
     );
   }

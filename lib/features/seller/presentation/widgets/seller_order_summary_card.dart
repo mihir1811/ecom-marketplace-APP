@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_shadows.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../refunds/domain/models/refund_request.dart';
 import '../../domain/models/seller_order.dart';
+import '../atelier/atelier_components.dart';
+import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_theme.dart';
 import 'seller_order_customer_block.dart';
 import 'seller_order_decision.dart';
 
@@ -27,163 +27,192 @@ class SellerOrderSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = sellerOrderStatusColor(order.status);
+    final p = context.atelier;
+    final tone = sellerOrderStatusTone(order.status);
+    final accent = p.tone(tone);
     final quantity = order.totalQuantity;
+    final pending = order.status.canDecide;
+    final amount = sellerOrderAmountParts(order);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: AppColors.card(context),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border(context)),
-            boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
+    return Pressable(
+      onTap: onTap,
+      semanticLabel:
+          'Order ${order.shortId}, ${order.customerLabel}, '
+          '${sellerOrderAmountLabel(order)}, ${sellerOrderStatusLabel(order)}',
+      child: Container(
+        decoration: BoxDecoration(
+          color: p.surface,
+          borderRadius: BorderRadius.circular(AtelierRadius.lg),
+          border: Border.all(
+            color: pending ? accent.withValues(alpha: 0.45) : p.hairline,
           ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  width: 5,
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      bottomLeft: Radius.circular(16),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+          boxShadow: p.softShadow,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (pending)
+              Container(
+                height: 2,
+                decoration: BoxDecoration(gradient: p.goldGradient),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: accent.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                sellerOrderStatusIcon(order.status),
-                                color: accent,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '#${order.shortId}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTypography.title.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    sellerOrderDateLabel(order.createdAt),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTypography.caption.copyWith(
-                                      color: AppColors.textMuted(context),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
+                            Text('ORDER', style: AtelierType.overline(p.muted)),
+                            const SizedBox(height: 4),
                             Text(
-                              sellerOrderAmountLabel(order),
-                              style: AppTypography.label.copyWith(
-                                fontWeight: FontWeight.w800,
+                              '#${order.shortId}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AtelierType.figure(
+                                p.ink,
+                                size: 16,
+                                weight: FontWeight.w700,
                               ),
-                            ),
-                            Icon(
-                              Icons.chevron_right,
-                              color: AppColors.textMuted(context),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        SellerOrderCustomerBlock(
-                          name: order.customerLabel,
-                          email: order.customer?.email,
-                          phone: order.customer?.phone,
-                        ),
-                        const SizedBox(height: 8),
-                        _Line(
-                          icon: Icons.diamond_outlined,
-                          text: quantity > 0
-                              ? '${order.productSummary} · Qty $quantity'
-                              : order.productSummary,
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
+                      ),
+                      const SizedBox(width: 12),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 220),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            SellerOrderStatusBadge(order: order),
-                            if ((order.paymentStatus ?? '').isNotEmpty)
-                              SellerOrderTag(
-                                icon: Icons.payments_outlined,
-                                text: _humanize(order.paymentStatus!),
+                            Text(
+                              amount.primary,
+                              maxLines: 1,
+                              textAlign: TextAlign.end,
+                              overflow: TextOverflow.ellipsis,
+                              style: AtelierType.display(p.ink, size: 24),
+                            ),
+                            if (amount.secondary != null)
+                              Text(
+                                amount.secondary!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AtelierType.figure(p.muted, size: 11.5),
                               ),
-                            if (latestRefund != null)
-                              SellerOrderTag(
-                                icon: Icons.replay,
-                                text: 'Refund ${latestRefund!.status.label.toLowerCase()}',
-                                color: switch (latestRefund!.status) {
-                                  RefundStatus.pending => AppColors.bronze,
-                                  RefundStatus.accepted => AppColors.success,
-                                  RefundStatus.rejected => AppColors.error,
-                                  RefundStatus.cancelled =>
-                                    AppColors.charcoalLight,
-                                },
+                            const SizedBox(height: 2),
+                            Tooltip(
+                              message: sellerOrderDateLabel(order.createdAt),
+                              child: Text(
+                                sellerOrderRelativeTime(order.createdAt),
+                                style: AtelierType.caption(p.muted, size: 11.5),
                               ),
+                            ),
                           ],
                         ),
-                        if (order.status == SellerOrderStatus.accepted) ...[
-                          const SizedBox(height: 10),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: TextButton.icon(
-                              onPressed: onTap,
-                              icon: const Icon(
-                                Icons.local_shipping_outlined,
-                                size: 18,
-                              ),
-                              label: const Text('Next: update shipping'),
-                            ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  SellerOrderCustomerBlock(
+                    name: order.customerLabel,
+                    email: order.customer?.email,
+                    phone: order.customer?.phone,
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: p.sunken,
+                      borderRadius: BorderRadius.circular(AtelierRadius.sm),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.diamond_outlined, size: 15, color: p.gold),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            order.productSummary,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AtelierType.label(p.inkSoft, size: 12.5),
                           ),
-                        ],
-                        if (order.status.canDecide) ...[
-                          const SizedBox(height: 12),
-                          SellerOrderDecisionButtons(
-                            order: order,
-                            compact: true,
+                        ),
+                        if (quantity > 0)
+                          Text(
+                            'Qty $quantity',
+                            style: AtelierType.figure(p.muted, size: 11.5),
                           ),
-                        ],
                       ],
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      SellerOrderStatusBadge(order: order),
+                      if ((order.paymentStatus ?? '').isNotEmpty)
+                        SellerOrderTag(
+                          icon: Icons.payments_outlined,
+                          text: _humanize(order.paymentStatus!),
+                        ),
+                      if (latestRefund != null)
+                        SellerOrderTag(
+                          icon: Icons.replay_rounded,
+                          text:
+                              'Refund ${latestRefund!.status.label.toLowerCase()}',
+                          tone: switch (latestRefund!.status) {
+                            RefundStatus.pending => AtelierTone.amber,
+                            RefundStatus.accepted => AtelierTone.emerald,
+                            RefundStatus.rejected => AtelierTone.ruby,
+                            RefundStatus.cancelled => AtelierTone.neutral,
+                          },
+                        ),
+                    ],
+                  ),
+                  if (order.status == SellerOrderStatus.accepted) ...[
+                    const SizedBox(height: 12),
+                    Pressable(
+                      onTap: onTap,
+                      semanticLabel: 'Next: update shipping',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.local_shipping_outlined,
+                            size: 17,
+                            color: p.gold,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Next: update shipping',
+                            style: AtelierType.label(p.gold, size: 13),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 15,
+                            color: p.gold,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  if (pending) ...[
+                    const SizedBox(height: 14),
+                    SellerOrderDecisionButtons(order: order, compact: true),
+                  ],
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -200,66 +229,16 @@ class SellerOrderTag extends StatelessWidget {
   const SellerOrderTag({
     required this.icon,
     required this.text,
-    this.color,
+    this.tone = AtelierTone.neutral,
     super.key,
   });
 
   final IconData icon;
   final String text;
-  final Color? color;
+  final AtelierTone tone;
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.textSecondary(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: c.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: c),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: AppTypography.caption.copyWith(
-              color: c,
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Line extends StatelessWidget {
-  const _Line({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: AppColors.textMuted(context)),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary(context),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
+    return AtelierPill(label: text, icon: icon, tone: tone);
   }
 }

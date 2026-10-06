@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../domain/models/seller_product.dart';
 import '../../domain/models/seller_product_column.dart';
+import '../atelier/atelier_components.dart';
+import '../atelier/atelier_feedback.dart';
+import '../atelier/atelier_theme.dart';
 
-import '../../../../core/l10n/app_localizations.dart';
-
+/// Spreadsheet view of the seller inventory with configurable columns.
 class SellerProductDataTable extends StatefulWidget {
   const SellerProductDataTable({
     required this.products,
@@ -16,6 +18,8 @@ class SellerProductDataTable extends StatefulWidget {
     required this.onToggleSelectAll,
     this.onEdit,
     this.onDelete,
+    this.onView,
+    this.gutter = 16,
     super.key,
   });
 
@@ -26,6 +30,10 @@ class SellerProductDataTable extends StatefulWidget {
   final void Function(bool selected) onToggleSelectAll;
   final ValueChanged<SellerProduct>? onEdit;
   final ValueChanged<SellerProduct>? onDelete;
+  final ValueChanged<SellerProduct>? onView;
+
+  /// Horizontal page gutter so the table lines up with the toolbar.
+  final double gutter;
 
   @override
   State<SellerProductDataTable> createState() => _SellerProductDataTableState();
@@ -36,9 +44,9 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
   final _horizontalController = ScrollController();
 
   static const _minColWidth = 120.0;
-  static const _selectionWidth = 48.0;
-  static const _actionsWidth = 140.0;
-  static const _imageWidth = 72.0;
+  static const _selectionWidth = 40.0;
+  static const _actionsWidth = 132.0;
+  static const _imageWidth = 64.0;
 
   @override
   void dispose() {
@@ -49,14 +57,12 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     if (widget.columns.isEmpty) {
-      return Center(
-        child: Text(
-          context.tr(RemainingL10n.selectColumnsUsingTheColumnPicker),
-          style: AppTypography.body.copyWith(
-            color: AppColors.textMuted(context),
-          ),
-        ),
+      return AtelierEmptyState(
+        icon: Icons.view_column_outlined,
+        title: 'No columns selected',
+        message: context.tr(RemainingL10n.selectColumnsUsingTheColumnPicker),
       );
     }
 
@@ -70,73 +76,111 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        return Scrollbar(
-          controller: _verticalController,
-          thumbVisibility: true,
-          child: SingleChildScrollView(
+        return Container(
+          margin: EdgeInsets.fromLTRB(widget.gutter, 4, widget.gutter, 12),
+          decoration: BoxDecoration(
+            color: p.surface,
+            borderRadius: BorderRadius.circular(AtelierRadius.lg),
+            border: Border.all(color: p.hairline),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Scrollbar(
             controller: _verticalController,
-            primary: false,
-            scrollDirection: Axis.vertical,
-            child: Scrollbar(
-              controller: _horizontalController,
-              thumbVisibility: true,
-              notificationPredicate: (n) => n.depth == 0,
-              child: SingleChildScrollView(
+            thumbVisibility: true,
+            child: SingleChildScrollView(
+              controller: _verticalController,
+              primary: false,
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Scrollbar(
                 controller: _horizontalController,
-                primary: false,
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                  child: DataTable(
-                    headingRowHeight: 44,
-                    dataRowMinHeight: 48,
-                    dataRowMaxHeight: 56,
-                    columnSpacing: 16,
-                    horizontalMargin: 12,
-                    showCheckboxColumn: false,
-                    headingTextStyle: AppTypography.caption.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.4,
-                      color: AppColors.textSecondary(context),
-                      fontSize: 11,
+                thumbVisibility: true,
+                notificationPredicate: (n) => n.depth == 0,
+                child: SingleChildScrollView(
+                  controller: _horizontalController,
+                  primary: false,
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: constraints.maxWidth - widget.gutter * 2 - 2,
                     ),
-                    columns: [
-                      for (final col in columns)
-                        DataColumn(
-                          label: SizedBox(
-                            width: _widthFor(col.id),
-                            child: col.id == 'selection'
-                                ? Checkbox(
-                                    tristate: true,
-                                    value: allSelected
-                                        ? true
-                                        : someSelected
-                                        ? null
-                                        : false,
-                                    onChanged: (v) =>
-                                        widget.onToggleSelectAll(v ?? false),
-                                  )
-                                : Text(
-                                    col.label.toUpperCase(),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                    child: Theme(
+                      data: Theme.of(context).copyWith(
+                        dividerColor: p.hairline,
+                        checkboxTheme: CheckboxThemeData(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
                           ),
+                          side: BorderSide(color: p.muted, width: 1.2),
+                          fillColor: WidgetStateProperty.resolveWith(
+                            (s) => s.contains(WidgetState.selected)
+                                ? p.gold
+                                : Colors.transparent,
+                          ),
+                          checkColor: WidgetStatePropertyAll(p.onGold),
                         ),
-                    ],
-                    rows: [
-                      for (final product in products)
-                        DataRow(
-                          cells: [
-                            for (final col in columns)
-                              DataCell(
-                                SizedBox(
-                                  width: _widthFor(col.id),
-                                  child: _cellFor(context, col.id, product),
-                                ),
+                      ),
+                      child: DataTable(
+                        headingRowHeight: 48,
+                        dataRowMinHeight: 56,
+                        dataRowMaxHeight: 60,
+                        columnSpacing: 18,
+                        horizontalMargin: 16,
+                        showCheckboxColumn: false,
+                        dividerThickness: 1,
+                        headingRowColor: WidgetStatePropertyAll(p.sunken),
+                        dataRowColor: WidgetStateProperty.resolveWith((s) {
+                          if (s.contains(WidgetState.selected)) {
+                            return p.goldSoft;
+                          }
+                          if (s.contains(WidgetState.hovered)) {
+                            return p.sunken.withValues(alpha: 0.6);
+                          }
+                          return null;
+                        }),
+                        headingTextStyle: AtelierType.overline(p.muted),
+                        columns: [
+                          for (final col in columns)
+                            DataColumn(
+                              label: SizedBox(
+                                width: _widthFor(col.id),
+                                child: col.id == 'selection'
+                                    ? Checkbox(
+                                        tristate: true,
+                                        value: allSelected
+                                            ? true
+                                            : someSelected
+                                            ? null
+                                            : false,
+                                        onChanged: (v) => widget
+                                            .onToggleSelectAll(v ?? false),
+                                      )
+                                    : Text(
+                                        col.label.toUpperCase(),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                               ),
-                          ],
-                        ),
-                    ],
+                            ),
+                        ],
+                        rows: [
+                          for (final product in products)
+                            DataRow(
+                              selected: selectedIds.contains(product.id),
+                              onSelectChanged: widget.onView == null
+                                  ? null
+                                  : (_) => widget.onView!(product),
+                              cells: [
+                                for (final col in columns)
+                                  DataCell(
+                                    SizedBox(
+                                      width: _widthFor(col.id),
+                                      child: _cellFor(context, col.id, product),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -169,6 +213,7 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
     String columnId,
     SellerProduct product,
   ) {
+    final p = context.atelier;
     if (columnId == 'selection') {
       return Checkbox(
         value: widget.selectedIds.contains(product.id),
@@ -179,85 +224,93 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _ActionIcon(
+          AtelierIconButton(
             icon: Icons.visibility_outlined,
             tooltip: context.tr(RemainingL10n.view),
-            onPressed: () {},
+            size: 34,
+            onPressed: widget.onView == null
+                ? null
+                : () => widget.onView!(product),
           ),
-          _ActionIcon(
+          AtelierIconButton(
             icon: Icons.edit_outlined,
             tooltip: context.tr(RemainingL10n.edit),
+            size: 34,
             onPressed: widget.onEdit == null
                 ? null
                 : () => widget.onEdit!(product),
           ),
-          _ActionIcon(
-            icon: Icons.delete_outline,
-            tooltip: context.tr(RemainingL10n.delete),
-            color: AppColors.error,
-            onPressed: widget.onDelete == null
-                ? null
-                : () => widget.onDelete!(product),
+          Tooltip(
+            message: context.tr(RemainingL10n.delete),
+            child: IconButton(
+              icon: Icon(Icons.delete_outline_rounded, size: 18, color: p.ruby),
+              constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+              padding: EdgeInsets.zero,
+              onPressed: widget.onDelete == null
+                  ? null
+                  : () => widget.onDelete!(product),
+            ),
           ),
         ],
       );
     }
-    if (columnId.startsWith('image') &&
-        product.field(columnId) == 'placeholder') {
+    if (columnId.startsWith('image')) {
+      final value = product.field(columnId)?.trim() ?? '';
+      final isUrl = value.startsWith('http://') || value.startsWith('https://');
       return Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.surface(context),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.border(context)),
+          color: p.sunken,
+          borderRadius: BorderRadius.circular(AtelierRadius.xs),
+          border: Border.all(color: p.hairline),
         ),
-        child: Icon(
-          Icons.image_outlined,
-          size: 20,
-          color: AppColors.textMuted(context),
-        ),
+        clipBehavior: Clip.antiAlias,
+        child: isUrl
+            ? AppNetworkImage(
+                url: value,
+                fit: BoxFit.cover,
+                memCacheWidth: 120,
+                error: Icon(Icons.image_outlined, size: 18, color: p.muted),
+              )
+            : Icon(Icons.image_outlined, size: 18, color: p.muted),
       );
     }
     if (columnId == 'is_on_auction' || columnId == 'is_sold') {
       final yes = product.field(columnId)?.toLowerCase() == 'yes';
-      return _StatusPill(
-        label: yes
-            ? context.tr(RemainingL10n.yes)
-            : context.tr(RemainingL10n.no),
-        highlighted: yes,
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: AtelierPill(
+          label: yes
+              ? context.tr(RemainingL10n.yes)
+              : context.tr(RemainingL10n.no),
+          tone: yes
+              ? (columnId == 'is_sold'
+                    ? AtelierTone.ruby
+                    : AtelierTone.sapphire)
+              : AtelierTone.neutral,
+          dense: true,
+        ),
       );
     }
     if (columnId == 'is_expired') {
       final expired = product.isExpired;
-      return Wrap(
-        spacing: 8,
-        children: [
-          TextButton(
-            onPressed: expired ? null : () {},
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              foregroundColor: expired
-                  ? AppColors.textMuted(context)
-                  : AppColors.info,
-            ),
-            child: Text(context.tr(RemainingL10n.active)),
-          ),
-          TextButton(
-            onPressed: expired ? () {} : null,
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              foregroundColor: expired
-                  ? AppColors.textPrimary(context)
-                  : AppColors.textMuted(context),
-            ),
-            child: Text(context.tr(RemainingL10n.expire)),
-          ),
-        ],
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: AtelierPill(
+          label: expired
+              ? context.tr(RemainingL10n.expire)
+              : context.tr(RemainingL10n.active),
+          tone: expired ? AtelierTone.amber : AtelierTone.emerald,
+          dense: true,
+        ),
+      );
+    }
+    if (columnId == 'stock_number') {
+      return Text(
+        product.stockNumber,
+        overflow: TextOverflow.ellipsis,
+        style: AtelierType.figure(p.ink, size: 13),
       );
     }
 
@@ -265,73 +318,7 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
     return Text(
       text,
       overflow: TextOverflow.ellipsis,
-      style: AppTypography.caption.copyWith(
-        color: AppColors.textPrimary(context),
-        fontSize: 13,
-      ),
-    );
-  }
-}
-
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.label, required this.highlighted});
-
-  final String label;
-  final bool highlighted;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: highlighted
-            ? AppColors.info.withValues(alpha: 0.12)
-            : AppColors.surface(context),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: highlighted
-              ? AppColors.info.withValues(alpha: 0.35)
-              : AppColors.border(context),
-        ),
-      ),
-      child: Text(
-        label,
-        style: AppTypography.caption.copyWith(
-          fontWeight: FontWeight.w600,
-          color: highlighted
-              ? AppColors.info
-              : AppColors.textSecondary(context),
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionIcon extends StatelessWidget {
-  const _ActionIcon({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-    this.color,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback? onPressed;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: tooltip,
-      icon: Icon(
-        icon,
-        size: 18,
-        color: color ?? AppColors.textPrimary(context),
-      ),
-      padding: const EdgeInsets.all(6),
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      onPressed: onPressed,
+      style: AtelierType.caption(p.inkSoft, size: 13),
     );
   }
 }

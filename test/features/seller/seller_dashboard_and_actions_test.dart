@@ -14,6 +14,7 @@ import 'package:gemstone/features/seller/application/seller_insights_provider.da
 import 'package:gemstone/features/seller/data/repositories/seller_insights_repository_impl.dart';
 import 'package:gemstone/features/seller/domain/models/seller_insights.dart';
 import 'package:gemstone/features/seller/domain/repositories/seller_insights_repository.dart';
+import 'package:gemstone/features/seller/presentation/atelier/atelier_components.dart';
 import 'package:gemstone/features/seller/presentation/widgets/seller_order_decision.dart';
 
 class _SignedInAuth extends AuthController {
@@ -206,7 +207,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       // Both buttons are disabled while the request runs.
       await tester.tap(find.text('Cancel'));
-      await tester.tap(find.byType(FilledButton));
+      await tester.tap(find.byType(AtelierButton).last);
       await tester.pump();
       expect(calls, 1);
 

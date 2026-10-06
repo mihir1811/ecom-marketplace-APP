@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../domain/models/seller_product_column.dart';
-
 import '../../../../core/l10n/app_localizations.dart';
+import '../../domain/models/seller_product_column.dart';
+import '../atelier/atelier_components.dart';
+import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_theme.dart';
 
-/// Scrollable column visibility picker (search, show/hide all, reset).
+/// Searchable column visibility picker (show/hide all, reset to defaults).
 class SellerProductColumnPickerPanel extends StatefulWidget {
   const SellerProductColumnPickerPanel({
     required this.visibleColumnIds,
@@ -51,114 +50,65 @@ class _SellerProductColumnPickerPanelState
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     final items = _filtered;
-    return Material(
-      elevation: 8,
-      borderRadius: BorderRadius.circular(AppSpacing.r8),
-      color: AppColors.card(context),
-      child: SizedBox(
-        width: 280,
-        height: 420,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AtelierSearchField(
+          controller: _searchController,
+          hint: context.tr(RemainingL10n.search),
+          onChanged: (v) => setState(() => _query = v.trim()),
+        ),
+        const SizedBox(height: 12),
+        Row(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  isDense: true,
-                  hintText: context.tr(RemainingL10n.search),
-                  prefixIcon: const Icon(Icons.search, size: 20),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    borderSide: const BorderSide(color: AppColors.info),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    borderSide: const BorderSide(color: AppColors.info),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.r8),
-                    borderSide: const BorderSide(
-                      color: AppColors.info,
-                      width: 2,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 10,
-                  ),
-                ),
-                onChanged: (v) => setState(() => _query = v.trim()),
-              ),
+            Text(
+              '${widget.visibleColumnIds.length} of '
+              '${kSellerProductColumns.length} visible',
+              style: AtelierType.caption(p.muted),
             ),
-            Expanded(
-              child: Scrollbar(
-                thumbVisibility: true,
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final col = items[index];
-                    final checked = widget.visibleColumnIds.contains(col.id);
-                    return CheckboxListTile(
-                      dense: true,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                      title: Text(
-                        col.label,
-                        style: AppTypography.caption.copyWith(fontSize: 13),
-                      ),
-                      value: checked,
-                      activeColor: AppColors.info,
-                      onChanged: (v) =>
-                          widget.onColumnToggled(col.id, v ?? false),
-                    );
-                  },
-                ),
-              ),
+            const Spacer(),
+            AtelierButton(
+              label: context.tr(RemainingL10n.showHideAll),
+              compact: true,
+              variant: AtelierButtonVariant.ghost,
+              icon: _allVisible
+                  ? Icons.remove_done_rounded
+                  : Icons.done_all_rounded,
+              onPressed: () => widget.onShowHideAll(!_allVisible),
             ),
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Row(
-                children: [
-                  TextButton.icon(
-                    onPressed: () => widget.onShowHideAll(!_allVisible),
-                    icon: Icon(
-                      _allVisible
-                          ? Icons.indeterminate_check_box
-                          : Icons.check_box,
-                      size: 18,
-                      color: AppColors.info,
-                    ),
-                    label: Text(
-                      context.tr(RemainingL10n.showHideAll),
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textPrimary(context),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: widget.onReset,
-                    child: Text(
-                      context.tr(RemainingL10n.reset),
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textMuted(context),
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            AtelierButton(
+              label: context.tr(RemainingL10n.reset),
+              compact: true,
+              variant: AtelierButtonVariant.ghost,
+              icon: Icons.restart_alt_rounded,
+              onPressed: widget.onReset,
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (var i = 0; i < items.length; i++)
+              Reveal(
+                index: i < 10 ? i : 0,
+                offset: 6,
+                child: AtelierChoiceChip(
+                  label: items[i].label,
+                  selected: widget.visibleColumnIds.contains(items[i].id),
+                  onTap: () => widget.onColumnToggled(
+                    items[i].id,
+                    !widget.visibleColumnIds.contains(items[i].id),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }
