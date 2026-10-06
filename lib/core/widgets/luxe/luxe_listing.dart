@@ -470,8 +470,9 @@ class LuxeListingSkeletons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final width = MediaQuery.sizeOf(context).width;
-    final cell = (width - padding * 2 - gap) / 2;
+    final size = MediaQuery.sizeOf(context);
+    final cell = (size.width - padding * 2 - gap) / 2;
+    final gridExtent = LuxeListingMetrics.gridExtent(context);
     Widget block(double? w, double h, [double r = 8]) => Container(
       width: w,
       height: h,
@@ -494,7 +495,14 @@ class LuxeListingSkeletons extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            block(double.infinity, cell - 10, LuxeSpace.radius - 5),
+            AspectRatio(
+              aspectRatio: 1,
+              child: block(
+                double.infinity,
+                double.infinity,
+                LuxeSpace.radius - 5,
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(9, 12, 9, 9),
               child: Column(
@@ -536,29 +544,33 @@ class LuxeListingSkeletons extends StatelessWidget {
         ),
       ),
     );
+    // Enough rows to cover the whole viewport, laid out with the same grid
+    // delegate as real results so both columns always render (a Wrap of two
+    // exact half-width cells could overflow by rounding and fall to one).
+    final rows =
+        (size.height /
+                (grid ? gridExtent + gap : LuxeListingMetrics.listStride))
+            .ceil() +
+        1;
+    final skeletonCard = LuxeSkeleton(child: grid ? gridCard : listCard);
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(padding, 6, padding, 24),
-      sliver: SliverToBoxAdapter(
-        child: LuxeSkeleton(
-          child: grid
-              ? Wrap(
-                  spacing: gap,
-                  runSpacing: gap,
-                  children: [
-                    for (var i = 0; i < 4; i++)
-                      SizedBox(width: cell, child: gridCard),
-                  ],
-                )
-              : Column(
-                  children: [
-                    for (var i = 0; i < 5; i++) ...[
-                      listCard,
-                      SizedBox(height: gap),
-                    ],
-                  ],
-                ),
-        ),
-      ),
+      sliver: grid
+          ? SliverGrid.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: gap,
+                crossAxisSpacing: gap,
+                mainAxisExtent: gridExtent,
+              ),
+              itemCount: rows * 2,
+              itemBuilder: (_, _) => skeletonCard,
+            )
+          : SliverList.separated(
+              itemCount: rows,
+              separatorBuilder: (_, _) => SizedBox(height: gap),
+              itemBuilder: (_, _) => skeletonCard,
+            ),
     );
   }
 }

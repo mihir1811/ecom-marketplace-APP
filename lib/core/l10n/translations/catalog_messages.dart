@@ -422,6 +422,47 @@ abstract final class CatalogL10n {
   static const allFancyColors = 'catalog.sellerDashboard.allFancyColors';
   static const cutGradePoor = 'catalog.sellerDashboard.cutGradePoor';
   static const certOther = 'catalog.sellerDashboard.certOther';
+  static const filterInclude = 'catalog.filter.include';
+  static const filterExclude = 'catalog.filter.exclude';
+  static const filterShowingOnly = 'catalog.filter.showingOnly';
+  static const filterHiding = 'catalog.filter.hiding';
+  static const excludeCompanyHint = 'catalog.filter.excludeCompanyHint';
+  static const excludeLocationHint = 'catalog.filter.excludeLocationHint';
+  static const includeExcludeHelp = 'catalog.filter.includeExcludeHelp';
+  static const selectAvailability = 'catalog.filter.selectAvailability';
+  static const selectRoughSources = 'catalog.filter.selectRoughSources';
+  static const selectOriginCountries = 'catalog.filter.selectOriginCountries';
+  static const selectFluorescenceColors =
+      'catalog.filter.selectFluorescenceColors';
+  static const selectEnhancements = 'catalog.filter.selectEnhancements';
+  static const selectAll = 'catalog.filter.selectAll';
+  static const clarityCardsHelp = 'catalog.filter.clarityCardsHelp';
+  static const sortTitle = 'catalog.sort.title';
+  static const sortSubtitle = 'catalog.sort.subtitle';
+  static const sortQuickPicks = 'catalog.sort.quickPicks';
+  static const sortYourOrder = 'catalog.sort.yourOrder';
+  static const sortDragHint = 'catalog.sort.dragHint';
+  static const sortAddCriteria = 'catalog.sort.addCriteria';
+  static const sortEmptyTitle = 'catalog.sort.emptyTitle';
+  static const sortEmptyBody = 'catalog.sort.emptyBody';
+  static const sortThen = 'catalog.sort.then';
+  static const sortSortedBy = 'catalog.sort.sortedBy';
+  static const sortLowToHigh = 'catalog.sort.lowToHigh';
+  static const sortHighToLow = 'catalog.sort.highToLow';
+  static const sortSmallToLarge = 'catalog.sort.smallToLarge';
+  static const sortLargeToSmall = 'catalog.sort.largeToSmall';
+  static const sortPresetLowestPrice = 'catalog.sort.presetLowestPrice';
+  static const sortPresetHighestPrice = 'catalog.sort.presetHighestPrice';
+  static const sortPresetBiggest = 'catalog.sort.presetBiggest';
+  static const sortPresetBestValue = 'catalog.sort.presetBestValue';
+  static const sortClear = 'catalog.sort.clear';
+  static const sortApply = 'catalog.sort.apply';
+  static const sortPriceHint = 'catalog.sort.priceHint';
+  static const sortPpcHint = 'catalog.sort.ppcHint';
+  static const sortCaratHint = 'catalog.sort.caratHint';
+  static const sortRemove = 'catalog.sort.remove';
+  static const sortMoveUp = 'catalog.sort.moveUp';
+  static const sortMoveDown = 'catalog.sort.moveDown';
 }
 
 class _M extends LocalizedMessage {
@@ -1352,11 +1393,7 @@ const catalogMessages = <String, LocalizedMessage>{
     'प्रति नग वजन',
     'પ્રતિ નંગ વજન',
   ),
-  CatalogL10n.totalWeightLabel: _M(
-    'Total Weight',
-    'कुल वजन',
-    'કુલ વજન',
-  ),
+  CatalogL10n.totalWeightLabel: _M('Total Weight', 'कुल वजन', 'કુલ વજન'),
   CatalogL10n.tablePercent: _M('Table Percent', 'टेबल प्रतिशत', 'ટેબલ ટકાવારી'),
   CatalogL10n.depthPercent: _M(
     'Depth Percent',
@@ -1600,6 +1637,142 @@ const catalogMessages = <String, LocalizedMessage>{
   CatalogL10n.allFancyColors: _M('All', 'सभी', 'બધા'),
   CatalogL10n.cutGradePoor: _M('Poor', 'खराब', 'નબળું'),
   CatalogL10n.certOther: _M('Other', 'अन्य', 'અન્ય'),
+  CatalogL10n.filterInclude: _M('Include', 'शामिल करें', 'સમાવો'),
+  CatalogL10n.filterExclude: _M('Exclude', 'बाहर रखें', 'બાકાત રાખો'),
+  CatalogL10n.filterShowingOnly: _M(
+    'Showing only',
+    'केवल दिखा रहे हैं',
+    'ફક્ત બતાવી રહ્યા છીએ',
+  ),
+  CatalogL10n.filterHiding: _M('Hiding', 'छिपा रहे हैं', 'છુપાવી રહ્યા છીએ'),
+  CatalogL10n.excludeCompanyHint: _M(
+    'Company to hide',
+    'छिपाने के लिए कंपनी',
+    'છુપાવવા માટે કંપની',
+  ),
+  CatalogL10n.excludeLocationHint: _M(
+    'Location to hide',
+    'छिपाने के लिए स्थान',
+    'છુપાવવા માટે સ્થાન',
+  ),
+  CatalogL10n.includeExcludeHelp: _M(
+    'Include shows only these sellers; Exclude hides them from results.',
+    'शामिल करें केवल इन विक्रेताओं को दिखाता है; बाहर रखें इन्हें परिणामों से छिपाता है।',
+    'સમાવો ફક્ત આ વેચાણકર્તાઓ બતાવે છે; બાકાત રાખો તેમને પરિણામોમાંથી છુપાવે છે.',
+  ),
+  CatalogL10n.selectAvailability: _M(
+    'Any availability',
+    'कोई भी उपलब्धता',
+    'કોઈપણ ઉપલબ્ધતા',
+  ),
+  CatalogL10n.selectRoughSources: _M(
+    'Any rough source',
+    'कोई भी रफ़ स्रोत',
+    'કોઈપણ રફ સ્ત્રોત',
+  ),
+  CatalogL10n.selectOriginCountries: _M(
+    'Any origin country',
+    'कोई भी मूल देश',
+    'કોઈપણ મૂળ દેશ',
+  ),
+  CatalogL10n.selectFluorescenceColors: _M(
+    'Any fluorescence colour',
+    'कोई भी फ्लोरेसेंस रंग',
+    'કોઈપણ ફ્લોરોસન્સ રંગ',
+  ),
+  CatalogL10n.selectEnhancements: _M(
+    'Any enhancement',
+    'कोई भी संवर्धन',
+    'કોઈપણ સુધારણા',
+  ),
+  CatalogL10n.selectAll: _M('Select All', 'सभी चुनें', 'બધા પસંદ કરો'),
+  CatalogL10n.clarityCardsHelp: _M(
+    'Tap a card to pick its whole group, or a grade to pick just that one.',
+    'पूरे समूह के लिए कार्ड टैप करें, या केवल एक ग्रेड चुनें।',
+    'આખા જૂથ માટે કાર્ડ ટેપ કરો, અથવા ફક્ત એક ગ્રેડ પસંદ કરો.',
+  ),
+  CatalogL10n.sortTitle: _M(
+    'Sort results',
+    'परिणाम क्रमबद्ध करें',
+    'પરિણામો ગોઠવો',
+  ),
+  CatalogL10n.sortSubtitle: _M(
+    'Pick what matters most. Add more to break ties.',
+    'जो सबसे ज़रूरी है वह चुनें। बराबरी तोड़ने के लिए और जोड़ें।',
+    'સૌથી મહત્વનું પસંદ કરો. ટાઈ તોડવા વધુ ઉમેરો.',
+  ),
+  CatalogL10n.sortQuickPicks: _M('Quick picks', 'त्वरित विकल्प', 'ઝડપી પસંદગી'),
+  CatalogL10n.sortYourOrder: _M('Your sort order', 'आपका क्रम', 'તમારો ક્રમ'),
+  CatalogL10n.sortDragHint: _M(
+    'Hold and drag ⠿ to change priority. Top sorts first.',
+    'प्राथमिकता बदलने के लिए ⠿ पकड़कर खींचें। ऊपर वाला पहले।',
+    'પ્રાથમિકતા બદલવા ⠿ પકડીને ખેંચો. ઉપરનું પહેલાં.',
+  ),
+  CatalogL10n.sortAddCriteria: _M('Add a sort', 'क्रम जोड़ें', 'ક્રમ ઉમેરો'),
+  CatalogL10n.sortEmptyTitle: _M(
+    'Showing best match',
+    'सर्वोत्तम मिलान दिखा रहे हैं',
+    'શ્રેષ્ઠ મેળ બતાવી રહ્યા છીએ',
+  ),
+  CatalogL10n.sortEmptyBody: _M(
+    'Pick a quick option or add a sort below.',
+    'कोई त्वरित विकल्प चुनें या नीचे क्रम जोड़ें।',
+    'ઝડપી વિકલ્પ પસંદ કરો અથવા નીચે ક્રમ ઉમેરો.',
+  ),
+  CatalogL10n.sortThen: _M('then', 'फिर', 'પછી'),
+  CatalogL10n.sortSortedBy: _M('Sorted by', 'इसके अनुसार', 'આ મુજબ'),
+  CatalogL10n.sortLowToHigh: _M('Low → High', 'कम → ज़्यादा', 'ઓછું → વધુ'),
+  CatalogL10n.sortHighToLow: _M('High → Low', 'ज़्यादा → कम', 'વધુ → ઓછું'),
+  CatalogL10n.sortSmallToLarge: _M(
+    'Small → Large',
+    'छोटा → बड़ा',
+    'નાનું → મોટું',
+  ),
+  CatalogL10n.sortLargeToSmall: _M(
+    'Large → Small',
+    'बड़ा → छोटा',
+    'મોટું → નાનું',
+  ),
+  CatalogL10n.sortPresetLowestPrice: _M(
+    'Lowest price',
+    'सबसे कम कीमत',
+    'સૌથી ઓછી કિંમત',
+  ),
+  CatalogL10n.sortPresetHighestPrice: _M(
+    'Highest price',
+    'सबसे ज़्यादा कीमत',
+    'સૌથી વધુ કિંમત',
+  ),
+  CatalogL10n.sortPresetBiggest: _M(
+    'Biggest stones',
+    'सबसे बड़े पत्थर',
+    'સૌથી મોટા પથ્થર',
+  ),
+  CatalogL10n.sortPresetBestValue: _M(
+    'Best value / ct',
+    'सर्वश्रेष्ठ मूल्य / कैरेट',
+    'શ્રેષ્ઠ મૂલ્ય / કેરેટ',
+  ),
+  CatalogL10n.sortClear: _M('Clear sort', 'क्रम हटाएँ', 'ક્રમ દૂર કરો'),
+  CatalogL10n.sortApply: _M('Show results', 'परिणाम दिखाएँ', 'પરિણામો બતાવો'),
+  CatalogL10n.sortPriceHint: _M(
+    'Total price of the stone',
+    'पत्थर की कुल कीमत',
+    'પથ્થરની કુલ કિંમત',
+  ),
+  CatalogL10n.sortPpcHint: _M(
+    'Compare value across sizes',
+    'आकारों में मूल्य की तुलना',
+    'કદ વચ્ચે મૂલ્યની તુલના',
+  ),
+  CatalogL10n.sortCaratHint: _M(
+    'Weight of the stone',
+    'पत्थर का वज़न',
+    'પથ્થરનું વજન',
+  ),
+  CatalogL10n.sortRemove: _M('Remove sort', 'क्रम हटाएँ', 'ક્રમ દૂર કરો'),
+  CatalogL10n.sortMoveUp: _M('Move up', 'ऊपर ले जाएँ', 'ઉપર ખસેડો'),
+  CatalogL10n.sortMoveDown: _M('Move down', 'नीचे ले जाएँ', 'નીચે ખસેડો'),
 };
 
 /// Maps adapter-owned static English labels to stable localization keys.

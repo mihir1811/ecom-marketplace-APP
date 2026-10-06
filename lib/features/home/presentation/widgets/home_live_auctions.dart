@@ -26,6 +26,7 @@ class HomeLiveAuctions extends ConsumerWidget {
   const HomeLiveAuctions({super.key});
 
   static const _cardWidth = 228.0;
+
   /// Image (1:1) + title + one meta line + bid block, with text-scale headroom.
   static const _railHeight = 360.0;
 
@@ -223,9 +224,7 @@ class _PhaseChip extends StatelessWidget {
         : a.isUpcoming
         ? const Color(0xFFE8A838)
         : const Color(0xFFB0A99C);
-    final label = a.isLive
-        ? context.tr(HomeL10n.live)
-        : a.phaseLabel;
+    final label = a.isLive ? context.tr(HomeL10n.live) : a.phaseLabel;
 
     Widget dot = Container(
       width: 6,

@@ -3,6 +3,7 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import 'filter_range_bar.dart';
 
 /// A custom, highly interactive Range Slider synced with manual text inputs.
 /// Conforms to the luxury design theme with Bronze accent colors and custom borders.
@@ -340,6 +341,17 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: AppSpacing.s4),
+        FilterRangeBar(
+          min: widget.currentMin,
+          max: widget.currentMax,
+          minLimit: widget.minLimit,
+          maxLimit: widget.maxLimit,
+          isInteger: widget.isInteger,
+          unitPrefix: widget.unitPrefix,
+          unitSuffix: widget.unitSuffix,
+          onChangeEnd: widget.onChanged,
         ),
       ],
     );

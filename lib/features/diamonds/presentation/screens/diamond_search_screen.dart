@@ -13,8 +13,10 @@ import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
 import '../../../../core/widgets/filters/catalog_preferences_filters.dart';
 import '../../../../core/widgets/filters/catalog_search_add_field.dart';
 import '../../../../core/widgets/filters/filter_proportion_diagram.dart';
+import '../../../../core/widgets/filters/filter_section_header.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_finder.dart';
+import '../../../../core/widgets/luxe/luxe_multi_select_field.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
@@ -24,12 +26,12 @@ import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
 import '../widgets/diamond_shape_picker.dart';
 import '../widgets/filter_category_basic.dart';
 import '../widgets/filter_color_selector.dart';
-import '../widgets/filter_origin_dropdown.dart';
 
 /// Diamond finder (natural and lab grown).
 ///
 /// Layout: editorial header with the catalog mode switch → pinned section
-/// index → the essentials (shape, size & price, colour & clarity) open by
+/// index → shape, listing preferences, then the essentials (size & price,
+/// colour & clarity) open by
 /// default → refinements in collapsible sections that report how many
 /// filters each holds → sticky "Show diamonds" bar with the active count.
 class DiamondSearchScreen extends ConsumerStatefulWidget {
@@ -63,6 +65,10 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   final _companyController = TextEditingController();
   final _locationController = TextEditingController();
 
+  /// Whether the company / location fields currently add exclusions.
+  bool _excludeCompany = false;
+  bool _excludeLocation = false;
+
   bool get _isLab => widget.catalog == DiamondCatalogType.labGrown;
 
   @override
@@ -89,11 +95,11 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
 
   List<DiamondFinderSection> _visibleSections(bool melee) => [
     DiamondFinderSection.shape,
+    DiamondFinderSection.listing,
     DiamondFinderSection.sizePrice,
     DiamondFinderSection.colorClarity,
     if (!melee) DiamondFinderSection.grading,
     if (!melee) DiamondFinderSection.inclusions,
-    DiamondFinderSection.listing,
     DiamondFinderSection.seller,
     DiamondFinderSection.measurements,
     if (!melee) DiamondFinderSection.proportions,
@@ -104,11 +110,11 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     final company = _companyController.text.trim();
     final location = _locationController.text.trim();
     if (company.isNotEmpty) {
-      notifier.addCompanyName(company);
+      notifier.addCompanyName(company, exclude: _excludeCompany);
       _companyController.clear();
     }
     if (location.isNotEmpty) {
-      notifier.addVendorLocation(location);
+      notifier.addVendorLocation(location, exclude: _excludeLocation);
       _locationController.clear();
     }
   }
@@ -138,10 +144,14 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
   Widget build(BuildContext context) {
     // Keep text fields in sync when filters are reset from the results screen.
     ref.listen<DiamondFilterState>(diamondSearchProvider, (previous, next) {
-      if (next.companyNames.isEmpty && _companyController.text.isNotEmpty) {
+      if (next.companyNames.isEmpty &&
+          next.excludedCompanyNames.isEmpty &&
+          _companyController.text.isNotEmpty) {
         _companyController.clear();
       }
-      if (next.vendorLocations.isEmpty && _locationController.text.isNotEmpty) {
+      if (next.vendorLocations.isEmpty &&
+          next.excludedVendorLocations.isEmpty &&
+          _locationController.text.isNotEmpty) {
         _locationController.clear();
       }
     });
@@ -296,38 +306,71 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     final state = ref.watch(diamondSearchProvider);
     final notifier = ref.read(diamondSearchProvider.notifier);
 
+    final includeExcludeHelp = context.tr(CatalogL10n.includeExcludeHelp);
     return CatalogPreferencesFilters(
       locationField: CatalogSearchAddField(
         title: context.tr(CatalogL10n.vendorLocation),
         infoText:
-            'Search for diamonds located in a specific city, state, or region.',
+            'Search for diamonds located in a specific city, state, or region. '
+            '$includeExcludeHelp',
         hintText: context.tr(CatalogL10n.searchLocation),
+        excludeHintText: context.tr(CatalogL10n.excludeLocationHint),
         controller: _locationController,
         clearOnAdd: true,
         values: state.vendorLocations,
+        excludedValues: state.excludedVendorLocations,
         onAdd: notifier.addVendorLocation,
+        onAddExcluded: (v) => notifier.addVendorLocation(v, exclude: true),
         onRemove: notifier.removeVendorLocation,
+        excludeMode: _excludeLocation,
+        onExcludeModeChanged: (v) => setState(() => _excludeLocation = v),
       ),
       originDropdown: _isLab
           ? null
-          : FilterOriginDropdown(
-              selectedOrigin: state.selectedOrigin,
-              onSelected: notifier.updateOriginCountry,
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FilterSectionHeader(
+                  title: context.tr(CatalogL10n.originCountry),
+                  infoText: context.tr(CatalogL10n.diamondOriginCountryHelp),
+                ),
+                const SizedBox(height: 8),
+                LuxeMultiSelectField(
+                  options: DiamondFilterState.countries,
+                  selected: state.selectedOrigins,
+                  onChanged: notifier.setOrigins,
+                  hint: context.tr(CatalogL10n.selectOriginCountries),
+                  sheetTitle: context.tr(CatalogL10n.originCountry),
+                  searchHint: context.tr(CatalogL10n.searchCountries),
+                  leadingOf: (c) {
+                    final flag = DiamondFilterState.countryFlags[c];
+                    return flag == null
+                        ? null
+                        : Text(flag, style: const TextStyle(fontSize: 18));
+                  },
+                ),
+              ],
             ),
       roughSourceOptions: _isLab ? null : DiamondFilterState.roughSources,
-      selectedRoughSource: _isLab ? null : state.selectedRoughSource,
-      onRoughSourceChanged: _isLab ? null : notifier.updateRoughSource,
+      selectedRoughSources: state.selectedRoughSources,
+      onRoughSourcesChanged: _isLab ? null : notifier.setRoughSources,
       minSellerRating: state.minSellerRating,
       onSellerRatingChanged: notifier.updateSellerRating,
       companyField: CatalogSearchAddField(
         title: context.tr(CatalogL10n.companyName),
-        infoText: context.tr(CatalogL10n.diamondCompanyHelp),
+        infoText:
+            '${context.tr(CatalogL10n.diamondCompanyHelp)} $includeExcludeHelp',
         hintText: context.tr(CatalogL10n.searchCompany),
+        excludeHintText: context.tr(CatalogL10n.excludeCompanyHint),
         controller: _companyController,
         clearOnAdd: true,
         values: state.companyNames,
+        excludedValues: state.excludedCompanyNames,
         onAdd: notifier.addCompanyName,
+        onAddExcluded: (v) => notifier.addCompanyName(v, exclude: true),
         onRemove: notifier.removeCompanyName,
+        excludeMode: _excludeCompany,
+        onExcludeModeChanged: (v) => setState(() => _excludeCompany = v),
       ),
     );
   }

@@ -117,13 +117,14 @@ abstract final class DiamondSearchRequestMapper {
       'fluorescence',
       filters.selectedFluorescence.map(_mapFluorescence).toList(),
     );
-    if (filters.selectedFluorescenceColor != null &&
-        filters.selectedFluorescenceColor!.isNotEmpty) {
-      final fluoColor = filters.selectedFluorescenceColor!.trim();
-      if (fluoColor.isNotEmpty && fluoColor.toLowerCase() != 'none') {
-        body['fluorescence_colors'] = [fluoColor.toLowerCase()];
-      }
-    }
+    _putStringList(
+      body,
+      'fluorescence_colors',
+      filters.selectedFluorescenceColors
+          .map((c) => c.trim().toLowerCase())
+          .where((c) => c != 'none')
+          .toList(),
+    );
 
     if (isLab) {
       _putStringList(
@@ -135,23 +136,21 @@ abstract final class DiamondSearchRequestMapper {
             .toList(),
       );
     } else {
-      final origin = _mapOrigin(filters.selectedOrigin);
-      if (origin != null) {
-        body['origins'] = [origin];
-      }
-      final rough = _mapRoughSource(filters.selectedRoughSource);
-      if (rough != null) {
-        body['rough_sources'] = [rough];
-      }
+      _putMapped(body, 'origins', filters.selectedOrigins, _mapOrigin);
+      _putMapped(
+        body,
+        'rough_sources',
+        filters.selectedRoughSources,
+        _mapRoughSource,
+      );
     }
 
-    final treatment = _mapTreatment(filters.selectedEnhancement);
-    if (treatment != null) {
-      body['treatments'] = [treatment];
-    }
+    _putMapped(body, 'treatments', filters.selectedEnhancements, _mapTreatment);
 
     _putStringList(body, 'companies', filters.companyNames);
     _putStringList(body, 'locations', filters.vendorLocations);
+    _putStringList(body, 'exclude_companies', filters.excludedCompanyNames);
+    _putStringList(body, 'exclude_locations', filters.excludedVendorLocations);
 
     _putRange(
       body,
@@ -293,9 +292,14 @@ abstract final class DiamondSearchRequestMapper {
     if (filters.makeAnOffer) {
       body['is_make_an_offer_allowed'] = true;
     }
-    final availability = _mapAvailability(filters.selectedAvailability);
-    if (availability != null) {
-      body['available'] = availability;
+    // `available` takes a single status, so it is only sent when exactly
+    // one is picked; several statuses fall back to no availability filter.
+    final statuses = filters.selectedAvailabilities
+        .map(_mapAvailability)
+        .whereType<String>()
+        .toSet();
+    if (statuses.length == 1) {
+      body['available'] = statuses.single;
     }
     if (filters.minSellerRating > 0) {
       body['seller_rating'] = _sellerRating(filters.minSellerRating);
@@ -344,6 +348,17 @@ abstract final class DiamondSearchRequestMapper {
         .toList();
     if (cleaned.isEmpty) return;
     body[key] = cleaned;
+  }
+
+  /// Maps each value, drops the ones that map to nothing, de-duplicates.
+  static void _putMapped(
+    Map<String, dynamic> body,
+    String key,
+    List<String> values,
+    String? Function(String) map,
+  ) {
+    final mapped = <String>{for (final v in values) ?map(v)};
+    _putStringList(body, key, mapped.toList());
   }
 
   static void _putRange(

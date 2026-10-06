@@ -133,6 +133,22 @@ class DiamondFilterChips extends ConsumerWidget {
       );
     }
 
+    for (final value in [
+      ...filters.excludedCompanyNames,
+      ...filters.excludedVendorLocations,
+    ]) {
+      chips.add(
+        _FilterChipData(
+          label: '${context.tr(CatalogL10n.filterExclude)}: $value',
+          onRemove: () {
+            notifier
+              ..removeCompanyName(value)
+              ..removeVendorLocation(value);
+          },
+        ),
+      );
+    }
+
     if (filters.noBgm) {
       chips.add(
         _FilterChipData(

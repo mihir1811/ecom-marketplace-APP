@@ -1,6 +1,7 @@
 /// Enum representing the type of diamond origin.
 enum LabNaturalType {
   natural('Natural Diamond'),
+
   /// Melee / sieve lot filters on the natural diamond finder (not the lab-grown catalog).
   labGrown('Natural Melee');
 
@@ -129,9 +130,7 @@ class DiamondFilterState {
   }) {
     final base = isLabCatalog ? labFancyColors : fancyColors;
     if (!useMeleeFilters) return base;
-    return [
-      for (final color in base) color == 'Multi' ? 'Other' : color,
-    ];
+    return [for (final color in base) color == 'Multi' ? 'Other' : color];
   }
 
   /// Lab-grown catalog categories (single-select switch).
@@ -220,9 +219,8 @@ class DiamondFilterState {
     'Others',
   ];
 
-  /// Availability dropdown options (UI labels). `'All'` means no filter.
+  /// Availability options (UI labels); none selected means no filter.
   static const List<String> availabilityOptions = [
-    'All',
     'Available',
     'On Memo',
     'On Hold',
@@ -688,17 +686,19 @@ class DiamondFilterState {
     this.sellersWithImages = false,
     this.separable = false,
     this.searchByMedia = false,
-    this.selectedAvailability = 'All',
+    this.selectedAvailabilities = const [],
     this.makeAnOffer = false,
     this.selectedPolish = const [],
     this.selectedSymmetry = const [],
     this.selectedFluorescence = const [],
-    this.selectedFluorescenceColor,
+    this.selectedFluorescenceColors = const [],
     this.selectedMilkyGrades = const [],
-    this.selectedEnhancement,
-    this.selectedRoughSource,
+    this.selectedEnhancements = const [],
+    this.selectedRoughSources = const [],
     this.companyNames = const [],
     this.vendorLocations = const [],
+    this.excludedCompanyNames = const [],
+    this.excludedVendorLocations = const [],
     this.selectedLabs = const [],
     this.couponCode,
     this.discountPercentage,
@@ -727,7 +727,7 @@ class DiamondFilterState {
     this.maxPavilionDepth = 100.0,
     this.selectedGirdles = const [],
     this.selectedCulets = const [],
-    this.selectedOrigin,
+    this.selectedOrigins = const [],
     this.selectedSieveIndices = const [],
     this.activeSievePresets = const [],
     // Natural Melee Pcs range filters
@@ -781,20 +781,27 @@ class DiamondFilterState {
   final bool separable;
   final bool searchByMedia;
 
-  /// Availability filter label from [availabilityOptions]. `'All'` = no filter.
-  final String selectedAvailability;
+  /// Availability labels from [availabilityOptions] (never `'All'`).
+  /// Empty = no filter.
+  final List<String> selectedAvailabilities;
 
   /// When true, only listings that allow make-an-offer.
   final bool makeAnOffer;
   final List<String> selectedPolish;
   final List<String> selectedSymmetry;
   final List<String> selectedFluorescence;
-  final String? selectedFluorescenceColor;
+  final List<String> selectedFluorescenceColors;
   final List<String> selectedMilkyGrades;
-  final String? selectedEnhancement;
-  final String? selectedRoughSource;
+  final List<String> selectedEnhancements;
+  final List<String> selectedRoughSources;
+
+  /// Seller companies / locations to include (match any).
   final List<String> companyNames;
   final List<String> vendorLocations;
+
+  /// Seller companies / locations to leave out of results.
+  final List<String> excludedCompanyNames;
+  final List<String> excludedVendorLocations;
   final List<String> selectedLabs;
   final String? couponCode;
   final double? discountPercentage;
@@ -824,7 +831,7 @@ class DiamondFilterState {
   final double maxPavilionDepth;
   final List<String> selectedGirdles;
   final List<String> selectedCulets;
-  final String? selectedOrigin;
+  final List<String> selectedOrigins;
 
   // Sieve Size selection
   final List<int> selectedSieveIndices;
@@ -876,17 +883,19 @@ class DiamondFilterState {
     bool? sellersWithImages,
     bool? separable,
     bool? searchByMedia,
-    String? selectedAvailability,
+    List<String>? selectedAvailabilities,
     bool? makeAnOffer,
     List<String>? selectedPolish,
     List<String>? selectedSymmetry,
     List<String>? selectedFluorescence,
-    String? selectedFluorescenceColor,
+    List<String>? selectedFluorescenceColors,
     List<String>? selectedMilkyGrades,
-    String? selectedEnhancement,
-    String? selectedRoughSource,
+    List<String>? selectedEnhancements,
+    List<String>? selectedRoughSources,
     List<String>? companyNames,
     List<String>? vendorLocations,
+    List<String>? excludedCompanyNames,
+    List<String>? excludedVendorLocations,
     List<String>? selectedLabs,
     String? couponCode,
     double? discountPercentage,
@@ -914,7 +923,7 @@ class DiamondFilterState {
     double? maxPavilionDepth,
     List<String>? selectedGirdles,
     List<String>? selectedCulets,
-    String? selectedOrigin,
+    List<String>? selectedOrigins,
     List<int>? selectedSieveIndices,
     List<String>? activeSievePresets,
     double? minCaratPerPcs,
@@ -964,18 +973,22 @@ class DiamondFilterState {
       sellersWithImages: sellersWithImages ?? this.sellersWithImages,
       separable: separable ?? this.separable,
       searchByMedia: searchByMedia ?? this.searchByMedia,
-      selectedAvailability: selectedAvailability ?? this.selectedAvailability,
+      selectedAvailabilities:
+          selectedAvailabilities ?? this.selectedAvailabilities,
       makeAnOffer: makeAnOffer ?? this.makeAnOffer,
       selectedPolish: selectedPolish ?? this.selectedPolish,
       selectedSymmetry: selectedSymmetry ?? this.selectedSymmetry,
       selectedFluorescence: selectedFluorescence ?? this.selectedFluorescence,
-      selectedFluorescenceColor:
-          selectedFluorescenceColor ?? this.selectedFluorescenceColor,
+      selectedFluorescenceColors:
+          selectedFluorescenceColors ?? this.selectedFluorescenceColors,
       selectedMilkyGrades: selectedMilkyGrades ?? this.selectedMilkyGrades,
-      selectedEnhancement: selectedEnhancement ?? this.selectedEnhancement,
-      selectedRoughSource: selectedRoughSource ?? this.selectedRoughSource,
+      selectedEnhancements: selectedEnhancements ?? this.selectedEnhancements,
+      selectedRoughSources: selectedRoughSources ?? this.selectedRoughSources,
       companyNames: companyNames ?? this.companyNames,
       vendorLocations: vendorLocations ?? this.vendorLocations,
+      excludedCompanyNames: excludedCompanyNames ?? this.excludedCompanyNames,
+      excludedVendorLocations:
+          excludedVendorLocations ?? this.excludedVendorLocations,
       selectedLabs: selectedLabs ?? this.selectedLabs,
       couponCode: couponCode ?? this.couponCode,
       discountPercentage: discountPercentage ?? this.discountPercentage,
@@ -1004,7 +1017,7 @@ class DiamondFilterState {
       maxPavilionDepth: maxPavilionDepth ?? this.maxPavilionDepth,
       selectedGirdles: selectedGirdles ?? this.selectedGirdles,
       selectedCulets: selectedCulets ?? this.selectedCulets,
-      selectedOrigin: selectedOrigin ?? this.selectedOrigin,
+      selectedOrigins: selectedOrigins ?? this.selectedOrigins,
       selectedSieveIndices: selectedSieveIndices ?? this.selectedSieveIndices,
       activeSievePresets: activeSievePresets ?? this.activeSievePresets,
       minCaratPerPcs: minCaratPerPcs ?? this.minCaratPerPcs,

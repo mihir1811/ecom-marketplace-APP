@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_tokens.dart';
@@ -13,8 +14,6 @@ import '../../../../core/widgets/luxe/luxe_chip_group.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_shape_dial.dart';
 import '../../../../core/widgets/luxe/luxe_shape_picker.dart';
-import '../../../diamonds/presentation/widgets/diamond_shape_picker.dart'
-    show shapeOutlineIcon, shapePhotoFor;
 import '../../application/gemstone_search_provider.dart';
 import '../../domain/gemstone_assets.dart';
 import '../../domain/models/gemstone_filter_state.dart';
@@ -207,8 +206,8 @@ class GemstoneHueOrb extends StatelessWidget {
   }
 }
 
-/// Gemstone shapes on the shared [LuxeShapeDialPicker], drawn with the closest
-/// diamond shape artwork.
+/// Gemstone shapes as simple selectable cards (swipeable strip that expands
+/// into a grid), each drawn from the shape SVGs in `assets/shapes/`.
 class GemstoneShapePicker extends ConsumerWidget {
   const GemstoneShapePicker({super.key});
 
@@ -218,23 +217,21 @@ class GemstoneShapePicker extends ConsumerWidget {
       gemstoneSearchProvider.select((s) => s.selectedShapes),
     );
     const art = GemstoneFilterState.shapeSvgNames;
-    return LuxeShapeDialPicker(
+    return LuxeShapePicker(
       shapes: [
         for (final name in GemstoneFilterState.shapes)
-          LuxeShapeOption(
-            value: name,
-            label: context.trCatalogValue(name),
-            image: shapePhotoFor(art[name] ?? name),
-          ),
+          LuxeShapeOption(value: name, label: context.trCatalogValue(name)),
       ],
       selected: selected,
       onToggle: ref.read(gemstoneSearchProvider.notifier).toggleShape,
-      iconBuilder: (value, color, size) =>
-          shapeOutlineIcon(art[value] ?? value, color, size),
-      selectLabel: (shape) =>
-          context.tr(DiamondFlowL10n.selectShape, {'shape': shape}),
-      selectedLabel: (shape) =>
-          context.tr(DiamondFlowL10n.shapeSelected, {'shape': shape}),
+      iconBuilder: (value, color, size) => SvgPicture.asset(
+        'assets/shapes/${art[value] ?? value}.svg',
+        width: size + 14,
+        height: size + 14,
+        theme: SvgTheme(currentColor: color),
+        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+        placeholderBuilder: (_) => SizedBox.square(dimension: size + 14),
+      ),
       expandLabel: context.tr(DiamondFlowL10n.allShapes),
       collapseLabel: context.tr(DiamondFlowL10n.fewerShapes),
     );
@@ -287,9 +284,6 @@ class GemstoneSizePriceFilters extends ConsumerWidget {
         GemstoneFilterState.caratMax,
       ),
       onTotalCaratChanged: notifier.updateTotalCaratRange,
-      caratQuickRanges: GemstoneFilterState.caratQuickRanges,
-      selectedCaratQuickRanges: state.selectedCaratQuickRanges,
-      onToggleCaratQuickRange: notifier.toggleCaratQuickRange,
       // Single-stone price per carat is sent as the per-piece range.
       pricePerCaratMin: state.minPricePerPiece,
       pricePerCaratMax: state.maxPricePerPiece,

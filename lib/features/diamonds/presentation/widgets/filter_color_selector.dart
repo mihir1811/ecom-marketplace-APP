@@ -451,7 +451,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
   }
 }
 
-/// Cut-shaped fancy-color swatch with a faded reflection and label.
+/// Faceted fancy-colour gem tile: a lit round brilliant on a soft glow of
+/// its own hue. Selected tiles lift, ring in the hue and show a check.
 /// Shared by the diamond fancy-color selector and the gemstone color grid.
 class FancyColorDiamondButton extends StatelessWidget {
   const FancyColorDiamondButton({
@@ -465,41 +466,26 @@ class FancyColorDiamondButton extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  static const _gemSize = 36.0;
+  static const _tile = 58.0;
+  static const _gem = 38.0;
 
-  Color _getFancyHue(String name) {
+  static Color hueFor(String name) {
     return switch (name.toLowerCase()) {
-      'yellow' => const Color(0xFFF5C518),
-      'orange' => const Color(0xFFF97316),
-      'blue' => const Color(0xFF2563EB),
-      'red' => const Color(0xFFDC2626),
-      'pink' => const Color(0xFFF472B6),
-      'green' => const Color(0xFF16A34A),
-      'olive' => const Color(0xFF808000),
-      'brown' => const Color(0xFF8B5E3C),
-      'purple' => const Color(0xFF9333EA),
-      'violet' => const Color(0xFF6D28D9),
-      'grey' || 'gray' => const Color(0xFF9CA3AF),
-      'black' => const Color(0xFF1F2937),
-      'white' => const Color(0xFFF3F4F6),
-      'teal' => const Color(0xFF14B8A6),
-      _ => const Color(0xFF9CA3AF),
-    };
-  }
-
-  FancyGemCut _cutFor(String name) {
-    return switch (name.toLowerCase()) {
-      'yellow' ||
-      'red' ||
-      'grey' ||
-      'gray' ||
-      'other' ||
-      'multi' => FancyGemCut.emerald,
-      'orange' || 'blue' || 'brown' || 'teal' || 'bi' => FancyGemCut.oval,
-      'pink' || 'violet' => FancyGemCut.heart,
-      'green' || 'black' || 'white' => FancyGemCut.princess,
-      'olive' || 'purple' => FancyGemCut.cushion,
-      _ => FancyGemCut.emerald,
+      'yellow' => const Color(0xFFF7C726),
+      'orange' => const Color(0xFFF7841F),
+      'blue' => const Color(0xFF2F6FEB),
+      'red' => const Color(0xFFD8232F),
+      'pink' => const Color(0xFFF26BAE),
+      'green' => const Color(0xFF1FA559),
+      'olive' => const Color(0xFF8C8A1E),
+      'brown' => const Color(0xFF9A6236),
+      'purple' => const Color(0xFF8E3BE0),
+      'violet' => const Color(0xFF6A3FD8),
+      'grey' || 'gray' => const Color(0xFF9AA3AE),
+      'black' => const Color(0xFF2A2F38),
+      'white' => const Color(0xFFE9ECF1),
+      'teal' => const Color(0xFF16B3A3),
+      _ => const Color(0xFFB08BE0),
     };
   }
 
@@ -508,85 +494,118 @@ class FancyColorDiamondButton extends StatelessWidget {
     final lower = colorName.toLowerCase();
     final isRainbow = lower == 'other' || lower == 'multi';
     final isBi = lower == 'bi';
-    final hue = _getFancyHue(colorName);
-    final fillColors = isBi
-        ? const [Color(0xFF2563EB), Color(0xFFFACC15)]
-        : [hue];
-    final painter = FancyColorGemPainter(
-      cut: _cutFor(colorName),
-      fillColors: fillColors,
-      isSelected: isSelected,
-      rainbow: isRainbow,
-      splitTone: isBi,
-    );
+    final hue = isRainbow ? const Color(0xFFB07CE8) : hueFor(colorName);
+    final ring = isSelected ? (isRainbow ? AppColors.bronze : hue) : null;
 
     return Semantics(
       button: true,
       selected: isSelected,
       label: colorName,
+      excludeSemantics: true,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () {
           AppHaptics.selection();
           onTap();
         },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 48,
-              height: 52,
-              child: Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  CustomPaint(
-                    size: const Size(_gemSize, _gemSize),
-                    painter: painter,
+        child: SizedBox(
+          width: _tile + 6,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                width: _tile,
+                height: _tile,
+                transform: Matrix4.translationValues(0, isSelected ? -2 : 0, 0),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      hue.withValues(alpha: isSelected ? 0.30 : 0.16),
+                      hue.withValues(alpha: 0.0),
+                    ],
                   ),
-                  Positioned(
-                    top: 30,
-                    child: IgnorePointer(
-                      child: ClipRect(
-                        child: Align(
-                          alignment: Alignment.topCenter,
-                          heightFactor: 0.42,
-                          child: Opacity(
-                            opacity: 0.28,
-                            child: ShaderMask(
-                              blendMode: BlendMode.dstIn,
-                              shaderCallback: (bounds) => const LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.white, Colors.transparent],
-                              ).createShader(bounds),
-                              child: Transform.flip(
-                                flipY: true,
-                                child: CustomPaint(
-                                  size: const Size(_gemSize, _gemSize),
-                                  painter: painter,
-                                ),
-                              ),
+                  border: Border.all(
+                    color: ring ?? AppColors.border(context),
+                    width: isSelected ? 2 : 1,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: (ring ?? hue).withValues(alpha: 0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 5),
+                          ),
+                        ]
+                      : const [],
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
+                    AnimatedScale(
+                      scale: isSelected ? 1.08 : 1,
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutBack,
+                      child: CustomPaint(
+                        size: const Size.square(_gem),
+                        painter: FancyColorGemPainter(
+                          fillColors: isBi
+                              ? const [Color(0xFF2F6FEB), Color(0xFFF7C726)]
+                              : [hue],
+                          rainbow: isRainbow,
+                          splitTone: isBi,
+                          sparkle: isSelected ? 1 : 0.7,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: -2,
+                      right: -2,
+                      child: AnimatedScale(
+                        scale: isSelected ? 1 : 0,
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutBack,
+                        child: Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.charcoal,
+                            border: Border.all(
+                              color: AppColors.card(context),
+                              width: 1.5,
                             ),
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            size: 11,
+                            color: AppColors.warmWhite,
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            Text(
-              colorName,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.caption.copyWith(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppColors.bronze : null,
+              const SizedBox(height: 6),
+              Text(
+                colorName,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.caption.copyWith(
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected
+                      ? AppColors.textPrimary(context)
+                      : AppColors.textSecondary(context),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import '../luxe/luxe_multi_select_field.dart';
 import 'catalog_search_add_field.dart';
 import 'filter_section_header.dart';
 
@@ -19,8 +20,8 @@ class CatalogPreferencesFilters extends StatelessWidget {
     required this.companyField,
     this.originDropdown,
     this.roughSourceOptions,
-    this.selectedRoughSource,
-    this.onRoughSourceChanged,
+    this.selectedRoughSources = const [],
+    this.onRoughSourcesChanged,
     this.minSellerRating,
     this.onSellerRatingChanged,
     super.key,
@@ -31,8 +32,8 @@ class CatalogPreferencesFilters extends StatelessWidget {
   final CatalogSearchAddField companyField;
 
   final List<String>? roughSourceOptions;
-  final String? selectedRoughSource;
-  final ValueChanged<String?>? onRoughSourceChanged;
+  final List<String> selectedRoughSources;
+  final ValueChanged<List<String>>? onRoughSourcesChanged;
 
   final double? minSellerRating;
   final ValueChanged<double>? onSellerRatingChanged;
@@ -41,7 +42,7 @@ class CatalogPreferencesFilters extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderColor = AppColors.border(context);
     final showRough =
-        roughSourceOptions != null && onRoughSourceChanged != null;
+        roughSourceOptions != null && onRoughSourcesChanged != null;
     final showRating = minSellerRating != null && onSellerRatingChanged != null;
 
     return RepaintBoundary(
@@ -60,28 +61,13 @@ class CatalogPreferencesFilters extends StatelessWidget {
               infoText: context.tr(CatalogL10n.roughSourceHelp),
             ),
             const SizedBox(height: AppSpacing.s8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: borderColor),
-                borderRadius: BorderRadius.circular(AppSpacing.r8),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  isExpanded: true,
-                  hint: Text(context.tr(CatalogL10n.selectRoughSource)),
-                  value: selectedRoughSource,
-                  items: roughSourceOptions!
-                      .map(
-                        (src) => DropdownMenuItem<String>(
-                          value: src,
-                          child: Text(context.trCatalogValue(src)),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: onRoughSourceChanged,
-                ),
-              ),
+            LuxeMultiSelectField(
+              options: roughSourceOptions!,
+              selected: selectedRoughSources,
+              onChanged: onRoughSourcesChanged!,
+              hint: context.tr(CatalogL10n.selectRoughSources),
+              sheetTitle: context.tr(CatalogL10n.roughSource),
+              labelOf: context.trCatalogValue,
             ),
           ],
           const SizedBox(height: AppSpacing.s20),

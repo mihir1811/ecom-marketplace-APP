@@ -4,6 +4,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import 'filter_info_tooltip.dart';
+import 'filter_range_bar.dart';
 import 'filter_proportion_diagram.dart';
 
 class FilterAdvancedRangeInput extends StatefulWidget {
@@ -259,6 +260,24 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 2),
+        FilterRangeBar(
+          min: widget.currentMin,
+          max: widget.currentMax,
+          minLimit: widget.minLimit,
+          maxLimit: widget.maxLimit,
+          fractionDigits: widget.maxLimit - widget.minLimit <= 10 ? 2 : 1,
+          unitSuffix: widget.unit.isEmpty
+              ? ''
+              : (widget.unit == '%' || widget.unit == '°'
+                    ? widget.unit
+                    : ' ${widget.unit}'),
+          // Only one thumb moves per drag, so exactly one side changes.
+          onChangeEnd: (min, max) {
+            if (min != widget.currentMin) widget.onMinChanged(min);
+            if (max != widget.currentMax) widget.onMaxChanged(max);
+          },
         ),
       ],
     );

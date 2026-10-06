@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../haptics/app_haptics.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
@@ -7,6 +8,10 @@ import '../../theme/app_typography.dart';
 import 'filter_section_header.dart';
 
 /// Search text field with an Add action — used in catalog preference filters.
+///
+/// Pass [onAddExcluded] to turn on include / exclude: an Include | Exclude
+/// switch picks which list the next entry joins, and the two lists show as
+/// "Showing only" (filled) and "Hiding" (struck, terracotta) chip groups.
 class CatalogSearchAddField extends StatefulWidget {
   const CatalogSearchAddField({
     required this.title,
@@ -18,6 +23,11 @@ class CatalogSearchAddField extends StatefulWidget {
     this.controller,
     this.onChanged,
     this.clearOnAdd = false,
+    this.excludedValues = const [],
+    this.onAddExcluded,
+    this.excludeHintText,
+    this.excludeMode = false,
+    this.onExcludeModeChanged,
     super.key,
   });
 
@@ -30,6 +40,18 @@ class CatalogSearchAddField extends StatefulWidget {
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
   final bool clearOnAdd;
+
+  /// Entries to hide from results; removed through [onRemove].
+  final List<String> excludedValues;
+  final ValueChanged<String>? onAddExcluded;
+  final String? excludeHintText;
+
+  /// Whether the next entry is added to the exclude list. Owned by the
+  /// caller so a pending entry can be committed to the right list.
+  final bool excludeMode;
+  final ValueChanged<bool>? onExcludeModeChanged;
+
+  bool get supportsExclude => onAddExcluded != null;
 
   @override
   State<CatalogSearchAddField> createState() => _CatalogSearchAddFieldState();
@@ -64,10 +86,16 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
     super.dispose();
   }
 
+  bool get _excluding => widget.supportsExclude && widget.excludeMode;
+
   void _submit() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    widget.onAdd(text);
+    if (_excluding) {
+      widget.onAddExcluded!(text);
+    } else {
+      widget.onAdd(text);
+    }
     if (widget.clearOnAdd) {
       _controller.clear();
     }
@@ -77,11 +105,29 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
   Widget build(BuildContext context) {
     final fill = AppColors.selectedFill(context);
     final onFill = AppColors.onSelected(context);
+    final excluding = _excluding;
+    final accent = excluding ? AppColors.terracotta : AppColors.charcoal;
+    final showGroups =
+        widget.supportsExclude && widget.excludedValues.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FilterSectionHeader(title: widget.title, infoText: widget.infoText),
+        Row(
+          children: [
+            Expanded(
+              child: FilterSectionHeader(
+                title: widget.title,
+                infoText: widget.infoText,
+              ),
+            ),
+            if (widget.supportsExclude)
+              _IncludeExcludeSwitch(
+                exclude: widget.excludeMode,
+                onChanged: (v) => widget.onExcludeModeChanged?.call(v),
+              ),
+          ],
+        ),
         const SizedBox(height: AppSpacing.s4),
         Row(
           children: [
@@ -95,13 +141,40 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
                   textInputAction: TextInputAction.done,
                   style: AppTypography.caption,
                   decoration: InputDecoration(
-                    hintText: widget.hintText,
+                    hintText: excluding
+                        ? (widget.excludeHintText ?? widget.hintText)
+                        : widget.hintText,
                     filled: true,
                     fillColor: AppColors.field(context),
+                    prefixIcon: widget.supportsExclude
+                        ? Icon(
+                            excluding
+                                ? Icons.block_rounded
+                                : Icons.add_circle_outline_rounded,
+                            size: 16,
+                            color: excluding
+                                ? AppColors.terracotta
+                                : AppColors.textMuted(context),
+                          )
+                        : null,
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
+                    enabledBorder: excluding
+                        ? OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(4),
+                            borderSide: BorderSide(
+                              color: AppColors.terracotta.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                          )
+                        : null,
                   ),
                 ),
               ),
@@ -113,7 +186,7 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.zero,
-                  backgroundColor: AppColors.charcoal,
+                  backgroundColor: accent,
                   foregroundColor: AppColors.warmWhite,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4),
@@ -134,6 +207,8 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
         ),
         if (widget.values.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.s8),
+          if (showGroups)
+            _GroupLabel(text: context.tr(CatalogL10n.filterShowingOnly)),
           Wrap(
             spacing: AppSpacing.s8,
             runSpacing: AppSpacing.s8,
@@ -166,7 +241,157 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
             ],
           ),
         ],
+        if (showGroups) ...[
+          const SizedBox(height: AppSpacing.s8),
+          _GroupLabel(
+            text: context.tr(CatalogL10n.filterHiding),
+            color: AppColors.terracotta,
+          ),
+          Wrap(
+            spacing: AppSpacing.s8,
+            runSpacing: AppSpacing.s8,
+            children: [
+              for (final value in widget.excludedValues)
+                InputChip(
+                  key: ValueKey('x-$value'),
+                  avatar: const Icon(
+                    Icons.block_rounded,
+                    size: 14,
+                    color: AppColors.terracotta,
+                  ),
+                  label: Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  labelStyle: AppTypography.caption.copyWith(
+                    color: AppColors.terracotta,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: AppColors.terracotta,
+                  ),
+                  backgroundColor: AppColors.terracotta.withValues(alpha: 0.08),
+                  deleteIconColor: AppColors.terracotta,
+                  side: BorderSide(
+                    color: AppColors.terracotta.withValues(alpha: 0.45),
+                  ),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  deleteIcon: const Icon(Icons.close, size: 16),
+                  onDeleted: widget.onRemove == null
+                      ? null
+                      : () => widget.onRemove!(value),
+                ),
+            ],
+          ),
+        ],
       ],
+    );
+  }
+}
+
+class _GroupLabel extends StatelessWidget {
+  const _GroupLabel({required this.text, this.color});
+
+  final String text;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        text.toUpperCase(),
+        style: AppTypography.caption.copyWith(
+          fontSize: 10,
+          letterSpacing: 1.1,
+          fontWeight: FontWeight.w700,
+          color: color ?? AppColors.textMuted(context),
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact two-way pill: Include (charcoal) | Exclude (terracotta).
+class _IncludeExcludeSwitch extends StatelessWidget {
+  const _IncludeExcludeSwitch({required this.exclude, required this.onChanged});
+
+  final bool exclude;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget seg(String label, IconData icon, {required bool value}) {
+      final active = exclude == value;
+      final color = value ? AppColors.terracotta : AppColors.charcoal;
+      final fg = active
+          ? AppColors.warmWhite
+          : AppColors.textSecondary(context);
+      return Semantics(
+        button: true,
+        selected: active,
+        label: label,
+        excludeSemantics: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (active) return;
+            AppHaptics.selection();
+            onChanged(value);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            constraints: const BoxConstraints(minHeight: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: ShapeDecoration(
+              color: active ? color : Colors.transparent,
+              shape: const StadiumBorder(),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 13, color: fg),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: AppTypography.caption.copyWith(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: fg,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: ShapeDecoration(
+        color: AppColors.field(context),
+        shape: StadiumBorder(
+          side: BorderSide(color: AppColors.border(context)),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          seg(
+            context.tr(CatalogL10n.filterInclude),
+            Icons.check_rounded,
+            value: false,
+          ),
+          seg(
+            context.tr(CatalogL10n.filterExclude),
+            Icons.block_rounded,
+            value: true,
+          ),
+        ],
+      ),
     );
   }
 }

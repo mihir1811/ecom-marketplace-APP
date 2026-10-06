@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
-import '../../../../core/l10n/app_localizations.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_shadows.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/theme/luxe_scope.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../domain/models/sorting_criteria.dart';
-import '../../../../core/theme/luxe_scope.dart';
 
-/// Production-grade multi-criteria sorting bottom sheet.
-/// Allows users to add, remove, and configure sorting criteria.
+/// Multi-criteria sort sheet for diamond results.
+///
+/// Top to bottom: a live "Sorted by … then …" summary, one-tap quick picks,
+/// the user's sort order (drag the handle to change priority, flip each
+/// direction, remove), and the fields still available to add. Nothing
+/// applies until "Show results".
 class DiamondSortingBottomSheet extends ConsumerStatefulWidget {
   const DiamondSortingBottomSheet({super.key});
 
@@ -32,132 +36,247 @@ class DiamondSortingBottomSheet extends ConsumerStatefulWidget {
       _DiamondSortingBottomSheetState();
 }
 
+/// A one-tap sort recipe.
+class _QuickPick {
+  const _QuickPick(this.labelKey, this.icon, this.field, this.direction);
+
+  final String labelKey;
+  final IconData icon;
+  final String field;
+  final SortDirection direction;
+}
+
+const _quickPicks = [
+  _QuickPick(
+    CatalogL10n.sortPresetLowestPrice,
+    Icons.south_rounded,
+    'price',
+    SortDirection.ascending,
+  ),
+  _QuickPick(
+    CatalogL10n.sortPresetHighestPrice,
+    Icons.north_rounded,
+    'price',
+    SortDirection.descending,
+  ),
+  _QuickPick(
+    CatalogL10n.sortPresetBiggest,
+    Icons.open_in_full_rounded,
+    'carat',
+    SortDirection.descending,
+  ),
+  _QuickPick(
+    CatalogL10n.sortPresetBestValue,
+    Icons.workspace_premium_outlined,
+    'pricePerCarat',
+    SortDirection.ascending,
+  ),
+];
+
+IconData _fieldIcon(String key) => switch (key) {
+  'price' => Icons.payments_outlined,
+  'pricePerCarat' => Icons.balance_outlined,
+  'carat' => Icons.scale_outlined,
+  _ => Icons.sort_rounded,
+};
+
+String _fieldHint(BuildContext context, String key) => context.tr(switch (key) {
+  'price' => CatalogL10n.sortPriceHint,
+  'pricePerCarat' => CatalogL10n.sortPpcHint,
+  _ => CatalogL10n.sortCaratHint,
+});
+
+/// Direction wording that matches the field: sizes grow, prices rise.
+String _directionLabel(BuildContext context, String key, SortDirection d) {
+  final size = key == 'carat';
+  final asc = d == SortDirection.ascending;
+  return context.tr(
+    size
+        ? (asc ? CatalogL10n.sortSmallToLarge : CatalogL10n.sortLargeToSmall)
+        : (asc ? CatalogL10n.sortLowToHigh : CatalogL10n.sortHighToLow),
+  );
+}
+
 class _DiamondSortingBottomSheetState
     extends ConsumerState<DiamondSortingBottomSheet> {
-  late List<SortingCriteria> _tempSelected;
+  late List<SortingCriteria> _order;
+
+  static final _allowed = DiamondSortingFields.all.map((f) => f.key).toSet();
 
   @override
   void initState() {
     super.initState();
-    final allowed = DiamondSortingFields.all.map((f) => f.key).toSet();
-    _tempSelected = ref
-        .read(diamondSortingProvider)
-        .where((s) => allowed.contains(s.fieldKey))
-        .toList();
-    _recalculatePriorities();
+    _order =
+        ([...ref.read(diamondSortingProvider)]
+              ..sort((a, b) => a.priority.compareTo(b.priority)))
+            .where((s) => _allowed.contains(s.fieldKey))
+            .toList();
+    _renumber();
   }
 
-  List<SortingCriteria> get _availableFields {
-    final selectedKeys = _tempSelected.map((s) => s.fieldKey).toSet();
+  void _renumber() {
+    for (var i = 0; i < _order.length; i++) {
+      _order[i] = _order[i].copyWith(priority: i + 1);
+    }
+  }
+
+  List<SortingFieldDef> get _available {
+    final used = _order.map((s) => s.fieldKey).toSet();
     return DiamondSortingFields.all
-        .where((f) => !selectedKeys.contains(f.key))
-        .map(
-          (f) => SortingCriteria(
-            fieldKey: f.key,
-            displayName: f.displayName,
-            priority: 0,
-          ),
-        )
+        .where((f) => !used.contains(f.key))
         .toList();
   }
 
-  void _addField(String fieldKey, String displayName) {
+  bool _isQuickPickActive(_QuickPick q) =>
+      _order.length == 1 &&
+      _order.first.fieldKey == q.field &&
+      _order.first.direction == q.direction;
+
+  void _applyQuickPick(_QuickPick q) {
+    AppHaptics.selection();
+    final def = DiamondSortingFields.findByKey(q.field);
+    if (def == null) return;
     setState(() {
-      _tempSelected.add(
+      _order = _isQuickPickActive(q)
+          ? []
+          : [
+              SortingCriteria(
+                fieldKey: def.key,
+                displayName: def.displayName,
+                direction: q.direction,
+                priority: 1,
+              ),
+            ];
+    });
+  }
+
+  void _add(SortingFieldDef def) {
+    AppHaptics.selection();
+    setState(() {
+      _order.add(
         SortingCriteria(
-          fieldKey: fieldKey,
-          displayName: displayName,
-          direction: SortDirection.ascending,
-          priority: _tempSelected.length + 1,
+          fieldKey: def.key,
+          displayName: def.displayName,
+          // Carat reads naturally largest-first; money cheapest-first.
+          direction: def.key == 'carat'
+              ? SortDirection.descending
+              : SortDirection.ascending,
+          priority: _order.length + 1,
         ),
       );
-      _recalculatePriorities();
     });
   }
 
-  void _removeField(int index) {
+  void _remove(int index) {
+    AppHaptics.selection();
     setState(() {
-      _tempSelected.removeAt(index);
-      _recalculatePriorities();
+      _order.removeAt(index);
+      _renumber();
     });
   }
 
-  void _toggleDirection(int index) {
+  void _setDirection(int index, SortDirection d) {
+    if (_order[index].direction == d) return;
+    AppHaptics.selection();
+    setState(() => _order[index] = _order[index].copyWith(direction: d));
+  }
+
+  void _move(int from, int to) {
     setState(() {
-      final current = _tempSelected[index];
-      _tempSelected[index] = current.copyWith(
-        direction: current.direction == SortDirection.ascending
-            ? SortDirection.descending
-            : SortDirection.ascending,
-      );
+      final item = _order.removeAt(from);
+      _order.insert(to.clamp(0, _order.length), item);
+      _renumber();
     });
   }
 
-  void _recalculatePriorities() {
-    for (int i = 0; i < _tempSelected.length; i++) {
-      _tempSelected[i] = _tempSelected[i].copyWith(priority: i + 1);
-    }
+  void _onReorder(int oldIndex, int newIndex) {
+    AppHaptics.selection();
+    _move(oldIndex, newIndex);
+  }
+
+  void _clear() {
+    AppHaptics.selection();
+    setState(() => _order = []);
   }
 
   void _apply() {
-    final allowed = DiamondSortingFields.all.map((f) => f.key).toSet();
-    final cleaned = _tempSelected
-        .where((s) => allowed.contains(s.fieldKey))
-        .toList();
-    for (var i = 0; i < cleaned.length; i++) {
-      cleaned[i] = cleaned[i].copyWith(priority: i + 1);
-    }
-    ref.read(diamondSortingProvider.notifier).state = cleaned;
+    _renumber();
+    ref.read(diamondSortingProvider.notifier).state = List.of(_order);
     ref.read(diamondListProvider.notifier).applyFiltersAndSort();
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = AppColors.card(context);
-    final textColor = AppColors.textPrimary(context);
-    final mutedColor = AppColors.textSecondary(context);
-    final borderColor = AppColors.border(context);
-
+    final p = LuxePalette.of(context);
     return DraggableScrollableSheet(
-      initialChildSize: 0.75,
+      initialChildSize: 0.82,
       minChildSize: 0.5,
-      maxChildSize: 0.92,
-      builder: (context, scrollController) {
-        return Container(
+      maxChildSize: 0.95,
+      builder: (context, scroll) {
+        return DecoratedBox(
           decoration: BoxDecoration(
-            color: bgColor,
+            color: p.canvas,
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppSpacing.r20),
+              top: Radius.circular(LuxeSpace.radius + 4),
             ),
-            boxShadow: AppShadows.modalLight,
           ),
           child: Column(
             children: [
-              _buildHandle(context),
-              _buildHeader(context, textColor, mutedColor),
+              _handle(p),
+              _header(p),
               Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s16,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSelectedSection(textColor, mutedColor, borderColor),
-                      const SizedBox(height: AppSpacing.s20),
-                      _buildAvailableSection(
-                        textColor,
-                        mutedColor,
-                        borderColor,
+                child: ListView(
+                  controller: scroll,
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                  children: [
+                    _SortSummary(order: _order),
+                    const SizedBox(height: 22),
+                    _sectionLabel(p, context.tr(CatalogL10n.sortQuickPicks)),
+                    const SizedBox(height: 10),
+                    _quickPickRow(p),
+                    const SizedBox(height: 26),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _sectionLabel(
+                            p,
+                            context.tr(CatalogL10n.sortYourOrder),
+                          ),
+                        ),
+                        if (_order.isNotEmpty)
+                          Text(
+                            '${_order.length}/${DiamondSortingFields.all.length}',
+                            style: LuxeType.figure(p.inkFaint, size: 12),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    if (_order.length > 1)
+                      Text(
+                        context.tr(CatalogL10n.sortDragHint),
+                        style: LuxeType.body(p.inkMuted, size: 12.5),
                       ),
-                      const SizedBox(height: AppSpacing.s24),
+                    const SizedBox(height: 10),
+                    if (_order.isEmpty) _empty(p) else _orderList(p),
+                    if (_available.isNotEmpty) ...[
+                      const SizedBox(height: 26),
+                      _sectionLabel(p, context.tr(CatalogL10n.sortAddCriteria)),
+                      const SizedBox(height: 10),
+                      for (final def in _available)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _AddFieldTile(
+                            def: def,
+                            nth: _order.length + 1,
+                            onTap: () => _add(def),
+                          ),
+                        ),
                     ],
-                  ),
+                  ],
                 ),
               ),
-              _buildApplyButton(context),
+              _footer(p),
             ],
           ),
         );
@@ -165,49 +284,112 @@ class _DiamondSortingBottomSheetState
     );
   }
 
-  Widget _buildHandle(BuildContext context) {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.only(
-          top: AppSpacing.s12,
-          bottom: AppSpacing.s4,
-        ),
-        width: 40,
-        height: 4,
-        decoration: BoxDecoration(
-          color: AppColors.textMuted(context).withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(2),
-        ),
+  Widget _handle(LuxePalette p) => Center(
+    child: Container(
+      margin: const EdgeInsets.only(top: 10, bottom: 4),
+      width: 40,
+      height: 4,
+      decoration: BoxDecoration(
+        color: p.inkFaint.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(2),
+      ),
+    ),
+  );
+
+  Widget _header(LuxePalette p) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 12, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.tr(CatalogL10n.sorting).toUpperCase(),
+                  style: LuxeType.eyebrow(p.accent),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  context.tr(CatalogL10n.sortTitle),
+                  style: LuxeType.display(28, p.ink),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  context.tr(CatalogL10n.sortSubtitle),
+                  style: LuxeType.body(p.inkMuted, size: 13.5),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+            onPressed: () => Navigator.of(context).pop(),
+            style: IconButton.styleFrom(
+              backgroundColor: p.surfaceRaised,
+              foregroundColor: p.ink,
+            ),
+            icon: const Icon(Icons.close_rounded, size: 20),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, Color textColor, Color mutedColor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s16,
-        vertical: AppSpacing.s8,
+  Widget _sectionLabel(LuxePalette p, String text) =>
+      Text(text.toUpperCase(), style: LuxeType.eyebrow(p.inkMuted));
+
+  Widget _quickPickRow(LuxePalette p) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final q in _quickPicks)
+          _QuickPickChip(
+            label: context.tr(q.labelKey),
+            icon: q.icon,
+            active: _isQuickPickActive(q),
+            onTap: () => _applyQuickPick(q),
+          ),
+      ],
+    );
+  }
+
+  Widget _empty(LuxePalette p) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+      decoration: BoxDecoration(
+        color: p.surface,
+        borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+        border: Border.all(color: p.hairline),
       ),
       child: Row(
         children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: p.accentSoft,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.auto_awesome_rounded, color: p.accent, size: 20),
+          ),
+          const SizedBox(width: 14),
           Expanded(
-            child: Text(
-              context.tr(CatalogL10n.sorting),
-              style: AppTypography.headline.copyWith(
-                color: textColor,
-                fontSize: 20,
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              padding: const EdgeInsets.all(AppSpacing.s8),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: mutedColor.withValues(alpha: 0.1),
-              ),
-              child: Icon(Icons.close, size: 18, color: mutedColor),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.tr(CatalogL10n.sortEmptyTitle),
+                  style: LuxeType.label(p.ink, size: 14),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  context.tr(CatalogL10n.sortEmptyBody),
+                  style: LuxeType.body(p.inkMuted, size: 12.5),
+                ),
+              ],
             ),
           ),
         ],
@@ -215,164 +397,182 @@ class _DiamondSortingBottomSheetState
     );
   }
 
-  Widget _buildSelectedSection(
-    Color textColor,
-    Color mutedColor,
-    Color borderColor,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.tr(CatalogL10n.selectedSortingFilters),
-          style: AppTypography.label.copyWith(
-            color: textColor,
-            fontWeight: FontWeight.w600,
+  Widget _orderList(LuxePalette p) {
+    return ReorderableListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      buildDefaultDragHandles: false,
+      itemCount: _order.length,
+      onReorderItem: _onReorder,
+      onReorderStart: (_) => AppHaptics.selection(),
+      proxyDecorator: (child, index, animation) => AnimatedBuilder(
+        animation: animation,
+        builder: (context, child) {
+          final t = Curves.easeOut.transform(animation.value);
+          return Transform.scale(
+            scale: 1 + 0.03 * t,
+            child: Material(
+              color: Colors.transparent,
+              elevation: 10 * t,
+              shadowColor: Colors.black.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+              child: child,
+            ),
+          );
+        },
+        child: child,
+      ),
+      itemBuilder: (context, i) {
+        final c = _order[i];
+        return Padding(
+          key: ValueKey(c.fieldKey),
+          padding: const EdgeInsets.only(bottom: 10),
+          child: _SortRow(
+            index: i,
+            count: _order.length,
+            criteria: c,
+            onDirection: (d) => _setDirection(i, d),
+            onRemove: () => _remove(i),
+            onMove: (to) => _move(i, to),
           ),
-        ),
-        const SizedBox(height: AppSpacing.s4),
-        Text(
-          'Priority 1 sorts first. Each next criterion sorts within the previous result (tie-break). Drag to reorder.',
-          style: AppTypography.caption.copyWith(color: mutedColor),
-        ),
-        const SizedBox(height: AppSpacing.s12),
-        if (_tempSelected.isEmpty)
-          _buildEmptySelected(context, mutedColor)
-        else
-          _buildSelectedList(textColor, mutedColor, borderColor),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildEmptySelected(BuildContext context, Color mutedColor) {
+  Widget _footer(LuxePalette p) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.s24),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: AppColors.textMuted(context).withValues(alpha: 0.2),
-        ),
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        12 + MediaQuery.paddingOf(context).bottom,
       ),
-      child: Column(
+      decoration: BoxDecoration(
+        color: p.canvas,
+        border: Border(top: BorderSide(color: p.hairline)),
+      ),
+      child: Row(
         children: [
-          Icon(Icons.sort, size: 32, color: mutedColor.withValues(alpha: 0.4)),
-          const SizedBox(height: AppSpacing.s8),
-          Text(
-            context.tr(CatalogL10n.noSortingCriteria),
-            style: AppTypography.body.copyWith(color: mutedColor),
-          ),
-          const SizedBox(height: AppSpacing.s4),
-          Text(
-            context.tr(CatalogL10n.addSortingFields),
-            style: AppTypography.caption.copyWith(color: mutedColor),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSelectedList(
-    Color textColor,
-    Color mutedColor,
-    Color borderColor,
-  ) {
-    return Column(
-      children: [
-        for (var index = 0; index < _tempSelected.length; index++)
-          _buildSortingCard(
-            criteria: _tempSelected[index],
-            index: index,
-            textColor: textColor,
-            mutedColor: mutedColor,
-            borderColor: borderColor,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildSortingCard({
-    required SortingCriteria criteria,
-    required int index,
-    required Color textColor,
-    required Color mutedColor,
-    required Color borderColor,
-  }) {
-    final isAscending = criteria.direction == SortDirection.ascending;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.s8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(color: borderColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.s12,
-          vertical: AppSpacing.s8,
-        ),
-        child: Row(
-          children: [
-            GestureDetector(
-              onTap: () => _toggleDirection(index),
-              child: Container(
-                padding: const EdgeInsets.all(AppSpacing.s4),
-                decoration: BoxDecoration(
-                  color: AppColors.bronze.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppSpacing.r4),
-                ),
-                child: Icon(
-                  isAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                  color: AppColors.bronze,
-                  size: 16,
-                ),
+          if (_order.isNotEmpty) ...[
+            TextButton(
+              onPressed: _clear,
+              style: TextButton.styleFrom(
+                foregroundColor: p.inkMuted,
+                minimumSize: const Size(0, 52),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+              ),
+              child: Text(
+                context.tr(CatalogL10n.sortClear),
+                style: LuxeType.label(p.inkMuted, size: 13.5),
               ),
             ),
-            const SizedBox(width: AppSpacing.s12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: FilledButton(
+              onPressed: _apply,
+              style: FilledButton.styleFrom(
+                backgroundColor: p.ink,
+                foregroundColor: p.canvas,
+                minimumSize: const Size.fromHeight(52),
+                shape: const StadiumBorder(),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    criteria.displayName,
-                    style: AppTypography.body.copyWith(
-                      color: textColor,
-                      fontWeight: FontWeight.w600,
+                  Flexible(
+                    child: Text(
+                      context.tr(CatalogL10n.sortApply),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.label(p.canvas, size: 14.5),
                     ),
                   ),
-                  Text(
-                    isAscending ? 'Ascending' : 'Descending',
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.bronze,
+                  if (_order.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 1,
+                      ),
+                      decoration: ShapeDecoration(
+                        color: p.accent,
+                        shape: const StadiumBorder(),
+                      ),
+                      child: Text(
+                        '${_order.length}',
+                        style: LuxeType.figure(p.onAccent, size: 12),
+                      ),
                     ),
-                  ),
+                  ],
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward_rounded, size: 18),
                 ],
               ),
             ),
-            IconButton(
-              onPressed: () => _removeField(index),
-              tooltip: context.tr(CatalogL10n.cancel),
-              visualDensity: VisualDensity.compact,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              icon: Container(
-                padding: const EdgeInsets.all(AppSpacing.s4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.terracotta.withValues(alpha: 0.1),
-                ),
-                child: const Icon(
-                  Icons.close,
-                  size: 16,
-                  color: AppColors.terracotta,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Sorted by Total Price (Low → High), then Carat (Large → Small)".
+class _SortSummary extends StatelessWidget {
+  const _SortSummary({required this.order});
+
+  final List<SortingCriteria> order;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final spans = <InlineSpan>[];
+    if (order.isEmpty) {
+      spans.add(TextSpan(text: context.tr(CatalogL10n.sortEmptyTitle)));
+    } else {
+      spans.add(TextSpan(text: '${context.tr(CatalogL10n.sortSortedBy)} '));
+      for (var i = 0; i < order.length; i++) {
+        final c = order[i];
+        if (i > 0) {
+          spans.add(TextSpan(text: ', ${context.tr(CatalogL10n.sortThen)} '));
+        }
+        spans
+          ..add(
+            TextSpan(
+              text: c.displayName,
+              style: LuxeType.label(p.ink, size: 13.5),
+            ),
+          )
+          ..add(
+            TextSpan(
+              text: ' (${_directionLabel(context, c.fieldKey, c.direction)})',
+              style: LuxeType.body(p.accent, size: 13),
+            ),
+          );
+      }
+    }
+    return AnimatedSize(
+      duration: LuxeMotion.fast,
+      curve: LuxeMotion.settle,
+      alignment: Alignment.topCenter,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: p.accentSoft,
+          borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.swap_vert_rounded, size: 18, color: p.accent),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  style: LuxeType.body(p.inkMuted, size: 13),
+                  children: spans,
                 ),
               ),
             ),
@@ -381,90 +581,161 @@ class _DiamondSortingBottomSheetState
       ),
     );
   }
+}
 
-  Widget _buildAvailableSection(
-    Color textColor,
-    Color mutedColor,
-    Color borderColor,
-  ) {
-    final available = _availableFields;
+class _QuickPickChip extends StatelessWidget {
+  const _QuickPickChip({
+    required this.label,
+    required this.icon,
+    required this.active,
+    required this.onTap,
+  });
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.tr(CatalogL10n.availableSortingFields),
-          style: AppTypography.label.copyWith(
-            color: textColor,
-            fontWeight: FontWeight.w600,
-          ),
+  final String label;
+  final IconData icon;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final fg = active ? p.canvas : p.ink;
+    return Semantics(
+      button: true,
+      selected: active,
+      child: Material(
+        color: active ? p.ink : p.surface,
+        shape: StadiumBorder(
+          side: BorderSide(color: active ? p.ink : p.hairline),
         ),
-        const SizedBox(height: AppSpacing.s12),
-        if (available.isEmpty)
-          _buildEmptyAvailable(mutedColor)
-        else
-          ...available.map(
-            (field) => _buildAvailableRow(
-              field: field,
-              textColor: textColor,
-              mutedColor: mutedColor,
-              borderColor: borderColor,
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(active ? Icons.check_rounded : icon, size: 16, color: fg),
+                const SizedBox(width: 6),
+                Text(label, style: LuxeType.label(fg, size: 13)),
+              ],
             ),
           ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyAvailable(Color mutedColor) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.s20),
-      child: Text(
-        context.tr(CatalogL10n.allSortingFieldsSelected),
-        style: AppTypography.body.copyWith(color: mutedColor),
-        textAlign: TextAlign.center,
+        ),
       ),
     );
   }
+}
 
-  Widget _buildAvailableRow({
-    required SortingCriteria field,
-    required Color textColor,
-    required Color mutedColor,
-    required Color borderColor,
-  }) {
-    return GestureDetector(
-      onTap: () => _addField(field.fieldKey, field.displayName),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.s4),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.r8),
-          border: Border.all(color: borderColor.withValues(alpha: 0.5)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s12,
-            vertical: AppSpacing.s12,
+/// One criterion in the user's order: priority badge, field, direction
+/// switch, remove, and the drag handle.
+class _SortRow extends StatelessWidget {
+  const _SortRow({
+    required this.index,
+    required this.count,
+    required this.criteria,
+    required this.onDirection,
+    required this.onRemove,
+    required this.onMove,
+  });
+
+  final int index;
+  final int count;
+  final SortingCriteria criteria;
+  final ValueChanged<SortDirection> onDirection;
+  final VoidCallback onRemove;
+  final ValueChanged<int> onMove;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final first = index == 0;
+    return Semantics(
+      customSemanticsActions: {
+        if (index > 0)
+          CustomSemanticsAction(
+            label: context.tr(CatalogL10n.sortMoveUp),
+          ): () =>
+              onMove(index - 1),
+        if (index < count - 1)
+          CustomSemanticsAction(
+            label: context.tr(CatalogL10n.sortMoveDown),
+          ): () =>
+              onMove(index + 1),
+      },
+      child: ReorderableDelayedDragStartListener(
+        index: index,
+        child: Container(
+          decoration: BoxDecoration(
+            color: p.surface,
+            borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+            border: Border.all(
+              color: first ? p.accent : p.hairline,
+              width: first ? 1.4 : 1,
+            ),
           ),
-          child: Row(
+          padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Text(
-                  field.displayName,
-                  style: AppTypography.body.copyWith(color: textColor),
-                ),
+              Row(
+                children: [
+                  _PriorityBadge(n: index + 1, primary: first),
+                  const SizedBox(width: 12),
+                  Icon(_fieldIcon(criteria.fieldKey), size: 18, color: p.ink),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          criteria.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: LuxeType.label(p.ink, size: 14.5),
+                        ),
+                        Text(
+                          _fieldHint(context, criteria.fieldKey),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: LuxeType.body(p.inkFaint, size: 11.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: context.tr(CatalogL10n.sortRemove),
+                    onPressed: onRemove,
+                    visualDensity: VisualDensity.compact,
+                    icon: Icon(
+                      Icons.remove_circle_outline_rounded,
+                      size: 20,
+                      color: p.inkMuted,
+                    ),
+                  ),
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 8,
+                      ),
+                      child: Icon(
+                        Icons.drag_indicator_rounded,
+                        color: p.inkMuted,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.s4),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.bronze,
-                ),
-                child: const Icon(
-                  Icons.add,
-                  size: 16,
-                  color: AppColors.warmWhite,
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: _DirectionSwitch(
+                  fieldKey: criteria.fieldKey,
+                  value: criteria.direction,
+                  onChanged: onDirection,
                 ),
               ),
             ],
@@ -473,43 +744,177 @@ class _DiamondSortingBottomSheetState
       ),
     );
   }
+}
 
-  Widget _buildApplyButton(BuildContext context) {
+class _PriorityBadge extends StatelessWidget {
+  const _PriorityBadge({required this.n, required this.primary});
+
+  final int n;
+  final bool primary;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.s16,
-        AppSpacing.s12,
-        AppSpacing.s16,
-        MediaQuery.of(context).padding.bottom + AppSpacing.s12,
-      ),
+      width: 28,
+      height: 28,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: AppColors.textMuted(context).withValues(alpha: 0.15),
+        shape: BoxShape.circle,
+        color: primary ? p.accent : p.surfaceRaised,
+      ),
+      child: Text(
+        '$n',
+        style: LuxeType.figure(primary ? p.onAccent : p.ink, size: 13),
+      ),
+    );
+  }
+}
+
+/// Two-way segmented control with field-specific wording.
+class _DirectionSwitch extends StatelessWidget {
+  const _DirectionSwitch({
+    required this.fieldKey,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String fieldKey;
+  final SortDirection value;
+  final ValueChanged<SortDirection> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    Widget seg(SortDirection d, IconData icon) {
+      final on = value == d;
+      return Expanded(
+        child: Semantics(
+          button: true,
+          selected: on,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => onChanged(d),
+            child: AnimatedContainer(
+              duration: LuxeMotion.fast,
+              curve: LuxeMotion.settle,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: ShapeDecoration(
+                color: on ? p.ink : Colors.transparent,
+                shape: const StadiumBorder(),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 15, color: on ? p.canvas : p.inkMuted),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      _directionLabel(context, fieldKey, d),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.label(
+                        on ? p.canvas : p.inkMuted,
+                        size: 12.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: ShapeDecoration(
+        color: p.surfaceRaised,
+        shape: const StadiumBorder(),
       ),
-      child: SizedBox(
-        width: double.infinity,
-        height: 48,
-        child: ElevatedButton(
-          onPressed: _apply,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.bronze,
-            foregroundColor: AppColors.warmWhite,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppSpacing.r12),
-            ),
-            elevation: 0,
-          ),
-          child: Text(
-            context.tr(CatalogL10n.apply),
-            style: AppTypography.label.copyWith(
-              color: AppColors.warmWhite,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
+      child: Row(
+        children: [
+          seg(SortDirection.ascending, Icons.trending_up_rounded),
+          seg(SortDirection.descending, Icons.trending_down_rounded),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddFieldTile extends StatelessWidget {
+  const _AddFieldTile({
+    required this.def,
+    required this.nth,
+    required this.onTap,
+  });
+
+  final SortingFieldDef def;
+  final int nth;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return Material(
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+        side: BorderSide(color: p.hairline),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: p.surfaceRaised,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(_fieldIcon(def.key), size: 18, color: p.ink),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      def.displayName,
+                      style: LuxeType.label(p.ink, size: 14),
+                    ),
+                    Text(
+                      _fieldHint(context, def.key),
+                      style: LuxeType.body(p.inkFaint, size: 11.5),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: ShapeDecoration(
+                  color: p.accentSoft,
+                  shape: const StadiumBorder(),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add_rounded, size: 15, color: p.accent),
+                    const SizedBox(width: 3),
+                    Text('#$nth', style: LuxeType.figure(p.accent, size: 12)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

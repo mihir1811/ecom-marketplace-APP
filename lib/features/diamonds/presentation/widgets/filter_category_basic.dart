@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../domain/models/sieve_size.dart';
@@ -21,6 +22,7 @@ import 'package:gemstone/core/widgets/filters/catalog_standard_range_filters.dar
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/widgets/luxe/luxe_dropdown_field.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../../core/widgets/luxe/luxe_multi_select_field.dart';
 
 /// Whether the current catalog shows melee (sieve / per-piece) filters.
 bool diamondUsesMeleeFilters(DiamondFilterState state, {required bool isLab}) =>
@@ -119,10 +121,15 @@ class DiamondListingOptionsFilters extends ConsumerWidget {
           onChanged: (_) => notifier.toggleMakeAnOffer(),
         ),
         const SizedBox(height: AppSpacing.s16),
-        CatalogAvailabilityFilter(
-          value: state.selectedAvailability,
+        FilterSectionHeader(title: context.tr(CatalogL10n.availability)),
+        const SizedBox(height: AppSpacing.s8),
+        LuxeMultiSelectField(
           options: DiamondFilterState.availabilityOptions,
-          onChanged: notifier.updateAvailability,
+          selected: state.selectedAvailabilities,
+          onChanged: notifier.setAvailabilities,
+          hint: context.tr(CatalogL10n.selectAvailability),
+          sheetTitle: context.tr(CatalogL10n.availability),
+          labelOf: (o) => catalogAvailabilityLabel(context, o),
         ),
       ],
     );
@@ -178,9 +185,6 @@ class DiamondSizePriceFilters extends ConsumerWidget {
             totalCaratMax: state.maxCarat,
             totalCaratLimits: (0.0, 100.00),
             onTotalCaratChanged: notifier.updateCaratRange,
-            caratQuickRanges: DiamondFilterState.caratQuickRanges,
-            selectedCaratQuickRanges: state.selectedCaratQuickRanges,
-            onToggleCaratQuickRange: notifier.toggleCaratQuickRange,
             pricePerCaratMin: state.minPricePerCarat,
             pricePerCaratMax: state.maxPricePerCarat,
             pricePerCaratLimits: (0.0, 200000.0),
@@ -324,48 +328,35 @@ class DiamondInclusionFilters extends ConsumerWidget {
         ),
         FilterSectionHeader(title: context.tr(CatalogL10n.fluorescenceColor)),
         const SizedBox(height: AppSpacing.s8),
-        DiamondDropdownField<String>(
-          hint: context.tr(CatalogL10n.selectFluorescenceColor),
-          value: state.selectedFluorescenceColor,
-          items: [
-            for (final colorName in DiamondFilterState.fluorescenceColors)
-              DropdownMenuItem(
-                value: colorName,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 14,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: _parseHex(
-                          DiamondFilterState.fluorescenceColorsHex[colorName]!,
-                        ),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.border(context)),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.s12),
-                    Text(context.trCatalogValue(colorName)),
-                  ],
-                ),
+        LuxeMultiSelectField(
+          options: DiamondFilterState.fluorescenceColors,
+          selected: state.selectedFluorescenceColors,
+          onChanged: notifier.setFluorescenceColors,
+          hint: context.tr(CatalogL10n.selectFluorescenceColors),
+          sheetTitle: context.tr(CatalogL10n.fluorescenceColor),
+          labelOf: context.trCatalogValue,
+          leadingOf: (colorName) => Container(
+            width: 14,
+            height: 14,
+            decoration: BoxDecoration(
+              color: _parseHex(
+                DiamondFilterState.fluorescenceColorsHex[colorName] ?? '',
               ),
-          ],
-          onChanged: notifier.updateFluorescenceColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.border(context)),
+            ),
+          ),
         ),
         const SizedBox(height: AppSpacing.s20),
         FilterSectionHeader(title: context.tr(CatalogL10n.enhancement)),
         const SizedBox(height: AppSpacing.s8),
-        DiamondDropdownField<String>(
-          hint: context.tr(CatalogL10n.selectEnhancement),
-          value: state.selectedEnhancement,
-          items: [
-            for (final enh in DiamondFilterState.enhancements)
-              DropdownMenuItem(
-                value: enh,
-                child: Text(context.trCatalogValue(enh)),
-              ),
-          ],
-          onChanged: notifier.updateEnhancement,
+        LuxeMultiSelectField(
+          options: DiamondFilterState.enhancements,
+          selected: state.selectedEnhancements,
+          onChanged: notifier.setEnhancements,
+          hint: context.tr(CatalogL10n.selectEnhancements),
+          sheetTitle: context.tr(CatalogL10n.enhancement),
+          labelOf: context.trCatalogValue,
         ),
       ],
     );
@@ -375,72 +366,255 @@ class DiamondInclusionFilters extends ConsumerWidget {
 /// Kept for existing call sites; the shared field lives in core.
 typedef DiamondDropdownField<T> = LuxeDropdownField<T>;
 
-class ClarityCardsSection extends ConsumerStatefulWidget {
-  const ClarityCardsSection({super.key});
+/// One clarity card: its loupe diagram (SVG asset) and the grades it holds.
+class _ClarityGroup {
+  const _ClarityGroup(this.asset, this.grades);
 
-  @override
-  ConsumerState<ClarityCardsSection> createState() =>
-      _ClarityCardsSectionState();
+  final String asset;
+  final List<String> grades;
 }
 
-class _ClarityCardsSectionState extends ConsumerState<ClarityCardsSection> {
+const _clarityGroups = [
+  _ClarityGroup('assets/clarity/clarity_fl_if.svg', ['FL', 'IF']),
+  _ClarityGroup('assets/clarity/clarity_vvs.svg', ['VVS1', 'VVS2']),
+  _ClarityGroup('assets/clarity/clarity_vs.svg', ['VS1', 'VS2']),
+  _ClarityGroup('assets/clarity/clarity_si.svg', ['SI1', 'SI2', 'SI3']),
+  _ClarityGroup('assets/clarity/clarity_i.svg', ['I1', 'I2', 'I3']),
+];
+
+/// Clarity as loupe cards: each card shows a round brilliant with the kind
+/// of inclusions its grades allow. Tap a card to pick its whole group, or a
+/// grade pill to pick just that grade; "Select All" toggles every grade.
+class ClarityCardsSection extends ConsumerWidget {
+  const ClarityCardsSection({super.key});
+
+  static const _cardWidth = 156.0;
+  static const _gap = 10.0;
+
   @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(diamondSearchProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selected = ref.watch(
+      diamondSearchProvider.select((s) => s.selectedClarityGrades),
+    );
     final notifier = ref.read(diamondSearchProvider.notifier);
-    final borderColor = AppColors.border(context);
+    final allSelected = selected.length == DiamondFilterState.clarities.length;
+
+    Widget card(_ClarityGroup g) => _ClarityCard(
+      group: g,
+      selected: selected,
+      onToggleGroup: () => notifier.toggleClarityGroup(g.grades),
+      onToggleGrade: notifier.toggleClarityGrade,
+    );
 
     return FilterGroupCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          FilterSectionHeader(title: context.tr(CatalogL10n.clarity)),
-          const SizedBox(height: AppSpacing.s8),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: DiamondFilterState.clarities.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              childAspectRatio: 2.2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemBuilder: (context, index) {
-              final grade = DiamondFilterState.clarities[index];
-              final isSelected = state.selectedClarityGrades.contains(grade);
-              return GestureDetector(
-                onTap: () => notifier.toggleClarityGradeGroup(grade),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.selectedFill(context)
-                        : AppColors.card(context),
-                    borderRadius: BorderRadius.circular(100),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.selectedFill(context)
-                          : borderColor,
-                    ),
+          Row(
+            children: [
+              Expanded(
+                child: FilterSectionHeader(
+                  title: context.tr(CatalogL10n.clarity),
+                  infoText: context.tr(CatalogL10n.clarityCardsHelp),
+                ),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  AppHaptics.selection();
+                  allSelected
+                      ? notifier.clearClarityGrades()
+                      : notifier.selectAllClarityGrades();
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.bronze,
+                  side: BorderSide(color: AppColors.border(context)),
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
-                  child: Text(
-                    grade,
-                    style: AppTypography.caption.copyWith(
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.w500,
-                      color: isSelected
-                          ? AppColors.onSelected(context)
-                          : (AppColors.textPrimary(context)),
-                    ),
+                ),
+                child: Text(
+                  context.tr(
+                    allSelected ? CatalogL10n.clear : CatalogL10n.selectAll,
+                  ),
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.bronze,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.s12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final n = _clarityGroups.length;
+              // Wide layouts fit every card in one row; phones scroll.
+              if (constraints.maxWidth >= n * 132 + (n - 1) * _gap) {
+                return IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (var i = 0; i < n; i++) ...[
+                        if (i > 0) const SizedBox(width: _gap),
+                        Expanded(child: card(_clarityGroups[i])),
+                      ],
+                    ],
+                  ),
+                );
+              }
+              return SizedBox(
+                height: 176,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  itemCount: n,
+                  separatorBuilder: (_, _) => const SizedBox(width: _gap),
+                  itemBuilder: (context, i) => SizedBox(
+                    width: _cardWidth,
+                    child: card(_clarityGroups[i]),
                   ),
                 ),
               );
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ClarityCard extends StatelessWidget {
+  const _ClarityCard({
+    required this.group,
+    required this.selected,
+    required this.onToggleGroup,
+    required this.onToggleGrade,
+  });
+
+  final _ClarityGroup group;
+  final List<String> selected;
+  final VoidCallback onToggleGroup;
+  final ValueChanged<String> onToggleGrade;
+
+  @override
+  Widget build(BuildContext context) {
+    final picked = group.grades.where(selected.contains).length;
+    final full = picked == group.grades.length;
+    final any = picked > 0;
+    final ink = AppColors.textPrimary(context);
+
+    return Semantics(
+      button: true,
+      selected: full,
+      label: group.grades.join(', '),
+      child: Material(
+        color: AppColors.card(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.r12),
+          side: BorderSide(
+            color: any ? AppColors.bronze : AppColors.border(context),
+            width: any ? 1.6 : 1,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            AppHaptics.selection();
+            onToggleGroup();
+          },
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedScale(
+                  scale: any ? 1.04 : 1,
+                  duration: const Duration(milliseconds: 200),
+                  child: SvgPicture.asset(
+                    group.asset,
+                    width: 96,
+                    height: 96,
+                    theme: SvgTheme(currentColor: ink),
+                    placeholderBuilder: (_) =>
+                        const SizedBox.square(dimension: 96),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    for (var i = 0; i < group.grades.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 6),
+                      Expanded(
+                        child: _ClarityGradePill(
+                          grade: group.grades[i],
+                          selected: selected.contains(group.grades[i]),
+                          onTap: () {
+                            AppHaptics.selection();
+                            onToggleGrade(group.grades[i]);
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ClarityGradePill extends StatelessWidget {
+  const _ClarityGradePill({
+    required this.grade,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String grade;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        height: 32,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.selectedFill(context)
+              : AppColors.field(context),
+          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          border: Border.all(
+            color: selected
+                ? AppColors.selectedFill(context)
+                : AppColors.border(context),
+          ),
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              grade,
+              style: AppTypography.caption.copyWith(
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected
+                    ? AppColors.onSelected(context)
+                    : AppColors.textPrimary(context),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

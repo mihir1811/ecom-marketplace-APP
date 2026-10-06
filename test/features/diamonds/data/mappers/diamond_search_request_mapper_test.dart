@@ -35,7 +35,7 @@ void main() {
     test('maps availability and make-an-offer filters', () {
       final body = DiamondSearchRequestMapper.toBody(
         filters: const DiamondFilterState(
-          selectedAvailability: 'On Hold',
+          selectedAvailabilities: ['On Hold'],
           makeAnOffer: true,
         ),
         catalog: DiamondCatalogType.natural,
@@ -44,6 +44,33 @@ void main() {
 
       expect(body['available'], 'hold');
       expect(body['is_make_an_offer_allowed'], isTrue);
+    });
+
+    test('sends excluded companies and locations', () {
+      final body = DiamondSearchRequestMapper.toBody(
+        filters: const DiamondFilterState(
+          excludedCompanyNames: ['Acme Gems'],
+          excludedVendorLocations: ['Surat', ' '],
+        ),
+        catalog: DiamondCatalogType.natural,
+        page: 1,
+      );
+
+      expect(body['exclude_companies'], ['Acme Gems']);
+      expect(body['exclude_locations'], ['Surat']);
+      expect(body.containsKey('companies'), isFalse);
+    });
+
+    test('omits availability when several statuses are picked', () {
+      final body = DiamondSearchRequestMapper.toBody(
+        filters: const DiamondFilterState(
+          selectedAvailabilities: ['Available', 'On Memo'],
+        ),
+        catalog: DiamondCatalogType.natural,
+        page: 1,
+      );
+
+      expect(body.containsKey('available'), isFalse);
     });
 
     test('omits availability and make-an-offer when unset', () {
@@ -71,57 +98,64 @@ void main() {
       expect(body['colors'], isNot(contains('Y')));
     });
 
-    test('maps enhancement, fancy grey, and rough source to filters API values',
-        () {
-      final body = DiamondSearchRequestMapper.toBody(
-        filters: const DiamondFilterState(
-          isFancyColor: true,
-          selectedFancyColors: ['Grey', 'Multi'],
-          selectedIntensities: ['Fancy Vivid'],
-          selectedOvertones: ['Yellowish'],
-          selectedEnhancement: 'HPHT (Treatment)',
-          selectedRoughSource: 'Canadian',
-          selectedOrigin: 'South Africa',
-          selectedFluorescence: ['Very Strong'],
-        ),
-        catalog: DiamondCatalogType.natural,
-        page: 1,
-      );
+    test(
+      'maps enhancement, fancy grey, and rough source to filters API values',
+      () {
+        final body = DiamondSearchRequestMapper.toBody(
+          filters: const DiamondFilterState(
+            isFancyColor: true,
+            selectedFancyColors: ['Grey', 'Multi'],
+            selectedIntensities: ['Fancy Vivid'],
+            selectedOvertones: ['Yellowish'],
+            selectedEnhancements: ['HPHT (Treatment)', 'None (Treatment)'],
+            selectedRoughSources: ['Canadian', 'Russian'],
+            selectedOrigins: ['South Africa', 'Botswana'],
+            selectedFluorescenceColors: ['Blue', 'None'],
+            selectedFluorescence: ['Very Strong'],
+          ),
+          catalog: DiamondCatalogType.natural,
+          page: 1,
+        );
 
-      expect(body['fancy_colors'], ['gray', 'other']);
-      expect(body['fancy_intensities'], ['fancy vivid']);
-      expect(body['fancy_overtones'], ['yellowish']);
-      expect(body['treatments'], ['hpht']);
-      expect(body['rough_sources'], ['canada']);
-      expect(body['origins'], ['south africa']);
-      expect(body['fluorescence'], ['Very Strong']);
-    });
+        expect(body['fancy_colors'], ['gray', 'other']);
+        expect(body['fancy_intensities'], ['fancy vivid']);
+        expect(body['fancy_overtones'], ['yellowish']);
+        expect(body['treatments'], ['hpht']);
+        expect(body['rough_sources'], ['canada', 'russia']);
+        expect(body['origins'], ['south africa', 'botswana']);
+        expect(body['fluorescence_colors'], ['blue']);
+        expect(body['fluorescence'], ['Very Strong']);
+      },
+    );
 
-    test('sends narrowed length width height and ratio measurement columns', () {
-      final body = DiamondSearchRequestMapper.toBody(
-        filters: const DiamondFilterState(
-          minLength: 5,
-          maxLength: 6,
-          minWidth: 4,
-          maxWidth: 5.5,
-          minHeight: 3,
-          maxHeight: 4,
-          minRatio: 1.0,
-          maxRatio: 1.1,
-        ),
-        catalog: DiamondCatalogType.natural,
-        page: 1,
-      );
+    test(
+      'sends narrowed length width height and ratio measurement columns',
+      () {
+        final body = DiamondSearchRequestMapper.toBody(
+          filters: const DiamondFilterState(
+            minLength: 5,
+            maxLength: 6,
+            minWidth: 4,
+            maxWidth: 5.5,
+            minHeight: 3,
+            maxHeight: 4,
+            minRatio: 1.0,
+            maxRatio: 1.1,
+          ),
+          catalog: DiamondCatalogType.natural,
+          page: 1,
+        );
 
-      expect(body['length_min'], 5);
-      expect(body['length_max'], 6);
-      expect(body['width_min'], 4);
-      expect(body['width_max'], 5.5);
-      expect(body['height_min'], 3);
-      expect(body['height_max'], 4);
-      expect(body['ratio_min'], 1.0);
-      expect(body['ratio_max'], 1.1);
-    });
+        expect(body['length_min'], 5);
+        expect(body['length_max'], 6);
+        expect(body['width_min'], 4);
+        expect(body['width_max'], 5.5);
+        expect(body['height_min'], 3);
+        expect(body['height_max'], 4);
+        expect(body['ratio_min'], 1.0);
+        expect(body['ratio_max'], 1.1);
+      },
+    );
 
     test('omits measurement keys on full default ranges', () {
       final body = DiamondSearchRequestMapper.toBody(

@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_spacing.dart';
 import 'filter_group_card.dart';
-import 'filter_quick_range_chip.dart';
 import 'filter_range_slider.dart';
 import '../../../core/utils/app_currency.dart';
 
 /// Standard (non-melee) catalog range filters shared by diamond and gemstone search.
 ///
-/// Renders Total Price, Total Carat (+ quick-select chips), and Price / Carat.
+/// Renders Total Price, Total Carat and Price / Carat, each with a drag bar.
 class CatalogStandardRangeFilters extends StatelessWidget {
   const CatalogStandardRangeFilters({
     required this.totalPriceMin,
@@ -20,9 +19,6 @@ class CatalogStandardRangeFilters extends StatelessWidget {
     required this.totalCaratMax,
     required this.totalCaratLimits,
     required this.onTotalCaratChanged,
-    required this.caratQuickRanges,
-    required this.selectedCaratQuickRanges,
-    required this.onToggleCaratQuickRange,
     required this.pricePerCaratMin,
     required this.pricePerCaratMax,
     required this.pricePerCaratLimits,
@@ -40,10 +36,6 @@ class CatalogStandardRangeFilters extends StatelessWidget {
   final double totalCaratMax;
   final (double, double) totalCaratLimits;
   final void Function(double min, double max) onTotalCaratChanged;
-
-  final List<Map<String, double>> caratQuickRanges;
-  final List<int> selectedCaratQuickRanges;
-  final ValueChanged<int> onToggleCaratQuickRange;
 
   final double pricePerCaratMin;
   final double pricePerCaratMax;
@@ -80,22 +72,6 @@ class CatalogStandardRangeFilters extends StatelessWidget {
             onChanged: onTotalCaratChanged,
             onClear: () =>
                 onTotalCaratChanged(totalCaratLimits.$1, totalCaratLimits.$2),
-          ),
-          const SizedBox(height: AppSpacing.s12),
-          Wrap(
-            alignment: WrapAlignment.start,
-            crossAxisAlignment: WrapCrossAlignment.start,
-            spacing: AppSpacing.s8,
-            runSpacing: AppSpacing.s8,
-            children: List.generate(caratQuickRanges.length, (index) {
-              final range = caratQuickRanges[index];
-              final label = '${range['min']} - ${range['max']}';
-              return FilterQuickRangeChip(
-                label: label,
-                isSelected: selectedCaratQuickRanges.contains(index),
-                onTap: () => onToggleCaratQuickRange(index),
-              );
-            }),
           ),
           const SizedBox(height: AppSpacing.s20),
           FilterRangeSlider(

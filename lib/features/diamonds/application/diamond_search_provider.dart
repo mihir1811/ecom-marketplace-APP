@@ -115,11 +115,15 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     } else {
       current.add(fluorescence);
     }
-    state = state.copyWith(selectedFluorescence: List<String>.unmodifiable(current));
+    state = state.copyWith(
+      selectedFluorescence: List<String>.unmodifiable(current),
+    );
   }
 
-  void updateFluorescenceColor(String? color) {
-    state = state.copyWith(selectedFluorescenceColor: color);
+  void setFluorescenceColors(List<String> colors) {
+    state = state.copyWith(
+      selectedFluorescenceColors: List<String>.unmodifiable(colors),
+    );
   }
 
   void toggleMilkyGrade(String grade) {
@@ -129,15 +133,21 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     } else {
       current.add(grade);
     }
-    state = state.copyWith(selectedMilkyGrades: List<String>.unmodifiable(current));
+    state = state.copyWith(
+      selectedMilkyGrades: List<String>.unmodifiable(current),
+    );
   }
 
-  void updateEnhancement(String? value) {
-    state = state.copyWith(selectedEnhancement: value);
+  void setEnhancements(List<String> values) {
+    state = state.copyWith(
+      selectedEnhancements: List<String>.unmodifiable(values),
+    );
   }
 
-  void updateRoughSource(String? value) {
-    state = state.copyWith(selectedRoughSource: value);
+  void setRoughSources(List<String> values) {
+    state = state.copyWith(
+      selectedRoughSources: List<String>.unmodifiable(values),
+    );
   }
 
   void updateCompanyNameSearch(String? value) {
@@ -146,23 +156,27 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     addCompanyName(name);
   }
 
-  void addCompanyName(String value) {
+  /// Adds a company to the include list, or to the exclude list when
+  /// [exclude] is set. A name lives in at most one of the two lists.
+  void addCompanyName(String value, {bool exclude = false}) {
     final name = value.trim();
     if (name.isEmpty) return;
-    final exists = state.companyNames.any(
-      (item) => item.toLowerCase() == name.toLowerCase(),
+    final (include, excluded) = _addToSide(
+      name,
+      include: state.companyNames,
+      exclude: state.excludedCompanyNames,
+      toExclude: exclude,
     );
-    if (exists) return;
     state = state.copyWith(
-      companyNames: List<String>.unmodifiable([...state.companyNames, name]),
+      companyNames: include,
+      excludedCompanyNames: excluded,
     );
   }
 
   void removeCompanyName(String value) {
     state = state.copyWith(
-      companyNames: List<String>.unmodifiable(
-        state.companyNames.where((item) => item != value),
-      ),
+      companyNames: _without(state.companyNames, value),
+      excludedCompanyNames: _without(state.excludedCompanyNames, value),
     );
   }
 
@@ -172,23 +186,47 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     addVendorLocation(loc);
   }
 
-  void addVendorLocation(String value) {
+  /// Location counterpart of [addCompanyName].
+  void addVendorLocation(String value, {bool exclude = false}) {
     final loc = value.trim();
     if (loc.isEmpty) return;
-    final exists = state.vendorLocations.any(
-      (item) => item.toLowerCase() == loc.toLowerCase(),
+    final (include, excluded) = _addToSide(
+      loc,
+      include: state.vendorLocations,
+      exclude: state.excludedVendorLocations,
+      toExclude: exclude,
     );
-    if (exists) return;
     state = state.copyWith(
-      vendorLocations: List<String>.unmodifiable([...state.vendorLocations, loc]),
+      vendorLocations: include,
+      excludedVendorLocations: excluded,
     );
   }
 
   void removeVendorLocation(String value) {
     state = state.copyWith(
-      vendorLocations: List<String>.unmodifiable(
-        state.vendorLocations.where((item) => item != value),
-      ),
+      vendorLocations: _without(state.vendorLocations, value),
+      excludedVendorLocations: _without(state.excludedVendorLocations, value),
+    );
+  }
+
+  static List<String> _without(List<String> list, String value) =>
+      List<String>.unmodifiable(list.where((item) => item != value));
+
+  /// Puts [value] on the requested side, dropping any case-insensitive
+  /// duplicate from either side first.
+  static (List<String>, List<String>) _addToSide(
+    String value, {
+    required List<String> include,
+    required List<String> exclude,
+    required bool toExclude,
+  }) {
+    bool same(String item) => item.toLowerCase() == value.toLowerCase();
+    final nextInclude = [...include.where((i) => !same(i))];
+    final nextExclude = [...exclude.where((i) => !same(i))];
+    (toExclude ? nextExclude : nextInclude).add(value);
+    return (
+      List<String>.unmodifiable(nextInclude),
+      List<String>.unmodifiable(nextExclude),
     );
   }
 
@@ -294,12 +332,16 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
         current.add(allColors[i]);
       }
     }
-    state = state.copyWith(selectedStandardColors: List<String>.unmodifiable(current));
+    state = state.copyWith(
+      selectedStandardColors: List<String>.unmodifiable(current),
+    );
   }
 
   void selectAllStandardColors() {
     state = state.copyWith(
-      selectedStandardColors: List<String>.unmodifiable(DiamondFilterState.colors),
+      selectedStandardColors: List<String>.unmodifiable(
+        DiamondFilterState.colors,
+      ),
     );
   }
 
@@ -314,7 +356,9 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     } else {
       current.add(color);
     }
-    state = state.copyWith(selectedFancyColors: List<String>.unmodifiable(current));
+    state = state.copyWith(
+      selectedFancyColors: List<String>.unmodifiable(current),
+    );
   }
 
   void toggleOvertone(String overtone) {
@@ -324,7 +368,9 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     } else {
       current.add(overtone);
     }
-    state = state.copyWith(selectedOvertones: List<String>.unmodifiable(current));
+    state = state.copyWith(
+      selectedOvertones: List<String>.unmodifiable(current),
+    );
   }
 
   void toggleIntensity(String intensity) {
@@ -334,7 +380,9 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     } else {
       current.add(intensity);
     }
-    state = state.copyWith(selectedIntensities: List<String>.unmodifiable(current));
+    state = state.copyWith(
+      selectedIntensities: List<String>.unmodifiable(current),
+    );
   }
 
   void toggleNoBgm() {
@@ -367,18 +415,47 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
         current.add(allClarities[i]);
       }
     }
-    state = state.copyWith(selectedClarityGrades: List<String>.unmodifiable(current));
+    state = state.copyWith(
+      selectedClarityGrades: List<String>.unmodifiable(current),
+    );
   }
+
+  /// Adds or removes a single clarity grade.
+  void toggleClarityGrade(String grade) {
+    final current = {...state.selectedClarityGrades};
+    if (!current.remove(grade)) current.add(grade);
+    state = state.copyWith(selectedClarityGrades: _orderedClarities(current));
+  }
+
+  /// Selects every grade in [group], or clears them when all are selected.
+  void toggleClarityGroup(List<String> group) {
+    final current = {...state.selectedClarityGrades};
+    if (group.every(current.contains)) {
+      current.removeAll(group);
+    } else {
+      current.addAll(group);
+    }
+    state = state.copyWith(selectedClarityGrades: _orderedClarities(current));
+  }
+
+  static List<String> _orderedClarities(Set<String> picked) =>
+      List<String>.unmodifiable(
+        DiamondFilterState.clarities.where(picked.contains),
+      );
 
   void removeClarityGrade(String grade) {
     final current = List<String>.from(state.selectedClarityGrades);
     current.remove(grade);
-    state = state.copyWith(selectedClarityGrades: List<String>.unmodifiable(current));
+    state = state.copyWith(
+      selectedClarityGrades: List<String>.unmodifiable(current),
+    );
   }
 
   void selectAllClarityGrades() {
     state = state.copyWith(
-      selectedClarityGrades: List<String>.unmodifiable(DiamondFilterState.clarities),
+      selectedClarityGrades: List<String>.unmodifiable(
+        DiamondFilterState.clarities,
+      ),
     );
   }
 
@@ -446,9 +523,12 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     state = state.copyWith(searchByMedia: !state.searchByMedia);
   }
 
-  void updateAvailability(String? value) {
-    final next = (value == null || value.trim().isEmpty) ? 'All' : value.trim();
-    state = state.copyWith(selectedAvailability: next);
+  void setAvailabilities(List<String> values) {
+    state = state.copyWith(
+      selectedAvailabilities: List<String>.unmodifiable(
+        values.where((v) => v != 'All'),
+      ),
+    );
   }
 
   void toggleMakeAnOffer() {
@@ -536,15 +616,21 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
     state = state.copyWith(selectedCulets: const []);
   }
 
-  void updateOriginCountry(String? country) {
-    state = state.copyWith(selectedOrigin: country);
+  void setOrigins(List<String> countries) {
+    state = state.copyWith(
+      selectedOrigins: List<String>.unmodifiable(countries),
+    );
   }
 
   List<String> _computePresetsFromSelection(Set<int> selected) {
     final active = <String>[];
     for (final entry in SieveSize.lotTypePresets.entries) {
-      final rangeIndices = SieveSize.indicesInRange(entry.value[0], entry.value[1]);
-      if (rangeIndices.isNotEmpty && rangeIndices.every((i) => selected.contains(i))) {
+      final rangeIndices = SieveSize.indicesInRange(
+        entry.value[0],
+        entry.value[1],
+      );
+      if (rangeIndices.isNotEmpty &&
+          rangeIndices.every((i) => selected.contains(i))) {
         active.add(entry.key);
       }
     }
@@ -692,7 +778,10 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
   }
 
   void clearSymmetry() {
-    state = state.copyWith(selectedSymmetry: const [], selectedFinishPreset: []);
+    state = state.copyWith(
+      selectedSymmetry: const [],
+      selectedFinishPreset: [],
+    );
   }
 
   void clearFluorescence() {
@@ -709,9 +798,10 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
 }
 
 /// Global provider for accessing and modifying the diamond search criteria state.
-final diamondSearchProvider = NotifierProvider<DiamondSearchNotifier, DiamondFilterState>(
-  DiamondSearchNotifier.new,
-);
+final diamondSearchProvider =
+    NotifierProvider<DiamondSearchNotifier, DiamondFilterState>(
+      DiamondSearchNotifier.new,
+    );
 
 /// Derived provider that calculates matching diamond count from filter state.
 /// Must be overridden (with [computeMatchingCount]) in any scope that
@@ -758,9 +848,10 @@ int computeMatchingCount(Ref ref) {
 
   if (state.selectedClarityGrades.isNotEmpty) {
     multiplier *= (state.selectedClarityGrades.length / 12.0).clamp(0.08, 1.0);
-    } else {
-      final claritySpan = (state.maxClarityIndex - state.minClarityIndex).toDouble() + 1;
-      multiplier *= (claritySpan / 12.0).clamp(0.09, 1.0);
+  } else {
+    final claritySpan =
+        (state.maxClarityIndex - state.minClarityIndex).toDouble() + 1;
+    multiplier *= (claritySpan / 12.0).clamp(0.09, 1.0);
   }
 
   if (state.selectedCuts.isNotEmpty) {
@@ -776,16 +867,19 @@ int computeMatchingCount(Ref ref) {
   if (state.selectedFluorescence.isNotEmpty) {
     multiplier *= (state.selectedFluorescence.length / 5.0).clamp(0.25, 1.0);
   }
-  if (state.selectedFluorescenceColor != null && state.selectedFluorescenceColor != 'None') {
+  if (state.selectedFluorescenceColors.any((c) => c != 'None')) {
     multiplier *= 0.85;
   }
   if (state.selectedMilkyGrades.isNotEmpty) {
-    multiplier *= (0.9 - (state.selectedMilkyGrades.length * 0.15)).clamp(0.1, 1.0);
+    multiplier *= (0.9 - (state.selectedMilkyGrades.length * 0.15)).clamp(
+      0.1,
+      1.0,
+    );
   }
-  if (state.selectedEnhancement != null && !state.selectedEnhancement!.startsWith('None')) {
+  if (state.selectedEnhancements.any((e) => !e.startsWith('None'))) {
     multiplier *= 0.40;
   }
-  if (state.selectedRoughSource != null) {
+  if (state.selectedRoughSources.isNotEmpty) {
     multiplier *= 0.75;
   }
   if (state.companyNames.isNotEmpty) {
@@ -794,7 +888,9 @@ int computeMatchingCount(Ref ref) {
   if (state.vendorLocations.isNotEmpty) {
     multiplier *= 0.60;
   }
-  if (state.selectedOrigin != null) {
+  if (state.excludedCompanyNames.isNotEmpty) multiplier *= 0.90;
+  if (state.excludedVendorLocations.isNotEmpty) multiplier *= 0.90;
+  if (state.selectedOrigins.isNotEmpty) {
     multiplier *= 0.90;
   }
 
@@ -812,7 +908,7 @@ int computeMatchingCount(Ref ref) {
   if (state.noBgm) multiplier *= 0.70;
   if (state.eyeClean) multiplier *= 0.80;
   if (state.makeAnOffer) multiplier *= 0.55;
-  if (state.selectedAvailability != 'All') multiplier *= 0.70;
+  if (state.selectedAvailabilities.isNotEmpty) multiplier *= 0.70;
 
   if (state.minSellerRating > 0.0) {
     multiplier *= (1.0 - (state.minSellerRating * 0.15)).clamp(0.4, 1.0);

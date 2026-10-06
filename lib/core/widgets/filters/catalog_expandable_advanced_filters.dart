@@ -124,14 +124,6 @@ class _CatalogExpandableAdvancedFiltersState
                 infoDiagram: chips.infoDiagram,
               ),
             ],
-            const SizedBox(height: AppSpacing.s16),
-            _ToggleBar(
-              label: context.tr(CatalogL10n.hideAdvancedFilters),
-              icon: Icons.keyboard_arrow_up,
-              fontSize: 14,
-              verticalPadding: 10,
-              onTap: () => setState(() => _isExpanded = false),
-            ),
           ],
         ],
       ),
@@ -145,14 +137,12 @@ class _ToggleBar extends StatelessWidget {
     required this.icon,
     required this.onTap,
     required this.fontSize,
-    this.verticalPadding = 12,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onTap;
   final double fontSize;
-  final double verticalPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +150,7 @@ class _ToggleBar extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: verticalPadding),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.bg(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),

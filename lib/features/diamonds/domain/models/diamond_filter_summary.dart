@@ -3,11 +3,11 @@ import 'diamond_filter_state.dart';
 /// Finder sections, in screen order.
 enum DiamondFinderSection {
   shape,
+  listing,
   sizePrice,
   colorClarity,
   grading,
   inclusions,
-  listing,
   seller,
   measurements,
   proportions,
@@ -36,7 +36,6 @@ class DiamondFilterSummary {
             d.minPricePerCarat,
             d.maxPricePerCarat,
           ) +
-          s.selectedCaratQuickRanges.length +
           s.selectedSieveIndices.length +
           range(
             s.minCaratPerPcs,
@@ -78,19 +77,21 @@ class DiamondFilterSummary {
           flag(s.heartAndArrow) +
           s.selectedMilkyGrades.length +
           s.selectedFluorescence.length +
-          flag(s.selectedFluorescenceColor != null) +
-          flag(s.selectedEnhancement != null),
+          s.selectedFluorescenceColors.length +
+          s.selectedEnhancements.length,
       DiamondFinderSection.listing:
           flag(s.searchByMedia) +
           flag(s.makeAnOffer) +
           flag(s.separable) +
-          flag(s.selectedAvailability != d.selectedAvailability) +
+          s.selectedAvailabilities.length +
           s.selectedGrowthMethods.length,
       DiamondFinderSection.seller:
           s.vendorLocations.length +
           s.companyNames.length +
-          flag(s.selectedOrigin != null) +
-          flag(s.selectedRoughSource != null) +
+          s.excludedVendorLocations.length +
+          s.excludedCompanyNames.length +
+          s.selectedOrigins.length +
+          s.selectedRoughSources.length +
           flag(s.minSellerRating != d.minSellerRating),
       DiamondFinderSection.measurements:
           range(s.minLength, s.maxLength, d.minLength, d.maxLength) +
