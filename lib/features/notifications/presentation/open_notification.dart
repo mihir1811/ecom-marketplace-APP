@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/result.dart';
 import '../../../core/router/app_navigation.dart';
-import '../../../core/router/route_names.dart';
+import '../../../core/router/workspace_mode.dart';
 import '../application/notifications_provider.dart';
 import '../data/repositories/notification_repository_impl.dart';
 import '../domain/models/app_notification.dart';
@@ -33,10 +33,11 @@ Future<String?> openNotification(
   switch (target) {
     case NotificationStay():
       if (fallbackToInbox && auth.isAuthenticated) {
+        // Stay on the side the user is on.
         context.switchToRoute(
-          auth.isSeller
-              ? AppRouteNames.sellerNotifications
-              : AppRouteNames.buyerNotifications,
+          notificationsRouteFor(
+            auth.isSeller ? currentWorkspace(context) : AppWorkspace.buyer,
+          ),
         );
       }
     case NotificationInApp(:final route):

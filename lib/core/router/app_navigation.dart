@@ -13,15 +13,12 @@ abstract final class AppNavigation {
     AppRouteNames.resetPassword,
     AppRouteNames.recoverAccount,
   };
+
   /// Opens [location], reusing an existing stack entry when that path is already open.
   ///
   /// Use for detail / flow screens that should stack. Prefer [switchTo] for
   /// drawer / shell peer destinations so back never walks blank intermediate pages.
-  static void open(
-    BuildContext context,
-    String location, {
-    Object? extra,
-  }) {
+  static void open(BuildContext context, String location, {Object? extra}) {
     final router = GoRouter.of(context);
     final target = canonicalPath(location);
     final stack = _stackPaths(router);
@@ -42,11 +39,7 @@ abstract final class AppNavigation {
   }
 
   /// Replaces the current location without pushing (drawer / tab / shell peers).
-  static void switchTo(
-    BuildContext context,
-    String location, {
-    Object? extra,
-  }) {
+  static void switchTo(BuildContext context, String location, {Object? extra}) {
     final router = GoRouter.of(context);
     final target = canonicalPath(location);
     final current = canonicalPath(
@@ -61,8 +54,10 @@ abstract final class AppNavigation {
   /// Empty-stack order:
   /// 1. Optional [fallbackLocation] (e.g. auth sub-screens → login)
   /// 2. Auth recovery screens → login
-  /// 3. Any non-home / non-login route → home
-  /// 4. Home or login → exit confirmation dialog (never exits silently)
+  /// 3. Logical parent ([logicalParentOf]): detail → its list, seller tool →
+  ///    seller dashboard
+  /// 4. Any non-home / non-login route → home
+  /// 5. Home or login → exit confirmation dialog (never exits silently)
   static Future<void> back(
     BuildContext context, {
     String? fallbackLocation,
@@ -90,6 +85,12 @@ abstract final class AppNavigation {
       return;
     }
 
+    final parent = logicalParentOf(path);
+    if (parent != null) {
+      router.go(parent);
+      return;
+    }
+
     if (path != AppRouteNames.home && path != AppRouteNames.login) {
       router.go(AppRouteNames.home);
       return;
@@ -99,12 +100,34 @@ abstract final class AppNavigation {
   }
 
   /// Replaces the entire stack (logout, auth completion, gate redirects).
-  static void resetTo(
-    BuildContext context,
-    String location, {
-    Object? extra,
-  }) {
+  static void resetTo(BuildContext context, String location, {Object? extra}) {
     GoRouter.of(context).go(location, extra: extra);
+  }
+
+  /// List pages whose children are detail / flow screens.
+  static const _listParents = <String>[
+    AppRouteNames.buyerOrders,
+    AppRouteNames.buyerInquiries,
+    AppRouteNames.buyerMessages,
+    AppRouteNames.sellerOrders,
+    AppRouteNames.sellerProducts,
+    AppRouteNames.sellerInquiries,
+    AppRouteNames.sellerChat,
+  ];
+
+  /// The screen one level "up" from [location], used when there is no
+  /// history to pop (deep links, notification taps, after switching side).
+  ///
+  /// Returns null when the natural parent is home.
+  static String? logicalParentOf(String location) {
+    final path = canonicalPath(location);
+    for (final parent in _listParents) {
+      if (path.startsWith('$parent/')) return parent;
+    }
+    if (path.startsWith('/seller/') && path != AppRouteNames.sellerDashboard) {
+      return AppRouteNames.sellerDashboard;
+    }
+    return null;
   }
 
   static String canonicalPath(String location) {

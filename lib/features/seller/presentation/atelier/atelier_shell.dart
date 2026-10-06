@@ -8,9 +8,10 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/router/workspace_mode.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
-import '../../../cart/application/cart_provider.dart';
+import '../../../../core/widgets/navigation/workspace_switch.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../notifications/application/notifications_provider.dart';
 import '../../application/seller_orders_provider.dart';
@@ -88,10 +89,11 @@ int _pendingOrders(WidgetRef ref) {
   return pending.asData?.value.total ?? 0;
 }
 
-/// Workspace app bar: page title in serif, quiet circular actions.
+/// Workspace app bar: menu / back, quiet circular actions, and the
+/// "⇄ Buyer" switch on every top-level page. No page title — the dock,
+/// rail and drawer already mark where the user is.
 class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
   const AtelierTopBar({
-    required this.title,
     required this.showBack,
     required this.onBack,
     required this.location,
@@ -99,7 +101,6 @@ class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
     super.key,
   });
 
-  final String title;
   final String location;
   final bool showBack;
   final VoidCallback onBack;
@@ -114,7 +115,6 @@ class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final p = context.atelier;
     final unread = ref.watch(notificationUnreadCountProvider);
-    final cartCount = ref.watch(cartItemCountProvider);
     final chatUnread = ref.watch(chatHasUnreadProvider);
     final dark = ref.watch(themePreferenceProvider);
 
@@ -140,39 +140,16 @@ class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
                 else
                   Builder(
                     builder: (context) => AtelierIconButton(
-                      icon: Icons.notes_rounded,
+                      icon: Icons.menu_rounded,
                       tooltip: context.tr(RemainingL10n.menu),
                       onPressed: () => openAppDrawer(context),
                       filled: true,
                     ),
                   ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: AtelierMotion.base,
-                    switchInCurve: AtelierMotion.emphasized,
-                    transitionBuilder: (child, a) => FadeTransition(
-                      opacity: a,
-                      child: SlideTransition(
-                        position: Tween(
-                          begin: const Offset(0, 0.25),
-                          end: Offset.zero,
-                        ).animate(a),
-                        child: child,
-                      ),
-                    ),
-                    child: Align(
-                      key: ValueKey(title),
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AtelierType.display(p.ink, size: 24),
-                      ),
-                    ),
-                  ),
-                ),
+                const Spacer(),
+                // Same slot as the buyer bars: first trailing control.
+                if (!showBack)
+                  const WorkspaceSwitchPill(target: AppWorkspace.buyer),
                 AtelierIconButton(
                   icon: unread > 0
                       ? Icons.notifications_rounded
@@ -199,12 +176,6 @@ class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
                     onPressed: () =>
                         context.switchToRoute(AppRouteNames.sellerWallet),
                   ),
-                AtelierIconButton(
-                  icon: Icons.shopping_bag_outlined,
-                  tooltip: context.tr(CoreL10n.cart),
-                  badgeCount: cartCount,
-                  onPressed: () => context.openRoute(AppRouteNames.cart),
-                ),
                 AtelierIconButton(
                   icon: dark
                       ? Icons.light_mode_outlined

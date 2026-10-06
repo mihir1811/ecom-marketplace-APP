@@ -28,9 +28,7 @@ class CatalogFlowActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(
-      authProvider.select(
-        (s) => (signedIn: s.isAuthenticated, seller: s.isSeller),
-      ),
+      authProvider.select((s) => (signedIn: s.isAuthenticated)),
     );
     final cartCount = auth.signedIn ? ref.watch(cartItemCountProvider) : 0;
     final unread = auth.signedIn
@@ -56,11 +54,9 @@ class CatalogFlowActions extends ConsumerWidget {
             size: 40,
             glass: glass,
             badge: unread,
-            onPressed: () => context.switchToRoute(
-              auth.seller
-                  ? AppRouteNames.sellerNotifications
-                  : AppRouteNames.buyerNotifications,
-            ),
+            // Catalog pages are the buyer side; stay on it.
+            onPressed: () =>
+                context.switchToRoute(AppRouteNames.buyerNotifications),
           ),
           const SizedBox(width: 6),
           LuxeIconButton(

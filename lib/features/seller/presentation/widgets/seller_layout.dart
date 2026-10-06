@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
-import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
@@ -108,15 +107,20 @@ class SellerLayout extends ConsumerWidget {
       );
     }
 
+    final backFallback = _backFallback(
+      selectedRoute,
+      pending: authState.isVerificationPending,
+    );
+
     return PopScope(
-      // Drawer peers use `go` (no stack). Intercept system back so the app
-      // returns home (or confirms exit on a terminal route) instead of
-      // exiting silently.
+      // Drawer / dock peers use `go` (no stack). With nothing to pop, back
+      // goes one level up: detail → its list, any tool → dashboard,
+      // dashboard → home. It never exits the app silently.
       canPop: canPop,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (!context.mounted) return;
-        context.goBack();
+        context.goBack(fallbackLocation: backFallback);
       },
       child: AppScaffold(
         drawer: SellerDrawer(selectedRoute: selectedRoute),
@@ -124,14 +128,14 @@ class SellerLayout extends ConsumerWidget {
         appBar: ownsOwnAppBar
             ? null
             : AtelierTopBar(
-                title: _shellTitleFor(context, selectedRoute),
                 location: selectedRoute,
                 showBack: isDetail,
-                onBack: () => context.goBack(),
+                onBack: () => context.goBack(fallbackLocation: backFallback),
                 // Wallet is a dock / rail destination; keep it reachable
-                // from the bar wherever neither is shown.
+                // from the bar on detail pages, where the dock is hidden.
+                // (Not tied to the keyboard, so icons never jump while typing.)
                 showWalletAction:
-                    !useRail && !useDock && !authState.isVerificationPending,
+                    !useRail && isDetail && !authState.isVerificationPending,
               ),
         bottomNavigationBar: useDock
             ? SellerDock(destinations: destinations, location: selectedRoute)
@@ -146,6 +150,16 @@ class SellerLayout extends ConsumerWidget {
       if (!context.mounted) return;
       context.resetTo(AppRouteNames.home);
     });
+  }
+
+  /// Where back leads when there is no history to pop.
+  static String _backFallback(String route, {required bool pending}) {
+    final parent = AppNavigation.logicalParentOf(route);
+    if (parent == null) return AppRouteNames.home;
+    if (parent == AppRouteNames.sellerDashboard && pending) {
+      return AppRouteNames.home;
+    }
+    return parent;
   }
 
   static bool _isAllowedWhilePending(String route) {
@@ -176,43 +190,5 @@ class SellerLayout extends ConsumerWidget {
 
   static bool _isNestedUnder(String route, String parent) {
     return route.startsWith('$parent/') && route != parent;
-  }
-
-  static String _shellTitleFor(BuildContext context, String route) {
-    const exactTitles = <String, String>{
-      AppRouteNames.sellerDashboard: RemainingL10n.dashboard,
-      AppRouteNames.sellerProducts: RemainingL10n.products,
-      AppRouteNames.sellerOrders: RemainingL10n.orders,
-      AppRouteNames.sellerWallet: RemainingL10n.wallet,
-      AppRouteNames.sellerInquiries: RemainingL10n.inquiries,
-      AppRouteNames.sellerInquiryNew: RemainingL10n.productInquiry,
-      AppRouteNames.sellerOffers: RemainingL10n.offers,
-      AppRouteNames.sellerAuctions: RemainingL10n.myAuctions,
-      AppRouteNames.sellerAnalytics: RemainingL10n.analytics,
-      AppRouteNames.sellerChat: CoreL10n.messages,
-      AppRouteNames.sellerHelpCenter: RemainingL10n.helpCenter,
-      AppRouteNames.sellerReferences: RemainingL10n.references,
-      AppRouteNames.sellerPromotions: RemainingL10n.promotions,
-      AppRouteNames.sellerProfile: RemainingL10n.profile,
-      AppRouteNames.sellerLoginHistory: RemainingL10n.loginHistory,
-      AppRouteNames.sellerApiKeys: RemainingL10n.apiKeys,
-    };
-
-    final exactKey = exactTitles[route];
-    if (exactKey != null) return context.tr(exactKey);
-
-    if (_isNestedUnder(route, AppRouteNames.sellerInquiries)) {
-      return context.tr(RemainingL10n.inquiryDetails);
-    }
-    if (_isNestedUnder(route, AppRouteNames.sellerChat)) {
-      return context.tr(RemainingL10n.chat);
-    }
-    if (_isNestedUnder(route, AppRouteNames.sellerOrders)) {
-      return context.tr(AccountCommerceL10n.orderDetails);
-    }
-    if (_isProductEditRoute(route)) {
-      return context.tr(RemainingL10n.editProduct);
-    }
-    return context.tr(CatalogL10n.seller);
   }
 }

@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
-import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/app_system_back_scope.dart';
+import '../../../../core/widgets/navigation/start_selling_flow.dart';
 import '../../../ai_chat/application/ai_chat_providers.dart';
 import '../theme/home_tokens.dart';
 import '../widgets/hero/home_hero.dart';
@@ -113,7 +112,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SliverToBoxAdapter(
                     child: HomeSellCard(
                       isAuthenticatedIndividual: auth.isAuthenticated,
-                      onTap: () => _onSellTap(context, ref),
+                      onTap: () => startSellingFlow(context, ref),
                     ),
                   ),
                 const SliverToBoxAdapter(child: HomeFooter()),
@@ -134,34 +133,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-}
-
-Future<void> _onSellTap(BuildContext context, WidgetRef ref) async {
-  final isAuthenticated = ref.read(authProvider).isAuthenticated;
-  if (!isAuthenticated) {
-    context.openRoute('${AppRouteNames.register}?type=business');
-    return;
-  }
-
-  final goRegister = await showAppDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(context.tr(RemainingL10n.sellerAccountRequired)),
-      content: Text(context.tr(RemainingL10n.sellerAccountRequiredBody)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: Text(context.tr(RemainingL10n.notNow)),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: Text(context.tr(RemainingL10n.createSellerAccount)),
-        ),
-      ],
-    ),
-  );
-  if (goRegister != true || !context.mounted) return;
-  await ref.read(authProvider.notifier).logout();
-  if (!context.mounted) return;
-  context.resetTo('${AppRouteNames.register}?type=business');
 }

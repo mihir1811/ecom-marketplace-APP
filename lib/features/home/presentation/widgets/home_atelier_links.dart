@@ -74,7 +74,14 @@ class HomeAtelierLinks extends ConsumerWidget {
         children: [
           ScrollReveal(
             child: Text(
-              context.tr(HomeL10n.atelierTitle).toUpperCase(),
+              // Sellers' shortcuts open the seller workspace — say so.
+              context
+                  .tr(
+                    workspace
+                        ? NavL10n.homeSellerShortcuts
+                        : HomeL10n.atelierTitle,
+                  )
+                  .toUpperCase(),
               style: HomeType.eyebrow(palette.inkMuted),
             ),
           ),

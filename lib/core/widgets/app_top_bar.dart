@@ -6,15 +6,19 @@ import '../auth/auth_providers.dart';
 import '../l10n/app_localizations.dart';
 import '../router/app_navigation.dart';
 import '../router/route_names.dart';
+import '../router/workspace_mode.dart';
 import '../theme/app_colors.dart';
 import '../../features/cart/application/cart_provider.dart';
 import '../../features/chat/application/chat_providers.dart';
 import '../../features/notifications/application/notifications_provider.dart';
 import 'app_bar_actions.dart';
 import 'app_drawer_button.dart';
+import 'navigation/workspace_switch.dart';
 
 /// Reusable top app bar with a fixed trailing action order:
-/// **Notifications → Cart → Wallet → Messages → Theme** (when signed in).
+/// **[⇄ Seller] → Notifications → Cart → Wallet → Messages → Theme**
+/// (when signed in). The switch shows for sellers on top-level buyer pages;
+/// Messages shows on the seller side only.
 ///
 /// [extraActions] always render *before* that standard set.
 class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -75,11 +79,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(
       authProvider.select(
-        (s) => (
-          isAuthenticated: s.isAuthenticated,
-          isSeller: s.isSeller,
-          canTransact: s.canTransact,
-        ),
+        (s) => (isAuthenticated: s.isAuthenticated, isSeller: s.isSeller),
       ),
     );
 
@@ -96,17 +96,31 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
         ? ref.watch(notificationUnreadCountProvider)
         : 0;
 
-    final actions = <Widget>[...extraActions];
+    final location = GoRouterState.of(context).uri.path;
+    // Every bar button stays on the side the user is on — a buyer-side bell
+    // or wallet never drops a seller into the seller workspace.
+    final workspace = workspaceForPath(location);
+    final showBack =
+        leading == null &&
+        (GoRouter.of(context).canPop() || location != AppRouteNames.home);
+    final isTopLevel =
+        leading is AppDrawerButton ||
+        (leading == null && !showBack && showDrawerButton);
+    final showSwitch =
+        authState.isSeller && workspace == AppWorkspace.buyer && isTopLevel;
+
+    final actions = <Widget>[
+      // Same slot on every top-level bar of both sides: first trailing control.
+      if (showSwitch) const WorkspaceSwitchPill(target: AppWorkspace.seller),
+      ...extraActions,
+    ];
 
     if (authState.isAuthenticated) {
       actions.add(
         IconButton(
-          tooltip: 'Notifications',
-          onPressed: () => context.switchToRoute(
-            authState.isSeller
-                ? AppRouteNames.sellerNotifications
-                : AppRouteNames.buyerNotifications,
-          ),
+          tooltip: context.tr(NavL10n.notifications),
+          onPressed: () =>
+              context.switchToRoute(notificationsRouteFor(workspace)),
           icon: Badge(
             isLabelVisible: unreadNotifications > 0,
             label: Text(
@@ -139,29 +153,25 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
             tooltip: context.tr(CoreL10n.wallet),
             onPressed:
                 onSellerWalletTap ??
-                () => context.openRoute(
-                  authState.isSeller && authState.canTransact
-                      ? AppRouteNames.sellerWallet
-                      : AppRouteNames.buyerWallet,
-                ),
+                () => context.openRoute(walletRouteFor(workspace)),
             icon: const Icon(Icons.account_balance_wallet_outlined),
           ),
         );
       }
 
-      // Messages/chat is business (seller) only — individual buyers never see it.
-      if (messagesEnabled && authState.isSeller) {
+      // Messages/chat is business (seller) only and lives in the seller bar;
+      // on the buyer side it is under Drawer › Messages & support, which keeps
+      // room for the Buyer ⇄ Seller switch.
+      if (messagesEnabled &&
+          authState.isSeller &&
+          workspace == AppWorkspace.seller) {
         final hasUnread = ref.watch(chatHasUnreadProvider);
         actions.add(
           IconButton(
             tooltip: context.tr(CoreL10n.messages),
             onPressed:
                 onSellerMessagesTap ??
-                () => context.openRoute(
-                  authState.canTransact
-                      ? AppRouteNames.sellerChat
-                      : AppRouteNames.buyerMessages,
-                ),
+                () => context.openRoute(messagesRouteFor(workspace)),
             icon: Badge(
               isLabelVisible: hasUnread,
               smallSize: 8,
@@ -181,10 +191,6 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
       ),
     );
 
-    final location = GoRouterState.of(context).uri.path;
-    final showBack =
-        leading == null &&
-        (GoRouter.of(context).canPop() || location != AppRouteNames.home);
     final effectiveLeading =
         leading ??
         (showBack

@@ -28,6 +28,12 @@ class BuyerLayout extends ConsumerWidget {
   final Widget child;
   final String? title;
 
+  /// Stacked detail / flow pages show Back instead of the menu button.
+  static bool _isDetailRoute(String route) {
+    final parent = AppNavigation.logicalParentOf(route);
+    return parent != null && parent.startsWith('/buyer/');
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
@@ -38,16 +44,19 @@ class BuyerLayout extends ConsumerWidget {
 
     final hasAppBar = title != null;
     final canPop = GoRouter.of(context).canPop();
+    final location = GoRouterState.of(context).uri.path;
+    // With nothing to pop, back goes one level up (detail → its list,
+    // any account page → home) and never exits the app silently.
+    final backFallback =
+        AppNavigation.logicalParentOf(location) ?? AppRouteNames.home;
+    void goBack() => context.goBack(fallbackLocation: backFallback);
 
     return PopScope(
-      // Drawer destinations use `go` (no stack). Intercept system back so the
-      // app returns home (or confirms exit on a terminal route) instead of
-      // exiting silently.
       canPop: canPop,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (!context.mounted) return;
-        context.goBack();
+        goBack();
       },
       child: AppScaffold(
         backgroundColor: AppColors.bg(context),
@@ -55,18 +64,10 @@ class BuyerLayout extends ConsumerWidget {
         appBar: hasAppBar
             ? AppTopBar(
                 title: title!,
-                leading: const AppDrawerButton(),
+                leading: _isDetailRoute(location)
+                    ? BackButton(onPressed: goBack)
+                    : const AppDrawerButton(),
                 showDrawerButton: false,
-                // Cart → Wallet → Messages → Theme (AppTopBar fixed order)
-                // Messages only for business/seller accounts (not individual).
-                showCart: true,
-                showWallet: true,
-                showMessages: authState.isSeller,
-                showThemeToggle: true,
-                onSellerWalletTap: () =>
-                    context.switchToRoute(AppRouteNames.buyerWallet),
-                onSellerMessagesTap: () =>
-                    context.switchToRoute(AppRouteNames.buyerMessages),
               )
             : null,
         body: child,

@@ -1,115 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../core/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
-import '../../../../core/auth/confirm_sign_out.dart';
-import '../../../../core/router/app_navigation.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/profile_avatar.dart';
+import '../../../../core/router/workspace_mode.dart';
+import '../../../../core/widgets/navigation/app_nav_drawer.dart';
 import '../../../notifications/application/notifications_provider.dart';
 
-/// Buyer-side account drawer (home + buyer screens).
+/// Buyer-side drawer (home, catalog and `/buyer/...` screens).
+///
+/// Mirrors [SellerDrawer]: same header, same Buyer | Seller switch, same
+/// "Messages & support" and "Account" groups, same footer.
 class BuyerDrawer extends ConsumerWidget {
   const BuyerDrawer({super.key});
-
-  static final _buyerItems = <BuyerDrawerItem>[
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerProfile,
-      label: AccountCommerceL10n.myProfileCaps,
-      icon: Icons.person_outline,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerOrders,
-      label: AccountCommerceL10n.orders,
-      icon: Icons.local_shipping_outlined,
-      requiresVerified: true,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerWallet,
-      label: 'Wallet',
-      icon: Icons.account_balance_wallet_outlined,
-      requiresVerified: true,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerRefunds,
-      label: AccountCommerceL10n.refunds,
-      icon: Icons.replay_outlined,
-      requiresVerified: true,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerReferences,
-      label: 'References',
-      icon: Icons.diversity_3_outlined,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerInquiries,
-      label: 'Inquiries',
-      icon: Icons.mail_outline,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerNotifications,
-      label: 'Notifications',
-      icon: Icons.notifications_none,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerHelpCenter,
-      label: AccountCommerceL10n.helpCenterCaps,
-      icon: Icons.help_outline,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.auctions,
-      label: 'Auctions',
-      icon: Icons.gavel_outlined,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.auctionActivity,
-      label: 'My bids',
-      icon: Icons.price_change_outlined,
-      requiresVerified: true,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerWishlist,
-      label: AccountCommerceL10n.myWishlist,
-      icon: Icons.favorite_border,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerRecentlyViewed,
-      label: AccountCommerceL10n.recentlyViewed,
-      icon: Icons.history,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerReviews,
-      label: AccountCommerceL10n.myReviews,
-      icon: Icons.star_outline,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerMessages,
-      label: 'Messages',
-      icon: Icons.chat_bubble_outline,
-      requiresSeller: true,
-      requiresVerified: true,
-    ),
-    const BuyerDrawerItem(
-      route: AppRouteNames.buyerSettings,
-      label: 'Settings',
-      icon: Icons.settings_outlined,
-    ),
-  ];
-
-  static const _sellerDashboardItem = BuyerDrawerItem(
-    route: AppRouteNames.sellerDashboard,
-    label: AccountCommerceL10n.sellerDashboard,
-    icon: Icons.dashboard_outlined,
-    isSellerEntry: true,
-    requiresSeller: true,
-    requiresVerified: true,
-  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -118,205 +23,136 @@ class BuyerDrawer extends ConsumerWidget {
         (s) => (
           user: s.user,
           isSeller: s.isSeller,
-          showProtected: !s.isVerificationPending,
+          verified: !s.isVerificationPending,
         ),
       ),
     );
-    final currentPath = GoRouterState.of(context).uri.path;
     final unread = ref.watch(notificationUnreadCountProvider);
-    final items = <BuyerDrawerItem>[
-      _buyerItems.first,
-      if (auth.isSeller && auth.showProtected) _sellerDashboardItem,
-      ..._buyerItems.skip(1).where((item) {
-        if (item.requiresSeller && !auth.isSeller) return false;
-        if (item.requiresVerified && !auth.showProtected) return false;
-        return true;
-      }),
-    ];
+    final currentPath = GoRouterState.of(context).uri.path;
+    final name = auth.user?.fullName.trim();
 
-    return Drawer(
-      width: 280,
-      backgroundColor: AppColors.card(context),
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.s16),
-              child: Row(
-                children: [
-                  ProfileAvatar(
-                    displayName:
-                        auth.user?.fullName ?? auth.user?.username ?? 'U',
-                    imageUrl: auth.user?.profilePicture,
-                    radius: 22,
-                  ),
-                  const SizedBox(width: AppSpacing.s12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          auth.user?.fullName ??
-                              context.tr(AccountCommerceL10n.accountLabel),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.title.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          auth.isSeller
-                              ? context.tr(
-                                  AccountCommerceL10n.sellerAccountLabel,
-                                )
-                              : context.tr(AccountCommerceL10n.accountLabel),
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textSecondary(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: context.tr(CoreL10n.close),
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                ],
-              ),
+    AppNavItem item(String route, String labelKey, IconData icon) =>
+        AppNavItem(route: route, label: context.tr(labelKey), icon: icon);
+
+    final groups = [
+      AppNavGroup(
+        title: context.tr(NavL10n.groupShopping),
+        items: [
+          if (auth.verified) ...[
+            item(
+              AppRouteNames.buyerOrders,
+              AccountCommerceL10n.orders,
+              Icons.local_shipping_outlined,
             ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  final isSelected =
-                      !item.isSellerEntry &&
-                      (currentPath == item.route ||
-                          currentPath.startsWith('${item.route}/'));
-                  return Material(
-                    color: isSelected
-                        ? AppColors.navSelectedFill(context)
-                        : Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.of(context).maybePop();
-                        context.switchToRoute(item.route);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s16,
-                          vertical: AppSpacing.s12,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              item.icon,
-                              color: isSelected
-                                  ? AppColors.navOnSelected(context)
-                                  : AppColors.textPrimary(context),
-                            ),
-                            const SizedBox(width: AppSpacing.s16),
-                            Expanded(
-                              child: Text(
-                                item.label.startsWith('commerce.') ||
-                                        item.label.startsWith('account.')
-                                    ? context.tr(item.label)
-                                    : item.label,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: isSelected
-                                      ? AppColors.navOnSelected(context)
-                                      : AppColors.textPrimary(context),
-                                ),
-                              ),
-                            ),
-                            if (item.route ==
-                                    AppRouteNames.buyerNotifications &&
-                                unread > 0)
-                              Text(
-                                unread > 99 ? '99+' : '$unread',
-                                style: AppTypography.caption.copyWith(
-                                  color: isSelected
-                                      ? AppColors.navOnSelected(context)
-                                      : AppColors.bronze,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            if (item.isSellerEntry)
-                              Icon(
-                                Icons.open_in_new,
-                                size: 16,
-                                color: isSelected
-                                    ? AppColors.navOnSelected(context)
-                                    : AppColors.textMuted(context),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+            item(
+              AppRouteNames.buyerWallet,
+              CoreL10n.wallet,
+              Icons.account_balance_wallet_outlined,
             ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: Text(
-                context.tr(AccountCommerceL10n.backToShop),
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              onTap: () {
-                Navigator.of(context).maybePop();
-                context.resetTo(AppRouteNames.home);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: AppColors.error),
-              title: Text(
-                context.tr(AccountCommerceL10n.signOut),
-                style: AppTypography.label.copyWith(
-                  color: AppColors.error,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              onTap: () async {
-                final confirmed = await confirmSignOut(context);
-                if (!confirmed || !context.mounted) return;
-                Navigator.of(context).maybePop();
-                ref.read(authProvider.notifier).logout();
-                context.resetTo(AppRouteNames.home);
-              },
+            item(
+              AppRouteNames.buyerRefunds,
+              AccountCommerceL10n.refunds,
+              Icons.replay_outlined,
             ),
           ],
-        ),
+          item(
+            AppRouteNames.buyerWishlist,
+            AccountCommerceL10n.myWishlist,
+            Icons.favorite_border,
+          ),
+          item(
+            AppRouteNames.buyerRecentlyViewed,
+            AccountCommerceL10n.recentlyViewed,
+            Icons.history,
+          ),
+          item(
+            AppRouteNames.buyerReviews,
+            AccountCommerceL10n.myReviews,
+            Icons.star_outline,
+          ),
+        ],
       ),
+      AppNavGroup(
+        title: context.tr(NavL10n.groupAuctions),
+        items: [
+          item(
+            AppRouteNames.auctions,
+            NavL10n.liveAuctions,
+            Icons.gavel_outlined,
+          ),
+          if (auth.verified) ...[
+            item(
+              AppRouteNames.auctionActivity,
+              HomeL10n.myBids,
+              Icons.price_change_outlined,
+            ),
+            item(
+              AppRouteNames.auctionWins,
+              NavL10n.myWins,
+              Icons.emoji_events_outlined,
+            ),
+          ],
+        ],
+      ),
+      AppNavGroup(
+        title: context.tr(NavL10n.groupConversations),
+        items: [
+          if (auth.isSeller && auth.verified)
+            item(
+              AppRouteNames.buyerMessages,
+              CoreL10n.messages,
+              Icons.chat_bubble_outline_rounded,
+            ),
+          AppNavItem(
+            route: AppRouteNames.buyerNotifications,
+            label: context.tr(NavL10n.notifications),
+            icon: Icons.notifications_none_rounded,
+            badge: unread,
+          ),
+          item(
+            AppRouteNames.buyerInquiries,
+            RemainingL10n.inquiries,
+            Icons.forum_outlined,
+          ),
+          item(
+            AppRouteNames.buyerHelpCenter,
+            AccountCommerceL10n.helpCenterCaps,
+            Icons.support_agent_outlined,
+          ),
+        ],
+      ),
+      AppNavGroup(
+        title: context.tr(NavL10n.groupAccount),
+        items: [
+          item(
+            AppRouteNames.buyerProfile,
+            AccountCommerceL10n.myProfileCaps,
+            Icons.person_outline_rounded,
+          ),
+          item(
+            AppRouteNames.buyerReferences,
+            RemainingL10n.references,
+            Icons.diversity_3_outlined,
+          ),
+          item(
+            AppRouteNames.buyerSettings,
+            CoreL10n.settings,
+            Icons.settings_outlined,
+          ),
+        ],
+      ),
+    ];
+
+    return AppNavDrawer(
+      workspace: AppWorkspace.buyer,
+      selectedRoute: currentPath,
+      groups: groups,
+      displayName: (name != null && name.isNotEmpty)
+          ? name
+          : (auth.user?.username ??
+                context.tr(AccountCommerceL10n.accountLabel)),
+      imageUrl: auth.user?.profilePicture,
+      showPendingNotice: !auth.verified,
     );
   }
-}
-
-class BuyerDrawerItem {
-  const BuyerDrawerItem({
-    required this.route,
-    required this.label,
-    required this.icon,
-    this.isSellerEntry = false,
-    this.requiresSeller = false,
-    this.requiresVerified = false,
-  });
-
-  final String route;
-  final String label;
-  final IconData icon;
-  final bool isSellerEntry;
-  final bool requiresSeller;
-  final bool requiresVerified;
 }

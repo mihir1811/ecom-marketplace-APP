@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/result.dart';
 import '../../../core/router/route_names.dart';
+import '../../../core/router/workspace_mode.dart';
 import '../data/repositories/chat_repository_impl.dart';
 import '../domain/models/chat_product_type.dart';
 import '../domain/models/chat_thread.dart';
@@ -35,10 +36,9 @@ Future<void> openProductSellerChat(
     return;
   }
 
-  final result = await ref.read(chatRepositoryProvider).getProductContext(
-        productId: productId,
-        productType: productType,
-      );
+  final result = await ref
+      .read(chatRepositoryProvider)
+      .getProductContext(productId: productId, productType: productType);
 
   if (!context.mounted) return;
 
@@ -60,7 +60,12 @@ Future<void> openProductSellerChat(
         peerUserId: sellerUserId,
       );
 
-      final path = AppRouteNames.sellerChatDetailPath(threadId);
+      // Opened from a product page (buyer side): keep the buyer shell so the
+      // user is not dropped into the seller workspace mid-purchase.
+      final onSellerSide = currentWorkspace(context) == AppWorkspace.seller;
+      final path = onSellerSide
+          ? AppRouteNames.sellerChatDetailPath(threadId)
+          : AppRouteNames.buyerChatDetailPath(threadId);
       await context.push(path);
     case ResultFailure(failure: final failure):
       _snack(context, failure.message);

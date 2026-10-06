@@ -9,8 +9,10 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/router/workspace_mode.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
+import '../../../../core/widgets/navigation/workspace_switch.dart';
 import '../../../cart/application/cart_provider.dart';
 import '../../../notifications/application/notifications_provider.dart';
 import '../theme/home_tokens.dart';
@@ -100,13 +102,6 @@ class _HeaderContent extends ConsumerWidget {
       ),
     );
 
-    final wordmark = Text(
-      'GEMWORLD',
-      style: HomeType.label(
-        foreground,
-        size: 15,
-      ).copyWith(letterSpacing: 5.5, fontWeight: FontWeight.w500),
-    );
     final search = IconButton(
       tooltip: context.tr(HomeL10n.searchPrefix),
       onPressed: onSearch,
@@ -127,7 +122,7 @@ class _HeaderContent extends ConsumerWidget {
               size: 20,
             ),
           ),
-          Expanded(child: wordmark),
+          const Spacer(),
           search,
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -147,15 +142,19 @@ class _HeaderContent extends ConsumerWidget {
           onPressed: () => openAppDrawer(context),
           icon: const Icon(Icons.menu_rounded),
         ),
-        Expanded(child: wordmark),
+        const Spacer(),
+        // Same slot as every other top-level bar: first trailing control.
+        if (auth.isSeller)
+          WorkspaceSwitchPill(
+            target: AppWorkspace.seller,
+            foreground: foreground,
+          ),
         search,
         IconButton(
           tooltip: context.tr(HomeL10n.notifications),
-          onPressed: () => context.switchToRoute(
-            auth.isSeller
-                ? AppRouteNames.sellerNotifications
-                : AppRouteNames.buyerNotifications,
-          ),
+          // Home is the buyer side, so its bell opens buyer notifications.
+          onPressed: () =>
+              context.switchToRoute(AppRouteNames.buyerNotifications),
           icon: _Dot(
             count: unread,
             child: const Icon(Icons.notifications_none_rounded),
