@@ -4,15 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/app_currency.dart';
-import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
-import '../../../product_offer/data/mappers/product_offer_mapper.dart';
 import '../../../product_offer/domain/models/product_offer.dart';
+import '../atelier/atelier_components.dart';
+import '../atelier/atelier_feedback.dart';
+import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_studio.dart';
+import '../atelier/atelier_theme.dart';
 
+/// Negotiation desk: every buyer price offer, with the ones awaiting a
+/// decision surfaced first and accept / decline one tap away.
 class SellerOffersScreen extends ConsumerStatefulWidget {
   const SellerOffersScreen({super.key});
 
@@ -22,533 +24,716 @@ class SellerOffersScreen extends ConsumerStatefulWidget {
 
 class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
   ProductOfferStatus? _filter;
+  final _search = TextEditingController();
+  String _query = '';
+  final Set<String> _busy = {};
 
-  String? get _statusFilter => switch (_filter) {
-    ProductOfferStatus.pending => 'PENDING',
-    ProductOfferStatus.accepted => 'ACCEPTED',
-    ProductOfferStatus.rejected => 'REJECTED',
-    ProductOfferStatus.expired => 'EXPIRED',
-    null => null,
-  };
+  /// Per-status counts from the last unfiltered load, so the filter row
+  /// keeps its numbers while a server-side filter is applied.
+  Map<ProductOfferStatus, int>? _counts;
 
-  List<ProductOffer> _visible(List<ProductOffer> items) {
-    if (_filter == null) return items;
-    return items.where((o) => o.status == _filter).toList();
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
   }
 
   Future<void> _applyFilter(ProductOfferStatus? filter) async {
     setState(() => _filter = filter);
     await ref
         .read(sellerOfferListProvider.notifier)
-        .refresh(statusFilter: _statusFilter);
+        .refresh(statusFilter: filter?.apiValue);
   }
 
+  Future<void> _refresh() => ref
+      .read(sellerOfferListProvider.notifier)
+      .refresh(statusFilter: _filter?.apiValue);
+
   Future<void> _respond(ProductOffer offer, ProductOfferStatus status) async {
+    final accepting = status == ProductOfferStatus.accepted;
+    final ok = await showAtelierConfirm(
+      context: context,
+      title: accepting ? 'Accept this offer?' : 'Decline this offer?',
+      message: accepting
+          ? '${offer.buyerName ?? 'The buyer'} will be notified that '
+                '${atelierMoney(offer.amount, decimals: 2)} for '
+                '${offer.displayTitle} is accepted.'
+          : '${offer.buyerName ?? 'The buyer'} will be told you passed on '
+                '${atelierMoney(offer.amount, decimals: 2)}. This can’t be undone.',
+      confirmLabel: accepting
+          ? context.tr(RemainingL10n.accept)
+          : context.tr(RemainingL10n.reject),
+      destructive: !accepting,
+      icon: accepting ? Icons.handshake_outlined : Icons.do_not_disturb_rounded,
+    );
+    if (!ok || !mounted) return;
+    setState(() => _busy.add(offer.id));
     final result = await ref
         .read(sellerOfferListProvider.notifier)
         .respond(id: offer.id, status: status);
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy.remove(offer.id));
     switch (result) {
       case Success():
-        if (status == ProductOfferStatus.accepted) {
-          AppHaptics.success();
-        } else {
-          AppHaptics.warning();
+        accepting ? AppHaptics.success() : AppHaptics.warning();
+        final counts = _counts;
+        if (counts != null) {
+          counts[offer.status] = ((counts[offer.status] ?? 1) - 1).clamp(
+            0,
+            1 << 30,
+          );
+          counts[status] = (counts[status] ?? 0) + 1;
         }
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              status == ProductOfferStatus.accepted
-                  ? context.tr(RemainingL10n.offerAccepted)
-                  : context.tr(RemainingL10n.offerRejected),
-            ),
-          ),
+        showAtelierToast(
+          context,
+          accepting
+              ? context.tr(RemainingL10n.offerAccepted)
+              : context.tr(RemainingL10n.offerRejected),
+          tone: accepting ? AtelierTone.emerald : AtelierTone.neutral,
         );
       case ResultFailure(:final failure):
         AppHaptics.error();
-        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+        showAtelierToast(context, failure.message, tone: AtelierTone.ruby);
     }
+  }
+
+  List<ProductOffer> _visible(List<ProductOffer> items) {
+    final filtered = _filter == null
+        ? items
+        : items.where((o) => o.status == _filter).toList();
+    final q = _query.trim().toLowerCase();
+    if (q.isEmpty) return _pendingFirst(filtered);
+    return _pendingFirst([
+      for (final o in filtered)
+        if ([
+          o.displayTitle,
+          o.buyerName,
+          o.buyerEmail,
+          o.stockNumber,
+          o.productType,
+          o.productSpecs,
+        ].any((v) => v != null && v.toLowerCase().contains(q)))
+          o,
+    ]);
+  }
+
+  static List<ProductOffer> _pendingFirst(List<ProductOffer> items) {
+    final pending = [
+      for (final o in items)
+        if (o.status.isPending) o,
+    ];
+    if (pending.isEmpty || pending.length == items.length) return items;
+    return [
+      ...pending,
+      for (final o in items)
+        if (!o.status.isPending) o,
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(sellerOfferListProvider);
+    if (state.statusFilter == null &&
+        !state.isLoading &&
+        state.errorMessage == null) {
+      _counts = {
+        for (final s in ProductOfferStatus.values)
+          s: state.items.where((o) => o.status == s).length,
+      };
+    }
+    final counts = _counts;
     final items = _visible(state.items);
+    final pending = state.items.where((o) => o.status.isPending).toList();
+    final pendingCount = counts?[ProductOfferStatus.pending] ?? pending.length;
+    final pendingValue = pending.fold<double>(0, (s, o) => s + o.amount);
+    final ratios = [
+      for (final o in state.items)
+        if ((o.listPrice ?? 0) > 0) o.amount / o.listPrice!,
+    ];
+    final avgRatio = ratios.isEmpty
+        ? null
+        : ratios.reduce((a, b) => a + b) / ratios.length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return AtelierPage(
+      onRefresh: _refresh,
       children: [
-        if (state.isLoading)
-          const Padding(
-            padding: EdgeInsets.fromLTRB(8, 8, 16, 0),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+        AtelierHero(
+          overline: 'Negotiation desk',
+          title: context.tr(RemainingL10n.offers),
+          subtitle: context.tr(RemainingL10n.reviewBuyerPriceOffersOnYour),
+          cut: GemCut.cushion,
+          footer: AtelierHeroStats(
+            stats: [
+              AtelierHeroStat(
+                label: 'Awaiting you',
+                value: '$pendingCount',
+                caption: pendingCount == 1
+                    ? 'offer to answer'
+                    : 'offers to answer',
+                tone: pendingCount > 0 ? AtelierTone.amber : null,
               ),
-            ),
-          ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.s16),
-            children: [
-              if (state.errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(
-                    state.errorMessage!,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.error,
-                    ),
-                  ),
-                ),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.s16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface(context),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Text(
-                  context.tr(RemainingL10n.reviewBuyerPriceOffersOnYour),
-                  style: AppTypography.body.copyWith(
-                    color: AppColors.textSecondary(context),
-                    height: 1.4,
-                  ),
-                ),
+              AtelierHeroStat(
+                label: 'On the table',
+                value: atelierMoney(pendingValue),
+                caption: 'Pending offer value',
               ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _FilterChip(
-                    label: context.tr(RemainingL10n.all),
-                    selected: _filter == null,
-                    onTap: () => _applyFilter(null),
-                  ),
-                  _FilterChip(
-                    label: context.tr(RemainingL10n.pending),
-                    selected: _filter == ProductOfferStatus.pending,
-                    onTap: () => _applyFilter(ProductOfferStatus.pending),
-                  ),
-                  _FilterChip(
-                    label: context.tr(RemainingL10n.accepted),
-                    selected: _filter == ProductOfferStatus.accepted,
-                    onTap: () => _applyFilter(ProductOfferStatus.accepted),
-                  ),
-                  _FilterChip(
-                    label: context.tr(RemainingL10n.rejected),
-                    selected: _filter == ProductOfferStatus.rejected,
-                    onTap: () => _applyFilter(ProductOfferStatus.rejected),
-                  ),
-                ],
+              AtelierHeroStat(
+                label: 'Avg. vs list',
+                value: avgRatio == null
+                    ? '—'
+                    : '${(avgRatio * 100).toStringAsFixed(0)}%',
+                caption: 'Of asking price',
               ),
-              const SizedBox(height: 16),
-              if (state.isLoading && items.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.only(top: 40),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else
-                for (final offer in items) ...[
-                  _OfferCard(
-                    offer: offer,
-                    onAccept: () =>
-                        _respond(offer, ProductOfferStatus.accepted),
-                    onReject: () =>
-                        _respond(offer, ProductOfferStatus.rejected),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              if (!state.isLoading && items.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 40),
-                  child: Center(
-                    child: Text(
-                      context.tr(RemainingL10n.noOffersInThisFilter),
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.textMuted(context),
-                      ),
-                    ),
-                  ),
-                ),
             ],
+          ),
+        ),
+        const SizedBox(height: AtelierSpace.s24),
+        Reveal(
+          index: 2,
+          child: AtelierSegmented<ProductOfferStatus?>(
+            segments: [
+              AtelierSegment(
+                value: null,
+                label: context.tr(RemainingL10n.all),
+                count: counts?.values.fold<int>(0, (a, b) => a + b),
+              ),
+              AtelierSegment(
+                value: ProductOfferStatus.pending,
+                label: context.tr(RemainingL10n.pending),
+                icon: Icons.hourglass_top_rounded,
+                count: counts?[ProductOfferStatus.pending],
+              ),
+              AtelierSegment(
+                value: ProductOfferStatus.accepted,
+                label: context.tr(RemainingL10n.accepted),
+                icon: Icons.check_rounded,
+                count: counts?[ProductOfferStatus.accepted],
+              ),
+              AtelierSegment(
+                value: ProductOfferStatus.rejected,
+                label: context.tr(RemainingL10n.rejected),
+                icon: Icons.close_rounded,
+                count: counts?[ProductOfferStatus.rejected],
+              ),
+              AtelierSegment(
+                value: ProductOfferStatus.expired,
+                label: context.tr(RemainingL10n.expired),
+                icon: Icons.history_toggle_off_rounded,
+                count: counts?[ProductOfferStatus.expired],
+              ),
+            ],
+            selected: _filter,
+            onChanged: _applyFilter,
+          ),
+        ),
+        const SizedBox(height: AtelierSpace.s12),
+        Reveal(
+          index: 3,
+          child: AtelierSearchField(
+            controller: _search,
+            hint: 'Search buyer, product or stock no.',
+            onChanged: (v) => setState(() => _query = v),
+          ),
+        ),
+        if (state.errorMessage != null && state.items.isNotEmpty) ...[
+          const SizedBox(height: AtelierSpace.s12),
+          AtelierNotice(
+            text: state.errorMessage!,
+            tone: AtelierTone.ruby,
+            icon: Icons.error_outline_rounded,
+            actionLabel: context.tr(RemainingL10n.retry),
+            onAction: _refresh,
+          ),
+        ],
+        const SizedBox(height: AtelierSpace.s20),
+        AnimatedSwitcher(
+          duration: AtelierMotion.base,
+          switchInCurve: AtelierMotion.emphasized,
+          child: KeyedSubtree(
+            key: ValueKey(
+              '${_filter?.name}-${state.isLoading}-${items.length}',
+            ),
+            child: _body(context, state, items),
           ),
         ),
       ],
     );
   }
-}
 
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
+  Widget _body(
+    BuildContext context,
+    SellerOfferListState state,
+    List<ProductOffer> items,
+  ) {
+    if (state.isLoading && state.items.isEmpty) {
+      return const AtelierSkeletonList(count: 4, height: 168);
+    }
+    if (state.errorMessage != null && state.items.isEmpty) {
+      return AtelierErrorState(
+        title: 'Offers unavailable',
+        message: state.errorMessage!,
+        onRetry: _refresh,
+      );
+    }
+    if (items.isEmpty) {
+      final searching = _query.trim().isNotEmpty;
+      return AtelierEmptyState(
+        icon: searching ? Icons.search_off_rounded : Icons.local_offer_outlined,
+        title: searching
+            ? 'No matches'
+            : _filter == ProductOfferStatus.pending
+            ? 'You’re all caught up'
+            : 'No offers yet',
+        message: searching
+            ? 'Nothing in this view matches “${_query.trim()}”.'
+            : context.tr(RemainingL10n.noOffersInThisFilter),
+        actionLabel: searching ? 'Clear search' : null,
+        onAction: searching
+            ? () {
+                _search.clear();
+                setState(() => _query = '');
+              }
+            : null,
+      );
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cols = constraints.maxWidth >= 920 ? 2 : 1;
+        const gap = AtelierSpace.s16;
+        final w = (constraints.maxWidth - gap * (cols - 1)) / cols;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (var i = 0; i < items.length; i++)
+              SizedBox(
+                width: w,
+                child: Reveal(
+                  key: ValueKey(items[i].id),
+                  index: i < 8 ? i : 0,
+                  child: _OfferCard(
+                    offer: items[i],
+                    busy: _busy.contains(items[i].id),
+                    onOpen: () => _openDetail(items[i]),
+                    onAccept: () =>
+                        _respond(items[i], ProductOfferStatus.accepted),
+                    onDecline: () =>
+                        _respond(items[i], ProductOfferStatus.rejected),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
 
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: selected ? AppColors.info : AppColors.card(context),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(999),
-        side: BorderSide(
-          color: selected ? AppColors.info : AppColors.border(context),
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w700,
-              color: selected
-                  ? AppColors.warmWhite
-                  : AppColors.textPrimary(context),
-            ),
-          ),
-        ),
+  void _openDetail(ProductOffer offer) {
+    showAtelierSheet<void>(
+      context: context,
+      title: offer.displayTitle,
+      subtitle: '${offer.productType} · ${offer.status.label}',
+      builder: (sheetContext) => _OfferDetail(
+        offer: offer,
+        onAccept: offer.status.isPending
+            ? () {
+                Navigator.of(sheetContext).pop();
+                _respond(offer, ProductOfferStatus.accepted);
+              }
+            : null,
+        onDecline: offer.status.isPending
+            ? () {
+                Navigator.of(sheetContext).pop();
+                _respond(offer, ProductOfferStatus.rejected);
+              }
+            : null,
       ),
     );
   }
 }
+
+AtelierTone _toneFor(ProductOfferStatus s) => switch (s) {
+  ProductOfferStatus.pending => AtelierTone.amber,
+  ProductOfferStatus.accepted => AtelierTone.emerald,
+  ProductOfferStatus.rejected => AtelierTone.ruby,
+  ProductOfferStatus.expired => AtelierTone.neutral,
+};
+
+List<String> _metaParts(BuildContext context, ProductOffer offer) => [
+  if (offer.productSpecs != null) offer.productSpecs!,
+  if (offer.certificateLabel != null) offer.certificateLabel!,
+  if (offer.stockNumber != null)
+    context.tr(RemainingL10n.stockWithNumber, {
+      'stockNumber': offer.stockNumber!,
+    }),
+];
 
 class _OfferCard extends StatelessWidget {
   const _OfferCard({
     required this.offer,
+    required this.busy,
+    required this.onOpen,
     required this.onAccept,
-    required this.onReject,
+    required this.onDecline,
   });
 
   final ProductOffer offer;
+  final bool busy;
+  final VoidCallback onOpen;
   final VoidCallback onAccept;
-  final VoidCallback onReject;
-
-  Color _statusColor(BuildContext context) => switch (offer.status) {
-    ProductOfferStatus.pending => AppColors.info,
-    ProductOfferStatus.accepted => AppColors.success,
-    ProductOfferStatus.rejected => AppColors.error,
-    ProductOfferStatus.expired => AppColors.textMuted(context),
-  };
+  final VoidCallback onDecline;
 
   @override
   Widget build(BuildContext context) {
-    final isPending = offer.status.isPending;
-    final listPrice = offer.listPrice;
-    final statusColor = _statusColor(context);
-    final buyerLine = [
-      if (offer.buyerName != null) offer.buyerName!,
-      if (offer.buyerEmail != null) offer.buyerEmail!,
-    ].join(' · ');
-    final metaParts = <String>[
-      if (offer.stockNumber != null)
-        context.tr(RemainingL10n.stockWithNumber, {
-          'stockNumber': offer.stockNumber!,
-        }),
-      if (offer.productSpecs != null) offer.productSpecs!,
-      if (offer.certificateLabel != null) offer.certificateLabel!,
-    ];
+    final p = context.atelier;
+    final pending = offer.status.isPending;
+    final meta = _metaParts(context, offer);
+    final buyer = offer.buyerName ?? offer.buyerEmail;
 
-    return Material(
-      color: AppColors.card(context),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        side: BorderSide(color: AppColors.border(context)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                _Pill(label: offer.productType),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    offer.status.label,
-                    style: AppTypography.caption.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
+    return AtelierCard(
+      onTap: onOpen,
+      semanticLabel: 'Offer on ${offer.displayTitle}',
+      borderColor: pending ? p.amber.withValues(alpha: 0.35) : null,
+      padding: const EdgeInsets.all(AtelierSpace.s16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AtelierThumb(url: offer.imageUrl, size: 68),
+              const SizedBox(width: AtelierSpace.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: AtelierPill(
+                            label: offer.status.label,
+                            tone: _toneFor(offer.status),
+                            dense: true,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            offer.productType.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AtelierType.overline(p.muted),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  offer.createdAtLabel,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMuted(context),
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ProductThumb(imageUrl: offer.imageUrl),
-                const SizedBox(width: AppSpacing.s12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    const SizedBox(height: 8),
+                    Text(
+                      offer.displayTitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AtelierType.display(p.ink, size: 19),
+                    ),
+                    if (meta.isNotEmpty) ...[
+                      const SizedBox(height: 4),
                       Text(
-                        offer.displayTitle,
+                        meta.join(' · '),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTypography.label.copyWith(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                        ),
+                        style: AtelierType.caption(p.muted, size: 11.5),
                       ),
-                      if (metaParts.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          metaParts.join(' · '),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textSecondary(context),
-                            height: 1.3,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                      if (offer.productId.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'ID ${offer.productId}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textMuted(context),
-                            fontSize: 10,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                      ],
-                      if (buyerLine.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          buyerLine,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textMuted(context),
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
                     ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AtelierSpace.s16),
+          _PriceComparison(offer: offer),
+          const SizedBox(height: AtelierSpace.s12),
+          Row(
+            children: [
+              if (buyer != null) ...[
+                AtelierMonogram(name: buyer, size: 26),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    buyer,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AtelierType.label(p.inkSoft, size: 12.5),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.s8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+              ] else
+                const Spacer(),
+              Text(
+                offer.createdAtLabel,
+                style: AtelierType.caption(p.muted, size: 11),
+              ),
+            ],
+          ),
+          if (offer.message != null) ...[
+            const SizedBox(height: AtelierSpace.s12),
+            _Quote(text: offer.message!, maxLines: 2),
+          ],
+          AnimatedSize(
+            duration: AtelierMotion.base,
+            curve: AtelierMotion.emphasized,
+            child: pending
+                ? Padding(
+                    padding: const EdgeInsets.only(top: AtelierSpace.s16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: AtelierButton(
+                            label: context.tr(RemainingL10n.reject),
+                            compact: true,
+                            variant: AtelierButtonVariant.secondary,
+                            onPressed: busy ? null : onDecline,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          flex: 2,
+                          child: AtelierButton(
+                            label: context.tr(RemainingL10n.accept),
+                            icon: Icons.check_rounded,
+                            compact: true,
+                            variant: AtelierButtonVariant.gold,
+                            loading: busy,
+                            onPressed: onAccept,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Buyer offer against list price, with a meter that shows how close the
+/// offer comes to asking.
+class _PriceComparison extends StatelessWidget {
+  const _PriceComparison({required this.offer});
+
+  final ProductOffer offer;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    final list = offer.listPrice;
+    final ratio = list == null || list <= 0 ? null : offer.amount / list;
+    final gap = list == null ? null : list - offer.amount;
+    return Container(
+      padding: const EdgeInsets.all(AtelierSpace.s12),
+      decoration: BoxDecoration(
+        color: p.sunken.withValues(alpha: p.isDark ? 0.6 : 0.55),
+        borderRadius: BorderRadius.circular(AtelierRadius.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (listPrice != null) ...[
-                      _PriceBlock(
-                        label: context.tr(RemainingL10n.listPrice),
-                        value: AppCurrency.format(listPrice),
-                        alignEnd: true,
-                      ),
-                      const SizedBox(height: 6),
-                    ],
-                    _PriceBlock(
-                      label: context.tr(RemainingL10n.buyerOffer),
-                      value: ProductOfferMapper.offerPriceLabel(offer.amount),
-                      emphasize: true,
-                      alignEnd: true,
+                    Text(
+                      context.tr(RemainingL10n.buyerOffer).toUpperCase(),
+                      style: AtelierType.overline(p.gold),
+                    ),
+                    const SizedBox(height: 4),
+                    CountUpText(
+                      atelierMoney(offer.amount, decimals: 2),
+                      style: AtelierType.display(p.ink, size: 26),
                     ),
                   ],
                 ),
-              ],
+              ),
+              if (list != null)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      context.tr(RemainingL10n.listPrice).toUpperCase(),
+                      style: AtelierType.overline(p.muted),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      atelierMoney(list, decimals: 2),
+                      style: AtelierType.figure(p.inkSoft, size: 14),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+          if (ratio != null) ...[
+            const SizedBox(height: 10),
+            AtelierMeter(
+              value: ratio.clamp(0.0, 1.0).toDouble(),
+              height: 5,
+              color: ratio >= 0.95
+                  ? p.emerald
+                  : ratio >= 0.85
+                  ? p.gold
+                  : p.amber,
             ),
-            if (offer.message != null) ...[
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s12,
-                  vertical: AppSpacing.s8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.surface(context),
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
-                ),
-                child: Text(
-                  offer.message!,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondary(context),
-                    height: 1.35,
-                  ),
-                ),
-              ),
-            ],
-            if (isPending) ...[
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: onReject,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                        side: const BorderSide(color: AppColors.error),
-                        minimumSize: const Size.fromHeight(40),
-                        padding: EdgeInsets.zero,
-                      ),
-                      child: Text(context.tr(RemainingL10n.reject)),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: onAccept,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.charcoal,
-                        minimumSize: const Size.fromHeight(40),
-                        padding: EdgeInsets.zero,
-                      ),
-                      child: Text(context.tr(RemainingL10n.accept)),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            const SizedBox(height: 6),
+            Text(
+              gap != null && gap > 0
+                  ? '${(ratio * 100).toStringAsFixed(0)}% of list · '
+                        '${atelierMoney(gap)} below asking'
+                  : '${(ratio * 100).toStringAsFixed(0)}% of list · at or above asking',
+              style: AtelierType.caption(p.muted, size: 11),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _ProductThumb extends StatelessWidget {
-  const _ProductThumb({this.imageUrl});
+class _Quote extends StatelessWidget {
+  const _Quote({required this.text, this.maxLines});
 
-  final String? imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppSpacing.r8);
-    return ClipRRect(
-      borderRadius: radius,
-      child: Container(
-        width: 64,
-        height: 64,
-        color: AppColors.surface(context),
-        foregroundDecoration: BoxDecoration(
-          borderRadius: radius,
-          border: Border.all(color: AppColors.border(context)),
-        ),
-        child: imageUrl == null || imageUrl!.isEmpty
-            ? Icon(
-                Icons.diamond_outlined,
-                size: 26,
-                color: AppColors.textMuted(context),
-              )
-            : AppNetworkImage(
-                url: imageUrl!,
-                width: 64,
-                height: 64,
-                fit: BoxFit.cover,
-                memCacheWidth: 128,
-                error: Icon(
-                  Icons.diamond_outlined,
-                  size: 26,
-                  color: AppColors.textMuted(context),
-                ),
-              ),
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.label});
-
-  final String label;
+  final String text;
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
-        color: AppColors.surface(context),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.border(context)),
+        border: Border(left: BorderSide(color: p.gold, width: 2)),
       ),
       child: Text(
-        label,
-        style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+        '“$text”',
+        maxLines: maxLines,
+        overflow: maxLines == null ? null : TextOverflow.ellipsis,
+        style: AtelierType.body(
+          p.inkSoft,
+          size: 13,
+        ).copyWith(fontStyle: FontStyle.italic),
       ),
     );
   }
 }
 
-class _PriceBlock extends StatelessWidget {
-  const _PriceBlock({
-    required this.label,
-    required this.value,
-    this.emphasize = false,
-    this.alignEnd = false,
-  });
+class _OfferDetail extends StatelessWidget {
+  const _OfferDetail({required this.offer, this.onAccept, this.onDecline});
 
-  final String label;
-  final String value;
-  final bool emphasize;
-  final bool alignEnd;
+  final ProductOffer offer;
+  final VoidCallback? onAccept;
+  final VoidCallback? onDecline;
 
   @override
   Widget build(BuildContext context) {
-    final align = alignEnd ? TextAlign.end : TextAlign.start;
+    final p = context.atelier;
+    final meta = _metaParts(context, offer);
     return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          label,
-          textAlign: align,
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textMuted(context),
-            fontWeight: FontWeight.w600,
-            fontSize: 11,
-          ),
+        Row(
+          children: [
+            AtelierThumb(url: offer.imageUrl, size: 84),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AtelierPill(
+                    label: offer.status.label,
+                    tone: _toneFor(offer.status),
+                  ),
+                  if (meta.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      meta.join(' · '),
+                      style: AtelierType.caption(p.inkSoft, size: 12.5),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          textAlign: align,
-          style: AppTypography.title.copyWith(
-            fontWeight: FontWeight.w800,
-            color: emphasize ? AppColors.info : AppColors.textPrimary(context),
-            fontSize: emphasize ? 18 : 14,
-            height: 1.15,
-          ),
+        const SizedBox(height: 20),
+        _PriceComparison(offer: offer),
+        if (offer.message != null) ...[
+          const SizedBox(height: 18),
+          Text('MESSAGE', style: AtelierType.overline(p.muted)),
+          const SizedBox(height: 6),
+          _Quote(text: offer.message!),
+        ],
+        const SizedBox(height: 20),
+        Wrap(
+          spacing: 24,
+          runSpacing: 16,
+          children: [
+            if (offer.buyerName != null)
+              AtelierKeyValue(label: 'Buyer', value: offer.buyerName!),
+            if (offer.buyerEmail != null)
+              AtelierKeyValue(label: 'Email', value: offer.buyerEmail!),
+            AtelierKeyValue(label: 'Received', value: offer.createdAtLabel),
+            AtelierKeyValue(label: 'Updated', value: offer.updatedAtLabel),
+            if (offer.productId.isNotEmpty)
+              AtelierKeyValue(
+                label: 'Product ID',
+                value: offer.productId,
+                valueWidget: Pressable(
+                  onTap: () async {
+                    await atelierCopy(offer.productId);
+                    if (context.mounted) {
+                      showAtelierToast(context, 'Product ID copied');
+                    }
+                  },
+                  semanticLabel: 'Copy product ID',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        offer.productId,
+                        style: AtelierType.figure(p.ink, size: 12.5),
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(Icons.copy_rounded, size: 13, color: p.gold),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
+        if (onAccept != null || onDecline != null) ...[
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: AtelierButton(
+                  label: context.tr(RemainingL10n.reject),
+                  variant: AtelierButtonVariant.danger,
+                  onPressed: onDecline,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: AtelierButton(
+                  label: context.tr(RemainingL10n.accept),
+                  icon: Icons.check_rounded,
+                  variant: AtelierButtonVariant.gold,
+                  onPressed: onAccept,
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
