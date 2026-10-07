@@ -8,8 +8,9 @@ import '../theme/home_tokens.dart';
 import 'home_header.dart';
 
 /// Last section of home, one full screen tall: a dark field of live 3D
-/// pear diamonds (from the bundled .glb model) streaming from the top-left
-/// to the bottom-right.
+/// diamonds in every bundled cut and size (baked from the .glb models in
+/// `assets_src/gem_models`) streaming from the top-left to the
+/// bottom-right.
 /// The finger parts the stones like a body moving through them and lights
 /// them warm; the page does not scroll while touching the stones below the
 /// copy. Legal links sit along the bottom edge.

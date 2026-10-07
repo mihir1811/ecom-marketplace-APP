@@ -6,8 +6,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../haptics/app_haptics.dart';
-import 'gem_mesh.dart';
-import 'gem_model.dart';
+import 'diamond_mesh.dart';
+import 'diamond_models.dart';
+import 'diamond_renderer.dart';
 import 'gem_renderer.dart';
 
 /// Depth bands painted as separate layers so far and near stones can be
@@ -17,11 +18,15 @@ enum _Band { far, focus, near }
 class _FieldGem {
   _FieldGem({
     required this.band,
+    required this.pick,
+    required this.rank,
     required this.s,
     required this.q,
     required this.hz,
     required this.limS,
     required this.speed,
+    required this.surge,
+    required this.surgeRate,
     required this.scale,
     required this.phase,
     required this.bob,
@@ -32,11 +37,24 @@ class _FieldGem {
 
   final _Band band;
 
+  /// 0..1 choice of cut, mapped onto however many models are loaded.
+  final double pick;
+
+  /// 0..1 draw order for adaptive quality: when the device cannot keep
+  /// up, stones with the highest rank sit out first. Random, so the herd
+  /// thins evenly.
+  final double rank;
+
   /// Rest position in flow coordinates: [s] runs along the flow and wraps
   /// inside ±[limS], [q] is the lane across it.
   double s;
   final double q, hz;
   final double limS, speed;
+
+  /// Each stone's pace swells and eases by up to ±[surge] of [speed],
+  /// [surgeRate] radians per second, so it drifts, catches up and falls
+  /// back instead of gliding at a constant rate.
+  final double surge, surgeRate;
   double hx = 0, hy = 0;
   final double scale, phase, bob;
   final double spinX, spinY, spinZ;
@@ -49,10 +67,10 @@ class _FieldGem {
   double lit = 0;
 }
 
-/// Physics for a dense herd of 3D colourless pear diamonds (an imported
-/// .glb model) streaming together from the top-left to the bottom-right
-/// corner through deep darkness, modelled on the Lusion / Oryzo coffee-bean
-/// footer.
+/// Physics for a dense herd of colourless 3D diamonds of every bundled cut
+/// and many sizes, streaming together from the top-left to the
+/// bottom-right corner through deep darkness, modelled on the Lusion /
+/// Oryzo coffee-bean footer.
 ///
 /// The finger (or mouse) is a solid body moving through the cloud: it
 /// carves a clean round void, stones bank up into a ring around its edge,
@@ -91,14 +109,34 @@ class GemFieldController extends ChangeNotifier {
   Offset _waveAt = Offset.zero;
   double _waveAge = -1;
 
-  /// The stone every herd member is drawn with.
-  static const modelAsset = 'assets/models/pear.glb';
+  /// Baked cuts; nothing is drawn until they are set.
+  List<DiamondModel>? models;
 
-  /// Imported stone; nothing is drawn until it is set.
-  GemModel? model;
+  /// Quality tiers, best first. The widget steps down one tier whenever
+  /// frames run long: first the depth-of-field blur goes (the costliest
+  /// GPU work), then a share of the stones, then fine facets. Stones drawn
+  /// at least `detail` pixels in radius use the full model.
+  static const _tiers = [
+    (blur: true, density: 1.0, detail: 22.0),
+    (blur: false, density: 1.0, detail: 22.0),
+    (blur: false, density: 0.75, detail: 36.0),
+    (blur: false, density: 0.55, detail: double.infinity),
+  ];
+  int _quality = 0;
 
-  /// Stones drawn at least this many pixels in radius use the full model.
-  static const _detailRadius = 22.0;
+  bool get blur => _tiers[_quality].blur;
+
+  /// Drops to the next cheaper tier; false when already at the cheapest.
+  bool lowerQuality() {
+    if (_quality == _tiers.length - 1) return false;
+    _quality++;
+    return true;
+  }
+
+  final List<List<_FieldGem>> _bands = [for (final _ in _Band.values) []];
+  final List<DiamondBatch> _batches = [
+    for (final _ in _Band.values) DiamondBatch(),
+  ];
 
   /// World units across the field width.
   static const worldWidth = 6.4;
@@ -149,6 +187,9 @@ class GemFieldController extends ChangeNotifier {
     final first = _gems.isEmpty;
     _size = size;
     _gems.clear();
+    for (final b in _bands) {
+      b.clear();
+    }
     final rng = math.Random(seed);
     const halfW = worldWidth / 2;
     final halfH = size.height / unit / 2;
@@ -184,17 +225,21 @@ class GemFieldController extends ChangeNotifier {
       final y = s0 * _flowY + q0 * _flowX;
       final g = _FieldGem(
         band: band,
+        pick: rng.nextDouble(),
+        rank: rng.nextDouble(),
         s: s0,
         q: q0,
         hz: z,
         limS: limS,
-        // One pace for the whole herd; nearer stones a touch faster for
-        // depth parallax.
+        // Every stone keeps its own pace: most drift, some dawdle, a few
+        // dart through the herd. Nearer stones are a touch faster for depth
+        // parallax; the herd's average pace stays the same.
         speed:
-            _flowSpeed *
-            (0.72 + 0.16 * ((z - _zNear) / _zDepth)) *
-            (0.97 + rng.nextDouble() * 0.06),
-        scale: 0.19 + rng.nextDouble() * 0.17,
+            _flowSpeed * (0.72 + 0.16 * ((z - _zNear) / _zDepth)) * _pace(rng),
+        surge: 0.15 + rng.nextDouble() * 0.3,
+        surgeRate: 0.25 + rng.nextDouble() * 0.9,
+        // Mostly small stones with the odd big one, like a real pour.
+        scale: 0.12 + 0.36 * math.pow(rng.nextDouble(), 1.8),
         phase: rng.nextDouble(),
         bob: 0.02 + rng.nextDouble() * 0.03,
         spinX: (rng.nextDouble() - 0.5) * 0.5,
@@ -217,8 +262,19 @@ class GemFieldController extends ChangeNotifier {
           ..y = y + 1.5;
       }
       _gems.add(g);
+      _bands[band.index].add(g);
     }
     _energy = 1;
+  }
+
+  /// Pace multiplier, averaging about 1: 15% slow stones (0.35–0.6×),
+  /// 70% around the herd's pace (0.7–1.25×) and 15% fast ones (1.5–2.3×).
+  static double _pace(math.Random rng) {
+    final kind = rng.nextDouble();
+    final r = rng.nextDouble();
+    if (kind < 0.15) return 0.35 + r * 0.25;
+    if (kind < 0.85) return 0.7 + r * 0.55;
+    return 1.5 + r * 0.8;
   }
 
   void step(double dt) {
@@ -227,6 +283,7 @@ class GemFieldController extends ChangeNotifier {
     final cam = camera;
     final pointer = _pointer;
     final idle = reduceMotion ? 0.0 : 1.0;
+    final density = _tiers[_quality].density;
     var energy = 0.0;
 
     // The body follows the finger tightly; it fades in on contact and out
@@ -289,13 +346,16 @@ class GemFieldController extends ChangeNotifier {
     final vel = _pointerVelocity;
 
     for (final g in _gems) {
+      // Stones sitting out at this quality tier cost nothing.
+      if (g.rank >= density) continue;
       final p = g.pose;
 
       // The herd streams along the diagonal and wraps along the flow,
       // teleporting the pose with its rest point so wraps happen off
       // screen, unseen.
       if (idle > 0) {
-        g.s += g.speed * dt;
+        final swell = math.sin(_time * g.surgeRate + g.phase * 6.283);
+        g.s += g.speed * (1 + g.surge * swell) * dt;
         if (g.s > g.limS) {
           g.s -= 2 * g.limS;
           p.x -= 2 * g.limS * _flowX;
@@ -462,7 +522,9 @@ class GemFieldController extends ChangeNotifier {
     final cam = camera;
     _FieldGem? nearest;
     var nearestD = double.infinity;
+    final density = _tiers[_quality].density;
     for (final g in _gems) {
+      if (g.rank >= density) continue;
       final p = g.pose;
       final d = (cam.project(p.x, p.y, p.z) - at).distance;
       if (d < nearestD) {
@@ -481,17 +543,22 @@ class GemFieldController extends ChangeNotifier {
     AppHaptics.light();
   }
 
-  void _paintBand(Canvas canvas, _Band band, GemBatch batch, Color fog) {
-    final model = this.model;
-    if (model == null) return;
+  void _paintBand(Canvas canvas, _Band band, Color fog) {
+    final models = this.models;
+    if (models == null) return;
     final cam = camera;
-    final detailScale = _detailRadius / unit;
-    final items = [
-      for (final g in _gems)
-        if (g.band == band) g,
-    ]..sort((a, b) => a.pose.z.compareTo(b.pose.z));
-    batch.reset();
+    final tier = _tiers[_quality];
+    final detailScale = tier.detail / unit;
+    final sparkle = DiamondSparkle.image;
+    final sparkleWidth = sparkle.width.toDouble();
+    // Back to front. The list is reused and stays nearly sorted from frame
+    // to frame, so this is cheap.
+    final items = _bands[band.index]
+      ..sort((a, b) => a.pose.z.compareTo(b.pose.z));
+    final batch = _batches[band.index]..reset();
     for (final g in items) {
+      if (g.rank >= tier.density) continue;
+      final model = models[(g.pick * models.length).floor() % models.length];
       // Idle, stones shine as cut diamonds, dimming with distance. Under
       // the finger they rest deep in the dark and surface only where its
       // light reaches them.
@@ -499,7 +566,7 @@ class GemFieldController extends ChangeNotifier {
       final dark = (0.6 + 0.28 * depth) * (1 - g.lit * 0.95);
       final idle = 0.06 + 0.4 * depth;
       final fog01 = (dark + (idle - dark) * _calm).clamp(0.0, 0.9);
-      batch.addDiamond(
+      batch.add(
         // Small and defocused stones skip sub-pixel facets.
         mesh:
             band != _Band.far &&
@@ -508,6 +575,7 @@ class GemFieldController extends ChangeNotifier {
             : model.coarse,
         pose: g.pose,
         camera: cam,
+        viewport: _size,
         time: _time,
         fog: fog01,
         fogColor: fog,
@@ -517,11 +585,12 @@ class GemFieldController extends ChangeNotifier {
             ? _glowAt - cam.project(g.pose.x, g.pose.y, g.pose.z)
             : Offset.zero,
         phase: g.phase,
-        glint:
+        sparkle:
             g.lit > 0.15 || g.flash > 0 || (_calm > 0.3 && band != _Band.far),
+        sparkleWidth: sparkleWidth,
       );
     }
-    batch.paint(canvas, glintSprite: GemSparkleSprite.image);
+    batch.paint(canvas, sparkle: sparkle);
   }
 
   /// A faint white pool under the finger; the stones carry the light.
@@ -547,10 +616,11 @@ class GemFieldController extends ChangeNotifier {
   }
 }
 
-/// Full-bleed field of 3D pear diamonds, drawn from
-/// [GemFieldController.modelAsset], streaming diagonally that part around
-/// the finger, tumble when swept and catch its light. Pauses while scrolled
-/// off screen and honours reduced motion.
+/// Full-bleed field of colourless 3D diamonds in every bundled cut
+/// ([DiamondModels]) streaming diagonally that part around the finger,
+/// tumble when swept and catch its light. Pauses while scrolled off
+/// screen, honours reduced motion, and lowers its own quality when the
+/// device cannot keep up.
 ///
 /// Touches below [touchTopInset] are claimed eagerly so the page does not
 /// scroll while a finger plays with the stones; above it, scrolling works
@@ -581,18 +651,42 @@ class _GemFieldState extends State<GemField>
   ScrollPosition? _scroll;
   Duration _last = Duration.zero;
   bool _visible = false;
+  double _frameCost = 0;
+  int _frameSamples = 0;
 
   @override
   void initState() {
     super.initState();
-    // The herd waits for the model, so its entrance plays once it is in.
-    GemModel.load(
-      GemFieldController.modelAsset,
-    ).catchError((Object _) => GemModel.procedural(GemCut.pear)).then((model) {
-      if (!mounted) return;
-      _field.model = model;
-      _syncTicker();
-    });
+    // The herd waits for the models, so its entrance plays once they are in.
+    DiamondModels.load()
+        .catchError((Object _) => DiamondModels.fallback())
+        .then((models) {
+          if (!mounted) return;
+          _field.models = models;
+          _syncTicker();
+        });
+    SchedulerBinding.instance.addTimingsCallback(_onTimings);
+  }
+
+  /// Watches real frame cost (UI and raster threads) while the field
+  /// animates, and steps quality down when frames run long for about a
+  /// second, so slow devices still show a steady herd.
+  void _onTimings(List<FrameTiming> timings) {
+    if (!mounted || !_ticker.isActive) return;
+    for (final t in timings) {
+      final ms =
+          math.max(
+            t.buildDuration.inMicroseconds,
+            t.rasterDuration.inMicroseconds,
+          ) /
+          1000;
+      _frameCost = _frameSamples == 0 ? ms : _frameCost * 0.85 + ms * 0.15;
+      _frameSamples++;
+    }
+    if (_frameSamples >= 50 && _frameCost > 20 && _field.lowerQuality()) {
+      _frameSamples = 0;
+      setState(() {});
+    }
   }
 
   @override
@@ -609,6 +703,7 @@ class _GemFieldState extends State<GemField>
 
   @override
   void dispose() {
+    SchedulerBinding.instance.removeTimingsCallback(_onTimings);
     _scroll?.removeListener(_checkVisible);
     _ticker.dispose();
     _field.dispose();
@@ -628,7 +723,7 @@ class _GemFieldState extends State<GemField>
   void _syncTicker() {
     final run =
         _visible &&
-        _field.model != null &&
+        _field.models != null &&
         !(_field.reduceMotion && _field.settled);
     if (run && !_ticker.isActive) {
       _last = Duration.zero;
@@ -648,7 +743,7 @@ class _GemFieldState extends State<GemField>
   }
 
   void _wake() {
-    if (!_ticker.isActive && _visible && _field.model != null) {
+    if (!_ticker.isActive && _visible && _field.models != null) {
       _last = Duration.zero;
       _ticker.start();
     }
@@ -659,6 +754,7 @@ class _GemFieldState extends State<GemField>
     final bg = widget.background;
     final inset = Offset(0, widget.touchTopInset);
     Widget band(_Band b, double blur) {
+      if (!_field.blur) blur = 0;
       Widget layer = CustomPaint(
         painter: _BandPainter(_field, b, bg),
         size: Size.infinite,
@@ -755,12 +851,9 @@ class _BandPainter extends CustomPainter {
   final GemFieldController field;
   final _Band band;
   final Color fog;
-  final _batch = GemBatch();
 
   @override
-  void paint(Canvas canvas, Size size) {
-    field._paintBand(canvas, band, _batch, fog);
-  }
+  void paint(Canvas canvas, Size size) => field._paintBand(canvas, band, fog);
 
   @override
   bool shouldRepaint(covariant _BandPainter old) =>

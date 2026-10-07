@@ -1,114 +1,139 @@
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-
+import 'diamond_mesh.dart';
 import 'gem_mesh.dart';
 
-/// Faceted stone imported from a binary glTF (.glb) model, in two levels of
-/// detail for the software renderer.
+/// Converts a faceted stone from a binary glTF (.glb) file into a
+/// [DiamondModel]. Pure Dart: it runs in the offline bake
+/// (`tool/bake_gem_models.dart`), never in the app.
 ///
 /// The model's triangles are grouped into planar facets (a cut stone is
 /// convex, so each plane holds exactly one facet) and every facet is
-/// rebuilt as a fan over its convex outline. That drops the exporter's
-/// tessellation (T-junctions, collinear girdle samples) without changing
-/// the silhouette or the facet pattern. The result is normalised to the
-/// procedural [GemMesh] model space: table up (+y), girdle within the unit
+/// rebuilt over its convex outline. That drops the exporter's tessellation
+/// (T-junctions, collinear girdle samples, zero-area slivers) without
+/// changing the silhouette or the facet pattern. The result is normalised
+/// to the [GemMesh] model space: table up (+y), girdle within the unit
 /// circle, centred on the stone's height.
-class GemModel {
-  const GemModel({required this.detail, required this.coarse});
-
-  /// Procedural stand-in, used if a model cannot be loaded.
-  factory GemModel.procedural(GemCut cut) {
-    final mesh = GemMesh.of(cut);
-    return GemModel(detail: mesh, coarse: mesh);
-  }
-
-  /// Every facet; for stones drawn large.
-  final GemMesh detail;
-
-  /// Sub-pixel facets and the girdle band dropped, outlines simplified
-  /// harder; for small or defocused stones.
-  final GemMesh coarse;
-
-  static final Map<String, Future<GemModel>> _cache = {};
-
-  /// Loads and converts the .glb [asset] once, off the UI isolate; later
-  /// calls share it.
-  static Future<GemModel> load(String asset) {
-    return _cache.putIfAbsent(asset, () async {
-      try {
-        final data = await rootBundle.load(asset);
-        return await compute(
-          GemModel.parse,
-          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
-        );
-      } catch (_) {
-        _cache.remove(asset);
-        rethrow;
-      }
-    });
-  }
-
-  /// Converts the bytes of a binary glTF 2.0 file.
-  factory GemModel.parse(Uint8List bytes) {
+abstract final class GemGlb {
+  static DiamondModel convert(String name, Uint8List bytes) {
     final facets = _Facet.read(bytes);
-    return GemModel(
+    return DiamondModel(
+      name: name,
       detail: _mesh(facets, simplify: 0.005, minArea: 0),
       coarse: _mesh(facets, simplify: 0.02, minArea: 1.6e-3, girdle: false),
     );
   }
 
-  /// Fans every facet outline into triangles. Outline corners that carve
-  /// off less than [simplify] of the facet area are dropped, and facets
-  /// smaller than [minArea] (model units²) are skipped, as is the girdle
-  /// band unless [girdle].
-  static GemMesh _mesh(
+  /// Outline corners that carve off less than [simplify] of the facet area
+  /// are dropped, and facets smaller than [minArea] (model units²) are
+  /// skipped, as is the girdle band unless [girdle]. Corners shared by
+  /// neighbouring facets become one vertex.
+  static DiamondMesh _mesh(
     List<_Facet> facets, {
     required double simplify,
     required double minArea,
     bool girdle = true,
   }) {
-    final verts = <double>[];
-    final kinds = <GemFacetKind>[];
+    final positions = <double>[];
+    final shared = <String, int>{};
+    final normals = <double>[];
     final seeds = <double>[];
+    final kinds = <int>[];
+    final vertStart = <int>[0];
+    final verts = <int>[];
+    final triStart = <int>[0];
+    final tris = <int>[];
     for (final f in facets) {
       if (f.area < minArea || (!girdle && f.kind == GemFacetKind.girdle)) {
         continue;
       }
-      final ring = f.simplified(simplify);
-      for (var i = 1; i < ring.length - 1; i++) {
-        verts
-          ..addAll(ring[0])
-          ..addAll(ring[i])
-          ..addAll(ring[i + 1]);
-        kinds.add(f.kind);
-        seeds.add(f.seed);
+      final local = <int>[];
+      int use(_V3 p) {
+        final key =
+            '${(p[0] * 1e5).round()},${(p[1] * 1e5).round()},'
+            '${(p[2] * 1e5).round()}';
+        final global = shared.putIfAbsent(key, () {
+          positions.addAll(p);
+          return positions.length ~/ 3 - 1;
+        });
+        final i = local.indexOf(global);
+        if (i >= 0) return i;
+        local.add(global);
+        return local.length - 1;
       }
+
+      final corners = <int>[];
+      void triangle(int a, int b, int c) {
+        if (a != b && b != c && a != c) corners.addAll([a, b, c]);
+      }
+
+      final outline = f.outline;
+      if (outline != null) {
+        final ring = [for (final p in f.simplified(simplify)) use(p)];
+        for (var j = 1; j < ring.length - 1; j++) {
+          triangle(ring[0], ring[j], ring[j + 1]);
+        }
+      } else {
+        final c = f.corners!;
+        for (var j = 0; j < c.length; j += 3) {
+          triangle(use(c[j]), use(c[j + 1]), use(c[j + 2]));
+        }
+      }
+      if (corners.isEmpty) continue;
+      normals.addAll(f.normal);
+      seeds.add(f.seed);
+      kinds.add(f.kind.index);
+      verts.addAll(local);
+      vertStart.add(verts.length);
+      tris.addAll(corners);
+      triStart.add(tris.length);
     }
-    return GemMesh.fromTriangles(
-      Float32List.fromList(verts),
-      kinds,
-      Float32List.fromList(seeds),
+    return DiamondMesh(
+      positions: Float32List.fromList(positions),
+      normals: Float32List.fromList(normals),
+      seeds: Float32List.fromList(seeds),
+      kinds: Uint8List.fromList(kinds),
+      vertStart: Uint32List.fromList(vertStart),
+      verts: Uint16List.fromList(verts),
+      triStart: Uint32List.fromList(triStart),
+      tris: Uint16List.fromList(tris),
     );
   }
 }
 
 typedef _V3 = List<double>;
 
-/// One planar facet: its convex outline, counter-clockwise seen from
-/// outside, in normalised model space.
+/// One planar facet in normalised model space: its convex [outline],
+/// counter-clockwise seen from outside, or, when the facet is not convex
+/// (a heart's cleft) or not one piece, its original triangle [corners].
 class _Facet {
-  _Facet(this.outline, this.area, this.kind, this.seed);
+  _Facet.convex(
+    List<_V3> this.outline,
+    this.area,
+    this.normal,
+    this.kind,
+    this.seed,
+  ) : corners = null;
 
-  final List<_V3> outline;
+  _Facet.triangles(
+    List<_V3> this.corners,
+    this.area,
+    this.normal,
+    this.kind,
+    this.seed,
+  ) : outline = null;
+
+  final List<_V3>? outline;
+  final List<_V3>? corners;
   final double area;
+  final _V3 normal;
   final GemFacetKind kind;
   final double seed;
 
   List<_V3> simplified(double tolerance) {
-    final ring = [...outline];
+    final ring = [...outline!];
     while (ring.length > 3) {
       var best = double.infinity;
       var at = -1;
@@ -150,13 +175,14 @@ class _Facet {
       math.max(hi[1] - lo[1], hi[2] - lo[2]),
     );
 
-    // Group each primitive's triangles by plane: normals within ~5° and
-    // plane offsets within a small fraction of the model size. Exporters
-    // usually emit one primitive per facet; the tolerance absorbs their
-    // slightly warped polygons.
+    // Exporters usually emit one primitive per facet, as a slightly warped
+    // polygon. A primitive whose triangles all face within ~11° of each
+    // other is one facet; otherwise its triangles are grouped by plane
+    // (normals within ~5°, offsets within a small fraction of the size).
     final groups = <_Group>[];
     for (final tris in primitives) {
-      final local = <_Group>[];
+      final kept = <({_V3 a, _V3 b, _V3 c, _V3 n, _V3 u})>[];
+      var sum = <double>[0, 0, 0];
       for (var t = 0; t < tris.length; t += 9) {
         final a = [tris[t], tris[t + 1], tris[t + 2]];
         final b = [tris[t + 3], tris[t + 4], tris[t + 5]];
@@ -164,34 +190,72 @@ class _Facet {
         final n = _cross(_sub(b, a), _sub(c, a));
         final len = _len(n);
         // Fan-triangulated facets leave zero-area slivers along collinear
-        // edges; their normals are noise, and their corners lie on the
-        // edges of real triangles anyway.
+        // edges; their normals are noise. Height over the longest edge
+        // tells them apart from thin but genuine fan triangles.
         final edge = math.max(
           _dot(_sub(b, a), _sub(b, a)),
           math.max(_dot(_sub(c, b), _sub(c, b)), _dot(_sub(a, c), _sub(a, c))),
         );
-        if (len < 4e-3 * edge || len < 1e-12 * size * size) continue;
-        final u = _scale(n, 1 / len);
-        final d = _dot(u, a);
+        if (len < 2e-4 * size * math.sqrt(edge) || len < 1e-12 * size * size) {
+          continue;
+        }
+        kept.add((a: a, b: b, c: c, n: n, u: _scale(n, 1 / len)));
+        sum = _add(sum, n);
+      }
+      if (kept.isEmpty) continue;
+      final mean = _scale(sum, 1 / math.max(1e-30, _len(sum)));
+      final flat = kept.every((t) => _dot(t.u, mean) > 0.98);
+      final local = <_Group>[];
+      for (final t in kept) {
+        final d = _dot(t.u, t.a);
         _Group? home;
         for (final g in local) {
-          if (_dot(g.unit, u) > 0.996 && (g.offset - d).abs() < 4e-3 * size) {
+          if (flat ||
+              (_dot(g.unit, t.u) > 0.996 &&
+                  (g.offset - d).abs() < 4e-3 * size)) {
             home = g;
             break;
           }
         }
-        if (home == null) local.add(home = _Group(u, d));
+        if (home == null) local.add(home = _Group(t.u, d));
         home
-          ..weighted = _add(home.weighted, n)
-          ..points.addAll([a, b, c]);
+          ..weighted = _add(home.weighted, t.n)
+          ..points.addAll([t.a, t.b, t.c]);
       }
       groups.addAll(local);
     }
 
-    // Table up: rotate the largest facet's normal onto +y.
-    final table = groups.reduce(
-      (x, y) => _len(x.weighted) >= _len(y.weighted) ? x : y,
-    );
+    // Table up. A cut stone is thinnest along its table axis (depth is
+    // less than the girdle's width), so that axis is the facet direction
+    // with the smallest extent; the table is the larger of the facets on
+    // that axis (the culet, if faceted, is tiny).
+    final all = [for (final g in groups) ...g.points];
+    double extent(_V3 d) {
+      var lo = double.infinity, hi = -double.infinity;
+      for (final p in all) {
+        final t = _dot(p, d);
+        lo = math.min(lo, t);
+        hi = math.max(hi, t);
+      }
+      return hi - lo;
+    }
+
+    final maxArea = groups.map((g) => _len(g.weighted)).reduce(math.max);
+    _Group? thinnest;
+    var thinExtent = double.infinity;
+    for (final g in groups) {
+      // Slivers' normals are not worth trusting as an axis.
+      if (_len(g.weighted) < 0.02 * maxArea) continue;
+      final e = extent(g.unit);
+      if (e < thinExtent - 1e-4 * size) {
+        thinExtent = e;
+        thinnest = g;
+      }
+    }
+    final axis = thinnest!.unit;
+    final table = groups
+        .where((g) => _dot(g.unit, axis).abs() > 0.998)
+        .reduce((x, y) => _len(x.weighted) >= _len(y.weighted) ? x : y);
     final rotate = _rotationTo(table.unit, const [0, 1, 0]);
 
     // Centre on the bounding box; girdle (x–z) half extent becomes 1.
@@ -212,47 +276,22 @@ class _Facet {
       g.weighted = rotate(g.weighted);
     }
 
-    // The girdle is a band of hundreds of tiny vertical facets, about a
-    // pixel tall on screen. Runs of them spanning up to ~12° become one
-    // chord facet; the sagitta of such a run is invisible.
+    // The girdle is exported as hundreds of curved micro-strips, about a
+    // pixel tall on screen. It is rebuilt below as one band of chord quads.
     bool isGirdle(_Group g) => (g.weighted[1] / _len(g.weighted)).abs() < 0.2;
-    final girdle = groups.where(isGirdle).toList()
-      ..sort(
-        (x, y) => math
-            .atan2(x.weighted[2], x.weighted[0])
-            .compareTo(math.atan2(y.weighted[2], y.weighted[0])),
-      );
-    final merged = <_Group>[];
-    for (final g in girdle) {
-      final run = merged.isEmpty ? null : merged.last;
-      final u = _scale(g.weighted, 1 / _len(g.weighted));
-      if (run != null && _dot(run.unit, u) > 0.978) {
-        run
-          ..weighted = _add(run.weighted, g.weighted)
-          ..points.addAll(g.points);
-      } else {
-        merged.add(
-          _Group(u, 0)
-            ..weighted = g.weighted
-            ..points.addAll(g.points),
-        );
-      }
-    }
-    groups
-      ..removeWhere(isGirdle)
-      ..addAll(merged);
+    final girdle = [
+      for (final g in groups.where(isGirdle))
+        for (final p in g.points) _scale(_sub(p, centre), k),
+    ];
+    groups.removeWhere(isGirdle);
 
     final rng = math.Random(97);
     final facets = <_Facet>[];
     for (final g in groups) {
       final points = [for (final p in g.points) _scale(_sub(p, centre), k)];
       final n = _scale(g.weighted, 1 / _len(g.weighted));
-      final ring = _hull(points, n);
-      if (ring.length < 3) continue;
-      var area = 0.0;
-      for (var i = 1; i < ring.length - 1; i++) {
-        area += _triArea(ring[0], ring[i], ring[i + 1]);
-      }
+      // Area the triangles cover, projected on the facet plane.
+      final covered = _len(g.weighted) / 2 * k * k;
       final kind = n[1] > 0.985
           ? GemFacetKind.table
           : n[1].abs() < 0.2
@@ -260,9 +299,83 @@ class _Facet {
           : n[1] > 0
           ? GemFacetKind.crown
           : GemFacetKind.pavilion;
-      facets.add(_Facet(ring, area, kind, rng.nextDouble()));
+      final seed = rng.nextDouble();
+      final ring = _hull(points, n);
+      // The outline stands in for the triangles only if it covers the same
+      // area: then the facet is convex and in one piece.
+      if (ring.length >= 3 && _ringArea(ring) <= covered * 1.02) {
+        facets.add(_Facet.convex(ring, covered, n, kind, seed));
+      } else {
+        facets.add(_Facet.triangles(points, covered, n, kind, seed));
+      }
+    }
+    return facets..addAll(_band(girdle, rng));
+  }
+
+  /// Girdle band through [points]: around the outline in up to 64 azimuth
+  /// steps, the band's top and bottom edge at the outermost points of each
+  /// step, joined by flat quads. Works for any outline that is star-shaped
+  /// about the centre, which every cut is (a heart's cleft included).
+  static List<_Facet> _band(List<_V3> points, math.Random rng) {
+    if (points.isEmpty) return const [];
+    const steps = 64;
+    final bins = List<List<_V3>>.generate(steps, (_) => []);
+    for (final p in points) {
+      final a = math.atan2(p[2], p[0]);
+      bins[((a + math.pi) / (2 * math.pi) * steps).floor() % steps].add(p);
+    }
+    final edges = <({_V3 top, _V3 bottom})>[];
+    for (final bin in bins) {
+      if (bin.isEmpty) continue;
+      var reach = 0.0;
+      for (final p in bin) {
+        reach = math.max(reach, p[0] * p[0] + p[2] * p[2]);
+      }
+      final outer = [
+        for (final p in bin)
+          if (p[0] * p[0] + p[2] * p[2] >= reach * 0.96) p,
+      ];
+      edges.add((
+        top: outer.reduce((a, b) => a[1] >= b[1] ? a : b),
+        bottom: outer.reduce((a, b) => a[1] <= b[1] ? a : b),
+      ));
+    }
+    final facets = <_Facet>[];
+    for (var i = 0; i < edges.length; i++) {
+      final e0 = edges[i], e1 = edges[(i + 1) % edges.length];
+      var ring = [e0.top, e0.bottom, e1.bottom, e1.top];
+      var n = _cross(_sub(ring[1], ring[0]), _sub(ring[2], ring[0]));
+      n = _add(n, _cross(_sub(ring[2], ring[0]), _sub(ring[3], ring[0])));
+      final area = _len(n) / 2;
+      if (area < 1e-9) continue;
+      // Face outward.
+      final mid = _scale(
+        _add(_add(ring[0], ring[1]), _add(ring[2], ring[3])),
+        0.25,
+      );
+      if (n[0] * mid[0] + n[2] * mid[2] < 0) {
+        ring = ring.reversed.toList();
+        n = _scale(n, -1);
+      }
+      facets.add(
+        _Facet.convex(
+          ring,
+          area,
+          _scale(n, 1 / _len(n)),
+          GemFacetKind.girdle,
+          rng.nextDouble(),
+        ),
+      );
     }
     return facets;
+  }
+
+  static double _ringArea(List<_V3> ring) {
+    var area = 0.0;
+    for (var i = 1; i < ring.length - 1; i++) {
+      area += _triArea(ring[0], ring[i], ring[i + 1]);
+    }
+    return area;
   }
 
   /// Convex outline of coplanar [points] around normal [n], counter-
