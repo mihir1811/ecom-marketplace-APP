@@ -141,8 +141,8 @@ class GemFieldController extends ChangeNotifier {
   /// World units across the field width.
   static const worldWidth = 6.4;
 
-  /// Herd pace multiplier (4× the original drift).
-  static const _flowSpeed = 4.0;
+  /// Herd pace multiplier (2× the original drift).
+  static const _flowSpeed = 2.0;
 
   /// Depth slab the stones live in: back edge and thickness. Shallow and
   /// pulled toward the viewer so the herd reads close and packed.
@@ -194,7 +194,7 @@ class GemFieldController extends ChangeNotifier {
     const halfW = worldWidth / 2;
     final halfH = size.height / unit / 2;
     // Packed like a pour of beans, capped for frame budget.
-    final count = (size.width * size.height / 640).round().clamp(140, 380);
+    final count = (size.width * size.height / 560).round().clamp(160, 420);
 
     // Flow along the screen diagonal: top-left → bottom-right.
     final len = math.sqrt(halfW * halfW + halfH * halfH);
@@ -239,7 +239,7 @@ class GemFieldController extends ChangeNotifier {
         surge: 0.15 + rng.nextDouble() * 0.3,
         surgeRate: 0.25 + rng.nextDouble() * 0.9,
         // Mostly small stones with the odd big one, like a real pour.
-        scale: 0.12 + 0.36 * math.pow(rng.nextDouble(), 1.8),
+        scale: 0.1 + 0.26 * math.pow(rng.nextDouble(), 1.8),
         phase: rng.nextDouble(),
         bob: 0.02 + rng.nextDouble() * 0.03,
         spinX: (rng.nextDouble() - 0.5) * 0.5,
@@ -362,9 +362,9 @@ class GemFieldController extends ChangeNotifier {
           p.y -= 2 * g.limS * _flowY;
         }
       }
-      // One shared ripple travels down the stream, so neighbours sway
-      // together like a herd instead of wandering on their own.
-      final lane = g.q + 0.16 * math.sin(g.s * 0.85 - _time * 1.3) * idle;
+      // Each stone keeps its lane: the stream runs straight along the
+      // diagonal.
+      final lane = g.q;
       g.hx = g.s * _flowX - lane * _flowY;
       g.hy = g.s * _flowY + lane * _flowX;
 
@@ -588,6 +588,9 @@ class GemFieldController extends ChangeNotifier {
         sparkle:
             g.lit > 0.15 || g.flash > 0 || (_calm > 0.3 && band != _Band.far),
         sparkleWidth: sparkleWidth,
+        // Clear-crystal shading for every cut but pear, whose many small
+        // facets already read as a diamond. Blurred far stones skip it.
+        seeThrough: band != _Band.far && model.name != 'pear',
       );
     }
     batch.paint(canvas, sparkle: sparkle);

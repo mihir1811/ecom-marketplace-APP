@@ -69,19 +69,21 @@ class DiamondBatch {
     _indices = 0;
   }
 
-  void _reserve(DiamondMesh mesh) {
-    if (_verts + mesh.verts.length > _chunkVertices) _flush();
-    final verts = _verts + mesh.verts.length;
+  void _reserve(DiamondMesh mesh, {bool twice = false}) {
+    final passes = twice ? 2 : 1;
+    if (_verts + mesh.verts.length * passes > _chunkVertices) _flush();
+    final verts = _verts + mesh.verts.length * passes;
     if (_col.length < verts) {
       final cap = math.max(verts, _col.length * 2);
       _pos = Float32List(cap * 2)..setRange(0, _verts * 2, _pos);
       _col = Int32List(cap)..setRange(0, _verts, _col);
     }
-    final indices = _indices + mesh.tris.length;
+    final indices = _indices + mesh.tris.length * passes;
     if (_idx.length < indices) {
       _idx = Uint16List(math.max(indices, _idx.length * 2))
         ..setRange(0, _indices, _idx);
     }
+    _mesh = mesh;
     final n = mesh.vertexCount;
     if (_wx.length < n) {
       _wx = Float32List(n);
@@ -89,6 +91,26 @@ class DiamondBatch {
       _wz = Float32List(n);
       _sx = Float32List(n);
       _sy = Float32List(n);
+    }
+  }
+
+  DiamondMesh? _mesh;
+
+  /// Appends facet [f] of the stone being added: its vertices (projected
+  /// into the scratch arrays) in one [color], then its triangles.
+  void _emit(int f, int color, int start, int end) {
+    final mesh = _mesh!;
+    final verts = mesh.verts, tris = mesh.tris;
+    final base = _verts;
+    for (var j = start; j < end; j++) {
+      final v = verts[j];
+      _pos[_verts * 2] = _sx[v];
+      _pos[_verts * 2 + 1] = _sy[v];
+      _col[_verts] = color;
+      _verts++;
+    }
+    for (var j = mesh.triStart[f]; j < mesh.triStart[f + 1]; j++) {
+      _idx[_indices++] = base + tris[j];
     }
   }
 
@@ -177,6 +199,13 @@ class DiamondBatch {
   /// whole stone. [light] (0..1) is a white point light at the touch,
   /// [lightFrom] the screen-space direction from the stone toward it.
   /// [sparkleWidth] is the sparkle sprite's pixel width.
+  ///
+  /// With [seeThrough] the stone is drawn as clear crystal: first the back
+  /// facets, seen through the stone and lit by the light they mirror
+  /// inside it, then the front facets over them, part transparent. The
+  /// crossing facet lines and the bright/dark mosaic inside are what read
+  /// as a cut diamond on large flat facets (step cuts). It roughly doubles
+  /// the facets drawn, so it is skipped on stones under ~12 px.
   void add({
     required DiamondMesh mesh,
     required GemPose pose,
@@ -191,6 +220,7 @@ class DiamondBatch {
     double light = 0,
     Offset lightFrom = Offset.zero,
     double phase = 0,
+    bool seeThrough = false,
   }) {
     final eyeX = camera.eyeX, eyeY = camera.eyeY, eyeZ = camera.distance;
     final unit = camera.unit;
@@ -206,7 +236,8 @@ class DiamondBatch {
         py0 - reach > viewport.height) {
       return;
     }
-    _reserve(mesh);
+    final clear = seeThrough && reach >= 12;
+    _reserve(mesh, twice: clear);
 
     // Rotation R = Ry · Rx · Rz.
     final cx = math.cos(pose.rx), sx = math.sin(pose.rx);
@@ -249,7 +280,9 @@ class DiamondBatch {
     vy /= vl;
     vz /= vl;
 
-    final fogR = fogColor.r, fogG = fogColor.g, fogB = fogColor.b;
+    // Fog toward the background's brightness only: never a tint.
+    final fogGrey =
+        0.2126 * fogColor.r + 0.7152 * fogColor.g + 0.0722 * fogColor.b;
     final keep = 1 - fog.clamp(0.0, 1.0);
     final lit = light.clamp(0.0, 1.0);
     final exposure = 1 + flash * 0.9 + lit * 0.7;
@@ -262,124 +295,168 @@ class DiamondBatch {
 
     final n = mesh.normals, seeds = mesh.seeds, kinds = mesh.kinds;
     final vertStart = mesh.vertStart, verts = mesh.verts;
-    final triStart = mesh.triStart, tris = mesh.tris;
     final girdleKind = GemFacetKind.girdle.index;
     final tableKind = GemFacetKind.table.index;
     var bestSpark = 0.0;
     var bestFacet = -1;
 
-    for (var f = 0; f < mesh.facetCount; f++) {
-      final ox = n[f * 3], oy = n[f * 3 + 1], oz = n[f * 3 + 2];
-      final nx = m00 * ox + m01 * oy + m02 * oz;
-      final ny = m10 * ox + m11 * oy + m12 * oz;
-      final nz = m20 * ox + m21 * oy + m22 * oz;
-      final start = vertStart[f], end = vertStart[f + 1];
-      final r0 = verts[start];
-      if (nx * (eyeX - wxs[r0]) +
-              ny * (eyeY - wys[r0]) +
-              nz * (eyeZ - wzs[r0]) <=
-          0) {
-        continue;
-      }
+    // Pass 0 draws the back facets seen through the stone (clear stones
+    // only), pass 1 the front facets.
+    for (var pass = clear ? 0 : 1; pass < 2; pass++) {
+      final behind = pass == 0;
+      for (var f = 0; f < mesh.facetCount; f++) {
+        final ox = n[f * 3], oy = n[f * 3 + 1], oz = n[f * 3 + 2];
+        final nx = m00 * ox + m01 * oy + m02 * oz;
+        final ny = m10 * ox + m11 * oy + m12 * oz;
+        final nz = m20 * ox + m21 * oy + m22 * oz;
+        final start = vertStart[f], end = vertStart[f + 1];
+        final r0 = verts[start];
+        final facing =
+            nx * (eyeX - wxs[r0]) +
+                ny * (eyeY - wys[r0]) +
+                nz * (eyeZ - wzs[r0]) >
+            0;
+        if (facing == behind) continue;
+        final kind = kinds[f];
 
-      final ndv = math.max(0.0, nx * vx + ny * vy + nz * vz);
-      // Surface mirror.
-      final rx = 2 * ndv * nx - vx;
-      final ry = 2 * ndv * ny - vy;
-      final rz = 2 * ndv * nz - vz;
-      final grazing = 1 - ndv;
-      final g2 = grazing * grazing;
-      final fresnel = 0.17 + 0.83 * g2 * g2 * grazing;
-
-      final kind = kinds[f];
-      var lum = 0.0;
-      var ex = rx, ey = ry, ez = rz;
-      if (kind == girdleKind) {
-        // Frosted girdle: a dim, soft band.
-        lum = 0.04 + 0.25 * _studio(rx, ry, rz);
-      } else {
-        // Refract in, mirror off the pavilion across the table axis, and
-        // let each facet's angle scatter the returning ray.
-        final kk = 1 - _eta * _eta * (1 - ndv * ndv);
-        final fr = _eta * ndv - math.sqrt(math.max(0.0, kk));
-        var tx = -_eta * vx + fr * nx;
-        var ty = -_eta * vy + fr * ny;
-        var tz = -_eta * vz + fr * nz;
-        final tu = 2 * (tx * upX + ty * upY + tz * upZ);
-        tx -= tu * upX;
-        ty -= tu * upY;
-        tz -= tu * upZ;
-        final scatter = (seeds[f] - 0.5) * 1.6;
-        ex = tx + nx * scatter + vx * 0.15;
-        ey = ty + ny * scatter + vy * 0.15;
-        ez = tz + nz * scatter + vz * 0.15;
-        final el = math.sqrt(ex * ex + ey * ey + ez * ez);
-        ex /= el;
-        ey /= el;
-        ez /= el;
-        var inside = _studio(ex, ey, ez);
-        if (kind == tableKind) {
-          // The table is one flat facet over many pavilion facets: it
-          // returns a spread of the room, not a single mirror direction.
-          double spread(double ax, double ay, double az) {
-            final qx = ex + ax, qy = ey + ay, qz = ez + az;
-            final ql = math.sqrt(qx * qx + qy * qy + qz * qz);
-            return _studio(qx / ql, qy / ql, qz / ql);
+        if (behind) {
+          // Inside face of a back facet: the view ray mirrors off it and
+          // off the pavilion before leaving, so it shows a scattered patch
+          // of the room, the kaleidoscope inside a diamond.
+          final dn = -(nx * vx + ny * vy + nz * vz);
+          var ix = -vx - 2 * dn * nx;
+          var iy = -vy - 2 * dn * ny;
+          var iz = -vz - 2 * dn * nz;
+          final scatter = (seeds[f] - 0.5) * 2.2;
+          ix += nx * scatter;
+          iy += ny * scatter;
+          iz += nz * scatter;
+          var il = math.sqrt(ix * ix + iy * iy + iz * iz);
+          ix /= il;
+          iy /= il;
+          iz /= il;
+          final iu = 2 * (ix * upX + iy * upY + iz * upZ);
+          var jx = ix - iu * upX, jy = iy - iu * upY, jz = iz - iu * upZ;
+          il = math.sqrt(jx * jx + jy * jy + jz * jz);
+          jx /= il;
+          jy /= il;
+          jz /= il;
+          var lum =
+              0.02 + 0.9 * _studio(ix, iy, iz) + 1.3 * _studio(jx, jy, jz);
+          if (lit > 0) {
+            final hit = math.max(0.0, jx * plx + jy * ply + jz * plz);
+            final h2 = hit * hit;
+            lum += lit * (0.08 + h2 * h2 * h2 * 1.2);
           }
-
-          inside =
-              (inside +
-                  spread(m00 * 0.8, m10 * 0.8, m20 * 0.8) +
-                  spread(-m00 * 0.8, -m10 * 0.8, -m20 * 0.8) +
-                  spread(m02 * 0.8, m12 * 0.8, m22 * 0.8) +
-                  spread(-m02 * 0.8, -m12 * 0.8, -m22 * 0.8)) /
-              5 *
-              1.6;
+          lum *= exposure;
+          final tone = 1 - math.exp(-lum * 1.7);
+          final grey =
+              (0.04 + tone * tone * (1.6 - 0.6 * tone)) * keep +
+              fogGrey * (1 - keep);
+          final c = (grey.clamp(0.0, 1.0) * 255).round();
+          _emit(f, 0xFF000000 | c << 16 | c << 8 | c, start, end);
+          // Inner reflections sparkle too.
+          if (sparkle && kind != girdleKind && lum > bestSpark) {
+            bestSpark = lum;
+            bestFacet = f;
+          }
+          continue;
         }
-        lum = fresnel * _studio(rx, ry, rz) + (1 - fresnel) * 0.95 * inside;
-      }
 
-      if (lit > 0) {
-        final face = math.max(0.0, nx * plx + ny * ply + nz * plz);
-        final hit = math.max(
-          math.max(0.0, rx * plx + ry * ply + rz * plz),
-          math.max(0.0, ex * plx + ey * ply + ez * plz),
+        final ndv = math.max(0.0, nx * vx + ny * vy + nz * vz);
+        // Surface mirror.
+        final rx = 2 * ndv * nx - vx;
+        final ry = 2 * ndv * ny - vy;
+        final rz = 2 * ndv * nz - vz;
+        final grazing = 1 - ndv;
+        final g2 = grazing * grazing;
+        final fresnel = 0.17 + 0.83 * g2 * g2 * grazing;
+
+        var lum = 0.0;
+        var ex = rx, ey = ry, ez = rz;
+        if (kind == girdleKind) {
+          // Frosted girdle: a dim, soft band.
+          lum = 0.04 + 0.25 * _studio(rx, ry, rz);
+        } else {
+          // Refract in, mirror off the pavilion across the table axis, and
+          // let each facet's angle scatter the returning ray.
+          final kk = 1 - _eta * _eta * (1 - ndv * ndv);
+          final fr = _eta * ndv - math.sqrt(math.max(0.0, kk));
+          var tx = -_eta * vx + fr * nx;
+          var ty = -_eta * vy + fr * ny;
+          var tz = -_eta * vz + fr * nz;
+          final tu = 2 * (tx * upX + ty * upY + tz * upZ);
+          tx -= tu * upX;
+          ty -= tu * upY;
+          tz -= tu * upZ;
+          final scatter = (seeds[f] - 0.5) * 1.6;
+          ex = tx + nx * scatter + vx * 0.15;
+          ey = ty + ny * scatter + vy * 0.15;
+          ez = tz + nz * scatter + vz * 0.15;
+          final el = math.sqrt(ex * ex + ey * ey + ez * ez);
+          ex /= el;
+          ey /= el;
+          ez /= el;
+          var inside = _studio(ex, ey, ez);
+          if (kind == tableKind) {
+            // The table is one flat facet over many pavilion facets: it
+            // returns a spread of the room, not a single mirror direction.
+            double spread(double ax, double ay, double az) {
+              final qx = ex + ax, qy = ey + ay, qz = ez + az;
+              final ql = math.sqrt(qx * qx + qy * qy + qz * qz);
+              return _studio(qx / ql, qy / ql, qz / ql);
+            }
+
+            inside =
+                (inside +
+                    spread(m00 * 0.8, m10 * 0.8, m20 * 0.8) +
+                    spread(-m00 * 0.8, -m10 * 0.8, -m20 * 0.8) +
+                    spread(m02 * 0.8, m12 * 0.8, m22 * 0.8) +
+                    spread(-m02 * 0.8, -m12 * 0.8, -m22 * 0.8)) /
+                5 *
+                1.6;
+          }
+          lum = clear
+              // The crystal behind already returns the inner light; the
+              // front shows mostly its mirror and a share of the brilliance.
+              ? fresnel * 2.2 * _studio(rx, ry, rz) +
+                    (1 - fresnel) * 0.6 * inside
+              : fresnel * _studio(rx, ry, rz) + (1 - fresnel) * 0.95 * inside;
+        }
+
+        if (lit > 0) {
+          final face = math.max(0.0, nx * plx + ny * ply + nz * plz);
+          final hit = math.max(
+            math.max(0.0, rx * plx + ry * ply + rz * plz),
+            math.max(0.0, ex * plx + ey * ply + ez * plz),
+          );
+          final h2 = hit * hit;
+          final h8 = h2 * h2 * h2 * h2;
+          lum += lit * (0.06 + face * 0.18 + h8 * h8 * 1.6);
+        }
+        lum *= exposure;
+
+        // Soft shoulder so bright facets stay crisp white, never a flat blob,
+        // and a toe that sinks mid greys toward black for diamond contrast.
+        final tone = 1 - math.exp(-lum * 1.7);
+        final grey =
+            (body + tone * tone * (1.6 - 0.6 * tone)) * keep +
+            fogGrey * (1 - keep);
+        final c = (grey.clamp(0.0, 1.0) * 255).round();
+        // Clear stones: front facets let the crystal behind show through,
+        // less so at grazing angles where the surface mirrors more.
+        final alpha = clear ? (0.38 + 0.8 * fresnel).clamp(0.38, 0.92) : 1.0;
+        _emit(
+          f,
+          (alpha * 255).round() << 24 | c << 16 | c << 8 | c,
+          start,
+          end,
         );
-        final h2 = hit * hit;
-        final h8 = h2 * h2 * h2 * h2;
-        lum += lit * (0.06 + face * 0.18 + h8 * h8 * 1.6);
-      }
-      lum *= exposure;
 
-      // Soft shoulder so bright facets stay crisp white, never a flat blob,
-      // and a toe that sinks mid greys toward black for diamond contrast.
-      final tone = 1 - math.exp(-lum * 1.7);
-      final grey = body + tone * tone * (1.6 - 0.6 * tone);
-      final r = grey * keep + fogR * (1 - keep);
-      final g = grey * keep + fogG * (1 - keep);
-      final b = grey * keep + fogB * (1 - keep);
-      final color =
-          0xFF000000 |
-          ((r.clamp(0.0, 1.0) * 255).round() << 16) |
-          ((g.clamp(0.0, 1.0) * 255).round() << 8) |
-          (b.clamp(0.0, 1.0) * 255).round();
-
-      // Emit the facet: its vertices in its colour, then its triangles.
-      final base = _verts;
-      for (var j = start; j < end; j++) {
-        final v = verts[j];
-        _pos[_verts * 2] = sxs[v];
-        _pos[_verts * 2 + 1] = sys[v];
-        _col[_verts] = color;
-        _verts++;
-      }
-      for (var j = triStart[f]; j < triStart[f + 1]; j++) {
-        _idx[_indices++] = base + tris[j];
-      }
-
-      if (sparkle && kind != girdleKind && lum > bestSpark) {
-        bestSpark = lum;
-        bestFacet = f;
+        if (sparkle && kind != girdleKind && lum > bestSpark) {
+          bestSpark = lum;
+          bestFacet = f;
+        }
       }
     }
 
