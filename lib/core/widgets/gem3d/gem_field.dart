@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../haptics/app_haptics.dart';
 import 'gem_mesh.dart';
+import 'gem_model.dart';
 import 'gem_renderer.dart';
 
 /// Depth bands painted as separate layers so far and near stones can be
@@ -15,8 +16,6 @@ enum _Band { far, focus, near }
 
 class _FieldGem {
   _FieldGem({
-    required this.cut,
-    required this.look,
     required this.band,
     required this.s,
     required this.q,
@@ -31,8 +30,6 @@ class _FieldGem {
     required this.spinZ,
   }) : pose = GemPose(z: hz, scale: scale);
 
-  final GemCut cut;
-  final GemLook look;
   final _Band band;
 
   /// Rest position in flow coordinates: [s] runs along the flow and wraps
@@ -52,9 +49,10 @@ class _FieldGem {
   double lit = 0;
 }
 
-/// Physics for a dense herd of 3D stones streaming together from the
-/// top-left to the bottom-right corner through deep darkness, modelled on
-/// the Lusion / Oryzo coffee-bean footer.
+/// Physics for a dense herd of 3D colourless pear diamonds (an imported
+/// .glb model) streaming together from the top-left to the bottom-right
+/// corner through deep darkness, modelled on the Lusion / Oryzo coffee-bean
+/// footer.
 ///
 /// The finger (or mouse) is a solid body moving through the cloud: it
 /// carves a clean round void, stones bank up into a ring around its edge,
@@ -85,20 +83,36 @@ class GemFieldController extends ChangeNotifier {
   double _eyeX = 0, _eyeY = 0;
   double _energy = 0;
 
+  /// 1 while nobody touches the field: stones shine in the studio light
+  /// with sparkles and little fog. Drops fast on touch so the finger-lit
+  /// look takes over, and eases back after release.
+  double _calm = 1;
+
   Offset _waveAt = Offset.zero;
   double _waveAge = -1;
 
-  static const _cuts = GemCut.values;
+  /// The stone every herd member is drawn with.
+  static const modelAsset = 'assets/models/pear.glb';
+
+  /// Imported stone; nothing is drawn until it is set.
+  GemModel? model;
+
+  /// Stones drawn at least this many pixels in radius use the full model.
+  static const _detailRadius = 22.0;
 
   /// World units across the field width.
   static const worldWidth = 6.4;
 
-  /// Herd pace multiplier (2× the original drift).
-  static const _flowSpeed = 2.0;
+  /// Herd pace multiplier (4× the original drift).
+  static const _flowSpeed = 4.0;
 
-  /// Depth slab the stones live in: back edge and thickness.
-  static const _zNear = -1.9;
-  static const _zDepth = 2.8;
+  /// Depth slab the stones live in: back edge and thickness. Shallow and
+  /// pulled toward the viewer so the herd reads close and packed.
+  static const _zNear = -1.4;
+  static const _zDepth = 2.5;
+
+  /// Depth-of-field band edges.
+  static const _zFar = -0.95, _zFront = 0.65;
 
   /// Radius of the void carved around the finger, in logical pixels.
   double get voidRadius => (_size.shortestSide * 0.2).clamp(64.0, 130.0);
@@ -117,6 +131,7 @@ class GemFieldController extends ChangeNotifier {
   );
 
   bool get settled =>
+      _calm == 1 &&
       _pointer == null &&
       _presence == 0 &&
       _energy < 0.002 &&
@@ -137,8 +152,8 @@ class GemFieldController extends ChangeNotifier {
     final rng = math.Random(seed);
     const halfW = worldWidth / 2;
     final halfH = size.height / unit / 2;
-    // Dense like a pour of beans, capped for frame budget.
-    final count = (size.width * size.height / 1100).round().clamp(90, 250);
+    // Packed like a pour of beans, capped for frame budget.
+    final count = (size.width * size.height / 640).round().clamp(140, 380);
 
     // Flow along the screen diagonal: top-left → bottom-right.
     final len = math.sqrt(halfW * halfW + halfH * halfH);
@@ -151,9 +166,9 @@ class GemFieldController extends ChangeNotifier {
       // A shallow depth slab, pulled toward the viewer, keeps the herd
       // close and tightly packed.
       final z = _zNear + rng.nextDouble() * _zDepth;
-      final band = z < -1.4
+      final band = z < _zFar
           ? _Band.far
-          : z > 0.45
+          : z > _zFront
           ? _Band.near
           : _Band.focus;
       // Wider bounds at depth so the frame stays filled under perspective;
@@ -167,15 +182,7 @@ class GemFieldController extends ChangeNotifier {
           (rng.nextDouble() + rng.nextDouble() - 1) * (across + 0.5) / spread;
       final x = s0 * _flowX - q0 * _flowY;
       final y = s0 * _flowY + q0 * _flowX;
-      final pick = rng.nextDouble();
-      final look = pick < 0.12
-          ? GemLook.champagne
-          : pick < 0.2
-          ? GemLook.ice
-          : GemLook.white;
       final g = _FieldGem(
-        cut: _cuts[rng.nextInt(_cuts.length)],
-        look: look,
         band: band,
         s: s0,
         q: q0,
@@ -187,7 +194,7 @@ class GemFieldController extends ChangeNotifier {
             _flowSpeed *
             (0.72 + 0.16 * ((z - _zNear) / _zDepth)) *
             (0.97 + rng.nextDouble() * 0.06),
-        scale: 0.16 + rng.nextDouble() * 0.16,
+        scale: 0.19 + rng.nextDouble() * 0.17,
         phase: rng.nextDouble(),
         bob: 0.02 + rng.nextDouble() * 0.03,
         spinX: (rng.nextDouble() - 0.5) * 0.5,
@@ -253,6 +260,12 @@ class GemFieldController extends ChangeNotifier {
       _glow = math.min(1, _glow + dt * 4);
     } else {
       _glow = math.max(0, _glow - dt * 1.6);
+    }
+
+    if (pointer != null || _waveAge >= 0) {
+      _calm = math.max(0, _calm - dt * 5);
+    } else {
+      _calm = math.min(1, _calm + dt * 1.1);
     }
 
     // Shockwave from a tap: a ring that expands and fades.
@@ -469,22 +482,32 @@ class GemFieldController extends ChangeNotifier {
   }
 
   void _paintBand(Canvas canvas, _Band band, GemBatch batch, Color fog) {
+    final model = this.model;
+    if (model == null) return;
     final cam = camera;
+    final detailScale = _detailRadius / unit;
     final items = [
       for (final g in _gems)
         if (g.band == band) g,
     ]..sort((a, b) => a.pose.z.compareTo(b.pose.z));
     batch.reset();
     for (final g in items) {
-      // Stones rest deep in the dark, deeper with distance, and surface
-      // only where the finger's light reaches them.
+      // Idle, stones shine as cut diamonds, dimming with distance. Under
+      // the finger they rest deep in the dark and surface only where its
+      // light reaches them.
       final depth = ((0.9 - g.pose.z) / 3.3).clamp(0.0, 1.0);
-      final fog01 = ((0.6 + 0.28 * depth) * (1 - g.lit * 0.95)).clamp(0.0, 0.9);
-      batch.addGem(
-        mesh: GemMesh.of(g.cut),
+      final dark = (0.6 + 0.28 * depth) * (1 - g.lit * 0.95);
+      final idle = 0.06 + 0.4 * depth;
+      final fog01 = (dark + (idle - dark) * _calm).clamp(0.0, 0.9);
+      batch.addDiamond(
+        // Small and defocused stones skip sub-pixel facets.
+        mesh:
+            band != _Band.far &&
+                g.pose.scale * cam.depthScale(g.pose.z) >= detailScale
+            ? model.detail
+            : model.coarse,
         pose: g.pose,
         camera: cam,
-        look: g.look,
         time: _time,
         fog: fog01,
         fogColor: fog,
@@ -494,14 +517,14 @@ class GemFieldController extends ChangeNotifier {
             ? _glowAt - cam.project(g.pose.x, g.pose.y, g.pose.z)
             : Offset.zero,
         phase: g.phase,
-        glint: g.lit > 0.15 || g.flash > 0,
-        flat: band == _Band.far,
+        glint:
+            g.lit > 0.15 || g.flash > 0 || (_calm > 0.3 && band != _Band.far),
       );
     }
-    batch.paint(canvas, glintSprite: GemGlintSprite.image);
+    batch.paint(canvas, glintSprite: GemSparkleSprite.image);
   }
 
-  /// A faint warm pool under the finger; the stones carry the light.
+  /// A faint white pool under the finger; the stones carry the light.
   void _paintLight(Canvas canvas) {
     if (_glow <= 0) return;
     final r = lightRadius;
@@ -514,8 +537,8 @@ class GemFieldController extends ChangeNotifier {
           _glowAt,
           r,
           [
-            Color.fromRGBO(255, 226, 180, 0.07 * _glow),
-            Color.fromRGBO(221, 191, 136, 0.025 * _glow),
+            Color.fromRGBO(255, 255, 255, 0.05 * _glow),
+            Color.fromRGBO(255, 255, 255, 0.018 * _glow),
             const Color(0x00000000),
           ],
           const [0, 0.4, 1],
@@ -524,9 +547,10 @@ class GemFieldController extends ChangeNotifier {
   }
 }
 
-/// Full-bleed field of 3D diamonds of every cut streaming diagonally that
-/// part around the finger, tumble when swept and catch its light. Pauses while scrolled off screen and
-/// honours reduced motion.
+/// Full-bleed field of 3D pear diamonds, drawn from
+/// [GemFieldController.modelAsset], streaming diagonally that part around
+/// the finger, tumble when swept and catch its light. Pauses while scrolled
+/// off screen and honours reduced motion.
 ///
 /// Touches below [touchTopInset] are claimed eagerly so the page does not
 /// scroll while a finger plays with the stones; above it, scrolling works
@@ -559,6 +583,19 @@ class _GemFieldState extends State<GemField>
   bool _visible = false;
 
   @override
+  void initState() {
+    super.initState();
+    // The herd waits for the model, so its entrance plays once it is in.
+    GemModel.load(
+      GemFieldController.modelAsset,
+    ).catchError((Object _) => GemModel.procedural(GemCut.pear)).then((model) {
+      if (!mounted) return;
+      _field.model = model;
+      _syncTicker();
+    });
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _field.reduceMotion = MediaQuery.disableAnimationsOf(context);
@@ -589,7 +626,10 @@ class _GemFieldState extends State<GemField>
   }
 
   void _syncTicker() {
-    final run = _visible && !(_field.reduceMotion && _field.settled);
+    final run =
+        _visible &&
+        _field.model != null &&
+        !(_field.reduceMotion && _field.settled);
     if (run && !_ticker.isActive) {
       _last = Duration.zero;
       _ticker.start();
@@ -608,7 +648,7 @@ class _GemFieldState extends State<GemField>
   }
 
   void _wake() {
-    if (!_ticker.isActive && _visible) {
+    if (!_ticker.isActive && _visible && _field.model != null) {
       _last = Duration.zero;
       _ticker.start();
     }

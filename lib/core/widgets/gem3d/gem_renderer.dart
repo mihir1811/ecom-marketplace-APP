@@ -367,6 +367,317 @@ class GemBatch {
   }
 }
 
+/// Colourless-diamond shading for [GemBatch.addDiamond].
+///
+/// Each facet is a flat mirror and gets one neutral grey: the studio it
+/// reflects off its surface (weak, Fresnel) plus the light it returns from
+/// inside, where the ray refracts in, bounces off the pavilion and comes
+/// back out (strong, the "brilliance"). The studio is a dark room with a
+/// big overhead soft box and two strip lights, and the viewer's own head
+/// blocks what lies straight behind the camera, so facets snap between
+/// white and near black as the stone turns, as a real diamond does. No
+/// dispersion colour is added.
+extension GemDiamondShading on GemBatch {
+  static const _ior = 2.42;
+
+  // Studio lights (unit directions, world space; +z toward the viewer).
+  static const _boxX = -0.3, _boxY = 0.8, _boxZ = 0.52; // overhead box
+  static const _rightX = 0.88, _rightY = 0.3, _rightZ = 0.36; // strip
+  static const _leftX = -0.9, _leftY = 0.12, _leftZ = 0.42; // strip
+  static const _lowX = 0.2, _lowY = -0.7, _lowZ = 0.68; // floor bounce
+
+  static double _step(double e0, double e1, double x) {
+    final t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
+    return t * t * (3 - 2 * t);
+  }
+
+  static double _studio(double x, double y, double z) {
+    final box = _step(0.5, 0.8, x * _boxX + y * _boxY + z * _boxZ);
+    final right = _step(0.78, 0.9, x * _rightX + y * _rightY + z * _rightZ);
+    final left = _step(0.8, 0.9, x * _leftX + y * _leftY + z * _leftZ);
+    final low = _step(0.75, 0.9, x * _lowX + y * _lowY + z * _lowZ);
+    // Panels on the walls behind the stone, seen through it.
+    final wall = z < 0
+        ? _step(0.55, 0.85, (x * 3.1 + y * 1.7).abs() % 2 / 2 * -z * 1.6)
+        : 0.0;
+    final room = 0.04 + 0.07 * math.max(0.0, y);
+    final head = 1 - _step(0.93, 0.985, z);
+    return (box * 1.3 + right + left * 0.85 + low * 0.5 + wall * 0.6 + room) *
+        head;
+  }
+
+  /// Appends one colourless diamond, flat shaded per facet.
+  ///
+  /// [fog] (0..1) fades it toward [fogColor]; [flash] (0..1) brightens the
+  /// whole stone. [light] (0..1) is a white point light at the touch,
+  /// [lightFrom] the screen-space direction from the stone toward it.
+  void addDiamond({
+    required GemMesh mesh,
+    required GemPose pose,
+    required GemCamera camera,
+    double time = 0,
+    double fog = 0,
+    Color fogColor = const Color(0xFF070709),
+    double flash = 0,
+    bool glint = true,
+    double light = 0,
+    Offset lightFrom = Offset.zero,
+    double phase = 0,
+  }) {
+    _ensure(mesh.triangleCount);
+
+    // Rotation R = Ry · Rx · Rz.
+    final cx = math.cos(pose.rx), sx = math.sin(pose.rx);
+    final cy = math.cos(pose.ry), sy = math.sin(pose.ry);
+    final cz = math.cos(pose.rz), sz = math.sin(pose.rz);
+    final m00 = cy * cz + sy * sx * sz;
+    final m01 = -cy * sz + sy * sx * cz;
+    final m02 = sy * cx;
+    final m10 = cx * sz;
+    final m11 = cx * cz;
+    final m12 = -sx;
+    final m20 = -sy * cz + cy * sx * sz;
+    final m21 = sy * sz + cy * sx * cz;
+    final m22 = cy * cx;
+    // The stone's table axis; the pavilion mirrors light across it.
+    final upX = m01, upY = m11, upZ = m21;
+
+    final eyeX = camera.eyeX, eyeY = camera.eyeY, eyeZ = camera.distance;
+    final v = mesh.vertices, n = mesh.normals, seeds = mesh.seeds;
+    final s = pose.scale;
+
+    final fogR = fogColor.r, fogG = fogColor.g, fogB = fogColor.b;
+    final keep = 1 - fog.clamp(0.0, 1.0);
+    final lit = light.clamp(0.0, 1.0);
+    final exposure = 1 + flash * 0.9 + lit * 0.7;
+    var plx = lightFrom.dx, ply = -lightFrom.dy, plz = 0.55;
+    final pl = math.sqrt(plx * plx + ply * ply + plz * plz);
+    plx /= pl;
+    ply /= pl;
+    plz /= pl;
+    const body = 0.025;
+    const eta = 1 / _ior;
+
+    var bestSpark = 0.0;
+    var bestX = 0.0, bestY = 0.0, bestZ = 0.0;
+
+    for (var t = 0; t < mesh.triangleCount; t++) {
+      final ox = n[t * 3], oy = n[t * 3 + 1], oz = n[t * 3 + 2];
+      final nx = m00 * ox + m01 * oy + m02 * oz;
+      final ny = m10 * ox + m11 * oy + m12 * oz;
+      final nz = m20 * ox + m21 * oy + m22 * oz;
+
+      final b = t * 9;
+      final wx0 = (m00 * v[b] + m01 * v[b + 1] + m02 * v[b + 2]) * s + pose.x;
+      final wy0 = (m10 * v[b] + m11 * v[b + 1] + m12 * v[b + 2]) * s + pose.y;
+      final wz0 = (m20 * v[b] + m21 * v[b + 1] + m22 * v[b + 2]) * s + pose.z;
+      if (nx * (eyeX - wx0) + ny * (eyeY - wy0) + nz * (eyeZ - wz0) <= 0) {
+        continue;
+      }
+
+      final base = _tris * 3;
+      var cxSum = wx0, cySum = wy0, czSum = wz0;
+      for (var c = 0; c < 3; c++) {
+        final i = b + c * 3;
+        final double wx, wy, wz;
+        if (c == 0) {
+          wx = wx0;
+          wy = wy0;
+          wz = wz0;
+        } else {
+          wx = (m00 * v[i] + m01 * v[i + 1] + m02 * v[i + 2]) * s + pose.x;
+          wy = (m10 * v[i] + m11 * v[i + 1] + m12 * v[i + 2]) * s + pose.y;
+          wz = (m20 * v[i] + m21 * v[i + 1] + m22 * v[i + 2]) * s + pose.z;
+          cxSum += wx;
+          cySum += wy;
+          czSum += wz;
+        }
+        final k = camera.unit * eyeZ / math.max(0.5, eyeZ - wz);
+        _pos[(base + c) * 2] = camera.center.dx + (wx - eyeX) * k;
+        _pos[(base + c) * 2 + 1] = camera.center.dy - (wy - eyeY) * k;
+      }
+      final px = cxSum / 3, py = cySum / 3, pz = czSum / 3;
+
+      // View vector from the facet centre toward the eye.
+      var vx = eyeX - px, vy = eyeY - py, vz = eyeZ - pz;
+      final vl = math.sqrt(vx * vx + vy * vy + vz * vz);
+      vx /= vl;
+      vy /= vl;
+      vz /= vl;
+      final ndv = math.max(0.0, nx * vx + ny * vy + nz * vz);
+
+      // Surface mirror.
+      final rx = 2 * ndv * nx - vx;
+      final ry = 2 * ndv * ny - vy;
+      final rz = 2 * ndv * nz - vz;
+      final grazing = 1 - ndv;
+      final g2 = grazing * grazing;
+      final fresnel = 0.17 + 0.83 * g2 * g2 * grazing;
+
+      final kind = mesh.kinds[t];
+      final seed = seeds[t];
+      var lum = 0.0;
+      var ex = rx, ey = ry, ez = rz;
+      if (kind == GemFacetKind.girdle) {
+        // Frosted girdle: a dim, soft band.
+        lum = 0.04 + 0.25 * _studio(rx, ry, rz);
+      } else {
+        // Refract in, mirror off the pavilion across the table axis, and
+        // let each facet's angle scatter the returning ray.
+        final kk = 1 - eta * eta * (1 - ndv * ndv);
+        final f = eta * ndv - math.sqrt(math.max(0.0, kk));
+        var tx = -eta * vx + f * nx;
+        var ty = -eta * vy + f * ny;
+        var tz = -eta * vz + f * nz;
+        final tu = 2 * (tx * upX + ty * upY + tz * upZ);
+        tx -= tu * upX;
+        ty -= tu * upY;
+        tz -= tu * upZ;
+        final scatter = (seed - 0.5) * 1.6;
+        ex = tx + nx * scatter + vx * 0.15;
+        ey = ty + ny * scatter + vy * 0.15;
+        ez = tz + nz * scatter + vz * 0.15;
+        final el = math.sqrt(ex * ex + ey * ey + ez * ez);
+        ex /= el;
+        ey /= el;
+        ez /= el;
+        var inside = _studio(ex, ey, ez);
+        if (kind == GemFacetKind.table) {
+          // The table is one flat facet over many pavilion facets: it
+          // returns a spread of the room, not a single mirror direction.
+          double spread(double ax, double ay, double az) {
+            final qx = ex + ax, qy = ey + ay, qz = ez + az;
+            final ql = math.sqrt(qx * qx + qy * qy + qz * qz);
+            return _studio(qx / ql, qy / ql, qz / ql);
+          }
+
+          inside =
+              (inside +
+                  spread(m00 * 0.8, m10 * 0.8, m20 * 0.8) +
+                  spread(-m00 * 0.8, -m10 * 0.8, -m20 * 0.8) +
+                  spread(m02 * 0.8, m12 * 0.8, m22 * 0.8) +
+                  spread(-m02 * 0.8, -m12 * 0.8, -m22 * 0.8)) /
+              5 *
+              1.6;
+        }
+        lum = fresnel * _studio(rx, ry, rz) + (1 - fresnel) * 0.95 * inside;
+      }
+
+      if (lit > 0) {
+        final face = math.max(0.0, nx * plx + ny * ply + nz * plz);
+        final hit = math.max(
+          math.max(0.0, rx * plx + ry * ply + rz * plz),
+          math.max(0.0, ex * plx + ey * ply + ez * plz),
+        );
+        final h2 = hit * hit;
+        final h8 = h2 * h2 * h2 * h2;
+        lum += lit * (0.06 + face * 0.18 + h8 * h8 * 1.6);
+      }
+      lum *= exposure;
+
+      // Soft shoulder so bright facets stay crisp white, never a flat blob,
+      // and a toe that sinks mid greys toward black for diamond contrast.
+      final tone = 1 - math.exp(-lum * 1.7);
+      final grey = body + tone * tone * (1.6 - 0.6 * tone);
+      final r = grey * keep + fogR * (1 - keep);
+      final g = grey * keep + fogG * (1 - keep);
+      final bl = grey * keep + fogB * (1 - keep);
+      final color =
+          0xFF000000 |
+          ((r.clamp(0.0, 1.0) * 255).round() << 16) |
+          ((g.clamp(0.0, 1.0) * 255).round() << 8) |
+          (bl.clamp(0.0, 1.0) * 255).round();
+      _col[base] = color;
+      _col[base + 1] = color;
+      _col[base + 2] = color;
+
+      if (glint && kind != GemFacetKind.girdle && lum > bestSpark) {
+        bestSpark = lum;
+        bestX = px;
+        bestY = py;
+        bestZ = pz;
+      }
+      _tris++;
+    }
+
+    // The brightest facet throws a small, crisp sparkle.
+    final threshold = 0.95 * (1 - 0.3 * lit);
+    if (glint && bestSpark > threshold) {
+      final at = camera.project(bestX, bestY, bestZ);
+      final px = pose.scale * camera.unit * camera.depthScale(pose.z);
+      final twinkle = lit > 0
+          ? 1 - lit * 0.4 * (0.5 + 0.5 * math.sin(time * 9 + phase * 6.283))
+          : 1.0;
+      glints.add(
+        GemGlint(
+          at,
+          ((bestSpark - threshold) / threshold).clamp(0.0, 1.0) *
+              keep *
+              (1 + flash) *
+              twinkle,
+          px * (0.9 + lit * 0.6),
+        ),
+      );
+    }
+  }
+}
+
+/// Lazily rendered small white sparkle: a bright point in a soft halo with
+/// short, faint diffraction spikes, as a camera sees a diamond's sparkle.
+abstract final class GemSparkleSprite {
+  static ui.Image? _image;
+
+  static ui.Image get image => _image ??= _render();
+
+  static ui.Image _render() {
+    const size = 64.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    const c = Offset(size / 2, size / 2);
+    canvas
+      ..drawCircle(
+        c,
+        size * 0.3,
+        Paint()
+          ..shader = ui.Gradient.radial(c, size * 0.3, const [
+            Color(0x55FFFFFF),
+            Color(0x00FFFFFF),
+          ]),
+      )
+      ..drawCircle(
+        c,
+        size * 0.07,
+        Paint()
+          ..shader = ui.Gradient.radial(c, size * 0.07, const [
+            Color(0xFFFFFFFF),
+            Color(0x00FFFFFF),
+          ]),
+      );
+    final ray = Paint()
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.8);
+    for (final vertical in [false, true]) {
+      ray.shader = ui.Gradient.linear(
+        vertical ? const Offset(size / 2, 0) : const Offset(0, size / 2),
+        vertical ? const Offset(size / 2, size) : const Offset(size, size / 2),
+        const [Color(0x00FFFFFF), Color(0x88FFFFFF), Color(0x00FFFFFF)],
+        const [0.15, 0.5, 0.85],
+      );
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: c,
+          width: vertical ? 1.4 : size * 0.8,
+          height: vertical ? size * 0.8 : 1.4,
+        ),
+        ray,
+      );
+    }
+    final picture = recorder.endRecording();
+    final image = picture.toImageSync(size.toInt(), size.toInt());
+    picture.dispose();
+    return image;
+  }
+}
+
 /// Lazily rendered four-point star used for facet glints.
 abstract final class GemGlintSprite {
   static ui.Image? _image;

@@ -82,6 +82,7 @@ flutter:
     - public/images/watch_logo/
     - assets/shapes/
     - assets/clarity/
+    - assets/models/pear.glb
     - assets/policies/policies.json
     - assets/policies/policies_hi.json
     - assets/policies/policies_gu.json

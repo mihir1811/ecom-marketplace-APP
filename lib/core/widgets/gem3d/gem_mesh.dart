@@ -41,6 +41,36 @@ class _Ring {
 class GemMesh {
   GemMesh._(this.vertices, this.normals, this.kinds, this.seeds);
 
+  /// Mesh from ready-made triangles (e.g. an imported model). [vertices]
+  /// holds 9 floats per triangle, wound counter-clockwise from outside;
+  /// facet normals are derived from the winding.
+  factory GemMesh.fromTriangles(
+    Float32List vertices,
+    List<GemFacetKind> kinds,
+    Float32List seeds,
+  ) {
+    final count = kinds.length;
+    final normals = Float32List(count * 3);
+    for (var t = 0; t < count; t++) {
+      final b = t * 9;
+      final ux = vertices[b + 3] - vertices[b];
+      final uy = vertices[b + 4] - vertices[b + 1];
+      final uz = vertices[b + 5] - vertices[b + 2];
+      final vx = vertices[b + 6] - vertices[b];
+      final vy = vertices[b + 7] - vertices[b + 1];
+      final vz = vertices[b + 8] - vertices[b + 2];
+      final nx = uy * vz - uz * vy;
+      final ny = uz * vx - ux * vz;
+      final nz = ux * vy - uy * vx;
+      final len = math.max(1e-12, math.sqrt(nx * nx + ny * ny + nz * nz));
+      normals
+        ..[t * 3] = nx / len
+        ..[t * 3 + 1] = ny / len
+        ..[t * 3 + 2] = nz / len;
+    }
+    return GemMesh._(vertices, normals, List.unmodifiable(kinds), seeds);
+  }
+
   /// Triangle corners, 9 floats (3 × xyz) per triangle.
   final Float32List vertices;
 
