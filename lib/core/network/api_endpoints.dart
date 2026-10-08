@@ -208,12 +208,6 @@ abstract final class ApiEndpoints {
   static String promotionsPublic(String sellerId) =>
       '/promotions/public/$sellerId';
 
-  // Login history
-  static const String loginHistory = '/login-history';
-  static const String loginHistoryActiveSeller = '/login-history/active-seller';
-  static String loginHistoryBySession(String sessionId) =>
-      '/login-history/$sessionId';
-
   // Push inbox + device registration
   static const String notifications = '/notifications';
   static const String notificationsUnreadCount = '/notifications/unread-count';

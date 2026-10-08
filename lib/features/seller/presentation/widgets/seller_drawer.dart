@@ -130,11 +130,6 @@ class SellerDrawer extends ConsumerWidget {
             RemainingL10n.profile,
             Icons.person_outline_rounded,
           ),
-          item(
-            AppRouteNames.sellerLoginHistory,
-            RemainingL10n.loginHistory,
-            Icons.devices_outlined,
-          ),
           if (!pending)
             item(
               AppRouteNames.sellerApiKeys,

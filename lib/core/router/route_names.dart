@@ -115,6 +115,5 @@ class AppRouteNames {
   static const String sellerReferences = '/seller/references';
   static const String sellerPromotions = '/seller/promotions';
   static const String sellerProfile = '/seller/profile';
-  static const String sellerLoginHistory = '/seller/login-history';
   static const String sellerApiKeys = '/seller/api-keys';
 }

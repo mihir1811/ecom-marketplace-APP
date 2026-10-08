@@ -396,14 +396,17 @@ class TiltSurface extends StatefulWidget {
 
 class _TiltSurfaceState extends State<TiltSurface>
     with SingleTickerProviderStateMixin {
-  late final Ticker _ticker = createTicker(_tick);
+  // Created on first touch: a lazy field first read in dispose() would
+  // look up TickerMode on a deactivated element.
+  Ticker? _tickerOrNull;
+  Ticker get _ticker => _tickerOrNull ??= createTicker(_tick);
   Offset _target = Offset.zero;
   Offset _current = Offset.zero;
   Size _size = Size.zero;
 
   @override
   void dispose() {
-    _ticker.dispose();
+    _tickerOrNull?.dispose();
     super.dispose();
   }
 

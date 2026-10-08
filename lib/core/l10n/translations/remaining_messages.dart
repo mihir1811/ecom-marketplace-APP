@@ -136,7 +136,6 @@ abstract final class RemainingL10n {
   static const chat = 'remaining.chat';
   static const references = 'remaining.references';
   static const promotions = 'remaining.promotions';
-  static const loginHistory = 'remaining.loginHistory';
   static const apiKeys = 'remaining.apiKeys';
   static const profile = 'remaining.profile';
   static const sellerWorkspace = 'remaining.sellerWorkspace';
@@ -543,11 +542,6 @@ abstract final class RemainingL10n {
   static const browseByType = 'remaining.browseByType';
   static const switchCategoryEachTypeLoadsItsOwn =
       'remaining.switchCategoryEachTypeLoadsItsOwn';
-  static const revokeDevice = 'remaining.revokeDevice';
-  static const thisWillSignOutTheSelectedSession =
-      'remaining.thisWillSignOutTheSelectedSession';
-  static const deviceSessionRevoked = 'remaining.deviceSessionRevoked';
-  static const activeSellerDevices = 'remaining.activeSellerDevices';
   static const rejected = 'remaining.rejected';
   static const noOffersInThisFilter = 'remaining.noOffersInThisFilter';
   static const listPrice = 'remaining.listPrice';
@@ -732,10 +726,6 @@ abstract final class RemainingL10n {
   // Seller leftover UI strings
   static const productInquiry = 'remaining.productInquiry';
   static const myAuctions = 'remaining.myAuctions';
-  static const noActiveSellerDevicesEmpty =
-      'remaining.noActiveSellerDevicesEmpty';
-  static const remembered = 'remaining.remembered';
-  static const noLoginHistoryYet = 'remaining.noLoginHistoryYet';
   static const offerAccepted = 'remaining.offerAccepted';
   static const offerRejected = 'remaining.offerRejected';
   static const stockWithNumber = 'remaining.stockWithNumber';
@@ -757,7 +747,8 @@ abstract final class RemainingL10n {
   static const quickViewForStock = 'remaining.quickViewForStock';
   static const uploadReferenceImageHelper =
       'remaining.uploadReferenceImageHelper';
-  static const imageMustBeSmallerThan5Mb = 'remaining.imageMustBeSmallerThan5Mb';
+  static const imageMustBeSmallerThan5Mb =
+      'remaining.imageMustBeSmallerThan5Mb';
   static const couldNotReadSelectedFile = 'remaining.couldNotReadSelectedFile';
   static const noImageSelected = 'remaining.noImageSelected';
   static const someImagesSkippedMax5Mb = 'remaining.someImagesSkippedMax5Mb';
@@ -1490,11 +1481,6 @@ const remainingMessages = <String, LocalizedMessage>{
     english: 'Promotions',
     hindi: 'प्रचार',
     gujarati: 'પ્રમોશન',
-  ),
-  RemainingL10n.loginHistory: LocalizedMessage(
-    english: 'Login history',
-    hindi: 'लॉगिन इतिहास',
-    gujarati: 'લૉગિન ઇતિહાસ',
   ),
   RemainingL10n.apiKeys: LocalizedMessage(
     english: 'API keys',
@@ -3363,26 +3349,6 @@ const remainingMessages = <String, LocalizedMessage>{
     hindi: 'श्रेणी स्विच करें - प्रत्येक प्रकार की अपनी सूची लोड होती है।',
     gujarati: 'સ્વિચ કેટેગરી - દરેક પ્રકાર તેની પોતાની સૂચિ લોડ કરે છે.',
   ),
-  RemainingL10n.revokeDevice: LocalizedMessage(
-    english: 'Revoke device?',
-    hindi: 'डिवाइस निरस्त करें?',
-    gujarati: 'ઉપકરણ રદ કરીએ?',
-  ),
-  RemainingL10n.thisWillSignOutTheSelectedSession: LocalizedMessage(
-    english: 'This will sign out the selected session on that device.',
-    hindi: 'यह उस डिवाइस पर चयनित सत्र को साइन आउट कर देगा।',
-    gujarati: 'આ તે ઉપકરણ પર પસંદ કરેલ સત્રને સાઇન આઉટ કરશે.',
-  ),
-  RemainingL10n.deviceSessionRevoked: LocalizedMessage(
-    english: 'Device session revoked',
-    hindi: 'डिवाइस सत्र निरस्त कर दिया गया',
-    gujarati: 'ઉપકરણ સત્ર રદ કર્યું',
-  ),
-  RemainingL10n.activeSellerDevices: LocalizedMessage(
-    english: 'Active seller devices',
-    hindi: 'सक्रिय विक्रेता उपकरण',
-    gujarati: 'સક્રિય વિક્રેતા ઉપકરણો',
-  ),
   RemainingL10n.rejected: LocalizedMessage(
     english: 'Rejected',
     hindi: 'अस्वीकार कर दिया',
@@ -4103,8 +4069,10 @@ const remainingMessages = <String, LocalizedMessage>{
   RemainingL10n.inventorySnapshotNote: LocalizedMessage(
     english:
         "Inventory value is today's snapshot. Earlier periods have no inventory history.",
-    hindi: 'इन्वेंटरी मूल्य आज का स्नैपशॉट है। पिछली अवधियों का इन्वेंटरी इतिहास नहीं है।',
-    gujarati: 'ઇન્વેન્ટરી મૂલ્ય આજનો સ્નેપશોટ છે. અગાઉના સમયગાળાનો ઇન્વેન્ટરી ઇતિહાસ નથી.',
+    hindi:
+        'इन्वेंटरी मूल्य आज का स्नैपशॉट है। पिछली अवधियों का इन्वेंटरी इतिहास नहीं है।',
+    gujarati:
+        'ઇન્વેન્ટરી મૂલ્ય આજનો સ્નેપશોટ છે. અગાઉના સમયગાળાનો ઇન્વેન્ટરી ઇતિહાસ નથી.',
   ),
   RemainingL10n.submittedBy: LocalizedMessage(
     english: 'SUBMITTED BY',
@@ -4235,21 +4203,6 @@ const remainingMessages = <String, LocalizedMessage>{
     english: 'My Auctions',
     hindi: 'मेरी नीलामी',
     gujarati: 'મારી હરાજી',
-  ),
-  RemainingL10n.noActiveSellerDevicesEmpty: LocalizedMessage(
-    english: 'No active seller dashboard devices.',
-    hindi: 'कोई सक्रिय विक्रेता डैशबोर्ड डिवाइस नहीं।',
-    gujarati: 'કોઈ સક્રિય વિક્રેતા ડેશબોર્ડ ડિવાઇસ નથી.',
-  ),
-  RemainingL10n.remembered: LocalizedMessage(
-    english: 'Remembered',
-    hindi: 'याद रखा गया',
-    gujarati: 'યાદ રાખ્યું',
-  ),
-  RemainingL10n.noLoginHistoryYet: LocalizedMessage(
-    english: 'No login history yet.',
-    hindi: 'अभी तक कोई लॉगिन इतिहास नहीं।',
-    gujarati: 'હજુ સુધી કોઈ લૉગિન ઇતિહાસ નથી.',
   ),
   RemainingL10n.offerAccepted: LocalizedMessage(
     english: 'Offer accepted',

@@ -36,7 +36,6 @@ class SellerLayout extends ConsumerWidget {
   static const _pendingAllowedExact = <String>{
     AppRouteNames.sellerHelpCenter,
     AppRouteNames.sellerReferences,
-    AppRouteNames.sellerLoginHistory,
     AppRouteNames.sellerInquiries,
     AppRouteNames.sellerNotifications,
   };
