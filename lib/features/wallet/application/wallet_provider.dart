@@ -26,6 +26,7 @@ class WalletNotifier extends AsyncNotifier<Wallet> {
     }
     return _fetch();
   }
+
   Future<Wallet> _fetch() async {
     final result = await _repo.getWallet();
     return switch (result) {

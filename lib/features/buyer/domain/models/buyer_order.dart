@@ -11,6 +11,7 @@ class BuyerOrder {
     this.createdAt,
     this.itemCount = 0,
     this.sellerDecision,
+    this.imageUrl,
   });
 
   final String id;
@@ -26,6 +27,9 @@ class BuyerOrder {
   /// Combined seller approval (`PENDING` / `ACCEPTED` / `REJECTED`), or
   /// `null` when the API sent no decision data.
   final String? sellerDecision;
+
+  /// First item image, for the list thumbnail.
+  final String? imageUrl;
 
   /// Payment status, refined by the seller decision once the order is paid.
   String get displayStatus {

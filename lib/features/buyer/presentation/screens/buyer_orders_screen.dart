@@ -2,255 +2,363 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_shadows.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../../../seller/presentation/atelier/atelier_components.dart';
+import '../../../seller/presentation/atelier/atelier_feedback.dart';
+import '../../../seller/presentation/atelier/atelier_motion.dart';
+import '../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../application/buyer_orders_provider.dart';
+import '../../domain/buyer_order_status.dart';
 import '../../domain/models/buyer_order.dart';
-import '../widgets/buyer_layout.dart';
+import '../maison/maison_kit.dart';
+import '../maison/maison_layout.dart';
+import '../widgets/orders/buyer_order_card.dart';
 
-/// Buyer orders list from GET /payment/orders.
-class BuyerOrdersScreen extends ConsumerWidget {
+/// Buyer orders (GET /payment/orders): headline figures, status buckets,
+/// search and sort over the loaded pages, grouped by month.
+class BuyerOrdersScreen extends ConsumerStatefulWidget {
   const BuyerOrdersScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(buyerOrdersProvider);
+  ConsumerState<BuyerOrdersScreen> createState() => _BuyerOrdersScreenState();
+}
 
-    return BuyerLayout(
-      title: context.tr(AccountCommerceL10n.orders),
+class _BuyerOrdersScreenState extends ConsumerState<BuyerOrdersScreen> {
+  final _search = TextEditingController();
+  BuyerOrderFilter _filter = BuyerOrderFilter.all;
+  BuyerOrderSort _sort = BuyerOrderSort.newest;
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _refresh() =>
+      ref.read(buyerOrdersProvider.notifier).loadInitial();
+
+  void _loadMore() => ref.read(buyerOrdersProvider.notifier).loadMore();
+
+  bool _onScroll(ScrollNotification n) {
+    if (n.metrics.axis == Axis.vertical &&
+        n.metrics.maxScrollExtent > 0 &&
+        n.metrics.pixels >= n.metrics.maxScrollExtent - 320) {
+      _loadMore();
+    }
+    return false;
+  }
+
+  void _setFilter(BuyerOrderFilter f) => setState(() => _filter = f);
+
+  void _clearFilters() {
+    _search.clear();
+    setState(() => _filter = BuyerOrderFilter.all);
+  }
+
+  Future<void> _pickSort() async {
+    final sort = await showAtelierOptions<BuyerOrderSort>(
+      context: context,
+      title: 'Sort orders',
+      options: [
+        for (final s in BuyerOrderSort.values)
+          AtelierOption(
+            value: s,
+            label: s.label,
+            selected: s == _sort,
+            icon: switch (s) {
+              BuyerOrderSort.newest => Icons.south_rounded,
+              BuyerOrderSort.oldest => Icons.north_rounded,
+              BuyerOrderSort.highest => Icons.trending_up_rounded,
+              BuyerOrderSort.lowest => Icons.trending_down_rounded,
+            },
+          ),
+      ],
+    );
+    if (sort != null && mounted) setState(() => _sort = sort);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    final state = ref.watch(buyerOrdersProvider);
+    // Only orders whose payment went through; pending or failed checkouts
+    // are not shown.
+    final orders = successfulBuyerOrders(state.orders);
+    // A page can be all unpaid checkouts: keep loading until there is a
+    // screenful of paid orders or nothing left.
+    if (orders.length < 8 &&
+        state.hasMore &&
+        !state.isLoading &&
+        !state.isLoadingMore &&
+        state.errorMessage == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadMore();
+      });
+    }
+    final counts = buyerOrderCounts(orders);
+    final visible = buyerOrderView(
+      orders,
+      filter: _filter,
+      query: _search.text,
+      sort: _sort,
+    );
+    final gutter = AtelierSpace.gutter(MediaQuery.sizeOf(context).width);
+    final awaiting = orders
+        .where((o) => buyerOrderStage(o) == BuyerOrderStage.awaitingSeller)
+        .length;
+    final liveValue = orders
+        .where((o) {
+          final s = buyerOrderStage(o);
+          return s == BuyerOrderStage.awaitingSeller ||
+              s == BuyerOrderStage.confirmed;
+        })
+        .fold<double>(0, (sum, o) => sum + o.amountUsd);
+    final filtered =
+        _filter != BuyerOrderFilter.all || _search.text.trim().isNotEmpty;
+
+    return MaisonLayout(
       child: RefreshIndicator(
-        onRefresh: () => ref.read(buyerOrdersProvider.notifier).loadInitial(),
-        child: state.isLoading && state.orders.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 120),
-                  Center(child: CircularProgressIndicator()),
-                ],
-              )
-            : state.errorMessage != null && state.orders.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.s24),
-                children: [
-                  Text(state.errorMessage!, textAlign: TextAlign.center),
-                  const SizedBox(height: AppSpacing.s16),
-                  Center(
-                    child: FilledButton(
-                      onPressed: () =>
-                          ref.read(buyerOrdersProvider.notifier).loadInitial(),
-                      child: Text(context.tr(AccountCommerceL10n.retry)),
+        color: p.gold,
+        backgroundColor: p.surface,
+        onRefresh: _refresh,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _onScroll,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
+                sliver: SliverToBoxAdapter(
+                  child: MaisonCentered(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        MaisonHeader(
+                          overline: 'My account',
+                          title: context.tr(AccountCommerceL10n.orders),
+                          subtitle:
+                              'Every piece you’ve acquired, from checkout '
+                              'to your door.',
+                          cut: GemCut.oval,
+                        ),
+                        const SizedBox(height: 22),
+                        Reveal(
+                          index: 3,
+                          child: MaisonStatStrip(
+                            stats: [
+                              MaisonStat(
+                                label: 'In progress',
+                                value: '${counts[BuyerOrderFilter.active]}',
+                                caption: awaiting > 0
+                                    ? '$awaiting awaiting seller'
+                                    : 'On their way',
+                                tone: AtelierTone.sapphire,
+                                pulse: awaiting > 0,
+                                selected: _filter == BuyerOrderFilter.active,
+                                onTap: () => _setFilter(
+                                  _filter == BuyerOrderFilter.active
+                                      ? BuyerOrderFilter.all
+                                      : BuyerOrderFilter.active,
+                                ),
+                              ),
+                              MaisonStat(
+                                label: 'Attention',
+                                value: '${counts[BuyerOrderFilter.issues]}',
+                                caption: 'Rejected by seller',
+                                tone: counts[BuyerOrderFilter.issues]! > 0
+                                    ? AtelierTone.ruby
+                                    : null,
+                                selected: _filter == BuyerOrderFilter.issues,
+                                onTap: () => _setFilter(
+                                  _filter == BuyerOrderFilter.issues
+                                      ? BuyerOrderFilter.all
+                                      : BuyerOrderFilter.issues,
+                                ),
+                              ),
+                              MaisonStat(
+                                label: 'Active value',
+                                value: maisonUsd(liveValue),
+                                caption: state.hasMore
+                                    ? 'Loaded orders'
+                                    : 'Paid & in progress',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              )
-            : state.orders.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  const SizedBox(height: 120),
-                  Center(
-                    child: Text(
-                      context.tr(AccountCommerceL10n.noOrders),
-                      style: AppTypography.body,
-                    ),
-                  ),
-                ],
-              )
-            : NotificationListener<ScrollNotification>(
-                onNotification: (n) {
-                  if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
-                    ref.read(buyerOrdersProvider.notifier).loadMore();
-                  }
-                  return false;
-                },
-                child: ListView.separated(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  itemCount: state.orders.length + (state.hasMore ? 1 : 0),
-                  separatorBuilder: (_, __) => const SizedBox(height: 14),
-                  itemBuilder: (context, index) {
-                    if (index >= state.orders.length) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-                    final order = state.orders[index];
-                    return _BuyerOrderCard(
-                      order: order,
-                      onTap: () => context.openRoute(
-                        AppRouteNames.buyerOrderDetailPath(order.id),
-                      ),
-                    );
-                  },
                 ),
               ),
+              MaisonPinnedBar(
+                height: 124,
+                gutter: gutter,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AtelierSegmented<BuyerOrderFilter>(
+                      dense: true,
+                      segments: [
+                        for (final f in BuyerOrderFilter.values)
+                          AtelierSegment(
+                            value: f,
+                            label: f.label,
+                            count: counts[f],
+                          ),
+                      ],
+                      selected: _filter,
+                      onChanged: _setFilter,
+                    ),
+                    const SizedBox(height: 12),
+                    MaisonSearchRow(
+                      controller: _search,
+                      hint: 'Search piece, seller or order no.',
+                      onChanged: (_) => setState(() {}),
+                      sortLabel: _sort.label,
+                      sortActive: _sort != BuyerOrderSort.newest,
+                      onSort: _pickSort,
+                    ),
+                  ],
+                ),
+              ),
+              MaisonRefreshHairline(
+                visible: state.isLoading && orders.isNotEmpty,
+              ),
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+                sliver: _OrdersBody(
+                  state: state,
+                  orders: orders,
+                  visible: visible,
+                  filtered: filtered,
+                  filterLabel: _filter.label,
+                  onRetry: _refresh,
+                  onLoadMore: _loadMore,
+                  onClearFilters: _clearFilters,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-class _BuyerOrderCard extends StatelessWidget {
-  const _BuyerOrderCard({required this.order, required this.onTap});
+class _OrdersBody extends StatelessWidget {
+  const _OrdersBody({
+    required this.state,
+    required this.orders,
+    required this.visible,
+    required this.filtered,
+    required this.filterLabel,
+    required this.onRetry,
+    required this.onLoadMore,
+    required this.onClearFilters,
+  });
 
-  final BuyerOrder order;
-  final VoidCallback onTap;
+  final BuyerOrdersListState state;
 
-  Color get _statusColor {
-    final s = order.status.toUpperCase();
-    if (s == 'PAID') {
-      return switch (order.sellerDecision) {
-        'REJECTED' => AppColors.error,
-        'PENDING' => AppColors.info,
-        _ => AppColors.success,
-      };
-    }
-    if (s == 'PENDING') return AppColors.info;
-    if (s.contains('REFUND')) return AppColors.bronze;
-    if (s == 'FAILED') return AppColors.error;
-    return AppColors.charcoalLight;
-  }
+  /// Paid orders loaded so far.
+  final List<BuyerOrder> orders;
+  final List<BuyerOrder> visible;
+  final bool filtered;
+  final String filterLabel;
+  final Future<void> Function() onRetry;
+  final VoidCallback onLoadMore;
+  final VoidCallback onClearFilters;
 
   @override
   Widget build(BuildContext context) {
-    final accent = _statusColor;
-    final date = order.createdAt;
-    final dateLabel = date == null
-        ? null
-        : '${date.day}/${date.month}/${date.year}';
-    final itemLabel = order.itemCount <= 0
-        ? null
-        : context.tr(
-            order.itemCount == 1
-                ? AccountCommerceL10n.itemCount
-                : AccountCommerceL10n.itemsCount,
-            {'count': order.itemCount},
-          );
+    if (orders.isEmpty &&
+        (state.isLoading ||
+            state.isLoadingMore ||
+            (state.hasMore && state.errorMessage == null))) {
+      return const SliverToBoxAdapter(
+        child: MaisonCentered(
+          child: AtelierSkeletonList(count: 4, height: 168),
+        ),
+      );
+    }
+    if (state.errorMessage != null && orders.isEmpty) {
+      return SliverToBoxAdapter(
+        child: AtelierErrorState(
+          title: 'Orders unavailable',
+          message: state.errorMessage!,
+          onRetry: onRetry,
+        ),
+      );
+    }
+    if (orders.isEmpty) {
+      return SliverToBoxAdapter(
+        child: MaisonEmptyState(
+          cut: GemCut.cushion,
+          title: 'Your first piece awaits',
+          message: context.tr(AccountCommerceL10n.noOrders),
+          actionLabel: 'Explore the collection',
+          actionIcon: Icons.arrow_forward_rounded,
+          onAction: () => context.switchToRoute(AppRouteNames.home),
+        ),
+      );
+    }
+    if (visible.isEmpty) {
+      return SliverToBoxAdapter(
+        child: AtelierEmptyState(
+          icon: Icons.filter_alt_off_outlined,
+          title: 'No matches',
+          message: filtered
+              ? 'No ${filterLabel.toLowerCase()} orders match your search.'
+              : 'Nothing to show here yet.',
+          actionLabel: 'Clear filters',
+          onAction: onClearFilters,
+        ),
+      );
+    }
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: AppColors.card(context),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border(context)),
-            boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.s16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        order.productLabel,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.title.copyWith(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.chevron_right,
-                      color: AppColors.textMutedLight,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  [
-                    context.tr(AccountCommerceL10n.soldBy, {
-                      'seller': order.sellerName,
-                    }),
-                    if (itemLabel != null) itemLabel,
-                  ].join(' · '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMuted(context),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AppCurrency.usd(order.amountUsd),
-                            style: AppTypography.caption.copyWith(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 15,
-                              color: AppColors.textPrimary(context),
-                            ),
-                          ),
-                          if (order.amountInr > 0)
-                            Text(
-                              AppCurrency.inr(order.amountInr),
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.textMuted(context),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.s8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            order.displayStatus,
-                            style: AppTypography.caption.copyWith(
-                              color: accent,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        if (dateLabel != null) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            dateLabel,
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.textMuted(context),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+    final rows = <Widget>[];
+    String? month;
+    var i = 0;
+    for (final order in visible) {
+      final label = maisonMonthLabel(order.createdAt);
+      if (label != month) {
+        rows.add(MaisonGroupLabel(label: label));
+        month = label;
+      }
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Reveal(
+            key: ValueKey(order.id),
+            index: i < 8 ? i : 0,
+            child: BuyerOrderCard(
+              order: order,
+              onTap: () => context.openRoute(
+                AppRouteNames.buyerOrderDetailPath(order.id),
+              ),
             ),
           ),
         ),
+      );
+      i++;
+    }
+    rows.add(
+      MaisonListFooter(
+        loadingMore: state.isLoadingMore,
+        hasMore: state.hasMore,
+        errorMessage: state.errorMessage,
+        onLoadMore: onLoadMore,
+        endLabel: 'That’s every order',
       ),
+    );
+
+    return SliverList.builder(
+      itemCount: rows.length,
+      itemBuilder: (context, index) => MaisonCentered(child: rows[index]),
     );
   }
 }

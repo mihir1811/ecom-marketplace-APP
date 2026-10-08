@@ -19,6 +19,7 @@ import 'presentation/screens/buyer_settings_screen.dart';
 import 'presentation/screens/buyer_wishlist_screen.dart';
 import '../recently_viewed/presentation/screens/buyer_recently_viewed_screen.dart';
 import '../notifications/presentation/screens/notifications_screen.dart';
+import 'presentation/maison/maison_layout.dart';
 import 'presentation/widgets/buyer_layout.dart';
 import '../reference/presentation/screens/buyer_references_screen.dart';
 
@@ -126,6 +127,6 @@ final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: AppRouteNames.buyerNotifications,
     builder: (context, state) =>
-        const BuyerLayout(title: 'Notifications', child: NotificationsScreen()),
+        const MaisonLayout(detail: true, child: NotificationsScreen()),
   ),
 ];

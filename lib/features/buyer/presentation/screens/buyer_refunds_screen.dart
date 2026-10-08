@@ -2,237 +2,346 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-
-import '../../../../core/error/result.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_shadows.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/app_currency.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../refunds/application/refund_providers.dart';
 import '../../../refunds/domain/models/refund_request.dart';
-import '../widgets/buyer_layout.dart';
+import '../../../seller/presentation/atelier/atelier_components.dart';
+import '../../../seller/presentation/atelier/atelier_feedback.dart';
+import '../../../seller/presentation/atelier/atelier_motion.dart';
+import '../../../seller/presentation/atelier/atelier_theme.dart';
+import '../maison/maison_kit.dart';
+import '../maison/maison_layout.dart';
+import '../widgets/refunds/buyer_refund_card.dart';
 
-class BuyerRefundsScreen extends ConsumerWidget {
+enum _RefundFilter {
+  all('All', null),
+  review('In review', RefundStatus.pending),
+  approved('Approved', RefundStatus.accepted),
+  declined('Declined', RefundStatus.rejected),
+  withdrawn('Withdrawn', RefundStatus.cancelled);
+
+  const _RefundFilter(this.label, this.status);
+  final String label;
+  final RefundStatus? status;
+
+  bool matches(RefundRequest r) => status == null || r.status == status;
+}
+
+enum _RefundSort {
+  newest('Newest first'),
+  oldest('Oldest first'),
+  highest('Highest amount'),
+  lowest('Lowest amount');
+
+  const _RefundSort(this.label);
+  final String label;
+}
+
+/// Buyer refund requests (GET /refunds/mine): what is in review, what came
+/// back, filters by outcome, search and withdraw.
+class BuyerRefundsScreen extends ConsumerStatefulWidget {
   const BuyerRefundsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(buyerRefundListProvider);
-
-    return BuyerLayout(
-      title: context.tr(AccountCommerceL10n.refunds),
-      child: RefreshIndicator(
-        onRefresh: () => ref.read(buyerRefundListProvider.notifier).refresh(),
-        child: state.isLoading && state.items.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 120),
-                  Center(child: CircularProgressIndicator()),
-                ],
-              )
-            : state.errorMessage != null && state.items.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.s24),
-                children: [
-                  Text(state.errorMessage!, textAlign: TextAlign.center),
-                  const SizedBox(height: AppSpacing.s16),
-                  Center(
-                    child: FilledButton(
-                      onPressed: () =>
-                          ref.read(buyerRefundListProvider.notifier).refresh(),
-                      child: Text(context.tr(AccountCommerceL10n.retry)),
-                    ),
-                  ),
-                ],
-              )
-            : state.items.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  const SizedBox(height: 120),
-                  Center(
-                    child: Text(
-                      context.tr(AccountCommerceL10n.noRefunds),
-                      style: AppTypography.body,
-                    ),
-                  ),
-                ],
-              )
-            : NotificationListener<ScrollNotification>(
-                onNotification: (n) {
-                  if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
-                    ref.read(buyerRefundListProvider.notifier).loadMore();
-                  }
-                  return false;
-                },
-                child: ListView.separated(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  itemCount: state.items.length + (state.hasMore ? 1 : 0),
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    if (index >= state.items.length) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-                    return _BuyerRefundCard(refund: state.items[index]);
-                  },
-                ),
-              ),
-      ),
-    );
-  }
+  ConsumerState<BuyerRefundsScreen> createState() => _BuyerRefundsScreenState();
 }
 
-class _BuyerRefundCard extends ConsumerWidget {
-  const _BuyerRefundCard({required this.refund});
-
-  final RefundRequest refund;
-
-  Color get _statusColor => switch (refund.status) {
-    RefundStatus.pending => AppColors.bronze,
-    RefundStatus.accepted => AppColors.success,
-    RefundStatus.rejected => AppColors.error,
-    RefundStatus.cancelled => AppColors.charcoalLight,
-  };
+class _BuyerRefundsScreenState extends ConsumerState<BuyerRefundsScreen> {
+  final _search = TextEditingController();
+  _RefundFilter _filter = _RefundFilter.all;
+  _RefundSort _sort = _RefundSort.newest;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final mutating = ref.watch(refundMutationProvider).isLoading;
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border(context)),
-        boxShadow: AppColors.isDark(context) ? null : AppShadows.cardLight,
-      ),
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.replay, color: _statusColor, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                refund.status.label,
-                style: AppTypography.label.copyWith(
-                  color: _statusColor,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    AppCurrency.usd(refund.amountUsd),
-                    style: AppTypography.title.copyWith(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
+  Future<void> _refresh() =>
+      ref.read(buyerRefundListProvider.notifier).refresh();
+
+  void _loadMore() => ref.read(buyerRefundListProvider.notifier).loadMore();
+
+  bool _onScroll(ScrollNotification n) {
+    if (n.metrics.axis == Axis.vertical &&
+        n.metrics.maxScrollExtent > 0 &&
+        n.metrics.pixels >= n.metrics.maxScrollExtent - 320) {
+      _loadMore();
+    }
+    return false;
+  }
+
+  void _setFilter(_RefundFilter f) => setState(() => _filter = f);
+
+  Future<void> _pickSort() async {
+    final sort = await showAtelierOptions<_RefundSort>(
+      context: context,
+      title: 'Sort refunds',
+      options: [
+        for (final s in _RefundSort.values)
+          AtelierOption(
+            value: s,
+            label: s.label,
+            selected: s == _sort,
+            icon: switch (s) {
+              _RefundSort.newest => Icons.south_rounded,
+              _RefundSort.oldest => Icons.north_rounded,
+              _RefundSort.highest => Icons.trending_up_rounded,
+              _RefundSort.lowest => Icons.trending_down_rounded,
+            },
+          ),
+      ],
+    );
+    if (sort != null && mounted) setState(() => _sort = sort);
+  }
+
+  List<RefundRequest> _view(List<RefundRequest> items) {
+    final q = _search.text.trim().toLowerCase();
+    final out = [
+      for (final r in items)
+        if (_filter.matches(r) &&
+            (q.isEmpty ||
+                r.sellerLabel.toLowerCase().contains(q) ||
+                r.orderId.toLowerCase().contains(q) ||
+                r.reason.toLowerCase().contains(q)))
+          r,
+    ];
+    int byDate(RefundRequest a, RefundRequest b) =>
+        (a.createdAt ?? DateTime(0)).compareTo(b.createdAt ?? DateTime(0));
+    switch (_sort) {
+      case _RefundSort.newest:
+        out.sort((a, b) => byDate(b, a));
+      case _RefundSort.oldest:
+        out.sort(byDate);
+      case _RefundSort.highest:
+        out.sort((a, b) => b.amountUsd.compareTo(a.amountUsd));
+      case _RefundSort.lowest:
+        out.sort((a, b) => a.amountUsd.compareTo(b.amountUsd));
+    }
+    return out;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    final state = ref.watch(buyerRefundListProvider);
+    final items = state.items;
+    final counts = {
+      for (final f in _RefundFilter.values) f: items.where(f.matches).length,
+    };
+    final returned = items
+        .where((r) => r.status == RefundStatus.accepted)
+        .fold<double>(0, (sum, r) => sum + r.amountUsd);
+    final inReview = counts[_RefundFilter.review]!;
+    final visible = _view(items);
+    final gutter = AtelierSpace.gutter(MediaQuery.sizeOf(context).width);
+
+    return MaisonLayout(
+      child: RefreshIndicator(
+        color: p.gold,
+        backgroundColor: p.surface,
+        onRefresh: _refresh,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _onScroll,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
+                sliver: SliverToBoxAdapter(
+                  child: MaisonCentered(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        MaisonHeader(
+                          overline: 'My account',
+                          title: context.tr(AccountCommerceL10n.refunds),
+                          subtitle:
+                              'Each request, where it stands, and when the '
+                              'money returns to your wallet.',
+                          cut: GemCut.pear,
+                        ),
+                        const SizedBox(height: 22),
+                        Reveal(
+                          index: 3,
+                          child: MaisonStatStrip(
+                            stats: [
+                              MaisonStat(
+                                label: 'In review',
+                                value: '$inReview',
+                                caption: inReview > 0
+                                    ? 'With the seller'
+                                    : 'Nothing pending',
+                                tone: AtelierTone.amber,
+                                pulse: inReview > 0,
+                                selected: _filter == _RefundFilter.review,
+                                onTap: () => _setFilter(
+                                  _filter == _RefundFilter.review
+                                      ? _RefundFilter.all
+                                      : _RefundFilter.review,
+                                ),
+                              ),
+                              MaisonStat(
+                                label: 'Returned',
+                                value: maisonUsd(returned),
+                                caption: 'Credited to wallet',
+                                tone: returned > 0 ? AtelierTone.emerald : null,
+                                selected: _filter == _RefundFilter.approved,
+                                onTap: () => _setFilter(
+                                  _filter == _RefundFilter.approved
+                                      ? _RefundFilter.all
+                                      : _RefundFilter.approved,
+                                ),
+                              ),
+                              MaisonStat(
+                                label: 'Requests',
+                                value:
+                                    '${state.total > items.length ? state.total : items.length}',
+                                caption: 'All time',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  if (refund.amountInr > 0)
-                    Text(
-                      AppCurrency.inr(refund.amountInr),
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textMuted(context),
-                        fontWeight: FontWeight.w600,
-                      ),
+                ),
+              ),
+              MaisonPinnedBar(
+                height: 124,
+                gutter: gutter,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AtelierSegmented<_RefundFilter>(
+                      dense: true,
+                      segments: [
+                        for (final f in _RefundFilter.values)
+                          AtelierSegment(
+                            value: f,
+                            label: f.label,
+                            count: counts[f],
+                          ),
+                      ],
+                      selected: _filter,
+                      onChanged: _setFilter,
                     ),
-                ],
+                    const SizedBox(height: 12),
+                    MaisonSearchRow(
+                      controller: _search,
+                      hint: 'Search seller, order or reason',
+                      onChanged: (_) => setState(() {}),
+                      sortLabel: _sort.label,
+                      sortActive: _sort != _RefundSort.newest,
+                      onSort: _pickSort,
+                    ),
+                  ],
+                ),
+              ),
+              MaisonRefreshHairline(
+                visible: state.isLoading && items.isNotEmpty,
+              ),
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+                sliver: _body(context, state, visible),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Seller · ${refund.sellerLabel}',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-            ),
-          ),
-          const SizedBox(height: 4),
-          InkWell(
-            onTap: () => context.openRoute(
-              AppRouteNames.buyerOrderDetailPath(refund.orderId),
-            ),
-            child: Text(
-              context.tr(AccountCommerceL10n.orderNumber, {
-                'order': refund.orderId,
-              }),
-              style: AppTypography.body.copyWith(
-                color: AppColors.bronzeDark,
-                fontWeight: FontWeight.w700,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            refund.reason,
-            style: AppTypography.body.copyWith(
-              color: AppColors.textSecondary(context),
-            ),
-          ),
-          if (refund.sellerNote != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              context.tr(AccountCommerceL10n.sellerNote, {
-                'note': refund.sellerNote,
-              }),
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textMuted(context),
-              ),
-            ),
-          ],
-          const SizedBox(height: 8),
-          Text(
-            context.tr(AccountCommerceL10n.requestedOn, {
-              'date': refund.createdAtLabel,
-            }),
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-            ),
-          ),
-          if (refund.canCancel) ...[
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: mutating
-                  ? null
-                  : () async {
-                      final result = await ref
-                          .read(refundMutationProvider.notifier)
-                          .cancel(refund.id);
-                      if (!context.mounted) return;
-                      final messenger = ScaffoldMessenger.of(context);
-                      switch (result) {
-                        case Success():
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                context.tr(AccountCommerceL10n.refundCancelled),
-                              ),
-                            ),
-                          );
-                        case ResultFailure(failure: final failure):
-                          messenger.showSnackBar(
-                            SnackBar(content: Text(failure.message)),
-                          );
-                      }
-                    },
-              child: Text(context.tr(AccountCommerceL10n.cancelRequest)),
-            ),
-          ],
-        ],
+        ),
       ),
+    );
+  }
+
+  Widget _body(
+    BuildContext context,
+    RefundListState state,
+    List<RefundRequest> visible,
+  ) {
+    if (state.isLoading && state.items.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: MaisonCentered(
+          child: AtelierSkeletonList(count: 3, height: 240),
+        ),
+      );
+    }
+    if (state.errorMessage != null && state.items.isEmpty) {
+      return SliverToBoxAdapter(
+        child: AtelierErrorState(
+          title: 'Refunds unavailable',
+          message: state.errorMessage!,
+          onRetry: _refresh,
+        ),
+      );
+    }
+    if (state.items.isEmpty) {
+      return SliverToBoxAdapter(
+        child: MaisonEmptyState(
+          cut: GemCut.pear,
+          title: 'No refund requests',
+          message:
+              '${context.tr(AccountCommerceL10n.noRefunds)} Requests start '
+              'from an order, before it is out for delivery.',
+          actionLabel: 'Go to orders',
+          actionIcon: Icons.local_mall_outlined,
+          onAction: () => context.switchToRoute(AppRouteNames.buyerOrders),
+        ),
+      );
+    }
+    if (visible.isEmpty) {
+      return SliverToBoxAdapter(
+        child: AtelierEmptyState(
+          icon: Icons.filter_alt_off_outlined,
+          title: 'No matches',
+          message:
+              'No ${_filter == _RefundFilter.all ? '' : '${_filter.label.toLowerCase()} '}'
+              'requests match your search.',
+          actionLabel: 'Clear filters',
+          onAction: () {
+            _search.clear();
+            setState(() => _filter = _RefundFilter.all);
+          },
+        ),
+      );
+    }
+
+    final rows = <Widget>[];
+    String? month;
+    var i = 0;
+    for (final refund in visible) {
+      final label = maisonMonthLabel(refund.createdAt);
+      if (label != month) {
+        rows.add(MaisonGroupLabel(label: label));
+        month = label;
+      }
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Reveal(
+            key: ValueKey(refund.id),
+            index: i < 8 ? i : 0,
+            child: BuyerRefundCard(refund: refund),
+          ),
+        ),
+      );
+      i++;
+    }
+    rows.add(
+      MaisonListFooter(
+        loadingMore: state.isLoadingMore,
+        hasMore: state.hasMore,
+        errorMessage: state.errorMessage,
+        onLoadMore: _loadMore,
+        endLabel: 'That’s every request',
+      ),
+    );
+    return SliverList.builder(
+      itemCount: rows.length,
+      itemBuilder: (context, index) => MaisonCentered(child: rows[index]),
     );
   }
 }

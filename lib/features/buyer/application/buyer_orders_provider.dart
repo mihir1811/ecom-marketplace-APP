@@ -18,6 +18,9 @@ BuyerOrder buyerOrderFromPayment(PaymentOrder order) {
     createdAt: order.createdAt,
     itemCount: order.items.length,
     sellerDecision: combinedSellerDecision(order.sellerDecisions),
+    imageUrl: order.items
+        .map((e) => e.image?.trim())
+        .firstWhere((e) => e != null && e.isNotEmpty, orElse: () => null),
   );
 }
 

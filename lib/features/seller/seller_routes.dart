@@ -20,8 +20,8 @@ import 'presentation/screens/seller_profile_screen.dart';
 import 'presentation/screens/seller_promotions_screen.dart';
 import 'presentation/widgets/seller_layout.dart';
 import '../reference/presentation/screens/seller_references_screen.dart';
-import 'presentation/screens/seller_wallet_screen.dart';
-import 'presentation/screens/seller_notifications_screen.dart';
+import '../notifications/presentation/screens/notifications_screen.dart';
+import '../wallet/presentation/screens/wallet_screen.dart';
 
 /// Modular routes for the authenticated seller workspace.
 ///
@@ -52,7 +52,7 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerWallet,
-        builder: (context, state) => const SellerWalletScreen(),
+        builder: (context, state) => const WalletScreen(),
       ),
       GoRoute(
         path: '/seller/orders/:orderId',
@@ -102,7 +102,7 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerNotifications,
-        builder: (context, state) => const SellerNotificationsScreen(),
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerReferences,

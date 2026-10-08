@@ -1,235 +1,417 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/widgets/catalog_empty_state.dart';
-import '../../../../core/widgets/catalog_error_state.dart';
-import '../../../product_detail/application/catalog_product_detail_loader.dart';
-import '../../../product_detail/product_detail_navigation.dart';
+import '../../../../core/router/app_navigation.dart';
+import '../../../../core/router/route_names.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../../../../core/widgets/gem3d/gem_renderer.dart';
+import '../../../seller/presentation/atelier/atelier_components.dart';
+import '../../../seller/presentation/atelier/atelier_feedback.dart';
+import '../../../seller/presentation/atelier/atelier_motion.dart';
+import '../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../application/wishlist_provider.dart';
 import '../../domain/models/wishlist_item.dart';
-import '../widgets/buyer_layout.dart';
+import '../maison/maison_kit.dart';
+import '../maison/maison_layout.dart';
+import '../widgets/wishlist/wishlist_piece_card.dart';
 
-class BuyerWishlistScreen extends ConsumerWidget {
+enum _WishSort {
+  saved('As saved'),
+  priceHigh('Price: high to low'),
+  priceLow('Price: low to high'),
+  name('Name A–Z');
+
+  const _WishSort(this.label);
+  final String label;
+}
+
+/// The buyer's saved pieces as a gallery (or list), with a category lens,
+/// search and sort. Removing offers Undo.
+class BuyerWishlistScreen extends ConsumerStatefulWidget {
   const BuyerWishlistScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final wishlist = ref.watch(wishlistProvider);
-    final items = wishlist.items;
-
-    return BuyerLayout(
-      title: context.tr(AccountCommerceL10n.myWishlist),
-      child: wishlist.isLoading && items.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : wishlist.errorMessage != null && items.isEmpty
-          ? CatalogErrorState(
-              message: wishlist.errorMessage!,
-              onRetry: () => ref.read(wishlistProvider.notifier).refresh(),
-            )
-          : items.isEmpty
-          ? CatalogEmptyState(
-              icon: Icons.favorite_border,
-              title: context.tr(AccountCommerceL10n.wishlistEmpty),
-              message: context.tr(AccountCommerceL10n.wishlistEmptyHint),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.s16),
-              itemCount: items.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.s12),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return _WishlistTile(
-                  key: ValueKey(item.id),
-                  item: item,
-                  onRemove: () async {
-                    await ref
-                        .read(wishlistProvider.notifier)
-                        .remove(item.id, productType: item.productType);
-                    if (!context.mounted) return;
-                    final error = ref.read(wishlistProvider).errorMessage;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          error ??
-                              context.tr(AccountCommerceL10n.removedWishlist),
-                        ),
-                        duration: const Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-    );
-  }
+  ConsumerState<BuyerWishlistScreen> createState() =>
+      _BuyerWishlistScreenState();
 }
 
-class _WishlistTile extends ConsumerStatefulWidget {
-  const _WishlistTile({required this.item, required this.onRemove, super.key});
-
-  final WishlistItem item;
-  final VoidCallback onRemove;
+class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
+  final _search = TextEditingController();
+  WishlistCategory? _category;
+  _WishSort _sort = _WishSort.saved;
+  bool _grid = true;
 
   @override
-  ConsumerState<_WishlistTile> createState() => _WishlistTileState();
-}
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
-class _WishlistTileState extends ConsumerState<_WishlistTile> {
-  bool _opening = false;
+  Future<void> _refresh() => ref.read(wishlistProvider.notifier).refresh();
 
-  WishlistItem get item => widget.item;
+  static double _price(WishlistItem i) =>
+      double.tryParse(i.priceLabel.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
 
-  IconData get _icon => switch (item.category) {
-    WishlistCategory.diamond => Icons.diamond_outlined,
-    WishlistCategory.gemstone => Icons.auto_awesome,
-    WishlistCategory.jewelry => Icons.workspace_premium_outlined,
-    WishlistCategory.watch => Icons.watch_outlined,
-    WishlistCategory.bullion => Icons.savings_outlined,
-  };
-
-  String get _categoryLabel => FavoriteProductType.label(item.productType);
-
-  Future<void> _openProduct() async {
-    if (_opening) return;
-    if (openRememberedProductDetail(context, item.id)) return;
-
-    setState(() => _opening = true);
-    try {
-      final detail = await CatalogProductDetailLoader.load(
-        ref.read,
-        productType: item.productType,
-        productId: item.id,
-      );
-      if (!mounted) return;
-      if (detail == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.tr(AccountCommerceL10n.productOpenFailed)),
-            duration: const Duration(seconds: 2),
-          ),
+  List<WishlistItem> _view(List<WishlistItem> items) {
+    final q = _search.text.trim().toLowerCase();
+    final out = [
+      for (final i in items)
+        if ((_category == null || i.category == _category) &&
+            (q.isEmpty ||
+                i.title.toLowerCase().contains(q) ||
+                i.subtitle.toLowerCase().contains(q)))
+          i,
+    ];
+    switch (_sort) {
+      case _WishSort.saved:
+        break;
+      case _WishSort.priceHigh:
+        out.sort((a, b) => _price(b).compareTo(_price(a)));
+      case _WishSort.priceLow:
+        out.sort((a, b) => _price(a).compareTo(_price(b)));
+      case _WishSort.name:
+        out.sort(
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
         );
-        return;
-      }
-      openProductDetail(context, detail);
-    } finally {
-      if (mounted) setState(() => _opening = false);
     }
+    return out;
+  }
+
+  Future<void> _pickSort() async {
+    final sort = await showAtelierOptions<_WishSort>(
+      context: context,
+      title: 'Sort wishlist',
+      options: [
+        for (final s in _WishSort.values)
+          AtelierOption(
+            value: s,
+            label: s.label,
+            selected: s == _sort,
+            icon: switch (s) {
+              _WishSort.saved => Icons.favorite_border_rounded,
+              _WishSort.priceHigh => Icons.trending_up_rounded,
+              _WishSort.priceLow => Icons.trending_down_rounded,
+              _WishSort.name => Icons.sort_by_alpha_rounded,
+            },
+          ),
+      ],
+    );
+    if (sort != null && mounted) setState(() => _sort = sort);
+  }
+
+  Future<void> _remove(WishlistItem item) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final palette = context.atelier;
+    final removedText = context.tr(AccountCommerceL10n.removedWishlist);
+    final notifier = ref.read(wishlistProvider.notifier);
+    AppHaptics.light();
+    await notifier.remove(item.id, productType: item.productType);
+    if (!mounted) return;
+    final error = ref.read(wishlistProvider).errorMessage;
+    if (error != null) {
+      showMaisonToast(messenger, palette, error, tone: AtelierTone.ruby);
+      return;
+    }
+    showMaisonToast(
+      messenger,
+      palette,
+      removedText,
+      icon: Icons.heart_broken_outlined,
+      actionLabel: 'Undo',
+      onAction: () => notifier.add(item),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.card(context),
-      borderRadius: BorderRadius.circular(AppSpacing.r20),
-      child: InkWell(
-        onTap: _opening ? null : _openProduct,
-        borderRadius: BorderRadius.circular(AppSpacing.r20),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.s16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.r20),
-            border: Border.all(color: AppColors.border(context)),
+    final p = context.atelier;
+    final wishlist = ref.watch(wishlistProvider);
+    final items = wishlist.items;
+    final present = [
+      for (final c in WishlistCategory.values)
+        if (items.any((i) => i.category == c)) c,
+    ];
+    // A category can empty out after a removal; fall back to All.
+    final category = present.contains(_category) ? _category : null;
+    if (category != _category) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _category = null);
+      });
+    }
+    final visible = _view(items);
+    final width = MediaQuery.sizeOf(context).width;
+    final gutter = AtelierSpace.gutter(width);
+    final count = items.length;
+
+    return MaisonLayout(
+      child: RefreshIndicator(
+        color: p.gold,
+        backgroundColor: p.surface,
+        onRefresh: _refresh,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.surface(context),
-                  borderRadius: BorderRadius.circular(AppSpacing.r16),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
+              sliver: SliverToBoxAdapter(
+                child: MaisonCentered(
+                  child: MaisonHeader(
+                    overline: 'Private collection',
+                    title: 'Wishlist',
+                    subtitle: count == 0
+                        ? 'Pieces you love, kept in one quiet place.'
+                        : '$count ${count == 1 ? 'piece' : 'pieces'} '
+                              'you’re keeping an eye on.',
+                    cut: GemCut.heart,
+                    look: GemLook.champagne,
+                  ),
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: item.imageAsset != null
-                    ? Image.asset(
-                        item.imageAsset!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            Icon(_icon, color: AppColors.bronze),
-                      )
-                    : item.imageUrl != null
-                    ? AppNetworkImage(
-                        url: item.imageUrl!,
-                        fit: BoxFit.cover,
-                        error: Icon(_icon, color: AppColors.bronze),
-                      )
-                    : Icon(_icon, color: AppColors.bronze),
               ),
-              const SizedBox(width: AppSpacing.s12),
-              Expanded(
+            ),
+            if (items.isNotEmpty)
+              MaisonPinnedBar(
+                height: 124,
+                gutter: gutter,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      _categoryLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textMuted(context),
-                        fontWeight: FontWeight.w700,
+                    AtelierSegmented<WishlistCategory?>(
+                      dense: true,
+                      segments: [
+                        AtelierSegment(
+                          value: null,
+                          label: context.tr(RemainingL10n.all),
+                          count: count,
+                        ),
+                        for (final c in present)
+                          AtelierSegment(
+                            value: c,
+                            label: wishlistCategoryLabel(c),
+                            icon: wishlistCategoryIcon(c),
+                            count: items.where((i) => i.category == c).length,
+                          ),
+                      ],
+                      selected: category,
+                      onChanged: (c) => setState(() => _category = c),
+                    ),
+                    const SizedBox(height: 12),
+                    MaisonSearchRow(
+                      controller: _search,
+                      hint: 'Search your saved pieces',
+                      onChanged: (_) => setState(() {}),
+                      sortLabel: _sort.label,
+                      sortActive: _sort != _WishSort.saved,
+                      onSort: _pickSort,
+                      trailing: AtelierIconButton(
+                        icon: _grid
+                            ? Icons.view_agenda_outlined
+                            : Icons.grid_view_rounded,
+                        tooltip: _grid ? 'List view' : 'Gallery view',
+                        filled: true,
+                        size: 46,
+                        onPressed: () => setState(() => _grid = !_grid),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.s4),
-                    Text(
-                      item.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.label.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary(context),
-                      ),
-                    ),
-                    if (item.subtitle.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.s4),
-                      Text(
-                        item.subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.textSecondary(context),
-                        ),
-                      ),
-                    ],
-                    if (item.priceLabel.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.cardLineGap),
-                      Text(
-                        item.priceLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.label.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
-              if (_opening)
-                const SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
-              else
-                IconButton(
-                  tooltip: context.tr(AccountCommerceL10n.removeWishlist),
-                  onPressed: widget.onRemove,
-                  icon: const Icon(Icons.favorite, color: AppColors.error),
-                ),
-            ],
+            MaisonRefreshHairline(
+              visible: wishlist.isLoading && items.isNotEmpty,
+            ),
+            ..._body(context, wishlist, visible, width, gutter),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _body(
+    BuildContext context,
+    WishlistUiState wishlist,
+    List<WishlistItem> visible,
+    double width,
+    double gutter,
+  ) {
+    Widget boxed(Widget child) => SliverPadding(
+      padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+      sliver: SliverToBoxAdapter(child: MaisonCentered(child: child)),
+    );
+
+    final items = wishlist.items;
+    if (wishlist.isLoading && items.isEmpty) {
+      return [_skeletonGrid(width, gutter)];
+    }
+    if (wishlist.errorMessage != null && items.isEmpty) {
+      return [
+        boxed(
+          AtelierErrorState(
+            title: 'Wishlist unavailable',
+            message: wishlist.errorMessage!,
+            onRetry: _refresh,
           ),
         ),
+      ];
+    }
+    if (items.isEmpty) {
+      return [
+        boxed(
+          MaisonEmptyState(
+            cut: GemCut.heart,
+            title: context.tr(AccountCommerceL10n.wishlistEmpty),
+            message: context.tr(AccountCommerceL10n.wishlistEmptyHint),
+            actionLabel: 'Discover pieces',
+            actionIcon: Icons.arrow_forward_rounded,
+            onAction: () => context.switchToRoute(AppRouteNames.home),
+          ),
+        ),
+      ];
+    }
+    if (visible.isEmpty) {
+      return [
+        boxed(
+          AtelierEmptyState(
+            icon: Icons.search_off_rounded,
+            title: 'No matches',
+            message: 'Nothing saved matches “${_search.text.trim()}”.',
+            actionLabel: 'Clear search',
+            onAction: () {
+              _search.clear();
+              setState(() => _category = null);
+            },
+          ),
+        ),
+      ];
+    }
+
+    final side = math.max(gutter, (width - 1040) / 2);
+    final padding = EdgeInsets.fromLTRB(side, 10, side, 36);
+
+    if (!_grid) {
+      return [
+        SliverPadding(
+          padding: padding,
+          sliver: SliverList.separated(
+            itemCount: visible.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            itemBuilder: (context, i) {
+              final item = visible[i];
+              return Reveal(
+                key: ValueKey('row-${item.id}'),
+                index: i < 8 ? i : 0,
+                child: WishlistPieceCard(
+                  item: item,
+                  compact: true,
+                  onRemove: () => _remove(item),
+                ),
+              );
+            },
+          ),
+        ),
+      ];
+    }
+
+    final grid = _gridMetrics(width, side);
+    return [
+      SliverPadding(
+        padding: padding,
+        sliver: SliverGrid.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: grid.columns,
+            mainAxisSpacing: 14,
+            crossAxisSpacing: 14,
+            mainAxisExtent: grid.extent,
+          ),
+          itemCount: visible.length,
+          itemBuilder: (context, i) {
+            final item = visible[i];
+            return Reveal(
+              key: ValueKey('tile-${item.id}'),
+              index: i < 8 ? i : 0,
+              child: WishlistPieceCard(
+                item: item,
+                onRemove: () => _remove(item),
+              ),
+            );
+          },
+        ),
+      ),
+    ];
+  }
+
+  static ({int columns, double extent}) _gridMetrics(
+    double width,
+    double side,
+  ) {
+    final content = width - side * 2;
+    final columns = content >= 900
+        ? 4
+        : content >= 600
+        ? 3
+        : 2;
+    final tile = (content - (columns - 1) * 14) / columns;
+    return (columns: columns, extent: tile + 104);
+  }
+
+  Widget _skeletonGrid(double width, double gutter) {
+    final side = math.max(gutter, (width - 1040) / 2);
+    final grid = _gridMetrics(width, side);
+    return SliverPadding(
+      padding: EdgeInsets.fromLTRB(side, 10, side, 36),
+      sliver: SliverGrid.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: grid.columns,
+          mainAxisSpacing: 14,
+          crossAxisSpacing: 14,
+          mainAxisExtent: grid.extent,
+        ),
+        itemCount: grid.columns * 2,
+        itemBuilder: (context, _) => const _SkeletonTile(),
+      ),
+    );
+  }
+}
+
+class _SkeletonTile extends StatelessWidget {
+  const _SkeletonTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    return Container(
+      decoration: BoxDecoration(
+        color: p.surface,
+        borderRadius: BorderRadius.circular(AtelierRadius.lg),
+        border: Border.all(color: p.hairline),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: SkeletonBox(height: double.infinity, radius: 0),
+          ),
+          Padding(
+            padding: EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonBox(width: 110, height: 12),
+                SizedBox(height: 8),
+                SkeletonBox(width: 70, height: 10),
+                SizedBox(height: 14),
+                SkeletonBox(width: 90, height: 16),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
