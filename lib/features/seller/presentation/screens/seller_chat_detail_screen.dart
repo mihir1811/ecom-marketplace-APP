@@ -1,26 +1,28 @@
 import 'dart:typed_data';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_currency.dart';
-import '../../../../core/widgets/catalog_empty_state.dart';
-import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/widgets/catalog_error_state.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_message.dart';
 import '../../../chat/domain/models/chat_thread.dart';
 import '../../../chat/domain/models/product_chat_context.dart';
+import '../atelier/atelier_components.dart';
+import '../atelier/atelier_feedback.dart';
+import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_studio.dart';
+import '../atelier/atelier_theme.dart';
 
-import '../../../../core/l10n/app_localizations.dart';
-
+/// One buyer conversation: who it is with, the piece it is about, the
+/// thread itself (newest at the bottom, grouped by sender and day) and a
+/// floating composer with photo attach and suggested replies.
 class SellerChatDetailScreen extends ConsumerStatefulWidget {
   const SellerChatDetailScreen({required this.chatId, super.key});
 
@@ -35,7 +37,20 @@ class _SellerChatDetailScreenState
     extends ConsumerState<SellerChatDetailScreen> {
   final _messageCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
+  final _focus = FocusNode();
   late final ChatThreadArgs? _args;
+
+  /// Scrolled up, away from the newest message.
+  bool _away = false;
+
+  /// Messages that arrived while [_away].
+  int _missed = 0;
+
+  /// Ids present when the thread first loaded; later ones animate in once.
+  Set<String>? _initialIds;
+  final Set<String> _animated = {};
+
+  static const _awayThreshold = 240.0;
 
   @override
   void initState() {
@@ -50,13 +65,34 @@ class _SellerChatDetailScreenState
             productTypeApi: decoded.productType.apiValue,
             peerUserId: decoded.peerUserId,
           );
+    _scrollCtrl.addListener(_onScroll);
+    _messageCtrl.addListener(_onText);
   }
 
   @override
   void dispose() {
-    _messageCtrl.dispose();
-    _scrollCtrl.dispose();
+    _messageCtrl
+      ..removeListener(_onText)
+      ..dispose();
+    _scrollCtrl
+      ..removeListener(_onScroll)
+      ..dispose();
+    _focus.dispose();
     super.dispose();
+  }
+
+  void _onText() {
+    if (mounted) setState(() {});
+  }
+
+  void _onScroll() {
+    if (!_scrollCtrl.hasClients) return;
+    final away = _scrollCtrl.offset > _awayThreshold;
+    if (away == _away) return;
+    setState(() {
+      _away = away;
+      if (!away) _missed = 0;
+    });
   }
 
   Future<void> _send() async {
@@ -64,7 +100,9 @@ class _SellerChatDetailScreenState
     if (args == null) return;
     final text = _messageCtrl.text;
     if (text.trim().isEmpty) return;
+    AppHaptics.light();
     _messageCtrl.clear();
+    _scrollToEnd();
     await ref.read(chatThreadProvider(args).notifier).sendText(text);
     _scrollToEnd();
   }
@@ -82,8 +120,10 @@ class _SellerChatDetailScreenState
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(content: Text(context.tr(RemainingL10n.couldNotOpenPhotos))),
+      showAtelierToast(
+        context,
+        context.tr(RemainingL10n.couldNotOpenPhotos),
+        tone: AtelierTone.ruby,
       );
       return;
     }
@@ -94,52 +134,104 @@ class _SellerChatDetailScreenState
     _scrollToEnd();
   }
 
+  void _useSuggestion(String text) {
+    _messageCtrl
+      ..text = text
+      ..selection = TextSelection.collapsed(offset: text.length);
+    _focus.requestFocus();
+  }
+
+  /// The list is reversed, so "latest" is offset 0.
   void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollCtrl.hasClients) return;
       _scrollCtrl.animateTo(
-        _scrollCtrl.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
+        0,
+        duration: AtelierMotion.slow,
+        curve: AtelierMotion.emphasized,
       );
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     final args = _args;
     if (args == null) {
-      return CatalogEmptyState(
-        title: context.tr(RemainingL10n.conversationNotFound),
-        message: context.tr(RemainingL10n.threadInvalid),
-        actionLabel: context.tr(RemainingL10n.backToMessages),
-        onAction: () => context.goBack(),
+      return ColoredBox(
+        color: p.canvas,
+        child: Center(
+          child: AtelierEmptyState(
+            icon: Icons.link_off_rounded,
+            title: context.tr(RemainingL10n.conversationNotFound),
+            message: context.tr(RemainingL10n.threadInvalid),
+            actionLabel: context.tr(RemainingL10n.backToMessages),
+            onAction: () => context.goBack(),
+          ),
+        ),
       );
     }
 
+    ref.listen(chatThreadProvider(args), (prev, next) {
+      final before = prev?.messages.length ?? 0;
+      final grew = next.messages.length - before;
+      if (grew > 0 && before > 0 && _away) setState(() => _missed += grew);
+    });
+
     final state = ref.watch(chatThreadProvider(args));
+    if (_initialIds == null && !(state.isLoading && state.messages.isEmpty)) {
+      _initialIds = {for (final m in state.messages) m.id};
+    }
+    final peer = _peer(state.messages, args.peerUserId);
     final peerName =
         state.context?.sellerName.isNotEmpty == true && state.messages.isEmpty
         ? state.context!.sellerName
-        : _peerName(state.messages, args.peerUserId);
+        : (peer?.name.isNotEmpty == true
+              ? peer!.name
+              : context.tr(RemainingL10n.conversation));
+    final lastFromPeer = state.messages.isEmpty || !state.messages.last.isMine;
+    final showSuggestions =
+        _messageCtrl.text.isEmpty &&
+        !state.isSending &&
+        !state.isLoading &&
+        state.errorMessage == null &&
+        lastFromPeer;
 
     return ColoredBox(
-      color: AppColors.bg(context),
+      color: p.canvas,
       child: Column(
         children: [
           _ThreadHeader(
             peerName: peerName,
+            peerAvatar: peer?.displayAvatar ?? '',
             productLabel:
                 state.context?.productName ??
                 '${args.productTypeApi} · ${args.productId}',
-            onBack: () => context.goBack(),
+            contextData: state.context,
           ),
-          if (state.context != null) _ProductStrip(contextData: state.context!),
-          Expanded(child: _messagesBody(state, args)),
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(child: _messagesBody(state, args)),
+                Positioned(
+                  right: 16,
+                  bottom: 12,
+                  child: _JumpToLatest(
+                    visible: _away,
+                    missed: _missed,
+                    onTap: _scrollToEnd,
+                  ),
+                ),
+              ],
+            ),
+          ),
           _Composer(
             controller: _messageCtrl,
+            focusNode: _focus,
             isSending: state.isSending,
             sendError: state.sendError,
+            showSuggestions: showSuggestions,
+            onSuggestion: _useSuggestion,
             onSend: _send,
             onPickImage: _pickImage,
           ),
@@ -150,203 +242,263 @@ class _SellerChatDetailScreenState
 
   Widget _messagesBody(ChatThreadState state, ChatThreadArgs args) {
     if (state.isLoading && state.messages.isEmpty) {
-      return const Center(child: CircularProgressIndicator.adaptive());
+      return const _ThreadSkeleton();
     }
     if (state.errorMessage != null && state.messages.isEmpty) {
-      return CatalogErrorState(
-        message: state.errorMessage!,
-        onRetry: () => ref.read(chatThreadProvider(args).notifier).refresh(),
+      return Center(
+        child: SingleChildScrollView(
+          child: AtelierErrorState(
+            title: 'Conversation unavailable',
+            message: state.errorMessage!,
+            onRetry: () =>
+                ref.read(chatThreadProvider(args).notifier).refresh(),
+          ),
+        ),
       );
     }
     if (state.messages.isEmpty && state.pendingImage == null) {
-      return CatalogEmptyState(
-        icon: Icons.chat_bubble_outline_rounded,
-        title: context.tr(RemainingL10n.startConversation),
-        message: context.tr(RemainingL10n.keepItShortAskAboutAvailabilitySpecs),
+      return Center(
+        child: SingleChildScrollView(
+          child: AtelierEmptyState(
+            icon: Icons.chat_bubble_outline_rounded,
+            title: context.tr(RemainingL10n.startConversation),
+            message: context.tr(
+              RemainingL10n.keepItShortAskAboutAvailabilitySpecs,
+            ),
+          ),
+        ),
       );
     }
 
+    final entries = _buildEntries(state).reversed.toList();
+    final width = MediaQuery.sizeOf(context).width;
+    final gutter = width >= 720 ? 28.0 : 14.0;
+
     return ListView.builder(
       controller: _scrollCtrl,
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.s16,
-        AppSpacing.s12,
-        AppSpacing.s16,
-        AppSpacing.s16,
+      reverse: true,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
       ),
-      itemCount: state.messages.length + (state.pendingImage == null ? 0 : 1),
+      padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 16),
+      itemCount: entries.length,
       itemBuilder: (context, index) {
-        if (index >= state.messages.length) {
-          return _PendingImageBubble(
-            bytes: state.pendingImage!,
-            progress: state.uploadProgress,
-          );
-        }
-        final msg = state.messages[index];
-        final prev = index > 0 ? state.messages[index - 1] : null;
-        final showDate =
-            prev == null ||
-            !_sameDay(prev.createdAt.toLocal(), msg.createdAt.toLocal());
-        return Column(
-          children: [
-            if (showDate) _DateChip(date: msg.createdAt.toLocal()),
-            _MessageBubble(message: msg),
-          ],
-        );
+        final entry = entries[index];
+        return switch (entry) {
+          _DayEntry(:final day) => _DayDivider(date: day),
+          _PendingEntry(:final bytes, :final progress) => _arrive(
+            'pending',
+            _PendingImageBubble(bytes: bytes, progress: progress),
+            mine: true,
+            always: true,
+          ),
+          _MessageEntry(:final message, :final start, :final end) => _arrive(
+            message.id,
+            _MessageBubble(message: message, groupStart: start, groupEnd: end),
+            mine: message.isMine,
+          ),
+        };
       },
     );
   }
 
-  String _peerName(List<ChatMessage> messages, String peerId) {
+  /// Plays a soft "arrival" once for messages that weren't there on load.
+  Widget _arrive(
+    String id,
+    Widget child, {
+    required bool mine,
+    bool always = false,
+  }) {
+    final initial = _initialIds;
+    final fresh =
+        always ||
+        (initial != null && !initial.contains(id) && !_animated.contains(id));
+    if (!fresh || context.reduceMotion) return child;
+    if (!always) _animated.add(id);
+    return child
+        .animate()
+        .fadeIn(duration: 260.ms, curve: AtelierMotion.emphasized)
+        .scaleXY(
+          begin: 0.94,
+          end: 1,
+          alignment: mine ? Alignment.bottomRight : Alignment.bottomLeft,
+          duration: 420.ms,
+          curve: AtelierMotion.settle,
+        )
+        .moveY(
+          begin: 8,
+          end: 0,
+          duration: 360.ms,
+          curve: AtelierMotion.emphasized,
+        );
+  }
+
+  List<_Entry> _buildEntries(ChatThreadState state) {
+    final out = <_Entry>[];
+    final msgs = state.messages;
+    for (var i = 0; i < msgs.length; i++) {
+      final m = msgs[i];
+      final prev = i > 0 ? msgs[i - 1] : null;
+      final next = i + 1 < msgs.length ? msgs[i + 1] : null;
+      final local = m.createdAt.toLocal();
+      final newDay = prev == null || !_sameDay(prev.createdAt.toLocal(), local);
+      if (newDay) out.add(_DayEntry(local));
+      out.add(
+        _MessageEntry(
+          message: m,
+          start: newDay || !_sameRun(prev, m),
+          end:
+              next == null ||
+              !_sameDay(next.createdAt.toLocal(), local) ||
+              !_sameRun(m, next),
+        ),
+      );
+    }
+    final pending = state.pendingImage;
+    if (pending != null) {
+      out.add(_PendingEntry(pending, state.uploadProgress));
+    }
+    return out;
+  }
+
+  /// Same sender, within five minutes: drawn as one cluster.
+  static bool _sameRun(ChatMessage? a, ChatMessage b) =>
+      a != null &&
+      a.isMine == b.isMine &&
+      b.createdAt.difference(a.createdAt).inMinutes.abs() < 5;
+
+  ChatParticipant? _peer(List<ChatMessage> messages, String peerId) {
     for (final m in messages.reversed) {
       if (m.from?.id == peerId && (m.from?.name.isNotEmpty ?? false)) {
-        return m.from!.name;
+        return m.from;
       }
       if (m.to?.id == peerId && (m.to?.name.isNotEmpty ?? false)) {
-        return m.to!.name;
+        return m.to;
       }
     }
-    return context.tr(RemainingL10n.conversation);
+    return null;
   }
 }
 
+sealed class _Entry {
+  const _Entry();
+}
+
+class _DayEntry extends _Entry {
+  const _DayEntry(this.day);
+
+  final DateTime day;
+}
+
+class _MessageEntry extends _Entry {
+  const _MessageEntry({
+    required this.message,
+    required this.start,
+    required this.end,
+  });
+
+  final ChatMessage message;
+  final bool start;
+  final bool end;
+}
+
+class _PendingEntry extends _Entry {
+  const _PendingEntry(this.bytes, this.progress);
+
+  final Uint8List bytes;
+  final double? progress;
+}
+
+/// Who the thread is with, and the piece it concerns.
 class _ThreadHeader extends StatelessWidget {
   const _ThreadHeader({
     required this.peerName,
+    required this.peerAvatar,
     required this.productLabel,
-    required this.onBack,
+    required this.contextData,
   });
 
   final String peerName;
+  final String peerAvatar;
   final String productLabel;
-  final VoidCallback onBack;
+  final ProductChatContext? contextData;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.card(context),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 4, 16, 10),
-          child: Row(
+    final p = context.atelier;
+    final ctx = contextData;
+    final width = MediaQuery.sizeOf(context).width;
+    final gutter = width >= 720 ? 28.0 : 16.0;
+    final link = peerAvatar.trim();
+    final monogram = AtelierMonogram(name: peerName, size: 42);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: p.canvas,
+        border: Border(bottom: BorderSide(color: p.hairline)),
+      ),
+      padding: EdgeInsets.fromLTRB(gutter, 10, gutter, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              TextButton(
-                onPressed: onBack,
-                child: Text(context.tr(RemainingL10n.inbox)),
-              ),
+              link.isEmpty
+                  ? monogram
+                  : ClipOval(
+                      child: AppNetworkImage(
+                        url: link,
+                        width: 42,
+                        height: 42,
+                        memCacheWidth: 126,
+                        error: monogram,
+                      ),
+                    ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      peerName,
-                      style: AppTypography.label.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary(context),
+                    AnimatedSwitcher(
+                      duration: AtelierMotion.base,
+                      child: Text(
+                        peerName,
+                        key: ValueKey(peerName),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AtelierType.display(p.ink, size: 22),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       productLabel,
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textMuted(context),
-                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: AtelierType.caption(p.muted, size: 12),
                     ),
                   ],
                 ),
               ),
+              if (ctx != null)
+                AtelierIconButton(
+                  icon: Icons.info_outline_rounded,
+                  tooltip: 'Piece details',
+                  filled: true,
+                  onPressed: () => _showPieceDetails(context, ctx),
+                ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ProductStrip extends StatelessWidget {
-  const _ProductStrip({required this.contextData});
-
-  final ProductChatContext contextData;
-
-  @override
-  Widget build(BuildContext context) {
-    final image = contextData.primaryImage;
-    final price = contextData.productPrice;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s16,
-        vertical: AppSpacing.s12,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface(context),
-        border: Border(bottom: BorderSide(color: AppColors.border(context))),
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppSpacing.r8),
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: image == null || image.isEmpty
-                  ? ColoredBox(
-                      color: AppColors.border(context),
-                      child: Icon(
-                        Icons.diamond_outlined,
-                        size: 20,
-                        color: AppColors.textMuted(context),
-                      ),
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: image,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => ColoredBox(
-                        color: AppColors.border(context),
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          size: 18,
-                          color: AppColors.textMuted(context),
-                        ),
-                      ),
-                    ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.s12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  contextData.productName,
-                  style: AppTypography.label.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary(context),
+          AnimatedSize(
+            duration: AtelierMotion.slow,
+            curve: AtelierMotion.emphasized,
+            alignment: Alignment.topCenter,
+            child: ctx == null
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Reveal(child: _PieceStrip(contextData: ctx)),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  [
-                    if (contextData.stockNumber != null &&
-                        contextData.stockNumber!.isNotEmpty)
-                      contextData.stockNumber!,
-                    if (price != null) AppCurrency.format(price),
-                  ].join(' · '),
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondary(context),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -354,13 +506,240 @@ class _ProductStrip extends StatelessWidget {
   }
 }
 
-class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message});
+/// The listing under discussion; opens its full details.
+class _PieceStrip extends StatelessWidget {
+  const _PieceStrip({required this.contextData});
 
-  final ChatMessage message;
+  final ProductChatContext contextData;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
+    final price = contextData.productPrice;
+    final stock = contextData.stockNumber;
+    return Pressable(
+      onTap: () => _showPieceDetails(context, contextData),
+      semanticLabel: 'Piece details, ${contextData.productName}',
+      borderRadius: BorderRadius.circular(AtelierRadius.md),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(8, 8, 14, 8),
+        decoration: BoxDecoration(
+          color: p.surface,
+          borderRadius: BorderRadius.circular(AtelierRadius.md),
+          border: Border.all(color: p.hairline),
+          boxShadow: p.softShadow,
+        ),
+        child: Row(
+          children: [
+            AtelierThumb(url: contextData.primaryImage, size: 46),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    contextData.productName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AtelierType.label(p.ink, size: 13.5),
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      if (stock != null && stock.isNotEmpty) ...[
+                        Flexible(
+                          child: Text(
+                            stock,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AtelierType.caption(p.muted, size: 11.5),
+                          ),
+                        ),
+                        if (price != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text(
+                              '·',
+                              style: AtelierType.caption(p.muted),
+                            ),
+                          ),
+                      ],
+                      if (price != null)
+                        Text(
+                          AppCurrency.format(price),
+                          style: AtelierType.figure(p.gold, size: 12.5),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right_rounded, size: 20, color: p.muted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _showPieceDetails(BuildContext context, ProductChatContext ctx) {
+  final stock = ctx.stockNumber;
+  return showAtelierSheet<void>(
+    context: context,
+    title: ctx.productName,
+    subtitle: [
+      ctx.productType.label,
+      if (stock != null && stock.isNotEmpty) stock,
+    ].join(' · '),
+    builder: (context) => _PieceDetails(contextData: ctx),
+  );
+}
+
+class _PieceDetails extends StatefulWidget {
+  const _PieceDetails({required this.contextData});
+
+  final ProductChatContext contextData;
+
+  @override
+  State<_PieceDetails> createState() => _PieceDetailsState();
+}
+
+class _PieceDetailsState extends State<_PieceDetails> {
+  int _page = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    final ctx = widget.contextData;
+    final images = ctx.productImages.where((e) => e.trim().isNotEmpty).toList();
+    final price = ctx.productPrice;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (images.isNotEmpty) ...[
+          Reveal(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AtelierRadius.lg),
+              child: SizedBox(
+                height: 260,
+                child: Stack(
+                  children: [
+                    PageView.builder(
+                      itemCount: images.length,
+                      onPageChanged: (i) => setState(() => _page = i),
+                      itemBuilder: (context, i) => GestureDetector(
+                        onTap: () => showChatImageViewer(context, images[i]),
+                        child: ColoredBox(
+                          color: p.sunken,
+                          child: AppNetworkImage(
+                            url: images[i],
+                            fit: BoxFit.cover,
+                            memCacheWidth: 1080,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (images.length > 1)
+                      Positioned(
+                        bottom: 12,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            for (var i = 0; i < images.length; i++)
+                              AnimatedContainer(
+                                duration: AtelierMotion.base,
+                                curve: AtelierMotion.emphasized,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 3,
+                                ),
+                                width: i == _page ? 18 : 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(
+                                    alpha: i == _page ? 0.95 : 0.5,
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AtelierSpace.s20),
+        ],
+        if (price != null)
+          Reveal(
+            index: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('LISTED PRICE', style: AtelierType.overline(p.muted)),
+                const SizedBox(height: 6),
+                CountUpText(
+                  AppCurrency.format(price),
+                  style: AtelierType.display(p.ink, size: 34),
+                ),
+              ],
+            ),
+          ),
+        if (ctx.productSpecs.isNotEmpty) ...[
+          const SizedBox(height: AtelierSpace.s20),
+          const AtelierHairline(),
+          const SizedBox(height: AtelierSpace.s20),
+          Reveal(
+            index: 2,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final cols = constraints.maxWidth >= 460 ? 3 : 2;
+                final w =
+                    (constraints.maxWidth - (cols - 1) * AtelierSpace.s16) /
+                    cols;
+                return Wrap(
+                  spacing: AtelierSpace.s16,
+                  runSpacing: AtelierSpace.s16,
+                  children: [
+                    for (final spec in ctx.productSpecs)
+                      SizedBox(
+                        width: w,
+                        child: AtelierKeyValue(
+                          label: spec.label,
+                          value: spec.value,
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _MessageBubble extends StatelessWidget {
+  const _MessageBubble({
+    required this.message,
+    required this.groupStart,
+    required this.groupEnd,
+  });
+
+  final ChatMessage message;
+  final bool groupStart;
+  final bool groupEnd;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
     final mine = message.isMine;
     final time = message.createdAt.toLocal();
     String two(int v) => v.toString().padLeft(2, '0');
@@ -371,72 +750,102 @@ class _MessageBubble extends StatelessWidget {
             fileUrl.isNotEmpty
         ? fileUrl
         : null;
+    final hasText = message.body.trim().isNotEmpty;
 
-    return Align(
-      alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+    final bg = mine ? (p.isDark ? p.lifted : p.onyx) : p.surface;
+    final fg = mine ? (p.isDark ? p.ink : p.onOnyx) : p.ink;
+    final meta = mine ? fg.withValues(alpha: 0.55) : p.muted;
+    const big = Radius.circular(20);
+    const small = Radius.circular(6);
+    final radius = BorderRadius.only(
+      topLeft: !mine && !groupStart ? small : big,
+      bottomLeft: !mine && !groupEnd ? small : (mine ? big : small),
+      topRight: mine && !groupStart ? small : big,
+      bottomRight: mine && !groupEnd ? small : (mine ? small : big),
+    );
+    final maxWidth = (MediaQuery.sizeOf(context).width * 0.78).clamp(
+      200.0,
+      520.0,
+    );
+
+    final stamp = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '${two(time.hour)}:${two(time.minute)}',
+          style: AtelierType.figure(meta, size: 10, weight: FontWeight.w500),
         ),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: AppSpacing.s8),
-          padding: imageUrl == null
-              ? const EdgeInsets.fromLTRB(14, 10, 14, 8)
-              : const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: mine
-                ? (AppColors.isDark(context)
-                      ? AppColors.slateBorder
-                      : AppColors.charcoal)
-                : AppColors.card(context),
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(AppSpacing.r16),
-              topRight: const Radius.circular(AppSpacing.r16),
-              bottomLeft: Radius.circular(
-                mine ? AppSpacing.r16 : AppSpacing.r4,
-              ),
-              bottomRight: Radius.circular(
-                mine ? AppSpacing.r4 : AppSpacing.r16,
-              ),
+        if (mine) ...[
+          const SizedBox(width: 4),
+          Tooltip(
+            message: message.isRead ? 'Read' : 'Delivered',
+            child: Icon(
+              message.isRead ? Icons.done_all_rounded : Icons.check_rounded,
+              size: 13,
+              color: message.isRead ? p.gold : meta,
             ),
-            border: mine ? null : Border.all(color: AppColors.border(context)),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (imageUrl != null) ...[
-                _ChatImage(url: imageUrl),
-                if (message.body.trim().isNotEmpty) const SizedBox(height: 6),
-              ],
-              if (imageUrl == null || message.body.trim().isNotEmpty)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    message.body.isEmpty
-                        ? (message.messageType == ChatMessageType.image
-                              ? context.tr(RemainingL10n.photo)
-                              : context.tr(RemainingL10n.attachment))
-                        : message.body,
-                    style: AppTypography.body.copyWith(
-                      fontSize: 14,
-                      height: 1.35,
-                      color: mine
-                          ? AppColors.warmWhite
-                          : AppColors.textPrimary(context),
+        ],
+      ],
+    );
+
+    return Padding(
+      padding: EdgeInsets.only(top: groupStart ? 10 : 2),
+      child: Align(
+        alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: Container(
+            padding: imageUrl == null
+                ? const EdgeInsets.fromLTRB(14, 10, 12, 8)
+                : const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: radius,
+              border: mine ? null : Border.all(color: p.hairline),
+              boxShadow: mine || p.isDark ? null : p.softShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (imageUrl != null)
+                  _ChatImage(
+                    url: imageUrl,
+                    radius: BorderRadius.circular(16),
+                    stamp: hasText ? null : stamp,
+                  ),
+                if (imageUrl == null || hasText)
+                  Padding(
+                    padding: imageUrl == null
+                        ? EdgeInsets.zero
+                        : const EdgeInsets.fromLTRB(10, 8, 8, 4),
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.end,
+                      spacing: 10,
+                      runSpacing: 2,
+                      children: [
+                        SelectableText(
+                          message.body.isEmpty
+                              ? (message.messageType == ChatMessageType.image
+                                    ? context.tr(RemainingL10n.photo)
+                                    : context.tr(RemainingL10n.attachment))
+                              : message.body,
+                          style: AtelierType.body(
+                            fg,
+                            size: 14.5,
+                          ).copyWith(height: 1.4),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 1),
+                          child: stamp,
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              const SizedBox(height: 4),
-              Text(
-                '${two(time.hour)}:${two(time.minute)}',
-                style: AppTypography.caption.copyWith(
-                  fontSize: 10,
-                  color: mine
-                      ? AppColors.warmWhite.withValues(alpha: 0.65)
-                      : AppColors.textMuted(context),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -446,23 +855,62 @@ class _MessageBubble extends StatelessWidget {
 
 /// Photo inside a message bubble; tap to view it full screen.
 class _ChatImage extends StatelessWidget {
-  const _ChatImage({required this.url});
+  const _ChatImage({required this.url, required this.radius, this.stamp});
 
   final String url;
+  final BorderRadius radius;
+
+  /// Time / receipt overlaid on photo-only messages.
+  final Widget? stamp;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
       label: context.tr(RemainingL10n.photo),
-      child: GestureDetector(
+      child: Pressable(
         onTap: () => showChatImageViewer(context, url),
-        child: AppNetworkImage(
-          url: url,
-          width: 220,
-          height: 220,
-          memCacheWidth: 660,
-          borderRadius: BorderRadius.circular(AppSpacing.r12),
+        scale: 0.98,
+        borderRadius: radius,
+        child: ClipRRect(
+          borderRadius: radius,
+          child: SizedBox(
+            width: 240,
+            height: 240,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                AppNetworkImage(
+                  url: url,
+                  width: 240,
+                  height: 240,
+                  memCacheWidth: 720,
+                ),
+                if (stamp != null)
+                  Positioned(
+                    right: 8,
+                    bottom: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(AtelierRadius.pill),
+                      ),
+                      child: DefaultTextStyle.merge(
+                        style: const TextStyle(color: Colors.white),
+                        child: IconTheme.merge(
+                          data: const IconThemeData(color: Colors.white),
+                          child: stamp!,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -471,35 +919,150 @@ class _ChatImage extends StatelessWidget {
 
 /// Full-screen, zoomable view of a chat photo.
 Future<void> showChatImageViewer(BuildContext context, String url) {
-  return showAppDialog<void>(
-    context: context,
-    barrierColor: Colors.black87,
-    builder: (ctx) => Dialog(
-      insetPadding: const EdgeInsets.all(12),
-      backgroundColor: Colors.black,
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          InteractiveViewer(
-            maxScale: 5,
-            child: Center(
-              child: AppNetworkImage(url: url, fit: BoxFit.contain),
-            ),
+  return Navigator.of(context, rootNavigator: true).push(
+    PageRouteBuilder<void>(
+      opaque: false,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).closeButtonTooltip,
+      barrierColor: Colors.black.withValues(alpha: 0.92),
+      transitionDuration: AtelierMotion.base,
+      reverseTransitionDuration: AtelierMotion.quick,
+      pageBuilder: (context, _, _) => _ImageViewer(url: url),
+      transitionsBuilder: (context, animation, _, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: AtelierMotion.emphasized,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween(begin: 0.96, end: 1.0).animate(curved),
+            child: child,
           ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: IconButton(
-              tooltip: MaterialLocalizations.of(ctx).closeButtonTooltip,
-              color: Colors.white,
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.of(ctx).pop(),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     ),
   );
+}
+
+class _ImageViewer extends StatefulWidget {
+  const _ImageViewer({required this.url});
+
+  final String url;
+
+  @override
+  State<_ImageViewer> createState() => _ImageViewerState();
+}
+
+class _ImageViewerState extends State<_ImageViewer>
+    with SingleTickerProviderStateMixin {
+  final _transform = TransformationController();
+  late final AnimationController _zoom = AnimationController(
+    vsync: this,
+    duration: AtelierMotion.base,
+  );
+  Animation<Matrix4>? _zoomAnim;
+  TapDownDetails? _doubleTap;
+
+  @override
+  void initState() {
+    super.initState();
+    _zoom.addListener(() {
+      final a = _zoomAnim;
+      if (a != null) _transform.value = a.value;
+    });
+  }
+
+  @override
+  void dispose() {
+    _zoom.dispose();
+    _transform.dispose();
+    super.dispose();
+  }
+
+  void _toggleZoom() {
+    final zoomed = _transform.value.getMaxScaleOnAxis() > 1.01;
+    final pos = _doubleTap?.localPosition ?? Offset.zero;
+    final target = zoomed
+        ? Matrix4.identity()
+        : (Matrix4.identity()
+            ..translateByDouble(-pos.dx * 1.5, -pos.dy * 1.5, 0, 1)
+            ..scaleByDouble(2.5, 2.5, 1, 1));
+    _zoomAnim = Matrix4Tween(
+      begin: _transform.value,
+      end: target,
+    ).animate(CurvedAnimation(parent: _zoom, curve: AtelierMotion.emphasized));
+    _zoom.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final close = MaterialLocalizations.of(context).closeButtonTooltip;
+    return Material(
+      type: MaterialType.transparency,
+      child: SafeArea(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                onDoubleTapDown: (d) => _doubleTap = d,
+                onDoubleTap: _toggleZoom,
+                child: InteractiveViewer(
+                  transformationController: _transform,
+                  maxScale: 5,
+                  child: Center(
+                    child: AppNetworkImage(
+                      url: widget.url,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Tooltip(
+                message: close,
+                child: Pressable(
+                  onTap: () => Navigator.of(context).pop(),
+                  semanticLabel: close,
+                  scale: 0.9,
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.12),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.18),
+                      ),
+                    ),
+                    child: const Icon(Icons.close_rounded, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 16,
+              child: IgnorePointer(
+                child: Text(
+                  'Double-tap or pinch to zoom',
+                  textAlign: TextAlign.center,
+                  style: AtelierType.caption(
+                    Colors.white.withValues(alpha: 0.55),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// Local preview of a photo that is still uploading.
@@ -511,37 +1074,57 @@ class _PendingImageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     final value = progress;
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+    final determinate = value != null && value > 0 && value < 1;
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Align(
+        alignment: Alignment.centerRight,
         child: Semantics(
           label: context.tr(RemainingL10n.uploadingPhoto),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppSpacing.r12),
-            child: SizedBox(
-              width: 220,
-              height: 220,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.memory(bytes, fit: BoxFit.cover, cacheWidth: 660),
-                  const ColoredBox(color: Color(0x66000000)),
-                  Center(
-                    child: SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: CircularProgressIndicator(
-                        value: value == null || value <= 0 || value >= 1
-                            ? null
-                            : value,
-                        strokeWidth: 3,
-                        color: AppColors.warmWhite,
-                      ),
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: p.isDark ? p.lifted : p.onyx,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: SizedBox(
+                width: 240,
+                height: 240,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.memory(bytes, fit: BoxFit.cover, cacheWidth: 720),
+                    const ColoredBox(color: Color(0x73000000)),
+                    Center(
+                      child: determinate
+                          ? AtelierRing(
+                              value: value,
+                              size: 58,
+                              stroke: 3,
+                              color: p.gold,
+                              child: Text(
+                                '${(value * 100).round()}%',
+                                style: AtelierType.figure(
+                                  Colors.white,
+                                  size: 12,
+                                ),
+                              ),
+                            )
+                          : SizedBox(
+                              width: 40,
+                              height: 40,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: p.gold,
+                              ),
+                            ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -551,22 +1134,28 @@ class _PendingImageBubble extends StatelessWidget {
   }
 }
 
-class _DateChip extends StatelessWidget {
-  const _DateChip({required this.date});
+class _DayDivider extends StatelessWidget {
+  const _DayDivider({required this.date});
 
   final DateTime date;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.s12),
-      child: Text(
-        _label(context, date),
-        style: AppTypography.caption.copyWith(
-          color: AppColors.textMuted(context),
-          fontSize: 11,
-          letterSpacing: 0.2,
-        ),
+      padding: const EdgeInsets.only(top: 22, bottom: 8),
+      child: Row(
+        children: [
+          Expanded(child: Container(height: 1, color: p.hairline)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Text(
+              _label(context, date).toUpperCase(),
+              style: AtelierType.overline(p.muted),
+            ),
+          ),
+          Expanded(child: Container(height: 1, color: p.hairline)),
+        ],
       ),
     );
   }
@@ -597,105 +1186,386 @@ class _DateChip extends StatelessWidget {
   }
 }
 
-class _Composer extends StatelessWidget {
+/// Bubble-shaped shimmer while the thread loads.
+class _ThreadSkeleton extends StatelessWidget {
+  const _ThreadSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    const rows = [
+      (false, 210.0, 54.0),
+      (false, 150.0, 40.0),
+      (true, 230.0, 54.0),
+      (false, 180.0, 40.0),
+      (true, 120.0, 40.0),
+      (true, 200.0, 70.0),
+    ];
+    return ListView(
+      reverse: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      children: [
+        for (final (mine, w, h) in rows)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Align(
+              alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+              child: SkeletonBox(width: w, height: h, radius: 18),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Floating "back to latest" control with a count of missed messages.
+class _JumpToLatest extends StatelessWidget {
+  const _JumpToLatest({
+    required this.visible,
+    required this.missed,
+    required this.onTap,
+  });
+
+  final bool visible;
+  final int missed;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    return IgnorePointer(
+      ignoring: !visible,
+      child: AnimatedScale(
+        scale: visible ? 1 : 0.6,
+        duration: AtelierMotion.base,
+        curve: AtelierMotion.settle,
+        child: AnimatedOpacity(
+          opacity: visible ? 1 : 0,
+          duration: AtelierMotion.quick,
+          child: Tooltip(
+            message: 'Jump to latest',
+            child: Pressable(
+              onTap: onTap,
+              semanticLabel: missed > 0
+                  ? 'Jump to latest, $missed new'
+                  : 'Jump to latest',
+              scale: 0.9,
+              borderRadius: BorderRadius.circular(24),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: p.raised,
+                        border: Border.all(color: p.hairline),
+                        boxShadow: p.floatShadow,
+                      ),
+                      child: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: p.ink,
+                      ),
+                    ),
+                    if (missed > 0)
+                      Positioned(
+                        top: -4,
+                        right: -2,
+                        child: CountBubble(count: missed),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Composer extends StatefulWidget {
   const _Composer({
     required this.controller,
+    required this.focusNode,
     required this.isSending,
+    required this.showSuggestions,
+    required this.onSuggestion,
     required this.onSend,
     required this.onPickImage,
     this.sendError,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
   final bool isSending;
+  final bool showSuggestions;
+  final ValueChanged<String> onSuggestion;
   final VoidCallback onSend;
   final VoidCallback onPickImage;
   final String? sendError;
 
+  static const _suggestions = [
+    'Yes, it’s available.',
+    'I’ll share more photos shortly.',
+    'Let me check and get back to you.',
+    'Happy to arrange a video viewing.',
+    'Thank you for your interest!',
+  ];
+
+  @override
+  State<_Composer> createState() => _ComposerState();
+}
+
+class _ComposerState extends State<_Composer> {
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.addListener(_onFocus);
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.removeListener(_onFocus);
+    super.dispose();
+  }
+
+  void _onFocus() {
+    if (mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.card(context),
+    final p = context.atelier;
+    final focused = widget.focusNode.hasFocus;
+    final hasText = widget.controller.text.trim().isNotEmpty;
+    final canSend = hasText && !widget.isSending;
+    final width = MediaQuery.sizeOf(context).width;
+    final gutter = width >= 720 ? 28.0 : 12.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: p.canvas,
+        border: Border(top: BorderSide(color: p.hairline)),
+      ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s16,
-            AppSpacing.s8,
-            AppSpacing.s12,
-            AppSpacing.s12,
-          ),
+          padding: EdgeInsets.fromLTRB(gutter, 10, gutter, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (sendError != null) ...[
-                Text(
-                  sendError!,
-                  style: AppTypography.caption.copyWith(color: AppColors.error),
-                ),
-                const SizedBox(height: 6),
-              ],
+              AnimatedSize(
+                duration: AtelierMotion.base,
+                curve: AtelierMotion.emphasized,
+                alignment: Alignment.bottomCenter,
+                child: widget.sendError == null
+                    ? const SizedBox(width: double.infinity)
+                    : Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: AtelierNotice(
+                          text: widget.sendError!,
+                          tone: AtelierTone.ruby,
+                          icon: Icons.error_outline_rounded,
+                        ),
+                      ),
+              ),
+              AnimatedSize(
+                duration: AtelierMotion.base,
+                curve: AtelierMotion.emphasized,
+                alignment: Alignment.bottomCenter,
+                child: !widget.showSuggestions
+                    ? const SizedBox(width: double.infinity)
+                    : Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: SizedBox(
+                          height: 34,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: _Composer._suggestions.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(width: 8),
+                            itemBuilder: (context, i) {
+                              final text = _Composer._suggestions[i];
+                              return Reveal(
+                                index: i,
+                                horizontal: true,
+                                offset: 12,
+                                child: Pressable(
+                                  onTap: () => widget.onSuggestion(text),
+                                  semanticLabel: 'Suggested reply: $text',
+                                  borderRadius: BorderRadius.circular(
+                                    AtelierRadius.pill,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                    ),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: p.surface,
+                                      borderRadius: BorderRadius.circular(
+                                        AtelierRadius.pill,
+                                      ),
+                                      border: Border.all(color: p.hairline),
+                                    ),
+                                    child: Text(
+                                      text,
+                                      style: AtelierType.label(
+                                        p.inkSoft,
+                                        size: 12.5,
+                                        weight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+              ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  IconButton(
+                  AtelierIconButton(
+                    icon: Icons.add_photo_alternate_outlined,
                     tooltip: context.tr(RemainingL10n.sendPhoto),
-                    onPressed: isSending ? null : onPickImage,
-                    color: AppColors.textSecondary(context),
-                    icon: const Icon(Icons.add_photo_alternate_outlined),
+                    onPressed: widget.isSending ? null : widget.onPickImage,
+                    filled: true,
+                    size: 48,
                   ),
-                  const SizedBox(width: AppSpacing.s4),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: TextField(
-                      controller: controller,
-                      minLines: 1,
-                      maxLines: 4,
-                      textInputAction: TextInputAction.send,
-                      scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-                      onSubmitted: (_) => onSend(),
-                      decoration: InputDecoration(
-                        hintText: context.tr(RemainingL10n.writeMessage),
-                        hintStyle: AppTypography.body.copyWith(
-                          color: AppColors.textMuted(context),
+                    child: AnimatedContainer(
+                      duration: AtelierMotion.base,
+                      curve: AtelierMotion.emphasized,
+                      constraints: const BoxConstraints(minHeight: 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      decoration: BoxDecoration(
+                        color: focused ? p.surface : p.sunken,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: focused
+                              ? p.gold.withValues(alpha: 0.7)
+                              : Colors.transparent,
+                          width: 1.2,
                         ),
-                        filled: true,
-                        fillColor: AppColors.surface(context),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppSpacing.r16),
-                          borderSide: BorderSide.none,
+                        boxShadow: focused ? p.softShadow : null,
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: TextField(
+                        controller: widget.controller,
+                        focusNode: widget.focusNode,
+                        minLines: 1,
+                        maxLines: 5,
+                        textCapitalization: TextCapitalization.sentences,
+                        textInputAction: TextInputAction.send,
+                        scrollPadding: const EdgeInsets.fromLTRB(
+                          20,
+                          20,
+                          20,
+                          80,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                        onSubmitted: (_) => widget.onSend(),
+                        cursorColor: p.gold,
+                        style: AtelierType.body(p.ink, size: 14.5),
+                        decoration: InputDecoration(
+                          isCollapsed: true,
+                          filled: false,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                          ),
+                          hintText: context.tr(RemainingL10n.writeMessage),
+                          hintStyle: AtelierType.body(p.muted, size: 14.5),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.s8),
-                  IconButton.filled(
-                    onPressed: isSending ? null : onSend,
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColors.charcoal,
-                      foregroundColor: AppColors.warmWhite,
-                      disabledBackgroundColor: AppColors.charcoal.withValues(
-                        alpha: 0.4,
-                      ),
-                    ),
-                    icon: isSending
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.warmWhite,
-                            ),
-                          )
-                        : const Icon(Icons.arrow_upward_rounded, size: 20),
+                  const SizedBox(width: 8),
+                  _SendButton(
+                    enabled: canSend,
+                    sending: widget.isSending,
+                    onTap: widget.onSend,
                   ),
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SendButton extends StatelessWidget {
+  const _SendButton({
+    required this.enabled,
+    required this.sending,
+    required this.onTap,
+  });
+
+  final bool enabled;
+  final bool sending;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    return Tooltip(
+      message: 'Send',
+      child: Pressable(
+        onTap: sending ? null : onTap,
+        semanticLabel: 'Send',
+        scale: 0.88,
+        borderRadius: BorderRadius.circular(24),
+        child: AnimatedContainer(
+          duration: AtelierMotion.base,
+          curve: AtelierMotion.emphasized,
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: enabled || sending ? p.goldGradient : null,
+            color: enabled || sending ? null : p.sunken,
+            boxShadow: enabled ? p.softShadow : null,
+          ),
+          child: AnimatedSwitcher(
+            duration: AtelierMotion.quick,
+            transitionBuilder: (c, a) => ScaleTransition(
+              scale: CurvedAnimation(parent: a, curve: AtelierMotion.settle),
+              child: c,
+            ),
+            child: sending
+                ? SizedBox(
+                    key: const ValueKey('sending'),
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: p.onGold,
+                    ),
+                  )
+                : AnimatedRotation(
+                    key: const ValueKey('idle'),
+                    turns: enabled ? 0 : -0.125,
+                    duration: AtelierMotion.slow,
+                    curve: AtelierMotion.settle,
+                    child: Icon(
+                      Icons.arrow_upward_rounded,
+                      size: 20,
+                      color: enabled ? p.onGold : p.muted,
+                    ),
+                  ),
           ),
         ),
       ),

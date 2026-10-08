@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_shadows.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../help_center/application/help_center_provider.dart';
 import '../../../help_center/domain/models/help_question.dart';
+import '../atelier/atelier_components.dart';
+import '../atelier/atelier_feedback.dart';
+import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_studio.dart';
+import '../atelier/atelier_theme.dart';
 import '../widgets/seller_layout.dart';
 
+/// Seller concierge: pick a topic (or start blank) to ask support, then
+/// follow every question from "awaiting review" to the team's reply.
 class SellerHelpCenterScreen extends ConsumerStatefulWidget {
   const SellerHelpCenterScreen({super.key, this.showHeader = true});
 
@@ -26,10 +30,14 @@ class SellerHelpCenterScreen extends ConsumerStatefulWidget {
 
 class _SellerHelpCenterScreenState
     extends ConsumerState<SellerHelpCenterScreen> {
+  // Draft lives here so closing the composer never loses what was typed.
   HelpIssueType? _issueType;
   final _subjectCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
-  bool _isSubmitting = false;
+
+  HelpQuestionStatus? _filter;
+  final Set<String> _expanded = {};
+  final Set<String> _closing = {};
 
   @override
   void dispose() {
@@ -38,718 +46,421 @@ class _SellerHelpCenterScreenState
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    final subject = _subjectCtrl.text.trim();
-    final message = _messageCtrl.text.trim();
-    if (_issueType == null || subject.isEmpty || message.isEmpty) {
-      AppHaptics.warning();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.tr(RemainingL10n.fillAllFields))),
-      );
-      return;
-    }
+  Future<void> _refresh() =>
+      ref.read(helpQuestionListProvider.notifier).refresh();
 
-    setState(() => _isSubmitting = true);
-    final result = await ref
-        .read(helpCenterMutationProvider.notifier)
-        .create(issueType: _issueType!, subject: subject, body: message);
+  Future<void> _compose([HelpIssueType? type]) async {
+    if (type != null) setState(() => _issueType = type);
+    final submitted = await showAtelierSheet<bool>(
+      context: context,
+      title: context.tr(RemainingL10n.newQuestion),
+      subtitle: context.tr(RemainingL10n.includeEnoughDetailSoWeCan),
+      builder: (_) => _QuestionComposer(
+        initialType: _issueType,
+        subjectCtrl: _subjectCtrl,
+        messageCtrl: _messageCtrl,
+        onTypeChanged: (t) => _issueType = t,
+      ),
+    );
     if (!mounted) return;
-    setState(() => _isSubmitting = false);
-
-    switch (result) {
-      case Success():
-        AppHaptics.success();
-        setState(() {
-          _issueType = null;
-          _subjectCtrl.clear();
-          _messageCtrl.clear();
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.tr(RemainingL10n.questionSubmitted))),
-        );
-      case ResultFailure(failure: final failure):
-        AppHaptics.error();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
+    if (submitted == true) {
+      setState(() {
+        _issueType = null;
+        _subjectCtrl.clear();
+        _messageCtrl.clear();
+        _filter = null;
+      });
+      showAtelierToast(
+        context,
+        context.tr(RemainingL10n.questionSubmitted),
+        tone: AtelierTone.emerald,
+      );
+    } else {
+      setState(() {});
     }
   }
 
   Future<void> _closeQuestion(HelpQuestion question) async {
-    final confirmed = await showAppDialog<bool>(
+    final confirmed = await showAtelierConfirm(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.tr(RemainingL10n.closeQuestion)),
-        content: Text(context.tr(RemainingL10n.thisWillMarkTheTicketAsClosed)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(context.tr(RemainingL10n.cancel)),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(context.tr(RemainingL10n.close)),
-          ),
-        ],
-      ),
+      title: context.tr(RemainingL10n.closeQuestion),
+      message: context.tr(RemainingL10n.thisWillMarkTheTicketAsClosed),
+      confirmLabel: context.tr(RemainingL10n.close),
+      cancelLabel: context.tr(RemainingL10n.cancel),
+      icon: Icons.lock_outline_rounded,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
+    setState(() => _closing.add(question.id));
     final result = await ref
         .read(helpCenterMutationProvider.notifier)
         .close(id: question.id);
     if (!mounted) return;
+    setState(() => _closing.remove(question.id));
 
     switch (result) {
       case Success():
         AppHaptics.success();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.tr(RemainingL10n.questionClosed))),
-        );
+        showAtelierToast(context, context.tr(RemainingL10n.questionClosed));
       case ResultFailure(failure: final failure):
         AppHaptics.error();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
+        showAtelierToast(context, failure.message, tone: AtelierTone.ruby);
     }
   }
 
-  InputDecoration _fieldDecoration({
-    required String label,
-    required IconData icon,
-    int maxLines = 1,
-  }) {
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(AppSpacing.r12),
-      borderSide: BorderSide(color: AppColors.border(context)),
+  void _toggle(String id) {
+    AppHaptics.selection();
+    setState(
+      () => _expanded.contains(id) ? _expanded.remove(id) : _expanded.add(id),
     );
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon, size: 20),
-      filled: true,
-      fillColor: AppColors.surface(context),
-      border: border,
-      enabledBorder: border,
-      focusedBorder: border.copyWith(
-        borderSide: const BorderSide(color: AppColors.bronze, width: 1.5),
-      ),
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.s16,
-        vertical: maxLines > 1 ? AppSpacing.s16 : AppSpacing.s12,
-      ),
-    );
-  }
-
-  IconData _issueIcon(HelpIssueType type) {
-    return switch (type) {
-      HelpIssueType.accountIssues => Icons.manage_accounts_outlined,
-      HelpIssueType.billingPayments => Icons.payments_outlined,
-      HelpIssueType.technicalIssues => Icons.build_circle_outlined,
-      HelpIssueType.featureRequests => Icons.lightbulb_outline,
-      HelpIssueType.generalInquiry => Icons.help_outline,
-      HelpIssueType.others => Icons.more_horiz,
-    };
   }
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     final listState = ref.watch(helpQuestionListProvider);
-    final openCount = listState.items
-        .where((q) => q.status == HelpQuestionStatus.open)
-        .length;
-    final answeredCount = listState.items
-        .where((q) => q.status == HelpQuestionStatus.answered)
-        .length;
+    final items = listState.items;
+    int count(HelpQuestionStatus s) => items.where((q) => q.status == s).length;
+    final openCount = count(HelpQuestionStatus.open);
+    final answeredCount = count(HelpQuestionStatus.answered);
+    final closedCount = count(HelpQuestionStatus.closed);
+    final total = listState.total > items.length
+        ? listState.total
+        : items.length;
+    final firstLoad = listState.isLoading && items.isEmpty;
+    final visible = _filter == null
+        ? items
+        : items.where((q) => q.status == _filter).toList();
+    final hasDraft =
+        _subjectCtrl.text.trim().isNotEmpty ||
+        _messageCtrl.text.trim().isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    final page = AtelierPage(
+      onRefresh: _refresh,
+      maxWidth: 1080,
+      onNearEnd: listState.errorMessage == null
+          ? () => ref.read(helpQuestionListProvider.notifier).loadMore()
+          : null,
       children: [
-        if (widget.showHeader)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => openSellerDrawer(context),
-                  icon: const Icon(Icons.menu),
-                ),
-                Text(
-                  context.tr(RemainingL10n.helpCenter),
-                  style: AppTypography.headline.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () =>
-                ref.read(helpQuestionListProvider.notifier).refresh(),
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s16,
-                AppSpacing.s8,
-                AppSpacing.s16,
-                AppSpacing.s24,
+        AtelierHero(
+          overline: 'Seller concierge',
+          title: context.tr(RemainingL10n.helpCenter),
+          subtitle: context.tr(RemainingL10n.askOurSupportTeamAQuestion),
+          cut: GemCut.oval,
+          action: Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              AtelierButton(
+                label: hasDraft
+                    ? 'Continue your draft'
+                    : context.tr(RemainingL10n.newQuestion),
+                icon: hasDraft
+                    ? Icons.edit_note_rounded
+                    : Icons.add_comment_outlined,
+                variant: AtelierButtonVariant.gold,
+                onPressed: _compose,
               ),
-              children: [
-                _SupportHero(
-                  title: context.tr(RemainingL10n.helpCenter),
-                  subtitle: context.tr(
-                    RemainingL10n.askOurSupportTeamAQuestion,
-                  ),
-                  openCount: openCount,
-                  answeredCount: answeredCount,
-                  totalCount: listState.items.length,
-                ),
-                const SizedBox(height: AppSpacing.s16),
-                _SectionCard(
-                  icon: Icons.edit_note_outlined,
-                  title: context.tr(RemainingL10n.newQuestion),
-                  subtitle: context.tr(
-                    RemainingL10n.includeEnoughDetailSoWeCan,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      DropdownButtonFormField<HelpIssueType>(
-                        key: ValueKey(_issueType?.name),
-                        initialValue: _issueType,
-                        isExpanded: true,
-                        hint: Text(context.tr(RemainingL10n.selectIssueType)),
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                        items: [
-                          for (final type in HelpIssueType.values)
-                            DropdownMenuItem(
-                              value: type,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    _issueIcon(type),
-                                    size: 18,
-                                    color: AppColors.bronze,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Flexible(
-                                    child: Text(
-                                      type.label,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                        onChanged: _isSubmitting
-                            ? null
-                            : (value) {
-                                if (value == null || value == _issueType) {
-                                  return;
-                                }
-                                AppHaptics.selection();
-                                setState(() => _issueType = value);
-                              },
-                        decoration: _fieldDecoration(
-                          label: context.tr(RemainingL10n.issueType),
-                          icon: Icons.category_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      TextField(
-                        controller: _subjectCtrl,
-                        enabled: !_isSubmitting,
-                        decoration: _fieldDecoration(
-                          label: context.tr(RemainingL10n.subject),
-                          icon: Icons.subject_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      TextField(
-                        controller: _messageCtrl,
-                        enabled: !_isSubmitting,
-                        maxLines: 5,
-                        maxLength: 5000,
-                        decoration: _fieldDecoration(
-                          label: context.tr(RemainingL10n.message),
-                          icon: Icons.chat_bubble_outline,
-                          maxLines: 5,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s8),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: FilledButton.icon(
-                          onPressed: _isSubmitting ? null : _submit,
-                          icon: _isSubmitting
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppColors.warmWhite,
-                                  ),
-                                )
-                              : const Icon(Icons.send_outlined, size: 18),
-                          label: Text(
-                            context.tr(RemainingL10n.submitQuestion),
-                            style: AppTypography.label.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.warmWhite,
-                            ),
-                          ),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.charcoal,
-                            foregroundColor: AppColors.warmWhite,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                AppSpacing.r12,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s16),
-                Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColors.bronze.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.forum_outlined,
-                        size: 18,
-                        color: AppColors.bronze,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.s12),
-                    Expanded(
-                      child: Text(
-                        context.tr(RemainingL10n.yourQuestions),
-                        style: AppTypography.title.copyWith(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    if (listState.items.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface(context),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: AppColors.border(context),
-                          ),
-                        ),
-                        child: Text(
-                          '${listState.items.length}',
-                          style: AppTypography.caption.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.s12),
-                if (listState.isLoading && listState.items.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40),
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                else if (listState.errorMessage != null &&
-                    listState.items.isEmpty)
-                  _ErrorCard(
-                    message: listState.errorMessage!,
-                    onRetry: () =>
-                        ref.read(helpQuestionListProvider.notifier).refresh(),
-                  )
-                else if (listState.items.isEmpty)
-                  _EmptyTicketsPanel(
-                    message: context.tr(
-                      RemainingL10n.noQuestionsYetSubmitOneAboveAnd,
-                    ),
-                  )
-                else ...[
-                  for (final ticket in listState.items) ...[
-                    _TicketCard(
-                      key: ValueKey(ticket.id),
-                      ticket: ticket,
-                      issueIcon: _issueIcon(ticket.issueType),
-                      onClose: ticket.canClose
-                          ? () => _closeQuestion(ticket)
-                          : null,
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
-                  ],
-                  if (listState.hasMore)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4, bottom: 8),
-                      child: Center(
-                        child: listState.isLoadingMore
-                            ? const CircularProgressIndicator()
-                            : OutlinedButton.icon(
-                                onPressed: () => ref
-                                    .read(helpQuestionListProvider.notifier)
-                                    .loadMore(),
-                                icon: const Icon(Icons.expand_more, size: 18),
-                                label: Text(context.tr(RemainingL10n.loadMore)),
-                              ),
-                      ),
-                    ),
-                ],
-              ],
-            ),
+            ],
+          ),
+          footer: AtelierHeroStats(
+            stats: [
+              AtelierHeroStat(
+                label: 'Awaiting reply',
+                value: firstLoad ? '—' : '$openCount',
+                caption: 'With our team',
+                tone: openCount > 0 ? AtelierTone.amber : null,
+              ),
+              AtelierHeroStat(
+                label: 'Answered',
+                value: firstLoad ? '—' : '$answeredCount',
+                caption: 'Replies to read',
+                tone: answeredCount > 0 ? AtelierTone.emerald : null,
+              ),
+              AtelierHeroStat(
+                label: 'All questions',
+                value: firstLoad ? '—' : '$total',
+                caption: 'Asked so far',
+              ),
+            ],
           ),
         ),
+        const SizedBox(height: AtelierSpace.s32),
+        const Reveal(
+          index: 1,
+          child: AtelierSectionHeader(
+            overline: 'Start here',
+            title: 'What do you need help with?',
+            subtitle: 'Choose a topic and we’ll route it to the right team.',
+          ),
+        ),
+        const SizedBox(height: AtelierSpace.s16),
+        AtelierTileGrid(
+          columns: 3,
+          minTileWidth: 160,
+          children: [
+            for (final type in HelpIssueType.values)
+              _TopicTile(type: type, onTap: () => _compose(type)),
+          ],
+        ),
+        const SizedBox(height: AtelierSpace.s40),
+        Reveal(
+          index: 2,
+          child: AtelierSectionHeader(
+            overline: 'Your desk',
+            title: context.tr(RemainingL10n.yourQuestions),
+            subtitle: firstLoad
+                ? null
+                : total == 0
+                ? 'Nothing asked yet.'
+                : '$total ${total == 1 ? 'question' : 'questions'}'
+                      '${openCount > 0 ? ' · $openCount awaiting reply' : ''}',
+          ),
+        ),
+        const SizedBox(height: AtelierSpace.s16),
+        if (items.isNotEmpty) ...[
+          Reveal(
+            index: 3,
+            child: AtelierSegmented<HelpQuestionStatus?>(
+              selected: _filter,
+              onChanged: (v) => setState(() => _filter = v),
+              dense: true,
+              segments: [
+                AtelierSegment(
+                  value: null,
+                  label: context.tr(RemainingL10n.all),
+                  count: items.length,
+                ),
+                AtelierSegment(
+                  value: HelpQuestionStatus.open,
+                  label: HelpQuestionStatus.open.label,
+                  icon: Icons.schedule_rounded,
+                  count: openCount,
+                ),
+                AtelierSegment(
+                  value: HelpQuestionStatus.answered,
+                  label: HelpQuestionStatus.answered.label,
+                  icon: Icons.mark_email_read_outlined,
+                  count: answeredCount,
+                ),
+                AtelierSegment(
+                  value: HelpQuestionStatus.closed,
+                  label: HelpQuestionStatus.closed.label,
+                  icon: Icons.lock_outline_rounded,
+                  count: closedCount,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AtelierSpace.s16),
+        ],
+        ..._tickets(listState, visible),
       ],
     );
-  }
 
-}
-
-class _SupportHero extends StatelessWidget {
-  const _SupportHero({
-    required this.title,
-    required this.subtitle,
-    required this.openCount,
-    required this.answeredCount,
-    required this.totalCount,
-  });
-
-  final String title;
-  final String subtitle;
-  final int openCount;
-  final int answeredCount;
-  final int totalCount;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Ink(
-        decoration: BoxDecoration(
-          color: AppColors.card(context),
-          borderRadius: BorderRadius.circular(AppSpacing.r16),
-          border: Border.all(color: AppColors.border(context)),
-          boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                width: 5,
-                decoration: const BoxDecoration(
-                  color: AppColors.bronze,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(AppSpacing.r16),
-                    bottomLeft: Radius.circular(AppSpacing.r16),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.s16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.bronze.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(
-                              Icons.support_agent_outlined,
-                              color: AppColors.bronze,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.s12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title,
-                                  style: AppTypography.title.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  subtitle,
-                                  style: AppTypography.caption.copyWith(
-                                    color: AppColors.textSecondary(context),
-                                    height: 1.35,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (totalCount > 0) ...[
-                        const SizedBox(height: AppSpacing.s12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _StatChip(
-                              icon: Icons.inbox_outlined,
-                              label: '$totalCount',
-                            ),
-                            if (openCount > 0)
-                              _StatChip(
-                                icon: Icons.schedule,
-                                label: '$openCount',
-                                foreground: AppColors.warning,
-                                background: AppColors.warning.withValues(
-                                  alpha: 0.12,
-                                ),
-                              ),
-                            if (answeredCount > 0)
-                              _StatChip(
-                                icon: Icons.check_circle_outline,
-                                label: '$answeredCount',
-                                foreground: AppColors.success,
-                                background: AppColors.success.withValues(
-                                  alpha: 0.12,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  const _StatChip({
-    required this.icon,
-    required this.label,
-    this.foreground,
-    this.background,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color? foreground;
-  final Color? background;
-
-  @override
-  Widget build(BuildContext context) {
-    final fg = foreground ?? AppColors.textSecondary(context);
-    final bg = background ?? AppColors.surface(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+    if (!widget.showHeader) return ColoredBox(color: p.canvas, child: page);
+    return ColoredBox(
+      color: p.canvas,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(icon, size: 14, color: fg),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w700,
-              color: fg,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 16, 4),
+            child: Row(
+              children: [
+                AtelierIconButton(
+                  icon: Icons.menu_rounded,
+                  tooltip: context.tr(RemainingL10n.menu),
+                  onPressed: () => openSellerDrawer(context),
+                  filled: true,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  context.tr(RemainingL10n.helpCenter),
+                  style: AtelierType.display(p.ink, size: 24),
+                ),
+              ],
             ),
           ),
+          Expanded(child: page),
         ],
       ),
     );
   }
-}
 
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({
-    required this.icon,
-    required this.title,
-    required this.child,
-    this.subtitle,
-  });
-
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r16),
-        border: Border.all(color: AppColors.border(context)),
-        boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
-      ),
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.bronze.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, size: 18, color: AppColors.bronze),
-              ),
-              const SizedBox(width: AppSpacing.s12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: AppTypography.title.copyWith(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
+  List<Widget> _tickets(HelpQuestionListState s, List<HelpQuestion> visible) {
+    if (s.isLoading && s.items.isEmpty) {
+      return const [AtelierSkeletonList(count: 3, height: 112)];
+    }
+    if (s.errorMessage != null && s.items.isEmpty) {
+      return [
+        AtelierErrorState(
+          compact: true,
+          title: 'Couldn’t load your questions',
+          message: s.errorMessage!,
+          onRetry: _refresh,
+        ),
+      ];
+    }
+    if (s.items.isEmpty) {
+      return [
+        AtelierCard(
+          child: AtelierEmptyState(
+            compact: true,
+            icon: Icons.forum_outlined,
+            title: 'No questions yet',
+            message: context.tr(RemainingL10n.noQuestionsYetSubmitOneAboveAnd),
+            actionLabel: context.tr(RemainingL10n.newQuestion),
+            onAction: _compose,
+          ),
+        ),
+      ];
+    }
+    return [
+      if (visible.isEmpty)
+        AtelierEmptyState(
+          compact: true,
+          icon: Icons.filter_alt_off_outlined,
+          title: 'Nothing here',
+          message:
+              'No ${_filter?.label.toLowerCase() ?? ''} questions right now.',
+          actionLabel: 'Show all',
+          onAction: () => setState(() => _filter = null),
+        ),
+      for (var i = 0; i < visible.length; i++)
+        Padding(
+          key: ValueKey(visible[i].id),
+          padding: const EdgeInsets.only(bottom: AtelierSpace.s12),
+          child: Reveal(
+            index: i,
+            child: _TicketCard(
+              ticket: visible[i],
+              expanded: _expanded.contains(visible[i].id),
+              closing: _closing.contains(visible[i].id),
+              onToggle: () => _toggle(visible[i].id),
+              onClose: visible[i].canClose
+                  ? () => _closeQuestion(visible[i])
+                  : null,
+            ),
+          ),
+        ),
+      if (s.errorMessage != null) ...[
+        const SizedBox(height: AtelierSpace.s4),
+        AtelierNotice(
+          text: s.errorMessage!,
+          tone: AtelierTone.ruby,
+          icon: Icons.cloud_off_rounded,
+          actionLabel: context.tr(RemainingL10n.retry),
+          onAction: () =>
+              ref.read(helpQuestionListProvider.notifier).loadMore(),
+        ),
+      ],
+      if (s.hasMore)
+        Padding(
+          padding: const EdgeInsets.only(top: AtelierSpace.s8),
+          child: Center(
+            child: AnimatedSwitcher(
+              duration: AtelierMotion.base,
+              child: s.isLoadingMore
+                  ? Padding(
+                      key: const ValueKey('loading'),
+                      padding: const EdgeInsets.all(AtelierSpace.s12),
+                      child: SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: context.atelier.gold,
+                        ),
                       ),
+                    )
+                  : AtelierButton(
+                      key: const ValueKey('more'),
+                      label: context.tr(RemainingL10n.loadMore),
+                      icon: Icons.expand_more_rounded,
+                      variant: AtelierButtonVariant.secondary,
+                      compact: true,
+                      onPressed: () => ref
+                          .read(helpQuestionListProvider.notifier)
+                          .loadMore(),
                     ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.textMuted(context),
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.s16),
-          child,
-        ],
-      ),
-    );
+        ),
+    ];
   }
 }
 
-class _EmptyTicketsPanel extends StatelessWidget {
-  const _EmptyTicketsPanel({required this.message});
+IconData _issueIcon(HelpIssueType type) => switch (type) {
+  HelpIssueType.accountIssues => Icons.manage_accounts_outlined,
+  HelpIssueType.billingPayments => Icons.payments_outlined,
+  HelpIssueType.technicalIssues => Icons.build_circle_outlined,
+  HelpIssueType.featureRequests => Icons.lightbulb_outline_rounded,
+  HelpIssueType.generalInquiry => Icons.help_outline_rounded,
+  HelpIssueType.others => Icons.more_horiz_rounded,
+};
 
-  final String message;
+String _issueHint(HelpIssueType type) => switch (type) {
+  HelpIssueType.accountIssues => 'Sign-in, verification, profile',
+  HelpIssueType.billingPayments => 'Payouts, invoices, charges',
+  HelpIssueType.technicalIssues => 'Errors, bugs, odd behaviour',
+  HelpIssueType.featureRequests => 'Ideas to improve your studio',
+  HelpIssueType.generalInquiry => 'Anything about selling here',
+  HelpIssueType.others => 'Something else entirely',
+};
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s16,
-        vertical: AppSpacing.s24,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r16),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppColors.bronze.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.chat_bubble_outline,
-              color: AppColors.bronze,
-              size: 26,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+(AtelierTone, IconData) _statusLook(HelpQuestionStatus s) => switch (s) {
+  HelpQuestionStatus.open => (AtelierTone.amber, Icons.schedule_rounded),
+  HelpQuestionStatus.answered => (
+    AtelierTone.emerald,
+    Icons.mark_email_read_outlined,
+  ),
+  HelpQuestionStatus.closed => (
+    AtelierTone.neutral,
+    Icons.lock_outline_rounded,
+  ),
+};
 
-class _ErrorCard extends StatelessWidget {
-  const _ErrorCard({required this.message, required this.onRetry});
+class _TopicTile extends StatelessWidget {
+  const _TopicTile({required this.type, required this.onTap});
 
-  final String message;
-  final VoidCallback onRetry;
+  final HelpIssueType type;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.r16),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    final p = context.atelier;
+    return AtelierCard(
+      onTap: onTap,
+      semanticLabel: 'Ask about ${type.label}',
+      padding: const EdgeInsets.fromLTRB(16, 16, 14, 16),
+      child: Row(
         children: [
-          Row(
-            children: [
-              const Icon(Icons.error_outline, color: AppColors.error),
-              const SizedBox(width: AppSpacing.s12),
-              Expanded(
-                child: Text(
-                  message,
-                  style: AppTypography.body.copyWith(color: AppColors.error),
+          AtelierIconBadge(icon: _issueIcon(type), size: 42),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  type.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.title(p.ink, size: 14.5),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.s12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh, size: 18),
-              label: Text(context.tr(RemainingL10n.retry)),
+                const SizedBox(height: 3),
+                Text(
+                  _issueHint(type),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.caption(p.muted, size: 12),
+                ),
+              ],
             ),
           ),
+          const SizedBox(width: 6),
+          Icon(Icons.arrow_forward_rounded, size: 17, color: p.gold),
         ],
       ),
     );
@@ -758,305 +469,459 @@ class _ErrorCard extends StatelessWidget {
 
 class _TicketCard extends StatelessWidget {
   const _TicketCard({
-    super.key,
     required this.ticket,
-    required this.issueIcon,
+    required this.expanded,
+    required this.closing,
+    required this.onToggle,
     this.onClose,
   });
 
   final HelpQuestion ticket;
-  final IconData issueIcon;
+  final bool expanded;
+  final bool closing;
+  final VoidCallback onToggle;
   final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context) {
-    final status = ticket.status;
-    final isOpen = status == HelpQuestionStatus.open;
+    final p = context.atelier;
+    final (tone, statusIcon) = _statusLook(ticket.status);
+    final isOpen = ticket.status == HelpQuestionStatus.open;
+    final replied = ticket.hasAdminReply;
+    final answer = ticket.answer?.trim() ?? '';
 
-    final (Color accent, Color bg, Color fg, IconData icon) = switch (status) {
-      HelpQuestionStatus.open => (
-        AppColors.warning,
-        AppColors.warning.withValues(alpha: 0.12),
-        AppColors.warning,
-        Icons.schedule,
-      ),
-      HelpQuestionStatus.answered => (
-        AppColors.success,
-        AppColors.success.withValues(alpha: 0.12),
-        AppColors.success,
-        Icons.check_circle_outline,
-      ),
-      HelpQuestionStatus.closed => (
-        AppColors.textMuted(context),
-        AppColors.surface(context),
-        AppColors.textMuted(context),
-        Icons.lock_outline,
-      ),
-    };
-
-    return Material(
-      color: Colors.transparent,
-      child: Ink(
-        decoration: BoxDecoration(
-          color: AppColors.card(context),
-          borderRadius: BorderRadius.circular(AppSpacing.r16),
-          border: Border.all(color: AppColors.border(context)),
-          boxShadow: AppColors.isDark(context) ? [] : AppShadows.cardLight,
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                width: 5,
-                decoration: BoxDecoration(
-                  color: accent,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(AppSpacing.r16),
-                    bottomLeft: Radius.circular(AppSpacing.r16),
+    return AtelierCard(
+      padding: EdgeInsets.zero,
+      borderColor: expanded ? p.gold.withValues(alpha: 0.45) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Pressable(
+            onTap: onToggle,
+            scale: 0.99,
+            semanticLabel:
+                '${ticket.subject}, ${ticket.status.label}. '
+                '${expanded ? 'Collapse' : 'Expand'}',
+            borderRadius: BorderRadius.circular(AtelierRadius.lg),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 14, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AtelierIconBadge(
+                    icon: _issueIcon(ticket.issueType),
+                    tone: tone == AtelierTone.neutral ? AtelierTone.gold : tone,
+                    size: 40,
                   ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.s16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: accent.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(issueIcon, color: accent, size: 20),
-                          ),
-                          const SizedBox(width: AppSpacing.s12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  ticket.subject,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTypography.label.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  ticket.createdAtLabel,
-                                  style: AppTypography.caption.copyWith(
-                                    color: AppColors.textMuted(context),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: bg,
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: accent.withValues(alpha: 0.25),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(icon, size: 14, color: fg),
-                                const SizedBox(width: 4),
-                                Text(
-                                  status.label,
-                                  style: AppTypography.caption.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: fg,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _MetaChip(
-                            icon: issueIcon,
-                            label: ticket.issueType.label,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      Text(
-                        ticket.body,
-                        style: AppTypography.body.copyWith(
-                          color: AppColors.textSecondary(context),
-                          height: 1.4,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ticket.subject,
+                          maxLines: expanded ? 4 : 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AtelierType.title(p.ink, size: 15),
                         ),
-                      ),
-                      if (ticket.hasAdminReply) ...[
-                        const SizedBox(height: AppSpacing.s12),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(AppSpacing.s12),
-                          decoration: BoxDecoration(
-                            color: AppColors.success.withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(
-                              AppSpacing.r12,
-                            ),
-                            border: Border.all(
-                              color: AppColors.success.withValues(alpha: 0.25),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.support_agent,
-                                    size: 16,
-                                    color: AppColors.success,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      [
-                                        context.tr(RemainingL10n.adminReply),
-                                        if (ticket.answeredAtLabel != null)
-                                          ticket.answeredAtLabel!,
-                                        if (ticket.answeredBy?.name != null)
-                                          ticket.answeredBy!.name,
-                                      ].join(' · '),
-                                      style: AppTypography.caption.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.success,
-                                        letterSpacing: 0.2,
-                                      ),
+                        const SizedBox(height: 5),
+                        Text(
+                          '${ticket.issueType.label}  ·  ${ticket.createdAtLabel}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AtelierType.caption(p.muted, size: 11.5),
+                        ),
+                        AnimatedSize(
+                          duration: AtelierMotion.base,
+                          curve: AtelierMotion.emphasized,
+                          alignment: Alignment.topLeft,
+                          child: expanded
+                              ? const SizedBox(width: double.infinity)
+                              : Padding(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  child: Text(
+                                    ticket.body,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AtelierType.body(
+                                      p.inkSoft,
+                                      size: 13,
                                     ),
                                   ),
-                                ],
+                                ),
+                        ),
+                        if (!expanded && replied) ...[
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.support_agent_rounded,
+                                size: 14,
+                                color: p.emerald,
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                ticket.answer!,
-                                style: AppTypography.body.copyWith(
-                                  height: 1.4,
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  'Support replied — tap to read',
+                                  style: AtelierType.label(p.emerald, size: 12),
                                 ),
                               ),
                             ],
                           ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      AtelierPill(
+                        label: ticket.status.label,
+                        tone: tone,
+                        icon: statusIcon,
+                        dense: true,
+                      ),
+                      const SizedBox(height: 10),
+                      AnimatedRotation(
+                        turns: expanded ? 0.5 : 0,
+                        duration: AtelierMotion.base,
+                        curve: AtelierMotion.emphasized,
+                        child: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 20,
+                          color: p.muted,
                         ),
-                      ] else if (isOpen) ...[
-                        const SizedBox(height: AppSpacing.s12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface(context),
-                            borderRadius: BorderRadius.circular(
-                              AppSpacing.r12,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          AnimatedSize(
+            duration: AtelierMotion.slow,
+            curve: AtelierMotion.emphasized,
+            alignment: Alignment.topCenter,
+            child: !expanded
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const AtelierHairline(),
+                        const SizedBox(height: 16),
+                        Text(
+                          'YOUR QUESTION',
+                          style: AtelierType.overline(p.muted),
+                        ),
+                        const SizedBox(height: 8),
+                        SelectableText(
+                          ticket.body,
+                          style: AtelierType.body(p.inkSoft, size: 13.5),
+                        ),
+                        const SizedBox(height: 16),
+                        if (replied)
+                          Reveal(
+                            child: _ReplyPanel(
+                              answer: answer,
+                              meta: [
+                                context.tr(RemainingL10n.adminReply),
+                                if (ticket.answeredAtLabel != null)
+                                  ticket.answeredAtLabel!,
+                                if (ticket.answeredBy?.name != null)
+                                  ticket.answeredBy!.name,
+                              ].join(' · '),
                             ),
-                            border: Border.all(
-                              color: AppColors.border(context),
-                            ),
-                          ),
-                          child: Row(
+                          )
+                        else if (isOpen)
+                          Row(
                             children: [
-                              Icon(
-                                Icons.hourglass_top_outlined,
-                                size: 16,
-                                color: AppColors.textMuted(context),
-                              ),
-                              const SizedBox(width: 8),
+                              const AtelierPulseDot(tone: AtelierTone.amber),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   context.tr(RemainingL10n.awaitingAdminReview),
-                                  style: AppTypography.caption.copyWith(
-                                    color: AppColors.textMuted(context),
+                                  style: AtelierType.caption(
+                                    p.inkSoft,
+                                    size: 12.5,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                      if (onClose != null) ...[
-                        const SizedBox(height: AppSpacing.s12),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: OutlinedButton.icon(
-                            onPressed: onClose,
-                            icon: const Icon(Icons.close, size: 16),
-                            label: Text(
-                              context.tr(RemainingL10n.closeQuestionAction),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.textSecondary(
-                                context,
+                        if (onClose != null) ...[
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: AtelierButton(
+                              label: context.tr(
+                                RemainingL10n.closeQuestionAction,
                               ),
-                              side: BorderSide(
-                                color: AppColors.border(context),
-                              ),
+                              icon: Icons.lock_outline_rounded,
+                              variant: AtelierButtonVariant.secondary,
+                              compact: true,
+                              loading: closing,
+                              onPressed: onClose,
                             ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            ],
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.icon, required this.label});
+class _ReplyPanel extends StatelessWidget {
+  const _ReplyPanel({required this.answer, required this.meta});
 
-  final IconData icon;
-  final String label;
+  final String answer;
+  final String meta;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface(context),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.border(context)),
+        color: p.emerald.withValues(alpha: p.isDark ? 0.1 : 0.05),
+        borderRadius: BorderRadius.circular(AtelierRadius.md),
+        border: Border.all(color: p.emerald.withValues(alpha: 0.22)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const AtelierIconBadge(
+                icon: Icons.support_agent_rounded,
+                tone: AtelierTone.emerald,
+                size: 30,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  meta,
+                  style: AtelierType.label(p.emerald, size: 12),
+                ),
+              ),
+            ],
+          ),
+          if (answer.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            SelectableText(answer, style: AtelierType.body(p.ink, size: 14)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// New-question form shown in a sheet. Writes straight into the screen's
+/// controllers so a dismissed sheet keeps its draft.
+class _QuestionComposer extends ConsumerStatefulWidget {
+  const _QuestionComposer({
+    required this.initialType,
+    required this.subjectCtrl,
+    required this.messageCtrl,
+    required this.onTypeChanged,
+  });
+
+  final HelpIssueType? initialType;
+  final TextEditingController subjectCtrl;
+  final TextEditingController messageCtrl;
+  final ValueChanged<HelpIssueType?> onTypeChanged;
+
+  @override
+  ConsumerState<_QuestionComposer> createState() => _QuestionComposerState();
+}
+
+class _QuestionComposerState extends ConsumerState<_QuestionComposer> {
+  static const _maxLength = 5000;
+
+  late HelpIssueType? _type = widget.initialType;
+  bool _submitting = false;
+  bool _tried = false;
+  String? _failure;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.messageCtrl.addListener(_onText);
+    widget.subjectCtrl.addListener(_onText);
+  }
+
+  @override
+  void dispose() {
+    widget.messageCtrl.removeListener(_onText);
+    widget.subjectCtrl.removeListener(_onText);
+    super.dispose();
+  }
+
+  void _onText() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _valid =>
+      _type != null &&
+      widget.subjectCtrl.text.trim().isNotEmpty &&
+      widget.messageCtrl.text.trim().isNotEmpty;
+
+  Future<void> _submit() async {
+    final subject = widget.subjectCtrl.text.trim();
+    final message = widget.messageCtrl.text.trim();
+    if (!_valid) {
+      AppHaptics.warning();
+      setState(() => _tried = true);
+      return;
+    }
+
+    setState(() {
+      _submitting = true;
+      _failure = null;
+    });
+    final result = await ref
+        .read(helpCenterMutationProvider.notifier)
+        .create(issueType: _type!, subject: subject, body: message);
+    if (!mounted) return;
+
+    switch (result) {
+      case Success():
+        AppHaptics.success();
+        Navigator.of(context).pop(true);
+      case ResultFailure(failure: final failure):
+        AppHaptics.error();
+        setState(() {
+          _submitting = false;
+          _failure = failure.message;
+        });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    final length = widget.messageCtrl.text.length;
+    final typeError = _tried && _type == null
+        ? context.tr(RemainingL10n.selectIssueType)
+        : null;
+    final subjectError = _tried && widget.subjectCtrl.text.trim().isEmpty
+        ? '${context.tr(RemainingL10n.subject)} is required'
+        : null;
+    final messageError = _tried && widget.messageCtrl.text.trim().isEmpty
+        ? '${context.tr(RemainingL10n.message)} is required'
+        : null;
+
+    return PopScope(
+      canPop: !_submitting,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: AppColors.bronze),
-          const SizedBox(width: 6),
-          Flexible(
+          Reveal(
             child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.caption.copyWith(
-                fontWeight: FontWeight.w700,
+              context.tr(RemainingL10n.issueType).toUpperCase(),
+              style: AtelierType.overline(typeError != null ? p.ruby : p.muted),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Reveal(
+            index: 1,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final type in HelpIssueType.values)
+                  AtelierChoiceChip(
+                    label: type.label,
+                    icon: _issueIcon(type),
+                    selected: _type == type,
+                    onTap: _submitting
+                        ? () {}
+                        : () {
+                            setState(() => _type = type);
+                            widget.onTypeChanged(type);
+                          },
+                  ),
+              ],
+            ),
+          ),
+          AtelierFieldError(error: typeError),
+          const SizedBox(height: 20),
+          Reveal(
+            index: 2,
+            child: AtelierTextField(
+              controller: widget.subjectCtrl,
+              label: context.tr(RemainingL10n.subject),
+              hint: 'A short summary, e.g. “Payout not received”',
+              error: subjectError,
+              enabled: !_submitting,
+              textCapitalization: TextCapitalization.sentences,
+              textInputAction: TextInputAction.next,
+              inputFormatters: [LengthLimitingTextInputFormatter(200)],
+            ),
+          ),
+          const SizedBox(height: 18),
+          Reveal(
+            index: 3,
+            child: AtelierTextField(
+              controller: widget.messageCtrl,
+              label: context.tr(RemainingL10n.message),
+              hint:
+                  'What happened, what you expected, and any order or '
+                  'stock numbers involved.',
+              error: messageError,
+              enabled: !_submitting,
+              maxLines: 7,
+              textCapitalization: TextCapitalization.sentences,
+              inputFormatters: [LengthLimitingTextInputFormatter(_maxLength)],
+            ),
+          ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              '$length / $_maxLength',
+              style: AtelierType.figure(
+                length > _maxLength * 0.9 ? p.amber : p.muted,
+                size: 11,
+                weight: FontWeight.w500,
               ),
+            ),
+          ),
+          AnimatedSize(
+            duration: AtelierMotion.base,
+            curve: AtelierMotion.emphasized,
+            child: _failure == null && !(_tried && !_valid)
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.only(top: 14),
+                    child: AtelierNotice(
+                      text: _failure ?? context.tr(RemainingL10n.fillAllFields),
+                      tone: _failure != null
+                          ? AtelierTone.ruby
+                          : AtelierTone.amber,
+                      icon: _failure != null
+                          ? Icons.cloud_off_rounded
+                          : Icons.info_outline_rounded,
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 20),
+          Reveal(
+            index: 4,
+            child: AtelierButton(
+              label: context.tr(RemainingL10n.submitQuestion),
+              icon: Icons.send_rounded,
+              variant: AtelierButtonVariant.gold,
+              loading: _submitting,
+              expand: true,
+              onPressed: _submit,
             ),
           ),
         ],
