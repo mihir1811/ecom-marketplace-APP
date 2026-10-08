@@ -32,11 +32,13 @@ abstract final class RecentlyViewedMapper {
     final jewelry = _parseJewelry(normalized, productType);
     final bullion = _parseBullion(normalized, productType);
 
+    final viewedAt = _parseDate(json['viewedAt'] ?? json['createdAt']);
     return RecentlyViewedEntry(
       id: json['id']?.toString() ?? '',
       productId: productId,
       productType: productType,
-      viewedAtLabel: _label(_parseDate(json['viewedAt'] ?? json['createdAt'])),
+      viewedAtLabel: _label(viewedAt),
+      viewedAt: viewedAt,
       stockNumber: _nullableString(normalized?['stockNumber']),
       productTitle:
           _listingTitle(

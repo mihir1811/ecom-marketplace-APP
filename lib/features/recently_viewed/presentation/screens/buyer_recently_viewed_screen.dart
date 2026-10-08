@@ -1,38 +1,44 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/failure.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/app_currency.dart';
-import '../../../../core/utils/format_catalog_price.dart';
-import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/widgets/catalog_content_sized_grid.dart';
-import '../../../../core/widgets/catalog_empty_state.dart';
-import '../../../../core/widgets/catalog_missing_image.dart';
-import '../../../../core/widgets/marketplace_product_card_shell.dart';
-import '../../../../core/widgets/view_mode_toggle.dart';
+import '../../../../core/router/app_navigation.dart';
+import '../../../../core/router/route_names.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
-import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
-import '../../../comparison/application/comparison_provider.dart';
-import '../../../comparison/domain/models/compare_category.dart';
-import '../../../comparison/domain/models/compare_item.dart';
-import '../../../comparison/presentation/widgets/compare_add_button.dart';
-import '../../../comparison/presentation/widgets/compare_toggle_helper.dart';
-import '../../../buyer/presentation/widgets/buyer_layout.dart';
-import '../../../product_detail/application/catalog_product_detail_loader.dart';
-import '../../../product_detail/product_detail_navigation.dart';
+import '../../../buyer/presentation/maison/maison_kit.dart';
+import '../../../buyer/presentation/maison/maison_layout.dart';
+import '../../../buyer/presentation/widgets/wishlist/wishlist_piece_card.dart';
+import '../../../seller/presentation/atelier/atelier_components.dart';
+import '../../../seller/presentation/atelier/atelier_feedback.dart';
+import '../../../seller/presentation/atelier/atelier_motion.dart';
+import '../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../application/recently_viewed_list_provider.dart';
 import '../../application/recently_viewed_providers.dart';
+import '../../data/repositories/recently_viewed_repository_impl.dart';
 import '../../domain/models/recently_viewed.dart';
-import '../widgets/recently_viewed_badge.dart';
-import '../widgets/recently_viewed_catalog_card.dart';
+import '../widgets/recent/recent_piece.dart';
+import '../widgets/recent/recent_piece_card.dart';
+import '../widgets/recent/recent_resume_card.dart';
 
-enum _ViewMode { grid, list }
+enum _RecentSort {
+  recent('Most recent'),
+  priceHigh('Price: high to low'),
+  priceLow('Price: low to high'),
+  name('Name A–Z');
 
+  const _RecentSort(this.label);
+  final String label;
+}
+
+/// The buyer's viewing trail: the last piece in an onyx spotlight, then
+/// every piece grouped by day, with a category lens, search, sort and a
+/// gallery / list switch. History can be cleared in one confirmed step.
 class BuyerRecentlyViewedScreen extends ConsumerStatefulWidget {
   const BuyerRecentlyViewedScreen({super.key});
 
@@ -43,380 +49,527 @@ class BuyerRecentlyViewedScreen extends ConsumerStatefulWidget {
 
 class _BuyerRecentlyViewedScreenState
     extends ConsumerState<BuyerRecentlyViewedScreen> {
-  final ScrollController _scrollController = ScrollController();
-  _ViewMode _viewMode = _ViewMode.grid;
-  bool _clearing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
+  final _search = TextEditingController();
+  WishlistCategory? _category;
+  _RecentSort _sort = _RecentSort.recent;
+  bool _grid = true;
+  bool _loadingMore = false;
+  String? _loadMoreError;
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    _search.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    final page = ref.read(recentlyViewedListProvider).valueOrNull;
-    if (page == null || !page.hasMore) return;
-    final position = _scrollController.position;
-    if (position.pixels >= position.maxScrollExtent - 300) {
-      ref.read(recentlyViewedListProvider.notifier).loadMore();
+  Future<void> _refresh() async {
+    setState(() => _loadMoreError = null);
+    ref.invalidate(recentlyViewedListProvider);
+    try {
+      await ref.read(recentlyViewedListProvider.future);
+    } catch (_) {
+      // The error surfaces through the provider state.
     }
   }
 
-  Future<void> _clearAll() async {
-    final confirmed = await showDialog<bool>(
+  Future<void> _loadMore() async {
+    final page = ref.read(recentlyViewedListProvider).valueOrNull;
+    if (_loadingMore || page == null || !page.hasMore) return;
+    setState(() {
+      _loadingMore = true;
+      _loadMoreError = null;
+    });
+    await ref.read(recentlyViewedListProvider.notifier).loadMore();
+    if (!mounted) return;
+    final after = ref.read(recentlyViewedListProvider).valueOrNull;
+    setState(() {
+      _loadingMore = false;
+      if (after != null &&
+          after.hasMore &&
+          after.currentPage == page.currentPage) {
+        _loadMoreError = 'We couldn’t load more pieces.';
+      }
+    });
+  }
+
+  bool _onScroll(ScrollNotification n) {
+    if (n.metrics.axis == Axis.vertical &&
+        n.metrics.extentAfter < 480 &&
+        _loadMoreError == null) {
+      _loadMore();
+    }
+    return false;
+  }
+
+  Future<void> _clearHistory() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final palette = context.atelier;
+    final clearedText = context.tr(AccountCommerceL10n.recentCleared);
+    final cleared = await showAtelierDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.tr(AccountCommerceL10n.clearRecentTitle)),
-        content: Text(context.tr(AccountCommerceL10n.clearRecentBody)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(context.tr(CoreL10n.cancel)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text(context.tr(AccountCommerceL10n.clearAll)),
-          ),
-        ],
+      builder: (dialogContext) => MaisonActionDialog(
+        title: dialogContext.tr(AccountCommerceL10n.clearRecentTitle),
+        message: dialogContext.tr(AccountCommerceL10n.clearRecentBody),
+        confirmLabel: dialogContext.tr(AccountCommerceL10n.clearAll),
+        cancelLabel: dialogContext.tr(CoreL10n.cancel),
+        icon: Icons.delete_sweep_outlined,
+        destructive: true,
+        onConfirm: (ref) =>
+            maisonOutcome(ref.read(recentlyViewedRepositoryProvider).clear()),
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (cleared != true || !mounted) return;
+    AppHaptics.medium();
+    ref.read(recentlyViewedIdsProvider.notifier).clearLocal();
+    ref.invalidate(recentlyViewedListProvider);
+    setState(() {
+      _category = null;
+      _search.clear();
+      _loadMoreError = null;
+    });
+    showMaisonToast(
+      messenger,
+      palette,
+      clearedText,
+      icon: Icons.auto_awesome_rounded,
+    );
+  }
 
-    setState(() => _clearing = true);
-    try {
-      await ref.read(recentlyViewedListProvider.notifier).clearAll();
-      ref.read(recentlyViewedIdsProvider.notifier).clearLocal();
-      if (!mounted) return;
-      ref.invalidate(recentlyViewedListProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.tr(AccountCommerceL10n.recentCleared)),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _clearing = false);
+  Future<void> _pickSort() async {
+    final sort = await showAtelierOptions<_RecentSort>(
+      context: context,
+      title: 'Sort your trail',
+      options: [
+        for (final s in _RecentSort.values)
+          AtelierOption(
+            value: s,
+            label: s.label,
+            selected: s == _sort,
+            hint: s == _RecentSort.recent ? 'Grouped by day' : null,
+            icon: switch (s) {
+              _RecentSort.recent => Icons.history_rounded,
+              _RecentSort.priceHigh => Icons.trending_up_rounded,
+              _RecentSort.priceLow => Icons.trending_down_rounded,
+              _RecentSort.name => Icons.sort_by_alpha_rounded,
+            },
+          ),
+      ],
+    );
+    if (sort != null && mounted) setState(() => _sort = sort);
+  }
+
+  void _clearFilters() {
+    _search.clear();
+    setState(() {
+      _category = null;
+      _sort = _RecentSort.recent;
+    });
+  }
+
+  List<RecentlyViewedEntry> _view(List<RecentlyViewedEntry> items) {
+    final q = _search.text.trim().toLowerCase();
+    final out = [
+      for (final e in items)
+        if ((_category == null || e.category == _category) &&
+            (q.isEmpty ||
+                e.displayTitle.toLowerCase().contains(q) ||
+                (e.detailLine ?? '').toLowerCase().contains(q) ||
+                (e.stockNumber ?? '').toLowerCase().contains(q) ||
+                e.typeLabel.toLowerCase().contains(q)))
+          e,
+    ];
+    switch (_sort) {
+      case _RecentSort.recent:
+        // The API already returns the trail newest first.
+        break;
+      case _RecentSort.priceHigh:
+        out.sort((a, b) => b.priceValue.compareTo(a.priceValue));
+      case _RecentSort.priceLow:
+        out.sort((a, b) {
+          // Unpriced pieces sink to the end.
+          final av = a.priceValue <= 0 ? double.infinity : a.priceValue;
+          final bv = b.priceValue <= 0 ? double.infinity : b.priceValue;
+          return av.compareTo(bv);
+        });
+      case _RecentSort.name:
+        out.sort(
+          (a, b) => a.displayTitle.toLowerCase().compareTo(
+            b.displayTitle.toLowerCase(),
+          ),
+        );
     }
+    return out;
+  }
+
+  static RecentlyViewedEntry _latest(List<RecentlyViewedEntry> items) {
+    var latest = items.first;
+    for (final e in items) {
+      final t = e.viewedAt, lt = latest.viewedAt;
+      if (t != null && (lt == null || t.isAfter(lt))) latest = e;
+    }
+    return latest;
   }
 
   @override
   Widget build(BuildContext context) {
-    final asyncItems = ref.watch(recentlyViewedListProvider);
-    final mutedColor = AppColors.textSecondary(context);
+    final p = context.atelier;
+    final async = ref.watch(recentlyViewedListProvider);
+    final page = async.valueOrNull;
+    final items = page?.items ?? const <RecentlyViewedEntry>[];
+    final total = math.max(page?.total ?? 0, items.length);
+    final present = [
+      for (final c in WishlistCategory.values)
+        if (items.any((e) => e.category == c)) c,
+    ];
+    // A category can disappear after a refresh; fall back to All.
+    final category = present.contains(_category) ? _category : null;
+    if (category != _category) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _category = null);
+      });
+    }
+    final visible = _view(items);
+    final width = MediaQuery.sizeOf(context).width;
+    final gutter = AtelierSpace.gutter(width);
 
-    return BuyerLayout(
-      title: context.tr(AccountCommerceL10n.recentlyViewed),
-      child: asyncItems.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.s48),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: AppColors.terracotta,
-                ),
-                const SizedBox(height: AppSpacing.s24),
-                Text(
-                  context.tr(AccountCommerceL10n.recentLoadFailed),
-                  textAlign: TextAlign.center,
-                  style: AppTypography.body.copyWith(
-                    color: AppColors.terracotta,
+    return MaisonLayout(
+      detail: true,
+      child: RefreshIndicator(
+        color: p.gold,
+        backgroundColor: p.surface,
+        onRefresh: _refresh,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _onScroll,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
+                sliver: SliverToBoxAdapter(
+                  child: MaisonCentered(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        MaisonHeader(
+                          overline: 'Your trail',
+                          title: context.tr(
+                            AccountCommerceL10n.recentlyViewed,
+                          ),
+                          subtitle: total == 0
+                              ? 'Every piece you open is kept here, so '
+                                    'you can find it again.'
+                              : '$total ${total == 1 ? 'piece' : 'pieces'} '
+                                    'you’ve explored lately.',
+                          cut: GemCut.pear,
+                          look: GemLook.ice,
+                        ),
+                        if (items.isNotEmpty) ...[
+                          const SizedBox(height: 22),
+                          Reveal(
+                            index: 3,
+                            child: _TrailBar(onClear: _clearHistory),
+                          ),
+                          const SizedBox(height: 12),
+                          Reveal(
+                            index: 4,
+                            child: RecentResumeCard(entry: _latest(items)),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.s24),
-                ElevatedButton.icon(
-                  onPressed: () => ref.invalidate(recentlyViewedListProvider),
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: Text(context.tr(AccountCommerceL10n.retry)),
+              ),
+              if (items.isNotEmpty)
+                MaisonPinnedBar(
+                  height: 124,
+                  gutter: gutter,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AtelierSegmented<WishlistCategory?>(
+                        dense: true,
+                        segments: [
+                          AtelierSegment(
+                            value: null,
+                            label: context.tr(RemainingL10n.all),
+                            count: items.length,
+                          ),
+                          for (final c in present)
+                            AtelierSegment(
+                              value: c,
+                              label: wishlistCategoryLabel(c),
+                              icon: wishlistCategoryIcon(c),
+                              count: items.where((e) => e.category == c).length,
+                            ),
+                        ],
+                        selected: category,
+                        onChanged: (c) => setState(() => _category = c),
+                      ),
+                      const SizedBox(height: 12),
+                      MaisonSearchRow(
+                        controller: _search,
+                        hint: 'Search pieces, grades or stock no.',
+                        onChanged: (_) => setState(() {}),
+                        sortLabel: _sort.label,
+                        sortActive: _sort != _RecentSort.recent,
+                        onSort: _pickSort,
+                        trailing: AtelierIconButton(
+                          icon: _grid
+                              ? Icons.view_agenda_outlined
+                              : Icons.grid_view_rounded,
+                          tooltip: _grid ? 'List view' : 'Gallery view',
+                          filled: true,
+                          size: 46,
+                          onPressed: () => setState(() => _grid = !_grid),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              MaisonRefreshHairline(
+                visible: async.isLoading && items.isNotEmpty,
+              ),
+              ..._body(context, async, items, visible, width, gutter),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _body(
+    BuildContext context,
+    AsyncValue<RecentlyViewedListPage> async,
+    List<RecentlyViewedEntry> items,
+    List<RecentlyViewedEntry> visible,
+    double width,
+    double gutter,
+  ) {
+    Widget boxed(Widget child) => SliverPadding(
+      padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+      sliver: SliverToBoxAdapter(child: MaisonCentered(child: child)),
+    );
+
+    final error = async.error;
+    final errorText = error is Failure
+        ? error.message
+        : context.tr(AccountCommerceL10n.recentLoadFailed);
+
+    if (items.isEmpty && async.isLoading) {
+      return [_skeleton(width, gutter)];
+    }
+    if (items.isEmpty && async.hasError) {
+      return [
+        boxed(
+          AtelierErrorState(
+            title: 'Your trail is out of reach',
+            message: errorText,
+            onRetry: _refresh,
+          ),
+        ),
+      ];
+    }
+    if (items.isEmpty) {
+      return [
+        boxed(
+          MaisonEmptyState(
+            cut: GemCut.pear,
+            title: context.tr(AccountCommerceL10n.noRecent),
+            message: context.tr(AccountCommerceL10n.noRecentHint),
+            actionLabel: 'Explore the collection',
+            actionIcon: Icons.arrow_forward_rounded,
+            onAction: () => context.switchToRoute(AppRouteNames.home),
+          ),
+        ),
+      ];
+    }
+
+    final page = async.valueOrNull;
+    final hasMore = page?.hasMore ?? false;
+    final side = math.max(gutter, (width - 1040) / 2);
+    final slivers = <Widget>[];
+
+    if (async.hasError && !async.isLoading) {
+      slivers.add(
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(side, 10, side, 0),
+          sliver: SliverToBoxAdapter(
+            child: Reveal(
+              child: AtelierNotice(
+                text: 'Showing your saved trail — $errorText',
+                tone: AtelierTone.ruby,
+                icon: Icons.cloud_off_rounded,
+                actionLabel: context.tr(AccountCommerceL10n.retry),
+                onAction: _refresh,
+              ),
             ),
           ),
         ),
-        data: (page) {
-          if (page.items.isEmpty) {
-            return CatalogEmptyState(
-              icon: Icons.history,
-              title: context.tr(AccountCommerceL10n.noRecent),
-              message: context.tr(AccountCommerceL10n.noRecentHint),
-            );
+      );
+    }
+
+    if (visible.isEmpty) {
+      slivers.add(
+        boxed(
+          AtelierEmptyState(
+            icon: Icons.search_off_rounded,
+            title: 'No matches',
+            message: _search.text.trim().isEmpty
+                ? 'Nothing in this category yet.'
+                : 'No viewed piece matches “${_search.text.trim()}”.',
+            actionLabel: 'Clear filters',
+            onAction: _clearFilters,
+          ),
+        ),
+      );
+    } else {
+      // Day groups only make sense in time order.
+      final groups = <({String label, List<RecentlyViewedEntry> items})>[];
+      if (_sort == _RecentSort.recent) {
+        for (final e in visible) {
+          final label = e.dayGroup;
+          if (groups.isEmpty || groups.last.label != label) {
+            groups.add((label: label, items: [e]));
+          } else {
+            groups.last.items.add(e);
           }
-          return Column(
-            children: [
-              _buildHeader(page, mutedColor),
-              const Divider(height: 1),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () =>
-                      ref.read(recentlyViewedListProvider.notifier).refresh(),
-                  child: _viewMode == _ViewMode.grid
-                      ? _buildGrid(page)
-                      : _buildList(page),
+        }
+      } else {
+        groups.add((label: '', items: visible));
+      }
+
+      var revealed = 0;
+      for (final group in groups) {
+        if (group.label.isNotEmpty) {
+          slivers.add(
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(side, 10, side, 0),
+              sliver: SliverToBoxAdapter(
+                child: MaisonGroupLabel(
+                  label: group.label,
+                  count: group.items.length,
                 ),
               ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildHeader(RecentlyViewedListPage page, Color mutedColor) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.s16,
-        AppSpacing.s12,
-        AppSpacing.s16,
-        AppSpacing.s8,
-      ),
-      child: Row(
-        children: [
-          Text(
-            '${page.total} item${page.total == 1 ? '' : 's'}',
-            style: AppTypography.caption.copyWith(
-              color: mutedColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Spacer(),
-          ViewModeToggle(
-            isGrid: _viewMode == _ViewMode.grid,
-            onGrid: () => setState(() => _viewMode = _ViewMode.grid),
-            onList: () => setState(() => _viewMode = _ViewMode.list),
-          ),
-          const SizedBox(width: AppSpacing.s8),
-          if (_clearing)
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          else
-            TextButton.icon(
-              onPressed: _clearAll,
-              icon: const Icon(Icons.delete_outline, size: 16),
-              label: Text(context.tr(AccountCommerceL10n.clearAll)),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.error,
-                textStyle: AppTypography.caption.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGrid(RecentlyViewedListPage page) {
-    return CatalogContentSizedGrid(
-      controller: _scrollController,
-      itemCount: page.items.length,
-      isLoadingMore: page.hasMore,
-      itemBuilder: (context, index) => RecentlyViewedCatalogCard(
-        entry: page.items[index],
-        isGrid: true,
-        fallback: _RecentlyViewedGridCard(entry: page.items[index]),
-      ),
-    );
-  }
-
-  Widget _buildList(RecentlyViewedListPage page) {
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.only(
-        left: AppSpacing.s16,
-        right: AppSpacing.s16,
-        top: AppSpacing.s8,
-        bottom: AppSpacing.s24,
-      ),
-      itemCount: page.items.length + (page.hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index >= page.items.length) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.s16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.charcoal,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.s12),
-                Text(
-                  context.tr(AccountCommerceL10n.loadingMore),
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMuted(context),
-                  ),
-                ),
-              ],
             ),
           );
         }
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.s12),
-          child: RecentlyViewedCatalogCard(
-            entry: page.items[index],
-            isGrid: false,
-            fallback: _RecentlyViewedListCard(entry: page.items[index]),
+        final start = revealed;
+        slivers.add(
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              side,
+              group.label.isEmpty ? 10 : 0,
+              side,
+              10,
+            ),
+            sliver: _grid
+                ? _gridSliver(group.items, width, side, start)
+                : SliverList.separated(
+                    itemCount: group.items.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      final entry = group.items[i];
+                      final n = start + i;
+                      return Reveal(
+                        key: ValueKey('row-${entry.id}-${entry.productId}'),
+                        index: n < 8 ? n : 0,
+                        child: RecentPieceCard(entry: entry, compact: true),
+                      );
+                    },
+                  ),
           ),
+        );
+        revealed += group.items.length;
+      }
+    }
+
+    slivers.add(
+      SliverPadding(
+        padding: EdgeInsets.fromLTRB(side, 4, side, 36),
+        sliver: SliverToBoxAdapter(
+          child: MaisonListFooter(
+            loadingMore: _loadingMore,
+            hasMore: hasMore,
+            errorMessage: _loadMoreError,
+            onLoadMore: () {
+              setState(() => _loadMoreError = null);
+              _loadMore();
+            },
+            endLabel: 'The beginning of your trail',
+          ),
+        ),
+      ),
+    );
+    return slivers;
+  }
+
+  Widget _gridSliver(
+    List<RecentlyViewedEntry> entries,
+    double width,
+    double side,
+    int start,
+  ) {
+    final grid = _gridMetrics(width, side);
+    return SliverGrid.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: grid.columns,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        mainAxisExtent: grid.extent,
+      ),
+      itemCount: entries.length,
+      itemBuilder: (context, i) {
+        final entry = entries[i];
+        final n = start + i;
+        return Reveal(
+          key: ValueKey('tile-${entry.id}-${entry.productId}'),
+          index: n < 8 ? n : 0,
+          child: RecentPieceCard(entry: entry),
         );
       },
     );
   }
-}
 
-/// Grid card matching [GemstoneCardGrid] / [DiamondCardGrid] layout + actions.
-class _RecentlyViewedGridCard extends ConsumerWidget {
-  const _RecentlyViewedGridCard({required this.entry});
+  static ({int columns, double extent}) _gridMetrics(
+    double width,
+    double side,
+  ) {
+    final content = width - side * 2;
+    final columns = content >= 900
+        ? 4
+        : content >= 600
+        ? 3
+        : 2;
+    final tile = (content - (columns - 1) * 14) / columns;
+    return (columns: columns, extent: tile + 104);
+  }
 
-  final RecentlyViewedEntry entry;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final textColor = AppColors.textPrimary(context);
-    final mutedColor = AppColors.textSecondary(context);
-    final wishlistItem = _wishlistItemFor(entry);
-    final compareItem = _compareItemFor(entry);
-    final inCompare = compareItem == null
-        ? false
-        : ref.watch(isInComparisonProvider(entry.productId));
-    final priceLabel = _formattedPrice(entry);
-    final gradesLine = entry.detailLine;
-    final metaLine = entry.metaLine;
-
-    return MarketplaceProductCardShell(
-      onTap: () => _openProduct(context, ref, entry),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          AspectRatio(
-            aspectRatio: 1.05,
-            child: Stack(
-              children: [
-                Positioned.fill(child: _ProductThumb(entry: entry)),
-                Positioned(
-                  top: AppSpacing.s4,
-                  right: AppSpacing.s4,
-                  child: WishlistToggleButton(item: wishlistItem),
-                ),
-                if (compareItem != null)
-                  Positioned(
-                    bottom: AppSpacing.s8,
-                    right: AppSpacing.s8,
-                    child: CompareAddButton(
-                      isSelected: inCompare,
-                      onPressed: () =>
-                          handleCompareToggle(context, ref, compareItem),
-                    ),
-                  ),
-                Positioned(
-                  top: AppSpacing.s8,
-                  left: AppSpacing.s8,
-                  child: AvailabilityStatusBadge(status: entry.availability),
-                ),
-              ],
+  Widget _skeleton(double width, double gutter) {
+    final side = math.max(gutter, (width - 1040) / 2);
+    final grid = _gridMetrics(width, side);
+    return SliverPadding(
+      padding: EdgeInsets.fromLTRB(side, 4, side, 36),
+      sliver: SliverMainAxisGroup(
+        slivers: [
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 18),
+              child: SkeletonBox(height: 136, radius: AtelierRadius.xl),
             ),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s12,
-                AppSpacing.s12,
-                AppSpacing.s12,
-                AppSpacing.s12,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    entry.displayTitle,
-                    style: AppTypography.label.copyWith(
-                      color: textColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (gradesLine != null) ...[
-                    const SizedBox(height: AppSpacing.cardLineGap),
-                    Text(
-                      gradesLine,
-                      style: AppTypography.caption.copyWith(
-                        color: mutedColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        height: 1.35,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  if (metaLine != null) ...[
-                    const SizedBox(height: AppSpacing.cardLineGap),
-                    Text(
-                      metaLine,
-                      style: AppTypography.caption.copyWith(
-                        color: mutedColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        height: 1.35,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const Spacer(),
-                  const SizedBox(height: AppSpacing.cardPriceGap),
-                  Row(
-                    children: [
-                      if (priceLabel != null)
-                        Expanded(
-                          child: Text(
-                            priceLabel,
-                            style: GoogleFonts.manrope(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              height: 1.2,
-                            ).copyWith(color: textColor),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-                      else
-                        const Spacer(),
-                      const Icon(
-                        Icons.arrow_forward,
-                        size: 16,
-                        color: AppColors.bronze,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+          SliverGrid.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: grid.columns,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              mainAxisExtent: grid.extent,
             ),
+            itemCount: grid.columns * 2,
+            itemBuilder: (context, _) => const _SkeletonTile(),
           ),
         ],
       ),
@@ -424,266 +577,95 @@ class _RecentlyViewedGridCard extends ConsumerWidget {
   }
 }
 
-/// List card matching [GemstoneCardList] / [DiamondCardList] layout + actions.
-class _RecentlyViewedListCard extends ConsumerWidget {
-  const _RecentlyViewedListCard({required this.entry});
+/// Quiet line above the spotlight: what it is, and the one destructive
+/// action kept small and out of the way of browsing.
+class _TrailBar extends StatelessWidget {
+  const _TrailBar({required this.onClear});
 
-  final RecentlyViewedEntry entry;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final textColor = AppColors.textPrimary(context);
-    final mutedColor = AppColors.textSecondary(context);
-    final wishlistItem = _wishlistItemFor(entry);
-    final compareItem = _compareItemFor(entry);
-    final inCompare = compareItem == null
-        ? false
-        : ref.watch(isInComparisonProvider(entry.productId));
-    final priceLabel = _formattedPrice(entry);
-    final meta = entry.metaLine;
-
-    return MarketplaceProductCardShell(
-      onTap: () => _openProduct(context, ref, entry),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            height: 140,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Positioned.fill(
-                  child: _ProductThumb(entry: entry, cover: true),
-                ),
-                Positioned(
-                  top: AppSpacing.s8,
-                  left: AppSpacing.s8,
-                  child: AvailabilityStatusBadge(status: entry.availability),
-                ),
-                Positioned(
-                  top: AppSpacing.s8,
-                  right: AppSpacing.s8,
-                  child: WishlistToggleButton(item: wishlistItem),
-                ),
-                if (compareItem != null)
-                  Positioned(
-                    bottom: AppSpacing.s8,
-                    right: AppSpacing.s8,
-                    child: CompareAddButton(
-                      isSelected: inCompare,
-                      onPressed: () =>
-                          handleCompareToggle(context, ref, compareItem),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s16,
-                AppSpacing.s16,
-                AppSpacing.s16,
-                AppSpacing.s16,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    entry.listTitle,
-                    style: AppTypography.label.copyWith(
-                      color: textColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: AppSpacing.cardLineGap),
-                  Text(
-                    entry.listDetailLine,
-                    style: AppTypography.caption.copyWith(
-                      color: mutedColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      height: 1.35,
-                    ),
-                    maxLines: 2,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (meta != null) ...[
-                    const SizedBox(height: AppSpacing.cardLineGap),
-                    Text(
-                      meta,
-                      style: AppTypography.caption.copyWith(
-                        color: mutedColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        height: 1.35,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const SizedBox(height: AppSpacing.cardPriceGap),
-                  Row(
-                    children: [
-                      if (priceLabel != null)
-                        Expanded(
-                          child: Text(
-                            priceLabel,
-                            style: GoogleFonts.manrope(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              height: 1.2,
-                            ).copyWith(color: textColor),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-                      else
-                        const Spacer(),
-                      const Icon(
-                        Icons.arrow_forward,
-                        size: 18,
-                        color: AppColors.bronze,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProductThumb extends StatelessWidget {
-  const _ProductThumb({required this.entry, this.cover = false});
-
-  final RecentlyViewedEntry entry;
-  final bool cover;
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
-    final url = entry.imageUrl;
-    if (url != null && url.isNotEmpty) {
-      return ColoredBox(
-        color: AppColors.surface(context),
-        child: AppNetworkImage(
-          url: url,
-          fit: cover ? BoxFit.cover : BoxFit.contain,
-          memCacheWidth: cover ? 280 : 400,
-          error: _buildFallback(context),
+    final p = context.atelier;
+    return Row(
+      children: [
+        Container(width: 18, height: 1, color: p.gold),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'PICK UP WHERE YOU LEFT OFF',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AtelierType.overline(p.inkSoft),
+          ),
         ),
-      );
-    }
-    return _buildFallback(context);
-  }
-
-  Widget _buildFallback(BuildContext context) {
-    return ColoredBox(
-      color: AppColors.surface(context),
-      child: Center(
-        child: CatalogMissingImage(
-          padding: cover ? AppSpacing.s16 : AppSpacing.s24,
+        Tooltip(
+          message: context.tr(AccountCommerceL10n.clearRecentTitle),
+          child: Pressable(
+            onTap: onClear,
+            scale: 0.94,
+            semanticLabel: context.tr(AccountCommerceL10n.clearRecentTitle),
+            borderRadius: BorderRadius.circular(AtelierRadius.pill),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AtelierRadius.pill),
+                border: Border.all(color: p.hairline),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.delete_sweep_outlined, size: 15, color: p.muted),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Clear history',
+                    style: AtelierType.label(p.inkSoft, size: 12),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
 
-WishlistItem _wishlistItemFor(RecentlyViewedEntry entry) {
-  final category = FavoriteProductType.toCategory(
-    entry.productType == 'meleeDiamond'
-        ? FavoriteProductType.diamond
-        : entry.productType,
-  );
-  final productType = entry.productType.isNotEmpty
-      ? entry.productType
-      : FavoriteProductType.fromCategory(category);
-  return WishlistItem(
-    id: entry.productId,
-    category: category,
-    productType: productType,
-    title: entry.displayTitle,
-    subtitle: entry.detailLine ?? entry.metaLine ?? '',
-    priceLabel: _formattedPrice(entry) ?? '',
-    imageUrl: entry.imageUrl,
-  );
-}
+class _SkeletonTile extends StatelessWidget {
+  const _SkeletonTile();
 
-CompareItem? _compareItemFor(RecentlyViewedEntry entry) {
-  final category = switch (entry.productType) {
-    'diamond' || 'meleeDiamond' => CompareCategory.diamond,
-    'gemstone' => CompareCategory.gemstone,
-    'watch' => CompareCategory.watch,
-    _ => null,
-  };
-  if (category == null) return null;
-
-  final price = double.tryParse(entry.price ?? '') ?? 0;
-  final displayValues = <String, String>{
-    if (_formattedPrice(entry) != null) 'price': _formattedPrice(entry)!,
-    if (entry.carat != null) 'carat': '${entry.carat!.toStringAsFixed(2)}ct',
-    if (entry.shape != null && entry.shape!.isNotEmpty) 'shape': entry.shape!,
-    if (entry.color != null && entry.color!.isNotEmpty) 'color': entry.color!,
-    if (entry.clarity != null && entry.clarity!.isNotEmpty)
-      'clarity': entry.clarity!,
-    if (entry.cut != null && entry.cut!.isNotEmpty) 'cut': entry.cut!,
-  };
-  return CompareItem(
-    id: entry.productId,
-    category: category,
-    title: entry.displayTitle,
-    price: price,
-    imageUrl: entry.imageUrl,
-    shape: entry.shape,
-    displayValues: displayValues,
-    numericValues: {
-      'price': price,
-      if (entry.carat != null) 'carat': entry.carat,
-    },
-  );
-}
-
-String? _formattedPrice(RecentlyViewedEntry entry) {
-  final raw = entry.price;
-  if (raw == null || raw.trim().isEmpty) return null;
-  final value = double.tryParse(raw.replaceAll(RegExp(r'[^\d.]'), ''));
-  if (value == null || value <= 0) return null;
-  return AppCurrency.format(formatCatalogPrice(value));
-}
-
-Future<void> _openProduct(
-  BuildContext context,
-  WidgetRef ref,
-  RecentlyViewedEntry entry,
-) async {
-  if (openRememberedProductDetail(context, entry.productId)) return;
-
-  final detail = await CatalogProductDetailLoader.load(
-    ref.read,
-    productType: entry.productType,
-    productId: entry.productId,
-  );
-  if (!context.mounted) return;
-  if (detail == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.tr(AccountCommerceL10n.productOpenFailed)),
-        duration: const Duration(seconds: 2),
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    return Container(
+      decoration: BoxDecoration(
+        color: p.surface,
+        borderRadius: BorderRadius.circular(AtelierRadius.lg),
+        border: Border.all(color: p.hairline),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: SkeletonBox(height: double.infinity, radius: 0),
+          ),
+          Padding(
+            padding: EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonBox(width: 110, height: 12),
+                SizedBox(height: 8),
+                SkeletonBox(width: 70, height: 10),
+                SizedBox(height: 14),
+                SkeletonBox(width: 90, height: 16),
+              ],
+            ),
+          ),
+        ],
       ),
     );
-    return;
   }
-  openProductDetail(context, detail);
 }

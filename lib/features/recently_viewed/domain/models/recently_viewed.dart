@@ -10,6 +10,7 @@ class RecentlyViewedEntry {
     required this.productId,
     required this.productType,
     required this.viewedAtLabel,
+    this.viewedAt,
     this.stockNumber,
     this.productTitle,
     this.imageUrl,
@@ -31,6 +32,9 @@ class RecentlyViewedEntry {
   final String productId;
   final String productType;
   final String viewedAtLabel;
+
+  /// When the piece was last opened, if the API sent a parsable date.
+  final DateTime? viewedAt;
   final String? stockNumber;
   final String? productTitle;
   final String? imageUrl;
