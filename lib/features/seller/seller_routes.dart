@@ -6,7 +6,6 @@ import 'presentation/screens/seller_auctions_screen.dart';
 import 'presentation/screens/seller_chat_detail_screen.dart';
 import 'presentation/screens/seller_chat_list_screen.dart';
 import 'presentation/screens/seller_dashboard_screen.dart';
-import 'presentation/screens/seller_help_center_screen.dart';
 import 'presentation/screens/seller_inquiry_detail_screen.dart';
 import 'presentation/screens/seller_inquiry_form_screen.dart';
 import 'presentation/screens/seller_inquiries_screen.dart';
@@ -16,9 +15,10 @@ import 'presentation/screens/seller_orders_screen.dart';
 import 'presentation/screens/seller_products_screen.dart';
 import 'presentation/screens/seller_product_edit_screen.dart';
 import 'presentation/screens/seller_api_keys_screen.dart';
-import 'presentation/screens/seller_profile_screen.dart';
 import 'presentation/screens/seller_promotions_screen.dart';
 import 'presentation/widgets/seller_layout.dart';
+import '../auth/presentation/screens/profile_screen.dart';
+import '../help_center/presentation/screens/help_center_screen.dart';
 import '../reference/presentation/screens/seller_references_screen.dart';
 import '../notifications/presentation/screens/notifications_screen.dart';
 import '../wallet/presentation/screens/wallet_screen.dart';
@@ -97,8 +97,7 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerHelpCenter,
-        builder: (context, state) =>
-            const SellerHelpCenterScreen(showHeader: false),
+        builder: (context, state) => const HelpCenterScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerNotifications,
@@ -114,7 +113,7 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerProfile,
-        builder: (context, state) => const SellerProfileScreen(),
+        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
         path: AppRouteNames.sellerApiKeys,

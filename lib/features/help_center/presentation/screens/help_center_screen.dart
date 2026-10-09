@@ -5,31 +5,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/workspace_mode.dart';
 import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../help_center/application/help_center_provider.dart';
-import '../../../help_center/domain/models/help_question.dart';
-import '../atelier/atelier_components.dart';
-import '../atelier/atelier_feedback.dart';
-import '../atelier/atelier_motion.dart';
-import '../atelier/atelier_studio.dart';
-import '../atelier/atelier_theme.dart';
-import '../widgets/seller_layout.dart';
+import '../../application/help_center_provider.dart';
+import '../../domain/models/help_question.dart';
+import '../../../seller/presentation/atelier/atelier_components.dart';
+import '../../../seller/presentation/atelier/atelier_feedback.dart';
+import '../../../seller/presentation/atelier/atelier_motion.dart';
+import '../../../seller/presentation/atelier/atelier_studio.dart';
+import '../../../seller/presentation/atelier/atelier_theme.dart';
 
-/// Seller concierge: pick a topic (or start blank) to ask support, then
-/// follow every question from "awaiting review" to the team's reply.
-class SellerHelpCenterScreen extends ConsumerStatefulWidget {
-  const SellerHelpCenterScreen({super.key, this.showHeader = true});
-
-  /// When false, the parent shell already provides the title/menu app bar.
-  final bool showHeader;
+/// Help center shared by the buyer and seller shells: pick a topic (or
+/// start blank) to ask support, then follow every question from "awaiting
+/// review" to the team's reply. Wording follows the side the user is on.
+class HelpCenterScreen extends ConsumerStatefulWidget {
+  const HelpCenterScreen({super.key});
 
   @override
-  ConsumerState<SellerHelpCenterScreen> createState() =>
-      _SellerHelpCenterScreenState();
+  ConsumerState<HelpCenterScreen> createState() => _HelpCenterScreenState();
 }
 
-class _SellerHelpCenterScreenState
-    extends ConsumerState<SellerHelpCenterScreen> {
+class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
   // Draft lives here so closing the composer never loses what was typed.
   HelpIssueType? _issueType;
   final _subjectCtrl = TextEditingController();
@@ -135,6 +131,8 @@ class _SellerHelpCenterScreenState
         _subjectCtrl.text.trim().isNotEmpty ||
         _messageCtrl.text.trim().isNotEmpty;
 
+    final seller = currentWorkspace(context) == AppWorkspace.seller;
+
     final page = AtelierPage(
       onRefresh: _refresh,
       maxWidth: 1080,
@@ -143,7 +141,7 @@ class _SellerHelpCenterScreenState
           : null,
       children: [
         AtelierHero(
-          overline: 'Seller concierge',
+          overline: seller ? 'Seller concierge' : 'Client concierge',
           title: context.tr(RemainingL10n.helpCenter),
           subtitle: context.tr(RemainingL10n.askOurSupportTeamAQuestion),
           cut: GemCut.oval,
@@ -201,7 +199,11 @@ class _SellerHelpCenterScreenState
           minTileWidth: 160,
           children: [
             for (final type in HelpIssueType.values)
-              _TopicTile(type: type, onTap: () => _compose(type)),
+              _TopicTile(
+                type: type,
+                seller: seller,
+                onTap: () => _compose(type),
+              ),
           ],
         ),
         const SizedBox(height: AtelierSpace.s40),
@@ -259,34 +261,7 @@ class _SellerHelpCenterScreenState
       ],
     );
 
-    if (!widget.showHeader) return ColoredBox(color: p.canvas, child: page);
-    return ColoredBox(
-      color: p.canvas,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 16, 4),
-            child: Row(
-              children: [
-                AtelierIconButton(
-                  icon: Icons.menu_rounded,
-                  tooltip: context.tr(RemainingL10n.menu),
-                  onPressed: () => openSellerDrawer(context),
-                  filled: true,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  context.tr(RemainingL10n.helpCenter),
-                  style: AtelierType.display(p.ink, size: 24),
-                ),
-              ],
-            ),
-          ),
-          Expanded(child: page),
-        ],
-      ),
-    );
+    return ColoredBox(color: p.canvas, child: page);
   }
 
   List<Widget> _tickets(HelpQuestionListState s, List<HelpQuestion> visible) {
@@ -401,12 +376,15 @@ IconData _issueIcon(HelpIssueType type) => switch (type) {
   HelpIssueType.others => Icons.more_horiz_rounded,
 };
 
-String _issueHint(HelpIssueType type) => switch (type) {
+String _issueHint(HelpIssueType type, {required bool seller}) => switch (type) {
   HelpIssueType.accountIssues => 'Sign-in, verification, profile',
-  HelpIssueType.billingPayments => 'Payouts, invoices, charges',
+  HelpIssueType.billingPayments =>
+    seller ? 'Payouts, invoices, charges' : 'Payments, refunds, charges',
   HelpIssueType.technicalIssues => 'Errors, bugs, odd behaviour',
-  HelpIssueType.featureRequests => 'Ideas to improve your studio',
-  HelpIssueType.generalInquiry => 'Anything about selling here',
+  HelpIssueType.featureRequests =>
+    seller ? 'Ideas to improve your studio' : 'Ideas to improve GemWorld',
+  HelpIssueType.generalInquiry =>
+    seller ? 'Anything about selling here' : 'Anything about buying here',
   HelpIssueType.others => 'Something else entirely',
 };
 
@@ -423,9 +401,14 @@ String _issueHint(HelpIssueType type) => switch (type) {
 };
 
 class _TopicTile extends StatelessWidget {
-  const _TopicTile({required this.type, required this.onTap});
+  const _TopicTile({
+    required this.type,
+    required this.seller,
+    required this.onTap,
+  });
 
   final HelpIssueType type;
+  final bool seller;
   final VoidCallback onTap;
 
   @override
@@ -451,7 +434,7 @@ class _TopicTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  _issueHint(type),
+                  _issueHint(type, seller: seller),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AtelierType.caption(p.muted, size: 12),

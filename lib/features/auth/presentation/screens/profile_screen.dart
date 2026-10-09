@@ -8,40 +8,43 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/router/workspace_mode.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../core/widgets/profile_avatar.dart';
-import '../../../auth/application/user_profile_providers.dart';
-import '../../../auth/domain/models/user_profile.dart';
+import '../../application/user_profile_providers.dart';
+import '../../domain/models/user_profile.dart';
 import '../../../user_bank_account/application/user_bank_account_providers.dart';
-import '../atelier/atelier_components.dart';
-import '../atelier/atelier_feedback.dart';
-import '../atelier/atelier_motion.dart';
-import '../atelier/atelier_studio.dart';
-import '../atelier/atelier_theme.dart';
+import '../../../seller/presentation/atelier/atelier_components.dart';
+import '../../../seller/presentation/atelier/atelier_feedback.dart';
+import '../../../seller/presentation/atelier/atelier_motion.dart';
+import '../../../seller/presentation/atelier/atelier_studio.dart';
+import '../../../seller/presentation/atelier/atelier_theme.dart';
 
-/// Seller account profile (read-only): identity at a glance, then one
-/// section at a time — account, business, tax & KYC, payouts.
-class SellerProfileScreen extends ConsumerStatefulWidget {
-  const SellerProfileScreen({super.key});
+/// Account profile shared by the buyer and seller shells (read-only):
+/// identity at a glance, then one section at a time. Seller accounts also
+/// get business, tax & KYC and payouts; links stay on the side the user is
+/// on.
+class ProfileScreen extends ConsumerStatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  ConsumerState<SellerProfileScreen> createState() =>
-      _SellerProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 enum _Section { account, business, compliance, payouts }
 
-class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   _Section _section = _Section.account;
   final Set<String> _revealed = {};
 
   Future<void> _refresh() async {
+    final business = ref.read(authProvider).isSeller;
     await Future.wait<void>([
       ref.refresh(userProfileProvider.future).then((_) {}, onError: (_) {}),
-      ref.read(userBankAccountProvider.notifier).load(),
+      if (business) ref.read(userBankAccountProvider.notifier).load(),
     ]);
   }
 
@@ -114,7 +117,10 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
     }
 
     final profileAsync = ref.watch(userProfileProvider);
-    final bank = ref.watch(userBankAccountProvider);
+    // Payout details exist only for seller (business) accounts.
+    final bank = authUser.isSeller
+        ? ref.watch(userBankAccountProvider)
+        : const UserBankAccountState();
 
     final Widget page = profileAsync.when(
       skipLoadingOnReload: true,
@@ -138,6 +144,10 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
   }) {
     final bank = _BankView.from(profile, bankState);
     final facts = _ProfileFacts(profile, bank);
+    final business = profile.isSeller;
+    final seller = currentWorkspace(context) == AppWorkspace.seller;
+    // An individual account only has the account section.
+    if (!business && _section != _Section.account) _section = _Section.account;
 
     return AtelierPage(
       onRefresh: _refresh,
@@ -158,8 +168,10 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
           ),
         ],
         const SizedBox(height: AtelierSpace.s24),
-        _GlanceRow(facts: facts, selected: _section, onSelect: _select),
-        const SizedBox(height: AtelierSpace.s24),
+        if (business) ...[
+          _GlanceRow(facts: facts, selected: _section, onSelect: _select),
+          const SizedBox(height: AtelierSpace.s24),
+        ],
         AnimatedSize(
           duration: AtelierMotion.slow,
           curve: AtelierMotion.emphasized,
@@ -195,8 +207,11 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
             icon: Icons.lock_outline_rounded,
             text: context.tr(RemainingL10n.profileDetailsAreReadOnlyContact),
             actionLabel: 'Contact support',
-            onAction: () =>
-                context.switchToRoute(AppRouteNames.sellerHelpCenter),
+            onAction: () => context.switchToRoute(
+              seller
+                  ? AppRouteNames.sellerHelpCenter
+                  : AppRouteNames.buyerHelpCenter,
+            ),
           ),
         ),
         const SizedBox(height: AtelierSpace.s40),
@@ -221,7 +236,9 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
             AtelierPanel(
               overline: 'Account',
               title: tr(RemainingL10n.personalDetails),
-              subtitle: 'How you sign in and how buyers see you.',
+              subtitle: p.isSeller
+                  ? 'How you sign in and how buyers see you.'
+                  : 'How you sign in and how sellers see you.',
               child: grid([
                 _Field(
                   tr(RemainingL10n.fullName),
@@ -250,6 +267,14 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
                       ? AtelierTone.emerald
                       : AtelierTone.amber,
                 ),
+                _Field(
+                  tr(AccountCommerceL10n.accountType),
+                  p.isSeller
+                      ? tr(AccountCommerceL10n.sellerBusiness)
+                      : tr(AccountCommerceL10n.individualBuyer),
+                  Icons.person_outline_rounded,
+                ),
+                _Field('Role', p.role, Icons.security_outlined),
               ]),
             ),
             if (facts.missing.isNotEmpty) ...[
@@ -554,42 +579,43 @@ class _Requirement {
 class _ProfileFacts {
   _ProfileFacts(this.profile, this.bank)
     : requirements = [
-        _Requirement('Full name', profile.fullName, _Section.account),
-        _Requirement('Username', profile.username, _Section.account),
-        _Requirement('Email', profile.email, _Section.account),
-        _Requirement('Company name', profile.companyName, _Section.business),
-        _Requirement('Seller type', profile.sellerType, _Section.business),
-        _Requirement('Company logo', profile.companyLogoUrl, _Section.business),
-        _Requirement(
-          'Storefront banner',
-          profile.bannerImageUrl,
-          _Section.business,
-        ),
-        _Requirement('Address', profile.addressLine1, _Section.business),
-        _Requirement('City', profile.city, _Section.business),
-        _Requirement('State', profile.state, _Section.business),
-        _Requirement('Country', profile.country, _Section.business),
-        _Requirement('Postal code', profile.zipCode, _Section.business),
-        _Requirement(
-          'Business phone',
-          profile.businessPhone1,
-          _Section.business,
-        ),
-        _Requirement(
-          'Representative',
-          profile.representativeName1,
-          _Section.business,
-        ),
-        _Requirement('PAN', profile.panCardNumber, _Section.compliance),
-        _Requirement('Aadhaar', profile.aadhaarNumber, _Section.compliance),
-        _Requirement('IEC', profile.iecNumber, _Section.compliance),
-        _Requirement('GST', profile.gstNumber, _Section.compliance),
-        _Requirement('PAN document', profile.panCardUrl, _Section.compliance),
-        _Requirement('Account holder', bank.holder, _Section.payouts),
-        _Requirement('Account number', bank.number, _Section.payouts),
-        _Requirement('IFSC code', bank.ifsc, _Section.payouts),
-        _Requirement('Bank name', bank.name, _Section.payouts),
+        for (final r in _all(profile, bank))
+          if (profile.isSeller || r.section == _Section.account) r,
       ];
+
+  static List<_Requirement> _all(UserProfile profile, _BankView bank) => [
+    _Requirement('Full name', profile.fullName, _Section.account),
+    _Requirement('Username', profile.username, _Section.account),
+    _Requirement('Email', profile.email, _Section.account),
+    _Requirement('Company name', profile.companyName, _Section.business),
+    _Requirement('Seller type', profile.sellerType, _Section.business),
+    _Requirement('Company logo', profile.companyLogoUrl, _Section.business),
+    _Requirement(
+      'Storefront banner',
+      profile.bannerImageUrl,
+      _Section.business,
+    ),
+    _Requirement('Address', profile.addressLine1, _Section.business),
+    _Requirement('City', profile.city, _Section.business),
+    _Requirement('State', profile.state, _Section.business),
+    _Requirement('Country', profile.country, _Section.business),
+    _Requirement('Postal code', profile.zipCode, _Section.business),
+    _Requirement('Business phone', profile.businessPhone1, _Section.business),
+    _Requirement(
+      'Representative',
+      profile.representativeName1,
+      _Section.business,
+    ),
+    _Requirement('PAN', profile.panCardNumber, _Section.compliance),
+    _Requirement('Aadhaar', profile.aadhaarNumber, _Section.compliance),
+    _Requirement('IEC', profile.iecNumber, _Section.compliance),
+    _Requirement('GST', profile.gstNumber, _Section.compliance),
+    _Requirement('PAN document', profile.panCardUrl, _Section.compliance),
+    _Requirement('Account holder', bank.holder, _Section.payouts),
+    _Requirement('Account number', bank.number, _Section.payouts),
+    _Requirement('IFSC code', bank.ifsc, _Section.payouts),
+    _Requirement('Bank name', bank.name, _Section.payouts),
+  ];
 
   static const kycTotal = 5;
 
@@ -639,8 +665,11 @@ class _IdentityHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     final soft = p.onOnyx.withValues(alpha: 0.62);
+    final business = profile.isSeller;
     final name =
-        _clean(profile.fullName) ?? _clean(profile.username) ?? 'Seller';
+        _clean(profile.fullName) ??
+        _clean(profile.username) ??
+        (business ? 'Seller' : 'Your account');
     final picture =
         _clean(profile.profilePicture) ?? _clean(user.profilePicture) ?? '';
     final handle = _clean(profile.username);
@@ -705,7 +734,9 @@ class _IdentityHero extends StatelessWidget {
                     children: [
                       Reveal(
                         child: Text(
-                          'SELLER PROFILE',
+                          currentWorkspace(context) == AppWorkspace.seller
+                              ? 'SELLER PROFILE'
+                              : 'MY PROFILE',
                           style: AtelierType.overline(p.gold),
                         ),
                       ),
@@ -773,9 +804,11 @@ class _IdentityHero extends StatelessWidget {
                           children: [
                             AtelierPill(
                               label: profile.isVerified
-                                  ? context.tr(
-                                      RemainingL10n.verifiedSellerAccount,
-                                    )
+                                  ? (business
+                                        ? context.tr(
+                                            RemainingL10n.verifiedSellerAccount,
+                                          )
+                                        : context.tr(RemainingL10n.verified))
                                   : context.tr(
                                       AccountCommerceL10n.verificationPending,
                                     ),
@@ -809,40 +842,72 @@ class _IdentityHero extends StatelessWidget {
                       Reveal(
                         index: 6,
                         child: AtelierHeroStats(
-                          stats: [
-                            AtelierHeroStat(
-                              label: 'Profile',
-                              value: '$pct%',
-                              caption: facts.missing.isEmpty
-                                  ? 'Complete'
-                                  : '${facts.missing.length} details missing',
-                              tone: facts.missing.isEmpty
-                                  ? AtelierTone.emerald
-                                  : AtelierTone.amber,
-                            ),
-                            AtelierHeroStat(
-                              label: 'Tax & KYC',
-                              value:
-                                  '${facts.kycOnFile}/${_ProfileFacts.kycTotal}',
-                              caption: 'Documents on file',
-                            ),
-                            AtelierHeroStat(
-                              label: 'Payouts',
-                              value: facts.bank.loading
-                                  ? '—'
-                                  : facts.bank.linked
-                                  ? 'Linked'
-                                  : 'Not linked',
-                              caption: facts.bank.number == null
-                                  ? (facts.bank.upi ?? 'Bank account')
-                                  : _mask(facts.bank.number!),
-                              tone: facts.bank.loading
-                                  ? null
-                                  : facts.bank.linked
-                                  ? AtelierTone.emerald
-                                  : AtelierTone.ruby,
-                            ),
-                          ],
+                          stats: !business
+                              ? [
+                                  AtelierHeroStat(
+                                    label: 'Profile',
+                                    value: '$pct%',
+                                    caption: facts.missing.isEmpty
+                                        ? 'Complete'
+                                        : '${facts.missing.length} details missing',
+                                    tone: facts.missing.isEmpty
+                                        ? AtelierTone.emerald
+                                        : AtelierTone.amber,
+                                  ),
+                                  AtelierHeroStat(
+                                    label: 'Account',
+                                    value: 'Individual',
+                                    caption: context.tr(
+                                      AccountCommerceL10n.individualBuyer,
+                                    ),
+                                  ),
+                                  AtelierHeroStat(
+                                    label: 'Status',
+                                    value: profile.isVerified
+                                        ? 'Verified'
+                                        : 'Pending',
+                                    caption: profile.isVerified
+                                        ? 'Ready to buy'
+                                        : 'Verification in review',
+                                    tone: profile.isVerified
+                                        ? AtelierTone.emerald
+                                        : AtelierTone.amber,
+                                  ),
+                                ]
+                              : [
+                                  AtelierHeroStat(
+                                    label: 'Profile',
+                                    value: '$pct%',
+                                    caption: facts.missing.isEmpty
+                                        ? 'Complete'
+                                        : '${facts.missing.length} details missing',
+                                    tone: facts.missing.isEmpty
+                                        ? AtelierTone.emerald
+                                        : AtelierTone.amber,
+                                  ),
+                                  AtelierHeroStat(
+                                    label: 'Tax & KYC',
+                                    value:
+                                        '${facts.kycOnFile}/${_ProfileFacts.kycTotal}',
+                                    caption: 'Documents on file',
+                                  ),
+                                  AtelierHeroStat(
+                                    label: 'Payouts',
+                                    value: facts.bank.loading
+                                        ? '—'
+                                        : facts.bank.linked
+                                        ? 'Linked'
+                                        : 'Not linked',
+                                    caption: facts.bank.number == null
+                                        ? (facts.bank.upi ?? 'Bank account')
+                                        : _mask(facts.bank.number!),
+                                    tone: facts.bank.loading
+                                        ? null
+                                        : facts.bank.linked
+                                        ? AtelierTone.emerald
+                                        : AtelierTone.ruby,
+                                  ),
+                                ],
                         ),
                       ),
                     ],
@@ -1324,8 +1389,9 @@ class _MissingPanel extends StatelessWidget {
     return AtelierPanel(
       overline: 'Finish your profile',
       title: '${missing.length} details to complete',
-      subtitle:
-          'Complete profiles earn buyer trust faster. Tap one to see where it lives.',
+      subtitle: facts.profile.isSeller
+          ? 'Complete profiles earn buyer trust faster. Tap one to see where it lives.'
+          : 'A complete profile speeds up verification. Tap one to see where it lives.',
       trailing: AtelierRing(
         value: facts.completeness,
         size: 52,

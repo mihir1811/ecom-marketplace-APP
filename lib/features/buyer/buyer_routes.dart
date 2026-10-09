@@ -4,30 +4,32 @@ import '../../core/auth/seller_only_gate.dart';
 import '../../core/auth/verified_account_gate.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../../core/router/route_names.dart';
-import '../seller/presentation/screens/seller_chat_detail_screen.dart';
-import '../seller/presentation/screens/seller_chat_list_screen.dart';
-import '../seller/presentation/screens/seller_help_center_screen.dart';
 import '../seller/presentation/screens/seller_inquiry_detail_screen.dart';
 import '../seller/presentation/screens/seller_inquiry_form_screen.dart';
 import '../seller/presentation/screens/seller_inquiry_inbox_screen.dart';
 import 'presentation/screens/buyer_order_detail_screen.dart';
+import 'presentation/screens/buyer_chat_detail_screen.dart';
+import 'presentation/screens/buyer_chat_list_screen.dart';
 import 'presentation/screens/buyer_orders_screen.dart';
-import 'presentation/screens/buyer_profile_screen.dart';
 import 'presentation/screens/buyer_refunds_screen.dart';
 import 'presentation/screens/buyer_reviews_screen.dart';
 import 'presentation/screens/buyer_settings_screen.dart';
 import 'presentation/screens/buyer_wishlist_screen.dart';
 import '../recently_viewed/presentation/screens/buyer_recently_viewed_screen.dart';
 import '../notifications/presentation/screens/notifications_screen.dart';
+import '../auth/presentation/screens/profile_screen.dart';
+import '../help_center/presentation/screens/help_center_screen.dart';
 import 'presentation/maison/maison_layout.dart';
 import 'presentation/widgets/buyer_layout.dart';
 import '../reference/presentation/screens/buyer_references_screen.dart';
 
-/// Buyer account routes. Shared screens reuse seller widgets under `/buyer/...`.
+/// Buyer account routes. Profile, Help center, Wallet and Notifications are
+/// common screens wrapped in the buyer shell; everything else is buyer-only.
 final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: AppRouteNames.buyerProfile,
-    builder: (context, state) => const BuyerProfileScreen(),
+    builder: (context, state) =>
+        const MaisonLayout(detail: true, child: ProfileScreen()),
   ),
   GoRoute(
     path: AppRouteNames.buyerOrders,
@@ -75,10 +77,8 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerHelpCenter,
-    builder: (context, state) => BuyerLayout(
-      title: context.tr(AccountCommerceL10n.helpCenter),
-      child: const SellerHelpCenterScreen(showHeader: false),
-    ),
+    builder: (context, state) =>
+        const MaisonLayout(detail: true, child: HelpCenterScreen()),
   ),
   GoRoute(
     path: AppRouteNames.buyerWishlist,
@@ -94,28 +94,26 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerMessages,
-    builder: (context, state) => BuyerLayout(
-      title: context.tr(CoreL10n.messages),
-      child: const VerifiedAccountGate(
+    builder: (context, state) => const MaisonLayout(
+      detail: true,
+      child: VerifiedAccountGate(
         fallbackRoute: AppRouteNames.buyerProfile,
         child: SellerOnlyGate(
           fallbackRoute: AppRouteNames.buyerProfile,
-          child: SellerChatListScreen(),
+          child: BuyerChatListScreen(),
         ),
       ),
     ),
   ),
   GoRoute(
     path: '/buyer/messages/:chatId',
-    builder: (context, state) => BuyerLayout(
-      title: context.tr(AccountCommerceL10n.chat),
+    builder: (context, state) => MaisonLayout(
+      detail: true,
       child: VerifiedAccountGate(
         fallbackRoute: AppRouteNames.buyerProfile,
         child: SellerOnlyGate(
           fallbackRoute: AppRouteNames.buyerProfile,
-          child: SellerChatDetailScreen(
-            chatId: state.pathParameters['chatId']!,
-          ),
+          child: BuyerChatDetailScreen(chatId: state.pathParameters['chatId']!),
         ),
       ),
     ),
