@@ -11,7 +11,6 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
-import '../../../cart/application/cart_provider.dart';
 import '../../../notifications/application/notifications_provider.dart';
 import '../theme/home_tokens.dart';
 
@@ -59,7 +58,11 @@ class HomeHeader extends StatelessWidget {
             height: barHeight,
             child: IconTheme.merge(
               data: IconThemeData(color: fg, size: 22),
-              child: _HeaderContent(foreground: fg, onSearch: onSearch),
+              child: _HeaderContent(
+                foreground: fg,
+                solidity: t,
+                onSearch: onSearch,
+              ),
             ),
           ),
         );
@@ -87,9 +90,16 @@ class HomeHeader extends StatelessWidget {
 }
 
 class _HeaderContent extends ConsumerWidget {
-  const _HeaderContent({required this.foreground, required this.onSearch});
+  const _HeaderContent({
+    required this.foreground,
+    required this.solidity,
+    required this.onSearch,
+  });
 
   final Color foreground;
+
+  /// 0 over the hero, 1 once the header has become a solid bar.
+  final double solidity;
   final VoidCallback onSearch;
 
   @override
@@ -97,65 +107,49 @@ class _HeaderContent extends ConsumerWidget {
     final auth = ref.watch(
       authProvider.select((s) => (isAuthenticated: s.isAuthenticated)),
     );
+    final unread = auth.isAuthenticated
+        ? ref.watch(notificationUnreadCountProvider)
+        : 0;
 
-    final search = IconButton(
-      tooltip: context.tr(HomeL10n.searchPrefix),
-      onPressed: onSearch,
-      icon: const Icon(Icons.search_rounded),
-    );
-
-    if (!auth.isAuthenticated) {
+    final Widget leading;
+    if (auth.isAuthenticated) {
+      leading = IconButton(
+        tooltip: context.tr(RemainingL10n.menu),
+        onPressed: () => openAppDrawer(context),
+        icon: const Icon(Icons.menu_rounded),
+      );
+    } else {
       final dark = ref.watch(themePreferenceProvider);
-      return Row(
-        children: [
-          const SizedBox(width: 6),
-          IconButton(
-            tooltip: context.tr(HomeL10n.appearance),
-            onPressed: () =>
-                ref.read(themePreferenceProvider.notifier).setDarkMode(!dark),
-            icon: Icon(
-              dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-              size: 20,
-            ),
-          ),
-          const Spacer(),
-          search,
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: _SignInPill(foreground: foreground),
-          ),
-        ],
+      leading = IconButton(
+        tooltip: context.tr(HomeL10n.appearance),
+        onPressed: () =>
+            ref.read(themePreferenceProvider.notifier).setDarkMode(!dark),
+        icon: Icon(
+          dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          size: 20,
+        ),
       );
     }
 
-    final cartCount = ref.watch(cartItemCountProvider);
-    final unread = ref.watch(notificationUnreadCountProvider);
     return Row(
       children: [
         const SizedBox(width: 6),
-        IconButton(
-          tooltip: context.tr(RemainingL10n.menu),
-          onPressed: () => openAppDrawer(context),
-          icon: const Icon(Icons.menu_rounded),
+        leading,
+        const SizedBox(width: 4),
+        Expanded(
+          child: _HeaderSearchField(solidity: solidity, onTap: onSearch),
         ),
-        const Spacer(),
-        search,
+        const SizedBox(width: 4),
         IconButton(
           tooltip: context.tr(HomeL10n.notifications),
-          // Home is the buyer side, so its bell opens buyer notifications.
-          onPressed: () =>
-              context.switchToRoute(AppRouteNames.buyerNotifications),
+          // Home is the buyer side, so its bell opens buyer notifications;
+          // guests sign in first.
+          onPressed: () => auth.isAuthenticated
+              ? context.switchToRoute(AppRouteNames.buyerNotifications)
+              : context.openRoute(AppRouteNames.login),
           icon: _Dot(
             count: unread,
             child: const Icon(Icons.notifications_none_rounded),
-          ),
-        ),
-        IconButton(
-          tooltip: context.tr(CoreL10n.cart),
-          onPressed: () => context.openRoute(AppRouteNames.cart),
-          icon: _Dot(
-            count: cartCount,
-            child: const Icon(Icons.shopping_bag_outlined),
           ),
         ),
         const SizedBox(width: 6),
@@ -164,26 +158,53 @@ class _HeaderContent extends ConsumerWidget {
   }
 }
 
-class _SignInPill extends StatelessWidget {
-  const _SignInPill({required this.foreground});
+/// Full-width search entry: looks like an input, opens the spotlight search.
+class _HeaderSearchField extends StatelessWidget {
+  const _HeaderSearchField({required this.solidity, required this.onTap});
 
-  final Color foreground;
+  final double solidity;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: () => context.openRoute(AppRouteNames.login),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: foreground,
-        side: BorderSide(color: foreground.withValues(alpha: 0.4)),
-        shape: const StadiumBorder(),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        minimumSize: const Size(0, 36),
-        tapTargetSize: MaterialTapTargetSize.padded,
-      ),
-      child: Text(
-        context.tr(RemainingL10n.login),
-        style: HomeType.label(foreground),
+    final palette = HomePalette.of(context);
+    final t = solidity;
+    final hint = context.tr(HomeL10n.searchFieldHint);
+
+    return Semantics(
+      button: true,
+      textField: true,
+      label: hint,
+      excludeSemantics: true,
+      child: Material(
+        color: Color.lerp(HomeStage.glass, palette.surface, t),
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: Color.lerp(HomeStage.glassBorder, palette.hairline, t)!,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox(
+            height: 40,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  hint,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: HomeType.body(
+                    Color.lerp(HomeStage.inkMuted, palette.inkFaint, t)!,
+                    size: 14,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

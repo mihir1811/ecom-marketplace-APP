@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'navigator_keys.dart';
+import '../widgets/navigation/bottom_nav/app_bottom_nav_host.dart';
 import 'route_names.dart';
 import '../../features/home/home_routes.dart';
 import '../../features/diamonds/diamonds_routes.dart';
@@ -28,6 +29,7 @@ export 'navigator_keys.dart';
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: AppRouteNames.home,
+  observers: [appPopupRouteObserver],
   routes: [
     ...homeRoutes,
     ...infoRoutes,

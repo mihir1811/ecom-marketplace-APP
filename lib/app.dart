@@ -6,6 +6,7 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_preference_provider.dart';
 import 'core/widgets/keyboard_aware.dart';
+import 'core/widgets/navigation/bottom_nav/app_bottom_nav_host.dart';
 import 'features/ai_chat/presentation/widgets/gem_ai_overlay.dart';
 import 'features/auth/application/user_profile_providers.dart';
 import 'features/notifications/application/notifications_provider.dart';
@@ -35,8 +36,11 @@ class GemWorldApp extends ConsumerWidget {
         return AppFocusedFieldRevealer(
           child: Stack(
             fit: StackFit.expand,
-            children: [                                                                         
-              child ?? const SizedBox.shrink(),
+            children: [
+              AppBottomNavHost(
+                router: appRouter,
+                child: child ?? const SizedBox.shrink(),
+              ),
               const Positioned.fill(child: GemAiOverlay()),
               const _AccountProfileSync(),
               const _PreferenceHydrator(child: SizedBox.shrink()),

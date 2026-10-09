@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 
 import '../../haptics/app_haptics.dart';
 import '../../theme/luxe_tokens.dart';
+import 'luxe_spring.dart';
 
 /// Side A–Z index with a "repelling finger" bulge.
 ///
@@ -158,32 +159,12 @@ class _LuxeAlphabetIndexState extends State<LuxeAlphabetIndex>
 
   // ---------------------------------------------------------------- physics
 
-  static double _springStep(
-    double x,
-    double v,
-    double target,
-    double k,
-    double zeta,
-    double dt,
-    void Function(double x, double v) out,
-  ) {
-    final c = 2 * zeta * math.sqrt(k);
-    final a = k * (target - x) - c * v;
-    final nv = v + a * dt;
-    final nx = x + nv * dt;
-    out(nx, nv);
-    return (target - nx).abs() + nv.abs() * 0.02;
-  }
-
   void _tick(Duration now) {
-    var dt = _last == Duration.zero
-        ? 1 / 60
-        : (now - _last).inMicroseconds / 1e6;
+    final dt = LuxeSpring.frameDelta(now, _last);
     _last = now;
-    dt = dt.clamp(1 / 240, 1 / 30);
 
     // Sub-step so stiff springs stay stable on slow frames.
-    final steps = (dt / (1 / 240)).ceil();
+    final steps = LuxeSpring.subSteps(dt);
     final h = dt / steps;
     var energy = 0.0;
     for (var s = 0; s < steps; s++) {
@@ -211,7 +192,7 @@ class _LuxeAlphabetIndexState extends State<LuxeAlphabetIndex>
     var energy = 0.0;
     final touching = _fingerTarget != null;
     if (touching) {
-      energy += _springStep(
+      energy += LuxeSpring.step(
         _finger,
         _fingerV,
         _fingerTarget!,
@@ -224,7 +205,7 @@ class _LuxeAlphabetIndexState extends State<LuxeAlphabetIndex>
         },
       );
     }
-    energy += _springStep(
+    energy += LuxeSpring.step(
       _bulge,
       _bulgeV,
       touching && !_still ? 1 : 0,
@@ -249,17 +230,26 @@ class _LuxeAlphabetIndexState extends State<LuxeAlphabetIndex>
       final near = math.exp(-math.pow(dy / slot, 2) * 1.1);
       final ts = 1 + _bulge * (0.45 * (inside ? _oval(u) : 0) + 0.75 * near);
 
-      energy += _springStep(b.dx, b.vx, tx, _letterK, _letterZeta, dt, (x, v) {
+      energy += LuxeSpring.step(b.dx, b.vx, tx, _letterK, _letterZeta, dt, (
+        x,
+        v,
+      ) {
         b
           ..dx = x
           ..vx = v;
       });
-      energy += _springStep(b.dy, b.vy, ty, _letterK, _letterZeta, dt, (x, v) {
+      energy += LuxeSpring.step(b.dy, b.vy, ty, _letterK, _letterZeta, dt, (
+        x,
+        v,
+      ) {
         b
           ..dy = x
           ..vy = v;
       });
-      energy += _springStep(b.s, b.vs, ts, _letterK, _letterZeta, dt, (x, v) {
+      energy += LuxeSpring.step(b.s, b.vs, ts, _letterK, _letterZeta, dt, (
+        x,
+        v,
+      ) {
         b
           ..s = x
           ..vs = v;
@@ -268,13 +258,8 @@ class _LuxeAlphabetIndexState extends State<LuxeAlphabetIndex>
     return energy;
   }
 
-  /// Bulge profile on u ∈ (-1, 1): an oval body (≈ 1 − u²/2 at the top,
-  /// like an ellipse) whose shoulders meet the column with zero slope and
-  /// finite curvature, so there is no corner where the bend begins.
-  static double _oval(double u) {
-    final s = u * u;
-    return (1 - s) * (1 - s) * (1 + 1.5 * s);
-  }
+  /// Bulge profile: the shared luxe oval (no corner where the bend begins).
+  static double _oval(double u) => LuxeSpring.oval(u);
 
   /// Vertical spread: letters move away from the finger, most at mid-bulge
   /// and not at all at the centre or the shoulders; letter order is kept.

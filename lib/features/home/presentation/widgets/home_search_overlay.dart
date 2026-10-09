@@ -5,23 +5,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
+import '../../../../core/router/route_names.dart';
+import '../../../ai_chat/application/ai_chat_providers.dart';
 import '../../application/home_search_provider.dart';
 import '../home_content.dart';
 import '../theme/home_tokens.dart';
+import 'home_search_ai_mode.dart';
 import 'home_search_results_list.dart';
 
 /// Opens the spotlight search over the home screen. Picking a collection
 /// closes the overlay and navigates from the home [context].
-Future<void> showHomeSearch(BuildContext context) async {
+///
+/// Search has two modes: catalogue search and **AI Mode**, which hands the
+/// query to Gem AI. [aiMode] opens straight into AI Mode.
+Future<void> showHomeSearch(BuildContext context, {bool aiMode = false}) async {
   final route = await showGeneralDialog<String>(
     context: context,
     barrierDismissible: true,
     barrierLabel: context.tr(HomeL10n.closeSearch),
     barrierColor: Colors.transparent,
     transitionDuration: const Duration(milliseconds: 420),
-    pageBuilder: (context, _, _) => const _HomeSearchOverlay(),
+    pageBuilder: (context, _, _) => _HomeSearchOverlay(aiMode: aiMode),
     transitionBuilder: (context, animation, _, child) {
       final curved = CurvedAnimation(
         parent: animation,
@@ -35,7 +43,9 @@ Future<void> showHomeSearch(BuildContext context) async {
 }
 
 class _HomeSearchOverlay extends ConsumerStatefulWidget {
-  const _HomeSearchOverlay();
+  const _HomeSearchOverlay({required this.aiMode});
+
+  final bool aiMode;
 
   @override
   ConsumerState<_HomeSearchOverlay> createState() => _HomeSearchOverlayState();
@@ -45,6 +55,7 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
   static const _debounce = Duration(milliseconds: 280);
   final _controller = TextEditingController();
   Timer? _timer;
+  late bool _aiMode = widget.aiMode;
 
   @override
   void dispose() {
@@ -55,10 +66,21 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
 
   void _onChanged(String value) {
     setState(() {});
+    // AI Mode leaves catalogue results alone until it is submitted.
+    if (_aiMode) return;
     _timer?.cancel();
     _timer = Timer(_debounce, () {
       if (mounted) ref.read(homeSearchQueryProvider.notifier).state = value;
     });
+  }
+
+  void _onSubmitted(String value) {
+    if (_aiMode) {
+      _askAi(value);
+      return;
+    }
+    _timer?.cancel();
+    ref.read(homeSearchQueryProvider.notifier).state = value;
   }
 
   void _clear() {
@@ -68,15 +90,42 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
     setState(() {});
   }
 
+  void _setAiMode(bool value) {
+    if (value == _aiMode) return;
+    AppHaptics.selection();
+    setState(() => _aiMode = value);
+    if (!value) {
+      // Back to catalogue search: show results for what was typed.
+      _timer?.cancel();
+      ref.read(homeSearchQueryProvider.notifier).state = _controller.text;
+    }
+  }
+
+  /// Hands [raw] to Gem AI: its panel opens over the screen as search closes.
+  void _askAi(String raw) {
+    final text = raw.trim();
+    if (text.isEmpty) return;
+    final navigator = Navigator.of(context);
+    if (!ref.read(authProvider).isAuthenticated) {
+      navigator.pop(AppRouteNames.login);
+      return;
+    }
+    AppHaptics.light();
+    ref.read(aiChatUiProvider.notifier).open();
+    unawaited(ref.read(aiChatPanelProvider.notifier).sendMessage(text));
+    navigator.pop();
+  }
+
   void _openCollection(String route) => Navigator.of(context).pop(route);
 
   @override
   Widget build(BuildContext context) {
     final palette = HomePalette.of(context);
-    final hasQuery = ref.watch(
-      homeSearchQueryProvider.select((q) => q.trim().isNotEmpty),
-    );
+    final hasQuery =
+        !_aiMode &&
+        ref.watch(homeSearchQueryProvider.select((q) => q.trim().isNotEmpty));
     final animate = !MediaQuery.disableAnimationsOf(context);
+    final typed = _controller.text.trim().isNotEmpty;
 
     Widget field = Container(
       height: 56,
@@ -87,21 +136,35 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
       child: Row(
         children: [
           const SizedBox(width: 18),
-          Icon(Icons.search_rounded, color: palette.accent, size: 21),
+          AnimatedSwitcher(
+            duration: HomeMotion.medium,
+            switchInCurve: HomeMotion.settle,
+            transitionBuilder: (child, animation) => ScaleTransition(
+              scale: animation,
+              child: FadeTransition(opacity: animation, child: child),
+            ),
+            child: Icon(
+              _aiMode ? Icons.auto_awesome_rounded : Icons.search_rounded,
+              key: ValueKey(_aiMode),
+              color: palette.accent,
+              size: 21,
+            ),
+          ),
           Expanded(
             child: TextField(
               controller: _controller,
               autofocus: true,
-              textInputAction: TextInputAction.search,
+              textInputAction: _aiMode
+                  ? TextInputAction.send
+                  : TextInputAction.search,
               onChanged: _onChanged,
-              onSubmitted: (value) {
-                _timer?.cancel();
-                ref.read(homeSearchQueryProvider.notifier).state = value;
-              },
+              onSubmitted: _onSubmitted,
               cursorColor: palette.accent,
               style: HomeType.body(palette.ink),
               decoration: InputDecoration(
-                hintText: context.tr(HomeL10n.searchPlaceholder),
+                hintText: context.tr(
+                  _aiMode ? HomeL10n.aiModeHint : HomeL10n.searchPlaceholder,
+                ),
                 hintStyle: HomeType.body(palette.inkFaint),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
@@ -111,7 +174,26 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
               ),
             ),
           ),
-          if (_controller.text.isNotEmpty)
+          if (_aiMode && typed)
+            IconButton(
+              tooltip: context.tr(HomeL10n.aiModeAsk),
+              onPressed: () => _askAi(_controller.text),
+              icon: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: palette.accent,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Icon(
+                    Icons.arrow_upward_rounded,
+                    size: 18,
+                    color: palette.onAccent,
+                  ),
+                ),
+              ),
+            )
+          else if (_controller.text.isNotEmpty)
             IconButton(
               tooltip: context.tr(RemainingL10n.clear),
               onPressed: _clear,
@@ -141,7 +223,7 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 10),
                 child: Row(
                   children: [
                     Expanded(child: field),
@@ -153,13 +235,34 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
                   ],
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                child: HomeSearchModeSwitch(
+                  aiMode: _aiMode,
+                  onChanged: _setAiMode,
+                ),
+              ),
               Expanded(
-                child: hasQuery
-                    ? const HomeSearchResultsList()
-                    : _BrowseSuggestions(
-                        animate: animate,
-                        onOpen: _openCollection,
-                      ),
+                child: AnimatedSwitcher(
+                  duration: HomeMotion.medium,
+                  switchInCurve: HomeMotion.settle,
+                  child: _aiMode
+                      ? HomeAiModeSuggestions(
+                          key: const ValueKey('ai'),
+                          animate: animate,
+                          onAsk: _askAi,
+                        )
+                      : hasQuery
+                      ? const KeyedSubtree(
+                          key: ValueKey('results'),
+                          child: HomeSearchResultsList(),
+                        )
+                      : _BrowseSuggestions(
+                          key: const ValueKey('browse'),
+                          animate: animate,
+                          onOpen: _openCollection,
+                        ),
+                ),
               ),
             ],
           ),
@@ -170,7 +273,11 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
 }
 
 class _BrowseSuggestions extends StatelessWidget {
-  const _BrowseSuggestions({required this.animate, required this.onOpen});
+  const _BrowseSuggestions({
+    required this.animate,
+    required this.onOpen,
+    super.key,
+  });
 
   final bool animate;
   final ValueChanged<String> onOpen;

@@ -10,6 +10,18 @@ abstract final class HomeL10n {
   static const exploreCollections = 'home.exploreCollections';
   static const dragHint = 'home.dragHint';
   static const closeSearch = 'home.closeSearch';
+  static const searchFieldHint = 'home.searchFieldHint';
+  static const searchModeCatalog = 'home.searchModeCatalog';
+  static const aiMode = 'home.aiMode';
+  static const aiModeHint = 'home.aiModeHint';
+  static const aiModeEyebrow = 'home.aiModeEyebrow';
+  static const aiModeBody = 'home.aiModeBody';
+  static const aiModeAsk = 'home.aiModeAsk';
+  static const aiModePromptDiamonds = 'home.aiModePromptDiamonds';
+  static const aiModePromptGemstones = 'home.aiModePromptGemstones';
+  static const aiModePromptJewellery = 'home.aiModePromptJewellery';
+  static const aiModePromptWatches = 'home.aiModePromptWatches';
+  static const aiModePromptBullion = 'home.aiModePromptBullion';
   static const collectionsEyebrow = 'home.collectionsEyebrow';
   static const collectionsTitle = 'home.collectionsTitle';
   static const atelierTitle = 'home.atelierTitle';
@@ -86,6 +98,69 @@ const homeMessages = <String, LocalizedMessage>{
     english: 'Drag to orbit 360° · touch to scatter',
     hindi: '360° घुमाने के लिए खींचें · बिखेरने के लिए छुएँ',
     gujarati: '360° ફેરવવા ખેંચો · વિખેરવા સ્પર્શ કરો',
+  ),
+  HomeL10n.searchFieldHint: LocalizedMessage(
+    english: 'Search...',
+    hindi: 'खोजें...',
+    gujarati: 'શોધો...',
+  ),
+  HomeL10n.searchModeCatalog: LocalizedMessage(
+    english: 'Search',
+    hindi: 'खोज',
+    gujarati: 'શોધ',
+  ),
+  HomeL10n.aiMode: LocalizedMessage(
+    english: 'AI Mode',
+    hindi: 'AI मोड',
+    gujarati: 'AI મોડ',
+  ),
+  HomeL10n.aiModeHint: LocalizedMessage(
+    english: 'Describe what you are looking for...',
+    hindi: 'बताइए आप क्या खोज रहे हैं...',
+    gujarati: 'તમે શું શોધી રહ્યા છો તે જણાવો...',
+  ),
+  HomeL10n.aiModeEyebrow: LocalizedMessage(
+    english: 'Search with Gem AI',
+    hindi: 'Gem AI से खोजें',
+    gujarati: 'Gem AI થી શોધો',
+  ),
+  HomeL10n.aiModeBody: LocalizedMessage(
+    english:
+        'Ask in your own words. Gem AI finds matching diamonds, gemstones, jewellery, watches and bullion.',
+    hindi:
+        'अपने शब्दों में पूछें। Gem AI मेल खाते हीरे, रत्न, आभूषण, घड़ियाँ और बुलियन ढूँढता है।',
+    gujarati:
+        'તમારા શબ્દોમાં પૂછો. Gem AI મેળ ખાતા હીરા, રત્નો, ઝવેરાત, ઘડિયાળો અને બુલિયન શોધે છે.',
+  ),
+  HomeL10n.aiModeAsk: LocalizedMessage(
+    english: 'Ask Gem AI',
+    hindi: 'Gem AI से पूछें',
+    gujarati: 'Gem AI ને પૂછો',
+  ),
+  HomeL10n.aiModePromptDiamonds: LocalizedMessage(
+    english: '1 carat round diamond, D–F colour, VVS clarity',
+    hindi: '1 कैरेट राउंड हीरा, D–F रंग, VVS क्लैरिटी',
+    gujarati: '1 કેરેટ રાઉન્ડ હીરો, D–F રંગ, VVS ક્લેરિટી',
+  ),
+  HomeL10n.aiModePromptGemstones: LocalizedMessage(
+    english: 'Untreated ruby around 2 carats',
+    hindi: 'लगभग 2 कैरेट का अनुपचारित माणिक',
+    gujarati: 'આશરે 2 કેરેટનું અનટ્રીટેડ માણેક',
+  ),
+  HomeL10n.aiModePromptJewellery: LocalizedMessage(
+    english: 'Platinum engagement ring with an oval diamond',
+    hindi: 'ओवल हीरे वाली प्लैटिनम सगाई की अंगूठी',
+    gujarati: 'ઓવલ હીરાવાળી પ્લેટિનમ સગાઈની વીંટી',
+  ),
+  HomeL10n.aiModePromptWatches: LocalizedMessage(
+    english: 'Steel Rolex Submariner, recent year',
+    hindi: 'स्टील रोलेक्स सबमरीनर, हाल का वर्ष',
+    gujarati: 'સ્ટીલ રોલેક્સ સબમરીનર, તાજેતરનું વર્ષ',
+  ),
+  HomeL10n.aiModePromptBullion: LocalizedMessage(
+    english: '24k gold bars of 100 grams',
+    hindi: '100 ग्राम की 24 कैरेट सोने की ईंटें',
+    gujarati: '100 ગ્રામના 24 કેરેટ સોનાના બાર',
   ),
   HomeL10n.closeSearch: LocalizedMessage(
     english: 'Close search',

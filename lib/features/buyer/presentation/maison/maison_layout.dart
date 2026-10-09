@@ -12,6 +12,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/navigation/bottom_nav/app_bottom_nav_destinations.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../cart/application/cart_provider.dart';
 import '../../../notifications/application/notifications_provider.dart';
@@ -105,7 +106,13 @@ class MaisonLayout extends ConsumerWidget {
     void goBack() => context.goBack(fallbackLocation: backFallback);
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     final destinations = maisonDestinations(context, verified: !auth.pending);
-    final showDock = !detail && !keyboardOpen && destinations.length >= 2;
+    // Where the app-wide bottom bar shows (e.g. Wishlist) it replaces the
+    // account dock, so the two never stack.
+    final showDock =
+        !detail &&
+        !keyboardOpen &&
+        destinations.length >= 2 &&
+        !AppBottomNav.isVisibleOn(location);
 
     return PopScope(
       canPop: GoRouter.of(context).canPop(),
