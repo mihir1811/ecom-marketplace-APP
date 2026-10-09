@@ -7,6 +7,7 @@ import '../../theme/app_typography.dart';
 import 'filter_advanced_range_input.dart';
 import 'filter_proportion_diagram.dart';
 import 'filter_scrollable_chips.dart';
+import 'filter_section_divider.dart';
 
 /// A single min/max advanced proportion field.
 class CatalogAdvancedRangeSpec {
@@ -99,7 +100,7 @@ class _CatalogExpandableAdvancedFiltersState
             ),
           if (_isExpanded) ...[
             for (var i = 0; i < widget.ranges.length; i++) ...[
-              if (i > 0) const SizedBox(height: AppSpacing.s16),
+              if (i > 0) const FilterSectionDivider(),
               FilterAdvancedRangeInput(
                 title: widget.ranges[i].title,
                 currentMin: widget.ranges[i].currentMin,
@@ -114,7 +115,7 @@ class _CatalogExpandableAdvancedFiltersState
               ),
             ],
             for (final chips in widget.chipSections) ...[
-              const SizedBox(height: AppSpacing.s20),
+              const FilterSectionDivider(),
               FilterScrollableChips(
                 title: chips.title,
                 options: chips.options,

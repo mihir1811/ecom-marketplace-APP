@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../theme/app_spacing.dart';
 import 'filter_group_card.dart';
 import 'filter_range_slider.dart';
+import 'filter_section_divider.dart';
 import '../../../core/utils/app_currency.dart';
 
 /// Standard (non-melee) catalog range filters shared by diamond and gemstone search.
@@ -63,7 +63,7 @@ class CatalogStandardRangeFilters extends StatelessWidget {
             onClear: () =>
                 onTotalPriceChanged(totalPriceLimits.$1, totalPriceLimits.$2),
           ),
-          const SizedBox(height: AppSpacing.s20),
+          const FilterSectionDivider(),
           FilterRangeSlider(
             showRangeSummary: false,
             syncInputsWhileDragging: true,
@@ -77,7 +77,7 @@ class CatalogStandardRangeFilters extends StatelessWidget {
             onClear: () =>
                 onTotalCaratChanged(totalCaratLimits.$1, totalCaratLimits.$2),
           ),
-          const SizedBox(height: AppSpacing.s20),
+          const FilterSectionDivider(),
           FilterRangeSlider(
             showRangeSummary: false,
             syncInputsWhileDragging: true,

@@ -8,6 +8,7 @@ import '../../../../core/widgets/filters/catalog_availability_filter.dart';
 import '../../../../core/widgets/filters/catalog_standard_range_filters.dart';
 import '../../../../core/widgets/filters/filter_boolean_checkbox.dart';
 import '../../../../core/widgets/filters/filter_scrollable_chips.dart';
+import '../../../../core/widgets/filters/filter_section_divider.dart';
 import '../../../../core/widgets/filters/filter_section_header.dart';
 import '../../../../core/widgets/filters/melee_range_filters.dart';
 import '../../../../core/widgets/luxe/luxe_chip_group.dart';
@@ -121,7 +122,7 @@ class GemstoneTypeFilters extends ConsumerWidget {
           iconBuilder: (value, _, size) =>
               GemstoneHueOrb(hue: gemstoneHue(value), size: size + 8),
         ),
-        const SizedBox(height: 14),
+        const FilterSectionDivider(),
         LuxeChipGroup(
           title: context.tr(CatalogL10n.gemstoneType),
           options: GemstoneFilterState.allGemstoneTypes,
@@ -133,7 +134,7 @@ class GemstoneTypeFilters extends ConsumerWidget {
           showAllLabel: context.tr(CatalogFlowL10n.showAll),
           showLessLabel: context.tr(CatalogL10n.viewLess),
         ),
-        const SizedBox(height: 16),
+        const FilterSectionDivider(),
         FilterSectionHeader(
           title: context.tr(CatalogL10n.birthstones),
           infoText: context.tr(CatalogL10n.birthstonesHelp),
@@ -332,7 +333,7 @@ class GemstoneGradingFilters extends ConsumerWidget {
           infoText:
               'Filter by the gemological laboratory that certified the stone.',
         ),
-        const SizedBox(height: 20),
+        const FilterSectionDivider(),
         FilterScrollableChips(
           wrapWithCard: false,
           title: context.tr(CatalogL10n.cutGrade),
@@ -341,7 +342,7 @@ class GemstoneGradingFilters extends ConsumerWidget {
           onToggle: notifier.toggleCutGrade,
           infoText: context.tr(CatalogL10n.gemstoneCutHelp),
         ),
-        const SizedBox(height: 20),
+        const FilterSectionDivider(),
         LuxeChipGroup(
           title: context.tr(CatalogL10n.treatments),
           infoText: 'Filter by enhancement processes applied to the gemstone.',
@@ -384,7 +385,7 @@ class GemstoneListingOptionsFilters extends ConsumerWidget {
           value: state.makeAnOffer,
           onChanged: (_) => notifier.toggleMakeAnOffer(),
         ),
-        const SizedBox(height: 16),
+        const FilterSectionDivider(),
         FilterSectionHeader(title: context.tr(CatalogL10n.availability)),
         const SizedBox(height: 8),
         LuxeMultiSelectField(

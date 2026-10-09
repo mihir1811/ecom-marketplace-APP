@@ -5,6 +5,7 @@ import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import 'filter_group_card.dart';
 import 'filter_range_slider.dart';
+import 'filter_section_divider.dart';
 import '../../../core/utils/app_currency.dart';
 
 /// Presentational Pcs/Carat range filter group with a toggle switch.
@@ -182,9 +183,9 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
           widget.totalPriceLimits.$2,
         ),
       ),
-      const SizedBox(height: AppSpacing.s20),
+      const FilterSectionDivider(),
       _caratPerPcsSlider(),
-      const SizedBox(height: AppSpacing.s20),
+      const FilterSectionDivider(),
       FilterRangeSlider(
         showRangeSummary: false,
         syncInputsWhileDragging: true,
@@ -201,7 +202,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
           widget.pricePerUnitLimits.$2,
         ),
       ),
-      const SizedBox(height: AppSpacing.s20),
+      const FilterSectionDivider(),
       FilterRangeSlider(
         showRangeSummary: false,
         syncInputsWhileDragging: true,
@@ -255,9 +256,9 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
           widget.totalPriceLimits.$2,
         ),
       ),
-      const SizedBox(height: AppSpacing.s20),
+      const FilterSectionDivider(),
       _caratPerPcsSlider(),
-      const SizedBox(height: AppSpacing.s20),
+      const FilterSectionDivider(),
       FilterRangeSlider(
         showRangeSummary: false,
         syncInputsWhileDragging: true,
@@ -274,7 +275,7 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
           widget.pricePerUnitLimits.$2,
         ),
       ),
-      const SizedBox(height: AppSpacing.s20),
+      const FilterSectionDivider(),
       FilterRangeSlider(
         showRangeSummary: false,
         syncInputsWhileDragging: true,

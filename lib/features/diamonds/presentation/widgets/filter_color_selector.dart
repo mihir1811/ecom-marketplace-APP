@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_shadows.dart';
 import 'package:gemstone/core/widgets/filters/filter_group_card.dart';
+import 'package:gemstone/core/widgets/filters/filter_section_divider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
@@ -297,7 +298,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                 },
               ),
             ),
-            const SizedBox(height: AppSpacing.s20),
+            const FilterSectionDivider(),
 
             Text(
               context.tr(CatalogL10n.overtone),
@@ -386,7 +387,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.s20),
+            const FilterSectionDivider(),
 
             Text(
               context.tr(CatalogL10n.intensity),

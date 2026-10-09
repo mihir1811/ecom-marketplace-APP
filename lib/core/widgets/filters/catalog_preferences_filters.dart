@@ -7,6 +7,7 @@ import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../luxe/luxe_multi_select_field.dart';
 import 'catalog_search_add_field.dart';
+import 'filter_section_divider.dart';
 import 'filter_section_header.dart';
 
 /// Shared vendor preference filters for diamond and gemstone search.
@@ -51,11 +52,11 @@ class CatalogPreferencesFilters extends StatelessWidget {
         children: [
           locationField,
           if (originDropdown != null) ...[
-            const SizedBox(height: AppSpacing.s20),
+            const FilterSectionDivider(),
             originDropdown!,
           ],
           if (showRough) ...[
-            const SizedBox(height: AppSpacing.s24),
+            const FilterSectionDivider(),
             FilterSectionHeader(
               title: context.tr(CatalogL10n.roughSource),
               infoText: context.tr(CatalogL10n.roughSourceHelp),
@@ -70,10 +71,10 @@ class CatalogPreferencesFilters extends StatelessWidget {
               labelOf: context.trCatalogValue,
             ),
           ],
-          const SizedBox(height: AppSpacing.s20),
+          const FilterSectionDivider(),
           companyField,
           if (showRating) ...[
-            const SizedBox(height: AppSpacing.s24),
+            const FilterSectionDivider(),
             FilterSectionHeader(
               title: context.tr(CatalogL10n.minimumSellerRating),
               infoText: context.tr(CatalogL10n.sellerRatingHelp),

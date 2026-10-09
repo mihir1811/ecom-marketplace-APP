@@ -8,6 +8,7 @@ import 'package:gemstone/core/widgets/filters/filter_chip.dart';
 import 'package:gemstone/core/widgets/filters/filter_group_card.dart';
 import '../../../diamonds/presentation/widgets/filter_color_selector.dart';
 import 'package:gemstone/core/widgets/filters/filter_scrollable_chips.dart';
+import 'package:gemstone/core/widgets/filters/filter_section_divider.dart';
 import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
 import '../../application/gemstone_search_provider.dart';
 import '../../domain/models/gemstone_filter_state.dart';
@@ -66,7 +67,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
           ],
         ),
 
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
 
         // === COLOR INTENSITY ===
         FilterScrollableChips(
@@ -78,7 +79,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
           infoText: context.tr(CatalogL10n.colorIntensityHelp),
         ),
 
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
 
         // === MODIFIER ===
         FilterScrollableChips(
@@ -90,7 +91,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
           infoText: context.tr(CatalogL10n.modifierHelp),
         ),
 
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
 
         // === FLUORESCENCE INTENSITY ===
         FilterScrollableChips(
@@ -102,7 +103,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
           infoText: context.tr(CatalogL10n.fluorescenceHelp),
         ),
 
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
 
         // === FLUORESCENCE COLOR ===
         Column(
@@ -177,7 +178,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
           ],
         ),
 
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
 
         // === CLARITY ===
         FilterScrollableChips(
@@ -189,7 +190,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
           infoText: context.tr(CatalogL10n.clarityHelp),
         ),
 
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
 
         // === QUALITY GRADE (single select) ===
         Column(

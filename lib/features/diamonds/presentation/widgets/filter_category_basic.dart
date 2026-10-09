@@ -13,6 +13,7 @@ import '../../domain/models/diamond_filter_state.dart';
 import 'package:gemstone/core/widgets/filters/filter_chip.dart';
 import 'package:gemstone/core/widgets/filters/filter_text_segmented_control.dart';
 import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
+import 'package:gemstone/core/widgets/filters/filter_section_divider.dart';
 import 'package:gemstone/core/widgets/filters/filter_group_card.dart';
 import 'package:gemstone/core/widgets/filters/filter_scrollable_chips.dart';
 import 'package:gemstone/core/widgets/filters/catalog_availability_filter.dart';
@@ -64,7 +65,7 @@ class DiamondCatalogModeControls extends ConsumerWidget {
             selected: state.labCategory,
             onSelected: notifier.updateLabCategory,
           ),
-          const SizedBox(height: AppSpacing.s16),
+          const FilterSectionDivider(),
           FilterSectionHeader(title: context.tr(CatalogL10n.growthMethod)),
           const SizedBox(height: AppSpacing.s8),
           Row(
@@ -120,7 +121,7 @@ class DiamondListingOptionsFilters extends ConsumerWidget {
           value: state.makeAnOffer,
           onChanged: (_) => notifier.toggleMakeAnOffer(),
         ),
-        const SizedBox(height: AppSpacing.s16),
+        const FilterSectionDivider(),
         FilterSectionHeader(title: context.tr(CatalogL10n.availability)),
         const SizedBox(height: AppSpacing.s8),
         LuxeMultiSelectField(
@@ -237,7 +238,7 @@ class DiamondGradingFilters extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const FinishPresetsSection(wrapWithCard: false),
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
         FilterScrollableChips(
           title: context.tr(CatalogL10n.cutGrade),
           options: DiamondFilterState.cuts,
@@ -246,7 +247,7 @@ class DiamondGradingFilters extends ConsumerWidget {
           infoText: "Filter by the quality of the diamond's cut.",
           wrapWithCard: false,
         ),
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
         FilterScrollableChips(
           title: context.tr(CatalogL10n.polish),
           options: DiamondFilterState.polishingGrades,
@@ -255,7 +256,7 @@ class DiamondGradingFilters extends ConsumerWidget {
           infoText: "Filter by the smoothness of the diamond's facets.",
           wrapWithCard: false,
         ),
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
         FilterScrollableChips(
           title: context.tr(CatalogL10n.symmetry),
           options: DiamondFilterState.symmetryGrades,
@@ -264,7 +265,7 @@ class DiamondGradingFilters extends ConsumerWidget {
           infoText: "Filter by the exactness of the diamond's shape.",
           wrapWithCard: false,
         ),
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
         FilterScrollableChips(
           title: context.tr(CatalogL10n.certification),
           options: DiamondFilterState.labs,
@@ -319,7 +320,6 @@ class DiamondInclusionFilters extends ConsumerWidget {
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.s20),
         ],
       );
     }
@@ -342,19 +342,21 @@ class DiamondInclusionFilters extends ConsumerWidget {
           value: state.heartAndArrow,
           onChanged: (_) => notifier.toggleHeartAndArrow(),
         ),
-        const SizedBox(height: AppSpacing.s16),
+        const FilterSectionDivider(),
         chips(
           context.tr(CatalogL10n.milky),
           DiamondFilterState.milkyGrades,
           state.selectedMilkyGrades,
           notifier.toggleMilkyGrade,
         ),
+        const FilterSectionDivider(),
         chips(
           context.tr(CatalogL10n.fluorescenceIntensity),
           DiamondFilterState.fluorescenceGrades,
           state.selectedFluorescence,
           notifier.toggleFluorescence,
         ),
+        const FilterSectionDivider(),
         FilterSectionHeader(title: context.tr(CatalogL10n.fluorescenceColor)),
         const SizedBox(height: AppSpacing.s8),
         LuxeMultiSelectField(
@@ -376,7 +378,7 @@ class DiamondInclusionFilters extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.s20),
+        const FilterSectionDivider(),
         FilterSectionHeader(title: context.tr(CatalogL10n.enhancement)),
         const SizedBox(height: AppSpacing.s8),
         LuxeMultiSelectField(

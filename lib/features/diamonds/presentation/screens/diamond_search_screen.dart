@@ -23,6 +23,7 @@ import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
 import '../../domain/models/diamond_filter_summary.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../../core/widgets/filters/filter_section_divider.dart';
 import '../widgets/diamond_shape_picker.dart';
 import '../widgets/filter_category_basic.dart';
 import '../widgets/filter_color_selector.dart';
@@ -261,7 +262,11 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         Icons.palette_outlined,
         const Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [ColorTabsSelector(), ClarityCardsSection()],
+          children: [
+            ColorTabsSelector(),
+            FilterSectionDivider(),
+            ClarityCardsSection(),
+          ],
         ),
       ),
       DiamondFinderSection.grading => (
