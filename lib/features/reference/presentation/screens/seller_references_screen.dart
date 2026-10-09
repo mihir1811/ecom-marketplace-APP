@@ -20,7 +20,7 @@ enum _PurchaseRange { all, d7, d15, d30, custom }
 
 /// Seller referral circle: invite code, people who chose you as their
 /// reference, requests awaiting you, commission earned and your own
-/// reference. (Buyers keep the shared [ReferenceHubScreen].)
+/// reference. (Buyers have their own BuyerReferencesScreen.)
 class SellerReferencesScreen extends ConsumerStatefulWidget {
   const SellerReferencesScreen({super.key});
 

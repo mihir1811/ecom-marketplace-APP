@@ -2,177 +2,223 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
-import '../../../../core/auth/confirm_delete_account.dart';
-import '../../../../core/auth/confirm_sign_out.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
-import '../../../../core/widgets/language_menu_button.dart';
-import '../widgets/buyer_layout.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../../../../core/widgets/gem3d/gem_renderer.dart';
+import '../../../seller/presentation/atelier/atelier_feedback.dart';
+import '../../../seller/presentation/atelier/atelier_motion.dart';
+import '../../../seller/presentation/atelier/atelier_studio.dart';
+import '../../../seller/presentation/atelier/atelier_theme.dart';
+import '../maison/maison_kit.dart';
+import '../maison/maison_layout.dart';
+import '../widgets/settings/settings_parts.dart';
 
+/// Buyer preferences: who is signed in, look and language as visual
+/// choices, then account, about and session rows — destructive actions
+/// last and confirmed in place.
 class BuyerSettingsScreen extends ConsumerWidget {
   const BuyerSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final darkMode = ref.watch(themePreferenceProvider);
-    return BuyerLayout(
-      title: context.tr(CoreL10n.settings),
+    final p = context.atelier;
+    final dark = ref.watch(themePreferenceProvider);
+    final locale = ref.watch(localePreferenceProvider);
+    final auth = ref.watch(
+      authProvider.select(
+        (s) => (
+          user: s.user,
+          isSeller: s.isSeller,
+          verified: !s.isVerificationPending,
+        ),
+      ),
+    );
+    final user = auth.user;
+    final name = user == null
+        ? context.tr(AccountCommerceL10n.accountLabel)
+        : user.fullName.trim().isNotEmpty
+        ? user.fullName.trim()
+        : user.username.trim().isNotEmpty
+        ? user.username.trim()
+        : context.tr(AccountCommerceL10n.accountLabel);
+    final gutter = AtelierSpace.gutter(MediaQuery.sizeOf(context).width);
+
+    var i = 2;
+    Widget reveal(Widget child) => Reveal(index: i++, child: child);
+
+    return MaisonLayout(
+      detail: true,
       child: ListView(
-        padding: const EdgeInsets.all(AppSpacing.s16),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 48),
         children: [
-          Text(
-            context.tr(CoreL10n.appearance),
-            style: AppTypography.label.copyWith(
-              color: AppColors.textMuted(context),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          _Card(
-            children: [
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                secondary: const Icon(Icons.dark_mode_outlined),
-                title: Text(context.tr(CoreL10n.darkTheme)),
-                subtitle: Text(
+          MaisonCentered(
+            maxWidth: 720,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                MaisonHeader(
+                  overline: 'Preferences',
+                  title: context.tr(CoreL10n.settings),
+                  subtitle: 'Make GemWorld look, read and behave your way.',
+                  cut: GemCut.cushion,
+                  look: GemLook.ice,
+                ),
+                const SizedBox(height: 24),
+                reveal(
+                  SettingsIdentityCard(
+                    displayName: name,
+                    email: user?.email ?? '',
+                    imageUrl: user?.profilePicture,
+                    isSeller: auth.isSeller,
+                    verified: auth.verified,
+                    onTap: () => context.openRoute(AppRouteNames.buyerProfile),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                reveal(
+                  MaisonGroupLabel(label: context.tr(CoreL10n.appearance)),
+                ),
+                reveal(
+                  SettingsThemeChooser(
+                    dark: dark,
+                    onChanged: (v) {
+                      AppHaptics.selection();
+                      ref.read(themePreferenceProvider.notifier).setDarkMode(v);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
                   context.tr(CoreL10n.darkThemeDescription),
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMuted(context),
+                  style: AtelierType.caption(p.muted, size: 11.5),
+                ),
+                const SizedBox(height: 12),
+                reveal(MaisonGroupLabel(label: context.tr(CoreL10n.language))),
+                reveal(
+                  SettingsLanguageChooser(
+                    selected: locale,
+                    onChanged: (l) {
+                      AppHaptics.selection();
+                      ref.read(localePreferenceProvider.notifier).setLocale(l);
+                    },
                   ),
                 ),
-                value: darkMode,
-                onChanged: (v) {
-                  AppHaptics.selection();
-                  ref.read(themePreferenceProvider.notifier).setDarkMode(v);
-                },
-              ),
-              const Divider(height: 1),
-              const LanguageSettingsTile(),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.s24),
-          Text(
-            context.tr(CoreL10n.account),
-            style: AppTypography.label.copyWith(
-              color: AppColors.textMuted(context),
-              fontWeight: FontWeight.w700,
+                const SizedBox(height: 12),
+                reveal(MaisonGroupLabel(label: context.tr(CoreL10n.account))),
+                reveal(
+                  SettingsGroup(
+                    children: [
+                      SettingsRow(
+                        icon: Icons.person_outline_rounded,
+                        title: context.tr(AccountCommerceL10n.myProfile),
+                        caption: 'Personal details and account status',
+                        onTap: () =>
+                            context.openRoute(AppRouteNames.buyerProfile),
+                      ),
+                      SettingsRow(
+                        icon: Icons.support_agent_outlined,
+                        title: context.tr(AccountCommerceL10n.helpCenter),
+                        caption: 'Answers, tickets and support',
+                        onTap: () =>
+                            context.openRoute(AppRouteNames.buyerHelpCenter),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                reveal(const MaisonGroupLabel(label: 'About')),
+                reveal(
+                  SettingsGroup(
+                    children: [
+                      SettingsRow(
+                        icon: Icons.diamond_outlined,
+                        title: context.tr(AccountCommerceL10n.aboutGemWorld),
+                        onTap: () => context.openRoute(AppRouteNames.aboutUs),
+                      ),
+                      SettingsRow(
+                        icon: Icons.gavel_outlined,
+                        title: context.tr(AccountCommerceL10n.policiesLegal),
+                        onTap: () => context.openRoute(AppRouteNames.policies),
+                      ),
+                      SettingsRow(
+                        icon: Icons.description_outlined,
+                        title: context.tr(AccountCommerceL10n.termsConditions),
+                        onTap: () => context.openRoute(
+                          AppRouteNames.termsAndConditions,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                reveal(const MaisonGroupLabel(label: 'Session')),
+                reveal(
+                  SettingsGroup(
+                    children: [
+                      SettingsRow(
+                        icon: Icons.logout_rounded,
+                        title: context.tr(AccountCommerceL10n.signOut),
+                        caption: user?.email,
+                        chevron: false,
+                        onTap: () => _signOut(context, ref),
+                      ),
+                      SettingsRow(
+                        icon: Icons.delete_forever_outlined,
+                        title: context.tr(AccountCommerceL10n.deleteAccount),
+                        caption: context.tr(
+                          AccountCommerceL10n.deleteRecoveryWindow,
+                        ),
+                        tone: AtelierTone.ruby,
+                        chevron: false,
+                        onTap: () => _deleteAccount(context, ref),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const MaisonListFooter(
+                  loadingMore: false,
+                  hasMore: false,
+                  onLoadMore: _noop,
+                  endLabel: 'GemWorld · for collectors',
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          _Card(
-            children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.person_outline),
-                title: Text(context.tr(AccountCommerceL10n.myProfile)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.openRoute(AppRouteNames.buyerProfile),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.help_outline),
-                title: Text(context.tr(AccountCommerceL10n.helpCenter)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.openRoute(AppRouteNames.buyerHelpCenter),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.info_outline),
-                title: Text(context.tr(AccountCommerceL10n.aboutGemWorld)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.openRoute(AppRouteNames.aboutUs),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.gavel_outlined),
-                title: Text(context.tr(AccountCommerceL10n.policiesLegal)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.openRoute(AppRouteNames.policies),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.description_outlined),
-                title: Text(context.tr(AccountCommerceL10n.termsConditions)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () =>
-                    context.openRoute(AppRouteNames.termsAndConditions),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.logout, color: AppColors.error),
-                title: Text(
-                  context.tr(AccountCommerceL10n.signOut),
-                  style: AppTypography.label.copyWith(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                onTap: () async {
-                  final confirmed = await confirmSignOut(context);
-                  if (!confirmed || !context.mounted) return;
-                  ref.read(authProvider.notifier).logout();
-                  context.resetTo(AppRouteNames.home);
-                },
-              ),
-              const Divider(height: 1),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(
-                  Icons.delete_forever_outlined,
-                  color: AppColors.error,
-                ),
-                title: Text(
-                  context.tr(AccountCommerceL10n.deleteAccount),
-                  style: AppTypography.label.copyWith(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                subtitle: Text(
-                  context.tr(AccountCommerceL10n.deleteRecoveryWindow),
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMuted(context),
-                  ),
-                ),
-                onTap: () => _onDeleteAccount(context, ref),
-              ),
-            ],
           ),
         ],
       ),
     );
   }
 
-  Future<void> _onDeleteAccount(BuildContext context, WidgetRef ref) async {
-    final password = await confirmDeleteAccount(context);
-    if (password == null || !context.mounted) return;
+  static void _noop() {}
 
-    final ok = await ref
-        .read(authProvider.notifier)
-        .requestAccountDeletion(password: password);
-    if (!context.mounted) return;
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showAtelierConfirm(
+      context: context,
+      title: context.tr(AccountCommerceL10n.signOutTitle),
+      message: context.tr(AccountCommerceL10n.signOutBody),
+      confirmLabel: context.tr(AccountCommerceL10n.signOut),
+      cancelLabel: context.tr(CoreL10n.cancel),
+      icon: Icons.logout_rounded,
+    );
+    if (!confirmed || !context.mounted) return;
+    AppHaptics.warning();
+    ref.read(authProvider.notifier).logout();
+    context.resetTo(AppRouteNames.home);
+  }
 
-    if (!ok) {
-      AppHaptics.error();
-      final message =
-          ref.read(authProvider).errorMessage ??
-          'Could not delete account. Please try again.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
-      return;
-    }
+  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final palette = context.atelier;
+    final ok = await showDeleteAccountDialog(context);
+    if (!ok || !context.mounted) return;
 
     final deletion = ref.read(authProvider);
     final until = deletion.accountDeletionRecoverUntil;
@@ -181,32 +227,16 @@ class BuyerSettingsScreen extends ConsumerWidget {
         'Your account is scheduled for deletion.';
     final detail = until == null
         ? base
-        : '$base Recover by ${until.toLocal()}.';
+        : '$base Recover by ${atelierDateTime(until.toLocal())}.';
 
     AppHaptics.heavy();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(detail)));
-    context.resetTo(AppRouteNames.recoverAccount);
-  }
-}
-
-class _Card extends StatelessWidget {
-  const _Card({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s16,
-        vertical: AppSpacing.s4,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Column(children: children),
+    showAtelierToastOn(
+      messenger,
+      palette,
+      detail,
+      tone: AtelierTone.amber,
+      icon: Icons.schedule_rounded,
     );
+    context.resetTo(AppRouteNames.recoverAccount);
   }
 }
