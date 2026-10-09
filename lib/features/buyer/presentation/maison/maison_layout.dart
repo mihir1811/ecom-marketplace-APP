@@ -9,11 +9,9 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/router/workspace_mode.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/navigation/workspace_switch.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../cart/application/cart_provider.dart';
 import '../../../notifications/application/notifications_provider.dart';
@@ -133,8 +131,8 @@ class MaisonLayout extends ConsumerWidget {
   }
 }
 
-/// Quiet buyer bar: menu / back, the Seller switch on top-level pages,
-/// notifications, bag, wallet (detail pages only) and theme.
+/// Quiet buyer bar: menu / back, notifications, bag, wallet (detail pages
+/// only) and theme.
 class MaisonTopBar extends ConsumerWidget implements PreferredSizeWidget {
   const MaisonTopBar({
     required this.location,
@@ -155,7 +153,6 @@ class MaisonTopBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final p = context.atelier;
-    final isSeller = ref.watch(authProvider.select((s) => s.isSeller));
     final unread = ref.watch(notificationUnreadCountProvider);
     final bag = ref.watch(cartItemCountProvider);
     final dark = ref.watch(themePreferenceProvider);
@@ -189,8 +186,6 @@ class MaisonTopBar extends ConsumerWidget implements PreferredSizeWidget {
                     ),
                   ),
                 const Spacer(),
-                if (isSeller && !showBack)
-                  const WorkspaceSwitchPill(target: AppWorkspace.seller),
                 AtelierIconButton(
                   icon: unread > 0
                       ? Icons.notifications_rounded

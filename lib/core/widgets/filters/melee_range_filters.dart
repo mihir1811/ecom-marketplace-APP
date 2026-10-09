@@ -30,10 +30,11 @@ class MeleeRangeFilters extends StatefulWidget {
     required this.totalCaratMin,
     required this.totalCaratMax,
     required this.onTotalCaratChanged,
-    this.caratLimits = const (0.0, 100.0),
-    this.pricePerUnitLimits = const (0.0, 200000.0),
-    this.pcsLimits = const (1.0, 1000000.0),
-    this.totalPriceLimits = const (0.0, 1000000.0),
+    this.caratLimits = const (0.20, 50.0),
+    this.caratPerPcsLimits = const (0.001, 1.0),
+    this.pricePerUnitLimits = const (0.0, 5000.0),
+    this.pcsLimits = const (1.0, 100000.0),
+    this.totalPriceLimits = const (0.0, 250000.0),
     super.key,
   });
 
@@ -57,6 +58,7 @@ class MeleeRangeFilters extends StatefulWidget {
   final void Function(double min, double max) onTotalCaratChanged;
 
   final (double, double) caratLimits;
+  final (double, double) caratPerPcsLimits;
   final (double, double) pricePerUnitLimits;
   final (double, double) pcsLimits;
   final (double, double) totalPriceLimits;
@@ -222,15 +224,15 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       showRangeSummary: false,
       syncInputsWhileDragging: true,
       title: context.tr(CatalogL10n.caratPerPiece),
-      minLimit: widget.caratLimits.$1,
-      maxLimit: widget.caratLimits.$2,
+      minLimit: widget.caratPerPcsLimits.$1,
+      maxLimit: widget.caratPerPcsLimits.$2,
       currentMin: widget.caratPerPcsMin,
       currentMax: widget.caratPerPcsMax,
       unitSuffix: 'ct',
       onChanged: widget.onCaratPerPcsChanged,
       onClear: () => widget.onCaratPerPcsChanged(
-        widget.caratLimits.$1,
-        widget.caratLimits.$2,
+        widget.caratPerPcsLimits.$1,
+        widget.caratPerPcsLimits.$2,
       ),
     );
   }

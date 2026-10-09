@@ -13,11 +13,9 @@ import '../../features/chat/application/chat_providers.dart';
 import '../../features/notifications/application/notifications_provider.dart';
 import 'app_bar_actions.dart';
 import 'app_drawer_button.dart';
-import 'navigation/workspace_switch.dart';
 
 /// Reusable top app bar with a fixed trailing action order:
-/// **[⇄ Seller] → Notifications → Cart → Wallet → Messages → Theme**
-/// (when signed in). The switch shows for sellers on top-level buyer pages;
+/// **Notifications → Cart → Wallet → Messages → Theme** (when signed in).
 /// Messages shows on the seller side only.
 ///
 /// [extraActions] always render *before* that standard set.
@@ -103,15 +101,8 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
     final showBack =
         leading == null &&
         (GoRouter.of(context).canPop() || location != AppRouteNames.home);
-    final isTopLevel =
-        leading is AppDrawerButton ||
-        (leading == null && !showBack && showDrawerButton);
-    final showSwitch =
-        authState.isSeller && workspace == AppWorkspace.buyer && isTopLevel;
 
     final actions = <Widget>[
-      // Same slot on every top-level bar of both sides: first trailing control.
-      if (showSwitch) const WorkspaceSwitchPill(target: AppWorkspace.seller),
       ...extraActions,
     ];
 
@@ -160,8 +151,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
       }
 
       // Messages/chat is business (seller) only and lives in the seller bar;
-      // on the buyer side it is under Drawer › Messages & support, which keeps
-      // room for the Buyer ⇄ Seller switch.
+      // on the buyer side it is under Drawer › Messages & support.
       if (messagesEnabled &&
           authState.isSeller &&
           workspace == AppWorkspace.seller) {

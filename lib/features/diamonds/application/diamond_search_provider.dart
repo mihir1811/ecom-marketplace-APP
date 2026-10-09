@@ -292,8 +292,8 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
       minC = DiamondFilterState.caratQuickRanges[current.first]['min']!;
       maxC = DiamondFilterState.caratQuickRanges[current.last]['max']!;
     } else {
-      minC = 0.0;
-      maxC = 100.00;
+      minC = DiamondFilterState.caratMin;
+      maxC = DiamondFilterState.caratMax;
     }
 
     state = state.copyWith(
@@ -827,10 +827,12 @@ int computeMatchingCount(Ref ref) {
   }
 
   final priceSpan = state.maxPrice - state.minPrice;
-  multiplier *= (priceSpan / 1000000.0).clamp(0.02, 1.0);
+  multiplier *= (priceSpan / DiamondFilterState.priceMax).clamp(0.02, 1.0);
 
   final caratSpan = state.maxCarat - state.minCarat;
-  multiplier *= (caratSpan / 99.84).clamp(0.02, 1.0);
+  final caratFullSpan =
+      DiamondFilterState.caratMax - DiamondFilterState.caratMin;
+  multiplier *= (caratSpan / caratFullSpan).clamp(0.02, 1.0);
 
   if (!state.isFancyColor && state.selectedStandardColors.isNotEmpty) {
     multiplier *= (state.selectedStandardColors.length / 23.0).clamp(0.05, 1.0);

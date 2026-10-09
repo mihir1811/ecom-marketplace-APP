@@ -174,20 +174,49 @@ class DiamondSizePriceFilters extends ConsumerWidget {
             totalCaratMin: state.minCarat,
             totalCaratMax: state.maxCarat,
             onTotalCaratChanged: notifier.updateCaratRange,
+            caratLimits: (
+              DiamondFilterState.caratMin,
+              DiamondFilterState.caratMax,
+            ),
+            caratPerPcsLimits: (
+              DiamondFilterState.caratPerPcsMinLimit,
+              DiamondFilterState.caratPerPcsMaxLimit,
+            ),
+            pricePerUnitLimits: (
+              DiamondFilterState.pricePerPcsMinLimit,
+              DiamondFilterState.pricePerPcsMaxLimit,
+            ),
+            pcsLimits: (
+              DiamondFilterState.totalPcsMinLimit,
+              DiamondFilterState.totalPcsMaxLimit,
+            ),
+            totalPriceLimits: (
+              DiamondFilterState.priceMin,
+              DiamondFilterState.priceMax,
+            ),
           )
         else
           CatalogStandardRangeFilters(
             totalPriceMin: state.minPrice,
             totalPriceMax: state.maxPrice,
-            totalPriceLimits: (0.0, 1000000.0),
+            totalPriceLimits: (
+              DiamondFilterState.priceMin,
+              DiamondFilterState.priceMax,
+            ),
             onTotalPriceChanged: notifier.updatePriceRange,
             totalCaratMin: state.minCarat,
             totalCaratMax: state.maxCarat,
-            totalCaratLimits: (0.0, 100.00),
+            totalCaratLimits: (
+              DiamondFilterState.caratMin,
+              DiamondFilterState.caratMax,
+            ),
             onTotalCaratChanged: notifier.updateCaratRange,
             pricePerCaratMin: state.minPricePerCarat,
             pricePerCaratMax: state.maxPricePerCarat,
-            pricePerCaratLimits: (0.0, 200000.0),
+            pricePerCaratLimits: (
+              DiamondFilterState.pricePerCaratMin,
+              DiamondFilterState.pricePerCaratMax,
+            ),
             onPricePerCaratChanged: notifier.updatePricePerCaratRange,
           ),
       ],

@@ -38,23 +38,31 @@ class DiamondFilterChips extends ConsumerWidget {
       );
     }
 
-    if (filters.minPrice > 0 || filters.maxPrice < 1000000) {
+    if (filters.minPrice > DiamondFilterState.priceMin ||
+        filters.maxPrice < DiamondFilterState.priceMax) {
       final label =
           '${AppCurrency.format(formatCatalogPriceWholeK(filters.minPrice))}-${AppCurrency.format(formatCatalogPriceWholeK(filters.maxPrice))}';
       chips.add(
         _FilterChipData(
           label: label,
-          onRemove: () => notifier.updatePriceRange(0, 1000000),
+          onRemove: () => notifier.updatePriceRange(
+            DiamondFilterState.priceMin,
+            DiamondFilterState.priceMax,
+          ),
         ),
       );
     }
 
-    if (filters.minCarat > 0.0 || filters.maxCarat < 100.0) {
+    if (filters.minCarat > DiamondFilterState.caratMin ||
+        filters.maxCarat < DiamondFilterState.caratMax) {
       final label = '${filters.minCarat}-${filters.maxCarat}ct';
       chips.add(
         _FilterChipData(
           label: label,
-          onRemove: () => notifier.updateCaratRange(0.0, 100.0),
+          onRemove: () => notifier.updateCaratRange(
+            DiamondFilterState.caratMin,
+            DiamondFilterState.caratMax,
+          ),
         ),
       );
     }

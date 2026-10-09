@@ -643,6 +643,7 @@ class DiamondFilterState {
     'Zimbabwe': '\uD83C\uDDFF\uD83C\uDDFC',
   };
 
+  /// Quick-select carat bands covering common bridal / marketplace sizes.
   static const List<Map<String, double>> caratQuickRanges = [
     {'min': 0.2, 'max': 0.25},
     {'min': 0.3, 'max': 0.39},
@@ -652,19 +653,53 @@ class DiamondFilterState {
     {'min': 0.9, 'max': 0.99},
     {'min': 1.0, 'max': 1.49},
     {'min': 1.5, 'max': 1.99},
+    {'min': 2.0, 'max': 2.99},
+    {'min': 3.0, 'max': 4.99},
+    {'min': 5.0, 'max': 9.99},
   ];
+
+  // Slider bounds: retail-realistic ranges (most stock is 0.3–5 ct;
+  // GIA Fair+ proportions sit well inside the % / ° windows below).
+  static const double priceMin = 0.0;
+  static const double priceMax = 250000.0;
+  static const double pricePerCaratMin = 0.0;
+  static const double pricePerCaratMax = 50000.0;
+  static const double caratMin = 0.20;
+  static const double caratMax = 10.0;
+  static const double dimensionMin = 0.0;
+  static const double dimensionMax = 20.0;
+  static const double ratioMin = 0.80;
+  static const double ratioMax = 3.0;
+  static const double tableMin = 45.0;
+  static const double tableMax = 75.0;
+  static const double depthMin = 50.0;
+  static const double depthMax = 75.0;
+  static const double crownAngleMin = 20.0;
+  static const double crownAngleMax = 42.0;
+  static const double crownHeightMin = 7.0;
+  static const double crownHeightMax = 21.0;
+  static const double pavilionAngleMin = 37.0;
+  static const double pavilionAngleMax = 45.0;
+  static const double pavilionDepthMin = 38.0;
+  static const double pavilionDepthMax = 50.0;
+  static const double caratPerPcsMinLimit = 0.001;
+  static const double caratPerPcsMaxLimit = 1.0;
+  static const double pricePerPcsMinLimit = 0.0;
+  static const double pricePerPcsMaxLimit = 5000.0;
+  static const double totalPcsMinLimit = 1.0;
+  static const double totalPcsMaxLimit = 100000.0;
 
   const DiamondFilterState({
     this.labNatural = LabNaturalType.natural,
     this.labCategory = 'Lab Diamond',
     this.selectedGrowthMethods = const [],
     this.shapes = const [],
-    this.minPrice = 0.0,
-    this.maxPrice = 1000000.0,
-    this.minPricePerCarat = 0.0,
-    this.maxPricePerCarat = 200000.0,
-    this.minCarat = 0.0,
-    this.maxCarat = 100.00,
+    this.minPrice = priceMin,
+    this.maxPrice = priceMax,
+    this.minPricePerCarat = pricePerCaratMin,
+    this.maxPricePerCarat = pricePerCaratMax,
+    this.minCarat = caratMin,
+    this.maxCarat = caratMax,
     this.selectedCaratQuickRanges = const [],
     this.minColorIndex = 0,
     this.maxColorIndex = 22,
@@ -705,38 +740,38 @@ class DiamondFilterState {
     this.showAdditionalFilters = false,
     this.minSellerRating = 0.0,
     // Upgraded structure advanced filters
-    this.minLength = 0.0,
-    this.maxLength = 100.0,
-    this.minWidth = 0.0,
-    this.maxWidth = 100.0,
-    this.minHeight = 0.0,
-    this.maxHeight = 100.0,
-    this.minRatio = 0.5,
-    this.maxRatio = 5.0,
-    this.minTable = 0.0,
-    this.maxTable = 100.0,
-    this.minDepth = 0.0,
-    this.maxDepth = 100.0,
-    this.minCrownAngle = 0.0,
-    this.maxCrownAngle = 100.0,
-    this.minCrownHeight = 0.0,
-    this.maxCrownHeight = 100.0,
-    this.minPavilionAngle = 0.0,
-    this.maxPavilionAngle = 100.0,
-    this.minPavilionDepth = 0.0,
-    this.maxPavilionDepth = 100.0,
+    this.minLength = dimensionMin,
+    this.maxLength = dimensionMax,
+    this.minWidth = dimensionMin,
+    this.maxWidth = dimensionMax,
+    this.minHeight = dimensionMin,
+    this.maxHeight = dimensionMax,
+    this.minRatio = ratioMin,
+    this.maxRatio = ratioMax,
+    this.minTable = tableMin,
+    this.maxTable = tableMax,
+    this.minDepth = depthMin,
+    this.maxDepth = depthMax,
+    this.minCrownAngle = crownAngleMin,
+    this.maxCrownAngle = crownAngleMax,
+    this.minCrownHeight = crownHeightMin,
+    this.maxCrownHeight = crownHeightMax,
+    this.minPavilionAngle = pavilionAngleMin,
+    this.maxPavilionAngle = pavilionAngleMax,
+    this.minPavilionDepth = pavilionDepthMin,
+    this.maxPavilionDepth = pavilionDepthMax,
     this.selectedGirdles = const [],
     this.selectedCulets = const [],
     this.selectedOrigins = const [],
     this.selectedSieveIndices = const [],
     this.activeSievePresets = const [],
     // Natural Melee Pcs range filters
-    this.minCaratPerPcs = 0.0,
-    this.maxCaratPerPcs = 100.0,
-    this.minPricePerPcs = 0.0,
-    this.maxPricePerPcs = 200000.0,
-    this.minTotalPcs = 1.0,
-    this.maxTotalPcs = 1000000.0,
+    this.minCaratPerPcs = caratPerPcsMinLimit,
+    this.maxCaratPerPcs = caratPerPcsMaxLimit,
+    this.minPricePerPcs = pricePerPcsMinLimit,
+    this.maxPricePerPcs = pricePerPcsMaxLimit,
+    this.minTotalPcs = totalPcsMinLimit,
+    this.maxTotalPcs = totalPcsMaxLimit,
     // Deprecated but kept for safety/backward compatibility
     this.minGirdle = 0.0,
     this.maxGirdle = 10.0,

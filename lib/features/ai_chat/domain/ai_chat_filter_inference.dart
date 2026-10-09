@@ -319,7 +319,16 @@ abstract final class AiChatFilterInference {
       }
       if (a != null) {
         final pad = a >= 1 ? 0.1 : 0.05;
-        return ((a - pad).clamp(0.0, 100.0), (a + pad).clamp(0.0, 100.0));
+        return (
+          (a - pad).clamp(
+            DiamondFilterState.caratMin,
+            DiamondFilterState.caratMax,
+          ),
+          (a + pad).clamp(
+            DiamondFilterState.caratMin,
+            DiamondFilterState.caratMax,
+          ),
+        );
       }
     }
 
@@ -346,10 +355,19 @@ abstract final class AiChatFilterInference {
       final min = weights.first;
       final max = weights.last;
       const pad = 0.05;
-      return ((min - pad).clamp(0.0, 100.0), (max + pad).clamp(0.0, 100.0));
+      return (
+        (min - pad).clamp(
+          DiamondFilterState.caratMin,
+          DiamondFilterState.caratMax,
+        ),
+        (max + pad).clamp(
+          DiamondFilterState.caratMin,
+          DiamondFilterState.caratMax,
+        ),
+      );
     }
 
-    return (0.0, 100.0);
+    return (DiamondFilterState.caratMin, DiamondFilterState.caratMax);
   }
 
   static String? _mapShape(String? raw) {

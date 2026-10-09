@@ -6,6 +6,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/gem3d/gem_field.dart';
 import '../theme/home_tokens.dart';
 import 'home_header.dart';
+import 'home_section.dart';
 
 /// Last section of home, one full screen tall: a dark field of live 3D
 /// diamonds in every bundled cut and size (baked from the .glb models in
@@ -21,6 +22,7 @@ class HomeGemStage extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = HomePalette.of(context);
     final media = MediaQuery.of(context);
+    final gutter = homeGutter(context);
     final height = media.size.height;
     // Clear the floating home header that sits over the page top.
     final copyTop = media.padding.top + HomeHeader.barHeight + 28;
@@ -69,9 +71,9 @@ class HomeGemStage extends StatelessWidget {
             IgnorePointer(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  24,
+                  gutter,
                   copyTop,
-                  24,
+                  gutter,
                   media.padding.bottom + 96,
                 ),
                 child: Column(
@@ -99,8 +101,8 @@ class HomeGemStage extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 16,
-              right: 16,
+              left: gutter,
+              right: gutter,
               bottom: media.padding.bottom + 20,
               child: Column(
                 children: [

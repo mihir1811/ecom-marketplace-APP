@@ -5,30 +5,30 @@ import '../../domain/models/sorting_criteria.dart';
 
 /// Builds `POST /diamond/search` bodies from UI filter + catalog scope.
 abstract final class DiamondSearchRequestMapper {
-  static const _defaultMinPrice = 0.0;
-  static const _defaultMaxPrice = 1000000.0;
-  static const _defaultMinPpc = 0.0;
-  static const _defaultMaxPpc = 200000.0;
-  static const _defaultMinCarat = 0.0;
-  static const _defaultMaxCarat = 100.0;
-  static const _defaultMinTable = 0.0;
-  static const _defaultMaxTable = 100.0;
-  static const _defaultMinDepth = 0.0;
-  static const _defaultMaxDepth = 100.0;
-  static const _defaultMinLength = 0.0;
-  static const _defaultMaxLength = 100.0;
-  static const _defaultMinWidth = 0.0;
-  static const _defaultMaxWidth = 100.0;
-  static const _defaultMinHeight = 0.0;
-  static const _defaultMaxHeight = 100.0;
-  static const _defaultMinRatio = 0.5;
-  static const _defaultMaxRatio = 5.0;
-  static const _defaultMinCaratPerPcs = 0.0;
-  static const _defaultMaxCaratPerPcs = 100.0;
-  static const _defaultMinPricePerPcs = 0.0;
-  static const _defaultMaxPricePerPcs = 200000.0;
-  static const _defaultMinTotalPcs = 1.0;
-  static const _defaultMaxTotalPcs = 1000000.0;
+  static const _defaultMinPrice = DiamondFilterState.priceMin;
+  static const _defaultMaxPrice = DiamondFilterState.priceMax;
+  static const _defaultMinPpc = DiamondFilterState.pricePerCaratMin;
+  static const _defaultMaxPpc = DiamondFilterState.pricePerCaratMax;
+  static const _defaultMinCarat = DiamondFilterState.caratMin;
+  static const _defaultMaxCarat = DiamondFilterState.caratMax;
+  static const _defaultMinTable = DiamondFilterState.tableMin;
+  static const _defaultMaxTable = DiamondFilterState.tableMax;
+  static const _defaultMinDepth = DiamondFilterState.depthMin;
+  static const _defaultMaxDepth = DiamondFilterState.depthMax;
+  static const _defaultMinLength = DiamondFilterState.dimensionMin;
+  static const _defaultMaxLength = DiamondFilterState.dimensionMax;
+  static const _defaultMinWidth = DiamondFilterState.dimensionMin;
+  static const _defaultMaxWidth = DiamondFilterState.dimensionMax;
+  static const _defaultMinHeight = DiamondFilterState.dimensionMin;
+  static const _defaultMaxHeight = DiamondFilterState.dimensionMax;
+  static const _defaultMinRatio = DiamondFilterState.ratioMin;
+  static const _defaultMaxRatio = DiamondFilterState.ratioMax;
+  static const _defaultMinCaratPerPcs = DiamondFilterState.caratPerPcsMinLimit;
+  static const _defaultMaxCaratPerPcs = DiamondFilterState.caratPerPcsMaxLimit;
+  static const _defaultMinPricePerPcs = DiamondFilterState.pricePerPcsMinLimit;
+  static const _defaultMaxPricePerPcs = DiamondFilterState.pricePerPcsMaxLimit;
+  static const _defaultMinTotalPcs = DiamondFilterState.totalPcsMinLimit;
+  static const _defaultMaxTotalPcs = DiamondFilterState.totalPcsMaxLimit;
 
   static Map<String, dynamic> toBody({
     required DiamondFilterState filters,

@@ -264,6 +264,23 @@ class GemstoneSizePriceFilters extends ConsumerWidget {
         totalCaratMin: state.minTotalCarat,
         totalCaratMax: state.maxTotalCarat,
         onTotalCaratChanged: notifier.updateTotalCaratRange,
+        caratLimits: (
+          GemstoneFilterState.caratMin,
+          GemstoneFilterState.caratMax,
+        ),
+        caratPerPcsLimits: (
+          GemstoneFilterState.caratMin,
+          GemstoneFilterState.caratMax,
+        ),
+        pricePerUnitLimits: (
+          GemstoneFilterState.priceMin,
+          GemstoneFilterState.pricePerPieceMax,
+        ),
+        pcsLimits: (GemstoneFilterState.pcsMin, GemstoneFilterState.pcsMax),
+        totalPriceLimits: (
+          GemstoneFilterState.priceMin,
+          GemstoneFilterState.totalPriceMax,
+        ),
       );
     }
     return CatalogStandardRangeFilters(

@@ -402,7 +402,9 @@ abstract final class HomeSearchCaratParser {
     final match = explicit ?? bare;
     if (match == null) return null;
     final value = double.tryParse(match.group(1)!);
-    if (value == null || value <= 0 || value > 100) return null;
+    if (value == null || value <= 0 || value > GemstoneFilterState.caratMax) {
+      return null;
+    }
     return value;
   }
 
@@ -427,15 +429,17 @@ abstract final class HomeSearchCaratParser {
 
   /// Tight window used for primary carat lookup (exact intent).
   static (double min, double max) exactRange(double target) {
+    const maxCt = GemstoneFilterState.caratMax;
     return (
-      (target - exactTolerance).clamp(0.0, 100.0),
-      (target + exactTolerance).clamp(0.0, 100.0),
+      (target - exactTolerance).clamp(0.0, maxCt),
+      (target + exactTolerance).clamp(0.0, maxCt),
     );
   }
 
   /// Wider window used only when no exact carat hits exist.
   static (double min, double max) nearbyRange(double target) {
+    const maxCt = GemstoneFilterState.caratMax;
     final pad = target < 1 ? 0.12 : (target < 2 ? 0.18 : 0.25);
-    return ((target - pad).clamp(0.0, 100.0), (target + pad).clamp(0.0, 100.0));
+    return ((target - pad).clamp(0.0, maxCt), (target + pad).clamp(0.0, maxCt));
   }
 }

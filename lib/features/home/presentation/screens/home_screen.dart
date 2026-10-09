@@ -16,7 +16,6 @@ import '../widgets/home_ai_search_card.dart';
 import '../widgets/home_footer.dart';
 import '../widgets/home_header.dart';
 import '../widgets/home_live_auctions.dart';
-import '../widgets/home_promise.dart';
 import '../widgets/home_search_overlay.dart';
 import '../widgets/home_sell_card.dart';
 
@@ -107,7 +106,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SliverToBoxAdapter(child: HomeLiveAuctions()),
                 SliverToBoxAdapter(child: HomeAiSearchCard(onAsk: _askGemAi)),
-                const SliverToBoxAdapter(child: HomePromise()),
                 if (!auth.isSeller)
                   SliverToBoxAdapter(
                     child: HomeSellCard(

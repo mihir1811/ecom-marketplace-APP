@@ -302,20 +302,21 @@ class GemstoneFilterState {
     'Poor',
   ];
 
-  // Range limits
+  // Slider bounds: typical retail colored-stone sizes (0.25–5 ct common;
+  // 20 ct covers large commercial emerald / sapphire / tourmaline stock).
   static const double caratMin = 0.16;
-  static const double caratMax = 100.0;
+  static const double caratMax = 20.0;
   static const double priceMin = 0.0;
-  static const double pricePerPieceMax = 200000.0;
-  static const double totalPriceMax = 1000000.0;
+  static const double pricePerPieceMax = 50000.0;
+  static const double totalPriceMax = 250000.0;
   static const double pcsMin = 1.0;
-  static const double pcsMax = 1000000.0;
+  static const double pcsMax = 100000.0;
   static const double dimensionMin = 0.0;
-  static const double dimensionMax = 100.0;
-  static const double ratioMin = 0.5;
-  static const double ratioMax = 5.0;
+  static const double dimensionMax = 30.0;
+  static const double ratioMin = 0.80;
+  static const double ratioMax = 3.0;
 
-  /// Quick-select total carat ranges, identical to the diamond filter screen.
+  /// Quick-select total carat ranges aligned with the diamond filter screen.
   static const List<Map<String, double>> caratQuickRanges = [
     {'min': 0.2, 'max': 0.25},
     {'min': 0.3, 'max': 0.39},
@@ -325,6 +326,10 @@ class GemstoneFilterState {
     {'min': 0.9, 'max': 0.99},
     {'min': 1.0, 'max': 1.49},
     {'min': 1.5, 'max': 1.99},
+    {'min': 2.0, 'max': 2.99},
+    {'min': 3.0, 'max': 4.99},
+    {'min': 5.0, 'max': 9.99},
+    {'min': 10.0, 'max': 19.99},
   ];
 
   const GemstoneFilterState({

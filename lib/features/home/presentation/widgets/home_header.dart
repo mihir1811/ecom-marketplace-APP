@@ -9,10 +9,8 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/router/workspace_mode.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
-import '../../../../core/widgets/navigation/workspace_switch.dart';
 import '../../../cart/application/cart_provider.dart';
 import '../../../notifications/application/notifications_provider.dart';
 import '../theme/home_tokens.dart';
@@ -97,9 +95,7 @@ class _HeaderContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(
-      authProvider.select(
-        (s) => (isAuthenticated: s.isAuthenticated, isSeller: s.isSeller),
-      ),
+      authProvider.select((s) => (isAuthenticated: s.isAuthenticated)),
     );
 
     final search = IconButton(
@@ -143,12 +139,6 @@ class _HeaderContent extends ConsumerWidget {
           icon: const Icon(Icons.menu_rounded),
         ),
         const Spacer(),
-        // Same slot as every other top-level bar: first trailing control.
-        if (auth.isSeller)
-          WorkspaceSwitchPill(
-            target: AppWorkspace.seller,
-            foreground: foreground,
-          ),
         search,
         IconButton(
           tooltip: context.tr(HomeL10n.notifications),

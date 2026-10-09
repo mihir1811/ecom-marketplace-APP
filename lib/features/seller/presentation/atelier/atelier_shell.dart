@@ -8,10 +8,8 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/router/workspace_mode.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
-import '../../../../core/widgets/navigation/workspace_switch.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../notifications/application/notifications_provider.dart';
 import '../../application/seller_orders_provider.dart';
@@ -89,9 +87,8 @@ int _pendingOrders(WidgetRef ref) {
   return pending.asData?.value.total ?? 0;
 }
 
-/// Workspace app bar: menu / back, quiet circular actions, and the
-/// "⇄ Buyer" switch on every top-level page. No page title — the dock,
-/// rail and drawer already mark where the user is.
+/// Workspace app bar: menu / back and quiet circular actions. No page
+/// title — the dock, rail and drawer already mark where the user is.
 class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
   const AtelierTopBar({
     required this.showBack,
@@ -147,9 +144,6 @@ class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
                     ),
                   ),
                 const Spacer(),
-                // Same slot as the buyer bars: first trailing control.
-                if (!showBack)
-                  const WorkspaceSwitchPill(target: AppWorkspace.buyer),
                 AtelierIconButton(
                   icon: unread > 0
                       ? Icons.notifications_rounded

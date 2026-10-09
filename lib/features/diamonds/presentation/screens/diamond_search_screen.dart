@@ -397,6 +397,14 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       ratioMax: state.maxRatio,
       onRatioMinChanged: (v) => notifier.updateRatioRange(v, state.maxRatio),
       onRatioMaxChanged: (v) => notifier.updateRatioRange(state.minRatio, v),
+      dimensionLimits: (
+        DiamondFilterState.dimensionMin,
+        DiamondFilterState.dimensionMax,
+      ),
+      ratioLimits: (
+        DiamondFilterState.ratioMin,
+        DiamondFilterState.ratioMax,
+      ),
     );
   }
 
@@ -411,6 +419,8 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           title: context.tr(CatalogL10n.tablePercentage),
           currentMin: state.minTable,
           currentMax: state.maxTable,
+          minLimit: DiamondFilterState.tableMin,
+          maxLimit: DiamondFilterState.tableMax,
           unit: '%',
           infoText:
               'Filter by table width percentage relative to total diameter.',
@@ -422,6 +432,8 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           title: context.tr(CatalogL10n.depthPercentage),
           currentMin: state.minDepth,
           currentMax: state.maxDepth,
+          minLimit: DiamondFilterState.depthMin,
+          maxLimit: DiamondFilterState.depthMax,
           unit: '%',
           infoText:
               'Filter by total depth percentage relative to total diameter.',
@@ -433,6 +445,8 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           title: context.tr(CatalogL10n.crownAngleRange),
           currentMin: state.minCrownAngle,
           currentMax: state.maxCrownAngle,
+          minLimit: DiamondFilterState.crownAngleMin,
+          maxLimit: DiamondFilterState.crownAngleMax,
           unit: '°',
           infoText: context.tr(CatalogL10n.crownAngleHelp),
           infoDiagram: FilterProportionDiagramKind.crownAngle,
@@ -445,6 +459,8 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           title: context.tr(CatalogL10n.crownHeightRange),
           currentMin: state.minCrownHeight,
           currentMax: state.maxCrownHeight,
+          minLimit: DiamondFilterState.crownHeightMin,
+          maxLimit: DiamondFilterState.crownHeightMax,
           unit: '%',
           infoText: context.tr(CatalogL10n.crownHeightHelp),
           infoDiagram: FilterProportionDiagramKind.crownHeight,
@@ -457,6 +473,8 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           title: context.tr(CatalogL10n.pavilionAngleRange),
           currentMin: state.minPavilionAngle,
           currentMax: state.maxPavilionAngle,
+          minLimit: DiamondFilterState.pavilionAngleMin,
+          maxLimit: DiamondFilterState.pavilionAngleMax,
           unit: '°',
           infoText: context.tr(CatalogL10n.pavilionAngleHelp),
           infoDiagram: FilterProportionDiagramKind.pavilionAngle,
@@ -469,6 +487,8 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
           title: context.tr(CatalogL10n.pavilionDepthRange),
           currentMin: state.minPavilionDepth,
           currentMax: state.maxPavilionDepth,
+          minLimit: DiamondFilterState.pavilionDepthMin,
+          maxLimit: DiamondFilterState.pavilionDepthMax,
           unit: '%',
           infoText: context.tr(CatalogL10n.pavilionDepthHelp),
           infoDiagram: FilterProportionDiagramKind.pavilionDepth,
