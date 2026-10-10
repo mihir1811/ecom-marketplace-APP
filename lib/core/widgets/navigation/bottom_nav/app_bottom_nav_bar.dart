@@ -594,7 +594,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
                   ClipPath(
                     clipper: _GlassClipper(this),
                     child: BackdropFilter(
-                      filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                       child: ColoredBox(
                         color: p.surface.withValues(
                           alpha: p.isDark ? 0.12 : 0.18,
@@ -819,7 +819,8 @@ class _TabHitArea extends StatelessWidget {
   }
 }
 
-/// Clips the backdrop blur to the ring between each bubble and the body.
+/// Clips the backdrop blur to the whole dock: the page scrolling behind
+/// shows through it, frosted.
 class _GlassClipper extends CustomClipper<Path> {
   _GlassClipper(this.state) : super(reclip: state._repaint);
 
@@ -827,9 +828,9 @@ class _GlassClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    final shape = state._shape;
-    if (!shape.hasGlass) return Path();
-    return shape.glass.shift(const Offset(0, _AppBottomNavBarState._overhang));
+    return state._shape.silhouette.shift(
+      const Offset(0, _AppBottomNavBarState._overhang),
+    );
   }
 
   @override
@@ -837,8 +838,9 @@ class _GlassClipper extends CustomClipper<Path> {
 }
 
 /// Back layer: the dock's shadow, cast only outside its silhouette so it
-/// never darkens what the glass shows. Front layer: the opaque body, the
-/// outline and the glass rim's highlight.
+/// never darkens what the glass shows. Front layer: the frosted body's tint
+/// (the clear ring round a popped bubble stays untinted), the outline and
+/// the glass rim's highlight.
 class _DockPainter extends CustomPainter {
   _DockPainter({
     required this.state,
@@ -881,7 +883,11 @@ class _DockPainter extends CustomPainter {
       return;
     }
 
-    canvas.drawPath(shape.body, Paint()..color = p.surface);
+    // Translucent: the blurred page reads through, the tabs stay legible.
+    canvas.drawPath(
+      shape.body,
+      Paint()..color = p.surface.withValues(alpha: p.isDark ? 0.62 : 0.68),
+    );
 
     if (shape.hasGlass) {
       // A thin light rim along the glass, like the edge of a lens.

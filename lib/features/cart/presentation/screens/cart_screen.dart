@@ -94,28 +94,32 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       body = const _CartEmptyState();
     } else {
       state = 'content';
-      body = RefreshIndicator(
-        onRefresh: _reload,
-        color: p.accent,
-        child: ListView(
-          controller: _scroll,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(
-            LuxeSpace.gutter - 4,
-            8,
-            LuxeSpace.gutter - 4,
-            28,
+      // Runs behind the floating checkout card and dock; its padding (read
+      // inside the scaffold) ends the scroll clear of both.
+      body = Builder(
+        builder: (context) => RefreshIndicator(
+          onRefresh: _reload,
+          color: p.accent,
+          child: ListView(
+            controller: _scroll,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(
+              LuxeSpace.gutter - 4,
+              8,
+              LuxeSpace.gutter - 4,
+              28 + MediaQuery.paddingOf(context).bottom,
+            ),
+            children: [
+              const CartItemsSection(),
+              const SizedBox(height: 6),
+              ..._staggered(const [
+                CartAddressSection(),
+                CartPromoSection(),
+                CartPaymentOptions(),
+                CartTotalsSection(),
+              ]),
+            ],
           ),
-          children: [
-            const CartItemsSection(),
-            const SizedBox(height: 6),
-            ..._staggered(const [
-              CartAddressSection(),
-              CartPromoSection(),
-              CartPaymentOptions(),
-              CartTotalsSection(),
-            ]),
-          ],
         ),
       );
     }
@@ -123,6 +127,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     return AppScaffold(
       backgroundColor: p.canvas,
       appBar: const AppTabTopBar(),
+      extendBody: state == 'content',
       body: AnimatedSwitcher(
         duration: LuxeMotion.medium,
         switchInCurve: LuxeMotion.settle,

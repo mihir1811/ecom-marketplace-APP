@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -199,115 +200,140 @@ class CartCheckoutBar extends ConsumerWidget {
       }
     }
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: p.surface,
-        border: Border(top: BorderSide(color: p.hairline)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: p.isDark ? 0.4 : 0.07),
-            blurRadius: 24,
-            offset: const Offset(0, -6),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr(ExperienceL10n.cartTotal).toUpperCase(),
-                        style: LuxeType.eyebrow(
-                          p.inkMuted,
-                        ).copyWith(fontSize: 10),
-                      ),
-                      const SizedBox(height: 2),
-                      AnimatedSwitcher(
-                        duration: LuxeMotion.medium,
-                        switchInCurve: LuxeMotion.settle,
-                        transitionBuilder: (c, a) => FadeTransition(
-                          opacity: a,
-                          child: SlideTransition(
-                            position: Tween(
-                              begin: const Offset(0, 0.3),
-                              end: Offset.zero,
-                            ).animate(a),
-                            child: c,
-                          ),
-                        ),
-                        layoutBuilder: (current, previous) => Stack(
-                          alignment: Alignment.centerLeft,
-                          children: [...previous, ?current],
-                        ),
-                        child: FittedBox(
-                          key: ValueKey(total),
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            total,
-                            style: LuxeType.figure(
-                              p.ink,
-                              size: 24,
-                            ).copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.lock_outline_rounded,
-                        size: 13,
-                        color: p.positive,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        context.tr(ExperienceL10n.cartSecure),
-                        style: LuxeType.label(p.inkMuted, size: 11.5),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (subtitle != null && !busy) ...[
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: LuxeType.label(
-                  blocked ? p.caution : p.inkFaint,
-                  size: 11.5,
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            LuxeButton(
-              label: label,
-              expand: true,
-              loading: busy,
-              icon: !m.hasAddress
-                  ? Icons.add_location_alt_outlined
-                  : (m.hasUnavailable ? Icons.error_outline_rounded : null),
-              trailingIcon: blocked ? null : Icons.arrow_forward_rounded,
-              onPressed: busy ? null : onPressed,
+    // Floats above the dock like the dock itself: the cart scrolls behind
+    // both, frosted under the card.
+    const radius = BorderRadius.all(Radius.circular(LuxeSpace.radius));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: p.isDark ? 0.45 : 0.1),
+              blurRadius: 24,
+              spreadRadius: -4,
+              offset: const Offset(0, 8),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: p.surface.withValues(alpha: p.isDark ? 0.8 : 0.86),
+                borderRadius: radius,
+                border: Border.all(color: p.hairline),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                context
+                                    .tr(ExperienceL10n.cartTotal)
+                                    .toUpperCase(),
+                                style: LuxeType.eyebrow(
+                                  p.inkMuted,
+                                ).copyWith(fontSize: 10),
+                              ),
+                              const SizedBox(height: 2),
+                              AnimatedSwitcher(
+                                duration: LuxeMotion.medium,
+                                switchInCurve: LuxeMotion.settle,
+                                transitionBuilder: (c, a) => FadeTransition(
+                                  opacity: a,
+                                  child: SlideTransition(
+                                    position: Tween(
+                                      begin: const Offset(0, 0.3),
+                                      end: Offset.zero,
+                                    ).animate(a),
+                                    child: c,
+                                  ),
+                                ),
+                                layoutBuilder: (current, previous) => Stack(
+                                  alignment: Alignment.centerLeft,
+                                  children: [...previous, ?current],
+                                ),
+                                child: FittedBox(
+                                  key: ValueKey(total),
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    total,
+                                    style: LuxeType.figure(
+                                      p.ink,
+                                      size: 24,
+                                    ).copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.lock_outline_rounded,
+                                size: 13,
+                                color: p.positive,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                context.tr(ExperienceL10n.cartSecure),
+                                style: LuxeType.label(p.inkMuted, size: 11.5),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (subtitle != null && !busy) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: LuxeType.label(
+                          blocked ? p.caution : p.inkFaint,
+                          size: 11.5,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    LuxeButton(
+                      label: label,
+                      expand: true,
+                      loading: busy,
+                      icon: !m.hasAddress
+                          ? Icons.add_location_alt_outlined
+                          : (m.hasUnavailable
+                                ? Icons.error_outline_rounded
+                                : null),
+                      trailingIcon: blocked
+                          ? null
+                          : Icons.arrow_forward_rounded,
+                      onPressed: busy ? null : onPressed,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

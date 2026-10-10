@@ -7,9 +7,10 @@ import '../../../theme/luxe_tokens.dart';
 import '../../app_network_image.dart';
 
 /// The category menu, popped up above the bottom bar. Pushed on the root
-/// [navigator], whose pages end at the bar, so it sits just above the bar's
-/// Categories bubble, never full screen. Resolves to the picked category's
-/// route, or null when dismissed.
+/// [navigator], whose pages run behind the floating dock with their bottom
+/// padding clearing it, so the menu sits just above the dock's Categories
+/// bubble, never under it. Resolves to the picked category's route, or null
+/// when dismissed.
 ///
 /// No barrier colour: the bar keeps its own look (its Categories bubble
 /// stays popped) and the page behind dims under [_CategoryMenu]'s scrim.
@@ -59,8 +60,9 @@ class _CategoryMenu extends StatelessWidget {
 
   final Animation<double> animation;
 
-  /// Clearance for the popped bubble that pokes up above the bar.
-  static const _bubbleClearance = 44.0;
+  /// Room for the popped bubble that pokes up above the dock, on top of the
+  /// page padding that already clears the dock itself.
+  static const _bubbleClearance = 40.0;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +73,7 @@ class _CategoryMenu extends StatelessWidget {
       reverseCurve: Curves.easeInCubic,
     );
     const items = HomeContent.collections;
+    final padding = MediaQuery.paddingOf(context);
 
     return Stack(
       children: [
@@ -89,7 +92,12 @@ class _CategoryMenu extends StatelessWidget {
         Align(
           alignment: Alignment.bottomCenter,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, _bubbleClearance),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              padding.top + 16,
+              16,
+              padding.bottom + _bubbleClearance,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
               // Grows out of the Categories bubble below it.
@@ -130,28 +138,32 @@ class _CategoryMenu extends StatelessWidget {
                               style: LuxeType.eyebrow(p.inkMuted),
                             ),
                           ),
-                          GridView.count(
-                            crossAxisCount: 3,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: EdgeInsets.zero,
-                            mainAxisSpacing: 14,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 0.8,
-                            children: [
-                              for (var i = 0; i < items.length; i++)
-                                _CategoryTile(
-                                  item: items[i],
-                                  reveal: CurvedAnimation(
-                                    parent: animation,
-                                    curve: Interval(
-                                      0.15 + i * 0.07,
-                                      (0.6 + i * 0.07).clamp(0.0, 1.0),
-                                      curve: LuxeMotion.settle,
+                          // Short screens scroll the grid instead of
+                          // pushing it under the dock.
+                          Flexible(
+                            child: GridView.count(
+                              crossAxisCount: 3,
+                              shrinkWrap: true,
+                              physics: const ClampingScrollPhysics(),
+                              padding: EdgeInsets.zero,
+                              mainAxisSpacing: 14,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 0.8,
+                              children: [
+                                for (var i = 0; i < items.length; i++)
+                                  _CategoryTile(
+                                    item: items[i],
+                                    reveal: CurvedAnimation(
+                                      parent: animation,
+                                      curve: Interval(
+                                        0.15 + i * 0.07,
+                                        (0.6 + i * 0.07).clamp(0.0, 1.0),
+                                        curve: LuxeMotion.settle,
+                                      ),
                                     ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),

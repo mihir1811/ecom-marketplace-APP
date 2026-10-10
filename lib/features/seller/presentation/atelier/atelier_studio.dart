@@ -38,7 +38,13 @@ class AtelierPage extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
-      padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 48),
+      // Pages under the floating dock end their scroll clear of it.
+      padding: EdgeInsets.fromLTRB(
+        gutter,
+        8,
+        gutter,
+        48 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         Center(
           child: ConstrainedBox(

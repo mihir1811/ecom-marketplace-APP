@@ -50,7 +50,7 @@ void main() {
     // The page shrinks and slides right of the menu.
     final page = tester.getRect(find.byType(Scaffold));
     final screen = tester.getRect(find.byType(AppDrawerStage));
-    expect(page.left, closeTo(AppDrawerStage.drawerWidth(screen.width), 1));
+    expect(page.left, closeTo(AppDrawerStage.pageInset(screen.width), 1));
     expect(page.height, lessThan(screen.height));
     // The receded page no longer takes taps.
     expect(find.text('open').hitTestable(), findsNothing);

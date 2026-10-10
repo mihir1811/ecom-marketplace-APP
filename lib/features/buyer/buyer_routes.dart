@@ -28,7 +28,8 @@ import '../reference/presentation/screens/buyer_references_screen.dart';
 final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: AppRouteNames.buyerProfile,
-    builder: (context, state) => const MaisonLayout(child: ProfileScreen()),
+    builder: (context, state) =>
+        const MaisonLayout(scrollsBehindDock: true, child: ProfileScreen()),
   ),
   GoRoute(
     path: AppRouteNames.buyerOrders,

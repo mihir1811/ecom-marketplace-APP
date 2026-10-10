@@ -43,23 +43,29 @@ class AppDrawerStage extends StatefulWidget {
     return found;
   }
 
-  /// Menu width for a screen [width]; the page's near edge stops there.
-  static double drawerWidth(double width) => math.min(width * 0.7, 304);
+  /// Menu width for a screen [width].
+  static double drawerWidth(double width) => math.min(width * 0.66, 296);
+
+  /// Clear air between the menu and the open page.
+  static const double _gap = 22;
+
+  /// Where the open page's near edge stops for a screen [width].
+  static double pageInset(double width) => drawerWidth(width) + _gap;
 
   /// Page transform at open amount [t], in the page's own coordinates.
   static Matrix4 frontTransform(Size size, double t) =>
-      _cardTransform(size, t, slideBack: 0, shrink: 0.14);
+      _cardTransform(size, t, inset: pageInset(size.width), shrink: 0.26);
 
   static Matrix4 _cardTransform(
     Size size,
     double t, {
-    required double slideBack,
+    required double inset,
     required double shrink,
   }) {
     if (t == 0) return Matrix4.identity();
     final cx = size.width / 2;
     final cy = size.height / 2;
-    final slide = (drawerWidth(size.width) - slideBack) * t;
+    final slide = inset * t;
     final scale = 1 - shrink * t;
     // Perspective about the screen centre; the card hinges on its left edge
     // and its far side turns away.
@@ -186,7 +192,7 @@ class AppDrawerStageState extends State<AppDrawerStage>
   }
 
   void _dragUpdate(DragUpdateDetails details) {
-    final travel = AppDrawerStage.drawerWidth(_width);
+    final travel = AppDrawerStage.pageInset(_width);
     if (travel <= 0) return;
     _controller.value += (details.primaryDelta ?? 0) / travel;
   }
@@ -315,6 +321,25 @@ class AppDrawerStageState extends State<AppDrawerStage>
     );
   }
 
+  /// The page's bottom padding also clears the floating dock; the menu only
+  /// needs the system inset.
+  MediaQueryData _menuMedia(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final view = View.of(context);
+    final system = EdgeInsets.fromViewPadding(
+      view.viewPadding,
+      view.devicePixelRatio,
+    ).bottom;
+    return media.copyWith(
+      padding: media.padding.copyWith(
+        bottom: math.min(media.padding.bottom, system),
+      ),
+      viewPadding: media.viewPadding.copyWith(
+        bottom: math.min(media.viewPadding.bottom, system),
+      ),
+    );
+  }
+
   Widget _backdrop(Size size, double t) {
     final menuWidth = AppDrawerStage.drawerWidth(size.width);
     // Menu glides in from a little behind the page and grows to full size.
@@ -355,11 +380,12 @@ class AppDrawerStageState extends State<AppDrawerStage>
               ),
               // Ghost card trailing the page.
               Transform(
+                // Peeks out between the menu and the page, never into the menu.
                 transform: AppDrawerStage._cardTransform(
                   size,
                   t,
-                  slideBack: 26,
-                  shrink: 0.22,
+                  inset: menuWidth + 6,
+                  shrink: 0.34,
                 ),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
@@ -385,7 +411,13 @@ class AppDrawerStageState extends State<AppDrawerStage>
                     transform: Matrix4.identity()
                       ..translateByDouble(-36 * (1 - t), 0, 0, 1)
                       ..scaleByDouble(0.92 + 0.08 * t, 0.92 + 0.08 * t, 1, 1),
-                    child: Theme(data: _menuTheme, child: widget.drawer!),
+                    child: Theme(
+                      data: _menuTheme,
+                      child: MediaQuery(
+                        data: _menuMedia(context),
+                        child: widget.drawer!,
+                      ),
+                    ),
                   ),
                 ),
               ),

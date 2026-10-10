@@ -227,6 +227,21 @@ void main() {
     },
   );
 
+  testWidgets('the category menu sits above the dock, not under it', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+
+    await tester.tap(find.bySemanticsLabel('Categories'));
+    await openMenu(tester);
+    final dockTop = tester.getRect(find.byType(AppBottomNavBar)).top;
+    final lowest = tester.getRect(find.bySemanticsLabel('Gemstones').last);
+    expect(lowest.bottom, lessThan(dockTop));
+
+    await tester.tap(find.byType(AppBottomNavBar), warnIfMissed: false);
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('tapping the bar again closes the category menu', (tester) async {
     final router = await pumpApp(tester);
 
