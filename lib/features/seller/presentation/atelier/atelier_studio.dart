@@ -81,14 +81,12 @@ class AtelierPage extends StatelessWidget {
   }
 }
 
-/// Signature onyx band that opens every studio page: overline, serif
-/// title, one sentence of purpose, a slowly turning stone, the page's
-/// primary action and an optional row of headline figures.
+/// Signature onyx band that opens every studio page: serif title, a slowly
+/// turning stone, the page's primary action and an optional row of
+/// headline figures.
 class AtelierHero extends StatelessWidget {
   const AtelierHero({
-    required this.overline,
     required this.title,
-    this.subtitle,
     this.cut,
     this.look = GemLook.champagne,
     this.action,
@@ -96,9 +94,7 @@ class AtelierHero extends StatelessWidget {
     super.key,
   });
 
-  final String overline;
   final String title;
-  final String? subtitle;
 
   /// Stone shown at the top-right; none when null.
   final GemCut? cut;
@@ -109,7 +105,6 @@ class AtelierHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
-    final soft = p.onOnyx.withValues(alpha: 0.62);
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 640;
@@ -125,24 +120,6 @@ class AtelierHero extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                const Positioned.fill(child: AtelierAmbient(intensity: 1.2)),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    height: 1.2,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          p.gold.withValues(alpha: 0),
-                          p.gold.withValues(alpha: 0.8),
-                          p.gold.withValues(alpha: 0),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
                 if (cut != null)
                   Positioned(
                     right: wide ? 26 : 8,
@@ -171,14 +148,6 @@ class AtelierHero extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Reveal(
-                        child: Text(
-                          overline.toUpperCase(),
-                          style: AtelierType.overline(p.gold),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Reveal(
-                        index: 1,
                         child: Padding(
                           padding: EdgeInsets.only(right: gemSize * 0.72),
                           child: Text(
@@ -191,19 +160,6 @@ class AtelierHero extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 8),
-                        Reveal(
-                          index: 2,
-                          child: Padding(
-                            padding: EdgeInsets.only(right: gemSize * 0.55),
-                            child: Text(
-                              subtitle!,
-                              style: AtelierType.body(soft, size: 13.5),
-                            ),
-                          ),
-                        ),
-                      ],
                       if (action != null) ...[
                         SizedBox(height: wide ? 22 : 18),
                         Reveal(index: 3, child: action!),

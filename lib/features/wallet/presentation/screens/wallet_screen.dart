@@ -54,13 +54,7 @@ class _WalletBodyState extends ConsumerState<WalletScreen> {
     final wide = width >= 1000;
 
     final seller = currentWorkspace(context) == AppWorkspace.seller;
-    final header = MaisonHeader(
-      overline: seller ? 'Workspace' : 'My account',
-      title: context.tr(RemainingL10n.wallet),
-      subtitle: seller
-          ? 'Your business balance, top-ups and every movement on record.'
-          : 'Pay for pieces in a tap. Refunds land here instantly.',
-    );
+    final header = MaisonHeader(title: context.tr(RemainingL10n.wallet));
 
     final Widget content = walletAsync.when(
       skipLoadingOnRefresh: true,

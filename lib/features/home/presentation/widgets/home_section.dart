@@ -14,25 +14,20 @@ double homeGutter(BuildContext context) {
       : HomeSpace.gutter;
 }
 
-/// Section title block: optional number and hairline, eyebrow and serif
-/// title.
+/// Section title block: serif title with optional leading marker and
+/// trailing action.
 class HomeSectionHeading extends StatelessWidget {
   const HomeSectionHeading({
-    required this.eyebrow,
     required this.title,
     super.key,
-    this.index,
     this.trailing,
     this.leading,
   });
 
-  /// Section number shown before a hairline; omitted when null.
-  final String? index;
-  final String eyebrow;
   final String title;
   final Widget? trailing;
 
-  /// Optional marker drawn before the eyebrow (e.g. a live pulse).
+  /// Optional marker drawn before the title (e.g. a live pulse).
   final Widget? leading;
 
   @override
@@ -44,63 +39,27 @@ class HomeSectionHeading extends StatelessWidget {
           animation: reveal,
           builder: (context, _) {
             final t = reveal.value;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            final opacity = t.clamp(0.0, 1.0);
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    if (index != null) ...[
-                      Text(index!, style: HomeType.eyebrow(palette.accent)),
-                      const SizedBox(width: 10),
-                      SizedBox(
-                        width: 28,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            width: 28 * t,
-                            height: 1,
-                            color: palette.accent,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                    ],
-                    if (leading != null) ...[
-                      leading!,
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: Opacity(
-                        opacity: t.clamp(0.0, 1.0),
-                        child: Text(
-                          eyebrow.toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: HomeType.eyebrow(palette.inkMuted),
-                        ),
+                if (leading != null) ...[
+                  Opacity(opacity: opacity, child: leading),
+                  const SizedBox(width: 10),
+                ],
+                Expanded(
+                  child: ClipRect(
+                    child: FractionalTranslation(
+                      translation: Offset(0, 1 - t),
+                      child: Text(
+                        title,
+                        style: HomeType.display(34, palette.ink),
                       ),
                     ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 14),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: ClipRect(
-                        child: FractionalTranslation(
-                          translation: Offset(0, 1 - t),
-                          child: Text(
-                            title,
-                            style: HomeType.display(34, palette.ink),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (trailing != null)
-                      Opacity(opacity: t.clamp(0.0, 1.0), child: trailing),
-                  ],
-                ),
+                if (trailing != null)
+                  Opacity(opacity: opacity, child: trailing),
               ],
             );
           },

@@ -64,9 +64,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 MaisonHeader(
-                  overline: 'Preferences',
                   title: context.tr(CoreL10n.settings),
-                  subtitle: 'Make GemWorld look, read and behave your way.',
                   cut: GemCut.cushion,
                   look: GemLook.ice,
                 ),

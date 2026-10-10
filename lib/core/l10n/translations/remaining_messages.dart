@@ -91,7 +91,6 @@ abstract final class RemainingL10n {
   static const policiesLegal = 'remaining.policiesLegal';
   static const unableLoadPolicies = 'remaining.unableLoadPolicies';
   static const myReference = 'remaining.myReference';
-  static const referenceIntro = 'remaining.referenceIntro';
   static const referenceSent = 'remaining.referenceSent';
   static const accepted = 'remaining.accepted';
   static const pending = 'remaining.pending';
@@ -414,14 +413,6 @@ abstract final class RemainingL10n {
       'remaining.forQuestionsAboutThisPolicyOrders';
   static const diamondAndMeleeOrdersThatEarned =
       'remaining.diamondAndMeleeOrdersThatEarned';
-  static const createApiKeysForPartnersTo =
-      'remaining.createApiKeysForPartnersTo';
-  static const manageYourLiveAuctionsViewAll =
-      'remaining.manageYourLiveAuctionsViewAll';
-  static const askOurSupportTeamAQuestion =
-      'remaining.askOurSupportTeamAQuestion';
-  static const includeEnoughDetailSoWeCan =
-      'remaining.includeEnoughDetailSoWeCan';
   static const onlyAdminRepliesAppearHereYou =
       'remaining.onlyAdminRepliesAppearHereYou';
   static const noAdminResponseYetYourInquiry =
@@ -482,13 +473,9 @@ abstract final class RemainingL10n {
   static const myReference2 = 'remaining.myReference2';
   static const addSomeoneAsYourReferenceUsingTheir =
       'remaining.addSomeoneAsYourReferenceUsingTheir';
-  static const performanceInsightsAcrossSalesOrdersAndTraffic =
-      'remaining.performanceInsightsAcrossSalesOrdersAndTraffic';
   static const grossRevenueOverTime = 'remaining.grossRevenueOverTime';
   static const revenueSharePerCatalog = 'remaining.revenueSharePerCatalog';
   static const currentPipelineBreakdown = 'remaining.currentPipelineBreakdown';
-  static const listingInterestAndCatalogPerformance =
-      'remaining.listingInterestAndCatalogPerformance';
   static const ofRevenue = 'remaining.ofRevenue';
   static const apiKeyCreated = 'remaining.apiKeyCreated';
   static const apiKeyCopied = 'remaining.apiKeyCopied';
@@ -510,8 +497,6 @@ abstract final class RemainingL10n {
   static const keepItShortAskAboutAvailabilitySpecs =
       'remaining.keepItShortAskAboutAvailabilitySpecs';
   static const now = 'remaining.now';
-  static const welcomeBackHereSWhatSHappening =
-      'remaining.welcomeBackHereSWhatSHappening';
   static const selectStartDate = 'remaining.selectStartDate';
   static const selectEndDate = 'remaining.selectEndDate';
   static const thisWillMarkTheTicketAsClosed =
@@ -1253,14 +1238,6 @@ const remainingMessages = <String, LocalizedMessage>{
     english: 'My Reference',
     hindi: 'मेरा संदर्भ',
     gujarati: 'મારો સંદર્ભ',
-  ),
-  RemainingL10n.referenceIntro: LocalizedMessage(
-    english:
-        'Share your email or code. Accept people who add you. Earn 0.25% when they buy diamonds or melee.',
-    hindi:
-        'अपना ईमेल या कोड साझा करें. उन लोगों को स्वीकार करें जो आपको जोड़ते हैं. जब वे हीरे या हाथापाई खरीदते हैं तो 0.25% कमाएँ।',
-    gujarati:
-        'તમારો ઈમેલ અથવા કોડ શેર કરો. તમને ઉમેરનારા લોકોને સ્વીકારો. જ્યારે તેઓ હીરા ખરીદે અથવા ઝપાઝપી કરે ત્યારે 0.25% કમાઓ.',
   ),
   RemainingL10n.referenceSent: LocalizedMessage(
     english: 'Reference request sent',
@@ -2846,38 +2823,6 @@ const remainingMessages = <String, LocalizedMessage>{
     gujarati:
         'ડાયમંડ અને ઝપાઝપીના ઓર્ડર કે જેનાથી તમને કમિશન મળ્યું. વિક્રેતાનો અસ્વીકાર નવી એન્ટ્રી સાથે રિવર્સ કમિશન.',
   ),
-  RemainingL10n.createApiKeysForPartnersTo: LocalizedMessage(
-    english:
-        'Create API keys for partners to pull your shared inventory. Keys are emailed on generate; revoke any key to cut off access.',
-    hindi:
-        'अपनी साझा इन्वेंट्री खींचने के लिए साझेदारों के लिए एपीआई कुंजी बनाएं। कुंजियाँ उत्पन्न होने पर ईमेल की जाती हैं; पहुंच बंद करने के लिए किसी भी कुंजी को रद्द करें।',
-    gujarati:
-        'તમારી શેર કરેલી ઇન્વેન્ટરી ખેંચવા માટે ભાગીદારો માટે API કી બનાવો. જનરેટ પર કીઓ ઈમેઈલ કરવામાં આવે છે; ઍક્સેસ કાપવા માટે કોઈપણ કી રદબાતલ કરો.',
-  ),
-  RemainingL10n.manageYourLiveAuctionsViewAll: LocalizedMessage(
-    english:
-        'Manage your live auctions, view all bids, and see winners when auctions close.',
-    hindi:
-        'अपनी लाइव नीलामी प्रबंधित करें, सभी बोलियां देखें और नीलामी बंद होने पर विजेताओं को देखें।',
-    gujarati:
-        'તમારી લાઇવ હરાજીનું સંચાલન કરો, બધી બિડ જુઓ અને જ્યારે હરાજી બંધ થાય ત્યારે વિજેતાઓને જુઓ.',
-  ),
-  RemainingL10n.askOurSupportTeamAQuestion: LocalizedMessage(
-    english:
-        'Ask our support team a question. Buyers and sellers can submit tickets here: an admin will reply when your question is reviewed.',
-    hindi:
-        'हमारी सहायता टीम से एक प्रश्न पूछें. खरीदार और विक्रेता यहां टिकट जमा कर सकते हैं: आपके प्रश्न की समीक्षा होने पर व्यवस्थापक उत्तर देगा।',
-    gujarati:
-        'અમારી સપોર્ટ ટીમને એક પ્રશ્ન પૂછો. ખરીદદારો અને વિક્રેતાઓ અહીં ટિકિટ સબમિટ કરી શકે છે: જ્યારે તમારા પ્રશ્નની સમીક્ષા કરવામાં આવશે ત્યારે એડમિન જવાબ આપશે.',
-  ),
-  RemainingL10n.includeEnoughDetailSoWeCan: LocalizedMessage(
-    english:
-        'Include enough detail so we can help quickly — order IDs, product links, or screenshots help.',
-    hindi:
-        'पर्याप्त विवरण शामिल करें ताकि हम शीघ्र सहायता कर सकें - ऑर्डर आईडी, उत्पाद लिंक, या स्क्रीनशॉट मदद करते हैं।',
-    gujarati:
-        'પૂરતી વિગતો શામેલ કરો જેથી અમે ઝડપથી મદદ કરી શકીએ — ઓર્ડર ID, ઉત્પાદન લિંક્સ અથવા સ્ક્રીનશૉટ્સ સહાય.',
-  ),
   RemainingL10n.onlyAdminRepliesAppearHereYou: LocalizedMessage(
     english:
         'Only admin replies appear here. You cannot message other buyers or sellers on this inquiry.',
@@ -3112,12 +3057,6 @@ const remainingMessages = <String, LocalizedMessage>{
     gujarati:
         'કોઈને તેમના ઇમેઇલ અથવા કોડનો ઉપયોગ કરીને તમારા સંદર્ભ તરીકે ઉમેરો.',
   ),
-  RemainingL10n.performanceInsightsAcrossSalesOrdersAndTraffic:
-      LocalizedMessage(
-        english: 'Performance insights across sales, orders, and traffic.',
-        hindi: 'बिक्री, ऑर्डर और ट्रैफ़िक में प्रदर्शन अंतर्दृष्टि।',
-        gujarati: 'વેચાણ, ઓર્ડર્સ અને ટ્રાફિકમાં પ્રદર્શનની આંતરદૃષ્ટિ.',
-      ),
   RemainingL10n.grossRevenueOverTime: LocalizedMessage(
     english: 'Gross revenue over time',
     hindi: 'समय के साथ सकल राजस्व',
@@ -3132,11 +3071,6 @@ const remainingMessages = <String, LocalizedMessage>{
     english: 'Current pipeline breakdown',
     hindi: 'वर्तमान पाइपलाइन टूटना',
     gujarati: 'વર્તમાન પાઇપલાઇન ભંગાણ',
-  ),
-  RemainingL10n.listingInterestAndCatalogPerformance: LocalizedMessage(
-    english: 'Listing interest and catalog performance',
-    hindi: 'लिस्टिंग रुचि और कैटलॉग प्रदर्शन',
-    gujarati: 'લિસ્ટિંગ રસ અને કેટલોગ કામગીરી',
   ),
   RemainingL10n.ofRevenue: LocalizedMessage(
     english: 'of revenue',
@@ -3228,13 +3162,6 @@ const remainingMessages = <String, LocalizedMessage>{
     english: 'Now',
     hindi: 'अब',
     gujarati: 'હવે',
-  ),
-  RemainingL10n.welcomeBackHereSWhatSHappening: LocalizedMessage(
-    english: 'Welcome back! Here’s what’s happening with your business today.',
-    hindi:
-        'वापसी पर स्वागत है! आज आपके व्यवसाय के साथ क्या हो रहा है, यह यहां बताया गया है।',
-    gujarati:
-        'ફરી સ્વાગત છે! આજે તમારા વ્યવસાય સાથે શું થઈ રહ્યું છે તે અહીં છે.',
   ),
   RemainingL10n.selectStartDate: LocalizedMessage(
     english: 'Select start date',

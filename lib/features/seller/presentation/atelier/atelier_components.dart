@@ -52,19 +52,11 @@ class AtelierCard extends StatelessWidget {
   }
 }
 
-/// Quiet section marker: overline, serif title, optional trailing action.
+/// Quiet section marker: serif title, optional trailing action.
 class AtelierSectionHeader extends StatelessWidget {
-  const AtelierSectionHeader({
-    required this.title,
-    this.overline,
-    this.subtitle,
-    this.trailing,
-    super.key,
-  });
+  const AtelierSectionHeader({required this.title, this.trailing, super.key});
 
   final String title;
-  final String? overline;
-  final String? subtitle;
   final Widget? trailing;
 
   @override
@@ -74,30 +66,11 @@ class AtelierSectionHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (overline != null) ...[
-                Text(
-                  overline!.toUpperCase(),
-                  style: AtelierType.overline(p.gold),
-                ),
-                const SizedBox(height: AtelierSpace.s6),
-              ],
-              Text(
-                title,
-                style: AtelierType.display(p.ink, size: 24),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: AtelierSpace.s4),
-                Text(
-                  subtitle!,
-                  style: AtelierType.caption(p.muted, size: 12.5),
-                ),
-              ],
-            ],
+          child: Text(
+            title,
+            style: AtelierType.display(p.ink, size: 24),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         if (trailing != null) ...[

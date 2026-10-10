@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../haptics/app_haptics.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/luxe_tokens.dart';
-import '../../theme/app_colors.dart';
 import '../app_scaffold.dart';
 import '../catalog_search_filter_shell.dart';
 import 'luxe_button.dart';
@@ -180,46 +178,6 @@ class LuxeFinderIndex<S> extends StatelessWidget {
   }
 }
 
-/// Editorial finder opening: serif headline, one-line guidance and the
-/// catalog mode controls.
-class LuxeFinderIntro extends StatelessWidget {
-  const LuxeFinderIntro({
-    required this.headline,
-    required this.intro,
-    super.key,
-    this.controls,
-  });
-
-  final String headline;
-  final String intro;
-  final Widget? controls;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    final animate = !MediaQuery.disableAnimationsOf(context);
-    Widget title = Text(headline, style: LuxeType.display(36, p.ink));
-    if (animate) {
-      title = title
-          .animate()
-          .fadeIn(duration: 600.ms)
-          .moveY(begin: 14, end: 0, duration: 800.ms, curve: LuxeMotion.settle);
-    }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          title,
-          const SizedBox(height: 8),
-          Text(intro, style: LuxeType.body(p.inkMuted, size: 14)),
-          if (controls != null) ...[const SizedBox(height: 18), controls!],
-        ],
-      ),
-    );
-  }
-}
-
 /// Sticky footer: reset (when anything is set) and the primary search with
 /// the active-filter count.
 class LuxeFinderActionBar extends StatelessWidget {
@@ -279,14 +237,13 @@ class LuxeFinderActionBar extends StatelessWidget {
 }
 
 /// Page frame shared by every luxe finder / filter screen: luxe top bar,
-/// editorial intro, pinned section index, eagerly built collapsible
+/// optional mode controls, pinned section index, eagerly built collapsible
 /// sections and a sticky action bar.
 ///
 /// Pair it with [LuxeFinderMixin] on the screen state.
 class LuxeFinderScaffold<S> extends StatelessWidget {
   const LuxeFinderScaffold({
     required this.title,
-    required this.intro,
     required this.sections,
     required this.active,
     required this.labelOf,
@@ -300,20 +257,17 @@ class LuxeFinderScaffold<S> extends StatelessWidget {
     required this.onScrollNotification,
     required this.actionBar,
     super.key,
-    this.eyebrow,
+    this.controls,
     this.onBack,
     this.actions = const [],
-    this.background,
   });
 
   final String title;
-  final String? eyebrow;
   final VoidCallback? onBack;
   final List<Widget> actions;
 
-  /// Page tint; defaults to the luxe canvas (melee finders pass a tint).
-  final Color? background;
-  final Widget intro;
+  /// Catalog mode switches shown above the section index.
+  final Widget? controls;
   final List<S> sections;
   final S active;
   final String Function(S) labelOf;
@@ -329,20 +283,17 @@ class LuxeFinderScaffold<S> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = background ?? LuxePalette.of(context).canvas;
+    final bg = LuxePalette.of(context).canvas;
     return AppScaffold(
       backgroundColor: bg,
       appBar: LuxeTopBar(
-        eyebrow: eyebrow,
         title: title,
         scrollOffset: scrollOffset,
         onBack: onBack,
         actions: actions,
       ),
       bottomNavigationBar: actionBar,
-      body: AnimatedContainer(
-        duration: AppColors.meleeBgDuration,
-        curve: Curves.easeInOut,
+      body: ColoredBox(
         color: bg,
         child: NotificationListener<ScrollNotification>(
           onNotification: onScrollNotification,
@@ -352,7 +303,13 @@ class LuxeFinderScaffold<S> extends StatelessWidget {
               parent: AlwaysScrollableScrollPhysics(),
             ),
             slivers: [
-              SliverToBoxAdapter(child: intro),
+              if (controls != null)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
+                    child: controls,
+                  ),
+                ),
               LuxePinnedBar(
                 background: bg,
                 child: LuxeFinderIndex<S>(

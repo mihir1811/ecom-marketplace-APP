@@ -25,11 +25,7 @@ class HomeCollections extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          HomeSectionHeading(
-            index: '01',
-            eyebrow: context.tr(HomeL10n.collectionsEyebrow),
-            title: context.tr(HomeL10n.collectionsTitle),
-          ),
+          HomeSectionHeading(title: context.tr(HomeL10n.collectionsTitle)),
           const SizedBox(height: 26),
           LayoutBuilder(
             builder: (context, constraints) {

@@ -16,7 +16,6 @@ class HomeAtelierLinks extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final palette = HomePalette.of(context);
     final workspace = ref.watch(
       authProvider.select((s) => s.isSeller && s.canTransact),
     );
@@ -72,20 +71,6 @@ class HomeAtelierLinks extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ScrollReveal(
-            child: Text(
-              // Sellers' shortcuts open the seller workspace — say so.
-              context
-                  .tr(
-                    workspace
-                        ? NavL10n.homeSellerShortcuts
-                        : HomeL10n.atelierTitle,
-                  )
-                  .toUpperCase(),
-              style: HomeType.eyebrow(palette.inkMuted),
-            ),
-          ),
-          const SizedBox(height: 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

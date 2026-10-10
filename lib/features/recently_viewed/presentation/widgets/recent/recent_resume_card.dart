@@ -83,7 +83,6 @@ class _RecentResumeCardState extends ConsumerState<RecentResumeCard> {
           clipBehavior: Clip.antiAlias,
           child: Stack(
             children: [
-              const Positioned.fill(child: AtelierAmbient(intensity: 0.9)),
               Padding(
                 padding: EdgeInsets.all(wide ? 16 : 12),
                 child: Row(
@@ -203,13 +202,11 @@ class _RecentResumeCardState extends ConsumerState<RecentResumeCard> {
         );
 
         if (!context.reduceMotion) {
-          card = card
-              .animate()
-              .shimmer(
-                delay: 700.ms,
-                duration: 1800.ms,
-                color: p.gold.withValues(alpha: 0.16),
-              );
+          card = card.animate().shimmer(
+            delay: 700.ms,
+            duration: 1800.ms,
+            color: p.gold.withValues(alpha: 0.16),
+          );
         }
 
         return Pressable(

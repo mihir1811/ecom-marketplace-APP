@@ -20,30 +20,6 @@ import '../../atelier/atelier_motion.dart';
 import '../../atelier/atelier_theme.dart';
 import '../../../../../core/theme/luxe_tokens.dart';
 
-const _weekdays = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
-];
-const _months = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
-
 /// Onyx hero: greeting, headline value and a live 3D stone.
 class DashboardHero extends ConsumerWidget {
   const DashboardHero({
@@ -70,8 +46,6 @@ class DashboardHero extends ConsumerWidget {
         : now.hour < 17
         ? 'Good afternoon'
         : 'Good evening';
-    final date =
-        '${_weekdays[now.weekday - 1]}, ${now.day} ${_months[now.month - 1]}';
     final onOnyxSoft = p.onOnyx.withValues(alpha: 0.62);
 
     return LayoutBuilder(
@@ -89,25 +63,6 @@ class DashboardHero extends ConsumerWidget {
             ),
             child: Stack(
               children: [
-                const Positioned.fill(child: AtelierAmbient(intensity: 1.4)),
-                // Fine gold rule across the top.
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    height: 1.2,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          p.gold.withValues(alpha: 0),
-                          p.gold.withValues(alpha: 0.8),
-                          p.gold.withValues(alpha: 0),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
                 Positioned(
                   right: wide ? 28 : 6,
                   top: wide ? 22 : 10,
@@ -135,14 +90,6 @@ class DashboardHero extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Reveal(
-                        child: Text(
-                          date.toUpperCase(),
-                          style: AtelierType.overline(p.gold),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Reveal(
-                        index: 1,
                         child: Padding(
                           padding: EdgeInsets.only(right: gemSize * 0.75),
                           child: Text(
@@ -152,19 +99,6 @@ class DashboardHero extends ConsumerWidget {
                               size: wide ? 44 : 32,
                               weight: FontWeight.w500,
                             ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Reveal(
-                        index: 2,
-                        child: Padding(
-                          padding: EdgeInsets.only(right: gemSize * 0.6),
-                          child: Text(
-                            context.tr(
-                              RemainingL10n.welcomeBackHereSWhatSHappening,
-                            ),
-                            style: AtelierType.body(onOnyxSoft, size: 13.5),
                           ),
                         ),
                       ),
@@ -567,7 +501,6 @@ class DashboardAuctionOutcomes extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AtelierSectionHeader(
-            overline: 'Auctions',
             title: 'Auction outcomes',
             trailing: AtelierButton(
               label: context.tr(RemainingL10n.myAuctions),

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/widgets/catalog_search_filter_shell.dart';
 import '../../../../core/widgets/filters/catalog_measurement_filters.dart';
@@ -152,32 +151,16 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
 
   Widget _buildScaffold(BuildContext context) {
     final melee = ref.watch(gemstoneSearchProvider.select(gemstoneIsMelee));
-    final isLab = ref.watch(
-      gemstoneSearchProvider.select(
-        (s) => (s.stoneType ?? '').toLowerCase().contains('lab'),
-      ),
-    );
     final summary = ref.watch(
       gemstoneSearchProvider.select(GemstoneFilterSummary.of),
     );
     final sections = _visibleSections(melee);
-    final background = AppColors.screenBgFor(context, melee: melee);
 
     return LuxeFinderScaffold<GemstoneFinderSection>(
-      eyebrow: context.tr(GemstoneFlowL10n.finderEyebrow),
       title: context.tr(RemainingL10n.gemstones),
       onBack: () => context.resetTo(AppRouteNames.home),
       actions: const [CatalogFlowActions()],
-      background: background,
-      intro: LuxeFinderIntro(
-        headline: context.tr(
-          isLab
-              ? GemstoneFlowL10n.finderHeadlineLab
-              : GemstoneFlowL10n.finderHeadline,
-        ),
-        intro: context.tr(GemstoneFlowL10n.finderIntro),
-        controls: const GemstoneCatalogModeControls(),
-      ),
+      controls: const GemstoneCatalogModeControls(),
       sections: sections,
       active: finderActive,
       labelOf: (s) => _title(context, s),

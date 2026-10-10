@@ -14,12 +14,8 @@ abstract final class CatalogFlowL10n {
   static const draftDiscarded = 'catalogFlow.draftDiscarded';
 
   // Watches
-  static const watchFilterEyebrow = 'catalogFlow.watchFilterEyebrow';
-  static const watchFilterHeadline = 'catalogFlow.watchFilterHeadline';
-  static const watchFilterIntro = 'catalogFlow.watchFilterIntro';
   static const watchResults = 'catalogFlow.watchResults';
   static const watchSort = 'catalogFlow.watchSort';
-  static const brandEyebrow = 'catalogFlow.brandEyebrow';
   static const sectionBrandModel = 'catalogFlow.sectionBrandModel';
   static const sectionStyle = 'catalogFlow.sectionStyle';
   static const sectionPrice = 'catalogFlow.sectionPrice';
@@ -30,9 +26,6 @@ abstract final class CatalogFlowL10n {
   static const sectionCondition = 'catalogFlow.sectionCondition';
 
   // Bullion
-  static const bullionFilterEyebrow = 'catalogFlow.bullionFilterEyebrow';
-  static const bullionFilterHeadline = 'catalogFlow.bullionFilterHeadline';
-  static const bullionFilterIntro = 'catalogFlow.bullionFilterIntro';
   static const bullionResults = 'catalogFlow.bullionResults';
   static const bullionSort = 'catalogFlow.bullionSort';
   static const metal = 'catalogFlow.metal';
@@ -77,21 +70,6 @@ const catalogFlowMessages = <String, LocalizedMessage>{
     hindi: 'बदलाव हटाए गए',
     gujarati: 'ફેરફારો રદ થયા',
   ),
-  CatalogFlowL10n.watchFilterEyebrow: LocalizedMessage(
-    english: 'Watch filters',
-    hindi: 'घड़ी फ़िल्टर',
-    gujarati: 'ઘડિયાળ ફિલ્ટર',
-  ),
-  CatalogFlowL10n.watchFilterHeadline: LocalizedMessage(
-    english: 'Refine your\nwatch search.',
-    hindi: 'अपनी घड़ी की\nखोज सटीक करें।',
-    gujarati: 'તમારી ઘડિયાળની\nશોધ ચોક્કસ કરો.',
-  ),
-  CatalogFlowL10n.watchFilterIntro: LocalizedMessage(
-    english: 'Start with the brand, then narrow by style, size and detail.',
-    hindi: 'ब्रांड से शुरू करें, फिर स्टाइल, साइज़ और विवरण से सटीक करें।',
-    gujarati: 'બ્રાન્ડથી શરૂ કરો, પછી સ્ટાઇલ, સાઇઝ અને વિગતથી ચોક્કસ કરો.',
-  ),
   CatalogFlowL10n.watchResults: LocalizedMessage(
     english: '{count} watches',
     hindi: '{count} घड़ियाँ',
@@ -101,11 +79,6 @@ const catalogFlowMessages = <String, LocalizedMessage>{
     english: 'Sort watches',
     hindi: 'घड़ियाँ क्रमबद्ध करें',
     gujarati: 'ઘડિયાળો ગોઠવો',
-  ),
-  CatalogFlowL10n.brandEyebrow: LocalizedMessage(
-    english: 'The maison',
-    hindi: 'ब्रांड',
-    gujarati: 'બ્રાન્ડ',
   ),
   CatalogFlowL10n.sectionBrandModel: LocalizedMessage(
     english: 'Brand & model',
@@ -146,22 +119,6 @@ const catalogFlowMessages = <String, LocalizedMessage>{
     english: 'Condition & papers',
     hindi: 'स्थिति और दस्तावेज़',
     gujarati: 'સ્થિતિ અને દસ્તાવેજ',
-  ),
-  CatalogFlowL10n.bullionFilterEyebrow: LocalizedMessage(
-    english: 'Bullion filters',
-    hindi: 'बुलियन फ़िल्टर',
-    gujarati: 'બુલિયન ફિલ્ટર',
-  ),
-  CatalogFlowL10n.bullionFilterHeadline: LocalizedMessage(
-    english: 'Refine your\nbullion search.',
-    hindi: 'अपनी बुलियन\nखोज सटीक करें।',
-    gujarati: 'તમારી બુલિયન\nશોધ ચોક્કસ કરો.',
-  ),
-  CatalogFlowL10n.bullionFilterIntro: LocalizedMessage(
-    english:
-        'Choose the form and weight, then set price, quantity and provenance.',
-    hindi: 'रूप और वज़न चुनें, फिर कीमत, मात्रा और स्रोत तय करें।',
-    gujarati: 'સ્વરૂપ અને વજન પસંદ કરો, પછી કિંમત, જથ્થો અને સ્રોત નક્કી કરો.',
   ),
   CatalogFlowL10n.bullionResults: LocalizedMessage(
     english: '{count} bars & coins',

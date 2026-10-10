@@ -160,18 +160,7 @@ class _BuyerReferencesScreenState extends ConsumerState<BuyerReferencesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         MaisonHeader(
-                          overline: 'Referral circle',
                           title: context.tr(RemainingL10n.references),
-                          subtitle: !ready
-                              ? context.tr(RemainingL10n.referenceIntro)
-                              : acceptedCount == 0
-                              ? 'Invite collectors you trust and earn on '
-                                    'their orders.'
-                              : '$acceptedCount '
-                                    '${acceptedCount == 1 ? 'collector' : 'collectors'}'
-                                    ' in your circle · '
-                                    '${atelierMoney(earned, symbol: '₹')} '
-                                    'earned.',
                           cut: GemCut.heart,
                           look: GemLook.champagne,
                         ),

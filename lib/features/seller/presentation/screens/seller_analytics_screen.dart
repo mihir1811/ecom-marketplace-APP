@@ -53,11 +53,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
       onRefresh: _refresh,
       children: [
         AtelierHero(
-          overline: 'Performance',
           title: context.tr(RemainingL10n.analytics),
-          subtitle: context.tr(
-            RemainingL10n.performanceInsightsAcrossSalesOrdersAndTraffic,
-          ),
           cut: GemCut.radiant,
           footer: _HeroHeadline(
             label:
@@ -282,11 +278,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
         if (snapshot.engagement.isNotEmpty) ...[
           const SizedBox(height: AtelierSpace.s32),
           AtelierSectionHeader(
-            overline: 'Catalogue',
             title: context.tr(RemainingL10n.engagementMetrics),
-            subtitle: context.tr(
-              RemainingL10n.listingInterestAndCatalogPerformance,
-            ),
           ),
           const SizedBox(height: AtelierSpace.s16),
           AtelierTileGrid(

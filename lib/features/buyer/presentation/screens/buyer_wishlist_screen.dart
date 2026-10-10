@@ -160,15 +160,10 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
           slivers: [
             SliverPadding(
               padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
-              sliver: SliverToBoxAdapter(
+              sliver: const SliverToBoxAdapter(
                 child: MaisonCentered(
                   child: MaisonHeader(
-                    overline: 'Private collection',
                     title: 'Wishlist',
-                    subtitle: count == 0
-                        ? 'Pieces you love, kept in one quiet place.'
-                        : '$count ${count == 1 ? 'piece' : 'pieces'} '
-                              'you’re keeping an eye on.',
                     cut: GemCut.heart,
                     look: GemLook.champagne,
                   ),

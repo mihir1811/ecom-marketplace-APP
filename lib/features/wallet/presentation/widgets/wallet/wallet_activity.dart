@@ -287,11 +287,7 @@ class WalletLedger extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const AtelierSectionHeader(
-          overline: 'Ledger',
-          title: 'Activity',
-          subtitle: 'Tap any entry for references and receipts.',
-        ),
+        const AtelierSectionHeader(title: 'Activity'),
         const SizedBox(height: 14),
         AtelierSegmented<WalletLedgerFilter>(
           expand: true,

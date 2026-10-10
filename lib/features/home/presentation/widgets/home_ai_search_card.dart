@@ -78,16 +78,11 @@ class _HomeAiSearchCardState extends State<HomeAiSearchCard>
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          context.tr(HomeL10n.aiSearchEyebrow).toUpperCase(),
-                          style: HomeType.eyebrow(HomeStage.gold),
+                          context.tr(HomeL10n.aiSearchTitle),
+                          style: HomeType.display(36, HomeStage.ink),
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    context.tr(HomeL10n.aiSearchTitle),
-                    style: HomeType.display(36, HomeStage.ink),
                   ),
                   const SizedBox(height: 10),
                   Text(

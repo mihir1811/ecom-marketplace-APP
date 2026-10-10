@@ -369,38 +369,6 @@ class AppDrawerStageState extends State<AppDrawerStage>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Champagne glow behind the header, like light caught in a gem.
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: const Alignment(-0.9, -0.85),
-                    radius: 1.1,
-                    colors: [
-                      LuxeStage.gold.withValues(alpha: 0.2 * t),
-                      LuxeStage.gold.withValues(alpha: 0),
-                    ],
-                  ),
-                ),
-              ),
-              // Ghost card trailing the page.
-              Transform(
-                // Peeks out between the menu and the page, never into the menu.
-                transform: AppDrawerStage._cardTransform(
-                  size,
-                  t,
-                  inset: menuWidth + 6,
-                  shrink: 0.34,
-                ),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: LuxeStage.ink.withValues(alpha: 0.07 * t),
-                    borderRadius: BorderRadius.circular(_radius),
-                    border: Border.all(
-                      color: LuxeStage.gold.withValues(alpha: 0.12 * t),
-                    ),
-                  ),
-                ),
-              ),
               Positioned(
                 left: 0,
                 top: 0,

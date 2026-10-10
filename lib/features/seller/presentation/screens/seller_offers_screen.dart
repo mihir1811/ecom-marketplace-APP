@@ -158,9 +158,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
       onRefresh: _refresh,
       children: [
         AtelierHero(
-          overline: 'Negotiation desk',
           title: context.tr(RemainingL10n.offers),
-          subtitle: context.tr(RemainingL10n.reviewBuyerPriceOffersOnYour),
           cut: GemCut.cushion,
           footer: AtelierHeroStats(
             stats: [

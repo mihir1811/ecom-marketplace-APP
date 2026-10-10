@@ -297,7 +297,6 @@ Future<void> showCircleSponsorSheet(BuildContext context) {
   return showAtelierSheet<void>(
     context: context,
     title: context.tr(RemainingL10n.myReference2),
-    subtitle: 'The person who introduced you to GemWorld.',
     builder: (_) => const _SponsorSheetBody(),
   );
 }
@@ -482,7 +481,10 @@ class _SponsorJourney extends StatelessWidget {
               children: [
                 Text(title, style: AtelierType.label(p.ink, size: 13)),
                 if (caption.isNotEmpty)
-                  Text(caption, style: AtelierType.caption(p.muted, size: 11.5)),
+                  Text(
+                    caption,
+                    style: AtelierType.caption(p.muted, size: 11.5),
+                  ),
               ],
             ),
           ),

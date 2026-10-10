@@ -481,25 +481,6 @@ class _HeroCopy extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _enter(
-          Row(
-            children: [
-              Container(width: 22, height: 1, color: HomeStage.gold),
-              const SizedBox(width: 10),
-              Flexible(
-                child: Text(
-                  context.tr(HomeL10n.heroEyebrow).toUpperCase(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: HomeType.eyebrow(HomeStage.gold),
-                ),
-              ),
-            ],
-          ),
-          150,
-          dy: 8,
-        ),
-        const SizedBox(height: 14),
         _line(
           Text(
             context.tr(HomeL10n.heroTitleLine1),

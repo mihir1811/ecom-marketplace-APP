@@ -3,10 +3,6 @@ import '../localized_message.dart';
 /// Copy for the redesigned diamond finder → results → detail flow.
 abstract final class DiamondFlowL10n {
   // Finder
-  static const finderEyebrow = 'diamondFlow.finderEyebrow';
-  static const finderHeadlineNatural = 'diamondFlow.finderHeadlineNatural';
-  static const finderHeadlineLab = 'diamondFlow.finderHeadlineLab';
-  static const finderIntro = 'diamondFlow.finderIntro';
   static const singleStones = 'diamondFlow.singleStones';
   static const sectionShape = 'diamondFlow.sectionShape';
   static const sectionSizePrice = 'diamondFlow.sectionSizePrice';
@@ -71,26 +67,6 @@ abstract final class DiamondFlowL10n {
 }
 
 const diamondFlowMessages = <String, LocalizedMessage>{
-  DiamondFlowL10n.finderEyebrow: LocalizedMessage(
-    english: 'Diamond finder',
-    hindi: 'डायमंड फाइंडर',
-    gujarati: 'ડાયમંડ ફાઇન્ડર',
-  ),
-  DiamondFlowL10n.finderHeadlineNatural: LocalizedMessage(
-    english: 'Find your\nnatural diamond.',
-    hindi: 'अपना प्राकृतिक\nहीरा खोजें।',
-    gujarati: 'તમારો કુદરતી\nહીરો શોધો.',
-  ),
-  DiamondFlowL10n.finderHeadlineLab: LocalizedMessage(
-    english: 'Find your\nlab-grown diamond.',
-    hindi: 'अपना लैब-ग्रोन\nहीरा खोजें।',
-    gujarati: 'તમારો લેબ-ગ્રોન\nહીરો શોધો.',
-  ),
-  DiamondFlowL10n.finderIntro: LocalizedMessage(
-    english: 'Start with a shape, then refine by size, price and the 4Cs.',
-    hindi: 'आकार चुनें, फिर साइज़, कीमत और 4C से सटीक करें।',
-    gujarati: 'આકાર પસંદ કરો, પછી સાઇઝ, કિંમત અને 4C થી ચોક્કસ કરો.',
-  ),
   DiamondFlowL10n.singleStones: LocalizedMessage(
     english: 'Single stones',
     hindi: 'एकल हीरे',

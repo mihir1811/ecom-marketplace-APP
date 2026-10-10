@@ -2,7 +2,6 @@ import '../localized_message.dart';
 
 /// Stable keys for the home experience copy.
 abstract final class HomeL10n {
-  static const heroEyebrow = 'home.heroEyebrow';
   static const heroTitleLine1 = 'home.heroTitleLine1';
   static const heroTitleLine2 = 'home.heroTitleLine2';
   static const searchPrefix = 'home.searchPrefix';
@@ -24,26 +23,22 @@ abstract final class HomeL10n {
   static const aiModePromptBullion = 'home.aiModePromptBullion';
   static const collectionsEyebrow = 'home.collectionsEyebrow';
   static const collectionsTitle = 'home.collectionsTitle';
-  static const atelierTitle = 'home.atelierTitle';
   static const orders = 'home.orders';
   static const wishlist = 'home.wishlist';
   static const myBids = 'home.myBids';
   static const wallet = 'home.wallet';
   static const dashboard = 'home.dashboard';
-  static const auctionsEyebrow = 'home.auctionsEyebrow';
   static const auctionsTitle = 'home.auctionsTitle';
   static const currentBid = 'home.currentBid';
   static const endsIn = 'home.endsIn';
   static const ended = 'home.ended';
   static const live = 'home.live';
-  static const aiSearchEyebrow = 'home.aiSearchEyebrow';
   static const aiSearchTitle = 'home.aiSearchTitle';
   static const aiSearchBody = 'home.aiSearchBody';
   static const aiSearchPrompt1 = 'home.aiSearchPrompt1';
   static const aiSearchPrompt2 = 'home.aiSearchPrompt2';
   static const aiSearchPrompt3 = 'home.aiSearchPrompt3';
   static const aiSearchCta = 'home.aiSearchCta';
-  static const promiseEyebrow = 'home.promiseEyebrow';
   static const promiseTitle = 'home.promiseTitle';
   static const pillarCertifiedTitle = 'home.pillarCertifiedTitle';
   static const pillarCertifiedBody = 'home.pillarCertifiedBody';
@@ -51,7 +46,6 @@ abstract final class HomeL10n {
   static const pillarSellersBody = 'home.pillarSellersBody';
   static const pillarPaymentsTitle = 'home.pillarPaymentsTitle';
   static const pillarPaymentsBody = 'home.pillarPaymentsBody';
-  static const sellEyebrow = 'home.sellEyebrow';
   static const appearance = 'home.appearance';
   static const light = 'home.light';
   static const dark = 'home.dark';
@@ -64,11 +58,6 @@ abstract final class HomeL10n {
 }
 
 const homeMessages = <String, LocalizedMessage>{
-  HomeL10n.heroEyebrow: LocalizedMessage(
-    english: 'Certified · Verified · Protected',
-    hindi: 'प्रमाणित · सत्यापित · सुरक्षित',
-    gujarati: 'પ્રમાણિત · ચકાસાયેલ · સુરક્ષિત',
-  ),
   HomeL10n.heroTitleLine1: LocalizedMessage(
     english: 'Rare beauty,',
     hindi: 'दुर्लभ सौंदर्य,',
@@ -177,11 +166,6 @@ const homeMessages = <String, LocalizedMessage>{
     hindi: 'दुर्लभता के छह संसार।',
     gujarati: 'દુર્લભતાના છ વિશ્વ.',
   ),
-  HomeL10n.atelierTitle: LocalizedMessage(
-    english: 'Your atelier',
-    hindi: 'आपका एटेलियर',
-    gujarati: 'તમારું એટેલિયર',
-  ),
   HomeL10n.orders: LocalizedMessage(
     english: 'Orders',
     hindi: 'ऑर्डर',
@@ -207,11 +191,6 @@ const homeMessages = <String, LocalizedMessage>{
     hindi: 'डैशबोर्ड',
     gujarati: 'ડેશબોર્ડ',
   ),
-  HomeL10n.auctionsEyebrow: LocalizedMessage(
-    english: 'Live now',
-    hindi: 'अभी लाइव',
-    gujarati: 'હમણાં લાઇવ',
-  ),
   HomeL10n.auctionsTitle: LocalizedMessage(
     english: 'Auctions in the room.',
     hindi: 'चल रही नीलामियाँ।',
@@ -236,11 +215,6 @@ const homeMessages = <String, LocalizedMessage>{
     english: 'Live',
     hindi: 'लाइव',
     gujarati: 'લાઇવ',
-  ),
-  HomeL10n.aiSearchEyebrow: LocalizedMessage(
-    english: 'Gem AI search',
-    hindi: 'जेम AI सर्च',
-    gujarati: 'જેમ AI સર્ચ',
   ),
   HomeL10n.aiSearchTitle: LocalizedMessage(
     english: 'Describe it.\nWe will find it.',
@@ -271,11 +245,6 @@ const homeMessages = <String, LocalizedMessage>{
     english: 'Ask Gem AI',
     hindi: 'जेम AI से पूछें',
     gujarati: 'જેમ AI ને પૂછો',
-  ),
-  HomeL10n.promiseEyebrow: LocalizedMessage(
-    english: 'The GemWorld promise',
-    hindi: 'जेमवर्ल्ड का वादा',
-    gujarati: 'જેમવર્લ્ડનું વચન',
   ),
   HomeL10n.promiseTitle: LocalizedMessage(
     english: 'Trust, cut\nto perfection.',
@@ -312,11 +281,6 @@ const homeMessages = <String, LocalizedMessage>{
     english: 'Secure checkout and dedicated support at every step.',
     hindi: 'सुरक्षित चेकआउट और हर कदम पर समर्पित सहायता।',
     gujarati: 'સુરક્ષિત ચેકઆઉટ અને દરેક પગલે સમર્પિત સહાય.',
-  ),
-  HomeL10n.sellEyebrow: LocalizedMessage(
-    english: 'For houses & dealers',
-    hindi: 'ज्वेलर्स और डीलरों के लिए',
-    gujarati: 'જ્વેલર્સ અને ડીલરો માટે',
   ),
   HomeL10n.appearance: LocalizedMessage(
     english: 'Appearance',

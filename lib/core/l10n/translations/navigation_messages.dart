@@ -24,7 +24,6 @@ abstract final class NavL10n {
   static const liveAuctions = 'nav.item.liveAuctions';
   static const myWins = 'nav.item.myWins';
   static const notifications = 'nav.item.notifications';
-  static const homeSellerShortcuts = 'nav.home.sellerShortcuts';
 }
 
 const navigationMessages = <String, LocalizedMessage>{
@@ -137,10 +136,5 @@ const navigationMessages = <String, LocalizedMessage>{
     english: 'Notifications',
     hindi: 'सूचनाएँ',
     gujarati: 'સૂચનાઓ',
-  ),
-  NavL10n.homeSellerShortcuts: LocalizedMessage(
-    english: 'Your seller workspace',
-    hindi: 'आपका विक्रेता कार्यक्षेत्र',
-    gujarati: 'તમારું વિક્રેતા કાર્યક્ષેત્ર',
   ),
 };

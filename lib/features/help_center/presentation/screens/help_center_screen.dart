@@ -50,7 +50,6 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
     final submitted = await showAtelierSheet<bool>(
       context: context,
       title: context.tr(RemainingL10n.newQuestion),
-      subtitle: context.tr(RemainingL10n.includeEnoughDetailSoWeCan),
       builder: (_) => _QuestionComposer(
         initialType: _issueType,
         subjectCtrl: _subjectCtrl,
@@ -141,9 +140,7 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
           : null,
       children: [
         AtelierHero(
-          overline: seller ? 'Seller concierge' : 'Client concierge',
           title: context.tr(RemainingL10n.helpCenter),
-          subtitle: context.tr(RemainingL10n.askOurSupportTeamAQuestion),
           cut: GemCut.oval,
           action: Wrap(
             spacing: 10,
@@ -187,11 +184,7 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
         const SizedBox(height: AtelierSpace.s32),
         const Reveal(
           index: 1,
-          child: AtelierSectionHeader(
-            overline: 'Start here',
-            title: 'What do you need help with?',
-            subtitle: 'Choose a topic and we’ll route it to the right team.',
-          ),
+          child: AtelierSectionHeader(title: 'What do you need help with?'),
         ),
         const SizedBox(height: AtelierSpace.s16),
         AtelierTileGrid(
@@ -210,14 +203,7 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
         Reveal(
           index: 2,
           child: AtelierSectionHeader(
-            overline: 'Your desk',
             title: context.tr(RemainingL10n.yourQuestions),
-            subtitle: firstLoad
-                ? null
-                : total == 0
-                ? 'Nothing asked yet.'
-                : '$total ${total == 1 ? 'question' : 'questions'}'
-                      '${openCount > 0 ? ' · $openCount awaiting reply' : ''}',
           ),
         ),
         const SizedBox(height: AtelierSpace.s16),

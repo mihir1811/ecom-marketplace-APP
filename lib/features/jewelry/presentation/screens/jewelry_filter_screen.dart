@@ -106,13 +106,8 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
     final draft = ref.watch(jewelryFilterDraftProvider);
     final summary = JewelryFilterSummary.of(draft);
     return LuxeFinderScaffold<JewelryFilterSection>(
-      eyebrow: context.tr(JewelryFlowL10n.filterEyebrow),
       title: jewelryCollectionTitle(context, draft.category),
       onBack: () => context.goBack(),
-      intro: LuxeFinderIntro(
-        headline: context.tr(JewelryFlowL10n.filterHeadline),
-        intro: context.tr(JewelryFlowL10n.filterIntro),
-      ),
       sections: finderVisibleSections,
       active: finderActive,
       labelOf: (s) => jewelrySectionTitle(context, s),
@@ -427,9 +422,10 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
       initiallyExpanded: essential,
       names: switch (s) {
         JewelryFilterSection.style => [...d.genders, ...d.occasions],
-        JewelryFilterSection.metal when d.metalTypes.isEmpty &&
-            d.metalFinishes.isEmpty &&
-            d.platings.isEmpty =>
+        JewelryFilterSection.metal
+            when d.metalTypes.isEmpty &&
+                d.metalFinishes.isEmpty &&
+                d.platings.isEmpty =>
           [...d.metalColors, ...d.metalPurities],
         _ => const [],
       },

@@ -89,13 +89,8 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer>
     final draft = ref.watch(bullionsFilterDraftProvider);
     final summary = BullionsFilterSummary.of(draft);
     return LuxeFinderScaffold<BullionsFilterSection>(
-      eyebrow: context.tr(CatalogFlowL10n.bullionFilterEyebrow),
       title: context.tr(CatalogL10n.bullions),
       onBack: () => context.goBack(),
-      intro: LuxeFinderIntro(
-        headline: context.tr(CatalogFlowL10n.bullionFilterHeadline),
-        intro: context.tr(CatalogFlowL10n.bullionFilterIntro),
-      ),
       sections: BullionsFilterSection.values,
       active: finderActive,
       labelOf: (s) => bullionSectionTitle(context, s),

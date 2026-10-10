@@ -138,11 +138,7 @@ class _BuyerOrdersScreenState extends ConsumerState<BuyerOrdersScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         MaisonHeader(
-                          overline: 'My account',
                           title: context.tr(AccountCommerceL10n.orders),
-                          subtitle:
-                              'Every piece you’ve acquired, from checkout '
-                              'to your door.',
                           cut: GemCut.oval,
                         ),
                         const SizedBox(height: 22),

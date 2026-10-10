@@ -66,7 +66,6 @@ class WalletVaultCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Positioned.fill(child: AtelierAmbient(intensity: 0.8)),
                 Positioned(
                   right: c.maxWidth * 0.04,
                   top: c.maxHeight * 0.12,

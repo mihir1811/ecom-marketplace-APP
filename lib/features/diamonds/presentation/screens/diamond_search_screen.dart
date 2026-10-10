@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/widgets/catalog_search_filter_shell.dart';
 import '../../../../core/widgets/filters/catalog_expandable_advanced_filters.dart';
@@ -178,15 +177,15 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       diamondSearchProvider.select(DiamondFilterSummary.of),
     );
     final sections = _visibleSections(melee);
-    final background = AppColors.screenBgFor(context, melee: melee);
 
     return LuxeFinderScaffold<DiamondFinderSection>(
-      eyebrow: context.tr(DiamondFlowL10n.finderEyebrow),
       title: widget.catalog.label,
       onBack: () => context.resetTo(AppRouteNames.home),
       actions: const [CatalogFlowActions()],
-      background: background,
-      intro: _intro(context),
+      controls: DiamondCatalogModeControls(
+        showOriginToggle: !_isLab,
+        isLabCatalog: _isLab,
+      ),
       sections: sections,
       active: finderActive,
       labelOf: (s) => _title(context, s),
@@ -204,21 +203,6 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         onShow: _onShowDiamonds,
         showLabel: context.tr(CatalogL10n.showDiamonds),
         resetLabel: context.tr(DiamondFlowL10n.reset),
-      ),
-    );
-  }
-
-  Widget _intro(BuildContext context) {
-    return LuxeFinderIntro(
-      headline: context.tr(
-        _isLab
-            ? DiamondFlowL10n.finderHeadlineLab
-            : DiamondFlowL10n.finderHeadlineNatural,
-      ),
-      intro: context.tr(DiamondFlowL10n.finderIntro),
-      controls: DiamondCatalogModeControls(
-        showOriginToggle: !_isLab,
-        isLabCatalog: _isLab,
       ),
     );
   }
@@ -406,10 +390,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
         DiamondFilterState.dimensionMin,
         DiamondFilterState.dimensionMax,
       ),
-      ratioLimits: (
-        DiamondFilterState.ratioMin,
-        DiamondFilterState.ratioMax,
-      ),
+      ratioLimits: (DiamondFilterState.ratioMin, DiamondFilterState.ratioMax),
     );
   }
 

@@ -81,22 +81,18 @@ String maisonShortId(String id) {
 
 // ── Editorial header ────────────────────────────────────────────────────
 
-/// Opening of every buyer account page: gold overline, large serif title,
-/// one line of purpose and a turning stone set in a dark loupe.
+/// Opening of every buyer account page: large serif title and a turning
+/// stone set in a dark loupe.
 class MaisonHeader extends StatelessWidget {
   const MaisonHeader({
-    required this.overline,
     required this.title,
-    this.subtitle,
     this.cut,
     this.look = GemLook.white,
     this.trailing,
     super.key,
   });
 
-  final String overline;
   final String title;
-  final String? subtitle;
   final GemCut? cut;
   final GemLook look;
 
@@ -113,50 +109,17 @@ class MaisonHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Reveal(
-                    child: Row(
-                      children: [
-                        Container(width: 18, height: 1, color: p.gold),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            overline.toUpperCase(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AtelierType.overline(p.gold),
-                          ),
-                        ),
-                      ],
-                    ),
+              child: Reveal(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.display(
+                    p.ink,
+                    size: wide ? 50 : 40,
+                    weight: FontWeight.w500,
                   ),
-                  const SizedBox(height: 10),
-                  Reveal(
-                    index: 1,
-                    child: Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AtelierType.display(
-                        p.ink,
-                        size: wide ? 50 : 40,
-                        weight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 8),
-                    Reveal(
-                      index: 2,
-                      child: Text(
-                        subtitle!,
-                        style: AtelierType.body(p.muted, size: 13.5),
-                      ),
-                    ),
-                  ],
-                ],
+                ),
               ),
             ),
             if (trailing != null) ...[

@@ -4,7 +4,6 @@ import '../localized_message.dart';
 /// Gem AI advisor, cart and diamond project dashboard.
 abstract final class ExperienceL10n {
   // Gem stage (home footer)
-  static const stageEyebrow = 'experience.stageEyebrow';
   static const stageHeadline = 'experience.stageHeadline';
   static const stageBody = 'experience.stageBody';
 
@@ -39,25 +38,18 @@ abstract final class ExperienceL10n {
   static const cartLoadError = 'experience.cartLoadError';
 
   // Diamond project
-  static const projectEyebrow = 'experience.projectEyebrow';
   static const projectValue = 'experience.projectValue';
   static const projectAverages = 'experience.projectAverages';
   static const tabOverview = 'experience.tabOverview';
   static const tabMix = 'experience.tabMix';
   static const tabDistribution = 'experience.tabDistribution';
   static const tabStones = 'experience.tabStones';
-  static const projectArchive = 'experience.projectArchive';
   static const projectUpdated = 'experience.projectUpdated';
   static const projectOpen = 'experience.projectOpen';
   static const projectTapHint = 'experience.projectTapHint';
 }
 
 const experienceMessages = <String, LocalizedMessage>{
-  ExperienceL10n.stageEyebrow: LocalizedMessage(
-    english: 'Ten cuts · rendered live',
-    hindi: 'दस कट · लाइव रेंडर',
-    gujarati: 'દસ કટ · લાઇવ રેન્ડર',
-  ),
   ExperienceL10n.stageHeadline: LocalizedMessage(
     english: 'Every facet,\nin your hands.',
     hindi: 'हर पहलू,\nआपके हाथों में।',
@@ -204,11 +196,6 @@ const experienceMessages = <String, LocalizedMessage>{
     hindi: 'आपका कार्ट लोड नहीं हो सका',
     gujarati: 'તમારું કાર્ટ લોડ થઈ શક્યું નહીં',
   ),
-  ExperienceL10n.projectEyebrow: LocalizedMessage(
-    english: 'Diamond project',
-    hindi: 'डायमंड प्रोजेक्ट',
-    gujarati: 'ડાયમંડ પ્રોજેક્ટ',
-  ),
   ExperienceL10n.projectValue: LocalizedMessage(
     english: 'Total value',
     hindi: 'कुल मूल्य',
@@ -238,11 +225,6 @@ const experienceMessages = <String, LocalizedMessage>{
     english: 'Stones',
     hindi: 'पत्थर',
     gujarati: 'પથ્થર',
-  ),
-  ExperienceL10n.projectArchive: LocalizedMessage(
-    english: 'Your archive',
-    hindi: 'आपका संग्रह',
-    gujarati: 'તમારો સંગ્રહ',
   ),
   ExperienceL10n.projectUpdated: LocalizedMessage(
     english: 'Updated {date}',

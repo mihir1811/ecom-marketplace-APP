@@ -262,9 +262,7 @@ class _SellerReferencesScreenState
           : null,
       children: [
         AtelierHero(
-          overline: 'Referral circle',
           title: context.tr(RemainingL10n.references),
-          subtitle: context.tr(RemainingL10n.referenceIntro),
           cut: GemCut.heart,
           action: profile == null
               ? null

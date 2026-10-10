@@ -114,10 +114,11 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
 
   @override
   void listingApplyViewMode(LuxeViewMode mode) =>
-      ref.read(jewelryViewModeProvider.notifier).state =
-          mode == LuxeViewMode.grid
-          ? JewelryViewMode.grid
-          : JewelryViewMode.list;
+      ref
+          .read(jewelryViewModeProvider.notifier)
+          .state = mode == LuxeViewMode.grid
+      ? JewelryViewMode.grid
+      : JewelryViewMode.list;
 
   /// Debounced so typing does not refetch on every keystroke.
   void _onSearchChanged(String value) {
@@ -185,7 +186,6 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
     return AppScaffold(
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
-        eyebrow: context.tr(CatalogL10n.fineJewelry),
         title: jewelryCollectionTitle(context, category),
         subtitle: Consumer(
           builder: (context, ref, _) => JewelryCountLine(

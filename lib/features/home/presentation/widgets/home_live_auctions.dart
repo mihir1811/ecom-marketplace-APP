@@ -52,9 +52,7 @@ class HomeLiveAuctions extends ConsumerWidget {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: gutter),
               child: HomeSectionHeading(
-                index: '02',
                 leading: const _LivePulse(),
-                eyebrow: context.tr(HomeL10n.auctionsEyebrow),
                 title: context.tr(HomeL10n.auctionsTitle),
                 trailing: HomeArrowLink(
                   // Bronze is too faint on the honey band; ink reads clearly.

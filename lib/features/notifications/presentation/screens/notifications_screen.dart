@@ -168,25 +168,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'INBOX',
-                                style: AtelierType.overline(p.gold),
-                              ),
-                              const SizedBox(height: 6),
-                              AnimatedSwitcher(
-                                duration: AtelierMotion.base,
-                                child: Text(
-                                  state.unreadCount == 0
-                                      ? 'You’re all caught up'
-                                      : '${state.unreadCount} unread',
-                                  key: ValueKey(state.unreadCount),
-                                  style: AtelierType.display(p.ink, size: 28),
-                                ),
-                              ),
-                            ],
+                          child: AnimatedSwitcher(
+                            duration: AtelierMotion.base,
+                            child: Text(
+                              state.unreadCount == 0
+                                  ? 'You’re all caught up'
+                                  : '${state.unreadCount} unread',
+                              key: ValueKey(state.unreadCount),
+                              style: AtelierType.display(p.ink, size: 28),
+                            ),
                           ),
                         ),
                         AtelierButton(

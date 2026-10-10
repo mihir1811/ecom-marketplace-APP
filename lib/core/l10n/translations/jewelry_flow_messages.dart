@@ -32,9 +32,6 @@ abstract final class JewelryFlowL10n {
   static const allStyles = 'jewelryFlow.allStyles';
 
   // Filters
-  static const filterEyebrow = 'jewelryFlow.filterEyebrow';
-  static const filterHeadline = 'jewelryFlow.filterHeadline';
-  static const filterIntro = 'jewelryFlow.filterIntro';
   static const sectionStyle = 'jewelryFlow.sectionStyle';
   static const sectionPrice = 'jewelryFlow.sectionPrice';
   static const sectionMetal = 'jewelryFlow.sectionMetal';
@@ -202,21 +199,6 @@ const jewelryFlowMessages = <String, LocalizedMessage>{
     english: 'All styles',
     hindi: 'सभी स्टाइल',
     gujarati: 'બધી સ્ટાઇલ',
-  ),
-  JewelryFlowL10n.filterEyebrow: LocalizedMessage(
-    english: 'Refine jewelry',
-    hindi: 'ज्वेलरी फ़िल्टर करें',
-    gujarati: 'જ્વેલરી ફિલ્ટર કરો',
-  ),
-  JewelryFlowL10n.filterHeadline: LocalizedMessage(
-    english: 'Find the piece\nthat feels like you.',
-    hindi: 'वह पीस खोजें\nजो आप जैसा हो।',
-    gujarati: 'એ પીસ શોધો\nજે તમારા જેવો હોય.',
-  ),
-  JewelryFlowL10n.filterIntro: LocalizedMessage(
-    english: 'Start with style and budget, then refine metal and stones.',
-    hindi: 'स्टाइल और बजट से शुरू करें, फिर धातु और पत्थर चुनें।',
-    gujarati: 'સ્ટાઇલ અને બજેટથી શરૂ કરો, પછી ધાતુ અને પથ્થર પસંદ કરો.',
   ),
   JewelryFlowL10n.sectionStyle: LocalizedMessage(
     english: 'Style & occasion',

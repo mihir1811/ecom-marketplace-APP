@@ -37,11 +37,6 @@ class HomeSellCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  context.tr(HomeL10n.sellEyebrow).toUpperCase(),
-                  style: HomeType.eyebrow(palette.accent),
-                ),
-                const SizedBox(height: 12),
                 Text(title, style: HomeType.display(30, palette.ink)),
                 const SizedBox(height: 8),
                 Text(

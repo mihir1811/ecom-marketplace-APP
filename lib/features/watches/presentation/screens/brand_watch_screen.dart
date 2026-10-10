@@ -114,7 +114,6 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen>
     return AppScaffold(
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
-        eyebrow: context.tr(CatalogFlowL10n.brandEyebrow),
         title: widget.brandName,
         subtitle: Consumer(
           builder: (context, ref, _) => WatchCountLine(

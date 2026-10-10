@@ -4,10 +4,6 @@ import '../localized_message.dart';
 /// Generic flow copy (reset, filters, sort, …) is shared via
 /// `DiamondFlowL10n`.
 abstract final class GemstoneFlowL10n {
-  static const finderEyebrow = 'gemstoneFlow.finderEyebrow';
-  static const finderHeadline = 'gemstoneFlow.finderHeadline';
-  static const finderHeadlineLab = 'gemstoneFlow.finderHeadlineLab';
-  static const finderIntro = 'gemstoneFlow.finderIntro';
   static const sectionGemType = 'gemstoneFlow.sectionGemType';
   static const sectionColorQuality = 'gemstoneFlow.sectionColorQuality';
   static const sectionGrading = 'gemstoneFlow.sectionGrading';
@@ -19,26 +15,6 @@ abstract final class GemstoneFlowL10n {
 }
 
 const gemstoneFlowMessages = <String, LocalizedMessage>{
-  GemstoneFlowL10n.finderEyebrow: LocalizedMessage(
-    english: 'Gemstone finder',
-    hindi: 'रत्न फाइंडर',
-    gujarati: 'રત્ન ફાઇન્ડર',
-  ),
-  GemstoneFlowL10n.finderHeadline: LocalizedMessage(
-    english: 'Find your\ncoloured gemstone.',
-    hindi: 'अपना\nरंगीन रत्न खोजें।',
-    gujarati: 'તમારું\nરંગીન રત્ન શોધો.',
-  ),
-  GemstoneFlowL10n.finderHeadlineLab: LocalizedMessage(
-    english: 'Find your\nlab-grown gemstone.',
-    hindi: 'अपना\nलैब-ग्रोन रत्न खोजें।',
-    gujarati: 'તમારું\nલેબ-ગ્રોન રત્ન શોધો.',
-  ),
-  GemstoneFlowL10n.finderIntro: LocalizedMessage(
-    english: 'Choose a gem, then refine by shape, size, colour and quality.',
-    hindi: 'रत्न चुनें, फिर आकार, साइज़, रंग और गुणवत्ता से सटीक करें।',
-    gujarati: 'રત્ન પસંદ કરો, પછી આકાર, સાઇઝ, રંગ અને ગુણવત્તાથી ચોક્કસ કરો.',
-  ),
   GemstoneFlowL10n.sectionGemType: LocalizedMessage(
     english: 'Gemstone',
     hindi: 'रत्न',

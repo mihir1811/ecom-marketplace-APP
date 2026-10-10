@@ -78,11 +78,6 @@ class HomeGemStage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      context.tr(ExperienceL10n.stageEyebrow).toUpperCase(),
-                      style: HomeType.eyebrow(HomeStage.gold),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
                       context.tr(ExperienceL10n.stageHeadline),
                       style: HomeType.display(42, HomeStage.ink),
                     ),

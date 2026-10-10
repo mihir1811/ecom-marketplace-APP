@@ -76,9 +76,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
       },
       children: [
         AtelierHero(
-          overline: 'Auction house',
           title: context.tr(RemainingL10n.auctions),
-          subtitle: context.tr(RemainingL10n.manageYourLiveAuctionsViewAll),
           cut: GemCut.emerald,
           look: GemLook.ice,
           action: AtelierButton(
@@ -412,7 +410,6 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
     final action = await showAtelierOptions<String>(
       context: context,
       title: 'Reject outcome',
-      subtitle: 'Restart the auction or remove the listing.',
       options: const [
         AtelierOption(
           value: 'restart',

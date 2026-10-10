@@ -146,15 +146,10 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
     final draft = ref.watch(_draftProvider);
     final summary = WatchFilterSummary.of(draft);
     return LuxeFinderScaffold<WatchFilterSection>(
-      eyebrow: context.tr(CatalogFlowL10n.watchFilterEyebrow),
       title: _isBrandLocked
           ? _lockedBrandName
           : context.tr(CatalogL10n.luxuryWatches),
       onBack: () => context.goBack(),
-      intro: LuxeFinderIntro(
-        headline: context.tr(CatalogFlowL10n.watchFilterHeadline),
-        intro: context.tr(CatalogFlowL10n.watchFilterIntro),
-      ),
       sections: WatchFilterSection.values,
       active: finderActive,
       labelOf: (s) => watchSectionTitle(context, s),

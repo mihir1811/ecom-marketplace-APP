@@ -83,7 +83,6 @@ class _SavedDiamondProjectsScreenState
     return AppScaffold(
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
-        eyebrow: context.tr(ExperienceL10n.projectArchive),
         title: context.tr(CatalogL10n.savedProjects),
         scrollOffset: _offset,
       ),

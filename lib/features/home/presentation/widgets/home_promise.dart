@@ -31,10 +31,7 @@ class HomePromise extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          HomeSectionHeading(
-            eyebrow: context.tr(HomeL10n.promiseEyebrow),
-            title: context.tr(HomeL10n.promiseTitle),
-          ),
+          HomeSectionHeading(title: context.tr(HomeL10n.promiseTitle)),
           const SizedBox(height: 18),
           for (var i = 0; i < pillars.length; i++)
             ScrollReveal.builder(

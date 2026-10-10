@@ -63,7 +63,6 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
     final created = await showAtelierSheet<ApiShareKey>(
       context: context,
       title: context.tr(RemainingL10n.generateApiKey),
-      subtitle: 'We email the key to your partner the moment it’s created.',
       builder: (_) => _GenerateKeySheet(
         onGenerate: (name, email, permissions) async {
           final result = await _notifier.generate(
@@ -184,9 +183,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
         maxWidth: 1080,
         children: [
           AtelierHero(
-            overline: 'Partner access',
             title: context.tr(RemainingL10n.apiKeys),
-            subtitle: context.tr(RemainingL10n.createApiKeysForPartnersTo),
             cut: GemCut.emerald,
             look: GemLook.ice,
             action: AtelierButton(
@@ -233,11 +230,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
           Reveal(
             index: 1,
             child: AtelierSectionHeader(
-              overline: 'Scopes',
               title: context.tr(RemainingL10n.permissions),
-              subtitle: keys.isEmpty
-                  ? 'What a partner can do with a key.'
-                  : 'What a partner can do with a key — tap one to filter.',
             ),
           ),
           const SizedBox(height: AtelierSpace.s16),
@@ -264,15 +257,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
           Reveal(
             index: 2,
             child: AtelierSectionHeader(
-              overline: 'Issued',
               title: 'Your keys',
-              subtitle: firstLoad
-                  ? null
-                  : keys.isEmpty
-                  ? 'None issued yet.'
-                  : visible.length == keys.length
-                  ? '${keys.length} ${keys.length == 1 ? 'key' : 'keys'}'
-                  : 'Showing ${visible.length} of ${keys.length}',
               trailing: AtelierIconButton(
                 icon: Icons.refresh_rounded,
                 tooltip: context.tr(RemainingL10n.refresh),

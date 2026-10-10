@@ -292,13 +292,12 @@ class LuxeSectionState extends State<LuxeSection> {
 }
 
 /// Minimal luxe app bar: round back control, serif title with optional
-/// eyebrow / subtitle, trailing actions. It fades in a frosted backdrop and
+/// subtitle, trailing actions. It fades in a frosted backdrop and
 /// hairline once content scrolls beneath it.
 class LuxeTopBar extends StatelessWidget implements PreferredSizeWidget {
   const LuxeTopBar({
     required this.title,
     super.key,
-    this.eyebrow,
     this.subtitle,
     this.actions = const [],
     this.scrollOffset,
@@ -307,7 +306,6 @@ class LuxeTopBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   final String title;
-  final String? eyebrow;
   final Widget? subtitle;
   final List<Widget> actions;
   final ValueListenable<double>? scrollOffset;
@@ -352,15 +350,6 @@ class LuxeTopBar extends StatelessWidget implements PreferredSizeWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (eyebrow != null)
-                      Text(
-                        eyebrow!.toUpperCase(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: LuxeType.eyebrow(
-                          p.accent,
-                        ).copyWith(fontSize: 9.5),
-                      ),
                     Text(
                       title,
                       maxLines: 1,

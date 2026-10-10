@@ -64,14 +64,7 @@ class _SellerInquiriesScreenState extends ConsumerState<SellerInquiriesScreen> {
     final children = <Widget>[
       Reveal(child: _Header(onNew: _openNew)),
       const SizedBox(height: AtelierSpace.s24),
-      Reveal(
-        index: 1,
-        child: AtelierSectionHeader(
-          overline: context.tr(RemainingL10n.browseByType),
-          title: _category.listTitle,
-          subtitle: context.tr(RemainingL10n.switchCategoryEachTypeLoadsItsOwn),
-        ),
-      ),
+      Reveal(index: 1, child: AtelierSectionHeader(title: _category.listTitle)),
       const SizedBox(height: AtelierSpace.s12),
       Reveal(
         index: 2,
@@ -255,7 +248,6 @@ class _Header extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            const Positioned.fill(child: AtelierAmbient(intensity: 0.8)),
             Padding(
               padding: const EdgeInsets.all(22),
               child: Column(

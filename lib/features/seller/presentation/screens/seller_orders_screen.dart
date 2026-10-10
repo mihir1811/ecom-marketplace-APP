@@ -293,7 +293,6 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
     final result = await showAtelierSheet<SellerOrderFilters>(
       context: context,
       title: 'Filter orders',
-      subtitle: 'Narrow the list by date, payment and refund state.',
       builder: (_) => _FilterSheet(
         initial: _filters,
         paymentStatuses: board.paymentStatuses(),

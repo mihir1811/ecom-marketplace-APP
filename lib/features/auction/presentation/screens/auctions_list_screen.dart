@@ -136,7 +136,6 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
     return AppScaffold(
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
-        eyebrow: 'Auction house',
         title: widget.title,
         scrollOffset: listingOffset,
         actions: const [CatalogFlowActions()],

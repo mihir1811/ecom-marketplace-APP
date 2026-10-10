@@ -22,7 +22,6 @@ Future<bool> showSellerAuctionCreateSheet(BuildContext context) async {
   final created = await showAtelierSheet<bool>(
     context: context,
     title: 'Create auction',
-    subtitle: 'Pick stones, set a schedule and opening bids.',
     scrollable: false,
     builder: (context) => const _CreateAuctionSheet(),
   );

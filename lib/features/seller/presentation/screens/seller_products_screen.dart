@@ -93,7 +93,6 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
     return showAtelierSheet<void>(
       context: context,
       title: context.tr(RemainingL10n.columns),
-      subtitle: 'Choose which fields the table shows.',
       builder: (_) => Consumer(
         builder: (context, ref, _) {
           final state = ref.watch(sellerProductsControllerProvider);

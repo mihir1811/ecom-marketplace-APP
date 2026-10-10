@@ -76,7 +76,6 @@ class OrderDetailHero extends ConsumerWidget {
             ),
             child: Stack(
               children: [
-                const Positioned.fill(child: AtelierAmbient(intensity: 1.1)),
                 Positioned(
                   left: 0,
                   right: 0,

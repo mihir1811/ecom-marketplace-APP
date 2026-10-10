@@ -464,18 +464,11 @@ class _InboxHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = loading
-        ? 'Gathering your conversations…'
-        : unreadThreads == 0
-        ? 'You’re all caught up — every buyer has a reply.'
-        : '$unreadThreads ${unreadThreads == 1 ? 'buyer is' : 'buyers are'} waiting on a reply.';
     return LayoutBuilder(
       builder: (context, constraints) {
         final roomy = constraints.maxWidth >= 560;
         return AtelierHero(
-          overline: 'Client correspondence',
           title: context.tr(CoreL10n.messages),
-          subtitle: subtitle,
           cut: compact ? null : GemCut.pear,
           footer: AtelierHeroStats(
             stats: [
@@ -814,7 +807,6 @@ class _ConversationPlaceholder extends StatelessWidget {
     final p = context.atelier;
     return Stack(
       children: [
-        const Positioned.fill(child: AtelierAmbient(intensity: 0.7)),
         Center(
           child: Padding(
             padding: const EdgeInsets.all(AtelierSpace.s32),

@@ -45,7 +45,6 @@ class _SellerPromotionsScreenState
         await showAtelierOptions<_Kind>(
           context: context,
           title: 'New promotion',
-          subtitle: 'Choose how buyers will receive the saving.',
           options: [
             AtelierOption(
               value: _Kind.discount,
@@ -72,9 +71,6 @@ class _SellerPromotionsScreenState
       title: chosen == _Kind.discount
           ? context.tr(RemainingL10n.addDiscount)
           : context.tr(RemainingL10n.addPromoCode),
-      subtitle: chosen == _Kind.discount
-          ? 'Runs automatically between the dates you set.'
-          : 'Share the code; buyers redeem it at checkout.',
       builder: (_) => _PromotionForm(kind: chosen),
     );
   }
@@ -149,11 +145,7 @@ class _SellerPromotionsScreenState
       onRefresh: _refresh,
       children: [
         AtelierHero(
-          overline: 'Growth',
           title: context.tr(RemainingL10n.promotions),
-          subtitle:
-              'Storewide discounts and shareable codes — schedule them, '
-              'watch them work.',
           cut: GemCut.pear,
           action: AtelierButton(
             label: 'New promotion',

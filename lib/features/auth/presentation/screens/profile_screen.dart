@@ -693,7 +693,6 @@ class _IdentityHero extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                const Positioned.fill(child: AtelierAmbient(intensity: 1.2)),
                 Positioned(
                   left: 0,
                   right: 0,
@@ -733,15 +732,6 @@ class _IdentityHero extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Reveal(
-                        child: Text(
-                          currentWorkspace(context) == AppWorkspace.seller
-                              ? 'SELLER PROFILE'
-                              : 'MY PROFILE',
-                          style: AtelierType.overline(p.gold),
-                        ),
-                      ),
-                      SizedBox(height: wide ? 18 : 14),
                       Row(
                         children: [
                           Reveal(
@@ -993,11 +983,7 @@ class _GlanceRow extends StatelessWidget {
       children: [
         const Reveal(
           index: 1,
-          child: AtelierSectionHeader(
-            overline: 'At a glance',
-            title: 'Your account',
-            subtitle: 'Tap a card to open its details.',
-          ),
+          child: AtelierSectionHeader(title: 'Your account'),
         ),
         const SizedBox(height: AtelierSpace.s16),
         AtelierTileGrid(
@@ -1598,7 +1584,6 @@ class _PayoutCard extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                const Positioned.fill(child: AtelierAmbient(intensity: 0.8)),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1964,7 +1949,6 @@ class _ProfileSkeleton extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              Positioned.fill(child: AtelierAmbient(intensity: 1.2)),
               Center(
                 child: SizedBox(
                   width: 22,

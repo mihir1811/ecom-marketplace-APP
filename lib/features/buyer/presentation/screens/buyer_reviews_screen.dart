@@ -150,8 +150,6 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
     final p = context.atelier;
     final async = ref.watch(mySellerReviewsProvider);
     final reviews = async.valueOrNull ?? const <SellerReview>[];
-    final count = reviews.length;
-    final sellers = reviews.map((r) => r.sellerId).toSet().length;
     final lenses = [
       for (final l in _ReviewLens.values)
         if (l != _ReviewLens.hidden || reviews.any(l.matches)) l,
@@ -185,14 +183,7 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       MaisonHeader(
-                        overline: 'Your voice',
                         title: context.tr(AccountCommerceL10n.myReviews),
-                        subtitle: count == 0
-                            ? 'Your word on every atelier you’ve bought '
-                                  'from, kept together.'
-                            : '$count ${count == 1 ? 'review' : 'reviews'} '
-                                  'across $sellers '
-                                  '${sellers == 1 ? 'atelier' : 'ateliers'}.',
                         cut: GemCut.radiant,
                         look: GemLook.champagne,
                       ),

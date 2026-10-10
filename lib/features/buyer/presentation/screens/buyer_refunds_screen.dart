@@ -158,11 +158,7 @@ class _BuyerRefundsScreenState extends ConsumerState<BuyerRefundsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         MaisonHeader(
-                          overline: 'My account',
                           title: context.tr(AccountCommerceL10n.refunds),
-                          subtitle:
-                              'Each request, where it stands, and when the '
-                              'money returns to your wallet.',
                           cut: GemCut.pear,
                         ),
                         const SizedBox(height: 22),

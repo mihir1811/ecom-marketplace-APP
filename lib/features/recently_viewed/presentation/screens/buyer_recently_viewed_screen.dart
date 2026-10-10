@@ -216,7 +216,6 @@ class _BuyerRecentlyViewedScreenState
     final async = ref.watch(recentlyViewedListProvider);
     final page = async.valueOrNull;
     final items = page?.items ?? const <RecentlyViewedEntry>[];
-    final total = math.max(page?.total ?? 0, items.length);
     final present = [
       for (final c in WishlistCategory.values)
         if (items.any((e) => e.category == c)) c,
@@ -253,15 +252,7 @@ class _BuyerRecentlyViewedScreenState
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         MaisonHeader(
-                          overline: 'Your trail',
-                          title: context.tr(
-                            AccountCommerceL10n.recentlyViewed,
-                          ),
-                          subtitle: total == 0
-                              ? 'Every piece you open is kept here, so '
-                                    'you can find it again.'
-                              : '$total ${total == 1 ? 'piece' : 'pieces'} '
-                                    'you’ve explored lately.',
+                          title: context.tr(AccountCommerceL10n.recentlyViewed),
                           cut: GemCut.pear,
                           look: GemLook.ice,
                         ),

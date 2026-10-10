@@ -245,7 +245,7 @@ class _Shell extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       backgroundColor: LuxePalette.of(context).canvas,
-      appBar: const LuxeTopBar(eyebrow: 'Auction house', title: 'Auction'),
+      appBar: const LuxeTopBar(title: 'Auction'),
       body: child,
     );
   }

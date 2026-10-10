@@ -65,7 +65,6 @@ class _DiamondProjectStatsScreenState
     return AppScaffold(
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
-        eyebrow: context.tr(ExperienceL10n.projectEyebrow),
         title: selection.isEmpty
             ? context.tr(CatalogL10n.diamondProject)
             : selection.name,
