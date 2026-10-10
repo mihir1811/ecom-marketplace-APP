@@ -16,7 +16,6 @@ import '../widgets/home_collections.dart';
 import '../widgets/home_ai_search_card.dart';
 import '../widgets/home_footer.dart';
 import '../widgets/home_live_auctions.dart';
-import '../widgets/home_search_overlay.dart';
 import '../widgets/home_sell_card.dart';
 
 /// GemWorld home: an immersive hero stage followed by editorial sections.
@@ -30,7 +29,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scroll = ScrollController();
   final _offset = ValueNotifier<double>(0);
-  final _collectionsKey = GlobalKey();
 
   @override
   void initState() {
@@ -45,24 +43,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.dispose();
   }
 
-  void _openSearch() => showHomeSearch(context);
-
   void _askGemAi() {
     if (!ref.read(authProvider).isAuthenticated) {
       context.openRoute(AppRouteNames.login);
       return;
     }
     ref.read(aiChatUiProvider.notifier).open();
-  }
-
-  void _exploreCollections() {
-    final target = _collectionsKey.currentContext;
-    if (target == null) return;
-    Scrollable.ensureVisible(
-      target,
-      duration: const Duration(milliseconds: 1100),
-      curve: HomeMotion.settle,
-    );
   }
 
   @override
@@ -95,16 +81,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 height: heroHeight,
                 topInset: 8,
                 scrollOffset: _offset,
-                onSearch: _openSearch,
-                onExplore: _exploreCollections,
               ),
             ),
             if (auth.isAuthenticated)
               const SliverToBoxAdapter(child: HomeAtelierLinks()),
-            SliverToBoxAdapter(
-              key: _collectionsKey,
-              child: const HomeCollections(),
-            ),
+            const SliverToBoxAdapter(child: HomeCollections()),
             const SliverToBoxAdapter(child: HomeLiveAuctions()),
             SliverToBoxAdapter(child: HomeAiSearchCard(onAsk: _askGemAi)),
             if (!auth.isSeller)
@@ -114,9 +95,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onTap: () => startSellingFlow(context, ref),
                 ),
               ),
-            const SliverToBoxAdapter(child: HomeFooter()),
-            // The page scrolls behind the floating dock; end clear of it.
-            SliverToBoxAdapter(child: SizedBox(height: media.padding.bottom)),
+            // Last stage fills the viewport and runs to the screen's bottom
+            // edge behind the floating dock; its links clear the dock.
+            SliverToBoxAdapter(
+              child: HomeFooter(
+                stageHeight:
+                    media.size.height - media.padding.top - AppTabTopBar.height,
+              ),
+            ),
           ],
         ),
       ),

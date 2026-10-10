@@ -12,18 +12,17 @@ import '../../../../../core/l10n/app_localizations.dart';
 import '../../theme/home_tokens.dart';
 import 'stardust_field.dart';
 import 'stardust_painter.dart';
+import 'hero_spotlight.dart';
 import 'stage_backdrop.dart';
 
 /// Full-bleed opening stage: a deep-space shader, interactive stardust that
-/// gathers into the GemWorld G, a brilliant and a galaxy, an editorial
-/// headline and the primary search entry.
+/// gathers into the GemWorld G, a brilliant and a galaxy, and a spotlight of
+/// promo banners with trust marks.
 class HomeHero extends StatefulWidget {
   const HomeHero({
     required this.height,
     required this.topInset,
     required this.scrollOffset,
-    required this.onSearch,
-    required this.onExplore,
     super.key,
   });
 
@@ -32,8 +31,6 @@ class HomeHero extends StatefulWidget {
   /// Space reserved above the cosmos.
   final double topInset;
   final ValueListenable<double> scrollOffset;
-  final VoidCallback onSearch;
-  final VoidCallback onExplore;
 
   @override
   State<HomeHero> createState() => _HomeHeroState();
@@ -170,12 +167,6 @@ class _HomeHeroState extends State<HomeHero>
       ..setPointer(null);
   }
 
-  void _select(StarForm form) {
-    AppHaptics.selection();
-    _dismissHint();
-    _field.advance(form);
-  }
-
   @override
   void dispose() {
     widget.scrollOffset.removeListener(_onScroll);
@@ -227,11 +218,10 @@ class _HomeHeroState extends State<HomeHero>
                         );
                       },
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(gutter, 0, gutter, 28),
-                        child: _HeroCopy(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: HeroSpotlight(
                           animate: !_reduceMotion,
-                          onSearch: widget.onSearch,
-                          onExplore: widget.onExplore,
+                          gutter: gutter,
                         ),
                       ),
                     ),
@@ -306,12 +296,7 @@ class _HomeHeroState extends State<HomeHero>
               left: 0,
               right: 0,
               bottom: 2,
-              child: _FormDial(
-                field: _field,
-                hintVisible: _hintVisible,
-                animate: !_reduceMotion,
-                onSelect: _select,
-              ),
+              child: _DragHint(visible: _hintVisible, animate: !_reduceMotion),
             ),
           ],
         );
@@ -320,356 +305,37 @@ class _HomeHeroState extends State<HomeHero>
   }
 }
 
-/// Caption for the current formation plus a three-step selector.
-class _FormDial extends StatelessWidget {
-  const _FormDial({
-    required this.field,
-    required this.hintVisible,
-    required this.animate,
-    required this.onSelect,
-  });
+/// Touch hint under the cosmos; fades away after the first interaction.
+class _DragHint extends StatelessWidget {
+  const _DragHint({required this.visible, required this.animate});
 
-  final StardustField field;
-  final ValueListenable<bool> hintVisible;
+  final ValueListenable<bool> visible;
   final bool animate;
-  final ValueChanged<StarForm> onSelect;
-
-  static String _caption(StarForm f) => switch (f) {
-    StarForm.glyph => HomeL10n.formGlyph,
-    StarForm.gem => HomeL10n.formGem,
-    StarForm.galaxy => HomeL10n.formGalaxy,
-  };
 
   @override
   Widget build(BuildContext context) {
-    Widget dial = ValueListenableBuilder<StarForm>(
-      valueListenable: field.form,
-      builder: (context, current, _) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 700),
-              switchInCurve: HomeMotion.settle,
-              transitionBuilder: (child, animation) => FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween(
-                    begin: const Offset(0, 0.4),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                ),
-              ),
-              child: Text(
-                context.tr(_caption(current)).toUpperCase(),
-                key: ValueKey(current),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: HomeType.eyebrow(HomeStage.gold),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final f in StarForm.values)
-                  Semantics(
-                    button: true,
-                    selected: f == current,
-                    label: context.tr(_caption(f)),
-                    excludeSemantics: true,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => onSelect(f),
-                      child: SizedBox(
-                        width: 36,
-                        height: 32,
-                        child: Center(
-                          child: AnimatedContainer(
-                            duration: HomeMotion.medium,
-                            curve: HomeMotion.settle,
-                            width: f == current ? 22 : 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(3),
-                              color: f == current
-                                  ? HomeStage.gold
-                                  : HomeStage.ink.withValues(alpha: 0.3),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            ValueListenableBuilder<bool>(
-              valueListenable: hintVisible,
-              builder: (context, visible, child) => AnimatedOpacity(
-                opacity: visible ? 1 : 0,
-                duration: HomeMotion.medium,
-                child: child,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.touch_app_outlined,
-                    size: 14,
-                    color: HomeStage.inkMuted,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    context.tr(HomeL10n.dragHint),
-                    style: HomeType.label(HomeStage.inkMuted, size: 11.5),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-    if (animate) {
-      dial = dial.animate(delay: 1600.ms).fadeIn(duration: 900.ms);
-    }
-    return dial;
-  }
-}
-
-class _HeroCopy extends StatelessWidget {
-  const _HeroCopy({
-    required this.animate,
-    required this.onSearch,
-    required this.onExplore,
-  });
-
-  final bool animate;
-  final VoidCallback onSearch;
-  final VoidCallback onExplore;
-
-  Widget _enter(Widget child, int delayMs, {double dy = 14}) {
-    if (!animate) return child;
-    return child
-        .animate(delay: delayMs.ms)
-        .fadeIn(duration: 800.ms, curve: HomeMotion.settle)
-        .moveY(begin: dy, end: 0, duration: 900.ms, curve: HomeMotion.settle);
-  }
-
-  Widget _line(Widget text, int delayMs) {
-    if (!animate) return text;
-    return ClipRect(
-      child: text
-          .animate(delay: delayMs.ms)
-          .slideY(
-            begin: 1.05,
-            end: 0,
-            duration: 1100.ms,
-            curve: HomeMotion.settle,
-          ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final headline = (width * 0.115).clamp(38.0, 62.0);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _line(
+    Widget hint = ValueListenableBuilder<bool>(
+      valueListenable: visible,
+      builder: (context, shown, child) => AnimatedOpacity(
+        opacity: shown ? 1 : 0,
+        duration: HomeMotion.medium,
+        child: child,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.touch_app_outlined, size: 14, color: HomeStage.inkMuted),
+          const SizedBox(width: 6),
           Text(
-            context.tr(HomeL10n.heroTitleLine1),
-            style: HomeType.display(headline, HomeStage.ink),
+            context.tr(HomeL10n.dragHint),
+            style: HomeType.label(HomeStage.inkMuted, size: 11.5),
           ),
-          300,
-        ),
-        _line(
-          ShaderMask(
-            blendMode: BlendMode.srcIn,
-            shaderCallback: (rect) => LinearGradient(
-              colors: [
-                HomeStage.goldLight,
-                HomeStage.gold,
-                Color.lerp(HomeStage.gold, HomeStage.goldDeep, 0.5)!,
-              ],
-            ).createShader(rect),
-            child: Text(
-              context.tr(HomeL10n.heroTitleLine2),
-              style: HomeType.displayItalic(headline, Colors.white),
-            ),
-          ),
-          420,
-        ),
-        const SizedBox(height: 14),
-        _enter(
-          Text(
-            context.tr(
-              RemainingL10n.indiaSMarketplaceForDiamondsGemstonesJewelry,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: HomeType.body(HomeStage.inkMuted, size: 14),
-          ),
-          700,
-        ),
-        const SizedBox(height: 22),
-        _enter(
-          _HeroSearchPill(animate: animate, onSearch: onSearch),
-          860,
-          dy: 18,
-        ),
-        const SizedBox(height: 14),
-        _enter(_ExploreLink(animate: animate, onTap: onExplore), 1050),
-      ],
-    );
-  }
-}
-
-/// Glass search entry with a rotating category word.
-class _HeroSearchPill extends StatefulWidget {
-  const _HeroSearchPill({required this.animate, required this.onSearch});
-
-  final bool animate;
-  final VoidCallback onSearch;
-
-  @override
-  State<_HeroSearchPill> createState() => _HeroSearchPillState();
-}
-
-class _HeroSearchPillState extends State<_HeroSearchPill> {
-  static const _words = [
-    RemainingL10n.naturalDiamonds,
-    RemainingL10n.gemstones,
-    RemainingL10n.jewelry,
-    RemainingL10n.watches,
-    RemainingL10n.labGrown,
-    RemainingL10n.bullion,
-  ];
-  Timer? _timer;
-  int _index = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.animate) {
-      _timer = Timer.periodic(const Duration(milliseconds: 2600), (_) {
-        if (mounted) setState(() => _index = (_index + 1) % _words.length);
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final word = context.tr(_words[_index]).toLowerCase();
-    return Semantics(
-      button: true,
-      label: context.tr(HomeL10n.searchPlaceholder),
-      child: Material(
-        color: HomeStage.glass,
-        shape: const StadiumBorder(
-          side: BorderSide(color: HomeStage.glassBorder),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: widget.onSearch,
-          child: SizedBox(
-            height: 56,
-            child: Row(
-              children: [
-                const SizedBox(width: 20),
-                Icon(Icons.search_rounded, color: HomeStage.gold, size: 21),
-                const SizedBox(width: 12),
-                Text(
-                  '${context.tr(HomeL10n.searchPrefix)} ',
-                  style: HomeType.body(HomeStage.inkMuted, size: 15),
-                ),
-                Expanded(
-                  child: ClipRect(
-                    child: AnimatedSwitcher(
-                      duration: HomeMotion.medium,
-                      switchInCurve: HomeMotion.settle,
-                      switchOutCurve: Curves.easeIn,
-                      layoutBuilder: (current, previous) => Stack(
-                        alignment: Alignment.centerLeft,
-                        children: [...previous, ?current],
-                      ),
-                      transitionBuilder: (child, animation) {
-                        final incoming = child.key == ValueKey<String>(word);
-                        final slide = Tween<Offset>(
-                          begin: Offset(0, incoming ? 0.9 : -0.9),
-                          end: Offset.zero,
-                        ).animate(animation);
-                        return FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(position: slide, child: child),
-                        );
-                      },
-                      child: Text(
-                        word,
-                        key: ValueKey<String>(word),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: HomeType.body(HomeStage.ink, size: 15),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-              ],
-            ),
-          ),
-        ),
+        ],
       ),
     );
-  }
-}
-
-class _ExploreLink extends StatelessWidget {
-  const _ExploreLink({required this.animate, required this.onTap});
-
-  final bool animate;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget arrow = Icon(Icons.south_rounded, size: 16, color: HomeStage.gold);
     if (animate) {
-      arrow = arrow
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .moveY(begin: -2, end: 3, duration: 1100.ms, curve: Curves.easeInOut);
+      hint = hint.animate(delay: 1600.ms).fadeIn(duration: 900.ms);
     }
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: TextButton(
-        onPressed: onTap,
-        style: TextButton.styleFrom(
-          foregroundColor: HomeStage.ink,
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-          minimumSize: const Size(48, 44),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              context.tr(HomeL10n.exploreCollections),
-              style: HomeType.label(HomeStage.ink),
-            ),
-            const SizedBox(width: 8),
-            arrow,
-          ],
-        ),
-      ),
-    );
+    return IgnorePointer(child: Center(child: hint));
   }
 }

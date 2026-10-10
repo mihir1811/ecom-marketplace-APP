@@ -15,14 +15,17 @@ import 'home_section.dart';
 /// them warm; the page does not scroll while touching the stones below the
 /// copy. Legal links sit along the bottom edge.
 class HomeGemStage extends StatelessWidget {
-  const HomeGemStage({super.key});
+  const HomeGemStage({this.height, super.key});
+
+  /// Defaults to the screen height.
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
     final palette = HomePalette.of(context);
     final media = MediaQuery.of(context);
     final gutter = homeGutter(context);
-    final height = media.size.height;
+    final height = this.height ?? media.size.height;
     final copyTop = media.padding.top + 28;
     // Touches above this line still scroll the page back up.
     final touchTop = copyTop + 200;

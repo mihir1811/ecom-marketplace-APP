@@ -43,13 +43,17 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
   static const _brands = WatchBrandAssets.featuredBrands;
   static const _loops = 1000;
   static const _autoScrollInterval = Duration(seconds: 4);
-  static const _stageHeight = 210.0;
+  static const _viewportFraction = 0.34;
 
-  /// Hugs the centred watch (one ~0.34-wide slot) with a slim margin.
-  static const _loupeSize = 156.0;
+  /// Loupe diameter per watch diameter: a constant ring of air around the
+  /// centred watch on every screen.
+  static const _loupeRatio = 1.32;
+
+  /// Stage space above and below the loupe for the neighbours' arc.
+  static const _stageMargin = 54.0;
 
   late final PageController _controller = PageController(
-    viewportFraction: 0.34,
+    viewportFraction: _viewportFraction,
     initialPage: _brands.length * (_loops ~/ 2),
   );
   late int _current = _brands.length * (_loops ~/ 2);
@@ -183,51 +187,65 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
             actionLabel: 'View All Brands',
             onAction: () => showWatchBrandsDirectory(context),
           ),
-          SizedBox(
-            height: _stageHeight,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Loupe dial: turns with the carousel, scroll-linked.
-                IgnorePointer(
-                  child: AnimatedBuilder(
-                    animation: _controller,
-                    builder: (context, _) => CustomPaint(
-                      size: const Size.square(_loupeSize),
-                      painter: _LoupePainter(
-                        rotation: _page() * math.pi / 10,
-                        color: p.accent,
-                        hairline: isSelected ? p.accent : p.hairline,
+          LayoutBuilder(
+            builder: (context, box) {
+              // Watch, loupe and stage all scale with the slot width, so the
+              // spacing reads the same on every device; capped for tablets.
+              final watchSize = (box.maxWidth * _viewportFraction - 8).clamp(
+                96.0,
+                170.0,
+              );
+              final loupeSize = watchSize * _loupeRatio;
+              return SizedBox(
+                height: loupeSize + _stageMargin,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Loupe dial: turns with the carousel, scroll-linked.
+                    IgnorePointer(
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, _) => CustomPaint(
+                          size: Size.square(loupeSize),
+                          painter: _LoupePainter(
+                            rotation: _page() * math.pi / 10,
+                            color: p.accent,
+                            hairline: isSelected ? p.accent : p.hairline,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                NotificationListener<ScrollStartNotification>(
-                  onNotification: (n) {
-                    if (n.dragDetails != null) _stopAutoScroll();
-                    return false;
-                  },
-                  child: PageView.builder(
-                    controller: _controller,
-                    clipBehavior: Clip.none,
-                    itemCount: _brands.length * _loops,
-                    onPageChanged: (i) {
-                      AppHaptics.selection();
-                      setState(() => _current = i);
-                    },
-                    itemBuilder: (context, i) => _BrandWatchItem(
-                      controller: _controller,
-                      index: i,
-                      fallbackPage: _current.toDouble(),
-                      brand: _brands[i % _brands.length],
-                      clock: _clock,
-                      selected: selected.contains(_brands[i % _brands.length]),
-                      onTap: () => _onTapItem(i),
+                    NotificationListener<ScrollStartNotification>(
+                      onNotification: (n) {
+                        if (n.dragDetails != null) _stopAutoScroll();
+                        return false;
+                      },
+                      child: PageView.builder(
+                        controller: _controller,
+                        clipBehavior: Clip.none,
+                        itemCount: _brands.length * _loops,
+                        onPageChanged: (i) {
+                          AppHaptics.selection();
+                          setState(() => _current = i);
+                        },
+                        itemBuilder: (context, i) => _BrandWatchItem(
+                          controller: _controller,
+                          index: i,
+                          fallbackPage: _current.toDouble(),
+                          watchSize: watchSize,
+                          brand: _brands[i % _brands.length],
+                          clock: _clock,
+                          selected: selected.contains(
+                            _brands[i % _brands.length],
+                          ),
+                          onTap: () => _onTapItem(i),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
           const SizedBox(height: 6),
           AnimatedSwitcher(
@@ -327,6 +345,7 @@ class _BrandWatchItem extends StatelessWidget {
     required this.controller,
     required this.index,
     required this.fallbackPage,
+    required this.watchSize,
     required this.brand,
     required this.clock,
     required this.selected,
@@ -336,6 +355,7 @@ class _BrandWatchItem extends StatelessWidget {
   final PageController controller;
   final int index;
   final double fallbackPage;
+  final double watchSize;
   final String brand;
   final ValueNotifier<double> clock;
   final bool selected;
@@ -369,8 +389,8 @@ class _BrandWatchItem extends StatelessWidget {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final size = math.min(
-                    constraints.maxWidth,
-                    constraints.maxHeight,
+                    watchSize,
+                    math.min(constraints.maxWidth, constraints.maxHeight),
                   );
                   return Stack(
                     alignment: Alignment.center,
