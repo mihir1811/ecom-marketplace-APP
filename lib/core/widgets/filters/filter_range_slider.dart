@@ -286,7 +286,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: const BorderSide(
+                            borderSide: BorderSide(
                               color: AppColors.bronze,
                               width: 1.5,
                             ),
@@ -361,7 +361,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppSpacing.r8),
-                            borderSide: const BorderSide(
+                            borderSide: BorderSide(
                               color: AppColors.bronze,
                               width: 1.5,
                             ),

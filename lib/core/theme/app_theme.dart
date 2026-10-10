@@ -1,58 +1,72 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'app_palette.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
 
 /// Centralized Material 3 Theme Configuration for GemWorld.
-/// Assembles Light ThemeData using design tokens.
+/// Assembles [ThemeData] from an [AppPalette]; the palette also rides on the
+/// theme as an [AppPaletteTheme] extension for token lookups.
 class AppTheme {
   const AppTheme._();
 
-  /// Light theme data representing the premium warm cream aesthetic of GemWorld.
-  static ThemeData get light {
-    final defaultTextTheme = AppTypography.buildTextTheme(
-      AppColors.textPrimaryLight,
-    );
+  /// Original light look ([AppPalette.ivory]).
+  static ThemeData get light => build(AppPalette.ivory);
+
+  /// Original dark look ([AppPalette.onyx]).
+  static ThemeData get dark => build(AppPalette.onyx);
+
+  static final _cache = <AppPaletteId, ThemeData>{};
+
+  /// Theme for [palette] (built once per palette).
+  static ThemeData build(AppPalette palette) => _cache.putIfAbsent(
+    palette.id,
+    () => palette.isDark
+        ? _dark(palette.chrome, palette)
+        : _light(palette.chrome, palette),
+  );
+
+  static ThemeData _light(AppChromeColors c, AppPalette palette) {
+    final defaultTextTheme = AppTypography.buildTextTheme(c.textPrimaryLight);
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       fontFamily: AppTypography.fontFamily,
-      colorScheme: const ColorScheme.light(
-        primary: AppColors.charcoal,
-        onPrimary: AppColors.warmWhite,
-        secondary: AppColors.bronze,
-        onSecondary: AppColors.warmWhite,
+      extensions: [AppPaletteTheme(palette)],
+      colorScheme: ColorScheme.light(
+        primary: c.charcoal,
+        onPrimary: c.warmWhite,
+        secondary: c.bronze,
+        onSecondary: c.warmWhite,
         error: AppColors.error,
-        onError: AppColors.warmWhite,
-        surface: AppColors.sandSurface,
-        onSurface: AppColors.textPrimaryLight,
-        outline: AppColors.warmBorder,
+        onError: c.warmWhite,
+        surface: c.sandSurface,
+        onSurface: c.textPrimaryLight,
+        outline: c.warmBorder,
       ),
-      scaffoldBackgroundColor: AppColors.creamBg,
+      scaffoldBackgroundColor: c.creamBg,
 
       // Typography
       textTheme: defaultTextTheme,
 
       // AppBar configuration
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.creamBg,
+        backgroundColor: c.creamBg,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: AppTypography.title.copyWith(
-          color: AppColors.textPrimaryLight,
-        ),
-        iconTheme: const IconThemeData(color: AppColors.textPrimaryLight),
+        titleTextStyle: AppTypography.title.copyWith(color: c.textPrimaryLight),
+        iconTheme: IconThemeData(color: c.textPrimaryLight),
       ),
 
       // Card Design
-      cardTheme: const CardThemeData(
-        color: AppColors.sandSurface,
+      cardTheme: CardThemeData(
+        color: c.sandSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r12)),
-          side: BorderSide(color: AppColors.warmBorder, width: 1.0),
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r12)),
+          side: BorderSide(color: c.warmBorder, width: 1.0),
         ),
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
@@ -61,41 +75,39 @@ class AppTheme {
       // Input Decoration (Text Fields)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.warmWhite,
+        fillColor: c.warmWhite,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.s16,
           vertical: AppSpacing.s12,
         ),
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
-          borderSide: BorderSide(color: AppColors.warmBorder, width: 1.0),
+        border: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
+          borderSide: BorderSide(color: c.warmBorder, width: 1.0),
         ),
-        enabledBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
-          borderSide: BorderSide(color: AppColors.warmBorder, width: 1.0),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
+          borderSide: BorderSide(color: c.warmBorder, width: 1.0),
         ),
-        focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
-          borderSide: BorderSide(color: AppColors.charcoal, width: 1.5),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
+          borderSide: BorderSide(color: c.charcoal, width: 1.5),
         ),
-        errorBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
+        errorBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
           borderSide: BorderSide(color: AppColors.error, width: 1.0),
         ),
-        labelStyle: AppTypography.label.copyWith(
-          color: AppColors.textSecondaryLight,
-        ),
-        hintStyle: AppTypography.body.copyWith(color: AppColors.textMutedLight),
+        labelStyle: AppTypography.label.copyWith(color: c.textSecondaryLight),
+        hintStyle: AppTypography.body.copyWith(color: c.textMutedLight),
         // Keep prefix/suffix icons readable when the field is in error state.
-        prefixIconColor: AppColors.textSecondaryLight,
-        suffixIconColor: AppColors.textSecondaryLight,
+        prefixIconColor: c.textSecondaryLight,
+        suffixIconColor: c.textSecondaryLight,
       ),
 
       // Button Themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.charcoal,
-          foregroundColor: AppColors.warmWhite,
+          backgroundColor: c.charcoal,
+          foregroundColor: c.warmWhite,
           elevation: 0,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.s24,
@@ -110,8 +122,8 @@ class AppTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.charcoal,
-          side: const BorderSide(color: AppColors.charcoal, width: 1.5),
+          foregroundColor: c.charcoal,
+          side: BorderSide(color: c.charcoal, width: 1.5),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.s24,
             vertical: AppSpacing.s16,
@@ -125,7 +137,7 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.charcoal,
+          foregroundColor: c.charcoal,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.s12,
             vertical: AppSpacing.s8,
@@ -136,90 +148,88 @@ class AppTheme {
 
       // Chips
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.warmWhite,
-        disabledColor: AppColors.sandSurface,
-        selectedColor: AppColors.charcoal,
-        secondarySelectedColor: AppColors.charcoal,
-        checkmarkColor: AppColors.warmWhite,
+        backgroundColor: c.warmWhite,
+        disabledColor: c.sandSurface,
+        selectedColor: c.charcoal,
+        secondarySelectedColor: c.charcoal,
+        checkmarkColor: c.warmWhite,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.s12,
           vertical: AppSpacing.s8,
         ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.circular)),
-          side: BorderSide(color: AppColors.warmBorder, width: 1.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.all(
+            Radius.circular(AppSpacing.circular),
+          ),
+          side: BorderSide(color: c.warmBorder, width: 1.0),
         ),
         labelStyle: AppTypography.caption.copyWith(
-          color: AppColors.textPrimaryLight,
+          color: c.textPrimaryLight,
           fontWeight: FontWeight.w500,
         ),
         secondaryLabelStyle: AppTypography.caption.copyWith(
-          color: AppColors.warmWhite,
+          color: c.warmWhite,
           fontWeight: FontWeight.w600,
         ),
         color: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.charcoal;
+            return c.charcoal;
           }
-          return AppColors.warmWhite;
+          return c.warmWhite;
         }),
         brightness: Brightness.light,
       ),
 
       // Divider Theme
-      dividerTheme: const DividerThemeData(
-        color: AppColors.warmBorder,
+      dividerTheme: DividerThemeData(
+        color: c.warmBorder,
         thickness: 1.0,
         space: 1.0,
       ),
     );
   }
 
-  /// Dark theme representing the sleek obsidian aesthetic of GemWorld.
-  static ThemeData get dark {
-    final defaultTextTheme = AppTypography.buildTextTheme(
-      AppColors.textPrimaryDark,
-    );
+  static ThemeData _dark(AppChromeColors c, AppPalette palette) {
+    final defaultTextTheme = AppTypography.buildTextTheme(c.textPrimaryDark);
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       fontFamily: AppTypography.fontFamily,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.bronzeLight,
-        onPrimary: AppColors.charcoalDark,
-        secondary: AppColors.bronze,
-        onSecondary: AppColors.warmWhite,
+      extensions: [AppPaletteTheme(palette)],
+      colorScheme: ColorScheme.dark(
+        primary: c.bronzeLight,
+        onPrimary: c.charcoalDark,
+        secondary: c.bronze,
+        onSecondary: c.warmWhite,
         error: AppColors.error,
-        onError: AppColors.warmWhite,
-        surface: AppColors.slateSurface,
-        onSurface: AppColors.textPrimaryDark,
-        outline: AppColors.slateBorder,
+        onError: c.warmWhite,
+        surface: c.slateSurface,
+        onSurface: c.textPrimaryDark,
+        outline: c.slateBorder,
       ),
-      scaffoldBackgroundColor: AppColors.obsidianBg,
+      scaffoldBackgroundColor: c.obsidianBg,
 
       // Typography
       textTheme: defaultTextTheme,
 
       // AppBar configuration
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.obsidianBg,
+        backgroundColor: c.obsidianBg,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: AppTypography.title.copyWith(
-          color: AppColors.textPrimaryDark,
-        ),
-        iconTheme: const IconThemeData(color: AppColors.textPrimaryDark),
+        titleTextStyle: AppTypography.title.copyWith(color: c.textPrimaryDark),
+        iconTheme: IconThemeData(color: c.textPrimaryDark),
       ),
 
       // Card Design
-      cardTheme: const CardThemeData(
-        color: AppColors.slateSurface,
+      cardTheme: CardThemeData(
+        color: c.slateSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r12)),
-          side: BorderSide(color: AppColors.slateBorder, width: 1.0),
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r12)),
+          side: BorderSide(color: c.slateBorder, width: 1.0),
         ),
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
@@ -228,40 +238,38 @@ class AppTheme {
       // Input Decoration (Text Fields)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.slateSurface,
+        fillColor: c.slateSurface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.s16,
           vertical: AppSpacing.s12,
         ),
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
-          borderSide: BorderSide(color: AppColors.slateBorder, width: 1.0),
+        border: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
+          borderSide: BorderSide(color: c.slateBorder, width: 1.0),
         ),
-        enabledBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
-          borderSide: BorderSide(color: AppColors.slateBorder, width: 1.0),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
+          borderSide: BorderSide(color: c.slateBorder, width: 1.0),
         ),
-        focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
-          borderSide: BorderSide(color: AppColors.bronzeLight, width: 1.5),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
+          borderSide: BorderSide(color: c.bronzeLight, width: 1.5),
         ),
-        errorBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
+        errorBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
           borderSide: BorderSide(color: AppColors.error, width: 1.0),
         ),
-        labelStyle: AppTypography.label.copyWith(
-          color: AppColors.textSecondaryDark,
-        ),
-        hintStyle: AppTypography.body.copyWith(color: AppColors.textMutedDark),
-        prefixIconColor: AppColors.textSecondaryDark,
-        suffixIconColor: AppColors.textSecondaryDark,
+        labelStyle: AppTypography.label.copyWith(color: c.textSecondaryDark),
+        hintStyle: AppTypography.body.copyWith(color: c.textMutedDark),
+        prefixIconColor: c.textSecondaryDark,
+        suffixIconColor: c.textSecondaryDark,
       ),
 
       // Button Themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.bronze,
-          foregroundColor: AppColors.warmWhite,
+          backgroundColor: c.bronze,
+          foregroundColor: c.warmWhite,
           elevation: 0,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.s24,
@@ -276,8 +284,8 @@ class AppTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.bronzeLight,
-          side: const BorderSide(color: AppColors.bronzeLight, width: 1.5),
+          foregroundColor: c.bronzeLight,
+          side: BorderSide(color: c.bronzeLight, width: 1.5),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.s24,
             vertical: AppSpacing.s16,
@@ -291,7 +299,7 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.bronzeLight,
+          foregroundColor: c.bronzeLight,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.s12,
             vertical: AppSpacing.s8,
@@ -302,39 +310,41 @@ class AppTheme {
 
       // Chips
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.slateSurface,
-        disabledColor: AppColors.slateSurface,
-        selectedColor: AppColors.warmWhite,
-        secondarySelectedColor: AppColors.warmWhite,
-        checkmarkColor: AppColors.charcoal,
+        backgroundColor: c.slateSurface,
+        disabledColor: c.slateSurface,
+        selectedColor: c.warmWhite,
+        secondarySelectedColor: c.warmWhite,
+        checkmarkColor: c.charcoal,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.s12,
           vertical: AppSpacing.s8,
         ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.circular)),
-          side: BorderSide(color: AppColors.slateBorder, width: 1.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.all(
+            Radius.circular(AppSpacing.circular),
+          ),
+          side: BorderSide(color: c.slateBorder, width: 1.0),
         ),
         labelStyle: AppTypography.caption.copyWith(
-          color: AppColors.textPrimaryDark,
+          color: c.textPrimaryDark,
           fontWeight: FontWeight.w500,
         ),
         secondaryLabelStyle: AppTypography.caption.copyWith(
-          color: AppColors.charcoal,
+          color: c.charcoal,
           fontWeight: FontWeight.w600,
         ),
         color: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.warmWhite;
+            return c.warmWhite;
           }
-          return AppColors.slateSurface;
+          return c.slateSurface;
         }),
         brightness: Brightness.dark,
       ),
 
       // Divider Theme
-      dividerTheme: const DividerThemeData(
-        color: AppColors.slateBorder,
+      dividerTheme: DividerThemeData(
+        color: c.slateBorder,
         thickness: 1.0,
         space: 1.0,
       ),

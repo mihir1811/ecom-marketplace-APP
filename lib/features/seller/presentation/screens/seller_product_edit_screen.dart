@@ -305,7 +305,7 @@ class _SellerProductEditScreenState
                 ),
                 onPressed: _saving ? null : _save,
                 child: _saving
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 22,
                         height: 22,
                         child: CircularProgressIndicator(

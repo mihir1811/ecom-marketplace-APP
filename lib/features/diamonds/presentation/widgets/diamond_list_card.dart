@@ -181,7 +181,7 @@ class DiamondCardList extends ConsumerWidget {
                               ),
                             ),
                           ),
-                        const Icon(
+                        Icon(
                           Icons.arrow_forward,
                           size: 18,
                           color: AppColors.bronze,

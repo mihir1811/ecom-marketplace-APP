@@ -415,7 +415,7 @@ class _FormDial extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.touch_app_outlined,
                     size: 14,
                     color: HomeStage.inkMuted,
@@ -510,8 +510,12 @@ class _HeroCopy extends StatelessWidget {
         _line(
           ShaderMask(
             blendMode: BlendMode.srcIn,
-            shaderCallback: (rect) => const LinearGradient(
-              colors: [Color(0xFFF1DDB5), HomeStage.gold, Color(0xFFB8925A)],
+            shaderCallback: (rect) => LinearGradient(
+              colors: [
+                HomeStage.goldLight,
+                HomeStage.gold,
+                Color.lerp(HomeStage.gold, HomeStage.goldDeep, 0.5)!,
+              ],
             ).createShader(rect),
             child: Text(
               context.tr(HomeL10n.heroTitleLine2),
@@ -603,11 +607,7 @@ class _HeroSearchPillState extends State<_HeroSearchPill> {
             child: Row(
               children: [
                 const SizedBox(width: 20),
-                const Icon(
-                  Icons.search_rounded,
-                  color: HomeStage.gold,
-                  size: 21,
-                ),
+                Icon(Icons.search_rounded, color: HomeStage.gold, size: 21),
                 const SizedBox(width: 12),
                 Text(
                   '${context.tr(HomeL10n.searchPrefix)} ',
@@ -662,11 +662,7 @@ class _ExploreLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget arrow = const Icon(
-      Icons.south_rounded,
-      size: 16,
-      color: HomeStage.gold,
-    );
+    Widget arrow = Icon(Icons.south_rounded, size: 16, color: HomeStage.gold);
     if (animate) {
       arrow = arrow
           .animate(onPlay: (c) => c.repeat(reverse: true))

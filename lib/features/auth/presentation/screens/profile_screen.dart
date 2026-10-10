@@ -22,6 +22,7 @@ import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../seller/presentation/atelier/atelier_theme.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 
 /// Account profile shared by the buyer and seller shells (read-only):
 /// identity at a glance, then one section at a time. Seller accounts also
@@ -685,7 +686,7 @@ class _IdentityHero extends StatelessWidget {
           borderRadius: BorderRadius.circular(AtelierRadius.xl),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: const Color(0xFF14120E),
+              color: LuxeStage.vault,
               border: Border.all(
                 color: p.isDark ? p.hairline : Colors.transparent,
               ),
@@ -1568,7 +1569,7 @@ class _PayoutCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
-    const ink = Color(0xFFF6F0E4);
+    final ink = LuxeStage.ink;
     final soft = ink.withValues(alpha: 0.6);
     final number = bank.number;
     final shown = number == null
@@ -1587,10 +1588,10 @@ class _PayoutCard extends StatelessWidget {
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AtelierRadius.lg),
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF221D15), Color(0xFF0F0D0A)],
+                colors: [LuxeStage.vaultTop, LuxeStage.vaultBottom],
               ),
               border: Border.all(color: p.gold.withValues(alpha: 0.35)),
               boxShadow: p.floatShadow,
@@ -1710,7 +1711,7 @@ class _CardLabel extends StatelessWidget {
           value,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AtelierType.label(const Color(0xFFF6F0E4), size: 13),
+          style: AtelierType.label(LuxeStage.ink, size: 13),
         ),
       ],
     );
@@ -1955,13 +1956,13 @@ class _ProfileSkeleton extends StatelessWidget {
           height: 260,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFF14120E),
+            color: LuxeStage.vault,
             borderRadius: BorderRadius.circular(AtelierRadius.xl),
             border: Border.all(
               color: p.isDark ? p.hairline : Colors.transparent,
             ),
           ),
-          child: const Stack(
+          child: Stack(
             children: [
               Positioned.fill(child: AtelierAmbient(intensity: 1.2)),
               Center(
@@ -1970,7 +1971,7 @@ class _ProfileSkeleton extends StatelessWidget {
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Color(0xFFD5B27A),
+                    color: LuxeStage.gold,
                   ),
                 ),
               ),

@@ -107,7 +107,7 @@ class AppNetworkImage extends StatelessWidget {
 
   Widget _placeholder(BuildContext context) => ColoredBox(
     color: AppColors.surface(context),
-    child: const Center(
+    child: Center(
       child: SizedBox(
         width: 22,
         height: 22,
@@ -121,7 +121,7 @@ class AppNetworkImage extends StatelessWidget {
 
   Widget _fallback(BuildContext context) => ColoredBox(
     color: AppColors.surface(context),
-    child: const Center(
+    child: Center(
       child: Icon(
         Icons.image_not_supported_outlined,
         color: AppColors.bronzeLight,

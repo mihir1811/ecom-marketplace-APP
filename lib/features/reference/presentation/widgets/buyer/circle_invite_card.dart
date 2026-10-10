@@ -9,6 +9,7 @@ import '../../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../../domain/models/reference_models.dart';
+import '../../../../../core/theme/luxe_tokens.dart';
 
 /// The buyer's invitation as an onyx members' pass: the referral code set
 /// large, one gold "Share invite" action and tap-to-copy email and link.
@@ -39,9 +40,9 @@ class CircleInviteCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color.lerp(p.onyx, const Color(0xFF3A3122), 0.35)!,
+              Color.lerp(p.onyx, LuxeStage.vaultTop, 0.35)!,
               p.onyx,
-              const Color(0xFF0B0A08),
+              LuxeStage.vaultBottom,
             ],
             stops: const [0, 0.55, 1],
           ),

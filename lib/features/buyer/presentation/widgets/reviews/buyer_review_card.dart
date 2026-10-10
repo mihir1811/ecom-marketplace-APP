@@ -7,6 +7,7 @@ import '../../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../maison/maison_kit.dart';
 import 'review_ledger.dart';
+import '../../../../../core/theme/luxe_tokens.dart';
 
 /// One review the buyer wrote: the atelier, the stars and words, any
 /// photos, the seller's reply and a way back to the order.
@@ -575,7 +576,7 @@ class _PhotoViewerState extends State<_PhotoViewer> {
                         height: 6,
                         decoration: BoxDecoration(
                           color: i == _index
-                              ? const Color(0xFFD5B27A)
+                              ? LuxeStage.gold
                               : Colors.white.withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(4),
                         ),

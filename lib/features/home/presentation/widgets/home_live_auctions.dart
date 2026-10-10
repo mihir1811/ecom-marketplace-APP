@@ -17,6 +17,8 @@ import '../theme/home_tokens.dart';
 import 'home_section.dart';
 import '../../../../core/widgets/luxe/press_tilt.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
+import 'package:flutter/foundation.dart';
+import '../../../../core/theme/app_palette.dart';
 
 const _liveQuery = AuctionFeedQuery(kind: AuctionFeedKind.live);
 
@@ -102,10 +104,24 @@ class _AuctionBand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = HomePalette.of(context).isDark;
+    final p = HomePalette.of(context);
+    final classic = AppPalette.resolve(context).chrome.classicTints;
+    Color tint(double t) => Color.lerp(p.canvas, p.accent, t)!;
+    final band = classic
+        ? (p.isDark
+              ? const [Color(0xFF2E1D12), Color(0xFF3B2416), Color(0xFF24170F)]
+              : const [Color(0xFFF6DFC0), Color(0xFFEDC79C), Color(0xFFE2B184)])
+        : (p.isDark
+              ? [tint(0.1), tint(0.16), tint(0.07)]
+              : [tint(0.14), tint(0.24), tint(0.34)]);
+    final lamp = classic
+        ? (p.isDark ? const Color(0x598A5528) : const Color(0xCCFFF6E6))
+        : (p.isDark
+              ? p.accent.withValues(alpha: 0.3)
+              : p.surface.withValues(alpha: 0.8));
     return ClipRect(
       child: CustomPaint(
-        painter: _BandPainter(dark: dark),
+        painter: _BandPainter(dark: p.isDark, band: band, lamp: lamp),
         child: Padding(
           padding: const EdgeInsets.only(top: 30, bottom: 22),
           child: child,
@@ -116,9 +132,15 @@ class _AuctionBand extends StatelessWidget {
 }
 
 class _BandPainter extends CustomPainter {
-  const _BandPainter({required this.dark});
+  const _BandPainter({
+    required this.dark,
+    required this.band,
+    required this.lamp,
+  });
 
   final bool dark;
+  final List<Color> band;
+  final Color lamp;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -129,9 +151,7 @@ class _BandPainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: dark
-              ? const [Color(0xFF2E1D12), Color(0xFF3B2416), Color(0xFF24170F)]
-              : const [Color(0xFFF6DFC0), Color(0xFFEDC79C), Color(0xFFE2B184)],
+          colors: band,
           stops: const [0, 0.5, 1],
         ).createShader(rect),
     );
@@ -142,15 +162,15 @@ class _BandPainter extends CustomPainter {
         ..shader = RadialGradient(
           center: const Alignment(0.9, -0.95),
           radius: 0.95,
-          colors: dark
-              ? const [Color(0x598A5528), Color(0x008A5528)]
-              : const [Color(0xCCFFF6E6), Color(0x00FFF6E6)],
+          colors: [lamp, lamp.withValues(alpha: 0)],
         ).createShader(rect),
     );
     // Loupe rings rising from the lower-left corner.
     final ring = Paint()
       ..style = PaintingStyle.stroke
-      ..color = dark ? const Color(0x14F1DDB5) : const Color(0x40FFFFFF);
+      ..color = dark
+          ? HomeStage.goldLight.withValues(alpha: 0.08)
+          : const Color(0x40FFFFFF);
     final centre = Offset(size.width * 0.05, size.height * 1.02);
     for (var i = 1; i <= 5; i++) {
       ring.strokeWidth = i.isOdd ? 1.2 : 0.7;
@@ -159,7 +179,8 @@ class _BandPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_BandPainter old) => old.dark != dark;
+  bool shouldRepaint(_BandPainter old) =>
+      old.dark != dark || old.lamp != lamp || !listEquals(old.band, band);
 }
 
 class _AuctionCard extends StatelessWidget {
@@ -186,11 +207,11 @@ class _AuctionCard extends StatelessWidget {
           color: palette.surface,
           borderRadius: BorderRadius.circular(HomeSpace.radius),
           border: Border.all(color: palette.hairline),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color(0x267A4A1E),
+              color: palette.accent.withValues(alpha: 0.15),
               blurRadius: 16,
-              offset: Offset(0, 8),
+              offset: const Offset(0, 8),
             ),
           ],
         ),
@@ -417,13 +438,18 @@ class _CountdownState extends State<_Countdown> {
               caption,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: HomeType.label(const Color(0xFF6A645A), size: 11),
+              style: HomeType.label(
+                AppPalette.current.day.luxe.inkMuted,
+                size: 11,
+              ),
             ),
           ),
           Text(
             text,
             style: HomeType.figure(
-              urgent ? const Color(0xFFC2272D) : const Color(0xFF16140F),
+              urgent
+                  ? const Color(0xFFC2272D)
+                  : AppPalette.current.day.luxe.ink,
               size: 13,
             ),
           ),

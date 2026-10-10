@@ -156,7 +156,7 @@ class WatchCardGrid extends ConsumerWidget {
                             ),
                           ),
                         ),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward,
                         size: 16,
                         color: AppColors.bronze,
@@ -324,7 +324,7 @@ class WatchCardList extends ConsumerWidget {
                             ),
                           ),
                         ),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward,
                         size: 18,
                         color: AppColors.bronze,

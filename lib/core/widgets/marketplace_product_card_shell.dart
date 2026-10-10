@@ -35,7 +35,11 @@ class MarketplaceProductCardShell extends StatelessWidget {
     // Recently viewed cards: lighter in dark mode, subtle bronze tint in light.
     final resolvedBg = isRecentlyViewed
         ? (dark
-              ? const Color(0xFF252830)
+              ? Color.lerp(
+                  AppColors.slateSurface,
+                  AppColors.textPrimaryDark,
+                  0.06,
+                )!
               : AppColors.bronze.withValues(alpha: 0.05))
         : (backgroundColor ?? AppColors.card(context));
 

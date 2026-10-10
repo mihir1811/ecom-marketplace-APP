@@ -59,10 +59,13 @@ class _HomeAiSearchCardState extends State<HomeAiSearchCard>
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(HomeSpace.radius + 4),
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF15141A), HomeStage.obsidian],
+                  colors: [
+                    Color.lerp(HomeStage.obsidian, HomeStage.raised, 0.4)!,
+                    HomeStage.obsidian,
+                  ],
                 ),
               ),
               padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
@@ -105,7 +108,7 @@ class _HomeAiSearchCardState extends State<HomeAiSearchCard>
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward_rounded,
                         size: 18,
                         color: HomeStage.gold,
@@ -149,11 +152,11 @@ class _EdgePainter extends CustomPainter {
         ..strokeWidth = 1.4
         ..shader = SweepGradient(
           transform: GradientRotation(animation.value * math.pi * 2),
-          colors: const [
-            Color(0x00DDBF88),
-            Color(0x00DDBF88),
-            Color(0xFFF1DDB5),
-            Color(0x00DDBF88),
+          colors: [
+            HomeStage.gold.withValues(alpha: 0),
+            HomeStage.gold.withValues(alpha: 0),
+            HomeStage.goldLight,
+            HomeStage.gold.withValues(alpha: 0),
           ],
           stops: const [0, 0.62, 0.8, 1],
         ).createShader(rect),
@@ -183,11 +186,11 @@ class _Orb extends StatelessWidget {
             shape: BoxShape.circle,
             gradient: SweepGradient(
               transform: GradientRotation(animation.value * math.pi * 4),
-              colors: const [
-                Color(0xFFF1DDB5),
-                Color(0xFF8FA6E8),
-                Color(0xFFE6A4B4),
-                Color(0xFFF1DDB5),
+              colors: [
+                HomeStage.goldLight,
+                const Color(0xFF8FA6E8),
+                const Color(0xFFE6A4B4),
+                HomeStage.goldLight,
               ],
             ),
             boxShadow: [
@@ -197,11 +200,7 @@ class _Orb extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(
-            Icons.auto_awesome,
-            size: 14,
-            color: HomeStage.obsidian,
-          ),
+          child: Icon(Icons.auto_awesome, size: 14, color: HomeStage.obsidian),
         );
       },
     );
@@ -312,11 +311,7 @@ class _TypewriterFieldState extends State<_TypewriterField> {
             ),
           ),
           const SizedBox(width: 10),
-          const Icon(
-            Icons.arrow_upward_rounded,
-            size: 18,
-            color: HomeStage.inkMuted,
-          ),
+          Icon(Icons.arrow_upward_rounded, size: 18, color: HomeStage.inkMuted),
         ],
       ),
     );

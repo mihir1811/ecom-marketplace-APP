@@ -199,7 +199,7 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
                             foregroundColor: AppColors.warmWhite,
                           ),
                           child: _submitting
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(

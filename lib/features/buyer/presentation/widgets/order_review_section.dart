@@ -255,7 +255,7 @@ class _SellerReviewFormBlockState
               foregroundColor: AppColors.warmWhite,
             ),
             child: _submitting
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(

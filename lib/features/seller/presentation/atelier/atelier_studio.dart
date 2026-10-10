@@ -12,6 +12,7 @@ import '../../../../core/widgets/gem3d/gem_view.dart';
 import 'atelier_components.dart';
 import 'atelier_motion.dart';
 import 'atelier_theme.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 
 /// Scrollable page frame for studio screens: pull to refresh, centred
 /// reading width, responsive gutter and an optional "near the end" hook
@@ -117,7 +118,7 @@ class AtelierHero extends StatelessWidget {
           borderRadius: BorderRadius.circular(AtelierRadius.xl),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: const Color(0xFF14120E),
+              color: LuxeStage.vault,
               border: Border.all(
                 color: p.isDark ? p.hairline : Colors.transparent,
               ),

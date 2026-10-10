@@ -304,7 +304,7 @@ class _SellerInquiryFormScreenState
                         disabledBackgroundColor: AppColors.border(context),
                       ),
                       child: _submitting
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 22,
                               width: 22,
                               child: CircularProgressIndicator(

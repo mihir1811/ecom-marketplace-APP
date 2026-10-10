@@ -144,12 +144,15 @@ class _HeroBanner extends StatelessWidget {
             url: HomeNetworkImages.hero,
             memCacheWidth: 1600,
           ),
-          const DecoratedBox(
+          DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0x66111827), Color(0xCC111827)],
+                colors: [
+                  AppColors.charcoal.withValues(alpha: 0.4),
+                  AppColors.charcoal.withValues(alpha: 0.8),
+                ],
               ),
             ),
           ),
@@ -395,7 +398,7 @@ class _CategoryChips extends StatelessWidget {
           Chip(
             label: Text(label),
             backgroundColor: AppColors.sandSurface,
-            side: const BorderSide(color: AppColors.warmBorder),
+            side: BorderSide(color: AppColors.warmBorder),
             labelStyle: AppTypography.label.copyWith(
               color: AppColors.charcoal,
               fontWeight: FontWeight.w600,
@@ -556,7 +559,7 @@ class _AudienceBlock extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(top: 6),
                 child: Icon(Icons.circle, size: 6, color: AppColors.bronze),
               ),
@@ -664,7 +667,7 @@ class _ContactCard extends StatelessWidget {
                 label: Text(context.tr(RemainingL10n.sellOnGemWorld)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.charcoal,
-                  side: const BorderSide(color: AppColors.charcoal),
+                  side: BorderSide(color: AppColors.charcoal),
                 ),
               ),
             ],
@@ -690,9 +693,7 @@ class _SurfaceCard extends StatelessWidget {
         color: color ?? AppColors.warmWhite,
         borderRadius: BorderRadius.circular(AppSpacing.r16),
         border: color == null
-            ? const Border.fromBorderSide(
-                BorderSide(color: AppColors.warmBorder),
-              )
+            ? Border.fromBorderSide(BorderSide(color: AppColors.warmBorder))
             : null,
       ),
       child: child,

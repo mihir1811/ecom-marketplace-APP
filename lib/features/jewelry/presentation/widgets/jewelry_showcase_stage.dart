@@ -216,7 +216,7 @@ class _JewelryShowcaseStageState extends State<JewelryShowcaseStage>
               ),
             ),
             // Fade into the page below.
-            const Positioned(
+            Positioned(
               left: 0,
               right: 0,
               bottom: 0,
@@ -227,7 +227,10 @@ class _JewelryShowcaseStageState extends State<JewelryShowcaseStage>
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Color(0x00070709), LuxeStage.obsidian],
+                      colors: [
+                        LuxeStage.obsidian.withValues(alpha: 0),
+                        LuxeStage.obsidian,
+                      ],
                     ),
                   ),
                 ),
@@ -591,7 +594,7 @@ class _ProgressBar extends StatelessWidget {
               builder: (context, _) => LinearProgressIndicator(
                 value: state ?? progress.value,
                 backgroundColor: const Color(0x33FFFFFF),
-                valueColor: const AlwaysStoppedAnimation(LuxeStage.gold),
+                valueColor: AlwaysStoppedAnimation(LuxeStage.gold),
                 minHeight: 2,
               ),
             ),

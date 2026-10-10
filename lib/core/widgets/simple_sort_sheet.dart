@@ -38,7 +38,7 @@ Future<T?> showSimpleSortSheet<T>({
               ListTile(
                 title: Text(labelOf(option)),
                 trailing: current == option
-                    ? const Icon(Icons.check, color: AppColors.bronze)
+                    ? Icon(Icons.check, color: AppColors.bronze)
                     : null,
                 onTap: () {
                   AppHaptics.selection();

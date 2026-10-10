@@ -132,7 +132,7 @@ class _WatchFilterSwatchPill extends StatelessWidget {
               ),
             ),
             if (selected)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(top: 2),
                 child: Icon(Icons.check, size: 14, color: AppColors.bronze),
               ),

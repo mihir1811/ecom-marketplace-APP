@@ -76,7 +76,7 @@ class _ProductDetailSuggestedProductsState
           return _SuggestedSectionShell(
             child: SizedBox(
               height: listHeight,
-              child: const Center(
+              child: Center(
                 child: SizedBox(
                   width: 22,
                   height: 22,
@@ -119,7 +119,7 @@ class _ProductDetailSuggestedProductsState
                 if (index >= state.items.length) {
                   return SizedBox(
                     width: cardWidth * 0.45,
-                    child: const Center(
+                    child: Center(
                       child: SizedBox(
                         width: 18,
                         height: 18,

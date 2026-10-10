@@ -25,11 +25,7 @@ class DiamondViewerLoadingView extends StatelessWidget {
           colors: [LuxeStage.gold.withValues(alpha: 0.16), Colors.transparent],
         ),
       ),
-      child: const Icon(
-        Icons.diamond_outlined,
-        size: 38,
-        color: LuxeStage.gold,
-      ),
+      child: Icon(Icons.diamond_outlined, size: 38, color: LuxeStage.gold),
     );
     if (animate) {
       gem = gem

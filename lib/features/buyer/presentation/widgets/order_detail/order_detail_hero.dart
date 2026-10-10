@@ -11,6 +11,7 @@ import '../../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../maison/maison_kit.dart';
 import 'order_journey.dart';
+import '../../../../../core/theme/luxe_tokens.dart';
 
 /// Shortcuts the hero offers.
 enum OrderShortcut { tracking, invoice, refund, review }
@@ -68,7 +69,7 @@ class OrderDetailHero extends ConsumerWidget {
           borderRadius: BorderRadius.circular(AtelierRadius.xl),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: const Color(0xFF14120E),
+              color: LuxeStage.vault,
               border: Border.all(
                 color: p.isDark ? p.hairline : Colors.transparent,
               ),

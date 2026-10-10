@@ -309,9 +309,7 @@ class _AtelierAmbientState extends State<AtelierAmbient>
           painter: _AmbientPainter(
             repaint: _c,
             gold: p.gold,
-            accent: p.isDark
-                ? const Color(0xFF6E5A3A)
-                : const Color(0xFFE9D7B8),
+            accent: Color.lerp(p.gold, p.canvas, p.isDark ? 0.45 : 0.7)!,
             cool: p.sapphire,
             strength: (p.isDark ? 0.22 : 0.32) * widget.intensity,
           ),

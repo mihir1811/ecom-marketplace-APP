@@ -93,7 +93,7 @@ class _StagePainter extends CustomPainter {
           ..shader = RadialGradient(
             center: Alignment(0, focusY * 2 - 1),
             radius: 0.9,
-            colors: const [Color(0xFF101A26), HomeStage.obsidian],
+            colors: [HomeStage.glow, HomeStage.obsidian],
           ).createShader(rect),
       );
       return;

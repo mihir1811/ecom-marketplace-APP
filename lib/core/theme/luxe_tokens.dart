@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Luxe colour tokens, resolved per brightness. Shared by the home
-/// experience and the redesigned catalog flows.
+import 'app_palette.dart';
+
+/// Luxe colour tokens, resolved from the active [AppPalette]. Shared by the
+/// home experience and the redesigned catalog flows.
 @immutable
 class LuxePalette {
-  const LuxePalette._({
+  const LuxePalette({
     required this.canvas,
     required this.surface,
     required this.surfaceRaised,
@@ -31,7 +33,7 @@ class LuxePalette {
   final Color onAccent;
   final bool isDark;
 
-  static const light = LuxePalette._(
+  static const light = LuxePalette(
     canvas: Color(0xFFF6F3EE),
     surface: Color(0xFFFFFFFF),
     surfaceRaised: Color(0xFFEFEAE2),
@@ -45,7 +47,7 @@ class LuxePalette {
     isDark: false,
   );
 
-  static const dark = LuxePalette._(
+  static const dark = LuxePalette(
     canvas: Color(0xFF0A0A0C),
     surface: Color(0xFF131316),
     surfaceRaised: Color(0xFF1B1B1F),
@@ -60,7 +62,7 @@ class LuxePalette {
   );
 
   static LuxePalette of(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? dark : light;
+      AppPalette.resolve(context).luxe;
 
   /// Positive (in stock, success) and caution (discount, alerts) tones.
   Color get positive =>
@@ -69,13 +71,61 @@ class LuxePalette {
       isDark ? const Color(0xFFE59A7E) : const Color(0xFFB4532F);
 }
 
-/// Fixed tokens for the always-dark hero stage and dark feature cards.
+/// Tokens for the always-dark hero stage, dark feature cards and the
+/// drawer "vault". Values are set per [AppPalette].
+@immutable
+class LuxeStagePalette {
+  const LuxeStagePalette({
+    required this.obsidian,
+    required this.raised,
+    required this.glow,
+    required this.vaultTop,
+    required this.vault,
+    required this.vaultBottom,
+    required this.ink,
+    required this.inkMuted,
+    required this.gold,
+    required this.goldDeep,
+    required this.goldLight,
+  });
+
+  /// Stage base.
+  final Color obsidian;
+
+  /// Lighter top stop for stage gradients.
+  final Color raised;
+
+  /// Tinted centre of the stage's radial glow.
+  final Color glow;
+
+  /// Three-stop warm "vault" gradient (drawer, wallet, profile heroes).
+  final Color vaultTop;
+  final Color vault;
+  final Color vaultBottom;
+  final Color ink;
+  final Color inkMuted;
+
+  /// Stage accent and its deeper / lighter companions.
+  final Color gold;
+  final Color goldDeep;
+  final Color goldLight;
+}
+
+/// Always-dark hero stage tokens for the active palette.
 abstract final class LuxeStage {
-  static const obsidian = Color(0xFF070709);
-  static const ink = Color(0xFFF5F1EA);
-  static const inkMuted = Color(0xFFA8A196);
-  static const gold = Color(0xFFDDBF88);
-  static const goldDeep = Color(0xFF9C7A45);
+  static LuxeStagePalette get _s => AppPalette.current.stage;
+
+  static Color get obsidian => _s.obsidian;
+  static Color get raised => _s.raised;
+  static Color get glow => _s.glow;
+  static Color get vaultTop => _s.vaultTop;
+  static Color get vault => _s.vault;
+  static Color get vaultBottom => _s.vaultBottom;
+  static Color get ink => _s.ink;
+  static Color get inkMuted => _s.inkMuted;
+  static Color get gold => _s.gold;
+  static Color get goldDeep => _s.goldDeep;
+  static Color get goldLight => _s.goldLight;
   static const glass = Color(0x14FFFFFF);
   static const glassBorder = Color(0x29FFFFFF);
 }

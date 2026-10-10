@@ -580,7 +580,7 @@ class FancyColorDiamondButton extends StatelessWidget {
                               width: 1.5,
                             ),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.check_rounded,
                             size: 11,
                             color: AppColors.warmWhite,

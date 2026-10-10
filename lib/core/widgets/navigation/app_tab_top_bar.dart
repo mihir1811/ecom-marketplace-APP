@@ -44,7 +44,7 @@ class AppTabTopBar extends ConsumerWidget implements PreferredSizeWidget {
       leading = IconButton(
         tooltip: context.tr(HomeL10n.appearance),
         onPressed: () =>
-            ref.read(themePreferenceProvider.notifier).setDarkMode(!dark),
+            ref.read(palettePreferenceProvider.notifier).setDarkMode(!dark),
         icon: Icon(
           dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
           size: 20,

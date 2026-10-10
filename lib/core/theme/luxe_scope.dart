@@ -19,9 +19,7 @@ class LuxeScope extends StatelessWidget {
   static LuxePalette? paletteOf(BuildContext context) {
     final marker = context.getInheritedWidgetOfExactType<_LuxeMarker>();
     if (marker == null) return null;
-    return Theme.of(context).brightness == Brightness.dark
-        ? LuxePalette.dark
-        : LuxePalette.light;
+    return LuxePalette.of(context);
   }
 
   static bool isActive(BuildContext context) =>
@@ -82,9 +80,9 @@ class LuxeScope extends StatelessWidget {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: p.isDark ? p.surfaceRaised : const Color(0xFF16140F),
+        backgroundColor: p.isDark ? p.surfaceRaised : p.ink,
         contentTextStyle: LuxeType.label(
-          p.isDark ? p.ink : const Color(0xFFF3EEE6),
+          p.isDark ? p.ink : p.canvas,
           size: 13.5,
         ),
         actionTextColor: p.accent,

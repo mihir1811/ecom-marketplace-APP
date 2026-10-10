@@ -26,7 +26,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final p = context.atelier;
-    final dark = ref.watch(themePreferenceProvider);
+    final palette = ref.watch(palettePreferenceProvider);
     final locale = ref.watch(localePreferenceProvider);
     final auth = ref.watch(
       authProvider.select(
@@ -87,16 +87,18 @@ class BuyerSettingsScreen extends ConsumerWidget {
                 ),
                 reveal(
                   SettingsThemeChooser(
-                    dark: dark,
-                    onChanged: (v) {
+                    selected: palette,
+                    onChanged: (id) {
                       AppHaptics.selection();
-                      ref.read(themePreferenceProvider.notifier).setDarkMode(v);
+                      ref
+                          .read(palettePreferenceProvider.notifier)
+                          .setPalette(id);
                     },
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  context.tr(CoreL10n.darkThemeDescription),
+                  context.tr(CoreL10n.paletteDescription),
                   style: AtelierType.caption(p.muted, size: 11.5),
                 ),
                 const SizedBox(height: 12),

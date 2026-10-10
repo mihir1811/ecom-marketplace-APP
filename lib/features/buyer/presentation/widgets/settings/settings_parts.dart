@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/auth/auth_providers.dart';
 import '../../../../../core/haptics/app_haptics.dart';
 import '../../../../../core/l10n/app_localizations.dart';
+import '../../../../../core/theme/app_palette.dart';
 import '../../../../../core/widgets/profile_avatar.dart';
 import '../../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../../seller/presentation/atelier/atelier_feedback.dart';
@@ -119,41 +120,47 @@ class SettingsIdentityCard extends StatelessWidget {
 
 // ── Appearance ──────────────────────────────────────────────────────────
 
-/// Ivory / Onyx as two live miniatures of the app; the chosen one wears a
-/// gold edge and check.
+/// Every palette as a live miniature of the app, two per row; the chosen
+/// one wears an accent edge and check.
 class SettingsThemeChooser extends StatelessWidget {
   const SettingsThemeChooser({
-    required this.dark,
+    required this.selected,
     required this.onChanged,
     super.key,
   });
 
-  final bool dark;
-  final ValueChanged<bool> onChanged;
+  final AppPaletteId selected;
+  final ValueChanged<AppPaletteId> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    const palettes = AppPalette.selectable;
+    return Column(
       children: [
-        Expanded(
-          child: _ThemeTile(
-            palette: AtelierPalette.light,
-            label: 'Ivory',
-            caption: 'Light',
-            selected: !dark,
-            onTap: () => onChanged(false),
+        for (var row = 0; row < palettes.length; row += 2) ...[
+          if (row > 0) const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = row; i < row + 2; i++) ...[
+                if (i > row) const SizedBox(width: 12),
+                Expanded(
+                  child: i < palettes.length
+                      ? _ThemeTile(
+                          palette: palettes[i].atelier,
+                          label: palettes[i].label,
+                          caption: palettes[i].id == AppPaletteId.onyx
+                              ? context.tr(CoreL10n.darkTheme)
+                              : palettes[i].caption,
+                          selected: palettes[i].id == selected,
+                          onTap: () => onChanged(palettes[i].id),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ],
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _ThemeTile(
-            palette: AtelierPalette.dark,
-            label: 'Onyx',
-            caption: context.tr(CoreL10n.darkTheme),
-            selected: dark,
-            onTap: () => onChanged(true),
-          ),
-        ),
+        ],
       ],
     );
   }
@@ -297,6 +304,8 @@ class _ThemeTile extends StatelessWidget {
                         children: [
                           Text(
                             label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: AtelierType.title(p.ink, size: 14),
                           ),
                           Text(

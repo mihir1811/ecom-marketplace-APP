@@ -222,10 +222,10 @@ class _CartEmptyState extends StatelessWidget {
             Container(
               width: 168,
               height: 168,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [Color(0xFF26252B), LuxeStage.obsidian],
+                  colors: [LuxeStage.raised, LuxeStage.obsidian],
                 ),
               ),
               alignment: Alignment.center,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_palette.dart';
+
 /// Reusable elevation / shadow configurations for a premium UI feel.
 class AppShadows {
   const AppShadows._();
@@ -7,23 +9,23 @@ class AppShadows {
   static const List<BoxShadow> none = [];
 
   // Soft premium card shadow (subtle blur, low opacity)
-  static final List<BoxShadow> cardLight = [
+  static List<BoxShadow> get cardLight => [
     BoxShadow(
-      color: const Color(0xFF111827).withValues(alpha: 0.04),
+      color: AppPalette.current.chrome.shadowTint.withValues(alpha: 0.04),
       blurRadius: 10,
       offset: const Offset(0, 4),
     ),
     BoxShadow(
-      color: const Color(0xFF111827).withValues(alpha: 0.02),
+      color: AppPalette.current.chrome.shadowTint.withValues(alpha: 0.02),
       blurRadius: 4,
       offset: const Offset(0, 1),
     ),
   ];
 
   // Elevated modal/dialog shadow
-  static final List<BoxShadow> modalLight = [
+  static List<BoxShadow> get modalLight => [
     BoxShadow(
-      color: const Color(0xFF111827).withValues(alpha: 0.08),
+      color: AppPalette.current.chrome.shadowTint.withValues(alpha: 0.08),
       blurRadius: 24,
       offset: const Offset(0, 8),
     ),

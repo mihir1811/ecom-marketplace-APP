@@ -38,7 +38,7 @@ class ComparisonBottomBar extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              const Icon(Icons.check_circle, size: 18, color: AppColors.bronze),
+              Icon(Icons.check_circle, size: 18, color: AppColors.bronze),
               const SizedBox(width: AppSpacing.s8),
               Expanded(
                 child: Text(

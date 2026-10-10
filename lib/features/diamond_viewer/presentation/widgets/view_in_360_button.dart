@@ -78,12 +78,12 @@ class ViewIn360Button extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              const Icon(Icons.threed_rotation_rounded, color: LuxeStage.gold),
+              Icon(Icons.threed_rotation_rounded, color: LuxeStage.gold),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(label, style: LuxeType.label(LuxeStage.ink)),
               ),
-              const Icon(
+              Icon(
                 Icons.arrow_forward_rounded,
                 size: 16,
                 color: LuxeStage.gold,

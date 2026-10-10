@@ -71,8 +71,8 @@ class MeleeRangeFilters extends StatefulWidget {
 class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
   bool _isPcsMode = true;
 
-  static const _gold = Color(0xFFA57A00);
-  static const _goldBorder = Color(0xFFD9C58A);
+  static Color get _gold => AppColors.bronze;
+  static Color get _goldBorder => AppColors.bronzeLight;
 
   @override
   Widget build(BuildContext context) {

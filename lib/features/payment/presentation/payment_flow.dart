@@ -343,7 +343,7 @@ class _PaymentProgressDialogState extends ConsumerState<PaymentProgressDialog>
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      const SizedBox.expand(
+                      SizedBox.expand(
                         child: CircularProgressIndicator(
                           strokeWidth: 3,
                           color: AppColors.bronze,
@@ -356,7 +356,7 @@ class _PaymentProgressDialogState extends ConsumerState<PaymentProgressDialog>
                             curve: Curves.easeInOut,
                           ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.lock_outline,
                           size: 34,
                           color: AppColors.bronze,

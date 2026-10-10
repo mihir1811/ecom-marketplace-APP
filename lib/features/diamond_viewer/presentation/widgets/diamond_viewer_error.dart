@@ -29,7 +29,7 @@ class DiamondViewerErrorView extends StatelessWidget {
             color: LuxeStage.glass,
             border: Border.all(color: LuxeStage.glassBorder),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.threed_rotation_rounded,
             size: 34,
             color: LuxeStage.gold,

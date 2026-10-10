@@ -67,7 +67,7 @@ class _HomeSearchResultsListState extends ConsumerState<HomeSearchResultsList> {
     final state = async.valueOrNull;
 
     if (state == null || state.isInitialLoading) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.all(AppSpacing.s32),
           child: CircularProgressIndicator(color: AppColors.bronze),
@@ -186,7 +186,7 @@ class _HomeSearchResultsListState extends ConsumerState<HomeSearchResultsList> {
             separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.s8),
             itemBuilder: (context, index) {
               if (index >= results.length) {
-                return const Padding(
+                return Padding(
                   padding: EdgeInsets.symmetric(vertical: AppSpacing.s16),
                   child: Center(
                     child: SizedBox(

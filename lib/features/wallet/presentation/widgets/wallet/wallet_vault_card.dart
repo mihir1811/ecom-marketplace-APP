@@ -9,6 +9,7 @@ import '../../../../buyer/presentation/maison/maison_kit.dart';
 import '../../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../../domain/models/wallet.dart';
+import '../../../../../core/theme/luxe_tokens.dart';
 
 /// The wallet balance as a dark vault card: brushed-gold engraving, a
 /// slowly turning champagne stone, tilt under the finger and a passing
@@ -37,10 +38,10 @@ class WalletVaultCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AtelierRadius.xl),
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF1E1B15), Color(0xFF0B0A08)],
+            colors: [LuxeStage.vault, LuxeStage.vaultBottom],
           ),
           border: Border.all(color: p.gold.withValues(alpha: 0.3)),
           boxShadow: [

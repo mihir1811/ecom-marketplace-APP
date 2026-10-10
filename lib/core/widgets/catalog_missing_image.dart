@@ -35,11 +35,11 @@ class CatalogMissingImage extends StatelessWidget {
                 child: SvgPicture.asset(
                   assetPath,
                   fit: BoxFit.contain,
-                  colorFilter: const ColorFilter.mode(
+                  colorFilter: ColorFilter.mode(
                     AppColors.bronze,
                     BlendMode.srcIn,
                   ),
-                  placeholderBuilder: (_) => const Icon(
+                  placeholderBuilder: (_) => Icon(
                     Icons.image_not_supported_outlined,
                     size: 40,
                     color: AppColors.bronze,

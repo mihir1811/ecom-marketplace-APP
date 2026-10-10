@@ -27,7 +27,7 @@ class ThemeToggleButton extends ConsumerWidget {
       ),
       onPressed: () {
         AppHaptics.selection();
-        ref.read(themePreferenceProvider.notifier).setDarkMode(!dark);
+        ref.read(palettePreferenceProvider.notifier).setDarkMode(!dark);
       },
     );
   }

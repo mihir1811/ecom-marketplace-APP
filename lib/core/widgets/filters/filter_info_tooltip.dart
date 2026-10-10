@@ -114,7 +114,7 @@ class _FilterInfoTooltipState extends State<FilterInfoTooltip> {
           child: InkWell(
             onTap: _toggle,
             customBorder: const CircleBorder(),
-            child: const Padding(
+            child: Padding(
               padding: EdgeInsets.all(2),
               child: Icon(
                 Icons.info_outline,

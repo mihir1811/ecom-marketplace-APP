@@ -739,7 +739,7 @@ class InquiryImagePickerField extends StatelessWidget {
                                 ..removeAt(index);
                               onChanged(next);
                             },
-                            child: const Padding(
+                            child: Padding(
                               padding: EdgeInsets.all(4),
                               child: Icon(
                                 Icons.close,

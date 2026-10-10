@@ -292,12 +292,10 @@ class _OrderItemRow extends StatelessWidget {
                   imageUrl: item.image!,
                   fit: BoxFit.cover,
                   memCacheWidth: 104,
-                  errorWidget: (_, __, ___) => const Icon(
-                    Icons.diamond_outlined,
-                    color: AppColors.bronze,
-                  ),
+                  errorWidget: (_, __, ___) =>
+                      Icon(Icons.diamond_outlined, color: AppColors.bronze),
                 )
-              : const Icon(Icons.diamond_outlined, color: AppColors.bronze),
+              : Icon(Icons.diamond_outlined, color: AppColors.bronze),
         ),
         const SizedBox(width: AppSpacing.s12),
         Expanded(
@@ -472,7 +470,7 @@ class _ShippingSectionState extends ConsumerState<_ShippingSection> {
       border: border,
       enabledBorder: border,
       focusedBorder: border.copyWith(
-        borderSide: const BorderSide(color: AppColors.bronze, width: 1.5),
+        borderSide: BorderSide(color: AppColors.bronze, width: 1.5),
       ),
       contentPadding: EdgeInsets.symmetric(
         horizontal: AppSpacing.s16,
@@ -651,7 +649,7 @@ class _ShippingSectionState extends ConsumerState<_ShippingSection> {
                         ? null
                         : () => _save(shipment),
                     icon: saving
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(
@@ -1130,11 +1128,11 @@ class _ProgressDot extends StatelessWidget {
         ),
       ),
       child: index < currentIndex
-          ? const Icon(Icons.check, size: 14, color: AppColors.warmWhite)
+          ? Icon(Icons.check, size: 14, color: AppColors.warmWhite)
           : index == currentIndex
           ? Container(
               margin: const EdgeInsets.all(7),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.warmWhite,
                 shape: BoxShape.circle,
               ),

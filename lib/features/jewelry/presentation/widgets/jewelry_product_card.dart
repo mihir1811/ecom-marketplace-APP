@@ -211,7 +211,7 @@ class JewelryProductCard extends ConsumerWidget {
                             ),
                           ),
                         ),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward,
                         size: 16,
                         color: AppColors.bronze,
@@ -368,7 +368,7 @@ class JewelryProductCard extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.s8),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.star,
                           size: 14,
                           color: AppColors.bronze,

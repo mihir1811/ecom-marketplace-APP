@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/auth/auth_providers.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/router/app_router.dart';
+import 'core/theme/app_palette.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_preference_provider.dart';
 import 'core/widgets/keyboard_aware.dart';
@@ -18,7 +19,11 @@ class GemWorldApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final darkMode = ref.watch(themePreferenceProvider);
+    final palette = AppPalette.byId(ref.watch(palettePreferenceProvider));
+    final theme = AppTheme.build(palette);
+    ref.listen(palettePreferenceProvider, (previous, next) {
+      if (previous != next) _repaintAll(context);
+    });
     final locale = ref.watch(localePreferenceProvider);
     ref.watch(notificationSessionProvider);
 
@@ -27,9 +32,9 @@ class GemWorldApp extends ConsumerWidget {
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
+      theme: theme,
+      darkTheme: theme,
+      themeMode: palette.isDark ? ThemeMode.dark : ThemeMode.light,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
@@ -53,6 +58,22 @@ class GemWorldApp extends ConsumerWidget {
   }
 }
 
+/// Rebuilds and repaints the whole tree after a palette switch so widgets
+/// and painters that read context-free tokens ([AppPalette.current]) pick
+/// up the new colours without losing state.
+void _repaintAll(BuildContext context) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!context.mounted) return;
+    void visit(Element element) {
+      element.markNeedsBuild();
+      element.renderObject?.markNeedsPaint();
+      element.visitChildren(visit);
+    }
+
+    (context as Element).visitChildren(visit);
+  });
+}
+
 class _PreferenceHydrator extends ConsumerStatefulWidget {
   const _PreferenceHydrator({required this.child});
   final Widget child;
@@ -67,7 +88,6 @@ class _PreferenceHydratorState extends ConsumerState<_PreferenceHydrator> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(themePreferenceProvider.notifier).hydrate();
       ref.read(localePreferenceProvider.notifier).hydrate();
     });
   }

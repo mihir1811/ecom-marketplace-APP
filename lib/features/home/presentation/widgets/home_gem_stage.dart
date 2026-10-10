@@ -49,19 +49,19 @@ class HomeGemStage extends StatelessWidget {
             GemField(background: HomeStage.obsidian, touchTopInset: touchTop),
             // Scrims keep copy legible over the stones; they never block
             // touches so the whole stage stays playable.
-            const IgnorePointer(
+            IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xE6070709),
-                      Color(0x00070709),
-                      Color(0x00070709),
-                      Color(0xB3070709),
+                      HomeStage.obsidian.withValues(alpha: 0.9),
+                      HomeStage.obsidian.withValues(alpha: 0),
+                      HomeStage.obsidian.withValues(alpha: 0),
+                      HomeStage.obsidian.withValues(alpha: 0.7),
                     ],
-                    stops: [0, 0.34, 0.82, 1],
+                    stops: const [0, 0.34, 0.82, 1],
                   ),
                 ),
               ),

@@ -271,7 +271,7 @@ class _Thumb extends StatelessWidget {
                 if (image == null) return _Fallback(media: media);
                 return _Frame(image: image, fit: BoxFit.cover);
               }(),
-              ProductShowcaseAssetType.certificate => const ColoredBox(
+              ProductShowcaseAssetType.certificate => ColoredBox(
                 color: AppColors.sandSurface,
                 child: Icon(
                   Icons.description_outlined,
@@ -279,7 +279,7 @@ class _Thumb extends StatelessWidget {
                   color: AppColors.bronze,
                 ),
               ),
-              ProductShowcaseAssetType.video => const ColoredBox(
+              ProductShowcaseAssetType.video => ColoredBox(
                 color: AppColors.charcoal,
                 child: Icon(
                   Icons.play_circle_outline,
@@ -443,7 +443,7 @@ class _ViewCertificateButton extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(Icons.description_outlined, color: AppColors.charcoal),
+              Icon(Icons.description_outlined, color: AppColors.charcoal),
               const SizedBox(width: AppSpacing.s12),
               Expanded(
                 child: Text(
@@ -454,11 +454,7 @@ class _ViewCertificateButton extends StatelessWidget {
                   ),
                 ),
               ),
-              const Icon(
-                Icons.open_in_new,
-                size: 16,
-                color: AppColors.charcoal,
-              ),
+              Icon(Icons.open_in_new, size: 16, color: AppColors.charcoal),
             ],
           ),
         ),

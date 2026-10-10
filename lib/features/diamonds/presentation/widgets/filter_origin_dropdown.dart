@@ -96,7 +96,7 @@ class FilterOriginDropdown extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
               textStyle: const TextStyle(color: Colors.white, fontSize: 13),
-              child: const Icon(
+              child: Icon(
                 Icons.info_outline,
                 size: 16,
                 color: AppColors.bronze,

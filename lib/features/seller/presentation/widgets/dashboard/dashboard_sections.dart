@@ -18,6 +18,7 @@ import '../../../application/seller_orders_provider.dart';
 import '../../atelier/atelier_components.dart';
 import '../../atelier/atelier_motion.dart';
 import '../../atelier/atelier_theme.dart';
+import '../../../../../core/theme/luxe_tokens.dart';
 
 const _weekdays = [
   'Monday',
@@ -81,7 +82,7 @@ class DashboardHero extends ConsumerWidget {
           borderRadius: BorderRadius.circular(AtelierRadius.xl),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF14120E),
+              color: LuxeStage.vault,
               border: Border.all(
                 color: p.isDark ? p.hairline : Colors.transparent,
               ),

@@ -211,7 +211,7 @@ class DiamondCardGrid extends ConsumerWidget {
                             ),
                           ),
                         ),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward,
                         size: 16,
                         color: AppColors.bronze,
@@ -355,7 +355,7 @@ class DiamondListView extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(

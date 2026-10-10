@@ -249,10 +249,10 @@ class _GemAiMark extends StatelessWidget {
       height: 52,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const RadialGradient(
+        gradient: RadialGradient(
           center: Alignment(-0.35, -0.45),
           radius: 1.05,
-          colors: [Color(0xFF2B2A30), HomeStage.obsidian],
+          colors: [HomeStage.raised, HomeStage.obsidian],
         ),
         border: Border.all(color: HomeStage.gold.withValues(alpha: 0.5)),
       ),

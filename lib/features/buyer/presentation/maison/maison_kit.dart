@@ -13,6 +13,7 @@ import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../seller/presentation/atelier/atelier_theme.dart';
+import '../../../../core/theme/luxe_tokens.dart';
 
 // ── Formatting ──────────────────────────────────────────────────────────
 
@@ -202,9 +203,9 @@ class MaisonLoupe extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const RadialGradient(
-          colors: [Color(0xFF2A2822), Color(0xFF0D0C0A)],
-          stops: [0.1, 1],
+        gradient: RadialGradient(
+          colors: [LuxeStage.vaultTop, LuxeStage.vaultBottom],
+          stops: const [0.1, 1],
         ),
         border: Border.all(color: p.gold.withValues(alpha: 0.45)),
         boxShadow: [

@@ -90,7 +90,7 @@ class CatalogPreferencesFilters extends StatelessWidget {
                       thumbColor: AppColors.bronze,
                       overlayColor: AppColors.bronze.withValues(alpha: 0.12),
                       valueIndicatorColor: AppColors.charcoal,
-                      valueIndicatorTextStyle: const TextStyle(
+                      valueIndicatorTextStyle: TextStyle(
                         color: AppColors.warmWhite,
                         fontSize: 12,
                       ),

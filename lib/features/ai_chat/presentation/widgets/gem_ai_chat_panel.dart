@@ -637,10 +637,10 @@ class _EmptyState extends StatelessWidget {
             child: Container(
               width: 112,
               height: 112,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [Color(0xFF24232A), LuxeStage.obsidian],
+                  colors: [LuxeStage.raised, LuxeStage.obsidian],
                 ),
               ),
               alignment: Alignment.center,

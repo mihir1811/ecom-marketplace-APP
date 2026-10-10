@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_palette.dart';
 import 'luxe_scope.dart';
 
 /// Which finder owns the Single/Melee screen background palette.
@@ -14,35 +15,43 @@ enum MeleeBgFamily {
   gemstoneLabGrown,
 }
 
-/// Raw color palette definition for GemWorld.
-/// Exposes static constants for styling light mode.
+/// Legacy colour API for GemWorld.
+///
+/// Every brand colour resolves from the active [AppPalette]: static getters
+/// read [AppPalette.current]; `(context)` helpers read the theme's palette.
+/// Only semantic status colours stay fixed.
 class AppColors {
   const AppColors._();
 
+  static AppChromeColors get _chrome => AppPalette.current.chrome;
+
+  static AppChromeColors _of(BuildContext context) =>
+      AppPalette.resolve(context).chrome;
+
   // Primary Palette (Luxury Charcoal & Navy)
-  static const charcoal = Color(0xFF111827);
-  static const charcoalLight = Color(0xFF1F2937);
-  static const charcoalDark = Color(0xFF030712);
+  static Color get charcoal => _chrome.charcoal;
+  static Color get charcoalLight => _chrome.charcoalLight;
+  static Color get charcoalDark => _chrome.charcoalDark;
 
   // Accent / Luxury Metal (Bronze / Gold)
-  static const bronze = Color(0xFF9E7753);
-  static const bronzeLight = Color(0xFFBCA38B);
-  static const bronzeDark = Color(0xFF805A37);
+  static Color get bronze => _chrome.bronze;
+  static Color get bronzeLight => _chrome.bronzeLight;
+  static Color get bronzeDark => _chrome.bronzeDark;
 
   // Terracotta / Alert Coral (Vibrant Accent seen in notifications & badges)
   static const terracotta = Color(0xFFD9463E);
   static const terracottaLight = Color(0xFFE5736E);
 
   // Light Mode Surfaces (Warm Cream and Soft Sands)
-  static const creamBg = Color(0xFFFCFCFA);
-  static const sandSurface = Color(0xFFF4F4F0);
-  static const warmWhite = Color(0xFFFFFFFF);
-  static const warmBorder = Color(0xFFE2E2DC);
+  static Color get creamBg => _chrome.creamBg;
+  static Color get sandSurface => _chrome.sandSurface;
+  static Color get warmWhite => _chrome.warmWhite;
+  static Color get warmBorder => _chrome.warmBorder;
 
   // Dark Mode Surfaces (Sleek Obsidian and Charcoal)
-  static const obsidianBg = Color(0xFF0B0C0E);
-  static const slateSurface = Color(0xFF16181B);
-  static const slateBorder = Color(0xFF2E3035);
+  static Color get obsidianBg => _chrome.obsidianBg;
+  static Color get slateSurface => _chrome.slateSurface;
+  static Color get slateBorder => _chrome.slateBorder;
 
   /// Catalog Single/Melee screen backgrounds — light contrasting pairs
   /// (cool ↔ warm opposites; never pure white/black).
@@ -103,12 +112,12 @@ class AppColors {
   static const gemstoneLabMeleeBgDark = Color(0xFF364050);
 
   /// Soft highlight used by melee water-reveal rings (lighter than bronze).
-  static const meleeRevealAccentLight = Color(0xFFD4B896);
-  static const meleeRevealAccentDark = Color(0xFFE8D4B0);
+  static Color get meleeRevealAccentLight => _chrome.meleeRevealAccentLight;
+  static Color get meleeRevealAccentDark => _chrome.meleeRevealAccentDark;
 
   /// Natural melee accent — cool slate (contrasts peach melee bg).
-  static const naturalMeleeAccent = Color(0xFF5C6B7A);
-  static const naturalMeleeAccentLight = Color(0xFF8A98A6);
+  static Color get naturalMeleeAccent => _chrome.naturalMeleeAccent;
+  static Color get naturalMeleeAccentLight => _chrome.naturalMeleeAccentLight;
 
   /// Brand / finder accent. Natural melee uses cool slate; everything else stays bronze.
   static Color finderAccent(
@@ -118,10 +127,11 @@ class AppColors {
   }) {
     final luxe = LuxeScope.paletteOf(context);
     if (luxe != null) return luxe.accent;
+    final c = _of(context);
     if (family == MeleeBgFamily.natural && melee) {
-      return naturalMeleeAccent;
+      return c.naturalMeleeAccent;
     }
-    return isDark(context) ? bronzeLight : bronze;
+    return isDark(context) ? c.bronzeLight : c.bronze;
   }
 
   /// Softer companion to [finderAccent] (unselected / glow).
@@ -132,10 +142,11 @@ class AppColors {
   }) {
     final luxe = LuxeScope.paletteOf(context);
     if (luxe != null) return luxe.accent.withValues(alpha: 0.45);
+    final c = _of(context);
     if (family == MeleeBgFamily.natural && melee) {
-      return naturalMeleeAccentLight;
+      return c.naturalMeleeAccentLight;
     }
-    return bronzeLight;
+    return c.bronzeLight;
   }
 
   /// Resolves gemstone finder palette from Natural / Lab Grown stone type.
@@ -150,6 +161,7 @@ class AppColors {
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
   }) {
+    if (!_chrome.classicTints) return melee ? sandSurface : creamBg;
     switch (family) {
       case MeleeBgFamily.labGrown:
         return melee ? labGrownMeleeBg : labGrownSingleBg;
@@ -180,7 +192,9 @@ class AppColors {
   }) {
     final luxe = LuxeScope.paletteOf(context);
     if (luxe != null) return melee ? luxe.surfaceRaised : luxe.canvas;
-    if (isDark(context)) return slateSurface;
+    final c = _of(context);
+    if (isDark(context)) return c.slateSurface;
+    if (!c.classicTints) return melee ? c.sandSurface : c.creamBg;
     return screenBg(melee: melee, family: family);
   }
 
@@ -188,14 +202,14 @@ class AppColors {
   static const Duration meleeBgDuration = Duration(milliseconds: 900);
 
   // Text colors (Light mode)
-  static const textPrimaryLight = Color(0xFF111827);
-  static const textSecondaryLight = Color(0xFF4B5563);
-  static const textMutedLight = Color(0xFF9CA3AF);
+  static Color get textPrimaryLight => _chrome.textPrimaryLight;
+  static Color get textSecondaryLight => _chrome.textSecondaryLight;
+  static Color get textMutedLight => _chrome.textMutedLight;
 
   // Text colors (Dark mode)
-  static const textPrimaryDark = Color(0xFFF9FAFB);
-  static const textSecondaryDark = Color(0xFFD1D5DB);
-  static const textMutedDark = Color(0xFF6B7280);
+  static Color get textPrimaryDark => _chrome.textPrimaryDark;
+  static Color get textSecondaryDark => _chrome.textSecondaryDark;
+  static Color get textMutedDark => _chrome.textMutedDark;
 
   /// True when the ambient theme is dark.
   static bool isDark(BuildContext context) {
@@ -205,61 +219,70 @@ class AppColors {
   /// Screen background that adapts to the active theme.
   static Color bg(BuildContext context) =>
       LuxeScope.paletteOf(context)?.canvas ??
-      (isDark(context) ? obsidianBg : creamBg);
+      (isDark(context) ? _of(context).obsidianBg : _of(context).creamBg);
 
   /// Card / container surface that adapts to the active theme.
   static Color surface(BuildContext context) =>
       LuxeScope.paletteOf(context)?.surfaceRaised ??
-      (isDark(context) ? slateSurface : sandSurface);
+      (isDark(context) ? _of(context).slateSurface : _of(context).sandSurface);
 
   /// Elevated card surface (white card on light, slate card on dark).
   static Color card(BuildContext context) =>
       LuxeScope.paletteOf(context)?.surface ??
-      (isDark(context) ? slateSurface : warmWhite);
+      (isDark(context) ? _of(context).slateSurface : _of(context).warmWhite);
 
   /// Border color that adapts to the active theme.
   static Color border(BuildContext context) =>
       LuxeScope.paletteOf(context)?.hairline ??
-      (isDark(context) ? slateBorder : warmBorder);
+      (isDark(context) ? _of(context).slateBorder : _of(context).warmBorder);
 
   /// Input field fill that adapts to the active theme.
   static Color field(BuildContext context) =>
       LuxeScope.paletteOf(context)?.surface ??
-      (isDark(context) ? slateSurface : warmWhite);
+      (isDark(context) ? _of(context).slateSurface : _of(context).warmWhite);
 
   /// Primary text color that adapts to the active theme.
   static Color textPrimary(BuildContext context) =>
       LuxeScope.paletteOf(context)?.ink ??
-      (isDark(context) ? textPrimaryDark : textPrimaryLight);
+      (isDark(context)
+          ? _of(context).textPrimaryDark
+          : _of(context).textPrimaryLight);
 
   /// Secondary text color that adapts to the active theme.
   static Color textSecondary(BuildContext context) =>
       LuxeScope.paletteOf(context)?.inkMuted ??
-      (isDark(context) ? textSecondaryDark : textSecondaryLight);
+      (isDark(context)
+          ? _of(context).textSecondaryDark
+          : _of(context).textSecondaryLight);
 
   /// Muted text color that adapts to the active theme.
   static Color textMuted(BuildContext context) =>
       LuxeScope.paletteOf(context)?.inkFaint ??
-      (isDark(context) ? textMutedDark : textMutedLight);
+      (isDark(context)
+          ? _of(context).textMutedDark
+          : _of(context).textMutedLight);
 
   /// Selected chip / segment fill. Inverts against the surface so the
   /// chosen item stays obvious in both themes.
   static Color selectedFill(BuildContext context) =>
       LuxeScope.paletteOf(context)?.ink ??
-      (isDark(context) ? warmWhite : charcoal);
+      (isDark(context) ? _of(context).warmWhite : _of(context).charcoal);
 
   /// Text / icon color on [selectedFill].
   static Color onSelected(BuildContext context) =>
       LuxeScope.paletteOf(context)?.canvas ??
-      (isDark(context) ? charcoal : warmWhite);
+      (isDark(context) ? _of(context).charcoal : _of(context).warmWhite);
+
+  /// Accent that adapts to the active palette (bronze in the classic look).
+  static Color accent(BuildContext context) => _of(context).bronze;
 
   /// Drawer / nav-row selected fill — soft elevate in dark, solid charcoal in light.
   static Color navSelectedFill(BuildContext context) =>
-      isDark(context) ? charcoalLight : charcoal;
+      isDark(context) ? _of(context).charcoalLight : _of(context).charcoal;
 
   /// Text / icon color on [navSelectedFill].
   static Color navOnSelected(BuildContext context) =>
-      isDark(context) ? textPrimaryDark : warmWhite;
+      isDark(context) ? _of(context).textPrimaryDark : _of(context).warmWhite;
 
   // Semantic Statuses
   static const error = Color(0xFFDC2626);

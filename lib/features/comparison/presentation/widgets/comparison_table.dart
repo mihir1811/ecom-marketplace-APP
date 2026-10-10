@@ -41,9 +41,12 @@ class _ComparisonTableState extends State<ComparisonTable> {
   Color get _headerBg => AppColors.surface(_cachedContext!);
   Color get _border => AppColors.border(_cachedContext!);
   Color get _muted => AppColors.textMuted(_cachedContext!);
-  Color get _leadBg => AppColors.isDark(_cachedContext!)
-      ? const Color(0xFF1E2E22)
-      : const Color(0xFFE9EDE8);
+  Color get _leadBg => Color.alphaBlend(
+    AppColors.success.withValues(
+      alpha: AppColors.isDark(_cachedContext!) ? 0.12 : 0.07,
+    ),
+    AppColors.surface(_cachedContext!),
+  );
 
   BuildContext? _cachedContext;
 
@@ -758,7 +761,7 @@ class _ItemHeader extends StatelessWidget {
             url,
             fit: BoxFit.contain,
             errorBuilder: (_, __, ___) =>
-                const Icon(Icons.diamond_outlined, color: AppColors.bronze),
+                Icon(Icons.diamond_outlined, color: AppColors.bronze),
           ),
         );
       }
@@ -768,6 +771,6 @@ class _ItemHeader extends StatelessWidget {
         child: renderShapeSvg(item.shape!, size: 40, color: AppColors.bronze),
       );
     }
-    return const Icon(Icons.watch, color: AppColors.bronze, size: 36);
+    return Icon(Icons.watch, color: AppColors.bronze, size: 36);
   }
 }

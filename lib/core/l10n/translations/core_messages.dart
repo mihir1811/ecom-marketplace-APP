@@ -25,6 +25,7 @@ abstract final class CoreL10n {
   static const settings = 'core.settings.title';
   static const darkTheme = 'core.settings.darkTheme';
   static const darkThemeDescription = 'core.settings.darkThemeDescription';
+  static const paletteDescription = 'core.settings.paletteDescription';
   static const switchToLightMode = 'core.theme.switchToLight';
   static const switchToDarkMode = 'core.theme.switchToDark';
   static const somethingWentWrong = 'core.error.somethingWentWrong';
@@ -149,6 +150,12 @@ const coreMessages = <String, LocalizedMessage>{
     english: 'Enables dark mode across the app.',
     hindi: 'पूरे ऐप में डार्क मोड चालू करता है।',
     gujarati: 'સમગ્ર ઍપમાં ડાર્ક મોડ ચાલુ કરે છે.',
+  ),
+  CoreL10n.paletteDescription: LocalizedMessage(
+    english: 'Your palette colours every screen and is remembered next time.',
+    hindi: 'आपका पैलेट हर स्क्रीन पर लागू होता है और अगली बार भी याद रहता है।',
+    gujarati:
+        'તમારી પેલેટ દરેક સ્ક્રીન પર લાગુ થાય છે અને આગલી વખતે પણ યાદ રહે છે.',
   ),
   CoreL10n.switchToLightMode: LocalizedMessage(
     english: 'Switch to light mode',

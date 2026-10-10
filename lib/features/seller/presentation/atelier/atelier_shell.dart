@@ -177,7 +177,7 @@ class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
                         : CoreL10n.switchToDarkMode,
                   ),
                   onPressed: () => ref
-                      .read(themePreferenceProvider.notifier)
+                      .read(palettePreferenceProvider.notifier)
                       .setDarkMode(!dark),
                 ),
               ],

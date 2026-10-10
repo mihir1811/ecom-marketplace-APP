@@ -10,6 +10,7 @@ import 'diamond_mesh.dart';
 import 'diamond_models.dart';
 import 'diamond_renderer.dart';
 import 'gem_renderer.dart';
+import '../../theme/luxe_tokens.dart';
 
 /// Depth bands painted as separate layers so far and near stones can be
 /// defocused (depth of field) without blurring the in-focus band.
@@ -631,12 +632,13 @@ class GemFieldController extends ChangeNotifier {
 class GemField extends StatefulWidget {
   const GemField({
     super.key,
-    this.background = const Color(0xFF070709),
+    this.background,
     this.seed = 7,
     this.touchTopInset = 0,
   });
 
-  final Color background;
+  /// Stage colour; defaults to [LuxeStage.obsidian].
+  final Color? background;
   final int seed;
   final double touchTopInset;
 
@@ -754,7 +756,7 @@ class _GemFieldState extends State<GemField>
 
   @override
   Widget build(BuildContext context) {
-    final bg = widget.background;
+    final bg = widget.background ?? LuxeStage.obsidian;
     final inset = Offset(0, widget.touchTopInset);
     Widget band(_Band b, double blur) {
       if (!_field.blur) blur = 0;

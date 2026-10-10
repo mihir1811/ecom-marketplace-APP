@@ -5,6 +5,7 @@ import '../../haptics/app_haptics.dart';
 import '../../theme/luxe_scope.dart';
 import '../../theme/luxe_tokens.dart';
 import 'luxe_button.dart';
+import '../../theme/app_palette.dart';
 
 enum LuxeTone { neutral, success, error, info }
 
@@ -31,7 +32,8 @@ void showLuxeToast(
     case LuxeTone.info || LuxeTone.neutral:
       AppHaptics.light();
   }
-  const ink = Color(0xFFF3EEE6);
+  final day = AppPalette.current.day.luxe;
+  final ink = day.canvas;
   messenger
     ..hideCurrentSnackBar()
     ..showSnackBar(
@@ -40,7 +42,7 @@ void showLuxeToast(
         duration: duration,
         // Snack bars with an action persist by default; keep this one timed.
         persist: false,
-        backgroundColor: const Color(0xFF16140F),
+        backgroundColor: day.ink,
         elevation: 0,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
@@ -52,7 +54,7 @@ void showLuxeToast(
             ? null
             : SnackBarAction(
                 label: actionLabel,
-                textColor: LuxePalette.dark.accent,
+                textColor: AppPalette.current.night.luxe.accent,
                 onPressed: onAction ?? () {},
               ),
       ),

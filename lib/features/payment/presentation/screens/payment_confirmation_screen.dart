@@ -226,7 +226,7 @@ class _ItemTile extends StatelessWidget {
                     height: 56,
                     memCacheWidth: 112,
                   )
-                : const Icon(Icons.diamond_outlined, color: AppColors.bronze),
+                : Icon(Icons.diamond_outlined, color: AppColors.bronze),
           ),
           const SizedBox(width: AppSpacing.s12),
           Expanded(

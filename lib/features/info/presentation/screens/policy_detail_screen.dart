@@ -219,7 +219,7 @@ class _SectionCard extends StatelessWidget {
                       child: Container(
                         width: 5,
                         height: 5,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.bronze,
                           shape: BoxShape.circle,
                         ),
@@ -295,7 +295,7 @@ class _PolicySupportCard extends StatelessWidget {
                 onPressed: () => context.push(AppRouteNames.buyerHelpCenter),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.charcoal,
-                  side: const BorderSide(color: AppColors.warmBorder),
+                  side: BorderSide(color: AppColors.warmBorder),
                 ),
                 child: Text(context.tr(RemainingL10n.helpCenter2)),
               ),

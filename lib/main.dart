@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'core/l10n/app_localizations.dart';
+import 'core/theme/app_colors.dart';
+import 'core/theme/theme_preference_provider.dart';
 import 'features/notifications/application/push_messaging_service.dart';
 
 void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
     await PushMessagingService.initializeFirebase();
+    // Restore the palette before the first frame so it never flashes.
+    final palette = await PalettePreference.load();
 
     // Layer 3 Error Boundary - Degrades gracefully in production rather than showing the red screen
     ErrorWidget.builder = (FlutterErrorDetails details) {
@@ -23,7 +27,7 @@ void main() {
                   children: [
                     const Icon(
                       Icons.error_outline,
-                      color: Color(0xFFDC2626),
+                      color: AppColors.error,
                       size: 48,
                     ),
                     const SizedBox(height: 16),
@@ -38,8 +42,8 @@ void main() {
                     Text(
                       context.tr(CoreL10n.unexpectedError),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color(0xFF4B5563),
+                      style: TextStyle(
+                        color: AppColors.textSecondary(context),
                       ),
                     ),
                   ],
@@ -57,8 +61,13 @@ void main() {
     };
 
     runApp(
-      const ProviderScope(
-        child: GemWorldApp(),
+      ProviderScope(
+        overrides: [
+          palettePreferenceProvider.overrideWith(
+            (ref) => PalettePreference(palette.palette, palette.lastLight),
+          ),
+        ],
+        child: const GemWorldApp(),
       ),
     );
   }, (Object error, StackTrace stack) {

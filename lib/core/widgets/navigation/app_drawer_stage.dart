@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../haptics/app_haptics.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/luxe_tokens.dart';
 
 /// Side drawer that opens *behind* the page.
 ///
@@ -97,8 +99,6 @@ class AppDrawerStageState extends State<AppDrawerStage>
   static const _radius = 30.0;
   static const _edgeWidth = 20.0;
   static const _flingVelocity = 365.0;
-
-  static final ThemeData _menuTheme = AppTheme.dark;
 
   late final AnimationController _controller = AnimationController(vsync: this)
     ..addListener(_publish);
@@ -354,12 +354,16 @@ class AppDrawerStageState extends State<AppDrawerStage>
         onHorizontalDragUpdate: _dragUpdate,
         onHorizontalDragEnd: _dragEnd,
         child: DecoratedBox(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF2A2318), Color(0xFF14110D), Color(0xFF0B0A08)],
-              stops: [0, 0.55, 1],
+              colors: [
+                LuxeStage.vaultTop,
+                LuxeStage.vault,
+                LuxeStage.vaultBottom,
+              ],
+              stops: const [0, 0.55, 1],
             ),
           ),
           child: Stack(
@@ -372,8 +376,8 @@ class AppDrawerStageState extends State<AppDrawerStage>
                     center: const Alignment(-0.9, -0.85),
                     radius: 1.1,
                     colors: [
-                      const Color(0xFFD5B27A).withValues(alpha: 0.2 * t),
-                      const Color(0x00D5B27A),
+                      LuxeStage.gold.withValues(alpha: 0.2 * t),
+                      LuxeStage.gold.withValues(alpha: 0),
                     ],
                   ),
                 ),
@@ -389,12 +393,10 @@ class AppDrawerStageState extends State<AppDrawerStage>
                 ),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF6F0E4).withValues(alpha: 0.07 * t),
+                    color: LuxeStage.ink.withValues(alpha: 0.07 * t),
                     borderRadius: BorderRadius.circular(_radius),
                     border: Border.all(
-                      color: const Color(
-                        0xFFD5B27A,
-                      ).withValues(alpha: 0.12 * t),
+                      color: LuxeStage.gold.withValues(alpha: 0.12 * t),
                     ),
                   ),
                 ),
@@ -412,7 +414,7 @@ class AppDrawerStageState extends State<AppDrawerStage>
                       ..translateByDouble(-36 * (1 - t), 0, 0, 1)
                       ..scaleByDouble(0.92 + 0.08 * t, 0.92 + 0.08 * t, 1, 1),
                     child: Theme(
-                      data: _menuTheme,
+                      data: AppTheme.build(AppPalette.current.night),
                       child: MediaQuery(
                         data: _menuMedia(context),
                         child: widget.drawer!,
