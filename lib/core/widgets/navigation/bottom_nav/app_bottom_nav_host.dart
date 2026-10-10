@@ -8,11 +8,15 @@ import 'package:go_router/go_router.dart';
 import '../../../../features/buyer/application/wishlist_provider.dart';
 import '../../../../features/cart/application/cart_provider.dart';
 import '../../../auth/auth_providers.dart';
+import '../../../haptics/app_haptics.dart';
 import '../../../router/app_navigation.dart';
 import '../../../router/route_names.dart';
 import '../../../theme/luxe_tokens.dart';
 import 'app_bottom_nav_bar.dart';
 import 'app_bottom_nav_destinations.dart';
+import 'diamond_transition/diamond_cut.dart';
+import 'diamond_transition/diamond_tab_transition.dart';
+import 'diamond_transition/diamond_transition_controller.dart';
 
 /// Tracks dialogs, sheets and menus on the root navigator so the bar (which
 /// sits outside the navigator) dims and blocks taps with them.
@@ -73,6 +77,10 @@ final appPopupRouteObserver = AppPopupRouteObserver();
 /// height and the bottom insets the bar already covers are removed from its
 /// [MediaQuery]. On screens without the bar (detail, checkout, auth, seller)
 /// the bar slides away and the page reclaims the space.
+///
+/// Switching tabs folds the page into a faceted gem and unfolds the next
+/// one out of it ([DiamondTransitionController]); holding or dragging along
+/// the bar scrubs that transition by hand.
 class AppBottomNavHost extends ConsumerStatefulWidget {
   const AppBottomNavHost({
     required this.router,
@@ -88,7 +96,32 @@ class AppBottomNavHost extends ConsumerStatefulWidget {
 }
 
 class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
+  /// Cut per tab, in bar order: Home and Profile share the brilliant.
+  static final _cuts = <AppBottomNavTab, DiamondCut>{
+    AppBottomNavTab.home: DiamondCut.brilliant,
+    AppBottomNavTab.wishlist: DiamondCut.marquise,
+    AppBottomNavTab.cart: DiamondCut.emerald,
+    AppBottomNavTab.profile: DiamondCut.brilliant,
+  };
+
+  late final DiamondTransitionController _diamond = DiamondTransitionController(
+    vsync: this,
+    routes: [for (final d in AppBottomNav.destinations) d.route],
+    cuts: [for (final d in AppBottomNav.destinations) _cuts[d.tab]!],
+    // Peer destinations: replace the stack so back never walks tabs.
+    navigate: widget.router.go,
+    currentPath: _currentPath,
+    currentTab: () => AppBottomNav.tabFor(_currentPath())?.index,
+  );
+  late final _scrub = AppBottomNavScrub(
+    onStart: _diamond.scrubStart,
+    onUpdate: _diamond.scrubUpdate,
+    onEnd: _diamond.scrubEnd,
+    onCancel: _diamond.scrubCancel,
+  );
+  int? _lastPreview;
+
   late final AnimationController _show = AnimationController(
     vsync: this,
     duration: LuxeMotion.medium,
@@ -123,12 +156,15 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
         widget.router.routerDelegate.currentConfiguration.isEmpty;
     widget.router.routerDelegate.addListener(_onRoute);
     appPopupRouteObserver.top.addListener(_onPopup);
+    _diamond.preview.addListener(_onPreview);
   }
 
   @override
   void dispose() {
     widget.router.routerDelegate.removeListener(_onRoute);
     appPopupRouteObserver.top.removeListener(_onPopup);
+    _diamond.preview.removeListener(_onPreview);
+    _diamond.dispose();
     _show.dispose();
     super.dispose();
   }
@@ -157,6 +193,12 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
       return;
     }
     final path = _currentPath();
+    // Somebody else navigated mid-switch (deep link, redirect, back).
+    final expected = _diamond.expectedRoute;
+    if (expected != null &&
+        (path != expected || AppBottomNav.tabFor(path) == null)) {
+      _diamond.abort();
+    }
     final first = _awaitingFirstRoute;
     _awaitingFirstRoute = false;
     if (path == _path && !first) return;
@@ -178,10 +220,32 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     if (mounted) setState(() {});
   }
 
+  void _onPreview() {
+    final index = _diamond.preview.value;
+    // Tick as the finger crosses onto another tab.
+    if (index != null && _lastPreview != null && index != _lastPreview) {
+      AppHaptics.selection();
+    }
+    _lastPreview = index;
+    if (mounted) setState(() {});
+  }
+
+  bool get _animate => !MediaQuery.disableAnimationsOf(context);
+
   void _select(AppBottomNavDestination destination) {
+    if (_animate) {
+      _diamond.requestTab(AppBottomNav.destinations.indexOf(destination));
+      return;
+    }
     if (_path == destination.route) return;
     // Peer destinations: replace the stack so back never walks other tabs.
     widget.router.go(destination.route);
+  }
+
+  /// Tab under the finger while scrubbing.
+  AppBottomNavTab? get _previewTab {
+    final index = _diamond.preview.value;
+    return index == null ? null : AppBottomNav.destinations[index].tab;
   }
 
   @override
@@ -210,7 +274,13 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
         return Column(
           children: [
             Expanded(
-              child: MediaQuery(data: pageMedia, child: widget.child),
+              child: MediaQuery(
+                data: pageMedia,
+                child: DiamondTabTransition(
+                  controller: _diamond,
+                  child: widget.child,
+                ),
+              ),
             ),
             SizedBox(
               height: slot,
@@ -231,9 +301,10 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
         popup: appPopupRouteObserver.top.value,
         child: _LiveBar(
           barKey: _barKey,
-          tab: _tab ?? _shownTab,
+          tab: _previewTab ?? _tab ?? _shownTab,
           bottomInset: inset,
           onSelect: _select,
+          onScrub: _animate ? _scrub : null,
         ),
       ),
     );
@@ -247,12 +318,14 @@ class _LiveBar extends ConsumerWidget {
     required this.tab,
     required this.bottomInset,
     required this.onSelect,
+    required this.onScrub,
   });
 
   final GlobalKey barKey;
   final AppBottomNavTab? tab;
   final double bottomInset;
   final ValueChanged<AppBottomNavDestination> onSelect;
+  final AppBottomNavScrub? onScrub;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -268,6 +341,7 @@ class _LiveBar extends ConsumerWidget {
         selected: tab,
         bottomInset: bottomInset,
         onSelect: onSelect,
+        onScrub: onScrub,
         badges: {AppBottomNavTab.cart: cart, AppBottomNavTab.wishlist: saved},
       ),
     );

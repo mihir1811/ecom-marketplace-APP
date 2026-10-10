@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -21,20 +22,30 @@ import 'app_bottom_nav_destinations.dart';
 /// Performance: one [Ticker] integrates every spring and wave, one
 /// [CustomPainter] draws the surface, and nothing above the bar rebuilds.
 /// The ticker stops as soon as everything is at rest.
+///
+/// With [onScrub] set, pressing and holding or dragging along the bar
+/// reports the finger continuously, in tab coordinates (0 = centre of the
+/// first tab, 1 = the next, …), until it lifts. A plain tap still goes
+/// through [onSelect].
 class AppBottomNavBar extends StatefulWidget {
   const AppBottomNavBar({
     required this.selected,
     required this.onSelect,
+    this.onScrub,
     this.badges = const {},
     this.bottomInset = 0,
     super.key,
   });
+
+  /// Hold before a press becomes a scrub.
+  static const scrubHold = Duration(milliseconds: 240);
 
   /// Bar height above the system inset.
   static const double height = 66;
 
   final AppBottomNavTab? selected;
   final ValueChanged<AppBottomNavDestination> onSelect;
+  final AppBottomNavScrub? onScrub;
   final Map<AppBottomNavTab, int> badges;
 
   /// System navigation inset the bar extends behind.
@@ -42,6 +53,21 @@ class AppBottomNavBar extends StatefulWidget {
 
   @override
   State<AppBottomNavBar> createState() => _AppBottomNavBarState();
+}
+
+/// Continuous finger reports from a press-and-hold or drag on the bar.
+class AppBottomNavScrub {
+  const AppBottomNavScrub({
+    required this.onStart,
+    required this.onUpdate,
+    required this.onEnd,
+    required this.onCancel,
+  });
+
+  final ValueChanged<double> onStart;
+  final ValueChanged<double> onUpdate;
+  final VoidCallback onEnd;
+  final VoidCallback onCancel;
 }
 
 class _Repaint extends ChangeNotifier {
@@ -213,6 +239,68 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     widget.onSelect(destination);
   }
 
+  double _slotAt(double x, double slot) => x / slot - 0.5;
+
+  int _indexAt(double x, double slot) =>
+      (x / slot).floor().clamp(0, _lifts.length - 1);
+
+  /// Taps select; a hold or horizontal drag becomes a scrub.
+  Widget _gestures({required double slot, required Widget child}) {
+    final scrub = widget.onScrub;
+    final recognizers = <Type, GestureRecognizerFactory>{
+      TapGestureRecognizer:
+          GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+            () => TapGestureRecognizer(debugOwner: this),
+            (r) =>
+                r.onTapUp = (d) => _onTap(_indexAt(d.localPosition.dx, slot)),
+          ),
+      if (scrub != null) ...{
+        LongPressGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(
+              () => LongPressGestureRecognizer(
+                duration: AppBottomNavBar.scrubHold,
+                debugOwner: this,
+              ),
+              (r) {
+                r
+                  ..onLongPressStart = (d) {
+                    scrub.onStart(_slotAt(d.localPosition.dx, slot));
+                  }
+                  ..onLongPressMoveUpdate = (d) {
+                    scrub.onUpdate(_slotAt(d.localPosition.dx, slot));
+                  }
+                  ..onLongPressEnd = (_) {
+                    scrub.onEnd();
+                  }
+                  ..onLongPressCancel = scrub.onCancel;
+              },
+            ),
+        HorizontalDragGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<
+              HorizontalDragGestureRecognizer
+            >(() => HorizontalDragGestureRecognizer(debugOwner: this), (r) {
+              r
+                ..dragStartBehavior = DragStartBehavior.down
+                ..onStart = (d) {
+                  scrub.onStart(_slotAt(d.localPosition.dx, slot));
+                }
+                ..onUpdate = (d) {
+                  scrub.onUpdate(_slotAt(d.localPosition.dx, slot));
+                }
+                ..onEnd = (_) {
+                  scrub.onEnd();
+                }
+                ..onCancel = scrub.onCancel;
+            }),
+      },
+    };
+    return RawGestureDetector(
+      behavior: HitTestBehavior.opaque,
+      gestures: recognizers,
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
@@ -256,24 +344,27 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
                   right: 0,
                   top: 0,
                   height: AppBottomNavBar.height,
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < _lifts.length; i++)
-                        Expanded(
-                          child: _TabHitArea(
-                            label: context.tr(
-                              AppBottomNav.destinations[i].labelKey,
+                  child: _gestures(
+                    slot: slot,
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < _lifts.length; i++)
+                          Expanded(
+                            child: _TabHitArea(
+                              label: context.tr(
+                                AppBottomNav.destinations[i].labelKey,
+                              ),
+                              badge:
+                                  widget.badges[AppBottomNav
+                                      .destinations[i]
+                                      .tab] ??
+                                  0,
+                              selected: i == selected,
+                              onTap: () => _onTap(i),
                             ),
-                            badge:
-                                widget.badges[AppBottomNav
-                                    .destinations[i]
-                                    .tab] ??
-                                0,
-                            selected: i == selected,
-                            onTap: () => _onTap(i),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -451,10 +542,11 @@ class _TabHitArea extends StatelessWidget {
       selected: selected,
       label: badge > 0 ? '$label, $badge' : label,
       excludeSemantics: true,
-      child: GestureDetector(
+      // Pointer input is handled bar-wide (taps and scrubs).
+      onTap: onTap,
+      child: const Listener(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: const SizedBox.expand(),
+        child: SizedBox.expand(),
       ),
     );
   }
