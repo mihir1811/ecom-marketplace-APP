@@ -15,8 +15,9 @@ abstract final class CdnImageUrl {
 
     if (uri.host.toLowerCase() != diamondshowS3Host) return trimmed;
 
-    final segments =
-        uri.pathSegments.where((s) => s.trim().isNotEmpty).toList();
+    final segments = uri.pathSegments
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
     var changed = false;
     for (var i = 0; i < segments.length; i++) {
       if (segments[i].toLowerCase() == 'stillimage') {

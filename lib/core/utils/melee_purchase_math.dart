@@ -64,7 +64,8 @@ abstract final class MeleePurchaseMath {
     if (lot <= 0) return null;
 
     final totalPcs = _int(product['totalPcs']);
-    final totalCarat = _num(product['totalCaratWeight']) ??
+    final totalCarat =
+        _num(product['totalCaratWeight']) ??
         _num(product['totalCarat']) ??
         _num(product['caratWeight']);
 
@@ -83,7 +84,8 @@ abstract final class MeleePurchaseMath {
     required Map<String, dynamic> product,
   }) {
     final variantId = _str(specifications['variantId']);
-    final stoneLabel = (_str(specifications['stoneWeight']) ?? '').toLowerCase();
+    final stoneLabel = (_str(specifications['stoneWeight']) ?? '')
+        .toLowerCase();
     final stoneCt = _num(specifications['stoneWeightCt']);
     final unitFromSpecs = _num(specifications['unitPrice']);
 
@@ -101,7 +103,8 @@ abstract final class MeleePurchaseMath {
       if (matched == null && (stoneLabel.isNotEmpty || stoneCt != null)) {
         for (final raw in variants) {
           if (raw is! Map<String, dynamic>) continue;
-          final ct = _num(raw['totalStoneCarat']) ??
+          final ct =
+              _num(raw['totalStoneCarat']) ??
               _num(raw['stoneWeightCt']) ??
               _stoneWeightFromNested(raw);
           if (ct == null) continue;
@@ -109,7 +112,8 @@ abstract final class MeleePurchaseMath {
             matched = raw;
             break;
           }
-          if (stoneLabel.isNotEmpty && _formatCt(ct).toLowerCase() == stoneLabel) {
+          if (stoneLabel.isNotEmpty &&
+              _formatCt(ct).toLowerCase() == stoneLabel) {
             matched = raw;
             break;
           }
@@ -117,7 +121,8 @@ abstract final class MeleePurchaseMath {
       }
     }
 
-    final unit = unitFromSpecs ??
+    final unit =
+        unitFromSpecs ??
         _num(matched?['totalPrice']) ??
         _num(matched?['price']);
     if (unit == null || unit <= 0) return null;
@@ -137,9 +142,9 @@ abstract final class MeleePurchaseMath {
     final fixed = ct == ct.roundToDouble()
         ? ct.toStringAsFixed(0)
         : ct
-            .toStringAsFixed(2)
-            .replaceFirst(RegExp(r'0+$'), '')
-            .replaceFirst(RegExp(r'\.$'), '');
+              .toStringAsFixed(2)
+              .replaceFirst(RegExp(r'0+$'), '')
+              .replaceFirst(RegExp(r'\.$'), '');
     return '${fixed}ct';
   }
 

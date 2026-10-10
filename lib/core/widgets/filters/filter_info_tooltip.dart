@@ -10,11 +10,7 @@ import 'filter_proportion_diagram.dart';
 /// Uses a positioned overlay card instead of Material [Tooltip] so images
 /// render at a stable size without rich-message layout glitches.
 class FilterInfoTooltip extends StatefulWidget {
-  const FilterInfoTooltip({
-    required this.message,
-    this.diagram,
-    super.key,
-  });
+  const FilterInfoTooltip({required this.message, this.diagram, super.key});
 
   final String message;
   final FilterProportionDiagramKind? diagram;
@@ -41,7 +37,9 @@ class _FilterInfoTooltipState extends State<FilterInfoTooltip> {
   }
 
   double get _estimatedCardHeight {
-    final diagramBlock = widget.diagram == null ? 0.0 : _diagramSize + AppSpacing.s12;
+    final diagramBlock = widget.diagram == null
+        ? 0.0
+        : _diagramSize + AppSpacing.s12;
     return AppSpacing.s12 * 2 + diagramBlock + _estimatedTextBlock;
   }
 
@@ -66,8 +64,11 @@ class _FilterInfoTooltipState extends State<FilterInfoTooltip> {
             final targetCenterX = targetOffset.dx + targetBox.size.width / 2;
             final spaceAbove = targetOffset.dy;
             final spaceBelow =
-                overlayBox.size.height - targetOffset.dy - targetBox.size.height;
-            showBelow = spaceAbove < _estimatedCardHeight + _gap &&
+                overlayBox.size.height -
+                targetOffset.dy -
+                targetBox.size.height;
+            showBelow =
+                spaceAbove < _estimatedCardHeight + _gap &&
                 spaceBelow >= spaceAbove;
 
             const halfWidth = _cardWidth / 2;
@@ -90,14 +91,13 @@ class _FilterInfoTooltipState extends State<FilterInfoTooltip> {
               CompositedTransformFollower(
                 link: _link,
                 showWhenUnlinked: false,
-                targetAnchor:
-                    showBelow ? Alignment.bottomCenter : Alignment.topCenter,
-                followerAnchor:
-                    showBelow ? Alignment.topCenter : Alignment.bottomCenter,
-                offset: Offset(
-                  horizontalShift,
-                  showBelow ? _gap : -_gap,
-                ),
+                targetAnchor: showBelow
+                    ? Alignment.bottomCenter
+                    : Alignment.topCenter,
+                followerAnchor: showBelow
+                    ? Alignment.topCenter
+                    : Alignment.bottomCenter,
+                offset: Offset(horizontalShift, showBelow ? _gap : -_gap),
                 child: _TooltipCard(
                   message: widget.message,
                   diagram: widget.diagram,

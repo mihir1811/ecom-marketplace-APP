@@ -282,8 +282,7 @@ class _SellerProductEditScreenState
           children: [
             Text(
               context.tr(RemainingL10n.stockWithNumber, {
-                'stockNumber':
-                    '${_product!.stockNumber} · ID ${_product!.id}',
+                'stockNumber': '${_product!.stockNumber} · ID ${_product!.id}',
               }),
               style: AppTypography.body.copyWith(color: muted, fontSize: 15),
             ),

@@ -15,10 +15,10 @@ abstract final class ApiConfig {
   static String get socketBaseUrl {
     final uri = Uri.parse(baseUrl);
     final path = uri.path.replaceAll(RegExp(r'/api/v1/?$'), '');
-    return uri.replace(path: path.isEmpty ? '' : path).toString().replaceAll(
-          RegExp(r'/$'),
-          '',
-        );
+    return uri
+        .replace(path: path.isEmpty ? '' : path)
+        .toString()
+        .replaceAll(RegExp(r'/$'), '');
   }
 
   static const Duration connectTimeout = Duration(seconds: 15);

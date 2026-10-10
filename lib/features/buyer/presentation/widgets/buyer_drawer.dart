@@ -7,12 +7,13 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/router/workspace_mode.dart';
 import '../../../../core/widgets/navigation/app_nav_drawer.dart';
-import '../../../notifications/application/notifications_provider.dart';
 
 /// Buyer-side drawer (home, catalog and `/buyer/...` screens).
 ///
 /// Mirrors [SellerDrawer]: same header, same Buyer | Seller switch, same
-/// "Messages & support" and "Account" groups, same footer.
+/// "Messages & support" and "Account" groups, same footer. Home, Wishlist,
+/// Cart and Profile live in the bottom nav and Notifications in the top bar,
+/// so the drawer leaves them out.
 class BuyerDrawer extends ConsumerWidget {
   const BuyerDrawer({super.key});
 
@@ -27,7 +28,6 @@ class BuyerDrawer extends ConsumerWidget {
         ),
       ),
     );
-    final unread = ref.watch(notificationUnreadCountProvider);
     final currentPath = GoRouterState.of(context).uri.path;
     final name = auth.user?.fullName.trim();
 
@@ -55,11 +55,6 @@ class BuyerDrawer extends ConsumerWidget {
               Icons.replay_outlined,
             ),
           ],
-          item(
-            AppRouteNames.buyerWishlist,
-            AccountCommerceL10n.myWishlist,
-            Icons.favorite_border,
-          ),
           item(
             AppRouteNames.buyerRecentlyViewed,
             AccountCommerceL10n.recentlyViewed,
@@ -103,12 +98,6 @@ class BuyerDrawer extends ConsumerWidget {
               CoreL10n.messages,
               Icons.chat_bubble_outline_rounded,
             ),
-          AppNavItem(
-            route: AppRouteNames.buyerNotifications,
-            label: context.tr(NavL10n.notifications),
-            icon: Icons.notifications_none_rounded,
-            badge: unread,
-          ),
           item(
             AppRouteNames.buyerInquiries,
             RemainingL10n.inquiries,
@@ -124,11 +113,6 @@ class BuyerDrawer extends ConsumerWidget {
       AppNavGroup(
         title: context.tr(NavL10n.groupAccount),
         items: [
-          item(
-            AppRouteNames.buyerProfile,
-            AccountCommerceL10n.myProfileCaps,
-            Icons.person_outline_rounded,
-          ),
           item(
             AppRouteNames.buyerReferences,
             RemainingL10n.references,

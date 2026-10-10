@@ -367,8 +367,7 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
       );
     }
 
-    final byMonth =
-        _sort == _ReviewSort.newest || _sort == _ReviewSort.oldest;
+    final byMonth = _sort == _ReviewSort.newest || _sort == _ReviewSort.oldest;
     String? month;
     for (var i = 0; i < visible.length; i++) {
       final review = visible[i];

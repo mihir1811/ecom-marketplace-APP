@@ -1,10 +1,7 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
@@ -17,7 +14,7 @@ import 'atelier_components.dart';
 import 'atelier_motion.dart';
 import 'atelier_theme.dart';
 
-/// One primary workspace destination (dock / rail).
+/// One primary workspace destination (rail).
 class SellerDestination {
   const SellerDestination({
     required this.route,
@@ -88,7 +85,7 @@ int _pendingOrders(WidgetRef ref) {
 }
 
 /// Workspace app bar: menu / back and quiet circular actions. No page
-/// title — the dock, rail and drawer already mark where the user is.
+/// title — the rail and drawer already mark where the user is.
 class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
   const AtelierTopBar({
     required this.showBack,
@@ -102,7 +99,7 @@ class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
   final bool showBack;
   final VoidCallback onBack;
 
-  /// Wallet lives in the dock/rail; the bar only shows it when neither is up.
+  /// Wallet lives in the rail and drawer; the bar adds it on detail pages.
   final bool showWalletAction;
 
   @override
@@ -185,157 +182,6 @@ class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Floating glass dock for compact widths.
-class SellerDock extends ConsumerWidget {
-  const SellerDock({
-    required this.destinations,
-    required this.location,
-    super.key,
-  });
-
-  final List<SellerDestination> destinations;
-  final String location;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final p = context.atelier;
-    final pendingOrders = _pendingOrders(ref);
-    final selected = destinations.indexWhere((d) => d.matches(location));
-
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.only(bottom: 10),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
-        child: Center(
-          heightFactor: 1,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AtelierRadius.pill),
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                child: Container(
-                  height: 64,
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: (p.isDark ? p.raised : p.surface).withValues(
-                      alpha: 0.88,
-                    ),
-                    borderRadius: BorderRadius.circular(AtelierRadius.pill),
-                    border: Border.all(color: p.hairline),
-                    boxShadow: p.floatShadow,
-                  ),
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < destinations.length; i++)
-                        Expanded(
-                          flex: i == selected ? 7 : 4,
-                          child: _DockItem(
-                            destination: destinations[i],
-                            selected: i == selected,
-                            badge:
-                                destinations[i].route ==
-                                    AppRouteNames.sellerOrders
-                                ? pendingOrders
-                                : 0,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DockItem extends StatelessWidget {
-  const _DockItem({
-    required this.destination,
-    required this.selected,
-    required this.badge,
-  });
-
-  final SellerDestination destination;
-  final bool selected;
-  final int badge;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.atelier;
-    return Semantics(
-      selected: selected,
-      child: Pressable(
-        onTap: selected
-            ? null
-            : () {
-                AppHaptics.selection();
-                context.switchToRoute(destination.route);
-              },
-        haptic: false,
-        semanticLabel: destination.label,
-        borderRadius: BorderRadius.circular(AtelierRadius.pill),
-        child: AnimatedContainer(
-          duration: AtelierMotion.slow,
-          curve: AtelierMotion.emphasized,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            color: selected ? p.ink : Colors.transparent,
-            borderRadius: BorderRadius.circular(AtelierRadius.pill),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  AnimatedSwitcher(
-                    duration: AtelierMotion.base,
-                    child: Icon(
-                      selected ? destination.selectedIcon : destination.icon,
-                      key: ValueKey(selected),
-                      size: 21,
-                      color: selected ? p.canvas : p.inkSoft,
-                    ),
-                  ),
-                  if (badge > 0)
-                    Positioned(
-                      top: -7,
-                      right: -10,
-                      child: CountBubble(count: badge),
-                    ),
-                ],
-              ),
-              Flexible(
-                child: AnimatedSize(
-                  duration: AtelierMotion.slow,
-                  curve: AtelierMotion.emphasized,
-                  child: selected
-                      ? Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Text(
-                            destination.label,
-                            maxLines: 1,
-                            overflow: TextOverflow.fade,
-                            softWrap: false,
-                            style: AtelierType.label(p.canvas, size: 12.5),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ),
-            ],
           ),
         ),
       ),

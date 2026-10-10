@@ -23,21 +23,14 @@ void main() {
       );
     });
 
-    test('browse screens belong to Home', () {
+    test('hidden off the four tab screens', () {
       for (final path in [
         AppRouteNames.diamonds,
         AppRouteNames.labGrownDiamondResults,
         AppRouteNames.watches,
         '/watches/brand/Rolex',
         AppRouteNames.auctions,
-        '${AppRouteNames.jewelryListing}/',
-      ]) {
-        expect(AppBottomNav.tabFor(path), AppBottomNavTab.home, reason: path);
-      }
-    });
-
-    test('hidden on detail, flow, filter, auth and seller screens', () {
-      for (final path in [
+        AppRouteNames.buyerWallet,
         AppRouteNames.productDetailPath('diamond', '42'),
         AppRouteNames.comparison,
         AppRouteNames.paymentConfirmationPath('7'),
@@ -117,6 +110,51 @@ void main() {
         expect(tester.hasRunningAnimations, isTrue);
         await tester.pumpAndSettle();
       }
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('compact dock expands on tap instead of switching', (
+      tester,
+    ) async {
+      final taps = <AppBottomNavTab>[];
+      final compact = ValueNotifier(false);
+      var expands = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.bottomCenter,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: compact,
+                builder: (context, folded, _) => AppBottomNavBar(
+                  selected: AppBottomNavTab.home,
+                  compact: folded,
+                  badges: const {AppBottomNavTab.cart: 3},
+                  onExpand: () {
+                    expands++;
+                    compact.value = false;
+                  },
+                  onSelect: (d) => taps.add(d.tab),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      compact.value = true;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(tester.hasRunningAnimations, isTrue);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Cart, 3'));
+      expect(expands, 1);
+      expect(taps, isEmpty);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Cart, 3'));
+      expect(taps, [AppBottomNavTab.cart]);
       expect(tester.takeException(), isNull);
     });
   });

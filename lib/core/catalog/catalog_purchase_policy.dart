@@ -61,8 +61,10 @@ abstract final class CatalogPurchasePolicy {
     ProductAvailability? availability,
   }) {
     if (ownListing) return 'You cannot purchase your own listing';
-    if (isOnHoldOrMemo(availabilityStatus) || isOnHoldOrMemo(availability?.label)) {
-      final code = normalizeCode(availabilityStatus) ??
+    if (isOnHoldOrMemo(availabilityStatus) ||
+        isOnHoldOrMemo(availability?.label)) {
+      final code =
+          normalizeCode(availabilityStatus) ??
           normalizeCode(availability?.label);
       if (code == 'memo') {
         return 'This item is on memo and cannot be added to cart';

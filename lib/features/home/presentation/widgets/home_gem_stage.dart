@@ -5,7 +5,6 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/gem3d/gem_field.dart';
 import '../theme/home_tokens.dart';
-import 'home_header.dart';
 import 'home_section.dart';
 
 /// Last section of home, one full screen tall: a dark field of live 3D
@@ -24,8 +23,7 @@ class HomeGemStage extends StatelessWidget {
     final media = MediaQuery.of(context);
     final gutter = homeGutter(context);
     final height = media.size.height;
-    // Clear the floating home header that sits over the page top.
-    final copyTop = media.padding.top + HomeHeader.barHeight + 28;
+    final copyTop = media.padding.top + 28;
     // Touches above this line still scroll the page back up.
     final touchTop = copyTop + 200;
 

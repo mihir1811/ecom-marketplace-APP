@@ -11,6 +11,7 @@ import '../../l10n/app_localizations.dart';
 import '../../router/route_names.dart';
 import '../../router/workspace_mode.dart';
 import '../profile_avatar.dart';
+import 'app_drawer_stage.dart';
 import 'workspace_switch.dart';
 
 /// One destination in an [AppNavDrawer].
@@ -43,6 +44,9 @@ class AppNavGroup {
 /// 2. Buyer | Seller switch (or "Start selling" for non-sellers)
 /// 3. Grouped destinations with the current page highlighted
 /// 4. Home + Sign out
+///
+/// Laid straight onto the [AppDrawerStage] backdrop (no panel); every row
+/// eases in as the stage opens.
 class AppNavDrawer extends ConsumerWidget {
   const AppNavDrawer({
     required this.workspace,
@@ -89,63 +93,64 @@ class AppNavDrawer extends ConsumerWidget {
     );
     final hasImage = imageUrl != null && imageUrl!.trim().isNotEmpty;
 
-    var index = 0;
-    return Drawer(
-      width: 300,
-      backgroundColor: p.raised,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.horizontal(
-          right: Radius.circular(AtelierRadius.xl),
-        ),
-      ),
+    var index = 2;
+    return Material(
+      type: MaterialType.transparency,
       child: SafeArea(
+        right: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(22, 18, 10, 14),
-              child: Row(
-                children: [
-                  if (hasImage)
-                    ProfileAvatar(
-                      displayName: displayName,
-                      imageUrl: imageUrl,
-                      radius: 22,
-                    )
-                  else
-                    AtelierMonogram(name: displayName, size: 44),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          overline.toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AtelierType.overline(p.gold),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          displayName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AtelierType.display(p.ink, size: 21),
-                        ),
-                      ],
+            AppDrawerReveal(
+              index: 0,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(22, 18, 6, 14),
+                child: Row(
+                  children: [
+                    if (hasImage)
+                      ProfileAvatar(
+                        displayName: displayName,
+                        imageUrl: imageUrl,
+                        radius: 22,
+                      )
+                    else
+                      AtelierMonogram(name: displayName, size: 44),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            overline.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AtelierType.overline(p.gold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AtelierType.display(p.ink, size: 21),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  AtelierIconButton(
-                    icon: Icons.close_rounded,
-                    tooltip: context.tr(CoreL10n.close),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                ],
+                    AtelierIconButton(
+                      icon: Icons.close_rounded,
+                      tooltip: context.tr(CoreL10n.close),
+                      onPressed: () => closeAppDrawer(context),
+                    ),
+                  ],
+                ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-              child: WorkspaceSwitcher(current: workspace),
+            AppDrawerReveal(
+              index: 1,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 12, 14),
+                child: WorkspaceSwitcher(current: workspace),
+              ),
             ),
             if (showPendingNotice)
               Padding(
@@ -159,22 +164,23 @@ class AppNavDrawer extends ConsumerWidget {
             const AtelierHairline(),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
                 children: [
                   for (final group in groups)
                     if (group.items.isNotEmpty) ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
-                        child: Text(
-                          group.title.toUpperCase(),
-                          style: AtelierType.overline(p.muted),
+                      AppDrawerReveal(
+                        index: index++,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
+                          child: Text(
+                            group.title.toUpperCase(),
+                            style: AtelierType.overline(p.muted),
+                          ),
                         ),
                       ),
                       for (final item in group.items)
-                        Reveal(
+                        AppDrawerReveal(
                           index: index++,
-                          horizontal: true,
-                          offset: -12,
                           child: _NavTile(
                             item: item,
                             selected: item.route == selected,
@@ -186,30 +192,33 @@ class AppNavDrawer extends ConsumerWidget {
               ),
             ),
             const AtelierHairline(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AtelierButton(
-                      label: context.tr(NavL10n.home),
-                      icon: Icons.home_outlined,
-                      variant: AtelierButtonVariant.secondary,
-                      compact: true,
-                      onPressed: () => _go(context, AppRouteNames.home),
+            AppDrawerReveal(
+              index: index,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AtelierButton(
+                        label: context.tr(NavL10n.home),
+                        icon: Icons.home_outlined,
+                        variant: AtelierButtonVariant.secondary,
+                        compact: true,
+                        onPressed: () => _go(context, AppRouteNames.home),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: AtelierButton(
-                      label: context.tr(AccountCommerceL10n.signOut),
-                      icon: Icons.logout_rounded,
-                      variant: AtelierButtonVariant.danger,
-                      compact: true,
-                      onPressed: () => _signOut(context, ref),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: AtelierButton(
+                        label: context.tr(AccountCommerceL10n.signOut),
+                        icon: Icons.logout_rounded,
+                        variant: AtelierButtonVariant.danger,
+                        compact: true,
+                        onPressed: () => _signOut(context, ref),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -222,7 +231,7 @@ class AppNavDrawer extends ConsumerWidget {
   /// peers, so back never walks through a trail of previously opened tools.
   static void _go(BuildContext context, String route) {
     final router = GoRouter.of(context);
-    Navigator.of(context).maybePop();
+    closeAppDrawer(context);
     final current = router.routerDelegate.currentConfiguration.uri.path;
     if (current == route) return;
     router.go(route);
@@ -233,7 +242,7 @@ class AppNavDrawer extends ConsumerWidget {
     final auth = ref.read(authProvider.notifier);
     final confirmed = await confirmSignOut(context);
     if (!confirmed || !context.mounted) return;
-    await Navigator.of(context).maybePop();
+    closeAppDrawer(context);
     auth.logout();
     router.go(AppRouteNames.home);
   }

@@ -26,10 +26,7 @@ abstract final class DioClient {
 
     if (tokenStore != null) {
       dio.interceptors.add(
-        AuthInterceptor(
-          tokenStore: tokenStore,
-          onUnauthorized: onUnauthorized,
-        ),
+        AuthInterceptor(tokenStore: tokenStore, onUnauthorized: onUnauthorized),
       );
     }
 

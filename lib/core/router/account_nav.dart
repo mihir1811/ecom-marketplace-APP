@@ -24,10 +24,9 @@ String inquiryDetailPathFor(
   String currentPath,
   String category,
   String inquiryId,
-) =>
-    isBuyerPath(currentPath)
-        ? AppRouteNames.buyerInquiryDetailPath(category, inquiryId)
-        : AppRouteNames.sellerInquiryDetailPath(category, inquiryId);
+) => isBuyerPath(currentPath)
+    ? AppRouteNames.buyerInquiryDetailPath(category, inquiryId)
+    : AppRouteNames.sellerInquiryDetailPath(category, inquiryId);
 
 String helpCenterPathFor(String currentPath) => isBuyerPath(currentPath)
     ? AppRouteNames.buyerHelpCenter
@@ -39,5 +38,5 @@ String messagesPathFor(String currentPath) => isBuyerPath(currentPath)
 
 String chatDetailPathFor(String currentPath, String chatId) =>
     isBuyerPath(currentPath)
-        ? AppRouteNames.buyerChatDetailPath(chatId)
-        : AppRouteNames.sellerChatDetailPath(chatId);
+    ? AppRouteNames.buyerChatDetailPath(chatId)
+    : AppRouteNames.sellerChatDetailPath(chatId);

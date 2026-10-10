@@ -148,6 +148,7 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
     final count = items.length;
 
     return MaisonLayout(
+      scrollsBehindDock: true,
       child: RefreshIndicator(
         color: p.gold,
         backgroundColor: p.surface,
@@ -226,6 +227,10 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
               visible: wishlist.isLoading && items.isNotEmpty,
             ),
             ..._body(context, wishlist, visible, width, gutter),
+            // The list scrolls behind the floating dock; end clear of it.
+            SliverToBoxAdapter(
+              child: SizedBox(height: MediaQuery.paddingOf(context).bottom),
+            ),
           ],
         ),
       ),

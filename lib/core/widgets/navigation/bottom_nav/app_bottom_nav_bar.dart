@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -10,20 +11,24 @@ import '../../../theme/luxe_tokens.dart';
 import '../../luxe/luxe_spring.dart';
 import 'app_bottom_nav_destinations.dart';
 
-/// Sticky bottom navigation for the buyer side.
+/// Floating bottom navigation dock for the buyer side.
 ///
-/// The selected tab pops out of the bar: its icon rides an under-damped
-/// spring up inside a disc of the bar's own surface, which rises out of the
-/// top edge and stays joined to it by concave fillets, so bar and disc read
-/// as one shape. The tab that loses focus drops back on a looser
-/// spring, overshoots into a shallow dent and, as it meets the surface,
-/// sends a damped wave along the top edge plus a faint ring that settles out.
+/// A pill that hovers above the bottom edge. The selected tab pops out of
+/// it: its icon rides an under-damped spring up inside a disc, and the
+/// dock's outline swells around that disc on concave fillets, so dock and
+/// disc read as one shape. The ring between the disc and the dock's body is
+/// frosted glass: the page shows through it, blurred, with no fill of its
+/// own. The tab that loses focus settles straight back into the dock.
 ///
-/// Performance: one [Ticker] integrates every spring and wave, one
-/// [CustomPainter] draws the surface, and nothing above the bar rebuilds.
-/// The ticker stops as soon as everything is at rest.
+/// With [compact] set the dock folds into a narrower, shorter pill without
+/// labels; a tap on it then calls [onExpand] instead of switching tabs.
 ///
-/// With [onScrub] set, pressing and holding or dragging along the bar
+/// Performance: one [Ticker] integrates every spring, the outline is built
+/// once per frame and shared by the painters and the glass clip, and nothing
+/// above the dock rebuilds. The ticker stops as soon as everything is at
+/// rest.
+///
+/// With [onScrub] set, pressing and holding or dragging along the dock
 /// reports the finger continuously, in tab coordinates (0 = centre of the
 /// first tab, 1 = the next, …), until it lifts. A plain tap still goes
 /// through [onSelect].
@@ -37,6 +42,8 @@ class AppBottomNavBar extends StatefulWidget {
     this.onScrub,
     this.onCategories,
     this.categoriesOpen = false,
+    this.compact = false,
+    this.onExpand,
     this.badges = const {},
     this.bottomInset = 0,
     super.key,
@@ -45,22 +52,37 @@ class AppBottomNavBar extends StatefulWidget {
   /// Hold before a press becomes a scrub.
   static const scrubHold = Duration(milliseconds: 240);
 
-  /// Bar height above the system inset.
-  static const double height = 66;
+  /// Dock height, expanded.
+  static const double height = 64;
 
-  /// How far below the bar top the edge can dip (the popped bubble's notch,
-  /// a released tab's dent). Pages extend this far behind the bar so they,
-  /// not an empty backdrop, show through the gap around the bubble.
-  static const double notchDepth = _AppBottomNavBarState._notchDepth;
+  /// Dock height while [compact].
+  static const double compactHeight = 50;
+
+  /// Air between the dock and the screen's bottom edge, for a system
+  /// navigation inset of [inset].
+  static double floatGap(double inset) => math.max(inset - 8, 0.0) + 12;
+
+  /// Height of the box the bar lays out in: the dock and the air under it.
+  /// The popped bubble rises above it.
+  static double extent(double inset) => floatGap(inset) + height;
+
+  /// Bottom padding a page needs to clear the expanded dock.
+  static double clearance(double inset) => extent(inset) + 8;
 
   final AppBottomNavTab? selected;
   final ValueChanged<AppBottomNavDestination> onSelect;
   final AppBottomNavScrub? onScrub;
   final VoidCallback? onCategories;
   final bool categoriesOpen;
+
+  /// Folded down while the page scrolls towards its end.
+  final bool compact;
+
+  /// A tap on the [compact] dock.
+  final VoidCallback? onExpand;
   final Map<AppBottomNavTab, int> badges;
 
-  /// System navigation inset the bar extends behind.
+  /// System navigation inset the dock floats above.
   final double bottomInset;
 
   @override
@@ -86,17 +108,220 @@ class _Repaint extends ChangeNotifier {
   void ping() => notifyListeners();
 }
 
-/// One tab's spring: 1 = popped out, 0 = at rest, < 0 = dented.
+/// One spring: x = 1 popped out (or folded), 0 = at rest.
 class _Lift {
   double x = 0, v = 0;
 }
 
-class _Ripple {
-  _Ripple(this.index, this.born, this.strength);
+double _lerp(double a, double b, double t) => a + (b - a) * t;
 
-  final int index;
-  final double born;
-  final double strength;
+/// The dock's metrics at fold [fold] (0 = expanded, 1 = compact), in the
+/// bar box's coordinates.
+class _Dock {
+  factory _Dock(Size box, double fold, double inset) {
+    final full = math.min(box.width - 2 * _side, _maxWidth);
+    final width = _lerp(
+      full,
+      math.min(full, math.max(full * 0.7, 240.0)),
+      fold,
+    );
+    final height = _lerp(
+      AppBottomNavBar.height,
+      AppBottomNavBar.compactHeight,
+      fold,
+    );
+    final bottom = box.height - AppBottomNavBar.floatGap(inset);
+    final pill = Rect.fromLTWH(
+      (box.width - width) / 2,
+      bottom - height,
+      width,
+      height,
+    );
+    final disc = _lerp(54, 42, fold);
+    return _Dock._(
+      pill: pill,
+      slot: (width - 2 * _pad) / AppBottomNav.slots.length,
+      iconY: pill.top + _lerp(24, height / 2, fold),
+      bubbleY: pill.top + _lerp(-4, 6, fold),
+      disc: disc,
+      reach: disc / 2 + _lerp(6, 5, fold),
+      fillet: _lerp(14, 11, fold),
+      iconSize: _lerp(22, 21, fold),
+      labelTop: pill.top + _lerp(39, 33, fold),
+      labelOpacity: (1 - fold * 1.8).clamp(0.0, 1.0),
+    );
+  }
+
+  const _Dock._({
+    required this.pill,
+    required this.slot,
+    required this.iconY,
+    required this.bubbleY,
+    required this.disc,
+    required this.reach,
+    required this.fillet,
+    required this.iconSize,
+    required this.labelTop,
+    required this.labelOpacity,
+  });
+
+  static const _side = 14.0; // screen margin beside the expanded dock
+  static const _maxWidth = 480.0;
+  static const _pad = 6.0; // inner margin before the first tab
+
+  final Rect pill;
+  final double slot;
+
+  /// Icon centre at rest.
+  final double iconY;
+
+  /// Centre of a fully popped bubble.
+  final double bubbleY;
+  final double disc;
+
+  /// Bubble radius plus the glass gap around it.
+  final double reach;
+
+  /// Radius of the arcs where the outline bends around a bubble.
+  final double fillet;
+  final double iconSize;
+  final double labelTop;
+  final double labelOpacity;
+
+  double centerX(int i) => pill.left + _pad + slot * (i + 0.5);
+
+  /// Tab under [x], measured from the pill's left edge.
+  int indexAt(double x) =>
+      ((x - _pad) / slot).floor().clamp(0, AppBottomNav.slots.length - 1);
+
+  /// [x] from the pill's left edge, in tab coordinates.
+  double slotAt(double x) =>
+      AppBottomNav.tabCoordinate((x - _pad) / slot - 0.5);
+}
+
+/// The dock's outline for one frame: the [silhouette] (body, bubbles' glass
+/// and fillets), the opaque [body] notched around each bubble, and the
+/// [glass] between the two.
+class _DockShape {
+  factory _DockShape(_Dock dock, List<_Lift> lifts) {
+    final pill = dock.pill;
+    final r = pill.height / 2;
+    final reach = dock.reach, f = dock.fillet;
+
+    // Bubble centres relative to the flat top edge. At rest the swell sits a
+    // full radius below the edge and the notch a full radius above it, so
+    // neither bends the outline.
+    final bubbles = <({double x, double up, double down})>[
+      for (var i = 0; i < lifts.length; i++)
+        if (lifts[i].x > 0.001)
+          (
+            x: dock.centerX(i),
+            up: _lerp(reach, dock.bubbleY - pill.top, lifts[i].x),
+            down: _lerp(-reach, dock.bubbleY - pill.top, lifts[i].x),
+          ),
+    ];
+
+    final n = math.max(2, pill.width.ceil());
+    final xs = List<double>.filled(n + 1, 0);
+    final outer = List<double>.filled(n + 1, 0);
+    final inner = List<double>.filled(n + 1, 0);
+    final floor = List<double>.filled(n + 1, 0);
+    for (var j = 0; j <= n; j++) {
+      final x = pill.left + pill.width * j / n;
+      final end = x < pill.left + r
+          ? pill.left + r - x
+          : x > pill.right - r
+          ? x - (pill.right - r)
+          : 0.0;
+      final round = r - math.sqrt(math.max(r * r - end * end, 0));
+      final edge = pill.top + round;
+      var top = edge, cut = edge;
+      for (final b in bubbles) {
+        final d = (x - b.x).abs();
+        final swell = _bend(d, -b.up, reach, f);
+        if (swell != null) {
+          // The fillets ease from the circle onto the (possibly rounding)
+          // end of the pill, so the outline never steps.
+          final w = swell.ease;
+          top = math.min(top, pill.top - swell.y + w * round);
+        }
+        final notch = _bend(d, b.down, reach, f);
+        if (notch != null) cut = math.max(cut, pill.top + notch.y);
+      }
+      xs[j] = x;
+      floor[j] = pill.bottom - round;
+      inner[j] = math.min(cut, floor[j]);
+      outer[j] = math.min(top, inner[j]);
+    }
+
+    Path trace(List<double> over, List<double> under) {
+      final path = Path()..moveTo(xs[0], over[0]);
+      for (var j = 1; j <= n; j++) {
+        path.lineTo(xs[j], over[j]);
+      }
+      for (var j = n; j >= 0; j--) {
+        path.lineTo(xs[j], under[j]);
+      }
+      return path..close();
+    }
+
+    final rim = Path()..moveTo(xs[0], outer[0]);
+    for (var j = 1; j <= n; j++) {
+      rim.lineTo(xs[j], outer[j]);
+    }
+
+    return _DockShape._(
+      silhouette: trace(outer, floor),
+      body: trace(inner, floor),
+      glass: trace(outer, inner),
+      rim: rim,
+      hasGlass: bubbles.isNotEmpty,
+    );
+  }
+
+  const _DockShape._({
+    required this.silhouette,
+    required this.body,
+    required this.glass,
+    required this.rim,
+    required this.hasGlass,
+  });
+
+  final Path silhouette;
+  final Path body;
+  final Path glass;
+
+  /// The silhouette's top edge.
+  final Path rim;
+  final bool hasGlass;
+
+  /// A flat edge pushed away from a circle of radius [r] centred [c] past
+  /// it, joined by fillets of radius [f]: the edge's offset at [d] from the
+  /// centre (towards the circle), or null where the edge stays flat. [ease]
+  /// runs from 0 at the circle to 1 where the fillet lands on the edge.
+  static ({double y, double ease})? _bend(
+    double d,
+    double c,
+    double r,
+    double f,
+  ) {
+    final reach = r + f;
+    // Fillet centres sit [f] behind the edge, [reach] from the circle's.
+    final drop = f - c;
+    if (drop >= reach) return null;
+    final foot = math.sqrt(reach * reach - drop * drop);
+    if (d >= foot) return null;
+    final tangent = foot * r / reach;
+    if (d <= tangent) {
+      return (y: c + math.sqrt(math.max(r * r - d * d, 0)), ease: 0);
+    }
+    final u = foot - d;
+    final t = (d - tangent) / (foot - tangent);
+    return (
+      y: f - math.sqrt(math.max(f * f - u * u, 0)),
+      ease: t * t * (3 - 2 * t),
+    );
+  }
 }
 
 class _AppBottomNavBarState extends State<AppBottomNavBar>
@@ -104,34 +329,29 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
   // Pop-out: a smooth rise with only a hint of overshoot.
   static const _popK = 220.0;
   static const _popZeta = 0.82;
-  // Release: looser, so it sinks past rest into a dent before settling.
+  // Release: critically damped, so it settles without dipping past rest.
   static const _dropK = 360.0;
-  static const _dropZeta = 0.34;
+  static const _dropZeta = 1.0;
+  // Folding away is calm; coming back is quick, with a whisper of spring.
+  static const _foldK = 380.0;
+  static const _foldZeta = 1.0;
+  static const _unfoldK = 620.0;
+  static const _unfoldZeta = 0.82;
 
-  static const _iconY = 25.0; // icon centre at rest, from the bar top
-  static const _rise = 29.0; // how far a popped icon lifts
-  static const _disc = 54.0; // bubble diameter
-  static const _gap = 6.0; // air between the bubble and the bent edge
-  static const _fillet = 14.0; // radius where the edge bends into the notch
-  static const _lip = 3.0; // how far the edge curls up beside the bubble
-  // Lowest point of a popped notch, plus room for the spring's overshoot.
-  static const _notchDepth = _disc / 2 + _gap + _iconY - _rise + 3;
-  static const _crown = 11.0; // depth of a released tab's dent
-  static const _crownSpread = 0.64; // dent half-width, in slot widths
-
-  static const _waveAmp = 3.2;
-  static const _waveLength = 62.0;
-  static const _waveSpeed = 300.0; // px/s
-  static const _waveDecay = 0.34; // s
-  static const _rippleLife = 0.95; // s
+  /// Room above the box for the popped bubble and its swell.
+  static const _overhang = 64.0;
 
   // Created on first use, so a bar that never animates never owns one.
   Ticker? _ticker;
   final _repaint = _Repaint();
   final _lifts = [for (final _ in AppBottomNav.slots) _Lift()];
-  final _ripples = <_Ripple>[];
+  final _fold = _Lift();
   Duration _last = Duration.zero;
-  double _time = 0;
+
+  Size _box = Size.zero;
+  int _frame = 0;
+  _DockShape? _shapeCache;
+  ({int frame, Size box, double inset})? _shapeKey;
 
   int get _selectedIndex {
     if (widget.categoriesOpen) return AppBottomNav.categoriesSlot;
@@ -139,18 +359,31 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     return AppBottomNav.slots.indexWhere((d) => d?.tab == widget.selected);
   }
 
+  _Dock get _dock => _Dock(_box, _fold.x, widget.bottomInset);
+
+  _DockShape get _shape {
+    final key = (frame: _frame, box: _box, inset: widget.bottomInset);
+    if (_shapeKey != key) {
+      _shapeKey = key;
+      _shapeCache = _DockShape(_dock, _lifts);
+    }
+    return _shapeCache!;
+  }
+
   @override
   void initState() {
     super.initState();
     final i = _selectedIndex;
     if (i >= 0) _lifts[i].x = 1;
+    _fold.x = widget.compact ? 1 : 0;
   }
 
   @override
   void didUpdateWidget(AppBottomNavBar old) {
     super.didUpdateWidget(old);
     if (old.selected != widget.selected ||
-        old.categoriesOpen != widget.categoriesOpen) {
+        old.categoriesOpen != widget.categoriesOpen ||
+        old.compact != widget.compact) {
       _wake();
     }
   }
@@ -160,6 +393,11 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     _ticker?.dispose();
     _repaint.dispose();
     super.dispose();
+  }
+
+  void _ping() {
+    _frame++;
+    _repaint.ping();
   }
 
   void _wake() {
@@ -181,8 +419,10 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
         ..x = i == selected ? 1 : 0
         ..v = 0;
     }
-    _ripples.clear();
-    _repaint.ping();
+    _fold
+      ..x = widget.compact ? 1 : 0
+      ..v = 0;
+    _ping();
   }
 
   void _tick(Duration now) {
@@ -191,15 +431,14 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     final steps = LuxeSpring.subSteps(dt);
     final h = dt / steps;
     final selected = _selectedIndex;
+    final compact = widget.compact;
 
     var energy = 0.0;
     for (var s = 0; s < steps; s++) {
-      _time += h;
       energy = 0;
       for (var i = 0; i < _lifts.length; i++) {
         final lift = _lifts[i];
         final popped = i == selected;
-        final before = lift.x;
         energy += LuxeSpring.step(
           lift.x,
           lift.v,
@@ -213,98 +452,37 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
               ..v = v;
           },
         );
-        // Released tab meets the surface: start a ripple from it.
-        if (!popped && before > 0 && lift.x <= 0 && lift.v < -1.5) {
-          final strength = (-lift.v / 7).clamp(0.45, 1.0);
-          _ripples.add(_Ripple(i, _time, strength));
-          if (_ripples.length > 3) _ripples.removeAt(0);
-        }
       }
+      energy += LuxeSpring.step(
+        _fold.x,
+        _fold.v,
+        compact ? 1 : 0,
+        compact ? _foldK : _unfoldK,
+        compact ? _foldZeta : _unfoldZeta,
+        h,
+        (x, v) {
+          _fold
+            ..x = x
+            ..v = v;
+        },
+      );
     }
-    _ripples.removeWhere((r) => _time - r.born > _rippleLife);
 
-    if (energy < 0.002 && _ripples.isEmpty) {
+    if (energy < 0.002) {
       _ticker?.stop();
       _settle();
       return;
     }
-    _repaint.ping();
-  }
-
-  /// Centre height of tab [i]'s notch circle, from the bar top: clear of the
-  /// edge at rest, cradling the popped bubble with [_gap] to spare.
-  double _notchY(int i) {
-    const reach = _disc / 2 + _gap;
-    return -reach + (reach + _iconY - _rise) * _lifts[i].x;
-  }
-
-  /// Offset of the top edge at [x] (negative = raised).
-  double _surface(double x, double slot) {
-    var bend = 0.0;
-    var calm = 0.0;
-    for (var i = 0; i < _lifts.length; i++) {
-      final lift = _lifts[i].x;
-      if (lift <= 0) continue;
-      final n = _notch(x - slot * (i + 0.5), _notchY(i), lift.clamp(0.0, 1.0));
-      bend += n.y;
-      calm = math.max(calm, n.calm);
-    }
-    // Waves pass under the bubble rather than reach into the notch.
-    return bend + _waves(x, slot) * (1 - calm);
-  }
-
-  /// The edge pushed away from a bubble: a notch around a circle centred
-  /// [cy] below the bar top, eased in by fillets, with lips curling up beside
-  /// it, at [dx] from its centre. [calm] is 1 in the notch, easing to 0 over
-  /// the fillet.
-  static ({double y, double calm}) _notch(double dx, double cy, double t) {
-    const r = _disc / 2 + _gap, f = _fillet;
-    // Fillet centres sit [f] below the bar, [r + f] from the notch centre.
-    const reach = r + f;
-    final drop = f - cy;
-    if (drop >= reach) return (y: 0, calm: 0);
-    final foot = math.sqrt(reach * reach - drop * drop);
-    final d = dx.abs();
-    final lip = -_lip * t * math.exp(-math.pow((d - foot) / 9, 2));
-    if (d >= foot) return (y: lip, calm: 0);
-    final tangent = foot * r / reach;
-    if (d <= tangent) {
-      return (y: lip + cy + math.sqrt(math.max(r * r - d * d, 0)), calm: 1);
-    }
-    final u = foot - d;
-    return (
-      y: lip + f - math.sqrt(math.max(f * f - u * u, 0)),
-      calm: u / (foot - tangent),
-    );
-  }
-
-  /// Dents of released tabs plus their release waves at [x].
-  double _waves(double x, double slot) {
-    var y = 0.0;
-    for (var i = 0; i < _lifts.length; i++) {
-      final lift = _lifts[i].x;
-      if (lift >= 0) continue;
-      final cx = slot * (i + 0.5);
-      y -= _crown * lift * LuxeSpring.oval((x - cx) / (slot * _crownSpread));
-    }
-    for (final r in _ripples) {
-      final age = _time - r.born;
-      final d = (x - slot * (r.index + 0.5)).abs();
-      final front = _waveSpeed * age;
-      if (d > front) continue;
-      // Feather the wavefront so the edge never kinks where it begins.
-      final feather = ((front - d) / 28).clamp(0.0, 1.0);
-      final envelope =
-          r.strength * math.exp(-age / _waveDecay) * math.exp(-d / 150);
-      final phase = 2 * math.pi * (front - d) / _waveLength;
-      y += _waveAmp * envelope * feather * math.sin(phase);
-    }
-    return y;
+    _ping();
   }
 
   void _onTap(int index) {
-    final destination = AppBottomNav.slots[index];
     AppHaptics.selection();
+    if (widget.compact && widget.onExpand != null) {
+      widget.onExpand!();
+      return;
+    }
+    final destination = AppBottomNav.slots[index];
     if (destination == null) {
       widget.onCategories?.call();
     } else {
@@ -312,22 +490,15 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     }
   }
 
-  /// Finger position in tab coordinates (the Categories slot squeezed out).
-  double _slotAt(double x, double slot) =>
-      AppBottomNav.tabCoordinate(x / slot - 0.5);
-
-  int _indexAt(double x, double slot) =>
-      (x / slot).floor().clamp(0, _lifts.length - 1);
-
-  /// Taps select; a hold or horizontal drag becomes a scrub.
-  Widget _gestures({required double slot, required Widget child}) {
-    final scrub = widget.onScrub;
+  /// Taps select; a hold or horizontal drag becomes a scrub. Positions are
+  /// measured from the pill's left edge.
+  Widget _gestures({required Widget child}) {
+    final scrub = widget.compact ? null : widget.onScrub;
     final recognizers = <Type, GestureRecognizerFactory>{
       TapGestureRecognizer:
           GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
             () => TapGestureRecognizer(debugOwner: this),
-            (r) =>
-                r.onTapUp = (d) => _onTap(_indexAt(d.localPosition.dx, slot)),
+            (r) => r.onTapUp = (d) => _onTap(_dock.indexAt(d.localPosition.dx)),
           ),
       if (scrub != null) ...{
         LongPressGestureRecognizer:
@@ -339,10 +510,10 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
               (r) {
                 r
                   ..onLongPressStart = (d) {
-                    scrub.onStart(_slotAt(d.localPosition.dx, slot));
+                    scrub.onStart(_dock.slotAt(d.localPosition.dx));
                   }
                   ..onLongPressMoveUpdate = (d) {
-                    scrub.onUpdate(_slotAt(d.localPosition.dx, slot));
+                    scrub.onUpdate(_dock.slotAt(d.localPosition.dx));
                   }
                   ..onLongPressEnd = (_) {
                     scrub.onEnd();
@@ -357,10 +528,10 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
               r
                 ..dragStartBehavior = DragStartBehavior.down
                 ..onStart = (d) {
-                  scrub.onStart(_slotAt(d.localPosition.dx, slot));
+                  scrub.onStart(_dock.slotAt(d.localPosition.dx));
                 }
                 ..onUpdate = (d) {
-                  scrub.onUpdate(_slotAt(d.localPosition.dx, slot));
+                  scrub.onUpdate(_dock.slotAt(d.localPosition.dx));
                 }
                 ..onEnd = (_) {
                   scrub.onEnd();
@@ -384,6 +555,15 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
   static String _labelKey(int i) =>
       AppBottomNav.slots[i]?.labelKey ?? AppBottomNav.categoriesLabelKey;
 
+  /// A full-width layer reaching [_overhang] above the box.
+  static Widget _layer(Widget child) => Positioned(
+    left: 0,
+    right: 0,
+    top: -_overhang,
+    bottom: 0,
+    child: IgnorePointer(child: child),
+  );
+
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
@@ -392,23 +572,44 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1.2,
       child: SizedBox(
-        height: AppBottomNavBar.height + widget.bottomInset,
+        height: AppBottomNavBar.extent(widget.bottomInset),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final slot = constraints.maxWidth / _lifts.length;
+            _box = constraints.biggest;
             return Stack(
               clipBehavior: Clip.none,
               children: [
-                Positioned.fill(
-                  child: RepaintBoundary(
+                _layer(
+                  RepaintBoundary(
                     child: CustomPaint(
-                      painter: _SurfacePainter(
+                      painter: _DockPainter(
                         state: this,
-                        slot: slot,
-                        fill: p.surface,
-                        hairline: p.hairline,
-                        accent: p.accent,
-                        isDark: p.isDark,
+                        front: false,
+                        palette: p,
+                      ),
+                    ),
+                  ),
+                ),
+                _layer(
+                  ClipPath(
+                    clipper: _GlassClipper(this),
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: ColoredBox(
+                        color: p.surface.withValues(
+                          alpha: p.isDark ? 0.12 : 0.18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                _layer(
+                  RepaintBoundary(
+                    child: CustomPaint(
+                      painter: _DockPainter(
+                        state: this,
+                        front: true,
+                        palette: p,
                       ),
                     ),
                   ),
@@ -418,17 +619,22 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
                     key: ValueKey(i),
                     state: this,
                     index: i,
-                    slot: slot,
                     selected: i == selected,
                     badge: _badge(i),
                   ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  height: AppBottomNavBar.height,
+                AnimatedBuilder(
+                  animation: _repaint,
+                  builder: (context, child) {
+                    final pill = _dock.pill;
+                    return Positioned(
+                      left: pill.left,
+                      width: pill.width,
+                      top: pill.top - 8,
+                      height: pill.height + 8,
+                      child: child!,
+                    );
+                  },
                   child: _gestures(
-                    slot: slot,
                     child: Row(
                       children: [
                         for (var i = 0; i < _lifts.length; i++)
@@ -458,7 +664,6 @@ class _TabVisual extends StatelessWidget {
   const _TabVisual({
     required this.state,
     required this.index,
-    required this.slot,
     required this.selected,
     required this.badge,
     super.key,
@@ -466,7 +671,6 @@ class _TabVisual extends StatelessWidget {
 
   final _AppBottomNavBarState state;
   final int index;
-  final double slot;
   final bool selected;
   final int badge;
 
@@ -478,51 +682,39 @@ class _TabVisual extends StatelessWidget {
     final icon = selected
         ? destination?.selectedIcon ?? AppBottomNav.categoriesSelectedIcon
         : destination?.icon ?? AppBottomNav.categoriesIcon;
-    const disc = _AppBottomNavBarState._disc;
-    final cx = slot * (index + 0.5);
 
-    return Positioned(
-      left: cx - slot / 2,
-      width: slot,
-      top: -_AppBottomNavBarState._rise - disc / 2,
-      height: AppBottomNavBar.height + _AppBottomNavBarState._rise + disc / 2,
+    return Positioned.fill(
       child: IgnorePointer(
         child: AnimatedBuilder(
           animation: state._repaint,
           builder: (context, _) {
+            final dock = state._dock;
             final lift = state._lifts[index].x;
             final shown = lift.clamp(0.0, 1.0);
-            // A dent presses the icon in only slightly.
-            final travel = lift >= 0 ? lift : lift * 0.35;
-            final iconY =
-                _AppBottomNavBarState._rise +
-                disc / 2 +
-                _AppBottomNavBarState._iconY -
-                _AppBottomNavBarState._rise * travel;
-            final iconColor = Color.lerp(p.inkMuted, p.accent, shown)!;
-            final labelColor = Color.lerp(p.inkMuted, p.accent, shown)!;
+            final cx = dock.centerX(index);
+            // The icon rides inside its bubble.
+            final cy = _lerp(dock.iconY, dock.bubbleY, math.max(0.0, lift));
+            final disc = dock.disc * (0.6 + 0.4 * lift.clamp(0.0, 1.1));
+            final color = Color.lerp(p.inkMuted, p.accent, shown)!;
 
             return Stack(
               clipBehavior: Clip.none,
               children: [
                 if (shown > 0)
                   Positioned(
-                    left: slot / 2 - disc / 2,
-                    top: iconY - disc / 2,
+                    left: cx - disc / 2,
+                    top: cy - disc / 2,
                     width: disc,
                     height: disc,
-                    child: Transform.scale(
-                      scale: 0.6 + 0.4 * lift.clamp(0.0, 1.1),
-                      child: Opacity(
-                        opacity: shown,
-                        child: _Bubble(palette: p),
-                      ),
+                    child: Opacity(
+                      opacity: shown,
+                      child: _Bubble(palette: p),
                     ),
                   ),
                 Positioned(
-                  left: 0,
-                  right: 0,
-                  top: iconY - 14,
+                  left: cx - dock.slot / 2,
+                  width: dock.slot,
+                  top: cy - 14,
                   height: 28,
                   child: Center(
                     child: Badge(
@@ -533,32 +725,36 @@ class _TabVisual extends StatelessWidget {
                       label: Text(badge > 99 ? '99+' : '$badge'),
                       child: Icon(
                         icon,
-                        size: 22 + 1.5 * shown,
-                        color: iconColor,
+                        size: dock.iconSize + 1.5 * shown,
+                        color: color,
                       ),
                     ),
                   ),
                 ),
-                Positioned(
-                  left: 4,
-                  right: 4,
-                  top: _AppBottomNavBarState._rise + disc / 2 + 43,
-                  child: Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        style: LuxeType.label(labelColor, size: 11).copyWith(
-                          fontWeight: selected
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          letterSpacing: 0.4,
+                if (dock.labelOpacity > 0)
+                  Positioned(
+                    left: cx - dock.slot / 2 + 2,
+                    width: dock.slot - 4,
+                    top: dock.labelTop,
+                    child: Opacity(
+                      opacity: dock.labelOpacity,
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            style: LuxeType.label(color, size: 11).copyWith(
+                              fontWeight: selected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
               ],
             );
           },
@@ -568,7 +764,7 @@ class _TabVisual extends StatelessWidget {
   }
 }
 
-/// The popped tab's floating bubble, free of the bar.
+/// The popped tab's bubble, floating in its glass ring.
 class _Bubble extends StatelessWidget {
   const _Bubble({required this.palette});
 
@@ -580,17 +776,11 @@ class _Bubble extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: palette.surface,
+        border: Border.all(color: palette.hairline, width: 0.6),
         boxShadow: [
           BoxShadow(
-            color: palette.accent.withValues(
-              alpha: palette.isDark ? 0.4 : 0.28,
-            ),
-            blurRadius: 18,
-            offset: const Offset(0, 4),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: palette.isDark ? 0.4 : 0.08),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: palette.isDark ? 0.35 : 0.1),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -629,94 +819,95 @@ class _TabHitArea extends StatelessWidget {
   }
 }
 
-/// The bar's body: a top edge that rises into the popped tab's disc and
-/// carries release waves, plus the fading rings of those waves.
-class _SurfacePainter extends CustomPainter {
-  _SurfacePainter({
+/// Clips the backdrop blur to the ring between each bubble and the body.
+class _GlassClipper extends CustomClipper<Path> {
+  _GlassClipper(this.state) : super(reclip: state._repaint);
+
+  final _AppBottomNavBarState state;
+
+  @override
+  Path getClip(Size size) {
+    final shape = state._shape;
+    if (!shape.hasGlass) return Path();
+    return shape.glass.shift(const Offset(0, _AppBottomNavBarState._overhang));
+  }
+
+  @override
+  bool shouldReclip(_GlassClipper old) => old.state != state;
+}
+
+/// Back layer: the dock's shadow, cast only outside its silhouette so it
+/// never darkens what the glass shows. Front layer: the opaque body, the
+/// outline and the glass rim's highlight.
+class _DockPainter extends CustomPainter {
+  _DockPainter({
     required this.state,
-    required this.slot,
-    required this.fill,
-    required this.hairline,
-    required this.accent,
-    required this.isDark,
+    required this.front,
+    required this.palette,
   }) : super(repaint: state._repaint);
 
   final _AppBottomNavBarState state;
-  final double slot;
-  final Color fill;
-  final Color hairline;
-  final Color accent;
-  final bool isDark;
-
-  // Fine enough to keep the disc and fillet arcs smooth.
-  static const _sample = 1.0;
+  final bool front;
+  final LuxePalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final edge = Path()..moveTo(0, state._surface(0, slot));
-    for (var x = _sample; x < size.width; x += _sample) {
-      edge.lineTo(x, state._surface(x, slot));
+    final shape = state._shape;
+    final p = palette;
+    canvas.translate(0, _AppBottomNavBarState._overhang);
+
+    if (!front) {
+      final outside = Path()
+        ..fillType = PathFillType.evenOdd
+        ..addRect(
+          Rect.fromLTWH(
+            -40,
+            -_AppBottomNavBarState._overhang - 40,
+            size.width + 80,
+            size.height + 80,
+          ),
+        )
+        ..addPath(shape.silhouette, Offset.zero);
+      canvas
+        ..save()
+        ..clipPath(outside)
+        ..drawPath(
+          shape.silhouette.shift(const Offset(0, 4)),
+          Paint()
+            ..color = Colors.black.withValues(alpha: p.isDark ? 0.45 : 0.1)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14),
+        )
+        ..restore();
+      return;
     }
-    edge.lineTo(size.width, state._surface(size.width, slot));
 
-    final body = Path.from(edge)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    canvas.drawPath(shape.body, Paint()..color = p.surface);
 
-    // Soft upward shadow so the bar floats over page content.
-    canvas.drawPath(
-      body.shift(const Offset(0, -1.5)),
-      Paint()
-        ..color = Colors.black.withValues(alpha: isDark ? 0.5 : 0.07)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
-    );
-    canvas.drawPath(body, Paint()..color = fill);
-
-    // Release rings, kept on the bar's surface.
-    if (state._ripples.isNotEmpty) {
-      canvas.save();
-      canvas.clipPath(body);
-      for (final r in state._ripples) {
-        final age = state._time - r.born;
-        final centre = Offset(
-          slot * (r.index + 0.5),
-          _AppBottomNavBarState._iconY,
-        );
-        for (var k = 0; k < 2; k++) {
-          final t =
-              (age - k * 0.11) / (_AppBottomNavBarState._rippleLife * 0.8);
-          if (t <= 0 || t >= 1) continue;
-          final eased = Curves.easeOutCubic.transform(t);
-          canvas.drawCircle(
-            centre,
-            12 + 44 * eased,
-            Paint()
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 1.3 * (1 - t) + 0.3
-              ..color = accent.withValues(
-                alpha: (k == 0 ? 0.38 : 0.22) * (1 - t) * r.strength,
-              ),
-          );
-        }
-      }
-      canvas.restore();
+    if (shape.hasGlass) {
+      // A thin light rim along the glass, like the edge of a lens.
+      canvas
+        ..save()
+        ..clipPath(shape.glass)
+        ..drawPath(
+          shape.rim,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.6
+            ..color = Colors.white.withValues(alpha: p.isDark ? 0.16 : 0.7),
+        )
+        ..restore();
     }
 
     canvas.drawPath(
-      edge,
+      shape.silhouette,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 0.8
-        ..color = hairline,
+        ..color = p.hairline,
     );
   }
 
   @override
-  bool shouldRepaint(_SurfacePainter old) =>
-      old.slot != slot ||
-      old.fill != fill ||
-      old.hairline != hairline ||
-      old.accent != accent ||
-      old.isDark != isDark;
+  bool shouldRepaint(_DockPainter old) =>
+      old.state != state || old.front != front || old.palette != palette;
 }

@@ -150,9 +150,8 @@ class BuyerSettingsScreen extends ConsumerWidget {
                       SettingsRow(
                         icon: Icons.description_outlined,
                         title: context.tr(AccountCommerceL10n.termsConditions),
-                        onTap: () => context.openRoute(
-                          AppRouteNames.termsAndConditions,
-                        ),
+                        onTap: () =>
+                            context.openRoute(AppRouteNames.termsAndConditions),
                       ),
                     ],
                   ),

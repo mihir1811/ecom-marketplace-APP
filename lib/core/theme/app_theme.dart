@@ -10,8 +10,10 @@ class AppTheme {
 
   /// Light theme data representing the premium warm cream aesthetic of GemWorld.
   static ThemeData get light {
-    final defaultTextTheme = AppTypography.buildTextTheme(AppColors.textPrimaryLight);
-    
+    final defaultTextTheme = AppTypography.buildTextTheme(
+      AppColors.textPrimaryLight,
+    );
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -28,17 +30,19 @@ class AppTheme {
         outline: AppColors.warmBorder,
       ),
       scaffoldBackgroundColor: AppColors.creamBg,
-      
+
       // Typography
       textTheme: defaultTextTheme,
-      
+
       // AppBar configuration
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.creamBg,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: AppTypography.title.copyWith(color: AppColors.textPrimaryLight),
+        titleTextStyle: AppTypography.title.copyWith(
+          color: AppColors.textPrimaryLight,
+        ),
         iconTheme: const IconThemeData(color: AppColors.textPrimaryLight),
       ),
 
@@ -78,7 +82,9 @@ class AppTheme {
           borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
           borderSide: BorderSide(color: AppColors.error, width: 1.0),
         ),
-        labelStyle: AppTypography.label.copyWith(color: AppColors.textSecondaryLight),
+        labelStyle: AppTypography.label.copyWith(
+          color: AppColors.textSecondaryLight,
+        ),
         hintStyle: AppTypography.body.copyWith(color: AppColors.textMutedLight),
         // Keep prefix/suffix icons readable when the field is in error state.
         prefixIconColor: AppColors.textSecondaryLight,
@@ -135,13 +141,22 @@ class AppTheme {
         selectedColor: AppColors.charcoal,
         secondarySelectedColor: AppColors.charcoal,
         checkmarkColor: AppColors.warmWhite,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12, vertical: AppSpacing.s8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.s12,
+          vertical: AppSpacing.s8,
+        ),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppSpacing.circular)),
           side: BorderSide(color: AppColors.warmBorder, width: 1.0),
         ),
-        labelStyle: AppTypography.caption.copyWith(color: AppColors.textPrimaryLight, fontWeight: FontWeight.w500),
-        secondaryLabelStyle: AppTypography.caption.copyWith(color: AppColors.warmWhite, fontWeight: FontWeight.w600),
+        labelStyle: AppTypography.caption.copyWith(
+          color: AppColors.textPrimaryLight,
+          fontWeight: FontWeight.w500,
+        ),
+        secondaryLabelStyle: AppTypography.caption.copyWith(
+          color: AppColors.warmWhite,
+          fontWeight: FontWeight.w600,
+        ),
         color: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return AppColors.charcoal;
@@ -162,8 +177,9 @@ class AppTheme {
 
   /// Dark theme representing the sleek obsidian aesthetic of GemWorld.
   static ThemeData get dark {
-    final defaultTextTheme =
-        AppTypography.buildTextTheme(AppColors.textPrimaryDark);
+    final defaultTextTheme = AppTypography.buildTextTheme(
+      AppColors.textPrimaryDark,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -191,8 +207,9 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle:
-            AppTypography.title.copyWith(color: AppColors.textPrimaryDark),
+        titleTextStyle: AppTypography.title.copyWith(
+          color: AppColors.textPrimaryDark,
+        ),
         iconTheme: const IconThemeData(color: AppColors.textPrimaryDark),
       ),
 
@@ -232,7 +249,9 @@ class AppTheme {
           borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
           borderSide: BorderSide(color: AppColors.error, width: 1.0),
         ),
-        labelStyle: AppTypography.label.copyWith(color: AppColors.textSecondaryDark),
+        labelStyle: AppTypography.label.copyWith(
+          color: AppColors.textSecondaryDark,
+        ),
         hintStyle: AppTypography.body.copyWith(color: AppColors.textMutedDark),
         prefixIconColor: AppColors.textSecondaryDark,
         suffixIconColor: AppColors.textSecondaryDark,
@@ -288,7 +307,10 @@ class AppTheme {
         selectedColor: AppColors.warmWhite,
         secondarySelectedColor: AppColors.warmWhite,
         checkmarkColor: AppColors.charcoal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12, vertical: AppSpacing.s8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.s12,
+          vertical: AppSpacing.s8,
+        ),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppSpacing.circular)),
           side: BorderSide(color: AppColors.slateBorder, width: 1.0),
@@ -318,5 +340,4 @@ class AppTheme {
       ),
     );
   }
-
 }

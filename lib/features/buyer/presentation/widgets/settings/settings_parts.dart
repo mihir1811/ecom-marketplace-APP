@@ -38,7 +38,8 @@ class SettingsIdentityCard extends StatelessWidget {
     final p = context.atelier;
     return AtelierCard(
       onTap: onTap,
-      semanticLabel: '$displayName, ${context.tr(AccountCommerceL10n.myProfile)}',
+      semanticLabel:
+          '$displayName, ${context.tr(AccountCommerceL10n.myProfile)}',
       padding: const EdgeInsets.fromLTRB(18, 18, 14, 18),
       child: Row(
         children: [
@@ -294,7 +295,10 @@ class _ThemeTile extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(label, style: AtelierType.title(p.ink, size: 14)),
+                          Text(
+                            label,
+                            style: AtelierType.title(p.ink, size: 14),
+                          ),
                           Text(
                             caption,
                             maxLines: 1,
@@ -373,8 +377,7 @@ class SettingsLanguageChooser extends StatelessWidget {
               glyph: options[i].$2,
               name: options[i].$3,
               translated: context.tr(options[i].$4),
-              selected:
-                  selected.languageCode == options[i].$1.languageCode,
+              selected: selected.languageCode == options[i].$1.languageCode,
               onTap: () => onChanged(options[i].$1),
             ),
           ),
@@ -423,10 +426,7 @@ class _LanguageTile extends StatelessWidget {
             children: [
               AnimatedDefaultTextStyle(
                 duration: AtelierMotion.base,
-                style: AtelierType.display(
-                  selected ? p.gold : p.ink,
-                  size: 30,
-                ),
+                style: AtelierType.display(selected ? p.gold : p.ink, size: 30),
                 child: Text(glyph, maxLines: 1),
               ),
               const SizedBox(height: 6),
@@ -436,11 +436,7 @@ class _LanguageTile extends StatelessWidget {
                   selected ? p.canvas : p.inkSoft,
                   size: 12.5,
                 ),
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
             ],
           ),

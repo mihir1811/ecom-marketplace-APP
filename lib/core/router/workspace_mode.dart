@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../haptics/app_haptics.dart';
+import '../widgets/navigation/app_drawer_stage.dart';
 import 'route_names.dart';
 
 /// The two sides of the app a signed-in user can be on.
@@ -70,6 +71,8 @@ void switchWorkspaceFrom(
   required bool pending,
 }) {
   final router = GoRouter.of(context);
+  final stage = AppDrawerStage.maybeOf(context);
+  if (stage != null && stage.isOpen) stage.close();
   final scaffold = Scaffold.maybeOf(context);
   if (scaffold != null && scaffold.isDrawerOpen) {
     scaffold.closeDrawer();

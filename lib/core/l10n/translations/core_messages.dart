@@ -168,10 +168,8 @@ const coreMessages = <String, LocalizedMessage>{
   CoreL10n.unexpectedError: LocalizedMessage(
     english:
         'An unexpected error occurred. Please reload or restart the application.',
-    hindi:
-        'एक अनपेक्षित त्रुटि हुई। कृपया ऐप को फिर से लोड या पुनः शुरू करें।',
-    gujarati:
-        'અણધારી ભૂલ આવી. કૃપા કરીને ઍપ ફરી લોડ કરો અથવા ફરી શરૂ કરો.',
+    hindi: 'एक अनपेक्षित त्रुटि हुई। कृपया ऐप को फिर से लोड या पुनः शुरू करें।',
+    gujarati: 'અણધારી ભૂલ આવી. કૃપા કરીને ઍપ ફરી લોડ કરો અથવા ફરી શરૂ કરો.',
   ),
   CoreL10n.exitAppTitle: LocalizedMessage(
     english: 'Exit app?',

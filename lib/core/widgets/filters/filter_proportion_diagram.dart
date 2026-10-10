@@ -110,7 +110,9 @@ class _ProportionPainter extends CustomPainter {
     final ry = size.height * 0.22;
 
     final stone = Path()
-      ..addOval(Rect.fromCenter(center: Offset(cx, cy), width: rx * 2, height: ry * 2));
+      ..addOval(
+        Rect.fromCenter(center: Offset(cx, cy), width: rx * 2, height: ry * 2),
+      );
     canvas.drawPath(
       stone,
       Paint()
@@ -132,16 +134,42 @@ class _ProportionPainter extends CustomPainter {
 
     switch (kind) {
       case FilterProportionDiagramKind.length:
-        canvas.drawLine(Offset(cx, cy - ry - 10), Offset(cx, cy + ry + 10), dimPaint);
-        _drawArrowHeads(canvas, Offset(cx, cy - ry - 10), Offset(cx, cy + ry + 10), dimPaint);
+        canvas.drawLine(
+          Offset(cx, cy - ry - 10),
+          Offset(cx, cy + ry + 10),
+          dimPaint,
+        );
+        _drawArrowHeads(
+          canvas,
+          Offset(cx, cy - ry - 10),
+          Offset(cx, cy + ry + 10),
+          dimPaint,
+        );
         _drawLabel(canvas, 'L', Offset(cx + 10, cy - ry - 14));
       case FilterProportionDiagramKind.width:
-        canvas.drawLine(Offset(cx - rx - 10, cy), Offset(cx + rx + 10, cy), dimPaint);
-        _drawArrowHeads(canvas, Offset(cx - rx - 10, cy), Offset(cx + rx + 10, cy), dimPaint);
+        canvas.drawLine(
+          Offset(cx - rx - 10, cy),
+          Offset(cx + rx + 10, cy),
+          dimPaint,
+        );
+        _drawArrowHeads(
+          canvas,
+          Offset(cx - rx - 10, cy),
+          Offset(cx + rx + 10, cy),
+          dimPaint,
+        );
         _drawLabel(canvas, 'W', Offset(cx + rx + 12, cy - 6));
       case FilterProportionDiagramKind.ratio:
-        canvas.drawLine(Offset(cx, cy - ry - 8), Offset(cx, cy + ry + 8), dimPaint);
-        canvas.drawLine(Offset(cx - rx - 8, cy), Offset(cx + rx + 8, cy), dimPaint);
+        canvas.drawLine(
+          Offset(cx, cy - ry - 8),
+          Offset(cx, cy + ry + 8),
+          dimPaint,
+        );
+        canvas.drawLine(
+          Offset(cx - rx - 8, cy),
+          Offset(cx + rx + 8, cy),
+          dimPaint,
+        );
         _drawLabel(canvas, 'L', Offset(cx + 8, cy - ry - 14));
         _drawLabel(canvas, 'W', Offset(cx + rx + 10, cy - 6));
         _drawLabel(canvas, 'L ÷ W', Offset(cx - 18, cy + ry + 18), muted: true);
@@ -193,7 +221,11 @@ class _ProportionPainter extends CustomPainter {
           Offset(parts.right + 8, parts.culetY),
           accentStroke,
         );
-        _drawLabel(canvas, 'H', Offset(parts.right + 12, (parts.tableY + parts.culetY) / 2 - 6));
+        _drawLabel(
+          canvas,
+          'H',
+          Offset(parts.right + 12, (parts.tableY + parts.culetY) / 2 - 6),
+        );
       case FilterProportionDiagramKind.table:
         canvas.drawLine(
           Offset(parts.tableLeft, parts.tableY),
@@ -220,12 +252,23 @@ class _ProportionPainter extends CustomPainter {
           Offset(parts.right + 10, parts.culetY),
           accentStroke,
         );
-        _drawLabel(canvas, 'Depth %', Offset(parts.cx - 22, parts.culetY + 10), muted: true);
+        _drawLabel(
+          canvas,
+          'Depth %',
+          Offset(parts.cx - 22, parts.culetY + 10),
+          muted: true,
+        );
       case FilterProportionDiagramKind.crownAngle:
         final start = Offset(parts.tableRight, parts.tableY);
         final end = Offset(parts.right, parts.girdleY);
         canvas.drawLine(start, end, accentStroke);
-        _drawAngleArc(canvas, end, start, Offset(parts.right + 18, parts.girdleY), accentStroke);
+        _drawAngleArc(
+          canvas,
+          end,
+          start,
+          Offset(parts.right + 18, parts.girdleY),
+          accentStroke,
+        );
         _drawLabel(canvas, '∠', Offset(parts.right + 4, parts.girdleY - 18));
       case FilterProportionDiagramKind.crownHeight:
         final crown = Path()
@@ -265,7 +308,11 @@ class _ProportionPainter extends CustomPainter {
           Offset(parts.right + 8, parts.culetY),
           accentStroke,
         );
-        _drawLabel(canvas, 'Pavilion', Offset(parts.cx - 22, parts.girdleY + 16));
+        _drawLabel(
+          canvas,
+          'Pavilion',
+          Offset(parts.cx - 22, parts.girdleY + 16),
+        );
       case FilterProportionDiagramKind.girdle:
         canvas.drawLine(
           Offset(parts.left, parts.girdleY),
@@ -342,7 +389,13 @@ class _ProportionPainter extends CustomPainter {
     final a1 = math.atan2(armA.dy - vertex.dy, armA.dx - vertex.dx);
     final a2 = math.atan2(armB.dy - vertex.dy, armB.dx - vertex.dx);
     final rect = Rect.fromCircle(center: vertex, radius: 14);
-    canvas.drawArc(rect, a1, _deltaAngle(a1, a2), false, paint..strokeWidth = 1.6);
+    canvas.drawArc(
+      rect,
+      a1,
+      _deltaAngle(a1, a2),
+      false,
+      paint..strokeWidth = 1.6,
+    );
   }
 
   double _deltaAngle(double from, double to) {

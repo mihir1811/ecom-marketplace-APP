@@ -64,11 +64,14 @@ const experienceMessages = <String, LocalizedMessage>{
     gujarati: 'દરેક પાસું,\nતમારા હાથમાં.',
   ),
   ExperienceL10n.stageBody: LocalizedMessage(
-    english: 'Round to heart, princess to pear — touch the stones and '
+    english:
+        'Round to heart, princess to pear — touch the stones and '
         'watch them catch the light.',
-    hindi: 'राउंड से हार्ट, प्रिंसेस से पियर तक — पत्थरों को छुएँ और उन्हें '
+    hindi:
+        'राउंड से हार्ट, प्रिंसेस से पियर तक — पत्थरों को छुएँ और उन्हें '
         'रोशनी में चमकते देखें।',
-    gujarati: 'રાઉન્ડથી હાર્ટ, પ્રિન્સેસથી પિયર સુધી — પથ્થરોને સ્પર્શો અને '
+    gujarati:
+        'રાઉન્ડથી હાર્ટ, પ્રિન્સેસથી પિયર સુધી — પથ્થરોને સ્પર્શો અને '
         'તેમને પ્રકાશમાં ઝળહળતા જુઓ.',
   ),
   ExperienceL10n.aiAdvisor: LocalizedMessage(

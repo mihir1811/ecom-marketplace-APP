@@ -32,5 +32,6 @@ class ThemePreference extends StateNotifier<bool> {
 }
 
 /// App-wide dark mode preference provider.
-final themePreferenceProvider =
-    StateNotifierProvider<ThemePreference, bool>((ref) => ThemePreference());
+final themePreferenceProvider = StateNotifierProvider<ThemePreference, bool>(
+  (ref) => ThemePreference(),
+);

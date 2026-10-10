@@ -70,36 +70,20 @@ const catalogFilterValueLabels = <String, LocalizedMessage>{
     hindi: 'कोई नहीं',
     gujarati: 'કોઈ નહીં',
   ),
-  'Blue': LocalizedMessage(
-    english: 'Blue',
-    hindi: 'नीला',
-    gujarati: 'વાદળી',
-  ),
+  'Blue': LocalizedMessage(english: 'Blue', hindi: 'नीला', gujarati: 'વાદળી'),
   'Yellow': LocalizedMessage(
     english: 'Yellow',
     hindi: 'पीला',
     gujarati: 'પીળો',
   ),
-  'White': LocalizedMessage(
-    english: 'White',
-    hindi: 'सफ़ेद',
-    gujarati: 'સફેદ',
-  ),
-  'Green': LocalizedMessage(
-    english: 'Green',
-    hindi: 'हरा',
-    gujarati: 'લીલો',
-  ),
+  'White': LocalizedMessage(english: 'White', hindi: 'सफ़ेद', gujarati: 'સફેદ'),
+  'Green': LocalizedMessage(english: 'Green', hindi: 'हरा', gujarati: 'લીલો'),
   'Orange': LocalizedMessage(
     english: 'Orange',
     hindi: 'नारंगी',
     gujarati: 'નારંગી',
   ),
-  'Red': LocalizedMessage(
-    english: 'Red',
-    hindi: 'लाल',
-    gujarati: 'લાલ',
-  ),
+  'Red': LocalizedMessage(english: 'Red', hindi: 'लाल', gujarati: 'લાલ'),
   // Milkiness
   'Slightly': LocalizedMessage(
     english: 'Slightly',
@@ -143,11 +127,7 @@ const catalogFilterValueLabels = <String, LocalizedMessage>{
     gujarati: 'ખૂબ તીવ્ર',
   ),
   // Diamond shapes
-  'Round': LocalizedMessage(
-    english: 'Round',
-    hindi: 'गोल',
-    gujarati: 'ગોળ',
-  ),
+  'Round': LocalizedMessage(english: 'Round', hindi: 'गोल', gujarati: 'ગોળ'),
   'Cushion': LocalizedMessage(
     english: 'Cushion',
     hindi: 'कुशन',
@@ -158,11 +138,7 @@ const catalogFilterValueLabels = <String, LocalizedMessage>{
     hindi: 'एमराल्ड',
     gujarati: 'એમરાલ્ડ',
   ),
-  'Pear': LocalizedMessage(
-    english: 'Pear',
-    hindi: 'नाशपाती',
-    gujarati: 'પિઅર',
-  ),
+  'Pear': LocalizedMessage(english: 'Pear', hindi: 'नाशपाती', gujarati: 'પિઅર'),
   'Oval': LocalizedMessage(
     english: 'Oval',
     hindi: 'अंडाकार',
@@ -178,11 +154,7 @@ const catalogFilterValueLabels = <String, LocalizedMessage>{
     hindi: 'मार्कीज़',
     gujarati: 'માર્કીઝ',
   ),
-  'Heart': LocalizedMessage(
-    english: 'Heart',
-    hindi: 'हृदय',
-    gujarati: 'હૃદય',
-  ),
+  'Heart': LocalizedMessage(english: 'Heart', hindi: 'हृदय', gujarati: 'હૃદય'),
   'Radiant': LocalizedMessage(
     english: 'Radiant',
     hindi: 'रेडिएंट',
@@ -208,11 +180,7 @@ const catalogFilterValueLabels = <String, LocalizedMessage>{
     hindi: 'फ्लैंडर्स',
     gujarati: 'ફ્લેન્ડર્સ',
   ),
-  'Shield': LocalizedMessage(
-    english: 'Shield',
-    hindi: 'ढाल',
-    gujarati: 'ઢાલ',
-  ),
+  'Shield': LocalizedMessage(english: 'Shield', hindi: 'ढाल', gujarati: 'ઢાલ'),
   'Polki': LocalizedMessage(
     english: 'Polki',
     hindi: 'पोल्की',

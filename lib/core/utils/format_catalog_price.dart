@@ -61,8 +61,8 @@ String _formatExact(double price, {required bool group}) {
   final body = frac == '00'
       ? whole
       : frac.endsWith('0')
-          ? '$whole.${frac[0]}'
-          : '$whole.$frac';
+      ? '$whole.${frac[0]}'
+      : '$whole.$frac';
   return negative ? '-$body' : body;
 }
 

@@ -35,7 +35,8 @@ const _cancelledPayments = {'CANCELLED', 'CANCELED', 'FAILED'};
 SellerOrderCategory sellerOrderCategoryOf(SellerOrder order) {
   final payment = order.paymentStatus?.trim().toUpperCase() ?? '';
   final raw = order.rawStatus.trim().toUpperCase();
-  if (_cancelledPayments.contains(payment)) return SellerOrderCategory.cancelled;
+  if (_cancelledPayments.contains(payment))
+    return SellerOrderCategory.cancelled;
   return switch (order.status) {
     SellerOrderStatus.pending => SellerOrderCategory.pending,
     SellerOrderStatus.accepted => SellerOrderCategory.confirmed,
@@ -170,7 +171,8 @@ class SellerOrderBoardEntry {
     };
   }
 
-  String get key => refund != null ? 'refund:${refund!.id}' : 'order:${order!.id}';
+  String get key =>
+      refund != null ? 'refund:${refund!.id}' : 'order:${order!.id}';
 }
 
 /// Order value in USD for sorting; INR-only orders are converted.
@@ -245,7 +247,10 @@ class SellerOrderBoard {
         ? [
             for (final refund in _refunds)
               if (sellerRefundCategoryOf(refund) == category)
-                SellerOrderBoardEntry._(order: orderFor(refund), refund: refund),
+                SellerOrderBoardEntry._(
+                  order: orderFor(refund),
+                  refund: refund,
+                ),
           ]
         : [
             for (final order in _orders)

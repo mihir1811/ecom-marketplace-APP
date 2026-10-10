@@ -133,9 +133,7 @@ abstract class PaginatedAsyncNotifier<T>
     onResetPagination();
     onBeforePageLoad(page: 1, isFirstPage: true);
 
-    state = AsyncData(
-      current.copyWith(isRefreshing: true, errorMessage: null),
-    );
+    state = AsyncData(current.copyWith(isRefreshing: true, errorMessage: null));
     final result = await loadPage(1);
     if (epoch != _epoch) return;
     _setFirstPage(result);

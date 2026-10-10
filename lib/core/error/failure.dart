@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 /// Sealed class hierarchy representing errors that are safe to present to users.
 sealed class Failure {
   const Failure(this.message);
-  
+
   /// A localized, designer-written user-facing error message.
   final String message;
 }
@@ -16,7 +16,8 @@ class NetworkFailure extends Failure {
 
   const NetworkFailure._cancelled() : super('Request cancelled.');
 
-  bool get isCancelled => identical(this, cancelled) || message == 'Request cancelled.';
+  bool get isCancelled =>
+      identical(this, cancelled) || message == 'Request cancelled.';
 
   factory NetworkFailure.fromDioException(DioException e) {
     if (e.type == DioExceptionType.cancel) {
@@ -24,14 +25,12 @@ class NetworkFailure extends Failure {
     }
     return switch (e.type) {
       DioExceptionType.connectionTimeout ||
-      DioExceptionType.receiveTimeout =>
-        const NetworkFailure(
-          'This is taking longer than expected. Please try again.',
-        ),
-      DioExceptionType.connectionError =>
-        const NetworkFailure(
-          'You appear to be offline. Check your connection and try again.',
-        ),
+      DioExceptionType.receiveTimeout => const NetworkFailure(
+        'This is taking longer than expected. Please try again.',
+      ),
+      DioExceptionType.connectionError => const NetworkFailure(
+        'You appear to be offline. Check your connection and try again.',
+      ),
       _ => NetworkFailure(_messageForStatus(e.response?.statusCode)),
     };
   }
@@ -64,8 +63,8 @@ class AuthFailure extends Failure {
 
 class UnknownFailure extends Failure {
   const UnknownFailure(this.debugDetail)
-      : super('Something went wrong. Please try again.');
-      
+    : super('Something went wrong. Please try again.');
+
   /// Detailed internal debug information (never exposed to UI).
   final String debugDetail;
 }

@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import 'navigation/app_drawer_stage.dart';
 
-/// Opens the nearest [Scaffold] drawer (parent shell preferred).
+/// Opens the nearest drawer: the page's [AppDrawerStage], else a [Scaffold]
+/// drawer (parent shell preferred).
 void openAppDrawer(BuildContext context) {
+  final stage = AppDrawerStage.maybeOf(context);
+  if (stage != null) {
+    stage.open();
+    return;
+  }
+
   ScaffoldState? withDrawer(ScaffoldState? state) =>
       (state != null && state.hasDrawer) ? state : null;
 

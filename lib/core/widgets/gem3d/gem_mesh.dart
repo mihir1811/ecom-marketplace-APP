@@ -93,8 +93,13 @@ class GemMesh {
     final seeds = <double>[];
     final rng = math.Random(cut.index * 97 + 13);
 
-    void tri(List<double> a, List<double> b, List<double> c, GemFacetKind k,
-        double seed) {
+    void tri(
+      List<double> a,
+      List<double> b,
+      List<double> c,
+      GemFacetKind k,
+      double seed,
+    ) {
       final ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
       final vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
       var nx = uy * vz - uz * vy;
@@ -116,8 +121,13 @@ class GemMesh {
     final tableCentre = [0.0, rings.first.y - centreY, 0.0];
     final tableSeed = rng.nextDouble();
     for (var j = 0; j < table.length; j++) {
-      tri(tableCentre, table[(j + 1) % table.length], table[j],
-          GemFacetKind.table, tableSeed);
+      tri(
+        tableCentre,
+        table[(j + 1) % table.length],
+        table[j],
+        GemFacetKind.table,
+        tableSeed,
+      );
     }
 
     // Bands: zipper-walk two rings by outline parameter so any mix of
@@ -146,12 +156,22 @@ class GemMesh {
             i < up.length && (k >= lo.length || tu(i + 1) <= tl(k + 1));
         final seed = quads ? pairSeed : rng.nextDouble();
         if (advanceUpper) {
-          tri(up[i % up.length], up[(i + 1) % up.length], lo[k % lo.length],
-              kind, seed);
+          tri(
+            up[i % up.length],
+            up[(i + 1) % up.length],
+            lo[k % lo.length],
+            kind,
+            seed,
+          );
           i++;
         } else {
-          tri(up[i % up.length], lo[(k + 1) % lo.length], lo[k % lo.length],
-              kind, seed);
+          tri(
+            up[i % up.length],
+            lo[(k + 1) % lo.length],
+            lo[k % lo.length],
+            kind,
+            seed,
+          );
           k++;
           pairSeed = rng.nextDouble();
         }
@@ -281,8 +301,7 @@ class _Outline {
       case GemCut.oval:
         return (x: math.cos(a), z: 0.7 * math.sin(a));
       case GemCut.cushion:
-        double se(double v) =>
-            v.sign * math.pow(v.abs(), 2 / 3.4).toDouble();
+        double se(double v) => v.sign * math.pow(v.abs(), 2 / 3.4).toDouble();
         return (x: se(math.cos(a)), z: 0.9 * se(math.sin(a)));
       case GemCut.princess:
         return _square(t);
@@ -302,7 +321,8 @@ class _Outline {
         final s = math.sin(a);
         return (
           x: 16 * s * s * s / 17,
-          z: (13 * math.cos(a) -
+          z:
+              (13 * math.cos(a) -
                   5 * math.cos(2 * a) -
                   2 * math.cos(3 * a) -
                   math.cos(4 * a)) /

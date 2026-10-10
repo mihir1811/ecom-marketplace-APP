@@ -93,11 +93,14 @@ const jewelryFlowMessages = <String, LocalizedMessage>{
     gujarati: 'સાચવવા માટે\nઘડાયેલું.',
   ),
   JewelryFlowL10n.houseIntro: LocalizedMessage(
-    english: 'Rings, earrings, necklaces and bracelets — browse by '
+    english:
+        'Rings, earrings, necklaces and bracelets — browse by '
         'collection, metal or style.',
-    hindi: 'अंगूठियाँ, झुमके, हार और ब्रेसलेट — कलेक्शन, धातु या स्टाइल '
+    hindi:
+        'अंगूठियाँ, झुमके, हार और ब्रेसलेट — कलेक्शन, धातु या स्टाइल '
         'से देखें।',
-    gujarati: 'વીંટી, કાનની બુટ્ટી, હાર અને બ્રેસલેટ — કલેક્શન, ધાતુ કે '
+    gujarati:
+        'વીંટી, કાનની બુટ્ટી, હાર અને બ્રેસલેટ — કલેક્શન, ધાતુ કે '
         'સ્ટાઇલથી જુઓ.',
   ),
   JewelryFlowL10n.shopAll: LocalizedMessage(
@@ -251,7 +254,8 @@ const jewelryFlowMessages = <String, LocalizedMessage>{
     gujarati: 'તેને તમારું બનાવો',
   ),
   JewelryFlowL10n.configureIntro: LocalizedMessage(
-    english: 'Choose purity, size and stone weight — the price updates '
+    english:
+        'Choose purity, size and stone weight — the price updates '
         'instantly.',
     hindi: 'शुद्धता, साइज़ और स्टोन वज़न चुनें — कीमत तुरंत बदलती है।',
     gujarati: 'શુદ્ધતા, સાઇઝ અને સ્ટોન વજન પસંદ કરો — કિંમત તરત બદલાય છે.',
@@ -397,9 +401,11 @@ const jewelryFlowMessages = <String, LocalizedMessage>{
     gujarati: 'સંભાળની સૂચનાઓ',
   ),
   JewelryFlowL10n.careStore: LocalizedMessage(
-    english: 'Store in a soft cloth pouch or jewelry box to prevent '
+    english:
+        'Store in a soft cloth pouch or jewelry box to prevent '
         'scratches',
-    hindi: 'खरोंच से बचाने के लिए मुलायम कपड़े की थैली या ज्वेलरी बॉक्स '
+    hindi:
+        'खरोंच से बचाने के लिए मुलायम कपड़े की थैली या ज्वेलरी बॉक्स '
         'में रखें',
     gujarati: 'ઘસરકાથી બચાવવા નરમ કાપડની થેલી કે જ્વેલરી બોક્સમાં રાખો',
   ),
@@ -424,12 +430,15 @@ const jewelryFlowMessages = <String, LocalizedMessage>{
     gujarati: 'વ્યાવસાયિક સેવા',
   ),
   JewelryFlowL10n.serviceBody: LocalizedMessage(
-    english: 'For deep cleaning and maintenance, visit our store or contact '
+    english:
+        'For deep cleaning and maintenance, visit our store or contact '
         'customer service to schedule professional jewelry cleaning and '
         'inspection.',
-    hindi: 'गहरी सफ़ाई और रखरखाव के लिए हमारे स्टोर पर आएँ या पेशेवर '
+    hindi:
+        'गहरी सफ़ाई और रखरखाव के लिए हमारे स्टोर पर आएँ या पेशेवर '
         'ज्वेलरी सफ़ाई और जाँच के लिए ग्राहक सेवा से संपर्क करें।',
-    gujarati: 'ઊંડી સફાઈ અને જાળવણી માટે અમારા સ્ટોરની મુલાકાત લો અથવા '
+    gujarati:
+        'ઊંડી સફાઈ અને જાળવણી માટે અમારા સ્ટોરની મુલાકાત લો અથવા '
         'વ્યાવસાયિક જ્વેલરી સફાઈ અને તપાસ માટે ગ્રાહક સેવાનો સંપર્ક કરો.',
   ),
 };

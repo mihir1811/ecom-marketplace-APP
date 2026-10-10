@@ -700,8 +700,7 @@ class InquiryImagePickerField extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            helperText ??
-                context.tr(RemainingL10n.uploadReferenceImageHelper),
+            helperText ?? context.tr(RemainingL10n.uploadReferenceImageHelper),
             style: AppTypography.caption.copyWith(
               color: AppColors.textMuted(context),
             ),
@@ -874,9 +873,7 @@ class InquiryVideoPickerField extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            chosen.isEmpty
-                ? context.tr(RemainingL10n.noFileChosen)
-                : chosen,
+            chosen.isEmpty ? context.tr(RemainingL10n.noFileChosen) : chosen,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTypography.caption.copyWith(

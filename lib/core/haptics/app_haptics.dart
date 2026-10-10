@@ -31,11 +31,8 @@ abstract final class AppHaptics {
   /// Level 1 — option/tab/toggle selection changed.
   ///
   /// Repeats are allowed so discrete sliders can tick on every step.
-  static void selection() => _play(
-    _Kind.selection,
-    HapticFeedback.selectionClick,
-    allowRepeat: true,
-  );
+  static void selection() =>
+      _play(_Kind.selection, HapticFeedback.selectionClick, allowRepeat: true);
 
   /// Level 2 — firm detent while scrubbing an index or dial; repeats are
   /// allowed so every step is felt, even mid-flick.

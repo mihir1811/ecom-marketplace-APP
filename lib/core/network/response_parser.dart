@@ -15,7 +15,9 @@ abstract final class ResponseParser {
     var data = asMap(root['data']);
     if (data != null) {
       final nested = asMap(data['data']);
-      if (nested != null && _looksLikeEntity(nested) && !_looksLikeEntity(data)) {
+      if (nested != null &&
+          _looksLikeEntity(nested) &&
+          !_looksLikeEntity(data)) {
         data = nested;
       }
       final user = asMap(data['user']) ?? asMap(data['profile']);

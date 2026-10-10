@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'user_local_data_cleaner.dart';
+
 /// Persists auth secrets across app launches.
 abstract class AuthTokenStore {
   Future<void> saveSession({

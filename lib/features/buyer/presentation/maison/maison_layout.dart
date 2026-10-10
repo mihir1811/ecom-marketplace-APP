@@ -1,94 +1,40 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/auth_providers.dart';
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/navigation/app_tab_top_bar.dart';
 import '../../../../core/widgets/navigation/bottom_nav/app_bottom_nav_destinations.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../cart/application/cart_provider.dart';
 import '../../../notifications/application/notifications_provider.dart';
-import '../../../refunds/application/refund_providers.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
-import '../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../seller/presentation/atelier/atelier_theme.dart';
-import '../../application/wishlist_provider.dart';
 import '../widgets/buyer_drawer.dart';
 
-/// One destination of the buyer account dock.
-class MaisonDestination {
-  const MaisonDestination({
-    required this.route,
-    required this.label,
-    required this.icon,
-    required this.selectedIcon,
-    this.requiresVerified = true,
-  });
-
-  final String route;
-  final String label;
-  final IconData icon;
-  final IconData selectedIcon;
-  final bool requiresVerified;
-
-  bool matches(String location) =>
-      location == route || location.startsWith('$route/');
-}
-
-/// The four everyday account spaces a buyer moves between.
-List<MaisonDestination> maisonDestinations(
-  BuildContext context, {
-  required bool verified,
-}) {
-  final all = [
-    MaisonDestination(
-      route: AppRouteNames.buyerOrders,
-      label: context.tr(AccountCommerceL10n.orders),
-      icon: Icons.local_mall_outlined,
-      selectedIcon: Icons.local_mall_rounded,
-    ),
-    MaisonDestination(
-      route: AppRouteNames.buyerRefunds,
-      label: context.tr(AccountCommerceL10n.refunds),
-      icon: Icons.replay_rounded,
-      selectedIcon: Icons.replay_circle_filled_rounded,
-    ),
-    MaisonDestination(
-      route: AppRouteNames.buyerWallet,
-      label: context.tr(CoreL10n.wallet),
-      icon: Icons.account_balance_wallet_outlined,
-      selectedIcon: Icons.account_balance_wallet_rounded,
-    ),
-    const MaisonDestination(
-      route: AppRouteNames.buyerWishlist,
-      label: 'Wishlist',
-      icon: Icons.favorite_border_rounded,
-      selectedIcon: Icons.favorite_rounded,
-      requiresVerified: false,
-    ),
-  ];
-  return [
-    for (final d in all)
-      if (verified || !d.requiresVerified) d,
-  ];
-}
-
-/// Buyer account shell for Orders, Refunds, Wallet and Wishlist: quiet top
-/// bar, floating dock between the four spaces, buyer drawer and the
-/// "back goes one level up" rule. [detail] pages get Back and no dock.
+/// Buyer account shell: quiet top bar, buyer drawer and the "back goes one
+/// level up" rule. [detail] pages get Back. Bottom-nav tabs (Wishlist,
+/// Profile) take the shared [AppTabTopBar] instead.
 class MaisonLayout extends ConsumerWidget {
-  const MaisonLayout({required this.child, this.detail = false, super.key});
+  const MaisonLayout({
+    required this.child,
+    this.detail = false,
+    this.scrollsBehindDock = false,
+    super.key,
+  });
 
   final Widget child;
   final bool detail;
+
+  /// [child] runs under the floating bottom dock and ends its own scroll
+  /// with the bottom padding, instead of being inset above the dock.
+  final bool scrollsBehindDock;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -104,15 +50,7 @@ class MaisonLayout extends ConsumerWidget {
     final backFallback =
         AppNavigation.logicalParentOf(location) ?? AppRouteNames.home;
     void goBack() => context.goBack(fallbackLocation: backFallback);
-    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
-    final destinations = maisonDestinations(context, verified: !auth.pending);
-    // Where the app-wide bottom bar shows (e.g. Wishlist) it replaces the
-    // account dock, so the two never stack.
-    final showDock =
-        !detail &&
-        !keyboardOpen &&
-        destinations.length >= 2 &&
-        !AppBottomNav.isVisibleOn(location);
+    final isTab = AppBottomNav.isVisibleOn(location);
 
     return PopScope(
       canPop: GoRouter.of(context).canPop(),
@@ -123,15 +61,15 @@ class MaisonLayout extends ConsumerWidget {
       child: AppScaffold(
         drawer: const BuyerDrawer(),
         backgroundColor: p.canvas,
-        appBar: MaisonTopBar(
-          location: location,
-          showBack: detail,
-          onBack: goBack,
-          showWalletAction: detail && !auth.pending,
-        ),
-        bottomNavigationBar: showDock
-            ? MaisonDock(destinations: destinations, location: location)
-            : null,
+        safeBottom: !scrollsBehindDock,
+        appBar: isTab
+            ? const AppTabTopBar()
+            : MaisonTopBar(
+                location: location,
+                showBack: detail,
+                onBack: goBack,
+                showWalletAction: detail && !auth.pending,
+              ),
         body: child,
       ),
     );
@@ -233,187 +171,6 @@ class MaisonTopBar extends ConsumerWidget implements PreferredSizeWidget {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Floating glass dock: every label stays visible and one ink capsule
-/// glides to the current space. Badges show refunds in review and the
-/// wishlist size.
-class MaisonDock extends ConsumerWidget {
-  const MaisonDock({
-    required this.destinations,
-    required this.location,
-    super.key,
-  });
-
-  final List<MaisonDestination> destinations;
-  final String location;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final p = context.atelier;
-    final selected = destinations.indexWhere((d) => d.matches(location));
-    final saved = ref.watch(wishlistCountProvider);
-    final showsRefunds = destinations.any(
-      (d) => d.route == AppRouteNames.buyerRefunds,
-    );
-    final inReview = showsRefunds
-        ? ref.watch(
-            buyerRefundListProvider.select(
-              (s) => s.items.where((r) => r.status.isPending).length,
-            ),
-          )
-        : 0;
-
-    int badgeFor(MaisonDestination d) => switch (d.route) {
-      AppRouteNames.buyerRefunds => inReview,
-      AppRouteNames.buyerWishlist => saved,
-      _ => 0,
-    };
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
-      child: Center(
-        heightFactor: 1,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AtelierRadius.pill),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              child: Container(
-                height: 66,
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: (p.isDark ? p.raised : p.surface).withValues(
-                    alpha: 0.9,
-                  ),
-                  borderRadius: BorderRadius.circular(AtelierRadius.pill),
-                  border: Border.all(color: p.hairline),
-                  boxShadow: p.floatShadow,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final w = constraints.maxWidth / destinations.length;
-                    return Stack(
-                      children: [
-                        if (selected >= 0)
-                          AnimatedPositioned(
-                            duration: AtelierMotion.slow,
-                            curve: AtelierMotion.settle,
-                            left: w * selected,
-                            top: 0,
-                            bottom: 0,
-                            width: w,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: p.ink,
-                                borderRadius: BorderRadius.circular(
-                                  AtelierRadius.pill,
-                                ),
-                              ),
-                            ),
-                          ),
-                        Row(
-                          children: [
-                            for (var i = 0; i < destinations.length; i++)
-                              Expanded(
-                                child: _DockItem(
-                                  destination: destinations[i],
-                                  selected: i == selected,
-                                  badge: badgeFor(destinations[i]),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DockItem extends StatelessWidget {
-  const _DockItem({
-    required this.destination,
-    required this.selected,
-    required this.badge,
-  });
-
-  final MaisonDestination destination;
-  final bool selected;
-  final int badge;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.atelier;
-    final color = selected ? p.canvas : p.inkSoft;
-    return Semantics(
-      selected: selected,
-      child: Pressable(
-        onTap: selected
-            ? null
-            : () {
-                AppHaptics.selection();
-                context.switchToRoute(destination.route);
-              },
-        haptic: false,
-        semanticLabel: badge > 0
-            ? '${destination.label}, $badge'
-            : destination.label,
-        borderRadius: BorderRadius.circular(AtelierRadius.pill),
-        child: SizedBox.expand(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  AnimatedSwitcher(
-                    duration: AtelierMotion.base,
-                    transitionBuilder: (c, a) => ScaleTransition(
-                      scale: CurvedAnimation(
-                        parent: a,
-                        curve: AtelierMotion.settle,
-                      ),
-                      child: c,
-                    ),
-                    child: Icon(
-                      selected ? destination.selectedIcon : destination.icon,
-                      key: ValueKey(selected),
-                      size: 20,
-                      color: selected ? p.gold : color,
-                    ),
-                  ),
-                  if (badge > 0)
-                    Positioned(
-                      top: -6,
-                      right: -12,
-                      child: CountBubble(count: badge),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 3),
-              AnimatedDefaultTextStyle(
-                duration: AtelierMotion.base,
-                style: AtelierType.label(color, size: 11),
-                child: Text(
-                  destination.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
           ),
         ),
       ),

@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gemstone/core/haptics/app_haptics.dart';
 import 'package:gemstone/core/router/route_names.dart';
 import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_bar.dart';
-import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_destinations.dart';
 import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_host.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,7 +11,18 @@ void main() {
   setUp(() => AppHaptics.debugDisable = true);
 
   GoRouter buildRouter() {
-    Widget page(String name) => Scaffold(body: Center(child: Text(name)));
+    Widget page(String name) => Scaffold(
+      drawer: const Drawer(child: Text('drawer')),
+      onDrawerChanged: AppBottomNavHost.reportDrawer,
+      body: name == AppRouteNames.buyerWishlist
+          ? ListView(
+              children: [
+                for (var i = 0; i < 80; i++)
+                  SizedBox(height: 60, child: Text('$name $i')),
+              ],
+            )
+          : Center(child: Text(name)),
+    );
     return GoRouter(
       initialLocation: AppRouteNames.home,
       observers: [appPopupRouteObserver],
@@ -49,27 +59,97 @@ void main() {
   double pageHeight(WidgetTester tester) =>
       tester.getSize(find.byType(Scaffold).last).height;
 
-  testWidgets('pages are laid out above the bar; hidden routes reclaim it', (
+  double pagePadding(WidgetTester tester) =>
+      MediaQuery.paddingOf(tester.element(find.byType(Scaffold).last)).bottom;
+
+  /// Hit area of the tab labelled [label].
+  Finder tabArea(String label) => find.byWidgetPredicate(
+    (w) => w is Semantics && w.properties.label == label,
+  );
+
+  bool compact(WidgetTester tester) =>
+      tester.widget<AppBottomNavBar>(find.byType(AppBottomNavBar)).compact;
+
+  testWidgets('pages run behind the floating dock, padded clear of it', (
     tester,
   ) async {
     final router = await pumpApp(tester);
     final screen =
         tester.view.physicalSize.height / tester.view.devicePixelRatio;
 
-    // Pages end at the bar's top, plus the strip that shows through the gap
-    // around the popped bubble.
-    final barred = screen - AppBottomNavBar.height + AppBottomNavBar.notchDepth;
-
     expect(find.byType(AppBottomNavBar), findsOneWidget);
-    expect(pageHeight(tester), closeTo(barred, 0.5));
+    expect(pageHeight(tester), closeTo(screen, 0.5));
+    expect(pagePadding(tester), closeTo(AppBottomNavBar.clearance(0), 0.5));
 
     router.push(AppRouteNames.comparison);
     await tester.pumpAndSettle();
     expect(pageHeight(tester), closeTo(screen, 0.5));
+    expect(pagePadding(tester), 0);
 
     router.pop();
     await tester.pumpAndSettle();
-    expect(pageHeight(tester), closeTo(barred, 0.5));
+    expect(pagePadding(tester), closeTo(AppBottomNavBar.clearance(0), 0.5));
+  });
+
+  testWidgets('taps beside the floating dock reach the page', (tester) async {
+    await pumpApp(tester);
+    final box = tester.getRect(find.byType(AppBottomNavBar));
+    final bar = tester.renderObject(find.byType(AppBottomNavBar));
+    bool inBar(Object target) {
+      if (target is! RenderObject) return false;
+      for (RenderObject? r = target; r != null; r = r.parent) {
+        if (r == bar) return true;
+      }
+      return false;
+    }
+
+    final hit = tester.hitTestOnBinding(Offset(box.left + 4, box.bottom - 30));
+    expect(hit.path.any((e) => inBar(e.target)), isFalse);
+  });
+
+  testWidgets('scrolling down folds the dock; scrolling back unfolds it', (
+    tester,
+  ) async {
+    final router = await pumpApp(tester);
+    router.go(AppRouteNames.buyerWishlist);
+    await tester.pumpAndSettle();
+    expect(compact(tester), isFalse);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    expect(compact(tester), isTrue);
+
+    await tester.drag(find.byType(ListView), const Offset(0, 120));
+    await tester.pumpAndSettle();
+    expect(compact(tester), isFalse);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+    expect(compact(tester), isTrue);
+
+    // A tap on the folded dock only unfolds it.
+    await tester.tap(tabArea('Cart'));
+    await tester.pumpAndSettle();
+    expect(compact(tester), isFalse);
+    expect(
+      router.routerDelegate.currentConfiguration.uri.path,
+      AppRouteNames.buyerWishlist,
+    );
+  });
+
+  testWidgets('the dock steps aside while a drawer is open', (tester) async {
+    await pumpApp(tester);
+    final dock = find.byType(AppBottomNavBar);
+    expect(dock, findsOneWidget);
+
+    tester.state<ScaffoldState>(find.byType(Scaffold).last).openDrawer();
+    await tester.pumpAndSettle();
+    expect(find.text('drawer'), findsOneWidget);
+    expect(dock.hitTestable(), findsNothing);
+
+    tester.state<ScaffoldState>(find.byType(Scaffold).last).closeDrawer();
+    await tester.pumpAndSettle();
+    expect(dock.hitTestable(), findsOneWidget);
   });
 
   testWidgets('tapping a tab navigates there', (tester) async {
@@ -136,12 +216,7 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Categories'));
       await openMenu(tester);
-      final bar = tester.getRect(find.byType(AppBottomNavBar));
-      final slot = bar.width / AppBottomNav.slots.length;
-      final cart = AppBottomNav.slots.indexWhere(
-        (d) => d?.tab == AppBottomNavTab.cart,
-      );
-      await tester.tapAt(Offset(bar.left + slot * (cart + 0.5), bar.top + 33));
+      await tester.tapAt(tester.getCenter(tabArea('Cart')));
       await tester.pumpAndSettle();
 
       expect(find.bySemanticsLabel('Gemstones'), findsNothing);
@@ -186,13 +261,9 @@ void main() {
       return seen;
     }
 
-    Offset tabCentre(WidgetTester tester, int index) {
-      final bar = tester.getRect(find.byType(AppBottomNavBar));
-      final slots = AppBottomNav.slots;
-      final slot = bar.width / slots.length;
-      final i = slots.indexOf(AppBottomNav.destinations[index]);
-      return Offset(bar.left + slot * (i + 0.5), bar.top + 33);
-    }
+    Offset tabCentre(WidgetTester tester, int index) => tester.getCenter(
+      tabArea(const ['Home', 'Wishlist', 'Cart', 'Profile'][index]),
+    );
 
     Future<void> slide(
       WidgetTester tester,

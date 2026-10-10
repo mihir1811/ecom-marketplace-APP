@@ -55,15 +55,16 @@ class CatalogDiscountPrice extends StatelessWidget {
       children: [
         Text(
           AppCurrency.format(format(list)),
-          style: GoogleFonts.manrope(
-            fontSize: fontSize * 0.78,
-            fontWeight: FontWeight.w600,
-            height: 1.15,
-          ).copyWith(
-            color: AppColors.textMuted(context),
-            decoration: TextDecoration.lineThrough,
-            decorationColor: AppColors.textMuted(context),
-          ),
+          style:
+              GoogleFonts.manrope(
+                fontSize: fontSize * 0.78,
+                fontWeight: FontWeight.w600,
+                height: 1.15,
+              ).copyWith(
+                color: AppColors.textMuted(context),
+                decoration: TextDecoration.lineThrough,
+                decorationColor: AppColors.textMuted(context),
+              ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),

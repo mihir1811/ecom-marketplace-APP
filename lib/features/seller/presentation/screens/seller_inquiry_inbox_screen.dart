@@ -233,14 +233,12 @@ class _SellerInquiryInboxScreenState
                                   ? context.tr(RemainingL10n.loadingEllipsis)
                                   : listState.items.isEmpty
                                   ? context.tr(RemainingL10n.showingZeroOfZero)
-                                  : context.tr(
-                                      RemainingL10n.showingRangeOfTotal,
-                                      {
-                                        'from': '1',
-                                        'to': '${listState.items.length}',
-                                        'total': '${listState.total}',
-                                      },
-                                    ),
+                                  : context
+                                        .tr(RemainingL10n.showingRangeOfTotal, {
+                                          'from': '1',
+                                          'to': '${listState.items.length}',
+                                          'total': '${listState.total}',
+                                        }),
                               style: AppTypography.caption.copyWith(
                                 color: AppColors.textMuted(context),
                               ),

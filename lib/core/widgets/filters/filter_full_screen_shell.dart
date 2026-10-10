@@ -50,9 +50,7 @@ class FilterFullScreenShell extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: AppColors.bg(context),
-              border: Border(
-                top: BorderSide(color: AppColors.border(context)),
-              ),
+              border: Border(top: BorderSide(color: AppColors.border(context))),
             ),
             child: SafeArea(
               top: false,

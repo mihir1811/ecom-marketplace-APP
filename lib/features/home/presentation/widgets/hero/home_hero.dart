@@ -29,7 +29,7 @@ class HomeHero extends StatefulWidget {
 
   final double height;
 
-  /// Status bar + floating header height reserved at the top.
+  /// Space reserved above the cosmos.
   final double topInset;
   final ValueListenable<double> scrollOffset;
   final VoidCallback onSearch;

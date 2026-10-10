@@ -48,8 +48,8 @@ class SellerDiamondProjectInventoryState {
 /// Draft filter state for the seller dashboard diamond-projects panel.
 final sellerDiamondProjectFiltersProvider =
     NotifierProvider<SellerDiamondProjectFiltersNotifier, DiamondFilterState>(
-  SellerDiamondProjectFiltersNotifier.new,
-);
+      SellerDiamondProjectFiltersNotifier.new,
+    );
 
 /// Individual chip toggles for color/clarity (not range select) on seller dashboard.
 class SellerDiamondProjectFiltersNotifier extends DiamondSearchNotifier {
@@ -86,24 +86,25 @@ class SellerDiamondProjectFiltersNotifier extends DiamondSearchNotifier {
     final hasFancy = state.selectedFancyColors.isNotEmpty;
     state = state.copyWith(
       isFancyColor: hasFancy,
-      selectedStandardColors: hasFancy ? const [] : state.selectedStandardColors,
+      selectedStandardColors: hasFancy
+          ? const []
+          : state.selectedStandardColors,
     );
   }
 }
 
 /// Filtered active natural inventory for the signed-in seller.
 final sellerDiamondProjectInventoryProvider =
-    AsyncNotifierProvider<SellerDiamondProjectInventoryNotifier,
-        SellerDiamondProjectInventoryState>(
-  SellerDiamondProjectInventoryNotifier.new,
-);
+    AsyncNotifierProvider<
+      SellerDiamondProjectInventoryNotifier,
+      SellerDiamondProjectInventoryState
+    >(SellerDiamondProjectInventoryNotifier.new);
 
 final sellerDiamondProjectStatsProvider = Provider<DiamondProjectStats>((ref) {
   // Watch the full async value (not a List select) so stats always recompute
   // when inventory finishes loading after AsyncLoading clears valueOrNull.
   final inventory = ref.watch(sellerDiamondProjectInventoryProvider);
-  final items =
-      inventory.valueOrNull?.items ?? const <DiamondProjectItem>[];
+  final items = inventory.valueOrNull?.items ?? const <DiamondProjectItem>[];
   return DiamondProjectStatsCalculator.compute(items);
 });
 
@@ -139,7 +140,7 @@ class SellerDiamondProjectInventoryNotifier
     state = previous == null
         ? const AsyncLoading()
         : const AsyncLoading<SellerDiamondProjectInventoryState>()
-            .copyWithPrevious(AsyncData(previous));
+              .copyWithPrevious(AsyncData(previous));
     final repo = ref.read(diamondRepositoryProvider);
 
     final items = <DiamondProjectItem>[];

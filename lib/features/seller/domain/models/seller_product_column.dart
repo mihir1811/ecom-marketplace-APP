@@ -30,21 +30,9 @@ const kSellerProductColumns = <SellerProductColumnDef>[
     label: 'Available',
     defaultVisible: true,
   ),
-  SellerProductColumnDef(
-    id: 'shape',
-    label: 'Shape',
-    defaultVisible: true,
-  ),
-  SellerProductColumnDef(
-    id: 'color',
-    label: 'Color',
-    defaultVisible: true,
-  ),
-  SellerProductColumnDef(
-    id: 'clarity',
-    label: 'Clarity',
-    defaultVisible: true,
-  ),
+  SellerProductColumnDef(id: 'shape', label: 'Shape', defaultVisible: true),
+  SellerProductColumnDef(id: 'color', label: 'Color', defaultVisible: true),
+  SellerProductColumnDef(id: 'clarity', label: 'Clarity', defaultVisible: true),
   SellerProductColumnDef(
     id: 'carat_weight',
     label: 'Carat Weight',
@@ -63,18 +51,12 @@ const kSellerProductColumns = <SellerProductColumnDef>[
     id: 'fluorescence_intensity',
     label: 'Fluorescence Intensity',
   ),
-  SellerProductColumnDef(
-    id: 'fluorescence_color',
-    label: 'Fluorescence Color',
-  ),
+  SellerProductColumnDef(id: 'fluorescence_color', label: 'Fluorescence Color'),
   SellerProductColumnDef(
     id: 'certificate_company_name',
     label: 'Certificate Company Name',
   ),
-  SellerProductColumnDef(
-    id: 'certificate_number',
-    label: 'Certificate Number',
-  ),
+  SellerProductColumnDef(id: 'certificate_number', label: 'Certificate Number'),
   SellerProductColumnDef(id: 'certification', label: 'Certification'),
   SellerProductColumnDef(id: 'video_url', label: 'Video U R L'),
   SellerProductColumnDef(id: 'shade', label: 'Shade'),
@@ -87,10 +69,7 @@ const kSellerProductColumns = <SellerProductColumnDef>[
   SellerProductColumnDef(id: 'depth', label: 'Depth'),
   SellerProductColumnDef(id: 'gridle_min', label: 'Gridle Min'),
   SellerProductColumnDef(id: 'gridle_max', label: 'Gridle Max'),
-  SellerProductColumnDef(
-    id: 'gridle_percentage',
-    label: 'Gridle Percentage',
-  ),
+  SellerProductColumnDef(id: 'gridle_percentage', label: 'Gridle Percentage'),
   SellerProductColumnDef(id: 'crown_height', label: 'Crown Height'),
   SellerProductColumnDef(id: 'crown_angle', label: 'Crown Angle'),
   SellerProductColumnDef(id: 'pavilion_angle', label: 'Pavilion Angle'),
@@ -98,14 +77,8 @@ const kSellerProductColumns = <SellerProductColumnDef>[
   SellerProductColumnDef(id: 'culet_size', label: 'Culet Size'),
   SellerProductColumnDef(id: 'enhancement', label: 'Enhancement'),
   SellerProductColumnDef(id: 'growth_type', label: 'Growth Type'),
-  SellerProductColumnDef(
-    id: 'laser_inscription',
-    label: 'Laser Inscription',
-  ),
-  SellerProductColumnDef(
-    id: 'gridle_condition',
-    label: 'Gridle Condition',
-  ),
+  SellerProductColumnDef(id: 'laser_inscription', label: 'Laser Inscription'),
+  SellerProductColumnDef(id: 'gridle_condition', label: 'Gridle Condition'),
   SellerProductColumnDef(id: 'star_length', label: 'Star Length'),
   SellerProductColumnDef(id: 'culet_condition', label: 'Culet Condition'),
   SellerProductColumnDef(id: 'inclusions_type', label: 'Inclusions Type'),
@@ -135,14 +108,8 @@ const kSellerProductColumns = <SellerProductColumnDef>[
   SellerProductColumnDef(id: 'is_deleted', label: 'Is Deleted'),
   SellerProductColumnDef(id: 'created_at', label: 'Created At'),
   SellerProductColumnDef(id: 'updated_at', label: 'Updated At'),
-  SellerProductColumnDef(
-    id: 'auction_start_time',
-    label: 'Auction Start Time',
-  ),
-  SellerProductColumnDef(
-    id: 'auction_end_time',
-    label: 'Auction End Time',
-  ),
+  SellerProductColumnDef(id: 'auction_start_time', label: 'Auction Start Time'),
+  SellerProductColumnDef(id: 'auction_end_time', label: 'Auction End Time'),
   SellerProductColumnDef(id: 'actions', label: 'Actions'),
 ];
 

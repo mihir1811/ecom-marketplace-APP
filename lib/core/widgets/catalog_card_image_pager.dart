@@ -57,7 +57,10 @@ class CatalogCardImagePager extends StatelessWidget {
     }
 
     if (imageUrls.length == 1) {
-      return ColoredBox(color: bg, child: SizedBox.expand(child: page(imageUrls.first)));
+      return ColoredBox(
+        color: bg,
+        child: SizedBox.expand(child: page(imageUrls.first)),
+      );
     }
 
     return ColoredBox(

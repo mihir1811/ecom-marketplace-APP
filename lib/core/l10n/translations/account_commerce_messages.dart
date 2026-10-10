@@ -40,7 +40,8 @@ abstract final class AccountCommerceL10n {
   static const agreeToTermsIntro = 'account.auth.agreeToTermsIntro';
   static const termsOfServiceLink = 'account.auth.termsOfServiceLink';
   static const agreeToTermsAnd = 'account.auth.agreeToTermsAnd';
-  static const ethicalSourcingPolicyLink = 'account.auth.ethicalSourcingPolicyLink';
+  static const ethicalSourcingPolicyLink =
+      'account.auth.ethicalSourcingPolicyLink';
   static const createAccount = 'account.auth.createAccount';
   static const alreadyRegistered = 'account.auth.alreadyRegistered';
   static const fullName = 'account.field.fullName';

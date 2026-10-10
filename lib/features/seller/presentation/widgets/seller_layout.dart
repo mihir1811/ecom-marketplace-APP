@@ -82,14 +82,12 @@ class SellerLayout extends ConsumerWidget {
     final canPop = router.canPop();
     final p = context.atelier;
     final width = MediaQuery.sizeOf(context).width;
-    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     final destinations = sellerPrimaryDestinations(
       context,
       pending: authState.isVerificationPending,
     );
+    // Compact widths reach every destination through the drawer.
     final useRail = width >= 1024 && !ownsOwnAppBar;
-    final useDock =
-        !useRail && !isDetail && !keyboardOpen && destinations.length >= 3;
 
     Widget body = child;
     if (useRail) {
@@ -112,7 +110,7 @@ class SellerLayout extends ConsumerWidget {
     );
 
     return PopScope(
-      // Drawer / dock peers use `go` (no stack). With nothing to pop, back
+      // Drawer / rail peers use `go` (no stack). With nothing to pop, back
       // goes one level up: detail → its list, any tool → dashboard,
       // dashboard → home. It never exits the app silently.
       canPop: canPop,
@@ -130,15 +128,10 @@ class SellerLayout extends ConsumerWidget {
                 location: selectedRoute,
                 showBack: isDetail,
                 onBack: () => context.goBack(fallbackLocation: backFallback),
-                // Wallet is a dock / rail destination; keep it reachable
-                // from the bar on detail pages, where the dock is hidden.
-                // (Not tied to the keyboard, so icons never jump while typing.)
+                // Keep Wallet one tap away on detail pages.
                 showWalletAction:
                     !useRail && isDetail && !authState.isVerificationPending,
               ),
-        bottomNavigationBar: useDock
-            ? SellerDock(destinations: destinations, location: selectedRoute)
-            : null,
         body: body,
       ),
     );

@@ -108,22 +108,18 @@ class _MeleeBackgroundShellState extends State<MeleeBackgroundShell>
     _fromColor = AppColors.naturalSingleBg;
     _toColor = _fromColor;
 
-    _controller = AnimationController(
-      vsync: this,
-      duration: AppColors.meleeBgDuration,
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.completed && mounted) {
-          setState(() {
-            _fromColor = _toColor;
-            _animating = false;
+    _controller =
+        AnimationController(vsync: this, duration: AppColors.meleeBgDuration)
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed && mounted) {
+              setState(() {
+                _fromColor = _toColor;
+                _animating = false;
+              });
+            }
           });
-        }
-      });
 
-    _reveal = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    );
+    _reveal = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
     _controller.value = 1;
   }
 
@@ -350,9 +346,7 @@ class _WaterRevealPainter extends CustomPainter {
         1.2;
 
     // Ease the cover so the last 8% finishes solid (no abrupt cut-off).
-    final coverT = progress >= 0.92
-        ? 1.0
-        : (progress / 0.92).clamp(0.0, 1.0);
+    final coverT = progress >= 0.92 ? 1.0 : (progress / 0.92).clamp(0.0, 1.0);
     final radius = maxRadius * Curves.easeOutCubic.transform(coverT);
 
     canvas.save();

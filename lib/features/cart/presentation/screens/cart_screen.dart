@@ -12,7 +12,7 @@ import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
-import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../../core/widgets/navigation/app_tab_top_bar.dart';
 import '../../application/cart_provider.dart';
 import '../../application/fees_providers.dart';
 import '../widgets/cart_address_section.dart';
@@ -35,12 +35,10 @@ class CartScreen extends ConsumerStatefulWidget {
 
 class _CartScreenState extends ConsumerState<CartScreen> {
   final _scroll = ScrollController();
-  final _offset = ValueNotifier<double>(0);
 
   @override
   void initState() {
     super.initState();
-    _scroll.addListener(() => _offset.value = _scroll.offset);
     // Microtask (not post-frame): runs before CartNotifier's light bootstrap
     // microtask joins this full load — avoids cancel+retry of the same APIs.
     Future.microtask(() {
@@ -53,7 +51,6 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   @override
   void dispose() {
     _scroll.dispose();
-    _offset.dispose();
     super.dispose();
   }
 
@@ -76,7 +73,6 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final isLoading = ref.watch(cartIsLoadingProvider);
     final isEmpty = ref.watch(cartIsEmptyProvider);
     final error = ref.watch(cartErrorProvider);
-    final count = ref.watch(cartItemCountProvider);
 
     final Widget body;
     final String state;
@@ -126,37 +122,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
     return AppScaffold(
       backgroundColor: p.canvas,
-      appBar: LuxeTopBar(
-        eyebrow: context.tr(ExperienceL10n.cartEyebrow),
-        title: context.tr(AccountCommerceL10n.yourCart),
-        scrollOffset: _offset,
-        actions: [
-          if (count > 0)
-            AnimatedSwitcher(
-              duration: LuxeMotion.medium,
-              transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
-              child: Container(
-                key: ValueKey(count),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: ShapeDecoration(
-                  color: p.accentSoft,
-                  shape: const StadiumBorder(),
-                ),
-                child: Text(
-                  count == 1
-                      ? context.tr(ExperienceL10n.cartPieceOne)
-                      : context.tr(ExperienceL10n.cartPieces, {
-                          'count': count,
-                        }),
-                  style: LuxeType.label(p.accent, size: 12),
-                ),
-              ),
-            ),
-        ],
-      ),
+      appBar: const AppTabTopBar(),
       body: AnimatedSwitcher(
         duration: LuxeMotion.medium,
         switchInCurve: LuxeMotion.settle,

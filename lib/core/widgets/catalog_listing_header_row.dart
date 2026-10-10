@@ -67,11 +67,7 @@ class CatalogListingHeaderRow extends StatelessWidget {
                   ),
                 ),
               ),
-              ViewModeToggle(
-                isGrid: isGrid,
-                onGrid: onGrid,
-                onList: onList,
-              ),
+              ViewModeToggle(isGrid: isGrid, onGrid: onGrid, onList: onList),
             ],
           ),
         ),

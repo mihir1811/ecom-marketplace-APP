@@ -5,6 +5,8 @@ import '../../features/buyer/presentation/widgets/buyer_drawer.dart';
 import '../auth/auth_providers.dart';
 import '../auth/verification_pending_banner.dart';
 import 'keyboard_aware.dart';
+import 'navigation/app_drawer_stage.dart';
+import 'navigation/bottom_nav/app_bottom_nav_host.dart';
 
 /// App-wide [Scaffold] that keeps the status/nav bars clear of content.
 ///
@@ -12,8 +14,9 @@ import 'keyboard_aware.dart';
 /// - Bottom inset is applied to [body] (or to [bottomNavigationBar] when set)
 ///   so sticky footers clear the system nav bar.
 /// - Nested [SafeArea]s remain safe (padding is consumed for descendants).
+/// - [drawer] opens behind the page ([AppDrawerStage]), not over it.
 /// - When authenticated and no [drawer] is provided, attaches [BuyerDrawer]
-///   unless a parent scaffold already has a drawer (avoids nesting).
+///   unless a parent already has a drawer (avoids nesting).
 class AppScaffold extends ConsumerWidget {
   const AppScaffold({
     super.key,
@@ -63,19 +66,8 @@ class AppScaffold extends ConsumerWidget {
   final bool safeLeft;
   final bool safeRight;
 
-  bool _parentHasDrawer(BuildContext context) {
-    var found = false;
-    context.visitAncestorElements((element) {
-      if (element is! StatefulElement) return true;
-      final state = element.state;
-      if (state is ScaffoldState && state.hasDrawer) {
-        found = true;
-        return false;
-      }
-      return true;
-    });
-    return found;
-  }
+  bool _parentHasDrawer(BuildContext context) =>
+      AppDrawerStage.maybeOf(context) != null;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -107,38 +99,46 @@ class AppScaffold extends ConsumerWidget {
             ? const BuyerDrawer()
             : null);
 
-    return Scaffold(
-      key: scaffoldKey,
-      appBar: appBar,
-      floatingActionButton: floatingActionButton,
-      floatingActionButtonLocation: floatingActionButtonLocation,
+    // Always staged, so signing in or out doesn't rebuild the page.
+    return AppDrawerStage(
       drawer: resolvedDrawer == null
           ? null
           : AppKeyboardInset(child: resolvedDrawer),
-      endDrawer: endDrawer == null ? null : AppKeyboardInset(child: endDrawer!),
-      endDrawerEnableOpenDragGesture: endDrawerEnableOpenDragGesture,
-      bottomNavigationBar: bottomNavigationBar == null
-          ? null
-          : SafeArea(
-              top: false,
-              left: safeLeft,
-              right: safeRight,
-              bottom: safeBottom,
-              child: bottomNavigationBar!,
-            ),
-      backgroundColor: backgroundColor,
-      resizeToAvoidBottomInset: resizeToAvoidBottomInset ?? true,
-      extendBody: extendBody,
-      extendBodyBehindAppBar: extendBodyBehindAppBar,
-      body: content == null
-          ? null
-          : SafeArea(
-              top: applyTop,
-              bottom: bodySafeBottom,
-              left: safeLeft,
-              right: safeRight,
-              child: content,
-            ),
+      child: Scaffold(
+        key: scaffoldKey,
+        appBar: appBar,
+        floatingActionButton: floatingActionButton,
+        floatingActionButtonLocation: floatingActionButtonLocation,
+        endDrawer: endDrawer == null
+            ? null
+            : AppKeyboardInset(child: endDrawer!),
+        endDrawerEnableOpenDragGesture: endDrawerEnableOpenDragGesture,
+        // The floating bottom dock sits above every page: step it aside so
+        // the end drawer opens over it.
+        onEndDrawerChanged: AppBottomNavHost.reportDrawer,
+        bottomNavigationBar: bottomNavigationBar == null
+            ? null
+            : SafeArea(
+                top: false,
+                left: safeLeft,
+                right: safeRight,
+                bottom: safeBottom,
+                child: bottomNavigationBar!,
+              ),
+        backgroundColor: backgroundColor,
+        resizeToAvoidBottomInset: resizeToAvoidBottomInset ?? true,
+        extendBody: extendBody,
+        extendBodyBehindAppBar: extendBodyBehindAppBar,
+        body: content == null
+            ? null
+            : SafeArea(
+                top: applyTop,
+                bottom: bodySafeBottom,
+                left: safeLeft,
+                right: safeRight,
+                child: content,
+              ),
+      ),
     );
   }
 }

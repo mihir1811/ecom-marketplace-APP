@@ -73,9 +73,7 @@ class AuthController extends Notifier<AuthState> {
       final cacheMatches =
           cachedUserId != null &&
           cachedUserId.isNotEmpty &&
-          (jwtUserId == null ||
-              jwtUserId.isEmpty ||
-              cachedUserId == jwtUserId);
+          (jwtUserId == null || jwtUserId.isEmpty || cachedUserId == jwtUserId);
 
       final user = AuthUser.fromJwtClaims(
         claims,

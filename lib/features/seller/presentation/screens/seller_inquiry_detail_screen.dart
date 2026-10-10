@@ -416,7 +416,9 @@ class _InquiryDetailBody extends StatelessWidget {
                           children: [
                             Text(
                               context.tr(RemainingL10n.adminReply) +
-                                  (inquiry.adminReplyAt != null ? ' · ${inquiry.adminReplyAt}' : ''),
+                                  (inquiry.adminReplyAt != null
+                                      ? ' · ${inquiry.adminReplyAt}'
+                                      : ''),
                               style: AppTypography.caption.copyWith(
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.3,

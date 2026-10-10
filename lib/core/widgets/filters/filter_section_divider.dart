@@ -6,11 +6,7 @@ import '../../theme/luxe_scope.dart';
 /// Thin hairline between sibling filter blocks, with roomy padding so
 /// stacked internals (e.g. Finish / Cut / Polish) read as separate groups.
 class FilterSectionDivider extends StatelessWidget {
-  const FilterSectionDivider({
-    super.key,
-    this.top = 24,
-    this.bottom = 20,
-  });
+  const FilterSectionDivider({super.key, this.top = 24, this.bottom = 20});
 
   /// Space below the previous block (above the line).
   final double top;

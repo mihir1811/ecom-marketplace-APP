@@ -193,7 +193,10 @@ class _BuyerReviewCardState extends State<BuyerReviewCard> {
                     ),
                   ),
                   const Spacer(),
-                  Text('View order', style: AtelierType.label(p.gold, size: 12)),
+                  Text(
+                    'View order',
+                    style: AtelierType.label(p.gold, size: 12),
+                  ),
                   const SizedBox(width: 4),
                   Icon(Icons.arrow_outward_rounded, size: 15, color: p.gold),
                 ],

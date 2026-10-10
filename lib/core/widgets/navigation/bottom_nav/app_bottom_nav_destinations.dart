@@ -25,9 +25,9 @@ class AppBottomNavDestination {
 
 /// Tabs, which routes show the bar, and which tab a route belongs to.
 ///
-/// The bar shows on the buyer side's top-level and browse screens. Detail,
-/// checkout, filter, auth and seller screens keep the full height for their
-/// own sticky actions.
+/// The bar shows only on the four tab screens themselves. Every screen
+/// opened from them (browse, detail, checkout, account, seller) keeps the
+/// full height for its own actions.
 abstract final class AppBottomNav {
   static const destinations = <AppBottomNavDestination>[
     AppBottomNavDestination(
@@ -84,39 +84,15 @@ abstract final class AppBottomNav {
     return left + (slot - left) / 2;
   }
 
-  /// Browse screens that belong to the Home tab.
-  static const _homeBranch = <String>{
-    AppRouteNames.diamonds,
-    AppRouteNames.diamondResults,
-    AppRouteNames.labGrownDiamonds,
-    AppRouteNames.labGrownDiamondResults,
-    AppRouteNames.gemstones,
-    AppRouteNames.gemstoneResults,
-    AppRouteNames.watches,
-    AppRouteNames.jewelry,
-    AppRouteNames.jewelryListing,
-    AppRouteNames.bullions,
-    AppRouteNames.auctions,
-    AppRouteNames.auctionActivity,
-    AppRouteNames.auctionWins,
-  };
-
   static String _normalize(String path) => path.length > 1 && path.endsWith('/')
       ? path.substring(0, path.length - 1)
       : path;
-
-  /// Brand pages are browse screens; their filter page is not.
-  static bool _isBrandPage(String path) =>
-      path.startsWith('/watches/brand/') && !path.endsWith('/filters');
 
   /// The tab [path] belongs to, or null when the bar is hidden there.
   static AppBottomNavTab? tabFor(String rawPath) {
     final path = _normalize(rawPath);
     for (final d in destinations) {
       if (d.route == path) return d.tab;
-    }
-    if (_homeBranch.contains(path) || _isBrandPage(path)) {
-      return AppBottomNavTab.home;
     }
     return null;
   }

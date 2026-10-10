@@ -102,9 +102,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
         leading == null &&
         (GoRouter.of(context).canPop() || location != AppRouteNames.home);
 
-    final actions = <Widget>[
-      ...extraActions,
-    ];
+    final actions = <Widget>[...extraActions];
 
     if (authState.isAuthenticated) {
       actions.add(

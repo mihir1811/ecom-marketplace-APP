@@ -52,11 +52,7 @@ class _LuxeQuantityStepperState extends State<LuxeQuantityStepper> {
             child: SizedBox(
               width: 44,
               height: 44,
-              child: Icon(
-                icon,
-                size: 18,
-                color: enabled ? p.ink : p.inkFaint,
-              ),
+              child: Icon(icon, size: 18, color: enabled ? p.ink : p.inkFaint),
             ),
           ),
         );

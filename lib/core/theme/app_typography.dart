@@ -9,40 +9,40 @@ class AppTypography {
   static String get fontFamily => GoogleFonts.manrope().fontFamily!;
 
   static TextStyle get display => GoogleFonts.manrope(
-        fontSize: 28,
-        fontWeight: FontWeight.w700,
-        height: 1.2,
-      );
+    fontSize: 28,
+    fontWeight: FontWeight.w700,
+    height: 1.2,
+  );
 
   static TextStyle get headline => GoogleFonts.manrope(
-        fontSize: 24,
-        fontWeight: FontWeight.w700,
-        height: 1.25,
-      );
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    height: 1.25,
+  );
 
   static TextStyle get title => GoogleFonts.manrope(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        height: 1.3,
-      );
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    height: 1.3,
+  );
 
   static TextStyle get body => GoogleFonts.manrope(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        height: 1.5,
-      );
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    height: 1.5,
+  );
 
   static TextStyle get label => GoogleFonts.manrope(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        height: 1.4,
-      );
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+  );
 
   static TextStyle get caption => GoogleFonts.manrope(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        height: 1.4,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+  );
 
   /// Assembles the complete [TextTheme] based on this design system.
   static TextTheme buildTextTheme(Color textColor) {
