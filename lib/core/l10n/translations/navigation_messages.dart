@@ -13,6 +13,8 @@ abstract final class NavL10n {
   static const startSellingBody = 'nav.mode.startSellingBody';
   static const pendingLocked = 'nav.mode.pendingLocked';
   static const home = 'nav.home';
+  static const categories = 'nav.categories';
+  static const closeCategories = 'nav.categories.close';
   static const groupShopping = 'nav.group.shopping';
   static const groupAuctions = 'nav.group.auctions';
   static const groupConversations = 'nav.group.conversations';
@@ -80,6 +82,16 @@ const navigationMessages = <String, LocalizedMessage>{
     english: 'Home',
     hindi: 'होम',
     gujarati: 'હોમ',
+  ),
+  NavL10n.categories: LocalizedMessage(
+    english: 'Categories',
+    hindi: 'श्रेणियाँ',
+    gujarati: 'શ્રેણીઓ',
+  ),
+  NavL10n.closeCategories: LocalizedMessage(
+    english: 'Close categories',
+    hindi: 'श्रेणियाँ बंद करें',
+    gujarati: 'શ્રેણીઓ બંધ કરો',
   ),
   NavL10n.groupShopping: LocalizedMessage(
     english: 'Shopping',

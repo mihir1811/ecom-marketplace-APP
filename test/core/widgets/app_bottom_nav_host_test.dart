@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gemstone/core/haptics/app_haptics.dart';
 import 'package:gemstone/core/router/route_names.dart';
 import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_bar.dart';
+import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_destinations.dart';
 import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_host.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,6 +23,7 @@ void main() {
           AppRouteNames.cart,
           AppRouteNames.buyerProfile,
           AppRouteNames.comparison,
+          AppRouteNames.gemstones,
         ])
           GoRoute(path: path, builder: (_, _) => page(path)),
       ],
@@ -54,8 +56,12 @@ void main() {
     final screen =
         tester.view.physicalSize.height / tester.view.devicePixelRatio;
 
+    // Pages end at the bar's top, plus the strip that shows through the gap
+    // around the popped bubble.
+    final barred = screen - AppBottomNavBar.height + AppBottomNavBar.notchDepth;
+
     expect(find.byType(AppBottomNavBar), findsOneWidget);
-    expect(pageHeight(tester), closeTo(screen - AppBottomNavBar.height, 0.5));
+    expect(pageHeight(tester), closeTo(barred, 0.5));
 
     router.push(AppRouteNames.comparison);
     await tester.pumpAndSettle();
@@ -63,7 +69,7 @@ void main() {
 
     router.pop();
     await tester.pumpAndSettle();
-    expect(pageHeight(tester), closeTo(screen - AppBottomNavBar.height, 0.5));
+    expect(pageHeight(tester), closeTo(barred, 0.5));
   });
 
   testWidgets('tapping a tab navigates there', (tester) async {
@@ -99,6 +105,67 @@ void main() {
     );
   });
 
+  /// Category images shimmer while loading, so the menu never settles.
+  Future<void> openMenu(WidgetTester tester) async {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+  }
+
+  testWidgets('Categories pops a menu above the bar; a pick opens it', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+
+    await tester.tap(find.bySemanticsLabel('Categories'));
+    await openMenu(tester);
+    expect(find.bySemanticsLabel('Gemstones'), findsOneWidget);
+    // A popup, not a page: the bar stays on screen.
+    expect(find.byType(AppBottomNavBar), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel('Gemstones'));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Gemstones'), findsNothing);
+    // Opened like the home screen's collection tiles do.
+    expect(find.text(AppRouteNames.gemstones), findsOneWidget);
+  });
+
+  testWidgets(
+    'a tab tap with the category menu up closes it and opens that tab',
+    (tester) async {
+      final router = await pumpApp(tester);
+
+      await tester.tap(find.bySemanticsLabel('Categories'));
+      await openMenu(tester);
+      final bar = tester.getRect(find.byType(AppBottomNavBar));
+      final slot = bar.width / AppBottomNav.slots.length;
+      final cart = AppBottomNav.slots.indexWhere(
+        (d) => d?.tab == AppBottomNavTab.cart,
+      );
+      await tester.tapAt(Offset(bar.left + slot * (cart + 0.5), bar.top + 33));
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Gemstones'), findsNothing);
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        AppRouteNames.cart,
+      );
+    },
+  );
+
+  testWidgets('tapping the bar again closes the category menu', (tester) async {
+    final router = await pumpApp(tester);
+
+    await tester.tap(find.bySemanticsLabel('Categories'));
+    await openMenu(tester);
+    await tester.tap(find.byType(AppBottomNavBar), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Gemstones'), findsNothing);
+    expect(
+      router.routerDelegate.currentConfiguration.uri.path,
+      AppRouteNames.home,
+    );
+  });
+
   group('diamond transition', () {
     final overlay = find.byWidgetPredicate(
       (w) =>
@@ -121,8 +188,10 @@ void main() {
 
     Offset tabCentre(WidgetTester tester, int index) {
       final bar = tester.getRect(find.byType(AppBottomNavBar));
-      final slot = bar.width / 4;
-      return Offset(bar.left + slot * (index + 0.5), bar.top + 33);
+      final slots = AppBottomNav.slots;
+      final slot = bar.width / slots.length;
+      final i = slots.indexOf(AppBottomNav.destinations[index]);
+      return Offset(bar.left + slot * (i + 0.5), bar.top + 33);
     }
 
     Future<void> slide(

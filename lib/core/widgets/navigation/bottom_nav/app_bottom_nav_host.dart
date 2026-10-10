@@ -14,6 +14,7 @@ import '../../../router/route_names.dart';
 import '../../../theme/luxe_tokens.dart';
 import 'app_bottom_nav_bar.dart';
 import 'app_bottom_nav_destinations.dart';
+import 'app_category_menu.dart';
 import 'diamond_transition/diamond_cut.dart';
 import 'diamond_transition/diamond_tab_transition.dart';
 import 'diamond_transition/diamond_transition_controller.dart';
@@ -145,6 +146,9 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
   /// Last tab shown, kept while the bar slides away so it doesn't re-pop.
   AppBottomNavTab? _shownTab;
 
+  /// The category menu while it is up; the bar pops its Categories bubble.
+  AppCategoryMenuRoute? _categoriesMenu;
+
   @override
   void initState() {
     super.initState();
@@ -242,6 +246,39 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     widget.router.go(destination.route);
   }
 
+  /// A bar tap while the category menu is up: close it, then go there.
+  void _selectFromMenu(AppBottomNavDestination destination) {
+    _closeCategories();
+    _select(destination);
+  }
+
+  Future<void> _openCategories() async {
+    final navigator = widget.router.routerDelegate.navigatorKey.currentState;
+    if (navigator == null || _categoriesMenu != null) return;
+    final menu = AppCategoryMenuRoute.of(navigator);
+    setState(() => _categoriesMenu = menu);
+    final route = await navigator.push(menu);
+    if (!mounted) return;
+    if (identical(_categoriesMenu, menu)) {
+      setState(() => _categoriesMenu = null);
+    }
+    final context = widget.router.routerDelegate.navigatorKey.currentContext;
+    if (route != null && context != null && context.mounted) {
+      context.openRoute(route);
+    }
+  }
+
+  void _closeCategories() {
+    final menu = _categoriesMenu;
+    if (menu == null) return;
+    setState(() => _categoriesMenu = null);
+    if (menu.isCurrent) {
+      menu.navigator?.pop();
+    } else if (menu.isActive) {
+      menu.navigator?.removeRoute(menu);
+    }
+  }
+
   /// Tab under the finger while scrubbing.
   AppBottomNavTab? get _previewTab {
     final index = _diamond.preview.value;
@@ -253,27 +290,35 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     final media = MediaQuery.of(context);
     final inset = media.viewPadding.bottom;
     final barExtent = AppBottomNavBar.height + inset;
+    final open = _categoriesMenu != null;
 
     return AnimatedBuilder(
       animation: _slot,
       builder: (context, bar) {
         final slot = barExtent * _slot.value;
+        // Pages run this far behind the bar's top so they show through the
+        // gap around the popped bubble; it comes back as bottom padding.
+        final under = AppBottomNavBar.notchDepth * _slot.value;
         // The bar covers the bottom system inset and sits under the
         // keyboard, so neither should be applied again inside pages.
         final pageMedia = media.copyWith(
           padding: media.padding.copyWith(
-            bottom: math.max(0.0, media.padding.bottom - slot),
+            bottom: math.max(0.0, media.padding.bottom - slot) + under,
           ),
           viewPadding: media.viewPadding.copyWith(
-            bottom: math.max(0.0, media.viewPadding.bottom - slot),
+            bottom: math.max(0.0, media.viewPadding.bottom - slot) + under,
           ),
           viewInsets: media.viewInsets.copyWith(
-            bottom: math.max(0.0, media.viewInsets.bottom - slot),
+            bottom: math.max(0.0, media.viewInsets.bottom - slot + under),
           ),
         );
-        return Column(
+        return Stack(
           children: [
-            Expanded(
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: slot - under,
               child: MediaQuery(
                 data: pageMedia,
                 child: DiamondTabTransition(
@@ -282,7 +327,10 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
                 ),
               ),
             ),
-            SizedBox(
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
               height: slot,
               child: Offstage(
                 offstage: _slot.value == 0,
@@ -297,14 +345,18 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
           ],
         );
       },
+      // The category menu belongs to the bar: the bar stays live over it,
+      // and a tab tap closes the menu and opens that tab.
       child: _BarWithPopupScrim(
-        popup: appPopupRouteObserver.top.value,
+        popup: open ? null : appPopupRouteObserver.top.value,
         child: _LiveBar(
           barKey: _barKey,
           tab: _previewTab ?? _tab ?? _shownTab,
           bottomInset: inset,
-          onSelect: _select,
-          onScrub: _animate ? _scrub : null,
+          onSelect: open ? _selectFromMenu : _select,
+          onScrub: _animate && !open ? _scrub : null,
+          onCategories: open ? _closeCategories : _openCategories,
+          categoriesOpen: open,
         ),
       ),
     );
@@ -319,6 +371,8 @@ class _LiveBar extends ConsumerWidget {
     required this.bottomInset,
     required this.onSelect,
     required this.onScrub,
+    required this.onCategories,
+    required this.categoriesOpen,
   });
 
   final GlobalKey barKey;
@@ -326,6 +380,8 @@ class _LiveBar extends ConsumerWidget {
   final double bottomInset;
   final ValueChanged<AppBottomNavDestination> onSelect;
   final AppBottomNavScrub? onScrub;
+  final VoidCallback onCategories;
+  final bool categoriesOpen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -342,6 +398,8 @@ class _LiveBar extends ConsumerWidget {
         bottomInset: bottomInset,
         onSelect: onSelect,
         onScrub: onScrub,
+        onCategories: onCategories,
+        categoriesOpen: categoriesOpen,
         badges: {AppBottomNavTab.cart: cart, AppBottomNavTab.wishlist: saved},
       ),
     );

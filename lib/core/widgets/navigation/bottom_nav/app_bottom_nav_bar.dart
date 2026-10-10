@@ -13,9 +13,9 @@ import 'app_bottom_nav_destinations.dart';
 /// Sticky bottom navigation for the buyer side.
 ///
 /// The selected tab pops out of the bar: its icon rides an under-damped
-/// spring up into a champagne disc while the bar's top edge swells into a
-/// soft crown beneath it (the same spring + oval profile as the brand
-/// directory's A–Z index). The tab that loses focus drops back on a looser
+/// spring up inside a disc of the bar's own surface, which rises out of the
+/// top edge and stays joined to it by concave fillets, so bar and disc read
+/// as one shape. The tab that loses focus drops back on a looser
 /// spring, overshoots into a shallow dent and, as it meets the surface,
 /// sends a damped wave along the top edge plus a faint ring that settles out.
 ///
@@ -27,11 +27,16 @@ import 'app_bottom_nav_destinations.dart';
 /// reports the finger continuously, in tab coordinates (0 = centre of the
 /// first tab, 1 = the next, …), until it lifts. A plain tap still goes
 /// through [onSelect].
+///
+/// The centre slot is the Categories action: tapping it calls
+/// [onCategories], and while [categoriesOpen] it pops like a selected tab.
 class AppBottomNavBar extends StatefulWidget {
   const AppBottomNavBar({
     required this.selected,
     required this.onSelect,
     this.onScrub,
+    this.onCategories,
+    this.categoriesOpen = false,
     this.badges = const {},
     this.bottomInset = 0,
     super.key,
@@ -43,9 +48,16 @@ class AppBottomNavBar extends StatefulWidget {
   /// Bar height above the system inset.
   static const double height = 66;
 
+  /// How far below the bar top the edge can dip (the popped bubble's notch,
+  /// a released tab's dent). Pages extend this far behind the bar so they,
+  /// not an empty backdrop, show through the gap around the bubble.
+  static const double notchDepth = _AppBottomNavBarState._notchDepth;
+
   final AppBottomNavTab? selected;
   final ValueChanged<AppBottomNavDestination> onSelect;
   final AppBottomNavScrub? onScrub;
+  final VoidCallback? onCategories;
+  final bool categoriesOpen;
   final Map<AppBottomNavTab, int> badges;
 
   /// System navigation inset the bar extends behind.
@@ -89,18 +101,23 @@ class _Ripple {
 
 class _AppBottomNavBarState extends State<AppBottomNavBar>
     with SingleTickerProviderStateMixin {
-  // Pop-out: lively with one visible overshoot (cf. the index bulge).
-  static const _popK = 260.0;
-  static const _popZeta = 0.5;
+  // Pop-out: a smooth rise with only a hint of overshoot.
+  static const _popK = 220.0;
+  static const _popZeta = 0.82;
   // Release: looser, so it sinks past rest into a dent before settling.
   static const _dropK = 360.0;
   static const _dropZeta = 0.34;
 
   static const _iconY = 25.0; // icon centre at rest, from the bar top
-  static const _rise = 27.0; // how far a popped icon lifts
-  static const _disc = 50.0;
-  static const _crown = 11.0; // surface swell under the popped tab
-  static const _crownSpread = 0.64; // crown half-width, in slot widths
+  static const _rise = 29.0; // how far a popped icon lifts
+  static const _disc = 54.0; // bubble diameter
+  static const _gap = 6.0; // air between the bubble and the bent edge
+  static const _fillet = 14.0; // radius where the edge bends into the notch
+  static const _lip = 3.0; // how far the edge curls up beside the bubble
+  // Lowest point of a popped notch, plus room for the spring's overshoot.
+  static const _notchDepth = _disc / 2 + _gap + _iconY - _rise + 3;
+  static const _crown = 11.0; // depth of a released tab's dent
+  static const _crownSpread = 0.64; // dent half-width, in slot widths
 
   static const _waveAmp = 3.2;
   static const _waveLength = 62.0;
@@ -111,14 +128,16 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
   // Created on first use, so a bar that never animates never owns one.
   Ticker? _ticker;
   final _repaint = _Repaint();
-  final _lifts = [for (final _ in AppBottomNav.destinations) _Lift()];
+  final _lifts = [for (final _ in AppBottomNav.slots) _Lift()];
   final _ripples = <_Ripple>[];
   Duration _last = Duration.zero;
   double _time = 0;
 
-  int get _selectedIndex => widget.selected == null
-      ? -1
-      : AppBottomNav.destinations.indexWhere((d) => d.tab == widget.selected);
+  int get _selectedIndex {
+    if (widget.categoriesOpen) return AppBottomNav.categoriesSlot;
+    if (widget.selected == null) return -1;
+    return AppBottomNav.slots.indexWhere((d) => d?.tab == widget.selected);
+  }
 
   @override
   void initState() {
@@ -130,7 +149,10 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
   @override
   void didUpdateWidget(AppBottomNavBar old) {
     super.didUpdateWidget(old);
-    if (old.selected != widget.selected) _wake();
+    if (old.selected != widget.selected ||
+        old.categoriesOpen != widget.categoriesOpen) {
+      _wake();
+    }
   }
 
   @override
@@ -209,12 +231,59 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     _repaint.ping();
   }
 
+  /// Centre height of tab [i]'s notch circle, from the bar top: clear of the
+  /// edge at rest, cradling the popped bubble with [_gap] to spare.
+  double _notchY(int i) {
+    const reach = _disc / 2 + _gap;
+    return -reach + (reach + _iconY - _rise) * _lifts[i].x;
+  }
+
   /// Offset of the top edge at [x] (negative = raised).
   double _surface(double x, double slot) {
+    var bend = 0.0;
+    var calm = 0.0;
+    for (var i = 0; i < _lifts.length; i++) {
+      final lift = _lifts[i].x;
+      if (lift <= 0) continue;
+      final n = _notch(x - slot * (i + 0.5), _notchY(i), lift.clamp(0.0, 1.0));
+      bend += n.y;
+      calm = math.max(calm, n.calm);
+    }
+    // Waves pass under the bubble rather than reach into the notch.
+    return bend + _waves(x, slot) * (1 - calm);
+  }
+
+  /// The edge pushed away from a bubble: a notch around a circle centred
+  /// [cy] below the bar top, eased in by fillets, with lips curling up beside
+  /// it, at [dx] from its centre. [calm] is 1 in the notch, easing to 0 over
+  /// the fillet.
+  static ({double y, double calm}) _notch(double dx, double cy, double t) {
+    const r = _disc / 2 + _gap, f = _fillet;
+    // Fillet centres sit [f] below the bar, [r + f] from the notch centre.
+    const reach = r + f;
+    final drop = f - cy;
+    if (drop >= reach) return (y: 0, calm: 0);
+    final foot = math.sqrt(reach * reach - drop * drop);
+    final d = dx.abs();
+    final lip = -_lip * t * math.exp(-math.pow((d - foot) / 9, 2));
+    if (d >= foot) return (y: lip, calm: 0);
+    final tangent = foot * r / reach;
+    if (d <= tangent) {
+      return (y: lip + cy + math.sqrt(math.max(r * r - d * d, 0)), calm: 1);
+    }
+    final u = foot - d;
+    return (
+      y: lip + f - math.sqrt(math.max(f * f - u * u, 0)),
+      calm: u / (foot - tangent),
+    );
+  }
+
+  /// Dents of released tabs plus their release waves at [x].
+  double _waves(double x, double slot) {
     var y = 0.0;
     for (var i = 0; i < _lifts.length; i++) {
       final lift = _lifts[i].x;
-      if (lift == 0) continue;
+      if (lift >= 0) continue;
       final cx = slot * (i + 0.5);
       y -= _crown * lift * LuxeSpring.oval((x - cx) / (slot * _crownSpread));
     }
@@ -234,12 +303,18 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
   }
 
   void _onTap(int index) {
-    final destination = AppBottomNav.destinations[index];
+    final destination = AppBottomNav.slots[index];
     AppHaptics.selection();
-    widget.onSelect(destination);
+    if (destination == null) {
+      widget.onCategories?.call();
+    } else {
+      widget.onSelect(destination);
+    }
   }
 
-  double _slotAt(double x, double slot) => x / slot - 0.5;
+  /// Finger position in tab coordinates (the Categories slot squeezed out).
+  double _slotAt(double x, double slot) =>
+      AppBottomNav.tabCoordinate(x / slot - 0.5);
 
   int _indexAt(double x, double slot) =>
       (x / slot).floor().clamp(0, _lifts.length - 1);
@@ -301,6 +376,14 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     );
   }
 
+  int _badge(int i) {
+    final tab = AppBottomNav.slots[i]?.tab;
+    return tab == null ? 0 : widget.badges[tab] ?? 0;
+  }
+
+  static String _labelKey(int i) =>
+      AppBottomNav.slots[i]?.labelKey ?? AppBottomNav.categoriesLabelKey;
+
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
@@ -332,12 +415,12 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
                 ),
                 for (var i = 0; i < _lifts.length; i++)
                   _TabVisual(
-                    key: ValueKey(AppBottomNav.destinations[i].tab),
+                    key: ValueKey(i),
                     state: this,
                     index: i,
                     slot: slot,
                     selected: i == selected,
-                    badge: widget.badges[AppBottomNav.destinations[i].tab] ?? 0,
+                    badge: _badge(i),
                   ),
                 Positioned(
                   left: 0,
@@ -351,14 +434,8 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
                         for (var i = 0; i < _lifts.length; i++)
                           Expanded(
                             child: _TabHitArea(
-                              label: context.tr(
-                                AppBottomNav.destinations[i].labelKey,
-                              ),
-                              badge:
-                                  widget.badges[AppBottomNav
-                                      .destinations[i]
-                                      .tab] ??
-                                  0,
+                              label: context.tr(_labelKey(i)),
+                              badge: _badge(i),
                               selected: i == selected,
                               onTap: () => _onTap(i),
                             ),
@@ -396,8 +473,11 @@ class _TabVisual extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final destination = AppBottomNav.destinations[index];
-    final label = context.tr(destination.labelKey);
+    final destination = AppBottomNav.slots[index];
+    final label = context.tr(_AppBottomNavBarState._labelKey(index));
+    final icon = selected
+        ? destination?.selectedIcon ?? AppBottomNav.categoriesSelectedIcon
+        : destination?.icon ?? AppBottomNav.categoriesIcon;
     const disc = _AppBottomNavBarState._disc;
     final cx = slot * (index + 0.5);
 
@@ -419,7 +499,7 @@ class _TabVisual extends StatelessWidget {
                 disc / 2 +
                 _AppBottomNavBarState._iconY -
                 _AppBottomNavBarState._rise * travel;
-            final iconColor = Color.lerp(p.inkMuted, p.onAccent, shown)!;
+            final iconColor = Color.lerp(p.inkMuted, p.accent, shown)!;
             final labelColor = Color.lerp(p.inkMuted, p.accent, shown)!;
 
             return Stack(
@@ -432,10 +512,10 @@ class _TabVisual extends StatelessWidget {
                     width: disc,
                     height: disc,
                     child: Transform.scale(
-                      scale: 0.55 + 0.45 * lift.clamp(0.0, 1.2),
+                      scale: 0.6 + 0.4 * lift.clamp(0.0, 1.1),
                       child: Opacity(
                         opacity: shown,
-                        child: _Disc(palette: p),
+                        child: _Bubble(palette: p),
                       ),
                     ),
                   ),
@@ -452,7 +532,7 @@ class _TabVisual extends StatelessWidget {
                       offset: const Offset(8, -6),
                       label: Text(badge > 99 ? '99+' : '$badge'),
                       child: Icon(
-                        selected ? destination.selectedIcon : destination.icon,
+                        icon,
                         size: 22 + 1.5 * shown,
                         color: iconColor,
                       ),
@@ -488,33 +568,30 @@ class _TabVisual extends StatelessWidget {
   }
 }
 
-class _Disc extends StatelessWidget {
-  const _Disc({required this.palette});
+/// The popped tab's floating bubble, free of the bar.
+class _Bubble extends StatelessWidget {
+  const _Bubble({required this.palette});
 
   final LuxePalette palette;
 
   @override
   Widget build(BuildContext context) {
-    final accent = palette.accent;
     return DecoratedBox(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color.lerp(accent, Colors.white, 0.18)!, accent],
-        ),
-        border: Border.all(color: palette.surface, width: 3),
+        color: palette.surface,
         boxShadow: [
           BoxShadow(
-            color: accent.withValues(alpha: palette.isDark ? 0.32 : 0.38),
+            color: palette.accent.withValues(
+              alpha: palette.isDark ? 0.4 : 0.28,
+            ),
             blurRadius: 18,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 4),
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: palette.isDark ? 0.4 : 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: palette.isDark ? 0.4 : 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -552,8 +629,8 @@ class _TabHitArea extends StatelessWidget {
   }
 }
 
-/// The bar's body: a top edge that swells under the popped tab and carries
-/// release waves, plus the fading rings of those waves.
+/// The bar's body: a top edge that rises into the popped tab's disc and
+/// carries release waves, plus the fading rings of those waves.
 class _SurfacePainter extends CustomPainter {
   _SurfacePainter({
     required this.state,
@@ -571,7 +648,8 @@ class _SurfacePainter extends CustomPainter {
   final Color accent;
   final bool isDark;
 
-  static const _sample = 3.0;
+  // Fine enough to keep the disc and fillet arcs smooth.
+  static const _sample = 1.0;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -594,24 +672,6 @@ class _SurfacePainter extends CustomPainter {
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
     );
     canvas.drawPath(body, Paint()..color = fill);
-
-    // Champagne glow pooled under the popped tab.
-    for (var i = 0; i < state._lifts.length; i++) {
-      final lift = state._lifts[i].x.clamp(0.0, 1.0);
-      if (lift <= 0.01) continue;
-      final c = Offset(slot * (i + 0.5), 0);
-      canvas.drawCircle(
-        c,
-        slot * 0.6,
-        Paint()
-          ..shader = RadialGradient(
-            colors: [
-              accent.withValues(alpha: 0.16 * lift),
-              accent.withValues(alpha: 0),
-            ],
-          ).createShader(Rect.fromCircle(center: c, radius: slot * 0.6)),
-      );
-    }
 
     // Release rings, kept on the bar's surface.
     if (state._ripples.isNotEmpty) {

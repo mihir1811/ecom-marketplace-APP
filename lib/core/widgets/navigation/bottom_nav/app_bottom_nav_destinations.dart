@@ -60,6 +60,30 @@ abstract final class AppBottomNav {
     ),
   ];
 
+  /// Bar slots, left to right: the tabs with the Categories action (null)
+  /// in the centre. Categories opens a menu and never owns a route.
+  static final slots = <AppBottomNavDestination?>[
+    ...destinations.take(categoriesSlot),
+    null,
+    ...destinations.skip(categoriesSlot),
+  ];
+
+  /// Position of the Categories action among [slots].
+  static const categoriesSlot = 2;
+  static const categoriesLabelKey = NavL10n.categories;
+  static const categoriesIcon = Icons.grid_view_outlined;
+  static const categoriesSelectedIcon = Icons.grid_view_rounded;
+
+  /// Maps a position along the bar (0 = centre of the first slot) onto tab
+  /// coordinates (0 = first tab), squeezing the Categories slot out so a
+  /// scrub glides straight from the tab on its left to the one on its right.
+  static double tabCoordinate(double slot) {
+    const left = categoriesSlot - 1.0, right = categoriesSlot + 1.0;
+    if (slot <= left) return slot;
+    if (slot >= right) return slot - 1;
+    return left + (slot - left) / 2;
+  }
+
   /// Browse screens that belong to the Home tab.
   static const _homeBranch = <String>{
     AppRouteNames.diamonds,
