@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -12,20 +11,19 @@ import 'product_frame_shape.dart';
 import 'product_pager.dart';
 
 /// Height the dock reserves under the sheet.
-const double kProductGemDockHeight = 114;
+const double kProductGemDockHeight = 120;
 
 /// Edge of the square each frame is drawn in.
 const double _kFrame = 66;
 
 /// Distance from the dock's top to the frames' centre line.
-const double _kRowY = 47;
+const double _kRowY = 53;
 
 /// The product switcher: a flat glass rail of frames.
 ///
 /// Five frames are in sight at once: the one on show in the middle, one
 /// either side of it, and half of the next one at each end of the rail.
-/// The centre frame is larger and glows; a ring traced around it shows the
-/// place in the list. Diamonds and gemstones are framed in their own cut (a
+/// The centre frame is larger, sits higher and glows. Diamonds and gemstones are framed in their own cut (a
 /// pear in a pear), everything else keeps the gem-cut octagon. Swiping the
 /// rail, tapping a frame, or swiping the cards above all move the same pager.
 class ProductGemDock extends StatefulWidget {
@@ -91,65 +89,44 @@ class _ProductGemDockState extends State<ProductGemDock>
           return RepaintBoundary(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(32),
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(32),
-                    border: Border.all(
-                      color: p.accent.withValues(alpha: p.isDark ? 0.4 : 0.35),
-                    ),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: p.isDark
-                          ? const [Color(0xA6262629), Color(0xB3121214)]
-                          : const [Color(0xD9FFFFFF), Color(0xB8F0EBE2)],
-                    ),
-                  ),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onHorizontalDragStart: (_) => pager.dragStart(),
-                    onHorizontalDragUpdate: (d) =>
-                        pager.dragBy(-d.delta.dx / slot),
-                    onHorizontalDragEnd: (d) =>
-                        pager.dragEnd(-d.velocity.pixelsPerSecond.dx / slot),
-                    onHorizontalDragCancel: () => pager.dragEnd(0),
-                    child: AnimatedBuilder(
-                      animation: pager.listenable,
-                      builder: (context, _) {
-                        final pos = pager.position;
-                        final from = math.max(0, pos.floor() - 2);
-                        final to = math.min(count - 1, pos.ceil() + 2);
-                        // Far frames first so the centre one paints on top.
-                        final order = [for (var i = from; i <= to; i++) i]
-                          ..sort(
-                            (a, b) =>
-                                (b - pos).abs().compareTo((a - pos).abs()),
-                          );
-                        return Stack(
-                          clipBehavior: Clip.hardEdge,
-                          children: [
-                            for (final i in order)
-                              _frameAt(i, pos, width, slot, p),
-                            Positioned(
-                              left: 28,
-                              right: 28,
-                              top: _kRowY + _kFrame / 2 + 14,
-                              child: IgnorePointer(
-                                child: _Caption(
-                                  title: widget.detailAt(pager.nearest).title,
-                                  index: pager.nearest,
-                                  count: count,
-                                  palette: p,
-                                ),
-                              ),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragStart: (_) => pager.dragStart(),
+                onHorizontalDragUpdate: (d) => pager.dragBy(-d.delta.dx / slot),
+                onHorizontalDragEnd: (d) =>
+                    pager.dragEnd(-d.velocity.pixelsPerSecond.dx / slot),
+                onHorizontalDragCancel: () => pager.dragEnd(0),
+                child: AnimatedBuilder(
+                  animation: pager.listenable,
+                  builder: (context, _) {
+                    final pos = pager.position;
+                    final from = math.max(0, pos.floor() - 2);
+                    final to = math.min(count - 1, pos.ceil() + 2);
+                    // Far frames first so the centre one paints on top.
+                    final order = [for (var i = from; i <= to; i++) i]
+                      ..sort(
+                        (a, b) => (b - pos).abs().compareTo((a - pos).abs()),
+                      );
+                    return Stack(
+                      clipBehavior: Clip.hardEdge,
+                      children: [
+                        for (final i in order) _frameAt(i, pos, width, slot, p),
+                        Positioned(
+                          left: 28,
+                          right: 28,
+                          top: _kRowY + _kFrame / 2 + 14,
+                          child: IgnorePointer(
+                            child: _Caption(
+                              title: widget.detailAt(pager.nearest).title,
+                              index: pager.nearest,
+                              count: count,
+                              palette: p,
                             ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -176,9 +153,13 @@ class _ProductGemDockState extends State<ProductGemDock>
         : 0.94 - 0.14 * (away - 1).clamp(0.0, 1.0);
     final opacity = away <= 1 ? 1 - 0.1 * away : 0.9 - 0.15 * (away - 1);
 
+    // The frame on show rides higher than the rest, so it reads as the main one.
+    final lift = 6 - 11 * near;
+
     return Positioned(
+      key: ValueKey('frame-$i'),
       left: width / 2 + d * slot - _kFrame / 2,
-      top: _kRowY - _kFrame / 2,
+      top: _kRowY - _kFrame / 2 + lift,
       width: _kFrame,
       height: _kFrame,
       child: Semantics(
@@ -194,7 +175,6 @@ class _ProductGemDockState extends State<ProductGemDock>
               child: _GemFrame(
                 path: path,
                 near: near,
-                progress: ((pos + 1) / widget.pager.count).clamp(0.0, 1.0),
                 palette: p,
                 idle: _idle,
                 content: content,
@@ -244,13 +224,13 @@ class _Caption extends StatelessWidget {
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: LuxeType.label(palette.ink, size: 12),
+              style: LuxeType.label(Colors.white, size: 12),
             ),
           ),
           const SizedBox(width: 8),
           Text(
             '${index + 1} / $count',
-            style: LuxeType.figure(palette.inkFaint, size: 11),
+            style: LuxeType.figure(Colors.white70, size: 11),
           ),
         ],
       ),
@@ -275,7 +255,6 @@ class _GemFrame extends StatelessWidget {
   const _GemFrame({
     required this.path,
     required this.near,
-    required this.progress,
     required this.palette,
     required this.idle,
     required this.content,
@@ -283,7 +262,6 @@ class _GemFrame extends StatelessWidget {
 
   final Path path;
   final double near;
-  final double progress;
   final LuxePalette palette;
   final Animation<double> idle;
   final Widget content;
@@ -314,7 +292,6 @@ class _GemFrame extends StatelessWidget {
           foregroundPainter: _OutlinePainter(
             path: path,
             near: near,
-            progress: progress,
             palette: palette,
           ),
         ),
@@ -408,19 +385,16 @@ class _FramePainter extends CustomPainter {
       old.near != near || old.path != path || old.palette != palette;
 }
 
-/// Border, plus on the centre frame a ring tracing the list position. Both
-/// come from the same outline as the fill, so they can never drift apart.
+/// Border, cut from the same outline as the fill so they never drift apart.
 class _OutlinePainter extends CustomPainter {
   const _OutlinePainter({
     required this.path,
     required this.near,
-    required this.progress,
     required this.palette,
   });
 
   final Path path;
   final double near;
-  final double progress;
   final LuxePalette palette;
 
   @override
@@ -433,51 +407,11 @@ class _OutlinePainter extends CustomPainter {
         ..strokeJoin = StrokeJoin.round
         ..color = Color.lerp(palette.hairline, palette.accent, near)!,
     );
-    if (near < 0.05) return;
-
-    // Concentric ring: the outline grown about its own bounds' centre.
-    final bounds = path.getBounds();
-    const gap = 7.0;
-    final grow = Matrix4.identity()
-      ..translateByDouble(bounds.center.dx, bounds.center.dy, 0, 1)
-      ..scaleByDouble(
-        (bounds.width + gap * 2) / bounds.width,
-        (bounds.height + gap * 2) / bounds.height,
-        1,
-        1,
-      )
-      ..translateByDouble(-bounds.center.dx, -bounds.center.dy, 0, 1);
-    final ring = path.transform(grow.storage);
-
-    canvas.drawPath(
-      ring,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1
-        ..color = palette.hairline.withValues(alpha: 0.8 * near),
-    );
-    final metrics = ring.computeMetrics().toList();
-    final total = metrics.fold<double>(0, (sum, m) => sum + m.length);
-    var remaining = total * progress;
-    final arc = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 2.2
-      ..color = palette.accent.withValues(alpha: near);
-    for (final m in metrics) {
-      if (remaining <= 0) break;
-      final take = math.min(remaining, m.length);
-      canvas.drawPath(m.extractPath(0, take), arc);
-      remaining -= take;
-    }
   }
 
   @override
   bool shouldRepaint(_OutlinePainter old) =>
-      old.near != near ||
-      old.progress != progress ||
-      old.path != path ||
-      old.palette != palette;
+      old.near != near || old.path != path || old.palette != palette;
 }
 
 /// A slow diagonal glint that crosses the centre frame now and then.

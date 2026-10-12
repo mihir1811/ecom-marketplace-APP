@@ -108,6 +108,18 @@ ProductSheetLaunch _launch({bool watch = false}) => ProductSheetLaunch(
 Rect _card(WidgetTester tester, int i) =>
     tester.getRect(find.byKey(ValueKey('card-$i')));
 
+/// Whether a card is mounted but kept out of sight (or not mounted at all).
+bool _hidden(WidgetTester tester, int i) {
+  final card = find.byKey(ValueKey('card-$i'));
+  if (card.evaluate().isEmpty) return true;
+  final off = find.descendant(
+    of: card,
+    matching: find.byType(Offstage),
+    skipOffstage: false,
+  );
+  return tester.widget<Offstage>(off.first).offstage;
+}
+
 /// A sheet test; lets the pages' staggered entrance timers run out at the end.
 void sheetTest(String name, Future<void> Function(WidgetTester tester) body) {
   testWidgets(name, (tester) async {
@@ -122,7 +134,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     expect(tester.takeException(), isNull);
     // Neighbours are not there yet while the pop-up is still opening.
-    expect(find.byKey(const ValueKey('card-1')), findsNothing);
+    expect(_hidden(tester, 1), isTrue);
 
     await tester.pump(const Duration(milliseconds: 1400));
     expect(find.byType(ProductGemDock), findsOneWidget);
@@ -131,13 +143,13 @@ void main() {
     final right = _card(tester, 3);
 
     // The middle card is inset from the screen edges, not full screen.
-    expect(centre.left, greaterThan(40));
-    expect(centre.width, lessThan(300));
+    expect(centre.left, greaterThan(30));
+    expect(centre.width, lessThan(340));
     // A strip of each neighbour shows: roughly a fifth of its width.
     final leftShown = left.right.clamp(0, 390);
     final rightShown = 390 - right.left.clamp(0, 390);
-    expect(leftShown, inInclusiveRange(40, 80));
-    expect(rightShown, inInclusiveRange(40, 80));
+    expect(leftShown, inInclusiveRange(20, 80));
+    expect(rightShown, inInclusiveRange(20, 80));
     expect(left.left, lessThan(0));
     expect(right.right, greaterThan(390));
     expect(tester.takeException(), isNull);
@@ -161,6 +173,29 @@ void main() {
     expect(grown.width, closeTo(390, 1));
     // The neighbours have slipped away.
     expect(find.byKey(const ValueKey('card-1')).hitTestable(), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  sheetTest('a full-screen page stays so at the top until pulled further', (
+    tester,
+  ) async {
+    await _open(tester, launch: _launch());
+    await tester.pump(const Duration(milliseconds: 1000));
+    await tester.pump(const Duration(milliseconds: 700));
+    final scroll = find.byType(CustomScrollView).hitTestable().first;
+
+    await tester.drag(scroll, const Offset(0, -380));
+    await tester.pump(const Duration(milliseconds: 700));
+    // Back to the very top: the picture stays full screen.
+    await tester.drag(scroll, const Offset(0, 380));
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(_card(tester, 2).width, closeTo(390, 1));
+
+    // A further deliberate pull gives way to the pop-up.
+    await tester.drag(scroll, const Offset(0, 160));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(_card(tester, 2).width, lessThan(340));
     expect(tester.takeException(), isNull);
   });
 

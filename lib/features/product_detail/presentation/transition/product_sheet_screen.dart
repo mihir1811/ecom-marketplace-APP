@@ -28,10 +28,14 @@ const double _kGrowDistance = 340;
 const double _kMaxContentWidth = 560;
 
 /// Share of the screen the centre pop-up takes when others peek in beside it.
-const double _kCardShare = 0.71;
+const double _kCardShare = 0.8;
 
 /// Scale of the pop-ups either side of the centre one.
 const double _kSideScale = 0.88;
+
+/// Extra pull past the top of a full-screen page before it shrinks back into
+/// the pop-up, so the picture can be looked at without it giving way.
+const double _kShrinkBuffer = 64;
 
 /// Space between the centre pop-up and its neighbours.
 const double _kPeekGap = 10;
@@ -104,6 +108,12 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
   double _pullFrom = 0;
   bool _dismissing = false;
   bool _overscrollDrag = false;
+
+  /// Latched once the page has grown to the full screen; it then stays full
+  /// screen, even back at the top of its scroll, until deliberately pulled.
+  bool _expanded = false;
+  double _shrinkPull = 0;
+  bool _shrunkThisDrag = false;
   Animation<double> _route = kAlwaysCompleteAnimation;
   final _viewed = <String>{};
 
@@ -168,7 +178,7 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
   }
 
   void _updateGrowth() {
-    final raw = _scrollGrowth.value;
+    final raw = _expanded ? 1.0 : _scrollGrowth.value;
     _growth.value = _settle.isAnimating
         ? ui.lerpDouble(
             _growthFrom,
@@ -189,11 +199,25 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
   }
 
   void _onPageScroll(double offset) {
-    _scrollGrowth.value = (offset / _kGrowDistance).clamp(0.0, 1.0);
+    final growth = (offset / _kGrowDistance).clamp(0.0, 1.0);
+    if (growth >= 1) _expanded = true;
+    _scrollGrowth.value = growth;
+  }
+
+  /// Full screen back to the pop-up, after a pull at the top of the page.
+  void _shrink() {
+    _expanded = false;
+    _shrunkThisDrag = true;
+    _shrinkPull = 0;
+    AppHaptics.selection();
+    _growthFrom = _growth.value;
+    _settle.forward(from: 0);
   }
 
   void _onSettled(int index) {
     if (!mounted || index == _index) return;
+    _expanded = false;
+    _shrinkPull = 0;
     _growthFrom = _growth.value;
     _settle.forward(from: 0);
     _scrollGrowth.value = 0;
@@ -251,6 +275,13 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
     if (n is OverscrollNotification &&
         n.overscroll < 0 &&
         n.dragDetails != null) {
+      if (_expanded) {
+        _shrinkPull -= n.overscroll;
+        if (_shrinkPull > _kShrinkBuffer) _shrink();
+        return false;
+      }
+      // The pull that shrank the page must not also dismiss it.
+      if (_shrunkThisDrag) return false;
       _pullBack.stop();
       _pull.value = math.min(_pull.value - n.overscroll, 260);
     } else if (n is ScrollUpdateNotification && _pull.value > 0) {
@@ -261,6 +292,8 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
   }
 
   void _onPointerUp(PointerEvent _) {
+    _shrinkPull = 0;
+    _shrunkThisDrag = false;
     if (_overscrollDrag) {
       _overscrollDrag = false;
       _pager.dragEnd(0);
@@ -316,7 +349,7 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
     final base = math.min(screen.width, _kMaxContentWidth);
     final cardW = set == null
         ? base - 28
-        : (base * _kCardShare).clamp(236.0, 420.0);
+        : (base * _kCardShare).clamp(250.0, 440.0);
     final popup = Rect.fromLTRB(
       (screen.width - cardW) / 2,
       safe.top + 18,
@@ -502,8 +535,10 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
         ? 1.0
         : (t / 0.35).clamp(0.0, 1.0);
 
-    final first = math.max(0, pos.floor() - 1);
-    final last = math.min(_count - 1, pos.ceil() + 1);
+    // Pages two away stay mounted (hidden) so swiping back never rebuilds
+    // their pictures and sections.
+    final first = math.max(0, pos.floor() - 2);
+    final last = math.min(_count - 1, pos.ceil() + 2);
     final order = <int>[
       for (var i = first; i <= last; i++)
         if (i == _index || _peekReady) i,
@@ -520,8 +555,8 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
             peek *
             (1 - (g * 4).clamp(0.0, 1.0)) *
             (away > 1 ? ((1.7 - away) / 0.7).clamp(0.0, 1.0) : 1.0);
-        if (alpha <= 0.01) continue;
       }
+      final hidden = alpha <= 0.01;
       final scale = 1 - (1 - _kSideScale) * math.min(away, 1.0);
       final rect = (main ? Rect.lerp(from, rectG, open)! : rectG).shift(
         Offset(d * slot, pullDy),
@@ -572,15 +607,16 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
         ),
       );
 
-      if (!main) {
-        // Neighbours are a handle: tapping one brings it to the centre.
-        body = GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => _pager.animateTo(i),
-          child: AbsorbPointer(child: body),
-        );
-      }
-      if (alpha < 0.99) body = Opacity(opacity: alpha, child: body);
+      // The wrapper chain is identical for every card, so a card turning into
+      // the centre one (or back) keeps its page state instead of remounting.
+      // Neighbours are a handle: tapping one brings it to the centre.
+      body = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: main ? null : () => _pager.animateTo(i),
+        child: AbsorbPointer(absorbing: !main, child: body),
+      );
+      body = Opacity(opacity: alpha.clamp(0.0, 1.0), child: body);
+      body = Offstage(offstage: hidden, child: body);
 
       cards.add(
         Positioned.fromRect(
@@ -653,6 +689,10 @@ class _SheetPageState extends ConsumerState<_SheetPage> {
   final _scroll = ScrollController();
   final _offset = ValueNotifier<double>(0);
 
+  /// The long record is built the first time the page is on show and kept,
+  /// so coming back to a product does not rebuild it.
+  bool _recordBuilt = false;
+
   @override
   void initState() {
     super.initState();
@@ -675,6 +715,7 @@ class _SheetPageState extends ConsumerState<_SheetPage> {
     final s = luxeProductSections(context, ref, widget.detail);
     final safe = widget.safe;
     final active = widget.active;
+    if (active) _recordBuilt = true;
 
     return ColoredBox(
       color: p.canvas,
@@ -726,7 +767,7 @@ class _SheetPageState extends ConsumerState<_SheetPage> {
                                   ),
                                   child: s.summary,
                                 ),
-                                if (active)
+                                if (_recordBuilt)
                                   Padding(
                                     padding: const EdgeInsets.fromLTRB(
                                       20,
