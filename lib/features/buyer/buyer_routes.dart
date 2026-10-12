@@ -6,7 +6,7 @@ import '../../core/l10n/app_localizations.dart';
 import '../../core/router/route_names.dart';
 import '../seller/presentation/screens/seller_inquiry_detail_screen.dart';
 import '../seller/presentation/screens/seller_inquiry_form_screen.dart';
-import '../seller/presentation/screens/seller_inquiry_inbox_screen.dart';
+import 'presentation/screens/buyer_inquiries_screen.dart';
 import 'presentation/screens/buyer_order_detail_screen.dart';
 import 'presentation/screens/buyer_chat_detail_screen.dart';
 import 'presentation/screens/buyer_chat_list_screen.dart';
@@ -53,10 +53,7 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerInquiries,
-    builder: (context, state) => BuyerLayout(
-      title: context.tr(AccountCommerceL10n.inquiries),
-      child: const SellerInquiryInboxScreen(showHeader: false),
-    ),
+    builder: (context, state) => const BuyerInquiriesScreen(),
   ),
   GoRoute(
     path: AppRouteNames.buyerInquiryNew,

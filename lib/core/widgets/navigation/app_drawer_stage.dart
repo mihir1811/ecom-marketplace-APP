@@ -125,8 +125,12 @@ class AppDrawerStageState extends State<AppDrawerStage>
   @override
   void dispose() {
     _removeHistoryEntry();
-    if (AppDrawerStage.progress.value != 0 && _controller.value != 0) {
-      AppDrawerStage.progress.value = 0;
+    // Gone mid-slide (sign-out, route swap): never leave the dock offset.
+    if (_controller.value != 0) {
+      _controller.removeListener(_publish);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        AppDrawerStage.progress.value = 0;
+      });
     }
     _controller.dispose();
     super.dispose();
@@ -141,20 +145,21 @@ class AppDrawerStageState extends State<AppDrawerStage>
     _animateTo(1);
   }
 
-  void close() {
+  /// Completes once the page is back in place.
+  Future<void> close() {
     _removeHistoryEntry();
-    _animateTo(0);
+    return _animateTo(0);
   }
 
-  void _animateTo(double target) {
+  Future<void> _animateTo(double target) {
     if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
       _controller.value = target;
-      return;
+      return Future.value();
     }
     final opening = target == 1;
     final distance = (target - _controller.value).abs();
-    if (distance == 0) return;
-    _controller.animateTo(
+    if (distance == 0) return Future.value();
+    return _controller.animateTo(
       target,
       duration:
           (opening ? _openDuration : _closeDuration) * math.max(distance, 0.35),
@@ -438,11 +443,8 @@ class AppDrawerReveal extends StatelessWidget {
 }
 
 /// Closes the drawer hosting [context] (or pops, outside a stage).
-void closeAppDrawer(BuildContext context) {
+Future<void> closeAppDrawer(BuildContext context) {
   final stage = AppDrawerStage.maybeOf(context);
-  if (stage != null) {
-    stage.close();
-  } else {
-    Navigator.of(context).maybePop();
-  }
+  if (stage != null) return stage.close();
+  return Navigator.of(context).maybePop();
 }

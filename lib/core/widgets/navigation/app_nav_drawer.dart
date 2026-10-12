@@ -242,7 +242,8 @@ class AppNavDrawer extends ConsumerWidget {
     final auth = ref.read(authProvider.notifier);
     final confirmed = await confirmSignOut(context);
     if (!confirmed || !context.mounted) return;
-    closeAppDrawer(context);
+    // Let the page settle back before the session (and the drawer) goes.
+    await closeAppDrawer(context);
     auth.logout();
     router.go(AppRouteNames.home);
   }
