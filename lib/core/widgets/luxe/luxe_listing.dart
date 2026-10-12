@@ -11,6 +11,7 @@ import 'luxe_button.dart';
 import 'luxe_feedback.dart';
 import 'luxe_layout.dart';
 import 'luxe_product_card.dart';
+import 'product_card_anchor.dart';
 
 /// Pinned, frosted sliver header used by finder indexes and result toolbars.
 class LuxePinnedBar extends StatelessWidget {
@@ -773,7 +774,7 @@ List<Widget> luxeResultSlivers<T>({
       id: id,
       seen: entered,
       index: i,
-      child: RepaintBoundary(child: cardOf(item, viewMode)),
+      child: ProductCardAnchor(index: i, child: cardOf(item, viewMode)),
     );
   }
 

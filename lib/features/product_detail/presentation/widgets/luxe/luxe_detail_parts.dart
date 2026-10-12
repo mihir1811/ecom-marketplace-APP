@@ -412,11 +412,15 @@ class LuxePriceCard extends StatelessWidget {
           if (labels.hasDiscount)
             Row(
               children: [
-                Text(
-                  labels.list!,
-                  style: LuxeType.label(p.inkFaint, size: 13).copyWith(
-                    decoration: TextDecoration.lineThrough,
-                    decorationColor: p.inkFaint,
+                Flexible(
+                  child: Text(
+                    labels.list!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: LuxeType.label(p.inkFaint, size: 13).copyWith(
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: p.inkFaint,
+                    ),
                   ),
                 ),
                 if (labels.saveAmount != null) ...[
@@ -626,7 +630,12 @@ class LuxeCertificateCard extends StatelessWidget {
 /// One label / value row of a spec list. [emphasis] sets the value in the
 /// serif display face (totals); [tone] colours it (e.g. a saving).
 class LuxeSpecLine {
-  const LuxeSpecLine(this.label, this.value, {this.emphasis = false, this.tone});
+  const LuxeSpecLine(
+    this.label,
+    this.value, {
+    this.emphasis = false,
+    this.tone,
+  });
 
   final String label;
   final String value;

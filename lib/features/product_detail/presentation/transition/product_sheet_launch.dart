@@ -4,15 +4,27 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../../core/widgets/luxe/product_card_anchor.dart';
 import '../../domain/models/product_detail.dart';
 
 /// Where a product was tapped on screen: the card the detail sheet grows out
 /// of (and shrinks back into), plus a snapshot of that card.
 class ProductSheetOrigin {
-  ProductSheetOrigin({required this.rect, this.radius = 20});
+  ProductSheetOrigin({
+    required this.rect,
+    this.radius = 20,
+    this.index,
+    this.scrollable,
+  });
 
   final Rect rect;
   final double radius;
+
+  /// Position in its list and the list itself, when the tapped card is a
+  /// [ProductCardAnchor]; lets the sheet find (and scroll to) any card of
+  /// that list later.
+  final int? index;
+  final ScrollableState? scrollable;
 
   /// Pixels of the tapped card, filled in a frame or two after the tap.
   final ValueNotifier<ui.Image?> snapshot = ValueNotifier<ui.Image?>(null);
@@ -138,8 +150,24 @@ abstract final class ProductTapTracker {
     final binding = WidgetsBinding.instance;
     final view = binding.platformDispatcher.view(id: _viewId);
     if (view == null) return null;
-    final screen = view.physicalSize / view.devicePixelRatio;
+    final ratio = view.devicePixelRatio.clamp(1.0, 2.0);
 
+    // Listing cards announce themselves: exact rectangle and list.
+    final card = ProductCardRegistry.at(at);
+    if (card != null) {
+      final origin = ProductSheetOrigin(
+        rect: card.rect,
+        index: card.index,
+        scrollable: card.scrollable,
+      );
+      card.boundary
+          ?.toImage(pixelRatio: ratio)
+          .then<void>(origin._offer, onError: (Object _) {});
+      return origin;
+    }
+
+    // Anywhere else: the smallest card-sized repaint boundary under the tap.
+    final screen = view.physicalSize / view.devicePixelRatio;
     final result = HitTestResult();
     binding.hitTestInView(result, at, _viewId);
 
@@ -175,7 +203,6 @@ abstract final class ProductTapTracker {
     }
 
     final origin = ProductSheetOrigin(rect: bestRect);
-    final ratio = view.devicePixelRatio.clamp(1.0, 2.0);
     // Boundaries only expose pixels once painted; a failed grab just means
     // the card is not cross-faded, the sheet still grows from its rect.
     best

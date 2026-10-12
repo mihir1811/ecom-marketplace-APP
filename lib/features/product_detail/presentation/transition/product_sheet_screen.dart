@@ -10,6 +10,7 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/widgets/luxe/product_card_anchor.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../domain/models/product_detail.dart';
 import '../../product_detail_navigation.dart';
@@ -17,6 +18,7 @@ import '../screens/luxe_product_detail_screen.dart';
 import '../widgets/luxe/luxe_detail_gallery.dart';
 import '../widgets/luxe/luxe_detail_parts.dart';
 import 'product_gem_dock.dart';
+import 'product_pager.dart';
 import 'product_sheet_launch.dart';
 
 /// Scroll distance over which the pop-up grows into a full screen.
@@ -25,19 +27,25 @@ const double _kGrowDistance = 340;
 /// Content never gets wider than a phone; wider windows centre it.
 const double _kMaxContentWidth = 560;
 
-/// Space between the pop-up's edges and the screen.
-const double _kSideInset = 14;
+/// Share of the screen the centre pop-up takes when others peek in beside it.
+const double _kCardShare = 0.71;
+
+/// Scale of the pop-ups either side of the centre one.
+const double _kSideScale = 0.88;
+
+/// Space between the centre pop-up and its neighbours.
+const double _kPeekGap = 10;
 
 const Curve _kOpenCurve = Cubic(0.22, 1, 0.36, 1);
 const Curve _kCloseCurve = Cubic(0.4, 0, 0.2, 1);
 
 /// Product detail as a pop-up that grows out of the tapped card.
 ///
-/// It opens as an inset rounded sheet above a dimmed, softly blurred list.
-/// Scrolling up widens the sheet until it is the full screen, and scrolling
-/// back (or pulling down) lets it shrink again and finally fall back into
-/// its card. When it was opened from a list, a gem dock below the sheet
-/// switches between that list's products with a continuous transition.
+/// It opens as an inset rounded pop-up above a dimmed, softly blurred list,
+/// with the previous and next products peeking in at its sides. Swiping the
+/// cards (or the dock below) moves between them; scrolling up widens the
+/// centre one until it is the full screen. Closing shrinks it into the card
+/// of the product being viewed, which the list has scrolled to.
 class ProductSheetScreen extends ConsumerStatefulWidget {
   const ProductSheetScreen({
     required this.detail,
@@ -55,36 +63,53 @@ class ProductSheetScreen extends ConsumerStatefulWidget {
 class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
     with TickerProviderStateMixin {
   late final ProductSwitchSet? _set = widget.launch.switchSet;
-  late int _index = _set?.initialIndex ?? 0;
-  int _dir = 1;
-  bool _switched = false;
+  late final int _count = _set?.length ?? 1;
+  late final int _initial = _set?.initialIndex ?? 0;
+  late int _index = _initial;
+  late final ProductPager _pager = ProductPager(
+    vsync: this,
+    count: _count,
+    initial: _initial,
+    onSettled: _onSettled,
+    onStep: (_) => AppHaptics.selection(),
+  );
 
   /// Growth (0 pop-up … 1 full screen) read straight off the scroll offset.
   final _scrollGrowth = ValueNotifier<double>(0);
 
-  /// Growth the frame actually uses: the scroll value, eased across a
-  /// product switch so the new page does not make the sheet jump.
+  /// Growth the cards actually use: the scroll value, eased across a change
+  /// of product so the new page does not make the card jump.
   final _growth = ValueNotifier<double>(0);
   final _pull = ValueNotifier<double>(0);
 
   late final AnimationController _settle = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 880),
+    duration: const Duration(milliseconds: 640),
     value: 1,
   );
   late final AnimationController _pullBack = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 380),
   );
+
+  /// The neighbours slide in once the pop-up has finished opening.
+  late final AnimationController _peek = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 520),
+    reverseDuration: const Duration(milliseconds: 180),
+  );
+  bool _peekReady = false;
+
   double _growthFrom = 0;
   double _pullFrom = 0;
   bool _dismissing = false;
+  bool _overscrollDrag = false;
   Animation<double> _route = kAlwaysCompleteAnimation;
   final _viewed = <String>{};
 
   ProductSheetOrigin? get _origin => widget.launch.origin;
 
-  ProductDetail get _detail => _set?.detailAt(_index) ?? widget.detail;
+  ProductDetail _detailAt(int i) => _set?.detailAt(i) ?? widget.detail;
 
   @override
   void initState() {
@@ -95,24 +120,51 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
       _pull.value =
           _pullFrom * (1 - Curves.easeOutCubic.transform(_pullBack.value));
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) => _recordView(_detail));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _recordView(_detailAt(_index)),
+    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _route = ModalRoute.of(context)?.animation ?? kAlwaysCompleteAnimation;
+    final route = ModalRoute.of(context)?.animation ?? kAlwaysCompleteAnimation;
+    if (!identical(route, _route)) {
+      _route.removeStatusListener(_onRouteStatus);
+      _route = route..addStatusListener(_onRouteStatus);
+      if (_route.status == AnimationStatus.completed) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _onRouteStatus(AnimationStatus.completed),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
+    _route.removeStatusListener(_onRouteStatus);
     _scrollGrowth.dispose();
     _growth.dispose();
     _pull.dispose();
     _settle.dispose();
     _pullBack.dispose();
+    _peek.dispose();
+    _pager.dispose();
     _origin?.dispose();
     super.dispose();
+  }
+
+  void _onRouteStatus(AnimationStatus status) {
+    if (!mounted) return;
+    if (status == AnimationStatus.completed) {
+      if (_set == null || _peekReady) return;
+      // Build the neighbours only now so they never compete with the
+      // opening morph for frames.
+      setState(() => _peekReady = true);
+      _peek.forward();
+    } else if (status == AnimationStatus.reverse) {
+      _peek.reverse();
+    }
   }
 
   void _updateGrowth() {
@@ -140,22 +192,18 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
     _scrollGrowth.value = (offset / _kGrowDistance).clamp(0.0, 1.0);
   }
 
-  void _switchTo(int index) {
-    final set = _set;
-    if (set == null || index == _index || index < 0 || index >= set.length) {
-      return;
-    }
-    _dir = index > _index ? 1 : -1;
+  void _onSettled(int index) {
+    if (!mounted || index == _index) return;
     _growthFrom = _growth.value;
     _settle.forward(from: 0);
     _scrollGrowth.value = 0;
-    setState(() {
-      _index = index;
-      _switched = index != set.initialIndex;
-    });
-    final next = set.detailAt(index);
-    rememberProductDetail(next);
-    _recordView(next);
+    setState(() => _index = index);
+    final detail = _detailAt(index);
+    rememberProductDetail(detail);
+    _recordView(detail);
+    // Bring that product's card into view behind the pop-up, so closing
+    // lands on it.
+    ProductCardRegistry.reveal(index, _origin?.scrollable);
   }
 
   void _close() {
@@ -168,11 +216,38 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
     });
   }
 
-  // Pulling the sheet down at the top of its content dismisses it.
+  /// Whether swiping between products is available right now.
+  bool get _canSwipe =>
+      _count > 1 &&
+      !_dismissing &&
+      _peek.value > 0.9 &&
+      _growth.value < 0.2 &&
+      _route.status == AnimationStatus.completed;
+
+  double _slot(double screenWidth, double cardW) {
+    final g = Curves.easeInOutCubic.transform(_growth.value);
+    final slot0 = cardW * (0.5 + 0.5 * _kSideScale) + _kPeekGap;
+    return ui.lerpDouble(slot0, screenWidth, g)!;
+  }
+
+  // Pulling the sheet down at the top of its content dismisses it; pushing
+  // past the first or last picture carries on to the next product.
   bool _onScroll(ScrollNotification n) {
-    if (n.depth != 0 || n.metrics.axis != Axis.vertical || _dismissing) {
+    if (n.depth > 1 || _dismissing) return false;
+    if (n.metrics.axis == Axis.horizontal) {
+      if (n is OverscrollNotification &&
+          n.dragDetails != null &&
+          _canSwipe &&
+          _lastSlot > 0) {
+        if (!_overscrollDrag) {
+          _overscrollDrag = true;
+          _pager.dragStart();
+        }
+        _pager.dragBy(n.overscroll / _lastSlot);
+      }
       return false;
     }
+    if (n.depth != 0) return false;
     if (n is OverscrollNotification &&
         n.overscroll < 0 &&
         n.dragDetails != null) {
@@ -186,6 +261,10 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
   }
 
   void _onPointerUp(PointerEvent _) {
+    if (_overscrollDrag) {
+      _overscrollDrag = false;
+      _pager.dragEnd(0);
+    }
     if (_pull.value <= 0 || _dismissing) return;
     if (_pull.value > 90) {
       AppHaptics.light();
@@ -195,6 +274,8 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
       _pullBack.forward(from: 0);
     }
   }
+
+  double _lastSlot = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -210,32 +291,64 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
     );
   }
 
+  double _eased(Animation<double> a) {
+    final curve = a.status == AnimationStatus.reverse
+        ? _kCloseCurve
+        : _kOpenCurve;
+    return curve.transform(a.value.clamp(0.0, 1.0));
+  }
+
+  /// Rectangle of the listing card of the product on show, when it is on
+  /// screen.
+  Rect? _closeRect(Size screen) {
+    final card = ProductCardRegistry.find(
+      _pager.nearest,
+      _origin?.scrollable,
+    )?.rect;
+    if (card != null && card.overlaps(Offset.zero & screen)) return card;
+    if (_pager.nearest == _initial) return _origin?.rect;
+    return null;
+  }
+
   Widget _buildFrame(BuildContext context, Size screen) {
-    final p = LuxePalette.of(context);
     final safe = MediaQuery.paddingOf(context);
     final set = _set;
-    final contentWidth = math.min(screen.width, _kMaxContentWidth);
-    final popupWidth = contentWidth - _kSideInset * 2;
+    final base = math.min(screen.width, _kMaxContentWidth);
+    final cardW = set == null
+        ? base - 28
+        : (base * _kCardShare).clamp(236.0, 420.0);
     final popup = Rect.fromLTRB(
-      (screen.width - popupWidth) / 2,
+      (screen.width - cardW) / 2,
       safe.top + 18,
-      (screen.width + popupWidth) / 2,
+      (screen.width + cardW) / 2,
       screen.height -
           safe.bottom -
           (set == null ? 18 : kProductGemDockHeight + 14),
     );
     final full = Offset.zero & screen;
-    final origin = _origin;
-    final fallback = Rect.fromCenter(
-      center: popup.center,
-      width: popup.width * 0.5,
-      height: popup.height * 0.4,
-    );
+    _lastSlot = _slot(screen.width, cardW);
 
-    final stage = NotificationListener<ScrollNotification>(
-      onNotification: _onScroll,
-      child: _stage(contentWidth, safe),
-    );
+    // One stable widget per product, so moving cards never rebuild pages.
+    final pages = <int, Widget>{};
+    Widget pageFor(int i) => pages.putIfAbsent(i, () {
+      final detail = _detailAt(i);
+      return _SheetPage(
+        key: ValueKey('${detail.segment.slug}:${detail.id}'),
+        detail: detail,
+        growth: _growth,
+        safe: safe,
+        active: i == _index,
+        onScroll: _onPageScroll,
+      );
+    });
+
+    final merged = Listenable.merge([
+      _route,
+      _growth,
+      _pull,
+      _peek,
+      _pager.listenable,
+    ]);
 
     return Listener(
       onPointerUp: _onPointerUp,
@@ -268,90 +381,39 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
               );
             },
           ),
-          AnimatedBuilder(
-            animation: Listenable.merge([_route, _growth, _pull]),
-            child: stage,
-            builder: (context, child) {
-              final t = _route.value;
-              final open = _eased(_route);
-              final grow = Curves.easeInOutCubic.transform(_growth.value);
-              final target = Rect.lerp(popup, full, grow)!;
-              // After switching products the sheet no longer matches its
-              // card, so it settles back into the screen instead.
-              final from = origin == null
-                  ? fallback
-                  : _switched
-                  ? popup.deflate(40)
-                  : origin.rect;
-              final pullDy = _pull.value * 0.7 * open;
-              final rect = Rect.lerp(
-                from,
-                target,
-                open,
-              )!.shift(Offset(0, pullDy));
-              final radius = ui.lerpDouble(
-                ui.lerpDouble(origin?.radius ?? 28, 30, open)!,
-                0,
-                grow,
-              )!;
-              final contentAlpha = const Interval(
-                0.1,
-                0.55,
-                curve: Curves.easeOut,
-              ).transform(t);
-              final cardAlpha = 1 - const Interval(0, 0.5).transform(t);
-              // Until the card's pixels arrive, do not paint over the card.
-              final backdropAlpha = origin?.snapshot.value != null
-                  ? 1.0
-                  : math.max(contentAlpha, (t / 0.3).clamp(0.0, 1.0));
-              final shrink = 1 - 0.04 * (_pull.value / 200).clamp(0.0, 1.0);
-              final borderRadius = BorderRadius.circular(radius);
-
-              return Positioned.fromRect(
-                rect: rect,
-                child: Transform.scale(
-                  scale: shrink,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: borderRadius,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(
-                            alpha: 0.32 * open * (1 - grow),
-                          ),
-                          blurRadius: 44,
-                          offset: const Offset(0, 18),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: borderRadius,
-                      child: ColoredBox(
-                        color: p.canvas.withValues(alpha: backdropAlpha),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Opacity(
-                              opacity: contentAlpha,
-                              child: OverflowBox(
-                                alignment: Alignment.topCenter,
-                                minWidth: contentWidth,
-                                maxWidth: contentWidth,
-                                minHeight: math.max(rect.height, popup.height),
-                                maxHeight: math.max(rect.height, popup.height),
-                                child: child,
-                              ),
-                            ),
-                            if (origin != null && cardAlpha > 0.01)
-                              _CardSnapshot(origin: origin, opacity: cardAlpha),
-                          ],
-                        ),
-                      ),
-                    ),
+          NotificationListener<ScrollNotification>(
+            onNotification: _onScroll,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragStart: (_) {
+                if (_canSwipe) _pager.dragStart();
+              },
+              onHorizontalDragUpdate: (d) {
+                if (_pager.dragging) _pager.dragBy(-d.delta.dx / _lastSlot);
+              },
+              onHorizontalDragEnd: (d) {
+                if (_pager.dragging) {
+                  _pager.dragEnd(-d.velocity.pixelsPerSecond.dx / _lastSlot);
+                }
+              },
+              onHorizontalDragCancel: () {
+                if (_pager.dragging && !_overscrollDrag) _pager.dragEnd(0);
+              },
+              child: AnimatedBuilder(
+                animation: merged,
+                builder: (context, _) => Stack(
+                  fit: StackFit.expand,
+                  clipBehavior: Clip.none,
+                  children: _cards(
+                    screen: screen,
+                    popup: popup,
+                    full: full,
+                    cardW: cardW,
+                    pageFor: pageFor,
                   ),
                 ),
-              );
-            },
+              ),
+            ),
           ),
           if (set != null)
             AnimatedBuilder(
@@ -359,14 +421,9 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
               child: Align(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
-                    maxWidth: _kMaxContentWidth,
+                    maxWidth: _kMaxContentWidth - 24,
                   ),
-                  child: ProductGemDock(
-                    count: set.length,
-                    index: _index,
-                    detailAt: set.detailAt,
-                    onSelected: _switchTo,
-                  ),
+                  child: ProductGemDock(pager: _pager, detailAt: set.detailAt),
                 ),
               ),
               builder: (context, dock) {
@@ -375,11 +432,11 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
                   1,
                   curve: Curves.easeOutBack,
                 ).transform(_route.value);
-                final hide = (_growth.value * 2.5).clamp(0.0, 1.0);
-                final visible = (dockIn.clamp(0.0, 1.0)) * (1 - hide);
+                final hide = (_growth.value * 5).clamp(0.0, 1.0);
+                final visible = dockIn.clamp(0.0, 1.0) * (1 - hide);
                 return Positioned(
-                  left: 0,
-                  right: 0,
+                  left: 12,
+                  right: 12,
                   bottom: safe.bottom + 4,
                   height: kProductGemDockHeight,
                   child: IgnorePointer(
@@ -388,7 +445,7 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
                     child: TickerMode(
                       enabled: visible > 0.01,
                       child: Opacity(
-                        opacity: visible.clamp(0.0, 1.0),
+                        opacity: visible,
                         child: Transform.translate(
                           offset: Offset(0, (1 - dockIn) * 150 + hide * 40),
                           child: dock,
@@ -404,105 +461,136 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
     );
   }
 
-  double _eased(Animation<double> a) {
-    final curve = a.status == AnimationStatus.reverse
-        ? _kCloseCurve
-        : _kOpenCurve;
-    return curve.transform(a.value.clamp(0.0, 1.0));
-  }
+  List<Widget> _cards({
+    required Size screen,
+    required Rect popup,
+    required Rect full,
+    required double cardW,
+    required Widget Function(int) pageFor,
+  }) {
+    final p = LuxePalette.of(context);
+    final origin = _origin;
+    final t = _route.value;
+    final closing = _route.status == AnimationStatus.reverse;
+    final open = _eased(_route);
+    final g = Curves.easeInOutCubic.transform(_growth.value);
+    final pos = _pager.position;
+    final peek = Curves.easeOutCubic.transform(_peek.value);
+    final slot = _slot(screen.width, cardW);
+    final rectG = Rect.lerp(popup, full, g)!;
 
-  /// The product page, cross-moving when the dock selects another product.
-  Widget _stage(double contentWidth, EdgeInsets safe) {
-    final detail = _detail;
-    final key = ValueKey<String>('${detail.segment.slug}:${detail.id}');
-    final dir = _dir.toDouble();
+    final shrunk = Rect.fromCenter(
+      center: popup.center,
+      width: popup.width * 0.5,
+      height: popup.height * 0.4,
+    );
+    final from = closing
+        ? (_closeRect(screen) ?? shrunk)
+        : (origin?.rect ?? shrunk);
+    final pullDy = _pull.value * 0.7 * open;
+    final pullScale = 1 - 0.04 * (_pull.value / 200).clamp(0.0, 1.0);
+    final nearest = _pager.nearest;
 
-    Widget transition(Widget child, Animation<double> a) {
-      final incoming = child.key == key;
-      return AnimatedBuilder(
-        animation: a,
-        child: child,
-        builder: (context, child) {
-          final v = a.value;
-          if (incoming) {
-            // Rises out of the dock, swinging in from the swipe direction.
-            final scale = 0.86 + 0.14 * v;
-            return Opacity(
-              opacity: Curves.easeOut.transform(v.clamp(0.0, 1.0)),
-              child: Transform(
-                alignment: Alignment.bottomCenter,
-                transform: Matrix4.identity()
-                  ..translateByDouble(dir * 110 * (1 - v), 150 * (1 - v), 0, 1)
-                  ..rotateZ(dir * 0.07 * (1 - v))
-                  ..scaleByDouble(scale, scale, 1, 1),
-                child: child,
-              ),
-            );
-          }
-          final scale = 0.88 + 0.12 * v;
-          return IgnorePointer(
-            child: Opacity(
-              opacity: Curves.easeIn.transform(v.clamp(0.0, 1.0)),
-              child: Transform(
-                alignment: Alignment.bottomCenter,
-                transform: Matrix4.identity()
-                  ..translateByDouble(-dir * 150 * (1 - v), -36 * (1 - v), 0, 1)
-                  ..rotateZ(-dir * 0.09 * (1 - v))
-                  ..scaleByDouble(scale, scale, 1, 1),
-                child: child,
-              ),
-            ),
-          );
-        },
+    final contentAlpha = const Interval(
+      0.1,
+      0.55,
+      curve: Curves.easeOut,
+    ).transform(t);
+    final cardAlpha = 1 - const Interval(0, 0.5).transform(t);
+    final snapshotUsable = origin != null && nearest == _initial;
+    final bgAlpha = snapshotUsable && origin.snapshot.value != null
+        ? 1.0
+        : (t / 0.35).clamp(0.0, 1.0);
+
+    final first = math.max(0, pos.floor() - 1);
+    final last = math.min(_count - 1, pos.ceil() + 1);
+    final order = <int>[
+      for (var i = first; i <= last; i++)
+        if (i == _index || _peekReady) i,
+    ]..sort((a, b) => (b - pos).abs().compareTo((a - pos).abs()));
+
+    final cards = <Widget>[];
+    for (final i in order) {
+      final d = i - pos;
+      final away = d.abs();
+      final main = i == _index;
+      var alpha = 1.0;
+      if (!main) {
+        alpha =
+            peek *
+            (1 - (g * 4).clamp(0.0, 1.0)) *
+            (away > 1 ? ((1.7 - away) / 0.7).clamp(0.0, 1.0) : 1.0);
+        if (alpha <= 0.01) continue;
+      }
+      final scale = 1 - (1 - _kSideScale) * math.min(away, 1.0);
+      final rect = (main ? Rect.lerp(from, rectG, open)! : rectG).shift(
+        Offset(d * slot, pullDy),
       );
-    }
+      final radius = ui.lerpDouble(
+        main ? ui.lerpDouble(origin?.radius ?? 28, 30, open)! : 30,
+        0,
+        g,
+      )!;
+      final borderRadius = BorderRadius.circular(radius);
+      final targetW = main ? rectG.width : cardW;
+      final contentH = math.max(rect.height, popup.height);
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 880),
-          reverseDuration: const Duration(milliseconds: 700),
-          switchInCurve: const Cubic(0.3, 0.7, 0.1, 1),
-          switchOutCurve: Curves.easeInOutCubic,
-          layoutBuilder: (current, previous) =>
-              Stack(fit: StackFit.expand, children: [...previous, ?current]),
-          transitionBuilder: transition,
-          child: _SheetPage(
-            key: key,
-            detail: detail,
-            growth: _growth,
-            contentWidth: contentWidth,
-            safe: safe,
-            onScroll: _onPageScroll,
-          ),
+      Widget body = DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: borderRadius,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.32 * open * (1 - g)),
+              blurRadius: 44,
+              offset: const Offset(0, 18),
+            ),
+          ],
         ),
-        // A soft glint sweeps across the sheet as the product changes.
-        IgnorePointer(
-          child: AnimatedBuilder(
-            animation: _settle,
-            builder: (context, _) {
-              final v = _settle.value;
-              if (v >= 1 || v <= 0) return const SizedBox.shrink();
-              final x = -1.8 + 3.6 * Curves.easeInOut.transform(v);
-              return DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment(x - 0.7, -0.4),
-                    end: Alignment(x + 0.7, 0.4),
-                    colors: [
-                      Colors.white.withValues(alpha: 0),
-                      Colors.white.withValues(alpha: 0.16),
-                      Colors.white.withValues(alpha: 0),
-                    ],
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: ColoredBox(
+            color: p.canvas.withValues(alpha: main ? bgAlpha : 1),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Opacity(
+                  opacity: main ? contentAlpha : 1,
+                  child: OverflowBox(
+                    alignment: Alignment.topCenter,
+                    minWidth: targetW,
+                    maxWidth: targetW,
+                    minHeight: contentH,
+                    maxHeight: contentH,
+                    child: pageFor(i),
                   ),
                 ),
-              );
-            },
+                if (main && snapshotUsable && cardAlpha > 0.01)
+                  _CardSnapshot(origin: origin, opacity: cardAlpha),
+              ],
+            ),
           ),
         ),
-      ],
-    );
+      );
+
+      if (!main) {
+        // Neighbours are a handle: tapping one brings it to the centre.
+        body = GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _pager.animateTo(i),
+          child: AbsorbPointer(child: body),
+        );
+      }
+      if (alpha < 0.99) body = Opacity(opacity: alpha, child: body);
+
+      cards.add(
+        Positioned.fromRect(
+          key: ValueKey('card-$i'),
+          rect: rect,
+          child: Transform.scale(scale: scale * pullScale, child: body),
+        ),
+      );
+    }
+    return cards;
   }
 }
 
@@ -534,22 +622,27 @@ class _CardSnapshot extends StatelessWidget {
   }
 }
 
-/// One product's page inside the sheet: scrolling gallery, summary and
+double _ease(double g) => Curves.easeInOut.transform(g);
+
+/// One product's page inside a pop-up: scrolling gallery, summary and
 /// record under a floating header, with the purchase bar pinned below.
+///
+/// Pages that are only peeking in at the side skip the long record; it is
+/// built once the page becomes the one on show.
 class _SheetPage extends ConsumerStatefulWidget {
   const _SheetPage({
     required this.detail,
     required this.growth,
-    required this.contentWidth,
     required this.safe,
+    required this.active,
     required this.onScroll,
     super.key,
   });
 
   final ProductDetail detail;
   final ValueListenable<double> growth;
-  final double contentWidth;
   final EdgeInsets safe;
+  final bool active;
   final ValueChanged<double> onScroll;
 
   @override
@@ -565,7 +658,7 @@ class _SheetPageState extends ConsumerState<_SheetPage> {
     super.initState();
     _scroll.addListener(() {
       _offset.value = _scroll.offset;
-      widget.onScroll(_scroll.offset);
+      if (widget.active) widget.onScroll(_scroll.offset);
     });
   }
 
@@ -581,102 +674,129 @@ class _SheetPageState extends ConsumerState<_SheetPage> {
     final p = LuxePalette.of(context);
     final s = luxeProductSections(context, ref, widget.detail);
     final safe = widget.safe;
+    final active = widget.active;
 
     return ColoredBox(
       color: p.canvas,
-      child: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(
-                    context,
-                  ).copyWith(overscroll: false, scrollbars: false),
-                  child: ValueListenableBuilder<double>(
-                    valueListenable: widget.growth,
-                    builder: (context, g, _) => CustomScrollView(
-                      controller: _scroll,
-                      physics: const ClampingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics(),
-                      ),
-                      slivers: [
-                        SliverList.list(
-                          children: [
-                            LuxeDetailGallery(
-                              media: s.media,
-                              availabilityStatus: s.availabilityStatus,
-                              // Clears the glass header; grows with the
-                              // status bar once the sheet is full screen.
-                              topInset: 56 + safe.top * g,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: Column(
+            children: [
+              Expanded(
+                child: Stack(
+                  children: [
+                    ScrollConfiguration(
+                      behavior: ScrollConfiguration.of(
+                        context,
+                      ).copyWith(overscroll: false, scrollbars: false),
+                      child: ValueListenableBuilder<double>(
+                        valueListenable: widget.growth,
+                        builder: (context, g, _) => CustomScrollView(
+                          controller: _scroll,
+                          physics: active
+                              ? const ClampingScrollPhysics(
+                                  parent: AlwaysScrollableScrollPhysics(),
+                                )
+                              : const NeverScrollableScrollPhysics(),
+                          slivers: [
+                            SliverList.list(
+                              children: [
+                                LuxeDetailGallery(
+                                  media: s.media,
+                                  availabilityStatus: s.availabilityStatus,
+                                  // Clears the glass header; grows with the
+                                  // status bar once the sheet is full screen.
+                                  topInset: (56 + safe.top) * _ease(g),
+                                  aspectRatio: ui.lerpDouble(
+                                    1.45,
+                                    1,
+                                    _ease(g),
+                                  )!,
+                                  thumbsFactor: _ease(g),
+                                  clampEnds: true,
+                                  badgeTop: ui.lerpDouble(60, 14, _ease(g))!,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    20,
+                                    22,
+                                    20,
+                                    0,
+                                  ),
+                                  child: s.summary,
+                                ),
+                                if (active)
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      20,
+                                      8,
+                                      20,
+                                      40,
+                                    ),
+                                    child: s.record,
+                                  ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
-                              child: s.summary,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-                              child: s.record,
+                            // Short records still need enough travel for the
+                            // pop-up to reach the full screen.
+                            SliverLayoutBuilder(
+                              builder: (context, c) => SliverToBoxAdapter(
+                                child: SizedBox(
+                                  height: math.max(
+                                    0,
+                                    c.viewportMainAxisExtent +
+                                        _kGrowDistance -
+                                        c.precedingScrollExtent,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        // Short records still need enough travel for the
-                        // pop-up to reach the full screen.
-                        SliverLayoutBuilder(
-                          builder: (context, c) => SliverToBoxAdapter(
-                            child: SizedBox(
-                              height: math.max(
-                                0,
-                                c.viewportMainAxisExtent +
-                                    _kGrowDistance -
-                                    c.precedingScrollExtent,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: ValueListenableBuilder<double>(
-                    valueListenable: widget.growth,
-                    builder: (context, g, _) {
-                      final mq = MediaQuery.of(context);
-                      return MediaQuery(
-                        data: mq.copyWith(
-                          padding: mq.padding.copyWith(top: safe.top * g),
-                        ),
-                        child: LuxeFloatingHeader(
-                          title: s.title,
-                          offset: _offset,
-                          solidAfter: widget.contentWidth * 0.75,
-                          actions: s.headerActions,
-                          leadingIcon: Icons.keyboard_arrow_down_rounded,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (s.bottomBar != null)
-            ValueListenableBuilder<double>(
-              valueListenable: widget.growth,
-              builder: (context, g, child) => ColoredBox(
-                color: p.surface,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: safe.bottom * g),
-                  child: child,
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: ValueListenableBuilder<double>(
+                        valueListenable: widget.growth,
+                        builder: (context, g, _) {
+                          final mq = MediaQuery.of(context);
+                          return MediaQuery(
+                            data: mq.copyWith(
+                              padding: mq.padding.copyWith(top: safe.top * g),
+                            ),
+                            child: LuxeFloatingHeader(
+                              title: s.title,
+                              offset: _offset,
+                              solidAfter: 260,
+                              actions: s.headerActions,
+                              leadingIcon: Icons.keyboard_arrow_down_rounded,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: s.bottomBar,
-            ),
-        ],
+              if (s.bottomBar != null)
+                ValueListenableBuilder<double>(
+                  valueListenable: widget.growth,
+                  builder: (context, g, child) => ColoredBox(
+                    color: p.surface,
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: safe.bottom * g),
+                      child: child,
+                    ),
+                  ),
+                  child: s.bottomBar,
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

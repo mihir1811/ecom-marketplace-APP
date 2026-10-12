@@ -22,6 +22,10 @@ class LuxeDetailGallery extends StatefulWidget {
     super.key,
     this.availabilityStatus,
     this.topInset = 0,
+    this.aspectRatio = 1,
+    this.thumbsFactor = 1,
+    this.badgeTop = 14,
+    this.clampEnds = false,
   });
 
   final ProductMedia media;
@@ -29,6 +33,21 @@ class LuxeDetailGallery extends StatefulWidget {
 
   /// Space reserved at the top for the floating header.
   final double topInset;
+
+  /// Width / height of the picture stage. The sheet uses a wider stage while
+  /// it is a pop-up so the title and price stay in view.
+  final double aspectRatio;
+
+  /// 0…1 share of the thumbnail strip that is shown.
+  final double thumbsFactor;
+
+  /// Offset of the availability badge, clear of floating header controls.
+  final double badgeTop;
+
+  /// Reports over-swiping past the first / last picture as an
+  /// [OverscrollNotification] on every platform, so a parent can carry the
+  /// swipe on to the next product.
+  final bool clampEnds;
 
   @override
   State<LuxeDetailGallery> createState() => _LuxeDetailGalleryState();
@@ -95,7 +114,7 @@ class _LuxeDetailGalleryState extends State<LuxeDetailGallery> {
       color: p.surfaceRaised,
       padding: EdgeInsets.only(top: widget.topInset),
       child: AspectRatio(
-        aspectRatio: 1,
+        aspectRatio: widget.aspectRatio,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -104,6 +123,13 @@ class _LuxeDetailGalleryState extends State<LuxeDetailGallery> {
             else
               PageView.builder(
                 controller: _controller,
+                // One picture has nothing to swipe to; leaving the gesture
+                // free lets parents use horizontal swipes.
+                physics: assets.length < 2
+                    ? const NeverScrollableScrollPhysics()
+                    : widget.clampEnds
+                    ? const PageScrollPhysics(parent: ClampingScrollPhysics())
+                    : null,
                 itemCount: assets.length,
                 onPageChanged: (i) {
                   AppHaptics.selection();
@@ -126,7 +152,7 @@ class _LuxeDetailGalleryState extends State<LuxeDetailGallery> {
               ),
             Positioned(
               left: 16,
-              top: 14,
+              top: widget.badgeTop,
               child: AvailabilityStatusBadge(
                 status: widget.availabilityStatus,
                 dotOnly: false,
@@ -137,31 +163,38 @@ class _LuxeDetailGalleryState extends State<LuxeDetailGallery> {
               right: 16,
               bottom: 16,
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  if (videoUrl != null)
-                    _GlassPill(
-                      icon: Icons.threed_rotation_rounded,
-                      label: context.tr(DiamondFlowL10n.view360),
-                      onTap: () => ViewIn360Button.open(
-                        context,
-                        viewerUrl: videoUrl,
-                        title: widget.media.videoLabel ?? '360° View',
-                      ),
+                  // Wraps rather than overflows on narrow pop-ups.
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        if (videoUrl != null)
+                          _GlassPill(
+                            icon: Icons.threed_rotation_rounded,
+                            label: context.tr(DiamondFlowL10n.view360),
+                            onTap: () => ViewIn360Button.open(
+                              context,
+                              viewerUrl: videoUrl,
+                              title: widget.media.videoLabel ?? '360° View',
+                            ),
+                          ),
+                        if (widget.media.hasCertificate)
+                          _GlassPill(
+                            icon: Icons.verified_outlined,
+                            label: context.tr(DiamondFlowL10n.viewCertificate),
+                            onTap: () => openCertificateViewer(
+                              url: widget.media.certificateUrl!,
+                              title:
+                                  widget.media.certificateLabel ??
+                                  context.tr(CatalogL10n.certification),
+                            ),
+                          ),
+                      ],
                     ),
-                  if (videoUrl != null && widget.media.hasCertificate)
-                    const SizedBox(width: 8),
-                  if (widget.media.hasCertificate)
-                    _GlassPill(
-                      icon: Icons.verified_outlined,
-                      label: context.tr(DiamondFlowL10n.viewCertificate),
-                      onTap: () => openCertificateViewer(
-                        url: widget.media.certificateUrl!,
-                        title:
-                            widget.media.certificateLabel ??
-                            context.tr(CatalogL10n.certification),
-                      ),
-                    ),
-                  const Spacer(),
+                  ),
                   if (assets.length > 1)
                     _Dots(count: assets.length, index: _index),
                 ],
@@ -176,22 +209,35 @@ class _LuxeDetailGalleryState extends State<LuxeDetailGallery> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         stage,
-        if (assets.length > 1)
+        if (assets.length > 1 && widget.thumbsFactor > 0.02)
           SizedBox(
-            height: 78,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
-              itemCount: assets.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
-              itemBuilder: (context, i) => _Thumb(
-                media: widget.media,
-                asset: assets[i],
-                active: i == _index,
-                onTap: () => _controller.animateToPage(
-                  i,
-                  duration: LuxeMotion.medium,
-                  curve: LuxeMotion.settle,
+            height: 78 * widget.thumbsFactor,
+            child: ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.topCenter,
+                minHeight: 78,
+                maxHeight: 78,
+                child: Opacity(
+                  opacity: widget.thumbsFactor,
+                  child: SizedBox(
+                    height: 78,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
+                      itemCount: assets.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
+                      itemBuilder: (context, i) => _Thumb(
+                        media: widget.media,
+                        asset: assets[i],
+                        active: i == _index,
+                        onTap: () => _controller.animateToPage(
+                          i,
+                          duration: LuxeMotion.medium,
+                          curve: LuxeMotion.settle,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -414,7 +460,14 @@ class _GlassPill extends StatelessWidget {
             children: [
               Icon(icon, size: 16, color: fg),
               const SizedBox(width: 6),
-              Text(label, style: LuxeType.label(fg, size: 12)),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: LuxeType.label(fg, size: 12),
+                ),
+              ),
             ],
           ),
         ),

@@ -1,40 +1,42 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../domain/models/product_detail.dart';
+import 'product_frame_shape.dart';
+import 'product_pager.dart';
 
 /// Height the dock reserves under the sheet.
-const double kProductGemDockHeight = 118;
+const double kProductGemDockHeight = 114;
 
-/// The product switcher: a curved glass rail that cradles gem-cut frames.
+/// Edge of the square each frame is drawn in.
+const double _kFrame = 66;
+
+/// Distance from the dock's top to the frames' centre line.
+const double _kRowY = 47;
+
+/// The product switcher: a flat glass rail of frames.
 ///
-/// The frame in the middle rises out of the rail, glows and shimmers while
-/// the others tilt away in depth. A thin ring traced around the active frame
-/// shows how far through the list you are. Scrubbing glides on spring
-/// physics and ticks at every stop; the product behind follows the rail.
+/// Five frames are in sight at once: the one on show in the middle, one
+/// either side of it, and half of the next one at each end of the rail.
+/// The centre frame is larger and glows; a ring traced around it shows the
+/// place in the list. Diamonds and gemstones are framed in their own cut (a
+/// pear in a pear), everything else keeps the gem-cut octagon. Swiping the
+/// rail, tapping a frame, or swiping the cards above all move the same pager.
 class ProductGemDock extends StatefulWidget {
   const ProductGemDock({
-    required this.count,
-    required this.index,
+    required this.pager,
     required this.detailAt,
-    required this.onSelected,
     super.key,
   });
 
-  final int count;
-
-  /// Index of the product currently shown in the sheet.
-  final int index;
+  final ProductPager pager;
   final ProductDetail Function(int index) detailAt;
-  final ValueChanged<int> onSelected;
 
   @override
   State<ProductGemDock> createState() => _ProductGemDockState();
@@ -42,25 +44,15 @@ class ProductGemDock extends StatefulWidget {
 
 class _ProductGemDockState extends State<ProductGemDock>
     with SingleTickerProviderStateMixin {
-  static const _fraction = 0.2;
-  static const _settleDelay = Duration(milliseconds: 150);
-
-  late final PageController _pages = PageController(
-    initialPage: widget.index,
-    viewportFraction: _fraction,
-  );
   late final AnimationController _idle = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 5200),
+    duration: const Duration(milliseconds: 5600),
   );
-  Timer? _settle;
-  int _focus = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _focus = widget.index;
-  }
+  /// Widgets that only change with the product, kept so a turning rail
+  /// repaints transforms instead of rebuilding pictures.
+  final Map<int, Widget> _contents = {};
+  final Map<String, Path> _outlines = {};
 
   @override
   void didChangeDependencies() {
@@ -74,94 +66,144 @@ class _ProductGemDockState extends State<ProductGemDock>
 
   @override
   void dispose() {
-    _settle?.cancel();
     _idle.dispose();
-    _pages.dispose();
     super.dispose();
   }
 
-  void _onPage(int page) {
-    if (page == _focus) return;
-    AppHaptics.selection();
-    setState(() => _focus = page);
-    _settle?.cancel();
-    // Follow the rail once it has rested on a frame for a beat, so a fast
-    // flick plays a single transition at the end instead of one per stop.
-    _settle = Timer(_settleDelay, () {
-      if (mounted && _focus != widget.index) widget.onSelected(_focus);
-    });
-  }
-
-  void _tap(int i) {
-    if (i == _focus) return;
-    _settle?.cancel();
-    AppHaptics.light();
-    setState(() => _focus = i);
-    widget.onSelected(i);
-    _pages.animateToPage(
-      i,
-      duration: const Duration(milliseconds: 620),
-      curve: LuxeMotion.settle,
-    );
-  }
+  Path _outline(ProductFrameShape shape) => _outlines.putIfAbsent(
+    shape.key ?? '_octagon',
+    () => shape.pathIn(const Rect.fromLTWH(0, 0, _kFrame, _kFrame)),
+  );
 
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final focused = widget.detailAt(_focus.clamp(0, widget.count - 1));
+    final pager = widget.pager;
+    final count = pager.count;
 
     return SizedBox(
       height: kProductGemDockHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(top: 34, child: _Rail(palette: p)),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            height: 94,
-            child: PageView.builder(
-              controller: _pages,
-              clipBehavior: Clip.none,
-              itemCount: widget.count,
-              onPageChanged: _onPage,
-              physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
-              itemBuilder: (context, i) => AnimatedBuilder(
-                animation: Listenable.merge([_pages, _idle]),
-                builder: (context, _) => _Gem(
-                  detail: widget.detailAt(i),
-                  index: i,
-                  count: widget.count,
-                  page: _page,
-                  shimmer: _idle.value,
-                  palette: p,
-                  onTap: () => _tap(i),
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final width = c.maxWidth;
+          // Four slots across: three whole frames and two halves.
+          final slot = width / 4;
+          return RepaintBoundary(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(32),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: p.accent.withValues(alpha: p.isDark ? 0.4 : 0.35),
+                    ),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: p.isDark
+                          ? const [Color(0xA6262629), Color(0xB3121214)]
+                          : const [Color(0xD9FFFFFF), Color(0xB8F0EBE2)],
+                    ),
+                  ),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onHorizontalDragStart: (_) => pager.dragStart(),
+                    onHorizontalDragUpdate: (d) =>
+                        pager.dragBy(-d.delta.dx / slot),
+                    onHorizontalDragEnd: (d) =>
+                        pager.dragEnd(-d.velocity.pixelsPerSecond.dx / slot),
+                    onHorizontalDragCancel: () => pager.dragEnd(0),
+                    child: AnimatedBuilder(
+                      animation: pager.listenable,
+                      builder: (context, _) {
+                        final pos = pager.position;
+                        final from = math.max(0, pos.floor() - 2);
+                        final to = math.min(count - 1, pos.ceil() + 2);
+                        // Far frames first so the centre one paints on top.
+                        final order = [for (var i = from; i <= to; i++) i]
+                          ..sort(
+                            (a, b) =>
+                                (b - pos).abs().compareTo((a - pos).abs()),
+                          );
+                        return Stack(
+                          clipBehavior: Clip.hardEdge,
+                          children: [
+                            for (final i in order)
+                              _frameAt(i, pos, width, slot, p),
+                            Positioned(
+                              left: 28,
+                              right: 28,
+                              top: _kRowY + _kFrame / 2 + 14,
+                              child: IgnorePointer(
+                                child: _Caption(
+                                  title: widget.detailAt(pager.nearest).title,
+                                  index: pager.nearest,
+                                  count: count,
+                                  palette: p,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            left: 24,
-            right: 24,
-            bottom: 9,
-            child: _Caption(
-              title: focused.title,
-              index: _focus,
-              count: widget.count,
-              palette: p,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  double get _page {
-    if (_pages.hasClients && _pages.position.haveDimensions) {
-      return _pages.page ?? widget.index.toDouble();
-    }
-    return widget.index.toDouble();
+  Widget _frameAt(int i, double pos, double width, double slot, LuxePalette p) {
+    final detail = widget.detailAt(i);
+    final shape = ProductFrameShape.of(detail);
+    final path = _outline(shape);
+    final content = _contents.putIfAbsent(
+      i,
+      () => _GemContent(detail: detail, shape: shape, palette: p),
+    );
+    final d = i - pos;
+    final away = d.abs();
+    final near = (1 - away).clamp(0.0, 1.0);
+    // Centre frame 1.14, neighbours 0.94, half-visible ends 0.8.
+    final scale = away <= 1
+        ? 1.14 - 0.2 * away
+        : 0.94 - 0.14 * (away - 1).clamp(0.0, 1.0);
+    final opacity = away <= 1 ? 1 - 0.1 * away : 0.9 - 0.15 * (away - 1);
+
+    return Positioned(
+      left: width / 2 + d * slot - _kFrame / 2,
+      top: _kRowY - _kFrame / 2,
+      width: _kFrame,
+      height: _kFrame,
+      child: Semantics(
+        button: true,
+        label: detail.title,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => widget.pager.animateTo(i),
+          child: Opacity(
+            opacity: opacity.clamp(0.0, 1.0),
+            child: Transform.scale(
+              scale: scale,
+              child: _GemFrame(
+                path: path,
+                near: near,
+                progress: ((pos + 1) / widget.pager.count).clamp(0.0, 1.0),
+                palette: p,
+                idle: _idle,
+                content: content,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -216,57 +258,6 @@ class _Caption extends StatelessWidget {
   }
 }
 
-/// Frosted rail whose top edge swells under the centre frame.
-class _Rail extends StatelessWidget {
-  const _Rail({required this.palette});
-
-  final LuxePalette palette;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, c) {
-        final path = _railPath(Size(c.maxWidth, c.maxHeight));
-        return ClipPath(
-          clipper: _PathClipper(path),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-            child: CustomPaint(
-              size: Size(c.maxWidth, c.maxHeight),
-              painter: _RailPainter(path: path, palette: palette),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-Path _railPath(Size s) {
-  const r = 28.0;
-  const swell = 24.0;
-  final cx = s.width / 2;
-  final hw = math.min(78.0, s.width / 4);
-  // The rail is drawn in a box that starts [swell] above its flat top edge.
-  const top = swell;
-  return Path()
-    ..moveTo(0, top + r)
-    ..arcToPoint(const Offset(r, top), radius: const Radius.circular(r))
-    ..lineTo(cx - hw, top)
-    ..cubicTo(cx - hw * 0.42, top, cx - hw * 0.6, top - swell, cx, top - swell)
-    ..cubicTo(cx + hw * 0.6, top - swell, cx + hw * 0.42, top, cx + hw, top)
-    ..lineTo(s.width - r, top)
-    ..arcToPoint(Offset(s.width, top + r), radius: const Radius.circular(r))
-    ..lineTo(s.width, s.height - r)
-    ..arcToPoint(
-      Offset(s.width - r, s.height),
-      radius: const Radius.circular(r),
-    )
-    ..lineTo(r, s.height)
-    ..arcToPoint(Offset(0, s.height - r), radius: const Radius.circular(r))
-    ..close();
-}
-
 class _PathClipper extends CustomClipper<Path> {
   const _PathClipper(this.path);
 
@@ -279,292 +270,248 @@ class _PathClipper extends CustomClipper<Path> {
   bool shouldReclip(_PathClipper old) => old.path != path;
 }
 
-class _RailPainter extends CustomPainter {
-  const _RailPainter({required this.path, required this.palette});
-
-  final Path path;
-  final LuxePalette palette;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final dark = palette.isDark;
-    final bounds = Offset.zero & size;
-    canvas.drawPath(
-      path,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: dark
-              ? const [Color(0xB3222226), Color(0xCC121214)]
-              : const [Color(0xD9FFFFFF), Color(0xB8F1ECE3)],
-        ).createShader(bounds),
-    );
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            palette.accent.withValues(alpha: dark ? 0.55 : 0.5),
-            palette.hairline.withValues(alpha: 0.6),
-          ],
-        ).createShader(bounds),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_RailPainter old) =>
-      old.path != path || old.palette != palette;
-}
-
-/// One gem-cut frame on the rail.
-class _Gem extends StatelessWidget {
-  const _Gem({
-    required this.detail,
-    required this.index,
-    required this.count,
-    required this.page,
-    required this.shimmer,
+/// One frame: fill, picture and border all cut from the same outline.
+class _GemFrame extends StatelessWidget {
+  const _GemFrame({
+    required this.path,
+    required this.near,
+    required this.progress,
     required this.palette,
-    required this.onTap,
+    required this.idle,
+    required this.content,
   });
 
-  static const _size = 62.0;
-
-  final ProductDetail detail;
-  final int index;
-  final int count;
-  final double page;
-  final double shimmer;
+  final Path path;
+  final double near;
+  final double progress;
   final LuxePalette palette;
-  final VoidCallback onTap;
+  final Animation<double> idle;
+  final Widget content;
 
   @override
   Widget build(BuildContext context) {
-    final d = index - page;
-    final away = d.abs();
-    final near = (1 - away).clamp(0.0, 1.0);
-    final scale = ui.lerpDouble(1.18, 0.7, (away / 1.6).clamp(0.0, 1.0))!;
-    // Centre frame lifts out of the rail; the rest sag along a shallow arc.
-    final lift = -22 * near + math.pow(math.min(away, 2.6), 2) * 3.2;
-    final opacity = (1 - away * 0.26).clamp(0.22, 1.0);
-
-    final shape = BeveledRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-      side: BorderSide(
-        color: Color.lerp(palette.hairline, palette.accent, near)!,
-        width: 1 + near * 1.3,
-      ),
-    );
-
-    final frame = SizedBox(
-      width: _size,
-      height: _size,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          DecoratedBox(
-            decoration: ShapeDecoration(
-              shape: shape,
-              color: palette.surfaceRaised,
-              shadows: [
-                if (near > 0.02)
-                  BoxShadow(
-                    color: palette.accent.withValues(alpha: 0.5 * near),
-                    blurRadius: 26 * near,
-                    spreadRadius: 1 * near,
-                  ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.18 * opacity),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-          ),
-          ClipPath(
-            clipper: ShapeBorderClipper(shape: shape),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Parallax: the picture drifts against the rail's motion.
-                Transform.translate(
-                  offset: Offset(-d.clamp(-1.5, 1.5) * 9, 0),
-                  child: Transform.scale(
-                    scale: 1.28,
-                    child: _GemPicture(media: detail.media, palette: palette),
-                  ),
-                ),
-                if (near > 0.5) _Sheen(t: shimmer, strength: near),
-              ],
-            ),
-          ),
-          if (near > 0.05)
-            CustomPaint(
-              painter: _ProgressRing(
-                shape: shape,
-                progress: ((page + 1) / count).clamp(0.0, 1.0),
-                color: palette.accent,
-                track: palette.hairline,
-                opacity: near,
-              ),
-            ),
-        ],
-      ),
-    );
-
-    return Semantics(
-      button: true,
-      label: detail.title,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Center(
-          child: Opacity(
-            opacity: opacity,
-            child: Transform(
-              alignment: Alignment.bottomCenter,
-              transform: Matrix4.identity()
-                ..setEntry(3, 2, 0.0012)
-                ..translateByDouble(0, lift, 0, 1)
-                ..rotateY(-d.clamp(-1.5, 1.5) * 0.5)
-                ..rotateZ(d.clamp(-1.5, 1.5) * 0.14)
-                ..scaleByDouble(scale, scale, 1, 1),
-              child: frame,
-            ),
-          ),
+    return Stack(
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: [
+        CustomPaint(
+          painter: _FramePainter(path: path, near: near, palette: palette),
         ),
-      ),
-    );
-  }
-}
-
-/// A slow diagonal glint that crosses the active frame now and then.
-class _Sheen extends StatelessWidget {
-  const _Sheen({required this.t, required this.strength});
-
-  final double t;
-  final double strength;
-
-  @override
-  Widget build(BuildContext context) {
-    // The glint only runs in the first part of each cycle, then rests.
-    final run = (t / 0.4).clamp(0.0, 1.0);
-    if (run <= 0 || run >= 1) return const SizedBox.shrink();
-    final x = -1.6 + run * 3.2;
-    return IgnorePointer(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment(x - 0.6, -1),
-            end: Alignment(x + 0.6, 1),
-            colors: [
-              Colors.white.withValues(alpha: 0),
-              Colors.white.withValues(alpha: 0.42 * strength),
-              Colors.white.withValues(alpha: 0),
+        ClipPath(
+          clipper: _PathClipper(path),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              content,
+              if (near > 0.5)
+                RepaintBoundary(
+                  child: _Sheen(animation: idle, strength: near),
+                ),
             ],
           ),
         ),
-      ),
+        CustomPaint(
+          foregroundPainter: _OutlinePainter(
+            path: path,
+            near: near,
+            progress: progress,
+            palette: palette,
+          ),
+        ),
+      ],
     );
   }
 }
 
-/// Traces the frame's outline to show the position in the list.
-class _ProgressRing extends CustomPainter {
-  const _ProgressRing({
+/// What sits inside a frame: the product photo, or the cut drawn as facets.
+class _GemContent extends StatelessWidget {
+  const _GemContent({
+    required this.detail,
     required this.shape,
-    required this.progress,
-    required this.color,
-    required this.track,
-    required this.opacity,
+    required this.palette,
   });
 
-  final BeveledRectangleBorder shape;
-  final double progress;
-  final Color color;
-  final Color track;
-  final double opacity;
+  final ProductDetail detail;
+  final ProductFrameShape shape;
+  final LuxePalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = detail.media;
+    final image = media.imageAt(0);
+
+    Widget fallback() {
+      final key = shape.key;
+      return Center(
+        child: key != null
+            ? renderShapeSvg(key, size: _kFrame * 0.58, color: palette.accent)
+            : Icon(media.fallbackIcon, size: 26, color: palette.accent),
+      );
+    }
+
+    Widget picture;
+    if (image == null) {
+      picture = fallback();
+    } else if (!image.isAsset) {
+      picture = AppNetworkImage(
+        url: image.path,
+        fit: BoxFit.cover,
+        memCacheWidth: 200,
+        error: fallback(),
+      );
+    } else if (image.path == CatalogMissingImage.assetPath) {
+      picture = fallback();
+    } else {
+      picture = Image.asset(
+        image.path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => fallback(),
+      );
+    }
+    return ColoredBox(color: palette.surfaceRaised, child: picture);
+  }
+}
+
+/// Glow, drop shadow and base fill, drawn from the frame's own outline.
+class _FramePainter extends CustomPainter {
+  const _FramePainter({
+    required this.path,
+    required this.near,
+    required this.palette,
+  });
+
+  final Path path;
+  final double near;
+  final LuxePalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final outline = shape.getOuterPath(Offset.zero & size);
-    canvas.save();
-    // Sit just outside the frame so the ring never covers the picture.
-    const grow = 6.0;
-    canvas.translate(-grow / 2, -grow / 2);
-    canvas.scale(
-      (size.width + grow) / size.width,
-      (size.height + grow) / size.height,
-    );
+    if (near > 0.02) {
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = palette.accent.withValues(alpha: 0.5 * near)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6 + 12 * near),
+      );
+    }
     canvas.drawPath(
-      outline,
+      path.shift(const Offset(0, 4)),
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.18)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+    );
+    canvas.drawPath(path, Paint()..color = palette.surfaceRaised);
+  }
+
+  @override
+  bool shouldRepaint(_FramePainter old) =>
+      old.near != near || old.path != path || old.palette != palette;
+}
+
+/// Border, plus on the centre frame a ring tracing the list position. Both
+/// come from the same outline as the fill, so they can never drift apart.
+class _OutlinePainter extends CustomPainter {
+  const _OutlinePainter({
+    required this.path,
+    required this.near,
+    required this.progress,
+    required this.palette,
+  });
+
+  final Path path;
+  final double near;
+  final double progress;
+  final LuxePalette palette;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1 + 1.2 * near
+        ..strokeJoin = StrokeJoin.round
+        ..color = Color.lerp(palette.hairline, palette.accent, near)!,
+    );
+    if (near < 0.05) return;
+
+    // Concentric ring: the outline grown about its own bounds' centre.
+    final bounds = path.getBounds();
+    const gap = 7.0;
+    final grow = Matrix4.identity()
+      ..translateByDouble(bounds.center.dx, bounds.center.dy, 0, 1)
+      ..scaleByDouble(
+        (bounds.width + gap * 2) / bounds.width,
+        (bounds.height + gap * 2) / bounds.height,
+        1,
+        1,
+      )
+      ..translateByDouble(-bounds.center.dx, -bounds.center.dy, 0, 1);
+    final ring = path.transform(grow.storage);
+
+    canvas.drawPath(
+      ring,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
-        ..color = track.withValues(alpha: 0.7 * opacity),
+        ..color = palette.hairline.withValues(alpha: 0.8 * near),
     );
-    final metrics = outline.computeMetrics().toList();
+    final metrics = ring.computeMetrics().toList();
     final total = metrics.fold<double>(0, (sum, m) => sum + m.length);
     var remaining = total * progress;
     final arc = Paint()
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 2.2
-      ..color = color.withValues(alpha: opacity);
+      ..color = palette.accent.withValues(alpha: near);
     for (final m in metrics) {
       if (remaining <= 0) break;
       final take = math.min(remaining, m.length);
       canvas.drawPath(m.extractPath(0, take), arc);
       remaining -= take;
     }
-    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_ProgressRing old) =>
+  bool shouldRepaint(_OutlinePainter old) =>
+      old.near != near ||
       old.progress != progress ||
-      old.opacity != opacity ||
-      old.color != color ||
-      old.track != track;
+      old.path != path ||
+      old.palette != palette;
 }
 
-class _GemPicture extends StatelessWidget {
-  const _GemPicture({required this.media, required this.palette});
+/// A slow diagonal glint that crosses the centre frame now and then.
+class _Sheen extends StatelessWidget {
+  const _Sheen({required this.animation, required this.strength});
 
-  final ProductMedia media;
-  final LuxePalette palette;
+  final Animation<double> animation;
+  final double strength;
 
   @override
   Widget build(BuildContext context) {
-    final image = media.imageAt(0);
-    Widget fallback() {
-      final shape = media.shapeKey;
-      return Center(
-        child: shape != null
-            ? renderShapeSvg(shape, size: 30, color: palette.accent)
-            : Icon(media.fallbackIcon, size: 26, color: palette.accent),
-      );
-    }
-
-    if (image == null) return fallback();
-    if (!image.isAsset) {
-      return AppNetworkImage(
-        url: image.path,
-        fit: media.fit,
-        memCacheWidth: 220,
-        error: fallback(),
-      );
-    }
-    if (image.path == CatalogMissingImage.assetPath) return fallback();
-    return Image.asset(
-      image.path,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => fallback(),
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) {
+          // The glint only runs in the first part of each cycle, then rests.
+          final run = (animation.value / 0.4).clamp(0.0, 1.0);
+          if (run <= 0 || run >= 1) return const SizedBox.expand();
+          final x = -1.6 + run * 3.2;
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment(x - 0.6, -1),
+                end: Alignment(x + 0.6, 1),
+                colors: [
+                  Colors.white.withValues(alpha: 0),
+                  Colors.white.withValues(alpha: 0.42 * strength),
+                  Colors.white.withValues(alpha: 0),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
