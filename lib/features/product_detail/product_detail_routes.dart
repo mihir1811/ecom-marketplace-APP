@@ -11,11 +11,13 @@ import 'domain/models/product_detail.dart';
 import 'product_detail_navigation.dart';
 import 'presentation/screens/luxe_product_detail_screen.dart';
 import 'presentation/screens/product_detail_screen.dart';
+import 'presentation/transition/product_sheet_launch.dart';
+import 'presentation/transition/product_sheet_screen.dart';
 
 final List<RouteBase> productDetailRoutes = [
   GoRoute(
     path: AppRouteNames.productDetail,
-    builder: (context, state) {
+    pageBuilder: (context, state) {
       final extra = state.extra;
       final segment = state.pathParameters['segment'] ?? '';
       final productId = state.pathParameters['productId'] ?? '';
@@ -23,14 +25,32 @@ final List<RouteBase> productDetailRoutes = [
         final ProductDetail product => product,
         _ => restoreProductDetail(segment, productId),
       };
-      if (detail is ProductDetail) {
-        rememberProductDetail(detail);
-        if (LuxeProductDetailScreen.supports(detail)) {
-          return LuxeProductDetailScreen(detail: detail);
-        }
-        return ProductDetailScreen(detail: detail);
+      if (detail is! ProductDetail) {
+        return MaterialPage<void>(
+          key: state.pageKey,
+          child: _ProductDetailUnavailable(productId: productId),
+        );
       }
-      return _ProductDetailUnavailable(productId: productId);
+      rememberProductDetail(detail);
+      if (!LuxeProductDetailScreen.supports(detail)) {
+        return MaterialPage<void>(
+          key: state.pageKey,
+          child: ProductDetailScreen(detail: detail),
+        );
+      }
+      // A pop-up that grows out of the tapped card; the sheet drives its own
+      // motion from the route animation, so the transition adds nothing.
+      return CustomTransitionPage<void>(
+        key: state.pageKey,
+        opaque: false,
+        transitionDuration: const Duration(milliseconds: 680),
+        reverseTransitionDuration: const Duration(milliseconds: 520),
+        child: ProductSheetScreen(
+          detail: detail,
+          launch: ProductSheetLaunch.forPage(state.pageKey.value),
+        ),
+        transitionsBuilder: (context, animation, secondary, child) => child,
+      );
     },
   ),
 ];

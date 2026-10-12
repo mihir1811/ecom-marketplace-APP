@@ -255,23 +255,24 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
+    final listed = state?.items ?? const [];
     return luxeResultSlivers(
       context: context,
       initialLoading:
           !stateAsync.hasError && (state == null || state.isInitialLoading),
       error: error,
-      items: state?.items ?? const [],
+      items: listed,
       isLoadingMore: state?.isLoadingMore ?? false,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
       idOf: (j) => j.id,
       cardOf: (j, mode) => mode == LuxeViewMode.grid
           ? JewelryLuxeGridCard(
               jewelry: j,
-              onTap: () => openJewelryDetail(context, j),
+              onTap: () => openJewelryDetail(context, j, among: listed),
             )
           : JewelryLuxeListCard(
               jewelry: j,
-              onTap: () => openJewelryDetail(context, j),
+              onTap: () => openJewelryDetail(context, j, among: listed),
             ),
       entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),

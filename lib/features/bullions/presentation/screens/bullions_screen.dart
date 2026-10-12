@@ -201,23 +201,24 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
+    final listed = state?.bullions ?? const [];
     return luxeResultSlivers(
       context: context,
       initialLoading:
           !stateAsync.hasError && (state == null || state.isInitialLoading),
       error: error,
-      items: state?.bullions ?? const [],
+      items: listed,
       isLoadingMore: state?.isLoadingMore ?? false,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
       idOf: (b) => b.id,
       cardOf: (b, mode) => mode == LuxeViewMode.grid
           ? BullionLuxeGridCard(
               bullion: b,
-              onTap: () => openBullionDetail(context, b),
+              onTap: () => openBullionDetail(context, b, among: listed),
             )
           : BullionLuxeListCard(
               bullion: b,
-              onTap: () => openBullionDetail(context, b),
+              onTap: () => openBullionDetail(context, b, among: listed),
             ),
       entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),

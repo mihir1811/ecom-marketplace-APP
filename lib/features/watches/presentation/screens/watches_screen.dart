@@ -215,23 +215,24 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
+    final listed = state?.watches ?? const [];
     return luxeResultSlivers(
       context: context,
       initialLoading:
           !stateAsync.hasError && (state == null || state.isInitialLoading),
       error: error,
-      items: state?.watches ?? const [],
+      items: listed,
       isLoadingMore: state?.isLoadingMore ?? false,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
       idOf: (w) => w.id,
       cardOf: (w, mode) => mode == LuxeViewMode.grid
           ? WatchLuxeGridCard(
               watch: w,
-              onTap: () => openWatchDetail(context, w),
+              onTap: () => openWatchDetail(context, w, among: listed),
             )
           : WatchLuxeListCard(
               watch: w,
-              onTap: () => openWatchDetail(context, w),
+              onTap: () => openWatchDetail(context, w, among: listed),
             ),
       entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),

@@ -1,0 +1,186 @@
+import 'dart:ui' as ui;
+
+import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
+
+import '../../domain/models/product_detail.dart';
+
+/// Where a product was tapped on screen: the card the detail sheet grows out
+/// of (and shrinks back into), plus a snapshot of that card.
+class ProductSheetOrigin {
+  ProductSheetOrigin({required this.rect, this.radius = 20});
+
+  final Rect rect;
+  final double radius;
+
+  /// Pixels of the tapped card, filled in a frame or two after the tap.
+  final ValueNotifier<ui.Image?> snapshot = ValueNotifier<ui.Image?>(null);
+
+  bool _disposed = false;
+
+  bool get isDisposed => _disposed;
+
+  /// Hands over the grabbed pixels; ignored once the route is gone.
+  void _offer(ui.Image image) {
+    if (_disposed) {
+      image.dispose();
+    } else {
+      snapshot.value = image;
+    }
+  }
+
+  void dispose() {
+    _disposed = true;
+    snapshot.value?.dispose();
+    snapshot.dispose();
+  }
+}
+
+/// Products the sheet can switch between (the list the tap came from).
+///
+/// Details are adapted on demand and memoised, so handing over a thousand
+/// listing rows costs nothing until the dock scrolls past them.
+class ProductSwitchSet {
+  ProductSwitchSet._(this.length, this.initialIndex, this._resolve);
+
+  /// [adapt] maps one catalog row to its detail view model; [initial] is
+  /// the already-resolved detail of the tapped row.
+  static ProductSwitchSet? of<T>(
+    List<T>? items,
+    T tapped,
+    ProductDetail Function(T) adapt,
+    ProductDetail initial,
+  ) {
+    if (items == null || items.length < 2) return null;
+    final index = items.indexOf(tapped);
+    if (index < 0) return null;
+    final set = ProductSwitchSet._(items.length, index, (i) => adapt(items[i]));
+    set._cache[index] = initial;
+    return set;
+  }
+
+  final int length;
+  final int initialIndex;
+  final ProductDetail Function(int index) _resolve;
+  final Map<int, ProductDetail> _cache = {};
+
+  ProductDetail detailAt(int index) =>
+      _cache.putIfAbsent(index, () => _resolve(index));
+}
+
+/// Everything the detail route needs to know about how it was opened.
+class ProductSheetLaunch {
+  const ProductSheetLaunch({this.origin, this.switchSet});
+
+  static const none = ProductSheetLaunch();
+
+  final ProductSheetOrigin? origin;
+  final ProductSwitchSet? switchSet;
+
+  static ProductSheetLaunch? _pending;
+  static DateTime _stagedAt = DateTime.fromMillisecondsSinceEpoch(0);
+  static final Map<String, ProductSheetLaunch> _byPage = {};
+
+  /// Called by the opener just before it pushes the route.
+  static void stage(ProductSheetLaunch launch) {
+    _pending = launch;
+    _stagedAt = DateTime.now();
+  }
+
+  /// Called by the route builder. A staged launch belongs to the push that
+  /// is being built; later router rebuilds of that page get the same one.
+  static ProductSheetLaunch forPage(String pageKey) {
+    final staged = _pending;
+    _pending = null;
+    if (staged != null &&
+        DateTime.now().difference(_stagedAt) < const Duration(seconds: 2)) {
+      if (_byPage.length > 24) _byPage.remove(_byPage.keys.first);
+      return _byPage[pageKey] = staged;
+    }
+    final cached = _byPage[pageKey];
+    if (cached != null && !(cached.origin?.isDisposed ?? false)) return cached;
+    return none;
+  }
+}
+
+/// Remembers the last pointer-down so a tap handler that only receives a
+/// `BuildContext` can still tell which card was tapped.
+abstract final class ProductTapTracker {
+  static bool _attached = false;
+  static Offset? _downAt;
+  static int _viewId = 0;
+  static DateTime _downTime = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// Taps older than this are not what opened the page (deep links, chat).
+  static const _fresh = Duration(milliseconds: 2500);
+
+  static void attach() {
+    if (_attached) return;
+    _attached = true;
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_onPointer);
+  }
+
+  static void _onPointer(PointerEvent event) {
+    if (event is! PointerDownEvent) return;
+    _downAt = event.position;
+    _viewId = event.viewId;
+    _downTime = DateTime.now();
+  }
+
+  /// The card under the last tap, or a small anchor at the tap itself.
+  /// Returns null when there was no recent tap.
+  static ProductSheetOrigin? capture() {
+    final at = _downAt;
+    if (at == null || DateTime.now().difference(_downTime) > _fresh) {
+      return null;
+    }
+    final binding = WidgetsBinding.instance;
+    final view = binding.platformDispatcher.view(id: _viewId);
+    if (view == null) return null;
+    final screen = view.physicalSize / view.devicePixelRatio;
+
+    final result = HitTestResult();
+    binding.hitTestInView(result, at, _viewId);
+
+    RenderRepaintBoundary? best;
+    Rect? bestRect;
+    for (final entry in result.path) {
+      final target = entry.target;
+      if (target is! RenderRepaintBoundary ||
+          !target.attached ||
+          !target.hasSize) {
+        continue;
+      }
+      final rect = target.localToGlobal(Offset.zero) & target.size;
+      // A card: big enough to be one, never a whole viewport or row strip.
+      if (rect.width < 96 ||
+          rect.height < 96 ||
+          rect.width > screen.width + 1 ||
+          rect.height > screen.height * 0.6) {
+        continue;
+      }
+      if (bestRect == null ||
+          rect.width * rect.height < bestRect.width * bestRect.height) {
+        best = target;
+        bestRect = rect;
+      }
+    }
+
+    if (best == null || bestRect == null) {
+      return ProductSheetOrigin(
+        rect: Rect.fromCenter(center: at, width: 140, height: 140),
+        radius: 28,
+      );
+    }
+
+    final origin = ProductSheetOrigin(rect: bestRect);
+    final ratio = view.devicePixelRatio.clamp(1.0, 2.0);
+    // Boundaries only expose pixels once painted; a failed grab just means
+    // the card is not cross-faded, the sheet still grows from its rect.
+    best
+        .toImage(pixelRatio: ratio)
+        .then<void>(origin._offer, onError: (Object _) {});
+    return origin;
+  }
+}

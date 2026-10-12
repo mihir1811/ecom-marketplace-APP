@@ -74,37 +74,77 @@ class _LuxeProductDetailScreenState
   }
 
   Widget _buildScaffold(BuildContext context) {
-    final detail = widget.detail;
-    final auth = ref.watch(
-      authProvider.select(
-        (s) => (isSeller: s.isSeller, showProtected: !s.isVerificationPending),
-      ),
-    );
-    final unitKey = detail.price.unitLabel == null
-        ? null
-        : catalogDisplayMessageKeys[detail.price.unitLabel!];
-    final labels = ProductPriceLabels.resolve(
-      detail.price,
-      grouped: true,
-      localizedUnit: unitKey == null
-          ? detail.price.unitLabel
-          : context.tr(unitKey),
-    );
-
+    final sections = luxeProductSections(context, ref, widget.detail);
     return LuxeDetailLayout(
-      title: detail.title,
-      media: detail.media,
-      availabilityStatus: detail.availabilityStatus,
-      headerActions: (glass) => [_HeaderActions(detail: detail, glass: glass)],
-      summary: _Summary(detail: detail, labels: labels),
-      record: _Record(detail: detail, isSeller: auth.isSeller),
-      bottomBar: !auth.showProtected
-          ? null
-          : detail.jewelryDetail != null
-          ? LuxeJewelryPurchaseBar(detail: detail)
-          : LuxePurchaseBar(detail: detail, priceLabels: labels),
+      title: sections.title,
+      media: sections.media,
+      availabilityStatus: sections.availabilityStatus,
+      headerActions: sections.headerActions,
+      summary: sections.summary,
+      record: sections.record,
+      bottomBar: sections.bottomBar,
     );
   }
+}
+
+/// The parts a luxe product page is assembled from, so the page frame (the
+/// classic full screen layout or the expanding sheet) stays swappable.
+class LuxeProductSections {
+  const LuxeProductSections({
+    required this.title,
+    required this.media,
+    required this.availabilityStatus,
+    required this.headerActions,
+    required this.summary,
+    required this.record,
+    required this.bottomBar,
+  });
+
+  final String title;
+  final ProductMedia media;
+  final String? availabilityStatus;
+  final List<Widget> Function(bool glass) headerActions;
+  final Widget summary;
+  final Widget record;
+  final Widget? bottomBar;
+}
+
+/// Resolves [detail] into its luxe page sections. Watches the viewer's auth
+/// state, so call it from `build`.
+LuxeProductSections luxeProductSections(
+  BuildContext context,
+  WidgetRef ref,
+  ProductDetail detail,
+) {
+  final auth = ref.watch(
+    authProvider.select(
+      (s) => (isSeller: s.isSeller, showProtected: !s.isVerificationPending),
+    ),
+  );
+  final unitKey = detail.price.unitLabel == null
+      ? null
+      : catalogDisplayMessageKeys[detail.price.unitLabel!];
+  final labels = ProductPriceLabels.resolve(
+    detail.price,
+    grouped: true,
+    localizedUnit: unitKey == null
+        ? detail.price.unitLabel
+        : context.tr(unitKey),
+  );
+
+  return LuxeProductSections(
+    title: detail.title,
+    media: detail.media,
+    availabilityStatus: detail.availabilityStatus,
+    headerActions: (glass) => [_HeaderActions(detail: detail, glass: glass)],
+    summary: _Summary(detail: detail, labels: labels),
+    record: _Record(detail: detail, isSeller: auth.isSeller),
+    bottomBar: !auth.showProtected
+        ? null
+        : detail.jewelryDetail != null
+        ? LuxeJewelryPurchaseBar(detail: detail)
+        : LuxePurchaseBar(detail: detail, priceLabels: labels),
+  );
 }
 
 /// Chat (sellers), share and save controls for the floating header.

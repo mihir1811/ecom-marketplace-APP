@@ -154,23 +154,24 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
+    final listed = state?.gemstones ?? const [];
     return luxeResultSlivers(
       context: context,
       initialLoading:
           !stateAsync.hasError && (state == null || state.isInitialLoading),
       error: error,
-      items: state?.gemstones ?? const [],
+      items: listed,
       isLoadingMore: state?.isLoadingMore ?? false,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
       idOf: (g) => g.id,
       cardOf: (g, mode) => mode == LuxeViewMode.grid
           ? GemstoneLuxeGridCard(
               gemstone: g,
-              onTap: () => openGemstoneDetail(context, g),
+              onTap: () => openGemstoneDetail(context, g, among: listed),
             )
           : GemstoneLuxeListCard(
               gemstone: g,
-              onTap: () => openGemstoneDetail(context, g),
+              onTap: () => openGemstoneDetail(context, g, among: listed),
             ),
       entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),

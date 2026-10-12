@@ -184,12 +184,13 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
+    final listed = state?.diamonds ?? const [];
     return luxeResultSlivers(
       context: context,
       initialLoading:
           !stateAsync.hasError && (state == null || state.isInitialLoading),
       error: error,
-      items: state?.diamonds ?? const [],
+      items: listed,
       isLoadingMore: state?.isLoadingMore ?? false,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
       idOf: (d) => d.id,
@@ -197,12 +198,12 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
           ? DiamondLuxeGridCard(
               diamond: d,
               showProjectPick: showProjectPick,
-              onTap: () => openDiamondDetail(context, d),
+              onTap: () => openDiamondDetail(context, d, among: listed),
             )
           : DiamondLuxeListCard(
               diamond: d,
               showProjectPick: showProjectPick,
-              onTap: () => openDiamondDetail(context, d),
+              onTap: () => openDiamondDetail(context, d, among: listed),
             ),
       entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),

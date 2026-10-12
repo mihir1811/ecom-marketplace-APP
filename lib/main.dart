@@ -6,10 +6,13 @@ import 'core/l10n/app_localizations.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/theme_preference_provider.dart';
 import 'features/notifications/application/push_messaging_service.dart';
+import 'features/product_detail/presentation/transition/product_sheet_launch.dart';
 
 void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    // Lets product detail grow out of whichever card was tapped.
+    ProductTapTracker.attach();
     await PushMessagingService.initializeFirebase();
     // Restore the palette before the first frame so it never flashes.
     final palette = await PalettePreference.load();

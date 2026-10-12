@@ -186,7 +186,11 @@ class LuxeFloatingHeader extends StatelessWidget {
     super.key,
     this.actions,
     this.darkBackdrop = false,
+    this.leadingIcon = Icons.arrow_back_rounded,
   });
+
+  /// Icon of the leading button (a chevron-down when the page is a sheet).
+  final IconData leadingIcon;
 
   final String title;
   final ValueListenable<double> offset;
@@ -221,7 +225,7 @@ class LuxeFloatingHeader extends StatelessWidget {
           child: Row(
             children: [
               LuxeIconButton(
-                icon: Icons.arrow_back_rounded,
+                icon: leadingIcon,
                 tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                 glass: glass,
                 size: 42,

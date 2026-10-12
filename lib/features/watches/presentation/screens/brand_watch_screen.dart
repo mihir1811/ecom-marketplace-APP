@@ -171,22 +171,23 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen>
   List<Widget> _content(BuildContext context) {
     final state = ref.watch(brandWatchListProvider).valueOrNull;
     final grid = ref.watch(watchViewModeProvider) == WatchViewMode.grid;
+    final listed = state?.watches ?? const [];
     return luxeResultSlivers(
       context: context,
       initialLoading: state == null || state.isInitialLoading,
       error: state?.errorMessage,
-      items: state?.watches ?? const [],
+      items: listed,
       isLoadingMore: state?.isLoadingMore ?? false,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
       idOf: (w) => w.id,
       cardOf: (w, mode) => mode == LuxeViewMode.grid
           ? WatchLuxeGridCard(
               watch: w,
-              onTap: () => openWatchDetail(context, w),
+              onTap: () => openWatchDetail(context, w, among: listed),
             )
           : WatchLuxeListCard(
               watch: w,
-              onTap: () => openWatchDetail(context, w),
+              onTap: () => openWatchDetail(context, w, among: listed),
             ),
       entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
