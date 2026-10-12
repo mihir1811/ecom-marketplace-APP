@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'locale_preference_provider.dart';
 import 'localized_message.dart';
 import 'translations/account_commerce_messages.dart';
+import 'translations/auth_experience_messages.dart';
 import 'translations/catalog_messages.dart';
 import 'translations/core_messages.dart';
 import 'translations/diamond_flow_messages.dart';
@@ -18,6 +19,7 @@ import 'translations/remaining_messages.dart';
 
 export 'locale_preference_provider.dart';
 export 'translations/account_commerce_messages.dart';
+export 'translations/auth_experience_messages.dart';
 export 'translations/catalog_messages.dart';
 export 'translations/core_messages.dart';
 export 'translations/diamond_flow_messages.dart';
@@ -52,6 +54,7 @@ class AppLocalizations {
   static const Map<String, LocalizedMessage> _messages = {
     ...coreMessages,
     ...accountCommerceMessages,
+    ...authExperienceMessages,
     ...catalogMessages,
     ...remainingMessages,
     ...homeMessages,

@@ -1,21 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 
-import '../../../../core/l10n/app_localizations.dart';
-import 'package:gemstone/core/widgets/app_scaffold.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../widgets/auth_brand_header.dart';
-import '../widgets/auth_theme.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../widgets/kit/auth_kit.dart';
 
-/// OTP verification screen after registration.
+/// OTP verification after registration.
 class VerifyOtpScreen extends ConsumerStatefulWidget {
   const VerifyOtpScreen({super.key, this.email});
 
@@ -26,10 +22,15 @@ class VerifyOtpScreen extends ConsumerStatefulWidget {
 }
 
 class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
-  final _formKey = GlobalKey<FormState>();
+  static const _cooldownSeconds = 30;
+
   final _otpController = TextEditingController();
   bool _didAutoRedirect = false;
   bool _resendBusy = false;
+  String? _otpError;
+  int _shake = 0;
+  int _cooldown = _cooldownSeconds;
+  Timer? _timer;
 
   String get _email {
     final fromState =
@@ -39,9 +40,76 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _startCooldown();
+  }
+
+  @override
   void dispose() {
+    _timer?.cancel();
     _otpController.dispose();
     super.dispose();
+  }
+
+  void _startCooldown() {
+    _timer?.cancel();
+    setState(() => _cooldown = _cooldownSeconds);
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return t.cancel();
+      setState(() => _cooldown--);
+      if (_cooldown <= 0) t.cancel();
+    });
+  }
+
+  Future<void> _verify(String email) async {
+    final notifier = ref.read(authProvider.notifier);
+    if (ref.read(authProvider).isLoading || email.isEmpty) return;
+    notifier.clearError();
+
+    if (_otpController.text.trim().length != 6) {
+      AppHaptics.error();
+      setState(() {
+        _otpError = context.tr(AccountCommerceL10n.enterOtp);
+        _shake++;
+      });
+      return;
+    }
+    setState(() => _otpError = null);
+
+    await notifier.verifyOtp(email: email, otp: _otpController.text);
+    if (!mounted) return;
+    final after = ref.read(authProvider);
+    if (after.isAuthenticated) {
+      AppHaptics.success();
+    } else if (after.errorMessage != null) {
+      AppHaptics.error();
+      setState(() => _shake++);
+    }
+  }
+
+  Future<void> _resend(String email) async {
+    setState(() => _resendBusy = true);
+    final ok = await ref.read(authProvider.notifier).resendOtp(email: email);
+    if (!mounted) return;
+    setState(() => _resendBusy = false);
+    if (ok) {
+      AppHaptics.success();
+      _otpController.clear();
+      _startCooldown();
+      AuthToast.show(
+        context,
+        context.tr(AccountCommerceL10n.otpSent),
+        icon: Icons.mark_email_read_outlined,
+      );
+    } else {
+      AppHaptics.error();
+    }
+  }
+
+  String _formatCooldown() {
+    final s = _cooldown.clamp(0, 999);
+    return '0:${s.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -68,187 +136,105 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
     final email = (authState.pendingEmail?.trim().isNotEmpty == true)
         ? authState.pendingEmail!.trim()
         : _email;
+    final loading = authState.isLoading;
+    final p = AuthPalette.of(context);
+    final hasError = _otpError != null || authState.errorMessage != null;
+    final canResend =
+        !loading && !_resendBusy && email.isNotEmpty && _cooldown <= 0;
 
-    return AppScaffold(
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 520),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.s24),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AuthBrandHeader(
-                        eyebrow: context.tr(AccountCommerceL10n.verifyEmail),
-                        subtitle: context.tr(AccountCommerceL10n.enterCodeSent),
-                      ),
-                      const SizedBox(height: AppSpacing.s24),
-                      Text(
-                        context.tr(AccountCommerceL10n.verifyOtp),
-                        style: AppTypography.display.copyWith(
-                          color: AppColors.textPrimary(context),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      Text(
-                        email.isEmpty
-                            ? context.tr(AccountCommerceL10n.enterSixDigitCode)
-                            : context.tr(AccountCommerceL10n.codeSentToEmail, {
-                                'email': email,
-                              }),
-                        style: AppTypography.body.copyWith(
-                          color: AppColors.textSecondary(context),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s24),
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: _otpController,
-                              keyboardType: TextInputType.number,
-                              textInputAction: TextInputAction.done,
-                              maxLength: 6,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              decoration: InputDecoration(
-                                labelText: context.tr(AccountCommerceL10n.otp),
-                                prefixIcon: const Icon(Icons.pin_outlined),
-                                counterText: '',
-                              ),
-                              validator: (value) {
-                                final v = value?.trim() ?? '';
-                                if (v.length != 6) {
-                                  return context.tr(
-                                    AccountCommerceL10n.enterOtp,
-                                  );
-                                }
-                                return null;
-                              },
-                            ),
-                            if (authState.errorMessage != null) ...[
-                              const SizedBox(height: AppSpacing.s16),
-                              Text(
-                                authState.errorMessage!,
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.error,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: AppSpacing.s16),
-                            SizedBox(
-                              width: double.infinity,
-                              child: FilledButton(
-                                onPressed: authState.isLoading || email.isEmpty
-                                    ? null
-                                    : () async {
-                                        ref
-                                            .read(authProvider.notifier)
-                                            .clearError();
-                                        final ok =
-                                            _formKey.currentState?.validate() ??
-                                            false;
-                                        if (!ok) {
-                                          AppHaptics.error();
-                                          return;
-                                        }
-                                        await ref
-                                            .read(authProvider.notifier)
-                                            .verifyOtp(
-                                              email: email,
-                                              otp: _otpController.text,
-                                            );
-                                        if (!context.mounted) return;
-                                        final after = ref.read(authProvider);
-                                        if (after.isAuthenticated) {
-                                          AppHaptics.success();
-                                        } else if (after.errorMessage !=
-                                            null) {
-                                          AppHaptics.error();
-                                        }
-                                      },
-                                style: authFilledButtonStyle(context),
-                                child: authState.isLoading
-                                    ? authButtonSpinner(context)
-                                    : Text(
-                                        'Verify \u2192',
-                                        style: AppTypography.label.copyWith(
-                                          color: AppColors.onSelected(context),
-                                        ),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.s16),
-                            TextButton(
-                              onPressed:
-                                  authState.isLoading ||
-                                      _resendBusy ||
-                                      email.isEmpty
-                                  ? null
-                                  : () async {
-                                      setState(() => _resendBusy = true);
-                                      final messenger = ScaffoldMessenger.of(
-                                        context,
-                                      );
-                                      final ok = await ref
-                                          .read(authProvider.notifier)
-                                          .resendOtp(email: email);
-                                      if (!mounted) return;
-                                      setState(() => _resendBusy = false);
-                                      if (ok) {
-                                        AppHaptics.success();
-                                        messenger.showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              // ignore: use_build_context_synchronously
-                                              context.tr(
-                                                AccountCommerceL10n.otpSent,
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        AppHaptics.error();
-                                      }
-                                    },
-                              child: Text(
-                                context.tr(AccountCommerceL10n.resendOtp),
-                                style: AppTypography.label.copyWith(
-                                  color: AppColors.textPrimary(context),
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.s24),
-                            Center(
-                              child: TextButton(
-                                onPressed: authState.isLoading
-                                    ? null
-                                    : () => context.go(AppRouteNames.login),
-                                child: Text(
-                                  context.tr(AccountCommerceL10n.backToLogin),
-                                  style: AppTypography.label.copyWith(
-                                    color: AppColors.textPrimary(context),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+    return AuthShell(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AuthHero(
+            cut: GemCut.princess,
+            eyebrow: context.tr(AccountCommerceL10n.verifyEmail),
+            title: context.tr(AuthL10n.otpTitle),
+            subtitle: email.isEmpty
+                ? Text(context.tr(AccountCommerceL10n.enterSixDigitCode))
+                : Text(
+                    context.tr(AccountCommerceL10n.codeSentToEmail, {
+                      'email': email,
+                    }),
                   ),
-                ),
+          ),
+          const SizedBox(height: AuthSpace.s32),
+          AuthReveal(
+            index: 4,
+            child: AuthShake(
+              trigger: _shake,
+              child: AuthOtpInput(
+                controller: _otpController,
+                enabled: !loading && email.isNotEmpty,
+                error: hasError,
+                onCompleted: () => _verify(email),
               ),
             ),
           ),
-        ),
+          AnimatedSize(
+            duration: AuthMotion.base,
+            curve: AuthMotion.ease,
+            child: _otpError == null
+                ? const SizedBox(width: double.infinity, height: AuthSpace.s24)
+                : Padding(
+                    padding: const EdgeInsets.only(
+                      top: AuthSpace.s12,
+                      bottom: AuthSpace.s12,
+                    ),
+                    child: Text(
+                      _otpError!,
+                      textAlign: TextAlign.center,
+                      style: AuthType.caption(p).copyWith(color: p.danger),
+                    ),
+                  ),
+          ),
+          AuthErrorBanner(
+            message: authState.errorMessage,
+            onDismiss: () => ref.read(authProvider.notifier).clearError(),
+          ),
+          AuthReveal(
+            index: 5,
+            child: AuthPrimaryButton(
+              label: context.tr(AuthL10n.verify),
+              loading: loading && !_resendBusy,
+              onPressed: email.isEmpty || loading ? null : () => _verify(email),
+            ),
+          ),
+          const SizedBox(height: AuthSpace.s24),
+          AuthReveal(
+            index: 6,
+            child: Column(
+              children: [
+                Text(context.tr(AuthL10n.noCode), style: AuthType.caption(p)),
+                AuthTextLink(
+                  emphasis: canResend,
+                  icon: _resendBusy ? null : Icons.refresh_rounded,
+                  label: _resendBusy
+                      ? context.tr(AuthL10n.pleaseWait)
+                      : _cooldown > 0
+                      ? context.tr(AuthL10n.resendIn, {
+                          'time': _formatCooldown(),
+                        })
+                      : context.tr(AuthL10n.resendCode),
+                  onPressed: canResend ? () => _resend(email) : null,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AuthSpace.s16),
+          AuthReveal(
+            index: 7,
+            child: Center(
+              child: AuthTextLink(
+                icon: Icons.arrow_back_rounded,
+                label: context.tr(AccountCommerceL10n.backToLogin),
+                onPressed: loading
+                    ? null
+                    : () => context.go(AppRouteNames.login),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

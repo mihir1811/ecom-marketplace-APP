@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../core/l10n/app_localizations.dart';
-import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_validators.dart';
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../widgets/auth_theme.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../widgets/kit/auth_kit.dart';
 
 /// Public screen to recover a scheduled-for-deletion account.
 class RecoverAccountScreen extends ConsumerStatefulWidget {
@@ -30,9 +27,10 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
   final _tokenController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
   bool _useToken = true;
   bool _didAutoRedirect = false;
+  bool _submitted = false;
+  int _shake = 0;
 
   @override
   void initState() {
@@ -42,6 +40,9 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
       _tokenController.text = token;
       _useToken = true;
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(authProvider.notifier).clearError();
+    });
   }
 
   @override
@@ -50,6 +51,41 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pasteToken() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text?.trim() ?? '';
+    if (text.isEmpty || !mounted) return;
+    AppHaptics.selection();
+    _tokenController.text = text;
+  }
+
+  Future<void> _submit() async {
+    final notifier = ref.read(authProvider.notifier);
+    if (ref.read(authProvider).isLoading) return;
+    notifier.clearError();
+    final ok = _formKey.currentState?.validate() ?? false;
+    if (!ok) {
+      AppHaptics.error();
+      setState(() => _shake++);
+      return;
+    }
+
+    _submitted = true;
+    await notifier.recoverAccount(
+      token: _useToken ? _tokenController.text : null,
+      email: _useToken ? null : _emailController.text,
+      password: _useToken ? null : _passwordController.text,
+    );
+    if (!mounted) return;
+    final after = ref.read(authProvider);
+    if (after.accountRecovered) {
+      AppHaptics.success();
+    } else if (after.errorMessage != null) {
+      AppHaptics.error();
+      setState(() => _shake++);
+    }
   }
 
   @override
@@ -73,90 +109,97 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
       });
     }
 
-    if (authState.accountRecovered && !_didAutoRedirect) {
+    if (_submitted && authState.accountRecovered && !_didAutoRedirect) {
       _didAutoRedirect = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.tr(AccountCommerceL10n.accountRecovered)),
-          ),
+        AuthToast.show(
+          context,
+          context.tr(AccountCommerceL10n.accountRecovered),
         );
         context.go(AppRouteNames.login);
       });
     }
 
-    return AppScaffold(
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 520),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.s24),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr(AccountCommerceL10n.recoverAccount),
-                        style: AppTypography.display.copyWith(
-                          color: AppColors.textPrimary(context),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      Text(
-                        'If your account was scheduled for deletion, recover '
-                        'it within 7 days using the email token or your '
-                        'email and password.',
-                        style: AppTypography.body.copyWith(
-                          color: AppColors.textSecondary(context),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s24),
-                      SegmentedButton<bool>(
-                        segments: [
-                          ButtonSegment(
-                            value: true,
-                            label: Text(
-                              context.tr(AccountCommerceL10n.emailToken),
-                            ),
-                            icon: const Icon(Icons.link),
-                          ),
-                          ButtonSegment(
-                            value: false,
-                            label: Text(
-                              context.tr(AccountCommerceL10n.emailAndPassword),
-                            ),
-                            icon: const Icon(Icons.lock_outline),
-                          ),
-                        ],
-                        selected: {_useToken},
-                        onSelectionChanged: authState.isLoading
-                            ? null
-                            : (next) {
-                                AppHaptics.selection();
-                                setState(() => _useToken = next.first);
-                                ref.read(authProvider.notifier).clearError();
-                              },
-                      ),
-                      const SizedBox(height: AppSpacing.s24),
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            if (_useToken)
-                              TextFormField(
+    final loading = authState.isLoading;
+
+    return AuthShell(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AuthHero(
+              cut: GemCut.emerald,
+              eyebrow: context.tr(AccountCommerceL10n.recoverAccount),
+              title: context.tr(AuthL10n.recoverTitle),
+            ),
+            const SizedBox(height: AuthSpace.s24),
+            AuthReveal(
+              index: 4,
+              child: AuthNotice(
+                icon: Icons.hourglass_bottom_rounded,
+                title: context.tr(AuthL10n.recoverWindow),
+                body: context.tr(AuthL10n.recoverWindowBody),
+              ),
+            ),
+            const SizedBox(height: AuthSpace.s24),
+            AuthReveal(
+              index: 5,
+              child: AuthSegmented<bool>(
+                value: _useToken,
+                enabled: !loading,
+                segments: [
+                  AuthSegment(
+                    value: true,
+                    label: context.tr(AuthL10n.useToken),
+                    icon: Icons.vpn_key_outlined,
+                  ),
+                  AuthSegment(
+                    value: false,
+                    label: context.tr(AuthL10n.useCredentials),
+                    icon: Icons.alternate_email_rounded,
+                  ),
+                ],
+                onChanged: (next) {
+                  AppHaptics.selection();
+                  setState(() => _useToken = next);
+                  ref.read(authProvider.notifier).clearError();
+                },
+              ),
+            ),
+            const SizedBox(height: AuthSpace.s20),
+            AuthReveal(
+              index: 6,
+              child: AuthShake(
+                trigger: _shake,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AnimatedSize(
+                      duration: AuthMotion.base,
+                      curve: AuthMotion.ease,
+                      alignment: Alignment.topCenter,
+                      child: AnimatedSwitcher(
+                        duration: AuthMotion.base,
+                        child: _useToken
+                            ? AuthTextField(
+                                key: const ValueKey('token'),
                                 controller: _tokenController,
+                                label: context.tr(
+                                  AccountCommerceL10n.recoveryToken,
+                                ),
+                                icon: Icons.vpn_key_outlined,
                                 textInputAction: TextInputAction.done,
-                                decoration: InputDecoration(
-                                  labelText: context.tr(
-                                    AccountCommerceL10n.recoveryToken,
+                                enabled: !loading,
+                                onSubmitted: (_) => _submit(),
+                                suffix: IconButton(
+                                  tooltip: context.tr(AuthL10n.paste),
+                                  icon: const Icon(
+                                    Icons.content_paste_rounded,
+                                    size: 19,
                                   ),
-                                  prefixIcon: const Icon(
-                                    Icons.vpn_key_outlined,
-                                  ),
+                                  onPressed: loading ? null : _pasteToken,
                                 ),
                                 validator: (value) {
                                   if (!_useToken) return null;
@@ -168,149 +211,87 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
                                   return null;
                                 },
                               )
-                            else ...[
-                              TextFormField(
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                textInputAction: TextInputAction.next,
-                                decoration: InputDecoration(
-                                  labelText: context.tr(
-                                    AccountCommerceL10n.email,
-                                  ),
-                                  prefixIcon: const Icon(Icons.mail_outline),
-                                ),
-                                validator: (value) {
-                                  if (_useToken) return null;
-                                  final v = value?.trim() ?? '';
-                                  if (v.isEmpty) {
-                                    return context.tr(
-                                      AccountCommerceL10n.emailRequired,
-                                    );
-                                  }
-                                  if (!isValidEmail(v)) {
-                                    return context.tr(
-                                      AccountCommerceL10n.validEmail,
-                                    );
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: AppSpacing.s16),
-                              TextFormField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                textInputAction: TextInputAction.done,
-                                decoration: InputDecoration(
-                                  labelText: context.tr(
-                                    AccountCommerceL10n.password,
-                                  ),
-                                  prefixIcon: const Icon(Icons.lock_outline),
-                                  suffixIconColor: AppColors.textSecondary(
-                                    context,
-                                  ),
-                                  suffixIcon: IconButton(
-                                    tooltip: _obscurePassword
-                                        ? context.tr(
-                                            AccountCommerceL10n.showPassword,
-                                          )
-                                        : context.tr(
-                                            AccountCommerceL10n.hidePassword,
-                                          ),
-                                    onPressed: () => setState(
-                                      () =>
-                                          _obscurePassword = !_obscurePassword,
+                            : Column(
+                                key: const ValueKey('credentials'),
+                                children: [
+                                  AuthTextField(
+                                    controller: _emailController,
+                                    label: context.tr(
+                                      AccountCommerceL10n.email,
                                     ),
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: AppColors.textSecondary(context),
-                                    ),
+                                    icon: Icons.mail_outline_rounded,
+                                    keyboardType: TextInputType.emailAddress,
+                                    autofillHints: const [AutofillHints.email],
+                                    enabled: !loading,
+                                    validator: (value) {
+                                      if (_useToken) return null;
+                                      final v = value?.trim() ?? '';
+                                      if (v.isEmpty) {
+                                        return context.tr(
+                                          AccountCommerceL10n.emailRequired,
+                                        );
+                                      }
+                                      if (!isValidEmail(v)) {
+                                        return context.tr(
+                                          AccountCommerceL10n.validEmail,
+                                        );
+                                      }
+                                      return null;
+                                    },
                                   ),
-                                ),
-                                validator: (value) {
-                                  if (_useToken) return null;
-                                  if ((value ?? '').isEmpty) {
-                                    return 'Password is required';
-                                  }
-                                  return null;
-                                },
+                                  const SizedBox(height: AuthSpace.s12),
+                                  AuthPasswordField(
+                                    controller: _passwordController,
+                                    label: context.tr(
+                                      AccountCommerceL10n.password,
+                                    ),
+                                    enabled: !loading,
+                                    onSubmitted: (_) => _submit(),
+                                    validator: (value) {
+                                      if (_useToken) return null;
+                                      if ((value ?? '').isEmpty) {
+                                        return context.tr(
+                                          AccountCommerceL10n.passwordRequired,
+                                        );
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ],
                               ),
-                            ],
-                            const SizedBox(height: AppSpacing.s16),
-                            SizedBox(
-                              width: double.infinity,
-                              child: FilledButton(
-                                onPressed: authState.isLoading ? null : _submit,
-                                style: authFilledButtonStyle(context),
-                                child: authState.isLoading
-                                    ? authButtonSpinner(context)
-                                    : Text(
-                                        context.tr(
-                                          AccountCommerceL10n.recoverAccount,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                            if (authState.errorMessage != null) ...[
-                              const SizedBox(height: AppSpacing.s12),
-                              Text(
-                                authState.errorMessage!,
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.error,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
                       ),
-                      const SizedBox(height: AppSpacing.s24),
-                      Center(
-                        child: TextButton(
-                          onPressed: authState.isLoading
-                              ? null
-                              : () => context.go(AppRouteNames.login),
-                          child: Text(
-                            context.tr(AccountCommerceL10n.backToLogin),
-                            style: AppTypography.label.copyWith(
-                              color: AppColors.textPrimary(context),
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: AuthSpace.s20),
+                    AuthErrorBanner(
+                      message: authState.errorMessage,
+                      onDismiss: () =>
+                          ref.read(authProvider.notifier).clearError(),
+                    ),
+                    AuthPrimaryButton(
+                      label: context.tr(AuthL10n.recoverAction),
+                      loading: loading,
+                      onPressed: _submit,
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
+            const SizedBox(height: AuthSpace.s24),
+            AuthReveal(
+              index: 7,
+              child: Center(
+                child: AuthTextLink(
+                  icon: Icons.arrow_back_rounded,
+                  label: context.tr(AccountCommerceL10n.backToLogin),
+                  onPressed: loading
+                      ? null
+                      : () => context.go(AppRouteNames.login),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
-  }
-
-  Future<void> _submit() async {
-    ref.read(authProvider.notifier).clearError();
-    final ok = _formKey.currentState?.validate() ?? false;
-    if (!ok) {
-      AppHaptics.error();
-      return;
-    }
-
-    await ref
-        .read(authProvider.notifier)
-        .recoverAccount(
-          token: _useToken ? _tokenController.text : null,
-          email: _useToken ? null : _emailController.text,
-          password: _useToken ? null : _passwordController.text,
-        );
-    if (!mounted) return;
-    final after = ref.read(authProvider);
-    if (after.accountRecovered) {
-      AppHaptics.success();
-    } else if (after.errorMessage != null) {
-      AppHaptics.error();
-    }
   }
 }

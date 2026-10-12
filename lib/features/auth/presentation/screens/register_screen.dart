@@ -1,25 +1,21 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../core/l10n/app_localizations.dart';
-import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/auth/business_registration_data.dart';
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../widgets/auth_brand_header.dart';
-import '../widgets/auth_theme.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../widgets/business_registration_fields.dart';
+import '../widgets/kit/auth_kit.dart';
 
-/// Registration screen matching the provided UI reference.
+/// Registration for individual buyers (single page) and businesses
+/// (five guided steps).
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({
     this.initialAccountType = RegistrationAccountType.individual,
@@ -34,6 +30,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _stepperKey = GlobalKey();
   final _fullNameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -45,16 +42,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   late RegistrationAccountType _accountType = widget.initialAccountType;
   int _sellerStep = 0;
-  bool _obscurePassword = true;
+  bool _stepForward = true;
   bool _acceptTerms = false;
-  String _profileImageLabel = AccountCommerceL10n.uploadProfileImage;
+  bool _termsError = false;
+  bool _logoError = false;
+  bool _referralOpen = false;
   XFile? _profilePicture;
   DateTime? _dateOfBirth;
-
-  PasswordStrength _strength = const PasswordStrength(
-    isStrong: false,
-    message: AccountCommerceL10n.passwordRequired,
-  );
+  int _shake = 0;
 
   bool _didAutoRedirect = false;
 
@@ -70,6 +65,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         if (!mounted) return;
         context.push(AppRouteNames.termsAndConditions);
       };
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(authProvider.notifier).clearError();
+    });
   }
 
   @override
@@ -85,24 +83,34 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     super.dispose();
   }
 
+  void _fail() {
+    AppHaptics.error();
+    setState(() => _shake++);
+  }
+
   void _onAccountTypeChanged(RegistrationAccountType type) {
     if (type == _accountType) return;
     AppHaptics.selection();
+    ref.read(authProvider.notifier).clearError();
     setState(() {
+      _stepForward = type == RegistrationAccountType.business;
       _accountType = type;
       _sellerStep = 0;
     });
-    // Keep typed field values and Autovalidate/error state — only switch
-    // which account-type sections are shown.
+    // Typed values persist in controllers; only the visible sections change.
   }
 
   bool _validateCurrentStep() {
     final ok = _formKey.currentState?.validate() ?? false;
-    if (!ok) return false;
+    if (!ok) {
+      _revealReferralIfInvalid();
+      return false;
+    }
 
     if (_isSeller && _sellerStep == 1) {
       final logoError = _businessFields.missingCompanyLogoMessage();
       if (logoError != null) {
+        setState(() => _logoError = true);
         ref.read(authProvider.notifier).setErrorMessage(logoError);
         return false;
       }
@@ -110,10 +118,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return true;
   }
 
+  void _revealReferralIfInvalid() {
+    final email = _referralEmailController.text.trim();
+    if (!_referralOpen && email.isNotEmpty && !isValidEmail(email)) {
+      setState(() => _referralOpen = true);
+    }
+  }
+
+  void _goToStep(int step) {
+    setState(() {
+      _stepForward = step > _sellerStep;
+      _sellerStep = step;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _stepperKey.currentContext;
+      if (ctx == null || !ctx.mounted) return;
+      Scrollable.ensureVisible(
+        ctx,
+        duration: AuthMotion.slow,
+        curve: AuthMotion.ease,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      );
+    });
+  }
+
   void _continueSeller() {
+    if (ref.read(authProvider).isLoading) return;
     ref.read(authProvider.notifier).clearError();
     if (!_validateCurrentStep()) {
-      AppHaptics.error();
+      _fail();
       return;
     }
     if (_isLastSellerStep) {
@@ -121,31 +154,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
     AppHaptics.selection();
-    setState(() => _sellerStep += 1);
+    _goToStep(_sellerStep + 1);
   }
 
   void _backSeller() {
     ref.read(authProvider.notifier).clearError();
     if (_sellerStep == 0) return;
-    setState(() => _sellerStep -= 1);
+    _goToStep(_sellerStep - 1);
   }
 
   Future<void> _submit() async {
-    ref.read(authProvider.notifier).clearError();
+    if (ref.read(authProvider).isLoading) return;
+    final notifier = ref.read(authProvider.notifier);
+    notifier.clearError();
 
     final ok = _formKey.currentState?.validate() ?? false;
     if (!ok) {
-      AppHaptics.error();
+      _revealReferralIfInvalid();
+      _fail();
       return;
     }
 
     if (!_acceptTerms) {
-      AppHaptics.error();
-      ref
-          .read(authProvider.notifier)
-          .setErrorMessage(
-            context.tr(AccountCommerceL10n.termsAgreement),
-          );
+      setState(() => _termsError = true);
+      notifier.setErrorMessage(context.tr(AccountCommerceL10n.termsAgreement));
+      _fail();
       return;
     }
 
@@ -153,38 +186,36 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (_isSeller) {
       final filesError = _businessFields.missingFilesMessage();
       if (filesError != null) {
-        AppHaptics.error();
-        ref.read(authProvider.notifier).setErrorMessage(filesError);
+        notifier.setErrorMessage(filesError);
+        _fail();
         return;
       }
       business = _businessFields.toData();
       if (business == null) {
-        AppHaptics.error();
-        ref
-            .read(authProvider.notifier)
-            .setErrorMessage(context.tr(AccountCommerceL10n.sellerIncomplete));
+        notifier.setErrorMessage(
+          context.tr(AccountCommerceL10n.sellerIncomplete),
+        );
+        _fail();
         return;
       }
     }
 
-    final registered = await ref
-        .read(authProvider.notifier)
-        .register(
-          fullName: _fullNameController.text,
-          username: _usernameController.text,
-          email: _emailController.text,
-          password: _passwordController.text,
-          acceptTerms: _acceptTerms,
-          registrationType: _accountType,
-          business: business,
-          profilePicture: _profilePicture,
-          referralEmail: _referralEmailController.text,
-          referralCode: _referralCodeController.text,
-          dateOfBirth: _isSeller ? null : _dateOfBirth,
-        );
+    final registered = await notifier.register(
+      fullName: _fullNameController.text,
+      username: _usernameController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+      acceptTerms: _acceptTerms,
+      registrationType: _accountType,
+      business: business,
+      profilePicture: _profilePicture,
+      referralEmail: _referralEmailController.text,
+      referralCode: _referralCodeController.text,
+      dateOfBirth: _isSeller ? null : _dateOfBirth,
+    );
     if (!mounted) return;
     if (!registered) {
-      AppHaptics.error();
+      _fail();
       return;
     }
     AppHaptics.success();
@@ -194,6 +225,53 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         '${AppRouteNames.verifyOtp}?email=${Uri.encodeComponent(pending)}',
       );
     }
+  }
+
+  Future<void> _pickProfile() async {
+    final file = await pickAuthImage();
+    if (file == null || !mounted) return;
+    AppHaptics.selection();
+    setState(() => _profilePicture = file);
+  }
+
+  Widget _stepBody(bool loading) {
+    if (!_isSeller || _sellerStep == 0) {
+      return _BasicDetailsFields(
+        fullNameController: _fullNameController,
+        usernameController: _usernameController,
+        emailController: _emailController,
+        passwordController: _passwordController,
+        referralEmailController: _referralEmailController,
+        referralCodeController: _referralCodeController,
+        profilePicture: _profilePicture,
+        isLoading: loading,
+        showDateOfBirth: !_isSeller,
+        dateOfBirth: _dateOfBirth,
+        referralOpen: _referralOpen,
+        onToggleReferral: () => setState(() => _referralOpen = !_referralOpen),
+        onDateOfBirthChanged: (value) => setState(() => _dateOfBirth = value),
+        onPickProfile: _pickProfile,
+      );
+    }
+    return switch (_sellerStep) {
+      1 => BusinessCompanyStep(
+        controller: _businessFields,
+        enabled: !loading,
+        logoError: _logoError,
+        onChanged: () => setState(() {}),
+      ),
+      2 => BusinessAddressStep(controller: _businessFields, enabled: !loading),
+      3 => BusinessContactsKycStep(
+        controller: _businessFields,
+        enabled: !loading,
+        onChanged: () => setState(() {}),
+      ),
+      _ => BusinessBankStep(
+        controller: _businessFields,
+        enabled: !loading,
+        onChanged: () => setState(() {}),
+      ),
+    };
   }
 
   @override
@@ -216,199 +294,268 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       });
     }
 
-    return AppScaffold(
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 540),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.s24),
-                child: SingleChildScrollView(
-                  child: Column(
+    final loading = authState.isLoading;
+    final p = AuthPalette.of(context);
+    final showTerms = !_isSeller || _isLastSellerStep;
+    final dir = _stepForward ? 1.0 : -1.0;
+
+    return AuthShell(
+      child: AutofillGroup(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AuthHero(
+                cut: _isSeller ? GemCut.emerald : GemCut.oval,
+                eyebrow: context.tr(
+                  _isSeller
+                      ? AccountCommerceL10n.sellerAccount
+                      : AccountCommerceL10n.newAccount,
+                ),
+                title: context.tr(
+                  _isSeller ? AuthL10n.sellerTitle : AuthL10n.registerTitle,
+                ),
+                subtitle: AnimatedSwitcher(
+                  duration: AuthMotion.base,
+                  child: Text(
+                    context.tr(
+                      _isSeller
+                          ? AuthL10n.sellerSubtitle
+                          : AuthL10n.registerSubtitle,
+                    ),
+                    key: ValueKey(_isSeller),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AuthSpace.s24),
+              AuthReveal(
+                index: 4,
+                child: AuthSegmented<RegistrationAccountType>(
+                  value: _accountType,
+                  enabled: !loading,
+                  onChanged: _onAccountTypeChanged,
+                  segments: [
+                    AuthSegment(
+                      value: RegistrationAccountType.individual,
+                      label: context.tr(AuthL10n.individual),
+                      icon: Icons.person_outline_rounded,
+                    ),
+                    AuthSegment(
+                      value: RegistrationAccountType.business,
+                      label: context.tr(AuthL10n.business),
+                      icon: Icons.storefront_outlined,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AuthSpace.s12),
+              AuthReveal(
+                index: 5,
+                child: AnimatedSwitcher(
+                  duration: AuthMotion.base,
+                  child: Row(
+                    key: ValueKey(_isSeller),
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AuthBrandHeader(
-                        eyebrow: _isSeller
-                            ? context.tr(AccountCommerceL10n.sellerAccount)
-                            : context.tr(AccountCommerceL10n.newAccount),
-                        subtitle: _isSeller
-                            ? context.tr(AccountCommerceL10n.forBusinesses)
-                            : context.tr(AccountCommerceL10n.joinGemWorld),
-                      ),
-                      const SizedBox(height: AppSpacing.s24),
-                      Text(
-                        _isSeller
-                            ? context.tr(AccountCommerceL10n.sellerRegistration)
-                            : context.tr(AccountCommerceL10n.register),
-                        style: AppTypography.display.copyWith(
-                          color: AppColors.textPrimary(context),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Icon(
+                          Icons.info_outline_rounded,
+                          size: 15,
+                          color: p.inkMuted,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.s16),
-                      Text(
-                        context.tr(AccountCommerceL10n.accountTypesSeparate),
-                        style: AppTypography.body.copyWith(
-                          color: AppColors.textSecondary(context),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      _AccountTypeSelector(
-                        value: _accountType,
-                        enabled: !authState.isLoading,
-                        onChanged: _onAccountTypeChanged,
-                      ),
-                      const SizedBox(height: AppSpacing.s24),
-                      if (_isSeller) ...[
-                        SellerRegistrationStepHeader(currentStep: _sellerStep),
-                        const SizedBox(height: AppSpacing.s16),
-                      ],
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            if (!_isSeller || _sellerStep == 0)
-                              _BasicDetailsFields(
-                                fullNameController: _fullNameController,
-                                usernameController: _usernameController,
-                                emailController: _emailController,
-                                passwordController: _passwordController,
-                                referralEmailController:
-                                    _referralEmailController,
-                                referralCodeController: _referralCodeController,
-                                obscurePassword: _obscurePassword,
-                                strength: _strength,
-                                profileImageLabel:
-                                    _profileImageLabel ==
-                                        AccountCommerceL10n.uploadProfileImage
-                                    ? context.tr(_profileImageLabel)
-                                    : _profileImageLabel,
-                                isLoading: authState.isLoading,
-                                showDateOfBirth: !_isSeller,
-                                dateOfBirth: _dateOfBirth,
-                                onDateOfBirthChanged: (value) {
-                                  setState(() => _dateOfBirth = value);
-                                },
-                                onToggleObscure: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                                onPasswordChanged: (v) {
-                                  setState(() {
-                                    _strength = evaluatePasswordStrength(v);
-                                  });
-                                },
-                                onPickProfile: () async {
-                                  final picker = ImagePicker();
-                                  final file = await picker.pickImage(
-                                    source: ImageSource.gallery,
-                                    imageQuality: 85,
-                                  );
-                                  if (file == null || !mounted) return;
-                                  setState(() {
-                                    _profilePicture = file;
-                                    _profileImageLabel = file.name;
-                                  });
-                                },
-                              ),
-                            if (_isSeller && _sellerStep == 1)
-                              BusinessCompanyStep(
-                                controller: _businessFields,
-                                enabled: !authState.isLoading,
-                                onChanged: () => setState(() {}),
-                              ),
-                            if (_isSeller && _sellerStep == 2)
-                              BusinessAddressStep(
-                                controller: _businessFields,
-                                enabled: !authState.isLoading,
-                              ),
-                            if (_isSeller && _sellerStep == 3)
-                              BusinessContactsKycStep(
-                                controller: _businessFields,
-                                enabled: !authState.isLoading,
-                                onChanged: () => setState(() {}),
-                              ),
-                            if (_isSeller && _sellerStep == 4)
-                              BusinessBankStep(
-                                controller: _businessFields,
-                                enabled: !authState.isLoading,
-                                onChanged: () => setState(() {}),
-                              ),
-                            if (!_isSeller || _isLastSellerStep) ...[
-                              const SizedBox(height: AppSpacing.s12),
-                              _TermsCheckbox(
-                                acceptTerms: _acceptTerms,
-                                enabled: !authState.isLoading,
-                                recognizer: _termsTapRecognizer,
-                                onChanged: (v) {
-                                  setState(() => _acceptTerms = v);
-                                },
-                              ),
-                            ],
-                            if (authState.errorMessage != null) ...[
-                              const SizedBox(height: AppSpacing.s16),
-                              Text(
-                                authState.errorMessage!,
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.error,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: AppSpacing.s16),
-                            if (_isSeller)
-                              _SellerStepActions(
-                                step: _sellerStep,
-                                isLoading: authState.isLoading,
-                                isLastStep: _isLastSellerStep,
-                                onBack: _backSeller,
-                                onContinue: _continueSeller,
-                              )
-                            else
-                              SizedBox(
-                                width: double.infinity,
-                                child: FilledButton(
-                                  onPressed: authState.isLoading
-                                      ? null
-                                      : _submit,
-                                  style: authFilledButtonStyle(context),
-                                  child: authState.isLoading
-                                      ? authButtonSpinner(context)
-                                      : Text(
-                                          'Create account \u2192',
-                                          style: AppTypography.label.copyWith(
-                                            color: AppColors.onSelected(
-                                              context,
-                                            ),
-                                          ),
-                                        ),
-                                ),
-                              ),
-                            const SizedBox(height: AppSpacing.s24),
-                            Center(
-                              child: TextButton(
-                                onPressed: authState.isLoading
-                                    ? null
-                                    : () => context.go(AppRouteNames.login),
-                                child: Text(
-                                  context.tr(
-                                    AccountCommerceL10n.alreadyRegistered,
-                                  ),
-                                  style: AppTypography.label.copyWith(
-                                    color: AppColors.textPrimary(context),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                      const SizedBox(width: AuthSpace.s8),
+                      Expanded(
+                        child: Text(
+                          context.tr(
+                            _isSeller
+                                ? AuthL10n.businessHint
+                                : AuthL10n.individualHint,
+                          ),
+                          style: AuthType.caption(p),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-            ),
+              const SizedBox(height: AuthSpace.s32),
+              AnimatedSize(
+                duration: AuthMotion.base,
+                curve: AuthMotion.ease,
+                alignment: Alignment.topCenter,
+                child: _isSeller
+                    ? Padding(
+                        key: _stepperKey,
+                        padding: const EdgeInsets.only(bottom: AuthSpace.s24),
+                        child: AuthStepper(
+                          current: _sellerStep,
+                          titles: [
+                            for (final t in SellerRegistrationSteps.titles)
+                              context.tr(t),
+                          ],
+                          hints: [
+                            for (final h in SellerRegistrationSteps.hints)
+                              context.tr(h),
+                          ],
+                        ),
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
+              AuthReveal(
+                index: 6,
+                child: AuthShake(
+                  trigger: _shake,
+                  child: AnimatedSwitcher(
+                    duration: AuthMotion.slow,
+                    switchInCurve: AuthMotion.ease,
+                    switchOutCurve: Curves.easeIn,
+                    layoutBuilder: (top, rest) => Stack(
+                      alignment: Alignment.topCenter,
+                      children: [...rest, ?top],
+                    ),
+                    transitionBuilder: (child, a) => FadeTransition(
+                      opacity: a,
+                      child: SlideTransition(
+                        position: Tween(
+                          begin: Offset(0.06 * dir, 0),
+                          end: Offset.zero,
+                        ).animate(a),
+                        child: child,
+                      ),
+                    ),
+                    child: KeyedSubtree(
+                      key: ValueKey('${_accountType.name}-$_sellerStep'),
+                      child: _stepBody(loading),
+                    ),
+                  ),
+                ),
+              ),
+              if (showTerms) ...[
+                const SizedBox(height: AuthSpace.s20),
+                AuthCheckbox(
+                  value: _acceptTerms,
+                  enabled: !loading,
+                  error: _termsError && !_acceptTerms,
+                  onChanged: (v) => setState(() {
+                    _acceptTerms = v;
+                    if (v) _termsError = false;
+                  }),
+                  child: Text.rich(
+                    TextSpan(
+                      style: AuthType.caption(
+                        p,
+                      ).copyWith(fontSize: 13.5, color: p.inkSoft),
+                      children: [
+                        TextSpan(
+                          text: context.tr(
+                            AccountCommerceL10n.agreeToTermsIntro,
+                          ),
+                        ),
+                        TextSpan(
+                          text: context.tr(
+                            AccountCommerceL10n.termsOfServiceLink,
+                          ),
+                          style: TextStyle(
+                            color: p.accent,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                            decorationColor: p.accent.withValues(alpha: 0.5),
+                          ),
+                          recognizer: _termsTapRecognizer,
+                        ),
+                        TextSpan(
+                          text: context.tr(AccountCommerceL10n.agreeToTermsAnd),
+                        ),
+                        TextSpan(
+                          text: context.tr(
+                            AccountCommerceL10n.ethicalSourcingPolicyLink,
+                          ),
+                          style: TextStyle(
+                            color: p.accent,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                            decorationColor: p.accent.withValues(alpha: 0.5),
+                          ),
+                          recognizer: _termsTapRecognizer,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: AuthSpace.s20),
+              AuthErrorBanner(
+                message: authState.errorMessage,
+                onDismiss: () => ref.read(authProvider.notifier).clearError(),
+              ),
+              if (_isSeller)
+                Row(
+                  children: [
+                    AnimatedSize(
+                      duration: AuthMotion.base,
+                      curve: AuthMotion.ease,
+                      child: _sellerStep > 0
+                          ? Padding(
+                              padding: const EdgeInsets.only(
+                                right: AuthSpace.s12,
+                              ),
+                              child: SizedBox(
+                                width: 112,
+                                child: AuthSecondaryButton(
+                                  label: context.tr(AuthL10n.back),
+                                  icon: Icons.arrow_back_rounded,
+                                  onPressed: loading ? null : _backSeller,
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    Expanded(
+                      child: AuthPrimaryButton(
+                        label: context.tr(
+                          _isLastSellerStep
+                              ? AuthL10n.createSellerAccount
+                              : AuthL10n.continueAction,
+                        ),
+                        icon: _isLastSellerStep
+                            ? Icons.check_rounded
+                            : Icons.arrow_forward_rounded,
+                        loading: loading,
+                        onPressed: _continueSeller,
+                      ),
+                    ),
+                  ],
+                )
+              else
+                AuthPrimaryButton(
+                  label: context.tr(AuthL10n.createAccount),
+                  loading: loading,
+                  onPressed: _submit,
+                ),
+              const SizedBox(height: AuthSpace.s24),
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: AuthSpace.s8,
+                children: [
+                  Text(
+                    context.tr(AuthL10n.haveAccount),
+                    style: AuthType.caption(p).copyWith(fontSize: 13.5),
+                  ),
+                  AuthTextLink(
+                    emphasis: true,
+                    label: context.tr(AuthL10n.signIn),
+                    onPressed: loading
+                        ? null
+                        : () => context.go(AppRouteNames.login),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -424,15 +571,13 @@ class _BasicDetailsFields extends StatelessWidget {
     required this.passwordController,
     required this.referralEmailController,
     required this.referralCodeController,
-    required this.obscurePassword,
-    required this.strength,
-    required this.profileImageLabel,
+    required this.profilePicture,
     required this.isLoading,
     required this.showDateOfBirth,
     required this.dateOfBirth,
+    required this.referralOpen,
+    required this.onToggleReferral,
     required this.onDateOfBirthChanged,
-    required this.onToggleObscure,
-    required this.onPasswordChanged,
     required this.onPickProfile,
   });
 
@@ -442,15 +587,13 @@ class _BasicDetailsFields extends StatelessWidget {
   final TextEditingController passwordController;
   final TextEditingController referralEmailController;
   final TextEditingController referralCodeController;
-  final bool obscurePassword;
-  final PasswordStrength strength;
-  final String profileImageLabel;
+  final XFile? profilePicture;
   final bool isLoading;
   final bool showDateOfBirth;
   final DateTime? dateOfBirth;
+  final bool referralOpen;
+  final VoidCallback onToggleReferral;
   final ValueChanged<DateTime?> onDateOfBirthChanged;
-  final VoidCallback onToggleObscure;
-  final ValueChanged<String> onPasswordChanged;
   final VoidCallback onPickProfile;
 
   Future<DateTime?> _pickDateOfBirth(BuildContext context) async {
@@ -461,6 +604,8 @@ class _BasicDetailsFields extends StatelessWidget {
       initialDate: dateOfBirth ?? adultCutoff,
       firstDate: DateTime(1900),
       lastDate: adultCutoff,
+      initialEntryMode: DatePickerEntryMode.calendarOnly,
+      initialDatePickerMode: DatePickerMode.year,
       helpText: context.tr(AccountCommerceL10n.selectDateOfBirth),
     );
     if (picked == null) return null;
@@ -470,15 +615,26 @@ class _BasicDetailsFields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const gap = SizedBox(height: AuthSpace.s12);
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextFormField(
-          controller: fullNameController,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.fullName),
-            prefixIcon: const Icon(Icons.person_outline),
+        Center(
+          child: AuthAvatarPicker(
+            file: profilePicture,
+            enabled: !isLoading,
+            onPick: onPickProfile,
           ),
+        ),
+        const SizedBox(height: AuthSpace.s24),
+        AuthSectionLabel(context.tr(AuthL10n.sectionDetails)),
+        AuthTextField(
+          controller: fullNameController,
+          label: context.tr(AccountCommerceL10n.fullName),
+          icon: Icons.person_outline_rounded,
+          textCapitalization: TextCapitalization.words,
+          autofillHints: const [AutofillHints.name],
+          enabled: !isLoading,
           validator: (value) {
             final v = value?.trim() ?? '';
             if (v.isEmpty) {
@@ -487,29 +643,29 @@ class _BasicDetailsFields extends StatelessWidget {
             return null;
           },
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
+        gap,
+        AuthTextField(
           controller: usernameController,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.username),
-            prefixIcon: const Icon(Icons.person_outline),
-          ),
+          label: context.tr(AccountCommerceL10n.username),
+          icon: Icons.alternate_email_rounded,
+          autofillHints: const [AutofillHints.newUsername],
+          enabled: !isLoading,
           validator: (value) {
             final v = value?.trim() ?? '';
-            if (v.isEmpty) return 'Username is required';
+            if (v.isEmpty) {
+              return context.tr(AccountCommerceL10n.usernameRequired);
+            }
             return null;
           },
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
+        gap,
+        AuthTextField(
           controller: emailController,
+          label: context.tr(AccountCommerceL10n.emailAddress),
+          icon: Icons.mail_outline_rounded,
           keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.emailAddress),
-            prefixIcon: const Icon(Icons.mail_outline),
-          ),
+          autofillHints: const [AutofillHints.email],
+          enabled: !isLoading,
           validator: (value) {
             final v = value?.trim() ?? '';
             if (v.isEmpty) return context.tr(AccountCommerceL10n.emailRequired);
@@ -520,10 +676,14 @@ class _BasicDetailsFields extends StatelessWidget {
           },
         ),
         if (showDateOfBirth) ...[
-          const SizedBox(height: AppSpacing.s16),
-          FormField<DateTime>(
-            key: ValueKey(dateOfBirth?.millisecondsSinceEpoch ?? 0),
-            initialValue: dateOfBirth,
+          gap,
+          AuthDateField(
+            label: context.tr(AccountCommerceL10n.dateOfBirth),
+            placeholder: context.tr(AccountCommerceL10n.selectDateOfBirth),
+            value: dateOfBirth,
+            format: formatDateOfBirthDisplay,
+            enabled: !isLoading,
+            onPick: () => _pickDateOfBirth(context),
             validator: (_) {
               if (dateOfBirth == null) {
                 return context.tr(AccountCommerceL10n.dateOfBirthRequired);
@@ -538,63 +698,16 @@ class _BasicDetailsFields extends StatelessWidget {
               }
               return context.tr(AccountCommerceL10n.dateOfBirthInvalid);
             },
-            builder: (field) {
-              final selected = dateOfBirth;
-              return InputDecorator(
-                decoration: InputDecoration(
-                  labelText: context.tr(AccountCommerceL10n.dateOfBirth),
-                  prefixIcon: const Icon(Icons.cake_outlined),
-                  errorText: field.errorText,
-                  suffixIcon: const Icon(Icons.calendar_today_outlined),
-                ),
-                child: InkWell(
-                  onTap: isLoading
-                      ? null
-                      : () async {
-                          final picked = await _pickDateOfBirth(context);
-                          if (picked != null) field.didChange(picked);
-                        },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      selected == null
-                          ? context.tr(AccountCommerceL10n.selectDateOfBirth)
-                          : formatDateOfBirthDisplay(selected),
-                      style: AppTypography.body.copyWith(
-                        color: selected == null
-                            ? AppColors.textMuted(context)
-                            : AppColors.textPrimary(context),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
           ),
         ],
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
+        const SizedBox(height: AuthSpace.s24),
+        AuthSectionLabel(context.tr(AuthL10n.sectionSecurity)),
+        AuthPasswordField(
           controller: passwordController,
-          obscureText: obscurePassword,
+          label: context.tr(AccountCommerceL10n.password),
           textInputAction: TextInputAction.next,
-          onChanged: onPasswordChanged,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.password),
-            prefixIcon: const Icon(Icons.lock_outline),
-            suffixIconColor: AppColors.textSecondary(context),
-            suffixIcon: IconButton(
-              tooltip: obscurePassword
-                  ? context.tr(AccountCommerceL10n.showPassword)
-                  : context.tr(AccountCommerceL10n.hidePassword),
-              icon: Icon(
-                obscurePassword
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: AppColors.textSecondary(context),
-              ),
-              onPressed: onToggleObscure,
-            ),
-          ),
+          autofillHints: const [AutofillHints.newPassword],
+          enabled: !isLoading,
           validator: (value) {
             final strength = evaluatePasswordStrength((value ?? '').trim());
             if (!strength.isStrong) {
@@ -603,314 +716,48 @@ class _BasicDetailsFields extends StatelessWidget {
             return null;
           },
         ),
-        const SizedBox(height: AppSpacing.s8),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            localizePasswordStrength(context, strength),
-            style: AppTypography.caption.copyWith(
-              color: strength.isStrong
-                  ? AppColors.success
-                  : AppColors.textSecondary(context),
-            ),
-          ),
+        ListenableBuilder(
+          listenable: passwordController,
+          builder: (context, _) =>
+              AuthPasswordMeter(password: passwordController.text),
         ),
-        const SizedBox(height: AppSpacing.s16),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: isLoading ? null : onPickProfile,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                vertical: AppSpacing.s16,
-                horizontal: AppSpacing.s24,
-              ),
-              side: BorderSide(color: AppColors.border(context)),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppSpacing.r8),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.upload_outlined),
-                const SizedBox(width: AppSpacing.s12),
-                Flexible(
-                  child: Text(
-                    profileImageLabel,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: referralEmailController,
-          keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.referralEmail),
-            prefixIcon: const Icon(Icons.mail_outline),
-          ),
-          validator: (value) {
-            final v = value?.trim() ?? '';
-            if (v.isEmpty) return null;
-            if (!isValidEmail(v)) {
-              return context.tr(AccountCommerceL10n.validReferralEmail);
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: referralCodeController,
-          textInputAction: TextInputAction.done,
-          textCapitalization: TextCapitalization.characters,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.referralCode),
-            prefixIcon: const Icon(Icons.card_giftcard_outlined),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TermsCheckbox extends StatelessWidget {
-  const _TermsCheckbox({
-    required this.acceptTerms,
-    required this.enabled,
-    required this.recognizer,
-    required this.onChanged,
-  });
-
-  final bool acceptTerms;
-  final bool enabled;
-  final TapGestureRecognizer recognizer;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Checkbox(
-          value: acceptTerms,
-          onChanged: enabled ? (v) => onChanged(v ?? false) : null,
-        ),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: AppTypography.body.copyWith(
-                color: AppColors.textSecondary(context),
-              ),
-              children: [
-                TextSpan(
-                  text: context.tr(AccountCommerceL10n.agreeToTermsIntro),
-                ),
-                TextSpan(
-                  text: context.tr(AccountCommerceL10n.termsOfServiceLink),
-                  style: AppTypography.body.copyWith(
-                    color: AppColors.textPrimary(context),
-                    decoration: TextDecoration.underline,
-                  ),
-                  recognizer: recognizer,
-                ),
-                TextSpan(text: context.tr(AccountCommerceL10n.agreeToTermsAnd)),
-                TextSpan(
-                  text: context.tr(
-                    AccountCommerceL10n.ethicalSourcingPolicyLink,
-                  ),
-                  style: AppTypography.body.copyWith(
-                    color: AppColors.textPrimary(context),
-                    decoration: TextDecoration.underline,
-                  ),
-                  recognizer: recognizer,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SellerStepActions extends StatelessWidget {
-  const _SellerStepActions({
-    required this.step,
-    required this.isLoading,
-    required this.isLastStep,
-    required this.onBack,
-    required this.onContinue,
-  });
-
-  final int step;
-  final bool isLoading;
-  final bool isLastStep;
-  final VoidCallback onBack;
-  final VoidCallback onContinue;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        if (step > 0) ...[
-          Expanded(
-            child: OutlinedButton(
-              onPressed: isLoading ? null : onBack,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.s16,
-                  horizontal: AppSpacing.s16,
-                ),
-                side: BorderSide(color: AppColors.border(context)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
-                ),
-              ),
-              child: Text(
-                'Back',
-                style: AppTypography.label.copyWith(
-                  color: AppColors.textPrimary(context),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.s12),
-        ],
-        Expanded(
-          flex: step > 0 ? 2 : 1,
-          child: FilledButton(
-            onPressed: isLoading ? null : onContinue,
-            style: authFilledButtonStyle(context),
-            child: isLoading
-                ? authButtonSpinner(context)
-                : Text(
-                    isLastStep
-                        ? 'Create seller account \u2192'
-                        : 'Continue \u2192',
-                    style: AppTypography.label.copyWith(
-                      color: AppColors.onSelected(context),
-                    ),
-                  ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _AccountTypeSelector extends StatelessWidget {
-  const _AccountTypeSelector({
-    required this.value,
-    required this.enabled,
-    required this.onChanged,
-  });
-
-  final RegistrationAccountType value;
-  final bool enabled;
-  final ValueChanged<RegistrationAccountType> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _AccountTypeCard(
-            selected: value == RegistrationAccountType.individual,
-            enabled: enabled,
-            icon: Icons.person_outline,
-            title: context.tr(AccountCommerceL10n.individual),
-            subtitle:
-                'Buy and browse only — create a separate business account later to sell',
-            onTap: () => onChanged(RegistrationAccountType.individual),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.s12),
-        Expanded(
-          child: _AccountTypeCard(
-            selected: value == RegistrationAccountType.business,
-            enabled: enabled,
-            icon: Icons.storefront_outlined,
-            title: context.tr(AccountCommerceL10n.forBusinesses),
-            subtitle:
-                'Dedicated seller account — cannot share an individual login',
-            onTap: () => onChanged(RegistrationAccountType.business),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _AccountTypeCard extends StatelessWidget {
-  const _AccountTypeCard({
-    required this.selected,
-    required this.enabled,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final bool selected;
-  final bool enabled;
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: selected ? AppColors.surface(context) : AppColors.card(context),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.r8),
-        side: BorderSide(
-          color: selected
-              ? AppColors.selectedFill(context)
-              : AppColors.border(context),
-          width: selected ? 1.5 : 1,
-        ),
-      ),
-      child: InkWell(
-        onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(AppSpacing.r8),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.s12),
+        const SizedBox(height: AuthSpace.s16),
+        AuthCollapsible(
+          title: context.tr(AuthL10n.referralToggle),
+          trailing: context.tr(AuthL10n.optional),
+          icon: Icons.card_giftcard_outlined,
+          open: referralOpen,
+          onToggle: onToggleReferral,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                icon,
-                color: selected
-                    ? AppColors.textPrimary(context)
-                    : AppColors.textSecondary(context),
+              AuthTextField(
+                controller: referralEmailController,
+                label: context.tr(AccountCommerceL10n.referralEmail),
+                icon: Icons.mail_outline_rounded,
+                keyboardType: TextInputType.emailAddress,
+                enabled: !isLoading,
+                validator: (value) {
+                  final v = value?.trim() ?? '';
+                  if (v.isEmpty) return null;
+                  if (!isValidEmail(v)) {
+                    return context.tr(AccountCommerceL10n.validReferralEmail);
+                  }
+                  return null;
+                },
               ),
-              const SizedBox(height: AppSpacing.s8),
-              Text(
-                title,
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary(context),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s4),
-              Text(
-                subtitle,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondary(context),
-                ),
+              gap,
+              AuthTextField(
+                controller: referralCodeController,
+                label: context.tr(AccountCommerceL10n.referralCode),
+                icon: Icons.confirmation_number_outlined,
+                textInputAction: TextInputAction.done,
+                textCapitalization: TextCapitalization.characters,
+                enabled: !isLoading,
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }

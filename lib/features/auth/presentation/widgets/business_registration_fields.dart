@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-
-import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/auth/business_registration_data.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import 'kit/auth_kit.dart';
 
 /// Owns business-registration form controllers and picked files.
 class BusinessRegistrationFieldsController {
@@ -136,17 +133,70 @@ class BusinessRegistrationFieldsController {
   String? missingFilesMessage() => missingCompanyLogoMessage();
 }
 
-/// Seller registration step titles (steps 2–5; step 1 is basic details).
+/// Seller registration steps (step 1 is basic details).
 abstract final class SellerRegistrationSteps {
   static const titles = <String>[
     AccountCommerceL10n.basicDetails,
     AccountCommerceL10n.companyDetails,
-    AccountCommerceL10n.addressLine1,
+    AuthL10n.stepAddress,
     AccountCommerceL10n.contactsKyc,
     AccountCommerceL10n.bankAccount,
   ];
 
+  static const hints = <String>[
+    AuthL10n.stepHintBasic,
+    AuthL10n.stepHintCompany,
+    AuthL10n.stepHintAddress,
+    AuthL10n.stepHintKyc,
+    AuthL10n.stepHintBank,
+  ];
+
   static const count = 5;
+}
+
+const _gap = SizedBox(height: AuthSpace.s12);
+const _sectionGap = SizedBox(height: AuthSpace.s24);
+
+/// Two fields side by side on roomy widths, stacked on narrow ones.
+class _Pair extends StatelessWidget {
+  const _Pair(this.first, this.second);
+
+  final Widget first;
+  final Widget second;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, c) {
+        if (c.maxWidth < 340) {
+          return Column(children: [first, _gap, second]);
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: first),
+            const SizedBox(width: AuthSpace.s12),
+            Expanded(child: second),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _FieldCaption extends StatelessWidget {
+  const _FieldCaption(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = AuthPalette.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(left: AuthSpace.s4, bottom: AuthSpace.s8),
+      child: Text(text, style: AuthType.caption(p).copyWith(color: p.inkSoft)),
+    );
+  }
 }
 
 class BusinessCompanyStep extends StatelessWidget {
@@ -155,29 +205,25 @@ class BusinessCompanyStep extends StatelessWidget {
     required this.controller,
     required this.enabled,
     required this.onChanged,
+    this.logoError = false,
   });
 
   final BusinessRegistrationFieldsController controller;
   final bool enabled;
   final VoidCallback onChanged;
 
+  /// Highlights the logo tile after a failed attempt to continue.
+  final bool logoError;
+
   Future<void> _pickLogo() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 85,
-    );
+    final file = await pickAuthImage();
     if (file == null) return;
     controller.companyLogo = file;
     onChanged();
   }
 
   Future<void> _pickBanner() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 85,
-    );
+    final file = await pickAuthImage();
     if (file == null) return;
     controller.bannerImage = file;
     onChanged();
@@ -188,58 +234,48 @@ class BusinessCompanyStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextFormField(
+        AuthTextField(
           controller: controller.companyName,
           enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.companyName),
-            prefixIcon: const Icon(Icons.apartment_outlined),
-          ),
+          label: context.tr(AccountCommerceL10n.companyName),
+          icon: Icons.apartment_outlined,
+          autofillHints: const [AutofillHints.organizationName],
           validator: _required(
             context.tr(AccountCommerceL10n.companyNameRequired),
           ),
         ),
-        const SizedBox(height: AppSpacing.s16),
-        DropdownButtonFormField<SellerType>(
-          key: ValueKey(controller.sellerType),
-          initialValue: controller.sellerType,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.sellerType),
-            prefixIcon: const Icon(Icons.category_outlined),
-          ),
-          items: [
+        _sectionGap,
+        _FieldCaption(context.tr(AccountCommerceL10n.sellerType)),
+        AuthChoiceChips<SellerType>(
+          value: controller.sellerType,
+          enabled: enabled,
+          options: [
             for (final type in SellerType.values)
-              DropdownMenuItem(
-                value: type,
-                child: Text(context.tr(type.labelKey)),
-              ),
+              AuthSegment(value: type, label: context.tr(type.labelKey)),
           ],
-          onChanged: enabled
-              ? (value) {
-                  if (value == null) return;
-                  controller.sellerType = value;
-                  onChanged();
-                }
-              : null,
+          onChanged: (value) {
+            controller.sellerType = value;
+            onChanged();
+          },
         ),
-        const SizedBox(height: AppSpacing.s16),
-        _FilePickButton(
-          label:
-              controller.companyLogo?.name ??
-              context.tr(AccountCommerceL10n.uploadCompanyLogo),
-          icon: Icons.add_photo_alternate_outlined,
+        _sectionGap,
+        AuthUploadTile(
+          title: context.tr(AuthL10n.companyLogo),
+          hint: context.tr(AuthL10n.companyLogoHint),
+          file: controller.companyLogo,
+          required: true,
+          error: logoError && controller.companyLogo == null,
           enabled: enabled,
-          onPressed: _pickLogo,
+          onPick: _pickLogo,
         ),
-        const SizedBox(height: AppSpacing.s16),
-        _FilePickButton(
-          label:
-              controller.bannerImage?.name ??
-              context.tr(AccountCommerceL10n.uploadBanner),
-          icon: Icons.image_outlined,
+        _gap,
+        AuthUploadTile(
+          title: context.tr(AuthL10n.bannerImage),
+          hint: context.tr(AuthL10n.bannerImageHint),
+          file: controller.bannerImage,
+          icon: Icons.panorama_outlined,
           enabled: enabled,
-          onPressed: _pickBanner,
+          onPick: _pickBanner,
         ),
       ],
     );
@@ -261,76 +297,67 @@ class BusinessAddressStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextFormField(
+        AuthTextField(
           controller: controller.addressLine1,
           enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.addressLine1),
-            prefixIcon: const Icon(Icons.home_outlined),
-          ),
+          label: context.tr(AccountCommerceL10n.addressLine1),
+          icon: Icons.home_outlined,
+          autofillHints: const [AutofillHints.streetAddressLine1],
           validator: _required(
             context.tr(AccountCommerceL10n.address1Required),
           ),
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
+        _gap,
+        AuthTextField(
           controller: controller.addressLine2,
           enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.addressLine2),
-            prefixIcon: const Icon(Icons.home_work_outlined),
-          ),
+          label: context.tr(AccountCommerceL10n.addressLine2),
+          icon: Icons.home_work_outlined,
+          autofillHints: const [AutofillHints.streetAddressLine2],
           validator: _required(
             context.tr(AccountCommerceL10n.address2Required),
           ),
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: controller.city,
-          enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.city),
-            prefixIcon: const Icon(Icons.location_city_outlined),
+        _gap,
+        _Pair(
+          AuthTextField(
+            controller: controller.city,
+            enabled: enabled,
+            label: context.tr(AccountCommerceL10n.city),
+            autofillHints: const [AutofillHints.addressCity],
+            validator: _required(context.tr(AccountCommerceL10n.cityRequired)),
           ),
-          validator: _required(context.tr(AccountCommerceL10n.cityRequired)),
+          AuthTextField(
+            controller: controller.state,
+            enabled: enabled,
+            label: context.tr(AccountCommerceL10n.stateProvince),
+            autofillHints: const [AutofillHints.addressState],
+            validator: _required(context.tr(AccountCommerceL10n.stateRequired)),
+          ),
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: controller.state,
-          enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.stateProvince),
-            prefixIcon: const Icon(Icons.map_outlined),
+        _gap,
+        _Pair(
+          AuthTextField(
+            controller: controller.country,
+            enabled: enabled,
+            label: context.tr(AccountCommerceL10n.country),
+            autofillHints: const [AutofillHints.countryName],
+            validator: _required(
+              context.tr(AccountCommerceL10n.countryRequired),
+            ),
           ),
-          validator: _required(context.tr(AccountCommerceL10n.stateRequired)),
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: controller.country,
-          enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.country),
-            prefixIcon: const Icon(Icons.public_outlined),
+          AuthTextField(
+            controller: controller.zipCode,
+            enabled: enabled,
+            label: context.tr(AccountCommerceL10n.postalCode),
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
+            autofillHints: const [AutofillHints.postalCode],
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            validator: _required(
+              context.tr(AccountCommerceL10n.postalRequired),
+            ),
           ),
-          validator: _required(context.tr(AccountCommerceL10n.countryRequired)),
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: controller.zipCode,
-          enabled: enabled,
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.done,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.postalCode),
-            prefixIcon: const Icon(Icons.markunread_mailbox_outlined),
-          ),
-          validator: _required(context.tr(AccountCommerceL10n.postalRequired)),
         ),
       ],
     );
@@ -350,11 +377,7 @@ class BusinessContactsKycStep extends StatelessWidget {
   final VoidCallback onChanged;
 
   Future<void> _pickPan() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 85,
-    );
+    final file = await pickAuthImage();
     if (file == null) return;
     controller.panCard = file;
     onChanged();
@@ -362,106 +385,89 @@ class BusinessContactsKycStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String? phone(String? value, String requiredKey) {
+      final v = value?.trim() ?? '';
+      if (v.isEmpty) return context.tr(requiredKey);
+      if (!isValidIndianPhone(v)) {
+        return context.tr(AccountCommerceL10n.validPhone);
+      }
+      return null;
+    }
+
+    final phoneFormatters = [
+      FilteringTextInputFormatter.digitsOnly,
+      LengthLimitingTextInputFormatter(10),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextFormField(
-          controller: controller.phone1,
-          enabled: enabled,
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.next,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
-          ],
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.primaryPhone),
-            prefixIcon: const Icon(Icons.phone_outlined),
+        AuthSectionLabel(context.tr(AuthL10n.sectionContacts)),
+        _Pair(
+          AuthTextField(
+            controller: controller.phone1,
+            enabled: enabled,
+            label: context.tr(AccountCommerceL10n.primaryPhone),
+            icon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+            autofillHints: const [AutofillHints.telephoneNumberNational],
+            inputFormatters: phoneFormatters,
+            validator: (v) => phone(v, AccountCommerceL10n.phone1Required),
           ),
-          validator: (value) {
-            final v = value?.trim() ?? '';
-            if (v.isEmpty) {
-              return context.tr(AccountCommerceL10n.phone1Required);
-            }
-            if (!isValidIndianPhone(v)) {
-              return context.tr(AccountCommerceL10n.validPhone);
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: controller.phone2,
-          enabled: enabled,
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.next,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
-          ],
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.secondaryPhone),
-            prefixIcon: const Icon(Icons.phone_android_outlined),
+          AuthTextField(
+            controller: controller.phone2,
+            enabled: enabled,
+            label: context.tr(AccountCommerceL10n.secondaryPhone),
+            icon: Icons.phone_android_outlined,
+            keyboardType: TextInputType.phone,
+            inputFormatters: phoneFormatters,
+            validator: (v) => phone(v, AccountCommerceL10n.phone2Required),
           ),
-          validator: (value) {
-            final v = value?.trim() ?? '';
-            if (v.isEmpty) {
-              return context.tr(AccountCommerceL10n.phone2Required);
-            }
-            if (!isValidIndianPhone(v)) {
-              return context.tr(AccountCommerceL10n.validPhone);
-            }
-            return null;
-          },
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
+        _gap,
+        AuthTextField(
           controller: controller.representativeName1,
           enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.representative1),
-            prefixIcon: const Icon(Icons.badge_outlined),
-          ),
+          label: context.tr(AccountCommerceL10n.representative1),
+          icon: Icons.badge_outlined,
+          textCapitalization: TextCapitalization.words,
           validator: _required(context.tr(AccountCommerceL10n.rep1Required)),
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
+        _gap,
+        AuthTextField(
           controller: controller.representativeName2,
           enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.representative2),
-            prefixIcon: const Icon(Icons.badge_outlined),
-          ),
+          label: context.tr(AccountCommerceL10n.representative2),
+          icon: Icons.badge_outlined,
+          textCapitalization: TextCapitalization.words,
           validator: _required(context.tr(AccountCommerceL10n.rep2Required)),
         ),
-        const SizedBox(height: AppSpacing.s16),
+        _sectionGap,
+        AuthSectionLabel(context.tr(AuthL10n.sectionIdentity)),
         _PanCardNumberField(
           controller: controller.panCardNumber,
           enabled: enabled,
         ),
-        const SizedBox(height: AppSpacing.s16),
-        _FilePickButton(
-          label: controller.panCard?.name ?? 'Upload PAN card image',
+        _gap,
+        AuthUploadTile(
+          title: context.tr(AuthL10n.panCardImage),
+          hint: context.tr(AuthL10n.panCardImageHint),
+          file: controller.panCard,
           icon: Icons.upload_file_outlined,
           enabled: enabled,
-          onPressed: _pickPan,
+          onPick: _pickPan,
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
+        _gap,
+        AuthTextField(
           controller: controller.aadhaarNumber,
           enabled: enabled,
+          label: context.tr(AccountCommerceL10n.aadhaarNumber),
+          icon: Icons.fingerprint,
           keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.next,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
             LengthLimitingTextInputFormatter(12),
           ],
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.aadhaarNumber),
-            prefixIcon: const Icon(Icons.fingerprint),
-          ),
           validator: (value) {
             final v = value?.trim() ?? '';
             if (v.isEmpty) {
@@ -473,26 +479,20 @@ class BusinessContactsKycStep extends StatelessWidget {
             return null;
           },
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: controller.iecNumber,
-          enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.iecNumber),
-            prefixIcon: const Icon(Icons.receipt_long_outlined),
+        _gap,
+        _Pair(
+          AuthTextField(
+            controller: controller.iecNumber,
+            enabled: enabled,
+            label: context.tr(AccountCommerceL10n.iecNumber),
+            validator: _required(context.tr(AccountCommerceL10n.iecRequired)),
           ),
-          validator: _required(context.tr(AccountCommerceL10n.iecRequired)),
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: controller.gstNumber,
-          enabled: enabled,
-          textCapitalization: TextCapitalization.characters,
-          textInputAction: TextInputAction.done,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.gstNumber),
-            prefixIcon: const Icon(Icons.receipt_outlined),
+          AuthTextField(
+            controller: controller.gstNumber,
+            enabled: enabled,
+            label: context.tr(AccountCommerceL10n.gstNumber),
+            textCapitalization: TextCapitalization.characters,
+            textInputAction: TextInputAction.done,
           ),
         ),
       ],
@@ -517,107 +517,87 @@ class BusinessBankStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextFormField(
+        AuthSectionLabel(context.tr(AuthL10n.sectionPayouts)),
+        AuthTextField(
           controller: controller.accountHolderName,
           enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.accountHolderName),
-            prefixIcon: const Icon(Icons.person_outline),
-          ),
+          label: context.tr(AccountCommerceL10n.accountHolderName),
+          icon: Icons.person_outline_rounded,
+          textCapitalization: TextCapitalization.words,
           validator: _required(context.tr(AccountCommerceL10n.holderRequired)),
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
+        _gap,
+        AuthTextField(
           controller: controller.accountNumber,
           enabled: enabled,
+          label: context.tr(AccountCommerceL10n.accountNumber),
+          icon: Icons.account_balance_outlined,
           keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.next,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
             LengthLimitingTextInputFormatter(20),
           ],
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.accountNumber),
-            prefixIcon: const Icon(Icons.account_balance_outlined),
-          ),
           validator: (value) {
             final v = value?.trim() ?? '';
             if (v.isEmpty) {
               return context.tr(AccountCommerceL10n.accountNumberRequired);
             }
             if (!isValidBankAccountNumber(v)) {
-              return 'Account number must be 8–20 digits';
+              return context.tr(AuthL10n.accountNumberDigits);
             }
             return null;
           },
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: controller.ifscCode,
-          enabled: enabled,
-          textCapitalization: TextCapitalization.characters,
-          textInputAction: TextInputAction.next,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-            LengthLimitingTextInputFormatter(11),
-          ],
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.ifscCode),
-            prefixIcon: const Icon(Icons.qr_code_outlined),
+        _gap,
+        _Pair(
+          AuthTextField(
+            controller: controller.ifscCode,
+            enabled: enabled,
+            label: context.tr(AccountCommerceL10n.ifscCode),
+            textCapitalization: TextCapitalization.characters,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+              LengthLimitingTextInputFormatter(11),
+            ],
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (v.isEmpty) {
+                return context.tr(AccountCommerceL10n.ifscRequired);
+              }
+              if (!isValidIfsc(v)) {
+                return context.tr(AccountCommerceL10n.validIfsc);
+              }
+              return null;
+            },
           ),
-          validator: (value) {
-            final v = value?.trim() ?? '';
-            if (v.isEmpty) return context.tr(AccountCommerceL10n.ifscRequired);
-            if (!isValidIfsc(v)) {
-              return context.tr(AccountCommerceL10n.validIfsc);
-            }
-            return null;
-          },
+          AuthTextField(
+            controller: controller.bankName,
+            enabled: enabled,
+            label: context.tr(AccountCommerceL10n.bankName),
+            validator: _required(context.tr(AccountCommerceL10n.bankRequired)),
+          ),
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
-          controller: controller.bankName,
+        _sectionGap,
+        _FieldCaption(context.tr(AccountCommerceL10n.accountTypeOptional)),
+        AuthSegmented<BankAccountType>(
+          value: controller.accountType,
           enabled: enabled,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.bankName),
-            prefixIcon: const Icon(Icons.account_balance),
-          ),
-          validator: _required(context.tr(AccountCommerceL10n.bankRequired)),
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        DropdownButtonFormField<BankAccountType>(
-          key: ValueKey(controller.accountType),
-          initialValue: controller.accountType,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.accountTypeOptional),
-            prefixIcon: const Icon(Icons.savings_outlined),
-          ),
-          items: [
+          segments: [
             for (final type in BankAccountType.values)
-              DropdownMenuItem(
-                value: type,
-                child: Text(context.tr(type.labelKey)),
-              ),
+              AuthSegment(value: type, label: context.tr(type.labelKey)),
           ],
-          onChanged: enabled
-              ? (value) {
-                  if (value == null) return;
-                  controller.accountType = value;
-                  onChanged();
-                }
-              : null,
+          onChanged: (value) {
+            controller.accountType = value;
+            onChanged();
+          },
         ),
-        const SizedBox(height: AppSpacing.s16),
-        TextFormField(
+        _gap,
+        AuthTextField(
           controller: controller.upiId,
           enabled: enabled,
+          label: context.tr(AccountCommerceL10n.upiOptional),
+          icon: Icons.alternate_email_rounded,
           textInputAction: TextInputAction.done,
-          decoration: InputDecoration(
-            labelText: context.tr(AccountCommerceL10n.upiOptional),
-            prefixIcon: const Icon(Icons.alternate_email),
-          ),
         ),
       ],
     );
@@ -640,10 +620,7 @@ TextInputType _panKeyboardTypeForLength(int length) {
 }
 
 class _PanCardNumberField extends StatefulWidget {
-  const _PanCardNumberField({
-    required this.controller,
-    required this.enabled,
-  });
+  const _PanCardNumberField({required this.controller, required this.enabled});
 
   final TextEditingController controller;
   final bool enabled;
@@ -684,22 +661,19 @@ class _PanCardNumberFieldState extends State<_PanCardNumberField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    return AuthTextField(
       key: ValueKey(_keyboardType),
       controller: widget.controller,
       focusNode: _focusNode,
       enabled: widget.enabled,
       keyboardType: _keyboardType,
       textCapitalization: TextCapitalization.characters,
-      textInputAction: TextInputAction.next,
       inputFormatters: [
         const _PanCardInputFormatter(),
         LengthLimitingTextInputFormatter(10),
       ],
-      decoration: InputDecoration(
-        labelText: context.tr(AccountCommerceL10n.panNumber),
-        prefixIcon: const Icon(Icons.credit_card_outlined),
-      ),
+      label: context.tr(AccountCommerceL10n.panNumber),
+      icon: Icons.credit_card_outlined,
       validator: (value) {
         final v = value?.trim() ?? '';
         if (v.isEmpty) return context.tr(AccountCommerceL10n.panRequired);
@@ -735,102 +709,6 @@ class _PanCardInputFormatter extends TextInputFormatter {
     return TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
-    );
-  }
-}
-
-class _FilePickButton extends StatelessWidget {
-  const _FilePickButton({
-    required this.label,
-    required this.icon,
-    required this.enabled,
-    required this.onPressed,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool enabled;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton(
-        onPressed: enabled ? onPressed : null,
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.s16,
-            horizontal: AppSpacing.s24,
-          ),
-          side: BorderSide(color: AppColors.border(context)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.r8),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon),
-            const SizedBox(width: AppSpacing.s12),
-            Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Compact step progress for seller registration.
-class SellerRegistrationStepHeader extends StatelessWidget {
-  const SellerRegistrationStepHeader({super.key, required this.currentStep});
-
-  final int currentStep;
-
-  @override
-  Widget build(BuildContext context) {
-    final title = context.tr(SellerRegistrationSteps.titles[currentStep]);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.tr(AccountCommerceL10n.stepOf, {
-            'current': currentStep + 1,
-            'total': SellerRegistrationSteps.count,
-          }),
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textSecondary(context),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.s8),
-        Row(
-          children: [
-            for (var i = 0; i < SellerRegistrationSteps.count; i++) ...[
-              if (i > 0) const SizedBox(width: 6),
-              Expanded(
-                child: Container(
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: i <= currentStep
-                        ? AppColors.selectedFill(context)
-                        : AppColors.border(context),
-                    borderRadius: BorderRadius.circular(AppSpacing.r4),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        Text(
-          title,
-          style: AppTypography.headline.copyWith(
-            color: AppColors.textPrimary(context),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
     );
   }
 }

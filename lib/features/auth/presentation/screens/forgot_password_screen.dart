@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:gemstone/core/widgets/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../core/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_validators.dart';
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../widgets/auth_theme.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../widgets/kit/auth_kit.dart';
 
-/// Forgot password screen matching the provided UI reference.
+/// Request a password reset link; morphs into a "check your inbox" state.
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -28,10 +24,58 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   bool _didAutoRedirect = false;
 
+  /// Only show the sent state for a request made on this screen visit.
+  bool _submitted = false;
+  int _shake = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(authProvider.notifier).clearError();
+    });
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _send({bool resend = false}) async {
+    final notifier = ref.read(authProvider.notifier);
+    if (ref.read(authProvider).isLoading) return;
+    notifier.clearError();
+
+    if (!resend) {
+      final ok = _formKey.currentState?.validate() ?? false;
+      if (!ok) {
+        AppHaptics.error();
+        setState(() => _shake++);
+        return;
+      }
+    }
+
+    await notifier.sendResetLink(email: _emailController.text);
+    if (!mounted) return;
+    final after = ref.read(authProvider);
+    if (after.resetLinkSent) {
+      AppHaptics.success();
+      setState(() => _submitted = true);
+      if (resend) {
+        AuthToast.show(context, context.tr(AccountCommerceL10n.resetLinkSent));
+      }
+    } else if (after.errorMessage != null) {
+      AppHaptics.error();
+      setState(() => _shake++);
+      if (resend) {
+        AuthToast.show(
+          context,
+          after.errorMessage!,
+          icon: Icons.error_outline_rounded,
+        );
+      }
+    }
   }
 
   @override
@@ -55,48 +99,79 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       });
     }
 
-    return AppScaffold(
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 520),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.s24),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr(AccountCommerceL10n.forgotPassword),
-                        style: AppTypography.display.copyWith(
-                          color: AppColors.textPrimary(context),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      Text(
-                        context.tr(AccountCommerceL10n.forgotInstructions),
-                        style: AppTypography.body.copyWith(
-                          color: AppColors.textSecondary(context),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s24),
+    final loading = authState.isLoading;
+    final sent = _submitted && authState.resetLinkSent;
 
-                      Form(
-                        key: _formKey,
+    return AuthShell(
+      child: AnimatedSwitcher(
+        duration: AuthMotion.slow,
+        switchInCurve: AuthMotion.ease,
+        transitionBuilder: (child, a) => FadeTransition(
+          opacity: a,
+          child: ScaleTransition(
+            scale: Tween(begin: 0.97, end: 1.0).animate(a),
+            child: child,
+          ),
+        ),
+        child: sent
+            ? AuthResultView(
+                key: const ValueKey('sent'),
+                icon: Icons.mark_email_read_outlined,
+                title: context.tr(AuthL10n.inboxTitle),
+                body: context.tr(AuthL10n.inboxBody, {
+                  'email': _emailController.text.trim(),
+                }),
+                actions: [
+                  AuthPrimaryButton(
+                    label: context.tr(AccountCommerceL10n.backToLogin),
+                    onPressed: () => context.go(AppRouteNames.login),
+                  ),
+                  AuthSecondaryButton(
+                    label: context.tr(AuthL10n.resendLink),
+                    icon: Icons.refresh_rounded,
+                    onPressed: loading ? null : () => _send(resend: true),
+                  ),
+                  Center(
+                    child: AuthTextLink(
+                      label: context.tr(AuthL10n.useDifferentEmail),
+                      onPressed: loading
+                          ? null
+                          : () => setState(() => _submitted = false),
+                    ),
+                  ),
+                ],
+              )
+            : Form(
+                key: _formKey,
+                child: Column(
+                  key: const ValueKey('form'),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AuthHero(
+                      cut: GemCut.pear,
+                      eyebrow: context.tr(AccountCommerceL10n.resetPassword),
+                      title: context.tr(AuthL10n.forgotTitle),
+                      subtitle: Text(
+                        context.tr(AccountCommerceL10n.forgotInstructions),
+                      ),
+                    ),
+                    const SizedBox(height: AuthSpace.s32),
+                    AuthReveal(
+                      index: 4,
+                      child: AuthShake(
+                        trigger: _shake,
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            TextFormField(
+                            AuthTextField(
                               controller: _emailController,
+                              label: context.tr(AccountCommerceL10n.email),
+                              icon: Icons.mail_outline_rounded,
                               keyboardType: TextInputType.emailAddress,
                               textInputAction: TextInputAction.done,
-                              decoration: InputDecoration(
-                                labelText: context.tr(
-                                  AccountCommerceL10n.email,
-                                ),
-                                prefixIcon: const Icon(Icons.mail_outline),
-                              ),
+                              autofillHints: const [AutofillHints.email],
+                              enabled: !loading,
+                              onSubmitted: (_) => _send(),
                               validator: (value) {
                                 final v = value?.trim() ?? '';
                                 if (v.isEmpty) {
@@ -112,99 +187,37 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                                 return null;
                               },
                             ),
-
-                            const SizedBox(height: AppSpacing.s16),
-
-                            SizedBox(
-                              width: double.infinity,
-                              child: FilledButton(
-                                onPressed: authState.isLoading
-                                    ? null
-                                    : () async {
-                                        ref
-                                            .read(authProvider.notifier)
-                                            .clearError();
-
-                                        final ok =
-                                            _formKey.currentState?.validate() ??
-                                            false;
-                                        if (!ok) {
-                                          AppHaptics.error();
-                                          return;
-                                        }
-
-                                        await ref
-                                            .read(authProvider.notifier)
-                                            .sendResetLink(
-                                              email: _emailController.text,
-                                            );
-                                        if (!context.mounted) return;
-                                        final after = ref.read(authProvider);
-                                        if (after.resetLinkSent) {
-                                          AppHaptics.success();
-                                        } else if (after.errorMessage !=
-                                            null) {
-                                          AppHaptics.error();
-                                        }
-                                      },
-                                style: authFilledButtonStyle(context),
-                                child: authState.isLoading
-                                    ? authButtonSpinner(context)
-                                    : Text(
-                                        context.tr(
-                                          AccountCommerceL10n.sendResetLink,
-                                        ),
-                                      ),
-                              ),
+                            const SizedBox(height: AuthSpace.s20),
+                            AuthErrorBanner(
+                              message: authState.errorMessage,
+                              onDismiss: () =>
+                                  ref.read(authProvider.notifier).clearError(),
                             ),
-
-                            const SizedBox(height: AppSpacing.s12),
-
-                            if (authState.errorMessage != null) ...[
-                              Text(
-                                authState.errorMessage!,
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.error,
-                                ),
-                              ),
-                            ],
-
-                            if (authState.resetLinkSent) ...[
-                              const SizedBox(height: AppSpacing.s16),
-                              Text(
-                                context.tr(AccountCommerceL10n.resetLinkSent),
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.success,
-                                ),
-                              ),
-                            ],
+                            AuthPrimaryButton(
+                              label: context.tr(AuthL10n.sendLink),
+                              loading: loading,
+                              onPressed: _send,
+                            ),
                           ],
                         ),
                       ),
-
-                      const SizedBox(height: AppSpacing.s24),
-
-                      Center(
-                        child: TextButton(
-                          onPressed: authState.isLoading
+                    ),
+                    const SizedBox(height: AuthSpace.s24),
+                    AuthReveal(
+                      index: 5,
+                      child: Center(
+                        child: AuthTextLink(
+                          icon: Icons.arrow_back_rounded,
+                          label: context.tr(AccountCommerceL10n.backToLogin),
+                          onPressed: loading
                               ? null
                               : () => context.go(AppRouteNames.login),
-                          child: Text(
-                            context.tr(AccountCommerceL10n.backToLogin),
-                            style: AppTypography.label.copyWith(
-                              color: AppColors.textPrimary(context),
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ),
-        ),
       ),
     );
   }
