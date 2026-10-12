@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
@@ -12,9 +11,9 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../ai_chat/application/ai_chat_providers.dart';
 import '../../application/home_search_provider.dart';
-import '../home_content.dart';
 import '../theme/home_tokens.dart';
 import 'home_search_ai_mode.dart';
+import 'home_search_browse.dart';
 import 'home_search_results_list.dart';
 
 /// Opens the spotlight search over the home screen. Picking a collection
@@ -23,29 +22,48 @@ import 'home_search_results_list.dart';
 /// Search has two modes: catalogue search and **AI Mode**, which hands the
 /// query to Gem AI. [aiMode] opens straight into AI Mode.
 Future<void> showHomeSearch(BuildContext context, {bool aiMode = false}) async {
-  final route = await showGeneralDialog<String>(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: context.tr(HomeL10n.closeSearch),
-    barrierColor: Colors.transparent,
-    transitionDuration: const Duration(milliseconds: 420),
-    pageBuilder: (context, _, _) => _HomeSearchOverlay(aiMode: aiMode),
-    transitionBuilder: (context, animation, _, child) {
-      final curved = CurvedAnimation(
-        parent: animation,
-        curve: HomeMotion.settle,
-        reverseCurve: Curves.easeIn,
-      );
-      return FadeTransition(opacity: curved, child: child);
-    },
+  final route = await Navigator.of(context, rootNavigator: true).push(
+    _HomeSearchRoute(aiMode: aiMode, label: context.tr(HomeL10n.closeSearch)),
   );
   if (route != null && context.mounted) context.openRoute(route);
 }
 
-class _HomeSearchOverlay extends ConsumerStatefulWidget {
-  const _HomeSearchOverlay({required this.aiMode});
+/// The panel drops in from the top and its parts follow in a short cascade,
+/// all keyed off this route's animation; closing rewinds it, a little faster.
+class _HomeSearchRoute extends PopupRoute<String> {
+  _HomeSearchRoute({required this.aiMode, required this.label});
 
   final bool aiMode;
+  final String label;
+
+  @override
+  Color? get barrierColor => null;
+
+  @override
+  bool get barrierDismissible => false;
+
+  @override
+  String? get barrierLabel => label;
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 620);
+
+  @override
+  Duration get reverseTransitionDuration => const Duration(milliseconds: 320);
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) => _HomeSearchOverlay(aiMode: aiMode, animation: animation);
+}
+
+class _HomeSearchOverlay extends ConsumerStatefulWidget {
+  const _HomeSearchOverlay({required this.aiMode, required this.animation});
+
+  final bool aiMode;
+  final Animation<double> animation;
 
   @override
   ConsumerState<_HomeSearchOverlay> createState() => _HomeSearchOverlayState();
@@ -90,6 +108,18 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
     setState(() {});
   }
 
+  /// Fills the field with [text] and searches straight away.
+  void _searchFor(String text) {
+    AppHaptics.selection();
+    _timer?.cancel();
+    _controller.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    ref.read(homeSearchQueryProvider.notifier).state = text;
+    setState(() {});
+  }
+
   void _setAiMode(bool value) {
     if (value == _aiMode) return;
     AppHaptics.selection();
@@ -121,16 +151,24 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
   @override
   Widget build(BuildContext context) {
     final palette = HomePalette.of(context);
+    final animation = widget.animation;
     final hasQuery =
         !_aiMode &&
         ref.watch(homeSearchQueryProvider.select((q) => q.trim().isNotEmpty));
     final animate = !MediaQuery.disableAnimationsOf(context);
     final typed = _controller.text.trim().isNotEmpty;
 
-    Widget field = Container(
-      height: 56,
+    Widget arrive(double order, Widget child) => HomeSearchArrive(
+      animation: animation,
+      order: order,
+      distance: 14,
+      child: child,
+    );
+
+    final field = Container(
+      height: 52,
       decoration: ShapeDecoration(
-        color: palette.surface,
+        color: palette.canvas,
         shape: StadiumBorder(side: BorderSide(color: palette.hairline)),
       ),
       child: Row(
@@ -207,133 +245,153 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
         ],
       ),
     );
+
+    Widget panel = DecoratedBox(
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: palette.isDark ? 0.4 : 0.08),
+            blurRadius: 30,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          MediaQuery.paddingOf(context).top + 8,
+          16,
+          16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            arrive(
+              0,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      context.tr(HomeL10n.searchPrefix),
+                      style: HomeType.display(32, palette.ink),
+                    ),
+                  ),
+                  _CloseButton(onTap: () => Navigator.of(context).pop()),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            arrive(1, field),
+            const SizedBox(height: 12),
+            arrive(
+              2,
+              HomeSearchModeSwitch(aiMode: _aiMode, onChanged: _setAiMode),
+            ),
+          ],
+        ),
+      ),
+    );
     if (animate) {
-      field = field
-          .animate()
-          .moveY(begin: -18, end: 0, duration: 500.ms, curve: HomeMotion.settle)
-          .fadeIn(duration: 300.ms);
+      // The whole panel drops from above the screen edge.
+      final drop = animation.drive(
+        CurveTween(curve: const Interval(0, 0.7, curve: HomeMotion.settle)),
+      );
+      panel = AnimatedBuilder(
+        animation: drop,
+        builder: (context, child) => FractionalTranslation(
+          translation: Offset(0, drop.value - 1),
+          child: child,
+        ),
+        child: panel,
+      );
     }
 
-    return BackdropFilter(
-      filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-      child: Material(
-        color: palette.canvas.withValues(alpha: 0.9),
-        child: SafeArea(
-          child: Column(
+    return Material(
+      type: MaterialType.transparency,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: FadeTransition(
+              opacity: animation.drive(
+                CurveTween(
+                  curve: const Interval(0, 0.45, curve: Curves.easeOut),
+                ),
+              ),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                child: ColoredBox(color: palette.canvas.withValues(alpha: 0.9)),
+              ),
+            ),
+          ),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 8, 10),
-                child: Row(
-                  children: [
-                    Expanded(child: field),
-                    IconButton(
-                      tooltip: context.tr(HomeL10n.closeSearch),
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.close_rounded, color: palette.ink),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                child: HomeSearchModeSwitch(
-                  aiMode: _aiMode,
-                  onChanged: _setAiMode,
-                ),
-              ),
+              panel,
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: HomeMotion.medium,
-                  switchInCurve: HomeMotion.settle,
-                  child: _aiMode
-                      ? HomeAiModeSuggestions(
-                          key: const ValueKey('ai'),
-                          animate: animate,
-                          onAsk: _askAi,
-                        )
-                      : hasQuery
-                      ? const KeyedSubtree(
-                          key: ValueKey('results'),
-                          child: HomeSearchResultsList(),
-                        )
-                      : _BrowseSuggestions(
-                          key: const ValueKey('browse'),
-                          animate: animate,
-                          onOpen: _openCollection,
-                        ),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.viewInsetsOf(context).bottom,
+                  ),
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: AnimatedSwitcher(
+                      duration: HomeMotion.medium,
+                      switchInCurve: HomeMotion.settle,
+                      child: _aiMode
+                          ? HomeAiModeSuggestions(
+                              key: const ValueKey('ai'),
+                              animate: animate,
+                              onAsk: _askAi,
+                            )
+                          : hasQuery
+                          ? const KeyedSubtree(
+                              key: ValueKey('results'),
+                              child: HomeSearchResultsList(),
+                            )
+                          : HomeSearchBrowse(
+                              key: const ValueKey('browse'),
+                              animation: animation,
+                              onOpenRoute: _openCollection,
+                              onSearch: _searchFor,
+                            ),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-class _BrowseSuggestions extends StatelessWidget {
-  const _BrowseSuggestions({
-    required this.animate,
-    required this.onOpen,
-    super.key,
-  });
+class _CloseButton extends StatelessWidget {
+  const _CloseButton({required this.onTap});
 
-  final bool animate;
-  final ValueChanged<String> onOpen;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final palette = HomePalette.of(context);
-    const items = HomeContent.collections;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      children: [
-        Text(
-          context.tr(HomeL10n.collectionsEyebrow).toUpperCase(),
-          style: HomeType.eyebrow(palette.inkMuted),
-        ),
-        const SizedBox(height: 8),
-        for (var i = 0; i < items.length; i++)
-          _maybeAnimate(
-            InkWell(
-              onTap: () => onOpen(items[i].route),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: palette.hairline, width: 0.8),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        context.tr(items[i].titleKey),
-                        style: HomeType.display(26, palette.ink),
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_outward_rounded,
-                      size: 18,
-                      color: palette.accent,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            i,
+    return Tooltip(
+      message: context.tr(HomeL10n.closeSearch),
+      child: Material(
+        color: palette.canvas,
+        shape: CircleBorder(side: BorderSide(color: palette.hairline)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox.square(
+            dimension: 40,
+            child: Icon(Icons.close_rounded, size: 20, color: palette.ink),
           ),
-      ],
+        ),
+      ),
     );
-  }
-
-  Widget _maybeAnimate(Widget child, int i) {
-    if (!animate) return child;
-    return child
-        .animate(delay: (80 + i * 50).ms)
-        .fadeIn(duration: 400.ms)
-        .moveX(begin: 16, end: 0, duration: 600.ms, curve: HomeMotion.settle);
   }
 }

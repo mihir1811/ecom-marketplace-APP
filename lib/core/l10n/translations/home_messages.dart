@@ -22,6 +22,15 @@ abstract final class HomeL10n {
   static const aiModePromptWatches = 'home.aiModePromptWatches';
   static const aiModePromptBullion = 'home.aiModePromptBullion';
   static const collectionsEyebrow = 'home.collectionsEyebrow';
+  static const searchNoteDiamonds = 'home.searchNoteDiamonds';
+  static const searchNoteLab = 'home.searchNoteLab';
+  static const searchNoteGemstones = 'home.searchNoteGemstones';
+  static const searchNoteJewellery = 'home.searchNoteJewellery';
+  static const searchNoteWatches = 'home.searchNoteWatches';
+  static const searchNoteBullion = 'home.searchNoteBullion';
+  static const searchShapesEyebrow = 'home.searchShapesEyebrow';
+  static const searchTipTitle = 'home.searchTipTitle';
+  static const searchTipBody = 'home.searchTipBody';
   static const collectionsTitle = 'home.collectionsTitle';
   static const orders = 'home.orders';
   static const wishlist = 'home.wishlist';
@@ -177,6 +186,51 @@ const homeMessages = <String, LocalizedMessage>{
     english: 'The collections',
     hindi: 'संग्रह',
     gujarati: 'સંગ્રહ',
+  ),
+  HomeL10n.searchNoteDiamonds: LocalizedMessage(
+    english: 'Certified, graded natural stones',
+    hindi: 'प्रमाणित, ग्रेड किए गए प्राकृतिक हीरे',
+    gujarati: 'પ્રમાણિત, ગ્રેડ કરેલા કુદરતી હીરા',
+  ),
+  HomeL10n.searchNoteLab: LocalizedMessage(
+    english: 'Lab-grown diamonds with full grading',
+    hindi: 'पूरी ग्रेडिंग के साथ लैब-ग्रोन हीरे',
+    gujarati: 'સંપૂર્ણ ગ્રેડિંગ સાથે લેબ-ગ્રોન હીરા',
+  ),
+  HomeL10n.searchNoteGemstones: LocalizedMessage(
+    english: 'Sapphires, rubies, emeralds and more',
+    hindi: 'नीलम, माणिक, पन्ना और भी बहुत कुछ',
+    gujarati: 'નીલમ, માણેક, પન્ના અને વધુ',
+  ),
+  HomeL10n.searchNoteJewellery: LocalizedMessage(
+    english: 'Rings, necklaces and fine pieces',
+    hindi: 'अंगूठियाँ, हार और बेहतरीन आभूषण',
+    gujarati: 'વીંટી, હાર અને ઉત્તમ ઘરેણાં',
+  ),
+  HomeL10n.searchNoteWatches: LocalizedMessage(
+    english: 'Luxury timepieces from trusted sellers',
+    hindi: 'भरोसेमंद विक्रेताओं की लग्ज़री घड़ियाँ',
+    gujarati: 'વિશ્વસનીય વેચાણકર્તાઓની લક્ઝરી ઘડિયાળો',
+  ),
+  HomeL10n.searchNoteBullion: LocalizedMessage(
+    english: 'Gold and silver coins and bars',
+    hindi: 'सोने और चाँदी के सिक्के और बार',
+    gujarati: 'સોના અને ચાંદીના સિક્કા અને બાર',
+  ),
+  HomeL10n.searchShapesEyebrow: LocalizedMessage(
+    english: 'Shop by shape',
+    hindi: 'आकार से खरीदें',
+    gujarati: 'આકાર મુજબ ખરીદો',
+  ),
+  HomeL10n.searchTipTitle: LocalizedMessage(
+    english: 'Have a stock or certificate number?',
+    hindi: 'स्टॉक या सर्टिफिकेट नंबर है?',
+    gujarati: 'સ્ટોક અથવા સર્ટિફિકેટ નંબર છે?',
+  ),
+  HomeL10n.searchTipBody: LocalizedMessage(
+    english: 'Type it above to go straight to the piece.',
+    hindi: 'सीधे उस पीस तक जाने के लिए इसे ऊपर लिखें।',
+    gujarati: 'સીધા તે પીસ સુધી જવા માટે તેને ઉપર લખો.',
   ),
   HomeL10n.collectionsTitle: LocalizedMessage(
     english: 'Six worlds of the rare.',

@@ -234,7 +234,7 @@ class HomeAiModeSuggestions extends StatelessWidget {
     return child
         .animate(delay: (60 + i * 50).ms)
         .fadeIn(duration: 380.ms)
-        .moveX(begin: 16, end: 0, duration: 600.ms, curve: HomeMotion.settle);
+        .moveY(begin: -14, end: 0, duration: 600.ms, curve: HomeMotion.settle);
   }
 }
 

@@ -6,11 +6,15 @@ import 'home_network_images.dart';
 class HomeCollection {
   const HomeCollection({
     required this.titleKey,
+    required this.noteKey,
     required this.route,
     required this.imageUrl,
   });
 
   final String titleKey;
+
+  /// One-line description shown under the title in search.
+  final String noteKey;
   final String route;
   final String imageUrl;
 }
@@ -21,31 +25,37 @@ abstract final class HomeContent {
   static const collections = <HomeCollection>[
     HomeCollection(
       titleKey: RemainingL10n.naturalDiamonds,
+      noteKey: HomeL10n.searchNoteDiamonds,
       route: AppRouteNames.diamonds,
       imageUrl: HomeNetworkImages.naturalDiamonds,
     ),
     HomeCollection(
       titleKey: RemainingL10n.labGrown,
+      noteKey: HomeL10n.searchNoteLab,
       route: AppRouteNames.labGrownDiamonds,
       imageUrl: HomeNetworkImages.labGrown,
     ),
     HomeCollection(
       titleKey: RemainingL10n.gemstones,
+      noteKey: HomeL10n.searchNoteGemstones,
       route: AppRouteNames.gemstones,
       imageUrl: HomeNetworkImages.gemstones,
     ),
     HomeCollection(
       titleKey: RemainingL10n.jewelry,
+      noteKey: HomeL10n.searchNoteJewellery,
       route: AppRouteNames.jewelry,
       imageUrl: HomeNetworkImages.jewelry,
     ),
     HomeCollection(
       titleKey: RemainingL10n.watches,
+      noteKey: HomeL10n.searchNoteWatches,
       route: AppRouteNames.watches,
       imageUrl: HomeNetworkImages.watches,
     ),
     HomeCollection(
       titleKey: RemainingL10n.bullion,
+      noteKey: HomeL10n.searchNoteBullion,
       route: AppRouteNames.bullions,
       imageUrl: HomeNetworkImages.bullion,
     ),

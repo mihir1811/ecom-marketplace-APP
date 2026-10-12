@@ -9,12 +9,11 @@ import '../../l10n/app_localizations.dart';
 import '../../router/app_navigation.dart';
 import '../../router/route_names.dart';
 import '../../theme/luxe_tokens.dart';
-import '../../theme/theme_preference_provider.dart';
 import '../app_drawer_button.dart';
 
 /// Shared top bar of the bottom-nav tabs (Home, Wishlist, Cart, Profile).
 ///
-/// The same pinned bar on every tab: menu (theme toggle for guests), the
+/// The same pinned bar on every tab: menu (login for guests), the
 /// search entry and notifications. Screens opened from a tab keep their own
 /// bars. During a tab switch [AppBottomNavHost] lays a copy over the page so
 /// the bar holds still while the page changes underneath.
@@ -40,14 +39,19 @@ class AppTabTopBar extends ConsumerWidget implements PreferredSizeWidget {
         icon: const Icon(Icons.menu_rounded),
       );
     } else {
-      final dark = ref.watch(themePreferenceProvider);
-      leading = IconButton(
-        tooltip: context.tr(HomeL10n.appearance),
-        onPressed: () =>
-            ref.read(palettePreferenceProvider.notifier).setDarkMode(!dark),
-        icon: Icon(
-          dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-          size: 20,
+      leading = TextButton(
+        onPressed: () => context.openRoute(AppRouteNames.login),
+        style: TextButton.styleFrom(
+          foregroundColor: p.ink,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          minimumSize: const Size(0, 40),
+        ),
+        child: Text(
+          context.tr(RemainingL10n.login),
+          style: LuxeType.body(
+            p.ink,
+            size: 14,
+          ).copyWith(fontWeight: FontWeight.w600),
         ),
       );
     }
