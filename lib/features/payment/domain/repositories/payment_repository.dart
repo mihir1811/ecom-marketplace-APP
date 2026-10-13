@@ -11,6 +11,7 @@ abstract class PaymentRepository {
   Future<Result<PaymentCheckoutSession, Failure>> createOrder({
     bool wantGemworldVerification = false,
     bool useWallet = false,
+    bool usePoints = false,
   });
 
   Future<Result<PaymentOrder, Failure>> verifyPayment({

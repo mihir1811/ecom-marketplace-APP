@@ -18,6 +18,7 @@ abstract final class CoreL10n {
   static const copy = 'core.action.copy';
   static const cart = 'core.nav.cart';
   static const wallet = 'core.nav.wallet';
+  static const rewards = 'core.nav.rewards';
   static const messages = 'core.nav.messages';
   static const menu = 'core.nav.menu';
   static const appearance = 'core.settings.appearance';
@@ -115,6 +116,11 @@ const coreMessages = <String, LocalizedMessage>{
     english: 'Wallet',
     hindi: 'वॉलेट',
     gujarati: 'વૉલેટ',
+  ),
+  CoreL10n.rewards: LocalizedMessage(
+    english: 'Rewards',
+    hindi: 'रिवॉर्ड्स',
+    gujarati: 'રિવૉર્ડ્સ',
   ),
   CoreL10n.messages: LocalizedMessage(
     english: 'Messages',

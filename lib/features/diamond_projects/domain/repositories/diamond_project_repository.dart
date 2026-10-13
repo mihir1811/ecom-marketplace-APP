@@ -39,8 +39,5 @@ abstract class DiamondProjectRepository {
     CancelToken? cancelToken,
   });
 
-  Future<Result<void, Failure>> remove(
-    String id, {
-    CancelToken? cancelToken,
-  });
+  Future<Result<void, Failure>> remove(String id, {CancelToken? cancelToken});
 }

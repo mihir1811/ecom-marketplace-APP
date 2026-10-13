@@ -3,7 +3,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../payment/domain/models/payment_models.dart';
+import '../../../../rewards/presentation/rewards_format.dart';
+import '../../../../../core/router/app_navigation.dart';
+import '../../../../../core/router/route_names.dart';
 import '../../../../seller/presentation/atelier/atelier_components.dart';
+import '../../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../../seller/presentation/atelier/atelier_theme.dart';
@@ -151,6 +155,16 @@ class OrderPaymentPanel extends StatelessWidget {
             )
           else
             _TotalRow(primary: maisonUsd(order.amountUsd)),
+          if (order.rewardPoints.used > 0) ...[
+            const SizedBox(height: 12),
+            _Line(
+              label: 'Paid with reward points',
+              value: '−${maisonInr(order.rewardPoints.usedAmountInr)}',
+              secondary: rewardPointsLabel(order.rewardPoints.used),
+              valueColor: p.emerald,
+            ),
+          ],
+          _RewardEarnNote(points: order.rewardPoints),
           if (hasInvoice) ...[
             const SizedBox(height: 18),
             Container(
@@ -280,6 +294,35 @@ class _Breakdown extends StatelessWidget {
               : null,
         ),
       ],
+    );
+  }
+}
+
+/// Whether this order earns points, and how many once it completes.
+class _RewardEarnNote extends StatelessWidget {
+  const _RewardEarnNote({required this.points});
+
+  final PaymentOrderRewardPoints points;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!points.earnsPoints) return const SizedBox.shrink();
+    final earned = points.earned;
+    if (earned == 0) return const SizedBox.shrink();
+    final pending = earned == null;
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: AtelierNotice(
+        tone: pending ? AtelierTone.gold : AtelierTone.emerald,
+        icon: pending
+            ? Icons.hourglass_top_rounded
+            : Icons.auto_awesome_outlined,
+        text: pending
+            ? "You'll earn reward points when this order is complete."
+            : 'Earned ${rewardPointsLabel(earned)} on this order.',
+        actionLabel: 'Rewards',
+        onAction: () => context.openRoute(AppRouteNames.buyerRewards),
+      ),
     );
   }
 }

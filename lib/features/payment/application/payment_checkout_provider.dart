@@ -6,6 +6,7 @@ import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../../cart/application/cart_provider.dart';
 import '../../cart/application/fees_providers.dart';
+import '../../rewards/application/rewards_provider.dart';
 import '../../wallet/application/wallet_provider.dart';
 import '../data/repositories/payment_repository_impl.dart';
 import '../domain/models/payment_models.dart';
@@ -42,6 +43,7 @@ class CheckoutState {
     this.phase = CheckoutPhase.idle,
     this.wantGemworldVerification = false,
     this.useWallet = false,
+    this.usePoints = false,
     this.errorMessage,
     this.paidOrder,
   });
@@ -49,6 +51,9 @@ class CheckoutState {
   final CheckoutPhase phase;
   final bool wantGemworldVerification;
   final bool useWallet;
+
+  /// Buyer turned on "Use reward points"; the server applies the limits.
+  final bool usePoints;
   final String? errorMessage;
   final PaymentOrder? paidOrder;
 
@@ -61,6 +66,7 @@ class CheckoutState {
     CheckoutPhase? phase,
     bool? wantGemworldVerification,
     bool? useWallet,
+    bool? usePoints,
     String? errorMessage,
     PaymentOrder? paidOrder,
     bool clearError = false,
@@ -71,6 +77,7 @@ class CheckoutState {
       wantGemworldVerification:
           wantGemworldVerification ?? this.wantGemworldVerification,
       useWallet: useWallet ?? this.useWallet,
+      usePoints: usePoints ?? this.usePoints,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       paidOrder: clearOrder ? null : (paidOrder ?? this.paidOrder),
     );
@@ -106,6 +113,11 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     state = state.copyWith(useWallet: value);
   }
 
+  void setUsePoints(bool value) {
+    if (state.isBusy) return;
+    state = state.copyWith(usePoints: value);
+  }
+
   Future<Result<PaymentOrder, Failure>> checkout({double? payableInr}) async {
     if (state.isBusy) {
       return Result.failure(
@@ -135,6 +147,8 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
         state.wantGemworldVerification &&
         (fees?.offersGemworldVerification ?? false);
     final useWallet = state.useWallet;
+    final rewards = ref.read(rewardsProvider).valueOrNull;
+    final usePoints = state.usePoints && (rewards?.canSpend ?? false);
 
     state = state.copyWith(
       phase: CheckoutPhase.creatingOrder,
@@ -156,12 +170,14 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     final created = await _payments.createOrder(
       wantGemworldVerification: wantVerification,
       useWallet: useWallet,
+      usePoints: usePoints,
     );
     if (created is ResultFailure<PaymentCheckoutSession, Failure>) {
       state = state.copyWith(
         phase: CheckoutPhase.failed,
         errorMessage: created.failure.message,
       );
+      if (usePoints) refreshRewards(ref);
       return Result.failure(created.failure);
     }
 
@@ -169,7 +185,7 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
 
     final walletSettled =
         session.isFullyPaidByWallet ||
-        (useWallet &&
+        ((useWallet || usePoints) &&
             session.orderId.isNotEmpty &&
             session.amountPaise <= 0 &&
             session.razorpayOrderId.isEmpty);
@@ -193,6 +209,7 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
         paidOrder: order,
         clearError: true,
       );
+      if (session.rewardPointsUsed > 0 || usePoints) refreshRewards(ref);
       await Future.wait([
         ref.read(cartProvider.notifier).refresh(),
         ref.read(walletProvider.notifier).refresh(),
@@ -230,6 +247,9 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
       orderId: session.orderId,
       success: success,
     );
+    // Points leave the balance at verify; a failure such as "Not enough
+    // reward points" needs the fresh balance too.
+    if (session.rewardPointsUsed > 0 || usePoints) refreshRewards(ref);
 
     if (verified is ResultFailure<PaymentOrder, Failure>) {
       state = state.copyWith(
@@ -264,6 +284,7 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     state = CheckoutState(
       wantGemworldVerification: state.wantGemworldVerification,
       useWallet: state.useWallet,
+      usePoints: state.usePoints,
     );
   }
 }

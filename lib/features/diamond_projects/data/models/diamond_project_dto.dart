@@ -1,8 +1,6 @@
 /// Raw API shape for a diamond project. Never used outside data/.
 class DiamondProjectDto {
-  const DiamondProjectDto({
-    required this.json,
-  });
+  const DiamondProjectDto({required this.json});
 
   final Map<String, dynamic> json;
 

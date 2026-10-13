@@ -50,6 +50,11 @@ class BuyerDrawer extends ConsumerWidget {
               Icons.account_balance_wallet_outlined,
             ),
             item(
+              AppRouteNames.buyerRewards,
+              CoreL10n.rewards,
+              Icons.auto_awesome_outlined,
+            ),
+            item(
               AppRouteNames.buyerRefunds,
               AccountCommerceL10n.refunds,
               Icons.replay_outlined,

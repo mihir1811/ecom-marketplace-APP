@@ -156,7 +156,7 @@ class _CompareDockButtonState extends ConsumerState<CompareDockButton>
                         AppHaptics.medium();
                         _dismissHint();
                         widget.onOpen();
-                      } else {
+                      } else if (!over) {
                         AppHaptics.warning();
                         _showHint(label);
                       }

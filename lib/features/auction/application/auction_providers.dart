@@ -6,6 +6,7 @@ import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../../payment/application/razorpay_checkout_service.dart';
+import '../../rewards/application/rewards_provider.dart';
 import '../data/auction_socket_client.dart';
 import '../data/repositories/auction_repository_impl.dart';
 import '../domain/models/auction_models.dart';
@@ -454,7 +455,10 @@ class AuctionDetailNotifier
 
   /// Returns the success message, or the failure to show. Opens Razorpay
   /// when the server still expects a card payment.
-  Future<Result<String, Failure>> pay({required bool useWallet}) async {
+  Future<Result<String, Failure>> pay({
+    required bool useWallet,
+    bool usePoints = false,
+  }) async {
     if (state.isSubmitting) {
       return Result.failure(
         const ValidationFailure('Payment is already in progress.'),
@@ -463,13 +467,21 @@ class AuctionDetailNotifier
     state = state.copyWith(isSubmitting: true, clearError: true);
     final created = await ref
         .read(auctionRepositoryProvider)
-        .createPayment(auctionId: arg, useWallet: useWallet);
+        .createPayment(
+          auctionId: arg,
+          useWallet: useWallet,
+          usePoints: usePoints,
+        );
+    // Points move at create (no Razorpay step) or at verify; a failure such
+    // as "Not enough reward points" also needs the fresh balance.
     switch (created) {
       case ResultFailure(:final failure):
+        if (usePoints) refreshRewards(ref);
         return _payFailed(failure);
       case Success(:final value):
         final session = value;
         if (session.isFullyPaidByWallet) {
+          if (usePoints) refreshRewards(ref);
           await refresh();
           return Result.success('Payment completed');
         }
@@ -488,6 +500,7 @@ class AuctionDetailNotifier
                   razorpayPaymentId: receipt.razorpayPaymentId,
                   razorpaySignature: receipt.razorpaySignature,
                 );
+            if (usePoints) refreshRewards(ref);
             switch (verified) {
               case ResultFailure(:final failure):
                 return _payFailed(failure);

@@ -35,54 +35,59 @@ class DiamondProjectToolbarButton extends ConsumerWidget {
     final count = active ? picked : loaded;
     final ink = active ? p.onAccent : p.ink;
 
-    return Semantics(
-      button: true,
-      label: '${context.tr(AccountCommerceL10n.projectButton)}, $count',
-      excludeSemantics: true,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          customBorder: const StadiumBorder(),
-          onTap: () {
-            AppHaptics.selection();
-            DiamondProjectSheet.show(context);
-          },
-          child: AnimatedContainer(
-            duration: LuxeMotion.medium,
-            curve: LuxeMotion.settle,
-            height: 38,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: ShapeDecoration(
-              color: active ? p.accent : p.surface,
-              shape: StadiumBorder(
-                side: BorderSide(color: active ? p.accent : p.hairline),
-              ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: () {
+          AppHaptics.selection();
+          DiamondProjectSheet.show(context);
+        },
+        child: AnimatedContainer(
+          duration: LuxeMotion.medium,
+          curve: LuxeMotion.settle,
+          height: 38,
+          padding: EdgeInsets.only(left: 12, right: active ? 6 : 12),
+          decoration: ShapeDecoration(
+            color: active ? p.accent : p.surface,
+            shape: StadiumBorder(
+              side: BorderSide(color: active ? p.accent : p.hairline),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.insights_rounded, size: 16, color: ink),
-                const SizedBox(width: 6),
-                AnimatedSwitcher(
-                  duration: LuxeMotion.fast,
-                  transitionBuilder: (c, a) => FadeTransition(
-                    opacity: a,
-                    child: SlideTransition(
-                      position: Tween(
-                        begin: const Offset(0, 0.5),
-                        end: Offset.zero,
-                      ).animate(a),
-                      child: c,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                context.tr(AccountCommerceL10n.projectButton),
+                style: LuxeType.label(ink, size: 12.5),
+              ),
+              const SizedBox(width: 6),
+              Text('$count', style: LuxeType.figure(ink, size: 13)),
+              if (active) ...[
+                const SizedBox(width: 4),
+                Semantics(
+                  button: true,
+                  label: context.tr(AccountCommerceL10n.projectClear),
+                  excludeSemantics: true,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      AppHaptics.medium();
+                      DiamondSelection.clearPicks(ref);
+                    },
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: p.onAccent.withValues(alpha: 0.2),
+                      ),
+                      child: Icon(Icons.close_rounded, size: 15, color: ink),
                     ),
-                  ),
-                  child: Text(
-                    '$count',
-                    key: ValueKey('$active$count'),
-                    style: LuxeType.figure(ink, size: 13),
                   ),
                 ),
               ],
-            ),
+            ],
           ),
         ),
       ),

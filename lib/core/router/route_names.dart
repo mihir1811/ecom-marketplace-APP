@@ -58,6 +58,7 @@ class AppRouteNames {
   static const String buyerProfile = '/buyer/profile';
   static const String buyerOrders = '/buyer/orders';
   static const String buyerWallet = '/buyer/wallet';
+  static const String buyerRewards = '/buyer/rewards';
   static const String buyerOrderDetail = '/buyer/orders/:orderId';
   static String buyerOrderDetailPath(String orderId) =>
       '/buyer/orders/$orderId';

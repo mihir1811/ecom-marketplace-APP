@@ -54,6 +54,7 @@ abstract class AuctionRepository {
   Future<Result<PaymentCheckoutSession, Failure>> createPayment({
     required String auctionId,
     required bool useWallet,
+    bool usePoints = false,
   });
 
   Future<Result<AuctionMutation, Failure>> verifyPayment({

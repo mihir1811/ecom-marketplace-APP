@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,6 +7,9 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
+import '../../../rewards/application/rewards_provider.dart';
+import '../../../rewards/domain/reward_points_preview.dart';
+import '../../../rewards/presentation/rewards_format.dart';
 import '../../../wallet/application/wallet_provider.dart';
 import '../../application/cart_provider.dart';
 import '../../application/fees_providers.dart';
@@ -36,7 +37,11 @@ class CartTotalsSection extends ConsumerWidget {
     final useWallet = ref.watch(
       paymentCheckoutProvider.select((s) => s.useWallet),
     );
+    final usePoints = ref.watch(
+      paymentCheckoutProvider.select((s) => s.usePoints),
+    );
     final walletBalance = ref.watch(walletProvider).valueOrNull?.balance ?? 0;
+    final rewards = ref.watch(rewardsProvider).valueOrNull;
 
     final lines = availableItems
         .map(
@@ -57,10 +62,14 @@ class CartTotalsSection extends ConsumerWidget {
       apiTotalUsd: summary.totalUsd,
     );
 
-    final walletAppliedInr = useWallet
-        ? math.min(walletBalance, estimate.totalInr)
-        : 0.0;
-    final remainingInr = math.max(0.0, estimate.totalInr - walletAppliedInr);
+    final split = CheckoutSplitPreview.compute(
+      totalInr: estimate.totalInr,
+      itemsInr: estimate.merchandiseInr,
+      rewards: rewards,
+      usePoints: usePoints && (rewards?.canSpend ?? false),
+      walletBalance: walletBalance,
+      useWallet: useWallet,
+    );
 
     final unavailableCount = items.length - availableItems.length;
     final availableSubtotalUsd = availableItems.fold<double>(
@@ -245,23 +254,58 @@ class CartTotalsSection extends ConsumerWidget {
               ),
             ],
           ),
-          if (useWallet && estimate.hasLiveRate && walletAppliedInr > 0) ...[
+          if (estimate.hasLiveRate &&
+              (split.usesPoints || split.usesWallet)) ...[
             const SizedBox(height: 12),
+            if (split.usesPoints)
+              _inrRow(
+                context,
+                'Reward points (${rewardPointsLabel(split.points.points)})',
+                -split.points.amountInr,
+                hasRate: true,
+                positive: true,
+              ),
+            if (split.usesWallet)
+              _inrRow(
+                context,
+                'Wallet',
+                -split.walletInr,
+                hasRate: true,
+                positive: true,
+              ),
             _inrRow(
               context,
-              'Wallet',
-              -walletAppliedInr,
-              hasRate: true,
-              positive: true,
-            ),
-            _inrRow(
-              context,
-              remainingInr <= 0.009
+              split.razorpayInr <= 0.009
                   ? context.tr(AccountCommerceL10n.amountToPay)
                   : context.tr(AccountCommerceL10n.payRazorpay),
-              remainingInr,
+              split.razorpayInr,
               hasRate: true,
               strong: true,
+            ),
+          ],
+          if (split.earnPoints > 0) ...[
+            const SizedBox(height: 4),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(
+                color: p.accentSoft,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome_outlined, size: 15, color: p.accent),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'You\'ll earn about '
+                      '${rewardPointsLabel(split.earnPoints)} when this order '
+                      'completes',
+                      style: LuxeType.label(p.ink, size: 12),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ],

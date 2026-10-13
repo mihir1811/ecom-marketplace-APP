@@ -45,6 +45,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
   Future<Result<PaymentCheckoutSession, Failure>> createOrder({
     bool wantGemworldVerification = false,
     bool useWallet = false,
+    bool usePoints = false,
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -52,6 +53,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
         data: {
           'wantGemworldVerification': wantGemworldVerification,
           'useWallet': useWallet,
+          'usePoints': usePoints,
         },
       );
       final root = response.data ?? const <String, dynamic>{};

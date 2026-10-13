@@ -27,6 +27,10 @@ class PaymentCheckoutSession {
     this.amountInr,
     this.exchangeRate,
     this.walletAppliedInr,
+    this.rewardPointsUsed = 0,
+    this.rewardPointsAmountInr = 0,
+    this.razorpayAmountInr,
+    this.paidWithWallet = false,
     this.status,
     this.userName,
     this.userEmail,
@@ -43,14 +47,26 @@ class PaymentCheckoutSession {
   final double? amountInr;
   final double? exchangeRate;
   final double? walletAppliedInr;
+
+  /// Points the server actually spent on this order and their ₹ value.
+  final int rewardPointsUsed;
+  final double rewardPointsAmountInr;
+
+  /// What Razorpay charges after points and wallet.
+  final double? razorpayAmountInr;
+
+  /// Server flag: nothing left for Razorpay (wallet and / or points paid it).
+  final bool paidWithWallet;
   final String? status;
   final String? userName;
   final String? userEmail;
   final String? userPhone;
   final String? description;
 
-  /// True when wallet covered the payable amount and Razorpay is not needed.
+  /// True when wallet and / or reward points covered the payable amount and
+  /// Razorpay is not needed.
   bool get isFullyPaidByWallet {
+    if (paidWithWallet) return true;
     final paidStatus = status?.toUpperCase();
     if (paidStatus == 'PAID' || paidStatus == 'CAPTURED') return true;
     if (orderId.isEmpty) return false;
@@ -58,6 +74,9 @@ class PaymentCheckoutSession {
     final dueInr = amountInr ?? (amountPaise / 100);
     if (applied > 0 && amountPaise <= 0) return true;
     if (applied > 0 && dueInr <= 0) return true;
+    if (rewardPointsUsed > 0 && amountPaise <= 0 && razorpayOrderId.isEmpty) {
+      return true;
+    }
     return amountPaise <= 0 &&
         razorpayOrderId.isEmpty &&
         keyId.isEmpty &&
@@ -95,6 +114,7 @@ class PaymentOrder {
     this.pricing,
     this.sellers = const [],
     this.sellerDecisions = const [],
+    this.rewardPoints = PaymentOrderRewardPoints.none,
   });
 
   final String id;
@@ -114,6 +134,9 @@ class PaymentOrder {
   /// Each seller's accept / reject decision, when the API includes it.
   final List<PaymentOrderSellerDecision> sellerDecisions;
 
+  /// Points spent on and earned by this order.
+  final PaymentOrderRewardPoints rewardPoints;
+
   PaymentOrderSellerDecision? decisionFor(String sellerId) {
     for (final d in sellerDecisions) {
       if (d.sellerId == sellerId) return d;
@@ -130,6 +153,28 @@ class PaymentOrder {
     if (withSeller.isNotEmpty) return withSeller.first.sellerName!;
     return 'Seller';
   }
+}
+
+/// The `rewardPoints` block of an order.
+class PaymentOrderRewardPoints {
+  const PaymentOrderRewardPoints({
+    this.used = 0,
+    this.usedAmountInr = 0,
+    this.earnsPoints = false,
+    this.earned,
+  });
+
+  static const none = PaymentOrderRewardPoints();
+
+  /// Points spent on this order and their ₹ value.
+  final int used;
+  final double usedAmountInr;
+
+  /// False when placed while the programme was off.
+  final bool earnsPoints;
+
+  /// Null until the order completes, then a number (can be 0).
+  final int? earned;
 }
 
 class PaymentOrderItem {

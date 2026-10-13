@@ -36,6 +36,10 @@ abstract final class PaymentMapper {
           _num(json['walletAppliedInr']) ??
           _num(json['walletAmount']) ??
           _num(json['walletDebited']),
+      rewardPointsUsed: _int(json['rewardPointsUsed']) ?? 0,
+      rewardPointsAmountInr: _num(json['rewardPointsAmount']) ?? 0,
+      razorpayAmountInr: _num(json['razorpayAmountInr']),
+      paidWithWallet: json['paidWithWallet'] == true,
       status: _str(json['status']) ?? _str(json['orderStatus']),
       userName: _str(userMap['name']),
       userEmail: _str(userMap['email']),
@@ -109,6 +113,17 @@ abstract final class PaymentMapper {
       pricing: pricing,
       sellers: sellers,
       sellerDecisions: sellerDecisionsFromJson(json),
+      rewardPoints: rewardPointsFromJson(json['rewardPoints']),
+    );
+  }
+
+  static PaymentOrderRewardPoints rewardPointsFromJson(Object? raw) {
+    if (raw is! Map) return PaymentOrderRewardPoints.none;
+    return PaymentOrderRewardPoints(
+      used: _int(raw['used']) ?? 0,
+      usedAmountInr: _num(raw['usedAmountInr']) ?? 0,
+      earnsPoints: raw['earnsPoints'] == true,
+      earned: _int(raw['earned']),
     );
   }
 

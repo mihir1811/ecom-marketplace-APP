@@ -19,6 +19,7 @@ import '../../features/comparison/comparison_routes.dart';
 import '../../features/cart/cart_routes.dart';
 import '../../features/payment/payment_routes.dart';
 import '../../features/wallet/wallet_routes.dart';
+import '../../features/rewards/rewards_routes.dart';
 import '../../features/info/info_routes.dart';
 import '../../features/auction/auction_routes.dart';
 
@@ -49,6 +50,7 @@ final GoRouter appRouter = GoRouter(
     ...cartRoutes,
     ...paymentRoutes,
     ...walletRoutes,
+    ...rewardsRoutes,
     ...auctionRoutes,
   ],
 );

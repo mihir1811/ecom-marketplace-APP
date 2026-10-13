@@ -35,7 +35,8 @@ class DiamondProjectRepositoryImpl implements DiamondProjectRepository {
         queryParameters: {
           'page': page < 1 ? 1 : page,
           'limit': limit < 1 ? 20 : limit,
-          if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim(),
         },
         cancelToken: cancelToken,
       );
@@ -164,7 +165,9 @@ class DiamondProjectRepositoryImpl implements DiamondProjectRepository {
           'diamondType': diamondType,
         if (filters != null && filters.isNotEmpty) 'filters': filters,
         if (analytics != null && analytics.isNotEmpty) 'analytics': analytics,
-        'items': [for (final item in items) DiamondProjectMapper.itemToJson(item)],
+        'items': [
+          for (final item in items) DiamondProjectMapper.itemToJson(item),
+        ],
       };
       final response = method == 'PUT'
           ? await _dio.put<Map<String, dynamic>>(

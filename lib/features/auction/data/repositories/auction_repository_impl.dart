@@ -216,11 +216,12 @@ class AuctionRepositoryImpl implements AuctionRepository {
   Future<Result<PaymentCheckoutSession, Failure>> createPayment({
     required String auctionId,
     required bool useWallet,
+    bool usePoints = false,
   }) {
     return _guard(() async {
       final response = await _dio.post<Map<String, dynamic>>(
         ApiEndpoints.auctionCreatePayment(auctionId),
-        data: {'useWallet': useWallet},
+        data: {'useWallet': useWallet, 'usePoints': usePoints},
       );
       return AuctionMapper.paymentFromEnvelope(response.data);
     });
@@ -289,7 +290,8 @@ class AuctionRepositoryImpl implements AuctionRepository {
                 'productId': item.productId,
                 'productType': item.productType,
                 'minimumBid': item.minimumBid,
-                if (item.reservePrice != null) 'reservePrice': item.reservePrice,
+                if (item.reservePrice != null)
+                  'reservePrice': item.reservePrice,
               },
           ],
         },
@@ -332,7 +334,8 @@ class AuctionRepositoryImpl implements AuctionRepository {
         ApiEndpoints.auctionReject(auctionId),
         data: {
           'action': action,
-          if (startTime != null) 'startTime': startTime.toUtc().toIso8601String(),
+          if (startTime != null)
+            'startTime': startTime.toUtc().toIso8601String(),
           if (endTime != null) 'endTime': endTime.toUtc().toIso8601String(),
           if (minimumBid != null) 'minimumBid': minimumBid,
           if (reservePrice != null) 'reservePrice': reservePrice,

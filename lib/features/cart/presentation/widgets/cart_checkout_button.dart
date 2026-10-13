@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -21,6 +20,10 @@ import '../../../payment/application/payment_checkout_provider.dart';
 import '../../../payment/domain/models/payment_models.dart';
 import '../../../payment/presentation/payment_flow.dart';
 import '../../../payment/presentation/widgets/payment_success_dialog.dart';
+import '../../../rewards/application/rewards_provider.dart';
+import '../../../rewards/domain/models/rewards.dart';
+import '../../../rewards/domain/reward_points_preview.dart';
+import '../../../rewards/presentation/rewards_format.dart';
 import '../../../wallet/application/wallet_provider.dart';
 import '../../../wallet/domain/models/wallet.dart';
 import '../../application/cart_provider.dart';
@@ -81,40 +84,52 @@ class CartCheckoutBar extends ConsumerWidget {
   static String _phaseLabel(CheckoutState checkout) {
     return switch (checkout.phase) {
       CheckoutPhase.awaitingPayment => 'Complete payment…',
-      CheckoutPhase.verifying =>
-        checkout.useWallet ? 'Paying with wallet…' : 'Verifying payment…',
+      CheckoutPhase.verifying => _settlingLabel(checkout),
       _ => 'Creating order…',
     };
+  }
+
+  static String _settlingLabel(CheckoutState checkout) {
+    if (checkout.useWallet) return 'Paying with wallet…';
+    if (checkout.usePoints) return 'Paying with points…';
+    return 'Verifying payment…';
   }
 
   static PurchaseSummary _summary({
     required int itemCount,
     required CartOrderEstimate estimate,
-    required bool useWallet,
-    required bool fullyCoveredByWallet,
-    required double walletAppliedInr,
-    required double remainingInr,
+    required CheckoutSplitPreview split,
+    required bool fullyCovered,
   }) {
-    final walletUsed = useWallet && walletAppliedInr > 0;
-    final method = fullyCoveredByWallet
-        ? 'Wallet'
-        : walletUsed
-        ? 'Wallet + Razorpay'
-        : 'Razorpay';
+    final live = estimate.hasLiveRate;
+    final method = [
+      if (split.usesPoints) 'Reward points',
+      if (split.usesWallet) 'Wallet',
+      if (!fullyCovered) 'Razorpay',
+    ].join(' + ');
     return PurchaseSummary(
       item: itemCount == 1 ? '1 item' : '$itemCount items',
       method: method,
-      amount: estimate.hasLiveRate
+      amount: live
           ? AppCurrency.inr(estimate.totalInr)
           : AppCurrency.usd(estimate.totalUsd),
       details: [
-        if (estimate.hasLiveRate)
+        if (live)
           (label: 'Total (USD)', value: AppCurrency.usd(estimate.totalUsd)),
-        if (walletUsed && estimate.hasLiveRate) ...[
-          (label: 'From wallet', value: AppCurrency.inr(walletAppliedInr)),
-          if (!fullyCoveredByWallet)
-            (label: 'Via Razorpay', value: AppCurrency.inr(remainingInr)),
-        ],
+        if (live && split.usesPoints)
+          (
+            label: 'Reward points (${rewardPointsLabel(split.points.points)})',
+            value: '−${AppCurrency.inr(split.points.amountInr)}',
+          ),
+        if (live && split.usesWallet)
+          (label: 'From wallet', value: AppCurrency.inr(split.walletInr)),
+        if (live && (split.usesPoints || split.usesWallet) && !fullyCovered)
+          (label: 'Via Razorpay', value: AppCurrency.inr(split.razorpayInr)),
+        if (split.earnPoints > 0)
+          (
+            label: 'You\'ll earn about',
+            value: rewardPointsLabel(split.earnPoints),
+          ),
       ],
     );
   }
@@ -137,9 +152,13 @@ class CartCheckoutBar extends ConsumerWidget {
     } else if (checkout.phase == CheckoutPhase.awaitingPayment) {
       label = 'Complete payment…';
     } else if (checkout.phase == CheckoutPhase.verifying) {
-      label = m.useWallet ? 'Paying with wallet…' : 'Verifying payment…';
-    } else if (m.fullyCoveredByWallet) {
-      label = context.tr(AccountCommerceL10n.payWallet);
+      label = _settlingLabel(checkout);
+    } else if (m.fullyCovered) {
+      label = m.split.usesPoints
+          ? (m.split.usesWallet
+                ? 'Pay with points & wallet'
+                : 'Pay with points')
+          : context.tr(AccountCommerceL10n.payWallet);
     } else {
       label = context.tr(AccountCommerceL10n.continueCheckout);
     }
@@ -149,11 +168,14 @@ class CartCheckoutBar extends ConsumerWidget {
       subtitle = 'Required before payment';
     } else if (m.hasUnavailable) {
       subtitle = 'Unavailable items are excluded from the total';
-    } else if (estimate.hasLiveRate && m.useWallet && m.walletAppliedInr > 0) {
-      subtitle = m.fullyCoveredByWallet
-          ? 'Wallet ${AppCurrency.inr(m.walletAppliedInr)}'
-          : 'Wallet ${AppCurrency.inr(m.walletAppliedInr)} · '
-                'pay ${AppCurrency.inr(m.remainingInr)}';
+    } else if (estimate.hasLiveRate &&
+        (m.split.usesPoints || m.split.usesWallet)) {
+      subtitle = [
+        if (m.split.usesPoints)
+          'Points −${AppCurrency.inr(m.split.points.amountInr)}',
+        if (m.split.usesWallet) 'Wallet ${AppCurrency.inr(m.split.walletInr)}',
+        if (!m.fullyCovered) 'pay ${AppCurrency.inr(m.split.razorpayInr)}',
+      ].join(' · ');
     } else if (estimate.hasLiveRate) {
       subtitle =
           '${AppCurrency.usd(estimate.totalUsd)} USD · '
@@ -184,10 +206,8 @@ class CartCheckoutBar extends ConsumerWidget {
           summary: _summary(
             itemCount: m.items.where((e) => e.isAvailable).length,
             estimate: estimate,
-            useWallet: m.useWallet,
-            fullyCoveredByWallet: m.fullyCoveredByWallet,
-            walletAppliedInr: m.walletAppliedInr,
-            remainingInr: m.remainingInr,
+            split: m.split,
+            fullyCovered: m.fullyCovered,
           ),
         );
       } else {
@@ -373,11 +393,22 @@ class CartPaymentOptions extends ConsumerWidget {
                   .read(paymentCheckoutProvider.notifier)
                   .setWantGemworldVerification(v),
             ),
+          if (m.rewards case final rewards?
+              when rewards.settings.canRedeem && rewards.balance > 0)
+            _PointsPayOption(
+              busy: m.busy,
+              rewards: rewards,
+              split: m.split,
+              hasLiveRate: m.estimate.hasLiveRate,
+              usePoints: m.usePoints,
+              onChanged: (v) =>
+                  ref.read(paymentCheckoutProvider.notifier).setUsePoints(v),
+            ),
           _WalletPayOption(
             busy: m.busy,
             walletAsync: m.walletAsync,
             walletBalance: m.walletBalance,
-            payableInr: m.estimate.totalInr,
+            payableInr: m.estimate.totalInr - m.split.points.amountInr,
             remainingInr: m.remainingInr,
             walletAppliedInr: m.walletAppliedInr,
             hasLiveRate: m.estimate.hasLiveRate,
@@ -407,9 +438,12 @@ class _CheckoutModel {
     required this.busy,
     required this.estimate,
     required this.useWallet,
+    required this.usePoints,
+    required this.rewards,
+    required this.split,
     required this.walletAppliedInr,
     required this.remainingInr,
-    required this.fullyCoveredByWallet,
+    required this.fullyCovered,
   });
 
   final bool hasAddress;
@@ -423,9 +457,16 @@ class _CheckoutModel {
   final bool busy;
   final CartOrderEstimate estimate;
   final bool useWallet;
+  final bool usePoints;
+  final RewardsSummary? rewards;
+
+  /// Points first, then wallet, then Razorpay, as the server applies them.
+  final CheckoutSplitPreview split;
   final double walletAppliedInr;
   final double remainingInr;
-  final bool fullyCoveredByWallet;
+
+  /// Points and / or wallet pay everything: no Razorpay step.
+  final bool fullyCovered;
 
   static _CheckoutModel watch(WidgetRef ref) {
     final hasAddress = ref.watch(cartHasAddressProvider);
@@ -440,6 +481,7 @@ class _CheckoutModel {
         ref.watch(activeFeesProvider).valueOrNull ?? FeeRulesCatalog.empty;
     ref.watch(exchangeRateProvider);
     final walletAsync = ref.watch(walletProvider);
+    final rewards = ref.watch(rewardsProvider).valueOrNull;
 
     final estimate = CartOrderEstimate.compute(
       merchandiseUsd: merchandiseUsd,
@@ -458,10 +500,15 @@ class _CheckoutModel {
 
     final walletBalance = walletAsync.valueOrNull?.balance ?? 0;
     final useWallet = checkout.useWallet;
-    final walletAppliedInr = useWallet
-        ? math.min(walletBalance, estimate.totalInr)
-        : 0.0;
-    final remainingInr = math.max(0.0, estimate.totalInr - walletAppliedInr);
+    final usePoints = checkout.usePoints && (rewards?.canSpend ?? false);
+    final split = CheckoutSplitPreview.compute(
+      totalInr: estimate.totalInr,
+      itemsInr: estimate.merchandiseInr,
+      rewards: rewards,
+      usePoints: usePoints,
+      walletBalance: walletBalance,
+      useWallet: useWallet,
+    );
 
     return _CheckoutModel._(
       hasAddress: hasAddress,
@@ -475,10 +522,12 @@ class _CheckoutModel {
       busy: mutating || checkout.isBusy,
       estimate: estimate,
       useWallet: useWallet,
-      walletAppliedInr: walletAppliedInr,
-      remainingInr: remainingInr,
-      fullyCoveredByWallet:
-          useWallet && estimate.hasLiveRate && remainingInr <= 0.009,
+      usePoints: usePoints,
+      rewards: rewards,
+      split: split,
+      walletAppliedInr: split.walletInr,
+      remainingInr: split.razorpayInr,
+      fullyCovered: estimate.hasLiveRate && split.fullyCovered,
     );
   }
 }
@@ -603,6 +652,61 @@ class _WalletPayOption extends StatelessWidget {
       icon: Icons.account_balance_wallet_outlined,
       onChanged: onChanged,
       onSubtitleTap: hasError && !busy ? onRetryWallet : null,
+    );
+  }
+}
+
+/// "Use reward points": shown while the programme is on and the buyer has
+/// points; disabled below the spendable minimum.
+class _PointsPayOption extends StatelessWidget {
+  const _PointsPayOption({
+    required this.busy,
+    required this.rewards,
+    required this.split,
+    required this.hasLiveRate,
+    required this.usePoints,
+    required this.onChanged,
+  });
+
+  final bool busy;
+  final RewardsSummary rewards;
+  final CheckoutSplitPreview split;
+  final bool hasLiveRate;
+  final bool usePoints;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = rewards.settings;
+    final locked = !rewards.canSpend;
+    final balance = rewardPointsLabel(rewards.balance);
+
+    String subtitle;
+    if (locked) {
+      subtitle =
+          'Collect at least ${rewardPointsLabel(settings.minRedeemPoints)} '
+          'to use them · balance $balance';
+    } else if (!hasLiveRate) {
+      subtitle = 'Balance $balance · waiting for live total';
+    } else if (usePoints && split.usesPoints) {
+      subtitle =
+          'Use ${rewardPointsLabel(split.points.points)} · '
+          '−${AppCurrency.inr(split.points.amountInr)} off the total';
+    } else if (usePoints) {
+      subtitle = 'Balance $balance · this total is too small to use points';
+    } else {
+      subtitle =
+          'Balance $balance (${AppCurrency.inr(rewards.balanceValueInr)}) · '
+          'up to ${rewardPercentLabel(settings.maxRedeemPercent)} of the total';
+    }
+
+    return _CheckoutToggleTile(
+      title: 'Use reward points',
+      subtitle: subtitle,
+      value: usePoints && !locked,
+      enabled: !busy && !locked,
+      icon: Icons.auto_awesome_outlined,
+      onChanged: onChanged,
     );
   }
 }

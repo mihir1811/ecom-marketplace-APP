@@ -80,10 +80,7 @@ class NamedCount {
 }
 
 class DiamondProjectOutlier {
-  const DiamondProjectOutlier({
-    required this.item,
-    required this.isHigh,
-  });
+  const DiamondProjectOutlier({required this.item, required this.isHigh});
 
   final DiamondProjectItem item;
   final bool isHigh;

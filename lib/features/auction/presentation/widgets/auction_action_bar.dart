@@ -12,6 +12,8 @@ import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../payment/presentation/payment_flow.dart';
+import '../../../rewards/application/rewards_provider.dart';
+import '../../../rewards/presentation/rewards_format.dart';
 import '../../application/auction_providers.dart';
 import '../../domain/models/auction_models.dart';
 import 'auction_card.dart';
@@ -344,6 +346,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
     if (PaymentFlow.isActive) return;
     if (!AccountAccess.guard(context, ref)) return;
     var useWallet = false;
+    var usePoints = false;
     final proceed = await showAppDialog<bool>(
       context: context,
       builder: (context) {
@@ -351,12 +354,49 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
           builder: (context, setLocal) {
             return AlertDialog(
               title: const Text('Pay for this win'),
-              content: CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                value: useWallet,
-                title: const Text('Use wallet balance'),
-                onChanged: (value) =>
-                    setLocal(() => useWallet = value ?? false),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final rewards = ref.watch(rewardsProvider).valueOrNull;
+                      final settings = rewards?.settings;
+                      if (rewards == null ||
+                          settings == null ||
+                          !settings.canRedeem ||
+                          rewards.balance <= 0) {
+                        return const SizedBox.shrink();
+                      }
+                      final locked = !rewards.canSpend;
+                      return CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        value: usePoints && !locked,
+                        title: const Text('Use reward points'),
+                        subtitle: Text(
+                          locked
+                              ? 'Collect at least '
+                                    '${rewardPointsLabel(settings.minRedeemPoints)} '
+                                    'to use them'
+                              : 'Balance ${rewardPointsLabel(rewards.balance)} · '
+                                    'up to '
+                                    '${rewardPercentLabel(settings.maxRedeemPercent)} '
+                                    'of the total',
+                        ),
+                        onChanged: locked
+                            ? null
+                            : (value) =>
+                                  setLocal(() => usePoints = value ?? false),
+                      );
+                    },
+                  ),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: useWallet,
+                    title: const Text('Use wallet balance'),
+                    onChanged: (value) =>
+                        setLocal(() => useWallet = value ?? false),
+                  ),
+                ],
               ),
               actions: [
                 TextButton(
@@ -381,10 +421,13 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
       context,
       summary: PurchaseSummary(
         item: auction.title.isEmpty ? 'Auction win' : auction.title,
-        method: useWallet ? 'Wallet (Razorpay for any balance)' : 'Razorpay',
+        method: usePoints || useWallet
+            ? '${[if (usePoints) 'Reward points', if (useWallet) 'Wallet'].join(' + ')}'
+                  ' (Razorpay for any balance)'
+            : 'Razorpay',
         amount: auctionBidAmount(amount),
       ),
-      process: () => notifier.pay(useWallet: useWallet),
+      process: () => notifier.pay(useWallet: useWallet, usePoints: usePoints),
       successMessage: (message) => message,
     );
   }

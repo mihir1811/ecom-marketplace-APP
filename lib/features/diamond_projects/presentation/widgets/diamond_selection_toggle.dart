@@ -6,7 +6,6 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/luxe/luxe_product_card.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_card_actions.dart';
-import '../../../comparison/application/comparison_provider.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../comparison/presentation/widgets/compare_add_button.dart';
 import '../../../diamonds/domain/models/diamond.dart';
@@ -86,17 +85,9 @@ class DiamondSelectionToggle extends ConsumerWidget {
           context,
           context.tr(AccountCommerceL10n.compareSwitched),
         );
-      case DiamondSelectionOutcome.addedOverLimit:
-        final count = ref.read(diamondProjectListingPickProvider).length;
-        // Explain once, as the picks cross the compare limit.
-        if (count == ComparisonState.maxItems + 1) {
-          AppHaptics.warning();
-          showCompareFeedback(
-            context,
-            context.tr(AccountCommerceL10n.compareOverLimit, {'count': count}),
-          );
-        }
-      case DiamondSelectionOutcome.added || DiamondSelectionOutcome.removed:
+      case DiamondSelectionOutcome.added ||
+          DiamondSelectionOutcome.addedOverLimit ||
+          DiamondSelectionOutcome.removed:
         break;
     }
   }
