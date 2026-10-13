@@ -104,7 +104,11 @@ CatalogSaveButton _save(Gemstone g, {bool onLight = false}) =>
     );
 
 CatalogCompareButton _compare(Gemstone g, {bool onLight = false}) =>
-    CatalogCompareButton(item: CompareItem.fromGemstone(g), onLight: onLight);
+    CatalogCompareButton(
+      item: CompareItem.fromGemstone(g),
+      onAdded: () => rememberProductDetail(gemstoneProductDetail(g)),
+      onLight: onLight,
+    );
 
 /// Two-column gemstone result card on the shared [LuxeProductGridCard].
 class GemstoneLuxeGridCard extends ConsumerWidget {

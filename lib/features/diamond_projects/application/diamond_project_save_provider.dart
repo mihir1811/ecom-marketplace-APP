@@ -56,5 +56,5 @@ class DiamondProjectSaveNotifier extends AutoDisposeAsyncNotifier<void> {
 
 final diamondProjectSaveProvider =
     AutoDisposeAsyncNotifierProvider<DiamondProjectSaveNotifier, void>(
-  DiamondProjectSaveNotifier.new,
-);
+      DiamondProjectSaveNotifier.new,
+    );

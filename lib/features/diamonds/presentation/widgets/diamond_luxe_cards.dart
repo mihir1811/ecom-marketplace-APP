@@ -8,8 +8,7 @@ import '../../../../core/widgets/catalog_card_image_pager.dart';
 import '../../../../core/widgets/luxe/luxe_product_card.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_card_actions.dart';
-import '../../../comparison/domain/models/compare_item.dart';
-import '../../../diamond_projects/presentation/widgets/diamond_project_pick_checkbox.dart';
+import '../../../diamond_projects/presentation/widgets/diamond_selection_toggle.dart';
 import '../../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
@@ -79,25 +78,19 @@ CatalogSaveButton _save(Diamond d, {bool onLight = false}) => CatalogSaveButton(
   onLight: onLight,
 );
 
-CatalogCompareButton _compare(Diamond d, {bool onLight = false}) =>
-    CatalogCompareButton(item: CompareItem.fromDiamond(d), onLight: onLight);
-
 /// Two-column diamond result card on the shared [LuxeProductGridCard].
 ///
-/// Status sits top-left, save top-right, compare bottom-right and (for
-/// sellers) the project pick bottom-left, so every control has its own
-/// corner instead of crowding the save button.
+/// Status sits top-left, save top-right and the one select control
+/// bottom-right: for sellers it picks for compare and project at once.
 class DiamondLuxeGridCard extends ConsumerWidget {
   const DiamondLuxeGridCard({
     required this.diamond,
     required this.onTap,
     super.key,
-    this.showProjectPick = false,
   });
 
   final Diamond diamond;
   final VoidCallback onTap;
-  final bool showProjectPick;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -113,10 +106,7 @@ class DiamondLuxeGridCard extends ConsumerWidget {
       overlays: LuxeMediaOverlays(
         topLeft: AvailabilityStatusBadge(status: d.available),
         topRight: _save(d),
-        bottomLeft: showProjectPick
-            ? DiamondProjectPickToggle(diamondId: d.id)
-            : null,
-        bottomRight: _compare(d),
+        bottomRight: DiamondSelectionToggle(diamond: d),
       ),
     );
   }
@@ -128,12 +118,10 @@ class DiamondLuxeListCard extends ConsumerWidget {
     required this.diamond,
     required this.onTap,
     super.key,
-    this.showProjectPick = false,
   });
 
   final Diamond diamond;
   final VoidCallback onTap;
-  final bool showProjectPick;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -156,11 +144,8 @@ class DiamondLuxeListCard extends ConsumerWidget {
       detail: detail,
       price: _price(d, showList: true),
       titleAction: _save(d, onLight: true),
-      priceAction: _compare(d, onLight: true),
+      priceAction: DiamondSelectionToggle(diamond: d, onLight: true),
       thumbTopLeft: AvailabilityStatusBadge(status: d.available),
-      thumbBottomLeft: showProjectPick
-          ? DiamondProjectPickToggle(diamondId: d.id)
-          : null,
     );
   }
 }

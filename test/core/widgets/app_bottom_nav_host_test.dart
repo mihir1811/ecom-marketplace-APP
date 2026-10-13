@@ -5,6 +5,7 @@ import 'package:gemstone/core/haptics/app_haptics.dart';
 import 'package:gemstone/core/router/route_names.dart';
 import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_bar.dart';
 import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_host.dart';
+import 'package:gemstone/features/comparison/presentation/widgets/compare_dock_button.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
@@ -34,6 +35,7 @@ void main() {
           AppRouteNames.buyerProfile,
           AppRouteNames.comparison,
           AppRouteNames.gemstones,
+          AppRouteNames.gemstoneResults,
         ])
           GoRoute(path: path, builder: (_, _) => page(path)),
       ],
@@ -89,6 +91,32 @@ void main() {
     router.pop();
     await tester.pumpAndSettle();
     expect(pagePadding(tester), closeTo(AppBottomNavBar.clearance(0), 0.5));
+  });
+
+  testWidgets('listings put the compare button after Profile, in line', (
+    tester,
+  ) async {
+    final router = await pumpApp(tester);
+    final button = find.byType(CompareDockButton);
+    expect(tester.getSize(button).width, 0);
+
+    router.push(AppRouteNames.gemstoneResults);
+    await tester.pumpAndSettle();
+    final profile = tester.getRect(tabArea('Profile'));
+    final rect = tester.getRect(button);
+    final screen =
+        tester.view.physicalSize.width / tester.view.devicePixelRatio;
+    expect(rect.width, closeTo(AppBottomNavBar.trailingSize, 0.5));
+    expect(rect.left, greaterThan(profile.right));
+    // Dock and button are centred as one group.
+    final dockLeft = tester.getRect(tabArea('Home')).left - 6;
+    expect(screen - rect.right, closeTo(dockLeft, 1));
+    // Hit areas reach 8px above the pill, so its centre sits 4px lower.
+    expect(rect.center.dy, closeTo(profile.center.dy + 4, 1));
+
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(tester.getSize(button).width, 0);
   });
 
   testWidgets('taps beside the floating dock reach the page', (tester) async {

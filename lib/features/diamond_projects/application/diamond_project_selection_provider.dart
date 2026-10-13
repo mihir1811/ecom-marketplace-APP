@@ -59,13 +59,14 @@ class DiamondProjectSelectionNotifier
     String? sellerId,
     String? name,
   }) {
-    final body = SellerDiamondProjectSearchMapper.toBody(
-      sellerId: sellerId ?? '',
-      filters: filters,
-      page: 1,
-    )
-      ..remove('page')
-      ..remove('limit');
+    final body =
+        SellerDiamondProjectSearchMapper.toBody(
+            sellerId: sellerId ?? '',
+            filters: filters,
+            page: 1,
+          )
+          ..remove('page')
+          ..remove('limit');
     if (sellerId == null || sellerId.isEmpty) {
       body.remove('seller_id');
     }
@@ -102,9 +103,7 @@ class DiamondProjectSelectionNotifier
     final items = <DiamondProjectItem>[];
     for (final diamond in diamonds) {
       if (diamond.id.isEmpty || !seen.add(diamond.id)) continue;
-      items.add(
-        DiamondProjectMapper.fromDiamond(diamond, productKind: kind),
-      );
+      items.add(DiamondProjectMapper.fromDiamond(diamond, productKind: kind));
     }
 
     state = DiamondProjectSelection(
@@ -141,10 +140,7 @@ class DiamondProjectSelectionNotifier
   }
 
   void markSaved(DiamondProject project) {
-    state = state.copyWith(
-      projectId: project.id,
-      name: project.name,
-    );
+    state = state.copyWith(projectId: project.id, name: project.name);
   }
 
   void clear() {
@@ -157,10 +153,10 @@ class DiamondProjectSelectionNotifier
   }
 }
 
-final diamondProjectSelectionProvider = NotifierProvider<
-    DiamondProjectSelectionNotifier, DiamondProjectSelection>(
-  DiamondProjectSelectionNotifier.new,
-);
+final diamondProjectSelectionProvider =
+    NotifierProvider<DiamondProjectSelectionNotifier, DiamondProjectSelection>(
+      DiamondProjectSelectionNotifier.new,
+    );
 
 /// Derived local analytics — never hits the network.
 final diamondProjectStatsProvider = Provider<DiamondProjectStats>((ref) {

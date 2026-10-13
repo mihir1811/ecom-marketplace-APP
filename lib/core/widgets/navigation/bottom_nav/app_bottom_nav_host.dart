@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../features/buyer/application/wishlist_provider.dart';
 import '../../../../features/cart/application/cart_provider.dart';
+import '../../../../features/comparison/presentation/widgets/compare_dock_button.dart';
 import '../../../auth/auth_providers.dart';
 import '../../../haptics/app_haptics.dart';
 import '../../../router/app_navigation.dart';
@@ -74,6 +75,9 @@ final appPopupRouteObserver = AppPopupRouteObserver();
 
 /// Floats the [AppBottomNavBar] dock over the app's navigator.
 ///
+/// On comparable catalog listings a round [CompareDockButton] joins the
+/// dock's row after Profile; the dock narrows to make room for it.
+///
 /// The dock lives outside every page, so it stays put through page
 /// transitions and scrolling, and its spring state carries across tab
 /// switches. Pages run full height behind it; their [MediaQuery] bottom
@@ -81,10 +85,11 @@ final appPopupRouteObserver = AppPopupRouteObserver();
 /// it and pages that scroll behind it can still reach their last item.
 /// Scrolling a page towards its end folds the dock into its compact form;
 /// scrolling back, reaching the top, a tap on the dock or a route change
-/// unfolds it. Off the four tab screens the dock slides away. The side
-/// drawer opens behind the page ([AppDrawerStage]) and the dock rides along
-/// with the receding page; end drawers live inside pages, under the dock, so
-/// while one is open the dock steps aside ([reportDrawer]).
+/// unfolds it. Off the tab and catalog listing screens the dock slides
+/// away. The side drawer opens behind the page ([AppDrawerStage]) and the
+/// dock rides along with the receding page; end drawers live inside pages,
+/// under the dock, so while one is open the dock steps aside
+/// ([reportDrawer]).
 ///
 /// Switching tabs folds the page into a faceted gem and unfolds the next
 /// one out of it ([DiamondTransitionController]); holding or dragging along
@@ -154,6 +159,17 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
   );
 
   /// 1 while a drawer is open: the dock fades and sinks out of its way.
+  /// 1 while the compare button holds its place in the dock's row.
+  late final AnimationController _compareSlot = AnimationController(
+    vsync: this,
+    duration: LuxeMotion.medium,
+  );
+  late final Animation<double> _compareShown = CurvedAnimation(
+    parent: _compareSlot,
+    curve: LuxeMotion.settle,
+    reverseCurve: Curves.easeInCubic,
+  );
+
   late final AnimationController _veil = AnimationController(
     vsync: this,
     duration: LuxeMotion.fast,
@@ -187,7 +203,8 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     _path = _currentPath();
     _tab = AppBottomNav.tabFor(_path);
     _shownTab = _tab;
-    _show.value = _tab == null ? 0 : 1;
+    _show.value = AppBottomNav.isVisibleOn(_path) ? 1 : 0;
+    _compareSlot.value = AppBottomNav.comparesOn(_path) ? 1 : 0;
     _awaitingFirstRoute =
         widget.router.routerDelegate.currentConfiguration.isEmpty;
     widget.router.routerDelegate.addListener(_onRoute);
@@ -205,6 +222,7 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     _diamond.dispose();
     _show.dispose();
     _veil.dispose();
+    _compareSlot.dispose();
     super.dispose();
   }
 
@@ -242,6 +260,7 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     _awaitingFirstRoute = false;
     if (path == _path && !first) return;
     final tab = AppBottomNav.tabFor(path);
+    final visible = AppBottomNav.isVisibleOn(path);
     setState(() {
       _path = path;
       _tab = tab;
@@ -252,10 +271,16 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     // A drawer pick navigates away before its drawer reports closing.
     AppBottomNavHost.drawerOpen.value = false;
     final still = first || MediaQuery.disableAnimationsOf(context);
-    if (tab == null) {
+    if (!visible) {
       still ? _show.value = 0 : _show.reverse();
     } else {
       still ? _show.value = 1 : _show.forward();
+    }
+    final compares = AppBottomNav.comparesOn(path);
+    if (still) {
+      _compareSlot.value = compares ? 1 : 0;
+    } else {
+      compares ? _compareSlot.forward() : _compareSlot.reverse();
     }
   }
 
@@ -292,7 +317,9 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
   bool _onScroll(ScrollUpdateNotification n) {
     final m = n.metrics;
     final delta = n.scrollDelta;
-    if (m.axis != Axis.vertical || delta == null || _tab == null) {
+    if (m.axis != Axis.vertical ||
+        delta == null ||
+        !AppBottomNav.isVisibleOn(_path)) {
       return false;
     }
     if (m.pixels <= m.minScrollExtent + _foldAfter) {
@@ -373,6 +400,8 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     return index == null ? null : AppBottomNav.destinations[index].tab;
   }
 
+  void _openCompare() => widget.router.push(AppRouteNames.comparison);
+
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
@@ -380,6 +409,11 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     final extent = AppBottomNavBar.extent(inset);
     final clearance = AppBottomNavBar.clearance(inset);
     final open = _categoriesMenu != null;
+    final compare = CompareDockButton(
+      visible: AppBottomNav.comparesOn(_path) && !open,
+      diamondListing: AppBottomNav.isDiamondListing(_path),
+      onOpen: _openCompare,
+    );
 
     return AnimatedBuilder(
       animation: Listenable.merge([_slot, _veil, AppDrawerStage.progress]),
@@ -488,6 +522,8 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
           categoriesOpen: open,
           compact: _compact && !open,
           onExpand: _expand,
+          trailing: compare,
+          trailingShown: _compareShown,
         ),
       ),
     );
@@ -506,6 +542,8 @@ class _LiveBar extends ConsumerWidget {
     required this.categoriesOpen,
     required this.compact,
     required this.onExpand,
+    required this.trailing,
+    required this.trailingShown,
   });
 
   final GlobalKey barKey;
@@ -517,6 +555,8 @@ class _LiveBar extends ConsumerWidget {
   final bool categoriesOpen;
   final bool compact;
   final VoidCallback onExpand;
+  final Widget trailing;
+  final Animation<double> trailingShown;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -537,6 +577,8 @@ class _LiveBar extends ConsumerWidget {
         categoriesOpen: categoriesOpen,
         compact: compact,
         onExpand: onExpand,
+        trailing: trailing,
+        trailingShown: trailingShown,
         badges: {AppBottomNavTab.cart: cart, AppBottomNavTab.wishlist: saved},
       ),
     );

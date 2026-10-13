@@ -106,6 +106,7 @@ class LuxeListingToolbar extends StatelessWidget {
     required this.gridLabel,
     required this.listLabel,
     super.key,
+    this.extra,
   });
 
   final String filtersLabel;
@@ -117,8 +118,13 @@ class LuxeListingToolbar extends StatelessWidget {
   final String gridLabel;
   final String listLabel;
 
+  /// Optional action before the view switch; the switch then folds into a
+  /// single round button to make room.
+  final Widget? extra;
+
   @override
   Widget build(BuildContext context) {
+    final extra = this.extra;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -140,14 +146,86 @@ class LuxeListingToolbar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          LuxeViewToggle(
-            viewMode: viewMode,
-            onChanged: onViewMode,
-            gridLabel: gridLabel,
-            listLabel: listLabel,
-          ),
+          if (extra != null) ...[
+            const SizedBox(width: 8),
+            extra,
+            const SizedBox(width: 8),
+            LuxeViewFlip(
+              viewMode: viewMode,
+              onChanged: onViewMode,
+              gridLabel: gridLabel,
+              listLabel: listLabel,
+            ),
+          ] else ...[
+            const SizedBox(width: 8),
+            LuxeViewToggle(
+              viewMode: viewMode,
+              onChanged: onViewMode,
+              gridLabel: gridLabel,
+              listLabel: listLabel,
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+/// One round button that flips between grid and list; the icon shows the
+/// current mode.
+class LuxeViewFlip extends StatelessWidget {
+  const LuxeViewFlip({
+    required this.viewMode,
+    required this.onChanged,
+    required this.gridLabel,
+    required this.listLabel,
+    super.key,
+  });
+
+  final LuxeViewMode viewMode;
+  final ValueChanged<LuxeViewMode> onChanged;
+  final String gridLabel;
+  final String listLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final grid = viewMode == LuxeViewMode.grid;
+    final next = grid ? LuxeViewMode.list : LuxeViewMode.grid;
+    return Tooltip(
+      message: grid ? listLabel : gridLabel,
+      child: Semantics(
+        button: true,
+        label: grid ? listLabel : gridLabel,
+        excludeSemantics: true,
+        child: Material(
+          color: p.ink,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: () {
+              AppHaptics.selection();
+              onChanged(next);
+            },
+            child: SizedBox.square(
+              dimension: 38,
+              child: AnimatedSwitcher(
+                duration: LuxeMotion.medium,
+                switchInCurve: LuxeMotion.settle,
+                transitionBuilder: (c, a) => RotationTransition(
+                  turns: Tween(begin: 0.5, end: 1.0).animate(a),
+                  child: FadeTransition(opacity: a, child: c),
+                ),
+                child: Icon(
+                  grid ? Icons.grid_view_rounded : Icons.view_agenda_outlined,
+                  key: ValueKey(grid),
+                  size: 17,
+                  color: p.canvas,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

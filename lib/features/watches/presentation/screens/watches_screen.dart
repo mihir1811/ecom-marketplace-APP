@@ -14,7 +14,6 @@ import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
-import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/watch_filter_provider.dart';
 import '../../application/watch_list_provider.dart';
@@ -157,53 +156,51 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
         scrollOffset: listingOffset,
         actions: const [CatalogFlowActions()],
       ),
-      body: ComparisonTrayHost(
-        child: LuxeListingScrollView(
-          controller: listingScroll,
-          offset: listingOffset,
-          onRefresh: () => ref.read(watchListProvider.notifier).refresh(),
-          onBackToTop: listingBackToTop,
-          backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
-          slivers: [
-            SliverToBoxAdapter(
-              child: Column(
-                key: listingHeaderKey,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
-                    child: LuxeSearchField(
-                      controller: _searchController,
-                      hintText: context.tr(CatalogL10n.searchWatches),
-                      onChanged: _onSearchChanged,
-                      onSubmitted: _onSearchSubmitted,
-                    ),
+      body: LuxeListingScrollView(
+        controller: listingScroll,
+        offset: listingOffset,
+        onRefresh: () => ref.read(watchListProvider.notifier).refresh(),
+        onBackToTop: listingBackToTop,
+        backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              key: listingHeaderKey,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+                  child: LuxeSearchField(
+                    controller: _searchController,
+                    hintText: context.tr(CatalogL10n.searchWatches),
+                    onChanged: _onSearchChanged,
+                    onSubmitted: _onSearchSubmitted,
                   ),
-                  const WatchCategoryChips(),
-                  const SizedBox(height: 22),
-                  const WatchBrandCarousel(),
-                  WatchActiveFilterPills(
-                    provider: watchFilterProvider,
-                    onEdit: _openFilters,
-                    onReset: _clearAll,
-                  ),
-                ],
-              ),
-            ),
-            LuxePinnedBar(
-              child: Center(
-                child: WatchListingToolbar(
-                  filters: watchFilterProvider,
-                  sort: watchSortProvider,
-                  onFilters: _openFilters,
-                  onSort: _openSort,
-                  onViewMode: switchListingViewMode,
                 ),
+                const WatchCategoryChips(),
+                const SizedBox(height: 22),
+                const WatchBrandCarousel(),
+                WatchActiveFilterPills(
+                  provider: watchFilterProvider,
+                  onEdit: _openFilters,
+                  onReset: _clearAll,
+                ),
+              ],
+            ),
+          ),
+          LuxePinnedBar(
+            child: Center(
+              child: WatchListingToolbar(
+                filters: watchFilterProvider,
+                sort: watchSortProvider,
+                onFilters: _openFilters,
+                onSort: _openSort,
+                onViewMode: switchListingViewMode,
               ),
             ),
-            ..._content(context),
-          ],
-        ),
+          ),
+          ..._content(context),
+        ],
       ),
     );
   }

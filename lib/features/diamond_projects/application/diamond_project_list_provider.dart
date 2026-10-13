@@ -19,18 +19,17 @@ class DiamondProjectListNotifier
   Future<Result<PaginatedPage<DiamondProject>, Failure>> loadPage(
     int page,
   ) async {
-    final result = await ref.read(diamondProjectRepositoryProvider).listMine(
-          page: page,
-          limit: 20,
-        );
+    final result = await ref
+        .read(diamondProjectRepositoryProvider)
+        .listMine(page: page, limit: 20);
     return switch (result) {
       Success(value: final pageData) => Success(
-          PaginatedPage<DiamondProject>(
-            items: pageData.projects,
-            hasMore: pageData.hasMore,
-            totalCount: pageData.totalCount,
-          ),
+        PaginatedPage<DiamondProject>(
+          items: pageData.projects,
+          hasMore: pageData.hasMore,
+          totalCount: pageData.totalCount,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }
@@ -40,8 +39,7 @@ class DiamondProjectListNotifier
   }
 
   Future<void> remove(String id) async {
-    final result =
-        await ref.read(diamondProjectRepositoryProvider).remove(id);
+    final result = await ref.read(diamondProjectRepositoryProvider).remove(id);
     if (result is ResultFailure<void, Failure>) {
       throw result.failure;
     }
@@ -62,7 +60,7 @@ class DiamondProjectListNotifier
   }
 }
 
-final diamondProjectListProvider = AsyncNotifierProvider<
-    DiamondProjectListNotifier, DiamondProjectListState>(
-  DiamondProjectListNotifier.new,
-);
+final diamondProjectListProvider =
+    AsyncNotifierProvider<DiamondProjectListNotifier, DiamondProjectListState>(
+      DiamondProjectListNotifier.new,
+    );

@@ -25,10 +25,21 @@ class AppBottomNavDestination {
 
 /// Tabs, which routes show the bar, and which tab a route belongs to.
 ///
-/// The bar shows only on the four tab screens themselves. Every screen
-/// opened from them (browse, detail, checkout, account, seller) keeps the
-/// full height for its own actions.
+/// The bar shows on the four tab screens and on catalog product listing
+/// screens. Filter, detail, checkout, account, and seller screens keep the
+/// full height for their own actions.
 abstract final class AppBottomNav {
+  /// Catalog product listing routes that keep the dock visible (no tab
+  /// selected — the last tab highlight is retained by the host).
+  static const listingRoutes = <String>{
+    AppRouteNames.diamondResults,
+    AppRouteNames.labGrownDiamondResults,
+    AppRouteNames.gemstoneResults,
+    AppRouteNames.jewelryListing,
+    AppRouteNames.watches,
+    AppRouteNames.bullions,
+  };
+
   static const destinations = <AppBottomNavDestination>[
     AppBottomNavDestination(
       tab: AppBottomNavTab.home,
@@ -88,7 +99,7 @@ abstract final class AppBottomNav {
       ? path.substring(0, path.length - 1)
       : path;
 
-  /// The tab [path] belongs to, or null when the bar is hidden there.
+  /// The tab [path] belongs to, or null when none of the four tabs own it.
   static AppBottomNavTab? tabFor(String rawPath) {
     final path = _normalize(rawPath);
     for (final d in destinations) {
@@ -97,5 +108,31 @@ abstract final class AppBottomNav {
     return null;
   }
 
-  static bool isVisibleOn(String path) => tabFor(path) != null;
+  /// Whether the floating compare button rides beside the dock on [rawPath]:
+  /// catalog listings whose products can be compared.
+  static bool comparesOn(String rawPath) {
+    final path = _normalize(rawPath);
+    return tabFor(path) == null &&
+        path != AppRouteNames.bullions &&
+        isVisibleOn(path);
+  }
+
+  /// Diamond result listings, where sellers' picks drive the comparison.
+  static bool isDiamondListing(String rawPath) {
+    final path = _normalize(rawPath);
+    return path == AppRouteNames.diamondResults ||
+        path == AppRouteNames.labGrownDiamondResults;
+  }
+
+  /// Whether the floating dock should show on [rawPath].
+  static bool isVisibleOn(String rawPath) {
+    final path = _normalize(rawPath);
+    if (tabFor(path) != null) return true;
+    if (listingRoutes.contains(path)) return true;
+    // Brand watch catalogue listings (not their filter drawers).
+    if (path.startsWith('/watches/brand/') && !path.endsWith('/filters')) {
+      return true;
+    }
+    return false;
+  }
 }

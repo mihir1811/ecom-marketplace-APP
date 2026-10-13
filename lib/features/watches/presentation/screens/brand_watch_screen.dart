@@ -12,7 +12,6 @@ import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
-import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/brand_watch_filter_provider.dart';
 import '../../application/brand_watch_list_provider.dart';
@@ -128,42 +127,40 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen>
         scrollOffset: listingOffset,
         actions: const [CatalogFlowActions()],
       ),
-      body: ComparisonTrayHost(
-        child: LuxeListingScrollView(
-          controller: listingScroll,
-          offset: listingOffset,
-          onRefresh: () => ref.read(brandWatchListProvider.notifier).refresh(),
-          onBackToTop: listingBackToTop,
-          backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
-          slivers: [
-            SliverToBoxAdapter(
-              child: Column(
-                key: listingHeaderKey,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _BrandMasthead(brandName: widget.brandName),
-                  WatchActiveFilterPills(
-                    provider: brandWatchFilterProvider,
-                    onEdit: _openFilters,
-                    onReset: _clearAll,
-                  ),
-                ],
-              ),
-            ),
-            LuxePinnedBar(
-              child: Center(
-                child: WatchListingToolbar(
-                  filters: brandWatchFilterProvider,
-                  sort: brandWatchSortProvider,
-                  onFilters: _openFilters,
-                  onSort: _openSort,
-                  onViewMode: switchListingViewMode,
+      body: LuxeListingScrollView(
+        controller: listingScroll,
+        offset: listingOffset,
+        onRefresh: () => ref.read(brandWatchListProvider.notifier).refresh(),
+        onBackToTop: listingBackToTop,
+        backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              key: listingHeaderKey,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _BrandMasthead(brandName: widget.brandName),
+                WatchActiveFilterPills(
+                  provider: brandWatchFilterProvider,
+                  onEdit: _openFilters,
+                  onReset: _clearAll,
                 ),
+              ],
+            ),
+          ),
+          LuxePinnedBar(
+            child: Center(
+              child: WatchListingToolbar(
+                filters: brandWatchFilterProvider,
+                sort: brandWatchSortProvider,
+                onFilters: _openFilters,
+                onSort: _openSort,
+                onViewMode: switchListingViewMode,
               ),
             ),
-            ..._content(context),
-          ],
-        ),
+          ),
+          ..._content(context),
+        ],
       ),
     );
   }

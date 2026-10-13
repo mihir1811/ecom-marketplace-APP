@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/luxe_tokens.dart';
-import '../../../../core/widgets/luxe/luxe_product_card.dart';
 import '../../application/diamond_project_listing_pick_provider.dart';
 
 /// Seller-only checkbox to pick a diamond for the next project selection.
@@ -97,57 +95,5 @@ class DiamondProjectPickBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DiamondProjectPickCheckbox(diamondId: diamondId, size: size);
-  }
-}
-
-/// Luxe-card version of the project pick: a 32px round control matching the
-/// save / compare controls, so it reads as part of the same family instead
-/// of a loose radio dot. Seller-only; renders nothing otherwise.
-class DiamondProjectPickToggle extends ConsumerWidget {
-  const DiamondProjectPickToggle({
-    required this.diamondId,
-    super.key,
-    this.onLight = false,
-  });
-
-  final String diamondId;
-
-  /// True when placed on a card surface rather than over the photo.
-  final bool onLight;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final canPick = ref.watch(
-      authProvider.select((s) => s.isSeller || s.sellerId != null),
-    );
-    if (!canPick || diamondId.isEmpty) return const SizedBox.shrink();
-
-    final p = LuxePalette.of(context);
-    final picked = ref.watch(isDiamondProjectPickedProvider(diamondId));
-    return LuxeMiniCircle(
-      tooltip: picked
-          ? 'Remove from diamond project pick'
-          : 'Add to diamond project pick',
-      glass: !onLight,
-      active: picked,
-      activeColor: p.accent,
-      onTap: () => ref
-          .read(diamondProjectListingPickProvider.notifier)
-          .toggle(diamondId),
-      child: AnimatedSwitcher(
-        duration: LuxeMotion.fast,
-        transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
-        child: Icon(
-          picked
-              ? Icons.playlist_add_check_rounded
-              : Icons.playlist_add_rounded,
-          key: ValueKey(picked),
-          size: 18,
-          color: picked
-              ? p.onAccent
-              : LuxeMiniCircle.restingIconColor(context, glass: !onLight),
-        ),
-      ),
-    );
   }
 }

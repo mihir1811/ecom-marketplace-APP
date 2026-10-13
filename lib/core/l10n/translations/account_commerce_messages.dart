@@ -246,6 +246,52 @@ abstract final class AccountCommerceL10n {
   static const browseMore = 'commerce.compare.browseMore';
   static const newComparison = 'commerce.compare.new';
   static const reorderHint = 'commerce.compare.reorder';
+  static const compareEyebrow = 'commerce.compare.eyebrow';
+  static const comparePiecesOf = 'commerce.compare.piecesOf';
+  static const compareAddPiece = 'commerce.compare.addPiece';
+  static const compareAllSpecs = 'commerce.compare.allSpecs';
+  static const compareDifferences = 'commerce.compare.differences';
+  static const compareLeads = 'commerce.compare.leads';
+  static const compareLegend = 'commerce.compare.legend';
+  static const compareClear = 'commerce.compare.clear';
+  static const compareClearTitle = 'commerce.compare.clearTitle';
+  static const compareClearBody = 'commerce.compare.clearBody';
+  static const compareKeep = 'commerce.compare.keep';
+  static const compareViewDetails = 'commerce.compare.viewDetails';
+  static const compareMoveLeft = 'commerce.compare.moveLeft';
+  static const compareMoveRight = 'commerce.compare.moveRight';
+  static const compareUndo = 'commerce.compare.undo';
+  static const compareEmptyTitle = 'commerce.compare.emptyTitle';
+  static const compareEmptyBody = 'commerce.compare.emptyBody';
+  static const compareOneMore = 'commerce.compare.oneMore';
+  static const compareAllIdentical = 'commerce.compare.allIdentical';
+  static const compareFabEmpty = 'commerce.compare.fabEmpty';
+  static const compareFabOver = 'commerce.compare.fabOver';
+  static const compareFabOpen = 'commerce.compare.fabOpen';
+  static const compareSwitched = 'commerce.compare.switched';
+  static const compareOverLimit = 'commerce.compare.overLimit';
+  static const compareSelect = 'commerce.compare.select';
+  static const compareDeselect = 'commerce.compare.deselect';
+  static const compareGroupEssentials = 'commerce.compare.group.essentials';
+  static const compareGroupFourCs = 'commerce.compare.group.fourCs';
+  static const compareGroupProportions = 'commerce.compare.group.proportions';
+  static const compareGroupFinish = 'commerce.compare.group.finish';
+  static const compareGroupProvenance = 'commerce.compare.group.provenance';
+  static const compareGroupCharacter = 'commerce.compare.group.character';
+  static const compareGroupCraft = 'commerce.compare.group.craft';
+  static const compareGroupMetal = 'commerce.compare.group.metal';
+  static const compareGroupStones = 'commerce.compare.group.stones';
+  static const compareGroupDetails = 'commerce.compare.group.details';
+  static const projectEyebrow = 'commerce.project.eyebrow';
+  static const projectTitle = 'commerce.project.title';
+  static const projectHint = 'commerce.project.hint';
+  static const projectSelected = 'commerce.project.selected';
+  static const projectSelectedBody = 'commerce.project.selectedBody';
+  static const projectNoneSelected = 'commerce.project.noneSelected';
+  static const projectPage = 'commerce.project.page';
+  static const projectPageBody = 'commerce.project.pageBody';
+  static const projectClear = 'commerce.project.clear';
+  static const projectButton = 'commerce.project.button';
   static const notAvailable = 'commerce.value.notAvailable';
   static const compareDiamond = 'commerce.category.diamond';
   static const compareDiamonds = 'commerce.category.diamonds';
@@ -1600,6 +1646,245 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     english: 'Hold & drag cards to reorder',
     hindi: 'फिर से ऑर्डर करने के लिए कार्ड पकड़ें और खींचें',
     gujarati: 'ફરીથી ક્રમમાં રાખવા માટે કાર્ડને પકડી રાખો અને ખેંચો',
+  ),
+  AccountCommerceL10n.compareEyebrow: LocalizedMessage(
+    english: 'Side by side',
+    hindi: 'आमने-सामने',
+    gujarati: 'સામસામે',
+  ),
+  AccountCommerceL10n.comparePiecesOf: LocalizedMessage(
+    english: '{count} of {max} pieces',
+    hindi: '{max} में से {count} आइटम',
+    gujarati: '{max} માંથી {count} વસ્તુઓ',
+  ),
+  AccountCommerceL10n.compareAddPiece: LocalizedMessage(
+    english: 'Add a piece',
+    hindi: 'आइटम जोड़ें',
+    gujarati: 'વસ્તુ ઉમેરો',
+  ),
+  AccountCommerceL10n.compareAllSpecs: LocalizedMessage(
+    english: 'All specs',
+    hindi: 'सभी विवरण',
+    gujarati: 'બધી વિગતો',
+  ),
+  AccountCommerceL10n.compareDifferences: LocalizedMessage(
+    english: 'Differences',
+    hindi: 'अंतर',
+    gujarati: 'તફાવત',
+  ),
+  AccountCommerceL10n.compareLeads: LocalizedMessage(
+    english: 'Leads {wins} of {total}',
+    hindi: '{total} में से {wins} में आगे',
+    gujarati: '{total} માંથી {wins} માં આગળ',
+  ),
+  AccountCommerceL10n.compareLegend: LocalizedMessage(
+    english: 'Gold marks the strongest value in each row',
+    hindi: 'सुनहरा रंग हर पंक्ति का सबसे अच्छा मान दिखाता है',
+    gujarati: 'સોનેરી રંગ દરેક પંક્તિનું શ્રેષ્ઠ મૂલ્ય બતાવે છે',
+  ),
+  AccountCommerceL10n.compareClear: LocalizedMessage(
+    english: 'Clear',
+    hindi: 'साफ़ करें',
+    gujarati: 'સાફ કરો',
+  ),
+  AccountCommerceL10n.compareClearTitle: LocalizedMessage(
+    english: 'Clear this comparison?',
+    hindi: 'यह तुलना साफ़ करें?',
+    gujarati: 'આ સરખામણી સાફ કરવી છે?',
+  ),
+  AccountCommerceL10n.compareClearBody: LocalizedMessage(
+    english:
+        'Every piece leaves the comparison and your selection. You can start a new one from any listing.',
+    hindi:
+        'सभी आइटम तुलना और आपके चयन से हट जाएँगे। आप किसी भी सूची से नई तुलना शुरू कर सकते हैं।',
+    gujarati:
+        'બધી વસ્તુઓ સરખામણી અને તમારી પસંદગીમાંથી દૂર થશે. તમે કોઈપણ સૂચિમાંથી નવી સરખામણી શરૂ કરી શકો છો.',
+  ),
+  AccountCommerceL10n.compareKeep: LocalizedMessage(
+    english: 'Keep comparing',
+    hindi: 'तुलना जारी रखें',
+    gujarati: 'સરખામણી ચાલુ રાખો',
+  ),
+  AccountCommerceL10n.compareViewDetails: LocalizedMessage(
+    english: 'View details',
+    hindi: 'विवरण देखें',
+    gujarati: 'વિગતો જુઓ',
+  ),
+  AccountCommerceL10n.compareMoveLeft: LocalizedMessage(
+    english: 'Move left',
+    hindi: 'बाईं ओर ले जाएँ',
+    gujarati: 'ડાબે ખસેડો',
+  ),
+  AccountCommerceL10n.compareMoveRight: LocalizedMessage(
+    english: 'Move right',
+    hindi: 'दाईं ओर ले जाएँ',
+    gujarati: 'જમણે ખસેડો',
+  ),
+  AccountCommerceL10n.compareUndo: LocalizedMessage(
+    english: 'Undo',
+    hindi: 'पूर्ववत करें',
+    gujarati: 'પૂર્વવત્ કરો',
+  ),
+  AccountCommerceL10n.compareEmptyTitle: LocalizedMessage(
+    english: 'Nothing to compare yet',
+    hindi: 'अभी तुलना के लिए कुछ नहीं है',
+    gujarati: 'હજી સરખામણી માટે કંઈ નથી',
+  ),
+  AccountCommerceL10n.compareEmptyBody: LocalizedMessage(
+    english:
+        'Select up to four pieces of the same kind from any listing and see them side by side.',
+    hindi:
+        'किसी भी सूची से एक ही प्रकार के चार तक आइटम चुनें और उन्हें आमने-सामने देखें।',
+    gujarati:
+        'કોઈપણ સૂચિમાંથી એક જ પ્રકારની ચાર સુધીની વસ્તુઓ પસંદ કરો અને તેમને સામસામે જુઓ.',
+  ),
+  AccountCommerceL10n.compareOneMore: LocalizedMessage(
+    english: 'Add one more piece to see how they differ.',
+    hindi: 'अंतर देखने के लिए एक और आइटम जोड़ें।',
+    gujarati: 'તફાવત જોવા માટે વધુ એક વસ્તુ ઉમેરો.',
+  ),
+  AccountCommerceL10n.compareAllIdentical: LocalizedMessage(
+    english: 'These pieces match on every listed spec.',
+    hindi: 'ये आइटम हर सूचीबद्ध विवरण में एक जैसे हैं।',
+    gujarati: 'આ વસ્તુઓ દરેક સૂચિબદ્ધ વિગતમાં સમાન છે.',
+  ),
+  AccountCommerceL10n.compareFabEmpty: LocalizedMessage(
+    english: 'Select up to 4 pieces to compare',
+    hindi: 'तुलना के लिए 4 तक आइटम चुनें',
+    gujarati: 'સરખામણી માટે 4 સુધીની વસ્તુઓ પસંદ કરો',
+  ),
+  AccountCommerceL10n.compareFabOver: LocalizedMessage(
+    english: 'Compare holds 4 · {count} kept for your project',
+    hindi: 'तुलना में 4 तक · {count} आपके प्रोजेक्ट के लिए रखे गए',
+    gujarati: 'સરખામણીમાં 4 સુધી · {count} તમારા પ્રોજેક્ટ માટે રાખ્યા',
+  ),
+  AccountCommerceL10n.compareFabOpen: LocalizedMessage(
+    english: 'Compare {count} pieces',
+    hindi: '{count} आइटम की तुलना करें',
+    gujarati: '{count} વસ્તુઓની સરખામણી કરો',
+  ),
+  AccountCommerceL10n.compareSwitched: LocalizedMessage(
+    english: 'Comparison now holds diamonds',
+    hindi: 'तुलना में अब हीरे हैं',
+    gujarati: 'સરખામણીમાં હવે હીરા છે',
+  ),
+  AccountCommerceL10n.compareOverLimit: LocalizedMessage(
+    english: '{count} selected · compare pauses above 4, your project keeps them all',
+    hindi: '{count} चुने गए · 4 से अधिक पर तुलना रुकती है, प्रोजेक्ट में सभी रहते हैं',
+    gujarati: '{count} પસંદ · 4 થી વધુ પર સરખામણી અટકે છે, પ્રોજેક્ટમાં બધા રહે છે',
+  ),
+  AccountCommerceL10n.compareSelect: LocalizedMessage(
+    english: 'Select for compare and project',
+    hindi: 'तुलना और प्रोजेक्ट के लिए चुनें',
+    gujarati: 'સરખામણી અને પ્રોજેક્ટ માટે પસંદ કરો',
+  ),
+  AccountCommerceL10n.compareDeselect: LocalizedMessage(
+    english: 'Remove from selection',
+    hindi: 'चयन से हटाएँ',
+    gujarati: 'પસંદગીમાંથી દૂર કરો',
+  ),
+  AccountCommerceL10n.compareGroupEssentials: LocalizedMessage(
+    english: 'Essentials',
+    hindi: 'मुख्य बातें',
+    gujarati: 'મુખ્ય બાબતો',
+  ),
+  AccountCommerceL10n.compareGroupFourCs: LocalizedMessage(
+    english: 'The four Cs',
+    hindi: 'चार C',
+    gujarati: 'ચાર C',
+  ),
+  AccountCommerceL10n.compareGroupProportions: LocalizedMessage(
+    english: 'Proportions',
+    hindi: 'अनुपात',
+    gujarati: 'પ્રમાણ',
+  ),
+  AccountCommerceL10n.compareGroupFinish: LocalizedMessage(
+    english: 'Finish',
+    hindi: 'फ़िनिश',
+    gujarati: 'ફિનિશ',
+  ),
+  AccountCommerceL10n.compareGroupProvenance: LocalizedMessage(
+    english: 'Provenance',
+    hindi: 'प्रमाणन',
+    gujarati: 'પ્રમાણન',
+  ),
+  AccountCommerceL10n.compareGroupCharacter: LocalizedMessage(
+    english: 'Character',
+    hindi: 'गुण',
+    gujarati: 'ગુણ',
+  ),
+  AccountCommerceL10n.compareGroupCraft: LocalizedMessage(
+    english: 'Craft',
+    hindi: 'कारीगरी',
+    gujarati: 'કારીગરી',
+  ),
+  AccountCommerceL10n.compareGroupMetal: LocalizedMessage(
+    english: 'Metal',
+    hindi: 'धातु',
+    gujarati: 'ધાતુ',
+  ),
+  AccountCommerceL10n.compareGroupStones: LocalizedMessage(
+    english: 'Stones',
+    hindi: 'रत्न',
+    gujarati: 'રત્નો',
+  ),
+  AccountCommerceL10n.compareGroupDetails: LocalizedMessage(
+    english: 'Details',
+    hindi: 'विवरण',
+    gujarati: 'વિગતો',
+  ),
+  AccountCommerceL10n.projectEyebrow: LocalizedMessage(
+    english: 'Diamond project',
+    hindi: 'डायमंड प्रोजेक्ट',
+    gujarati: 'ડાયમંડ પ્રોજેક્ટ',
+  ),
+  AccountCommerceL10n.projectTitle: LocalizedMessage(
+    english: 'Analyze stones',
+    hindi: 'पत्थरों का विश्लेषण करें',
+    gujarati: 'પથ્થરોનું વિશ્લેષણ કરો',
+  ),
+  AccountCommerceL10n.projectHint: LocalizedMessage(
+    english:
+        'The select button on each stone adds it to your project and, up to four, to compare.',
+    hindi:
+        'हर पत्थर पर चयन बटन उसे आपके प्रोजेक्ट में और चार तक तुलना में जोड़ता है।',
+    gujarati:
+        'દરેક પથ્થર પરનું પસંદગી બટન તેને તમારા પ્રોજેક્ટમાં અને ચાર સુધી સરખામણીમાં ઉમેરે છે.',
+  ),
+  AccountCommerceL10n.projectSelected: LocalizedMessage(
+    english: 'Selected stones',
+    hindi: 'चुने गए पत्थर',
+    gujarati: 'પસંદ કરેલા પથ્થરો',
+  ),
+  AccountCommerceL10n.projectSelectedBody: LocalizedMessage(
+    english: '{count} stones you picked',
+    hindi: 'आपके चुने {count} पत्थर',
+    gujarati: 'તમે પસંદ કરેલા {count} પથ્થરો',
+  ),
+  AccountCommerceL10n.projectNoneSelected: LocalizedMessage(
+    english: 'Nothing selected yet',
+    hindi: 'अभी कुछ नहीं चुना गया',
+    gujarati: 'હજી કંઈ પસંદ નથી',
+  ),
+  AccountCommerceL10n.projectPage: LocalizedMessage(
+    english: 'Everything loaded',
+    hindi: 'सभी लोड किए गए',
+    gujarati: 'બધા લોડ થયેલા',
+  ),
+  AccountCommerceL10n.projectPageBody: LocalizedMessage(
+    english: '{count} stones on this page',
+    hindi: 'इस पेज पर {count} पत्थर',
+    gujarati: 'આ પેજ પર {count} પથ્થરો',
+  ),
+  AccountCommerceL10n.projectClear: LocalizedMessage(
+    english: 'Clear selection',
+    hindi: 'चयन साफ़ करें',
+    gujarati: 'પસંદગી સાફ કરો',
+  ),
+  AccountCommerceL10n.projectButton: LocalizedMessage(
+    english: 'Analyze',
+    hindi: 'विश्लेषण',
+    gujarati: 'વિશ્લેષણ',
   ),
   AccountCommerceL10n.notAvailable: LocalizedMessage(
     english: 'N/A',

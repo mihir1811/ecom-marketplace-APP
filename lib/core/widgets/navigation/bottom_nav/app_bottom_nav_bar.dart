@@ -46,6 +46,8 @@ class AppBottomNavBar extends StatefulWidget {
     this.onExpand,
     this.badges = const {},
     this.bottomInset = 0,
+    this.trailing,
+    this.trailingShown,
     super.key,
   });
 
@@ -85,6 +87,18 @@ class AppBottomNavBar extends StatefulWidget {
   /// System navigation inset the dock floats above.
   final double bottomInset;
 
+  /// Round action in the dock's row, after the last tab (compare). The dock
+  /// narrows and shifts left to make room, and folds it along with itself.
+  final Widget? trailing;
+
+  /// 0–1: how far [trailing] has made its room (it scales in with it).
+  final Animation<double>? trailingShown;
+
+  /// Diameter of [trailing] beside the expanded and the folded dock.
+  static const double trailingSize = 56;
+  static const double trailingCompactSize = 44;
+  static const double trailingGap = 8;
+
   @override
   State<AppBottomNavBar> createState() => _AppBottomNavBarState();
 }
@@ -118,8 +132,17 @@ double _lerp(double a, double b, double t) => a + (b - a) * t;
 /// The dock's metrics at fold [fold] (0 = expanded, 1 = compact), in the
 /// bar box's coordinates.
 class _Dock {
-  factory _Dock(Size box, double fold, double inset) {
-    final full = math.min(box.width - 2 * _side, _maxWidth);
+  factory _Dock(Size box, double fold, double inset, double trailing) {
+    // Room kept on the right for the trailing button and its gap.
+    final trail =
+        _lerp(
+          AppBottomNavBar.trailingSize,
+          AppBottomNavBar.trailingCompactSize,
+          fold,
+        ) *
+        trailing;
+    final reserve = (trail + AppBottomNavBar.trailingGap) * trailing;
+    final full = math.min(box.width - 2 * _side - reserve, _maxWidth);
     final width = _lerp(
       full,
       math.min(full, math.max(full * 0.7, 240.0)),
@@ -131,8 +154,9 @@ class _Dock {
       fold,
     );
     final bottom = box.height - AppBottomNavBar.floatGap(inset);
+    // Dock and button are centred as one group.
     final pill = Rect.fromLTWH(
-      (box.width - width) / 2,
+      (box.width - width - reserve) / 2,
       bottom - height,
       width,
       height,
@@ -149,6 +173,14 @@ class _Dock {
       iconSize: _lerp(22, 21, fold),
       labelTop: pill.top + _lerp(39, 33, fold),
       labelOpacity: (1 - fold * 1.8).clamp(0.0, 1.0),
+      trailing: Rect.fromCenter(
+        center: Offset(
+          pill.right + AppBottomNavBar.trailingGap * trailing + trail / 2,
+          pill.center.dy,
+        ),
+        width: trail,
+        height: trail,
+      ),
     );
   }
 
@@ -163,6 +195,7 @@ class _Dock {
     required this.iconSize,
     required this.labelTop,
     required this.labelOpacity,
+    required this.trailing,
   });
 
   static const _side = 14.0; // screen margin beside the expanded dock
@@ -187,6 +220,9 @@ class _Dock {
   final double iconSize;
   final double labelTop;
   final double labelOpacity;
+
+  /// Where the trailing button sits (zero-sized while it has no room).
+  final Rect trailing;
 
   double centerX(int i) => pill.left + _pad + slot * (i + 0.5);
 
@@ -351,7 +387,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
   Size _box = Size.zero;
   int _frame = 0;
   _DockShape? _shapeCache;
-  ({int frame, Size box, double inset})? _shapeKey;
+  ({int frame, Size box, double inset, double trailing})? _shapeKey;
 
   int get _selectedIndex {
     if (widget.categoriesOpen) return AppBottomNav.categoriesSlot;
@@ -359,10 +395,20 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     return AppBottomNav.slots.indexWhere((d) => d?.tab == widget.selected);
   }
 
-  _Dock get _dock => _Dock(_box, _fold.x, widget.bottomInset);
+  _Dock get _dock => _Dock(
+    _box,
+    _fold.x,
+    widget.bottomInset,
+    widget.trailingShown?.value ?? (widget.trailing == null ? 0 : 1),
+  );
 
   _DockShape get _shape {
-    final key = (frame: _frame, box: _box, inset: widget.bottomInset);
+    final key = (
+      frame: _frame,
+      box: _box,
+      inset: widget.bottomInset,
+      trailing: widget.trailingShown?.value ?? 0,
+    );
     if (_shapeKey != key) {
       _shapeKey = key;
       _shapeCache = _DockShape(_dock, _lifts);
@@ -376,11 +422,16 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     final i = _selectedIndex;
     if (i >= 0) _lifts[i].x = 1;
     _fold.x = widget.compact ? 1 : 0;
+    widget.trailingShown?.addListener(_ping);
   }
 
   @override
   void didUpdateWidget(AppBottomNavBar old) {
     super.didUpdateWidget(old);
+    if (old.trailingShown != widget.trailingShown) {
+      old.trailingShown?.removeListener(_ping);
+      widget.trailingShown?.addListener(_ping);
+    }
     if (old.selected != widget.selected ||
         old.categoriesOpen != widget.categoriesOpen ||
         old.compact != widget.compact) {
@@ -390,6 +441,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
 
   @override
   void dispose() {
+    widget.trailingShown?.removeListener(_ping);
     _ticker?.dispose();
     _repaint.dispose();
     super.dispose();
@@ -650,6 +702,21 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
                     ),
                   ),
                 ),
+                if (widget.trailing != null)
+                  AnimatedBuilder(
+                    animation: _repaint,
+                    builder: (context, child) => Positioned.fromRect(
+                      rect: _dock.trailing,
+                      child: Opacity(
+                        opacity: (widget.trailingShown?.value ?? 1).clamp(
+                          0.0,
+                          1.0,
+                        ),
+                        child: child,
+                      ),
+                    ),
+                    child: widget.trailing,
+                  ),
               ],
             );
           },

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
@@ -13,9 +12,8 @@ import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../ai_chat/application/ai_pending_filters.dart';
-import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
+import '../../../diamond_projects/application/diamond_selection.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_project_listing_actions.dart';
-import '../../../diamond_projects/presentation/widgets/diamond_project_pick_bottom_bar.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
@@ -125,50 +123,37 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
         scrollOffset: listingOffset,
         actions: const [CatalogFlowActions()],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ComparisonTrayHost(
-              child: LuxeListingScrollView(
-                controller: listingScroll,
-                offset: listingOffset,
-                onRefresh: () =>
-                    ref.read(diamondListProvider.notifier).refresh(),
-                onBackToTop: listingBackToTop,
-                backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Column(
-                      key: listingHeaderKey,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _ActiveFilterPills(
-                          onEdit: _editFilters,
-                          onResetAll: () => ref
-                              .read(diamondListProvider.notifier)
-                              .resetFiltersAndReload(),
-                        ),
-                        const DiamondListingStatsBar(),
-                      ],
-                    ),
-                  ),
-                  LuxePinnedBar(
-                    child: Center(
-                      child: _Toolbar(
-                        onEditFilters: _editFilters,
-                        onSwitchViewMode: switchListingViewMode,
-                      ),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(
-                    child: DiamondProjectListingActions(),
-                  ),
-                  ..._content(context),
-                ],
+      body: LuxeListingScrollView(
+        controller: listingScroll,
+        offset: listingOffset,
+        onRefresh: () => ref.read(diamondListProvider.notifier).refresh(),
+        onBackToTop: listingBackToTop,
+        backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              key: listingHeaderKey,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _ActiveFilterPills(
+                  onEdit: _editFilters,
+                  onResetAll: () => ref
+                      .read(diamondListProvider.notifier)
+                      .resetFiltersAndReload(),
+                ),
+                const DiamondListingStatsBar(),
+              ],
+            ),
+          ),
+          LuxePinnedBar(
+            child: Center(
+              child: _Toolbar(
+                onEditFilters: _editFilters,
+                onSwitchViewMode: switchListingViewMode,
               ),
             ),
           ),
-          const DiamondProjectPickBottomBar(),
+          ..._content(context),
         ],
       ),
     );
@@ -177,9 +162,6 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
   List<Widget> _content(BuildContext context) {
     final stateAsync = ref.watch(diamondListProvider);
     final grid = ref.watch(diamondViewModeProvider) == ViewMode.grid;
-    final showProjectPick = ref.watch(
-      authProvider.select((s) => s.isSeller || s.sellerId != null),
-    );
     final state = stateAsync.valueOrNull;
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
@@ -197,12 +179,10 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
       cardOf: (d, mode) => mode == LuxeViewMode.grid
           ? DiamondLuxeGridCard(
               diamond: d,
-              showProjectPick: showProjectPick,
               onTap: () => openDiamondDetail(context, d, among: listed),
             )
           : DiamondLuxeListCard(
               diamond: d,
-              showProjectPick: showProjectPick,
               onTap: () => openDiamondDetail(context, d, among: listed),
             ),
       entered: listingEntered,
@@ -323,6 +303,9 @@ class _Toolbar extends ConsumerWidget {
       onViewMode: onSwitchViewMode,
       gridLabel: context.tr(DiamondFlowL10n.grid),
       listLabel: context.tr(DiamondFlowL10n.list),
+      extra: ref.watch(canPickDiamondsProvider)
+          ? const DiamondProjectToolbarButton()
+          : null,
     );
   }
 }

@@ -23,18 +23,33 @@ void main() {
       );
     });
 
-    test('hidden off the four tab screens', () {
+    test('visible on catalog product listing screens', () {
+      for (final path in [
+        AppRouteNames.diamondResults,
+        AppRouteNames.labGrownDiamondResults,
+        AppRouteNames.gemstoneResults,
+        AppRouteNames.jewelryListing,
+        AppRouteNames.watches,
+        AppRouteNames.bullions,
+        '/watches/brand/Rolex',
+      ]) {
+        expect(AppBottomNav.isVisibleOn(path), isTrue, reason: path);
+        expect(AppBottomNav.tabFor(path), isNull, reason: path);
+      }
+    });
+
+    test('hidden off tab and listing screens', () {
       for (final path in [
         AppRouteNames.diamonds,
-        AppRouteNames.labGrownDiamondResults,
-        AppRouteNames.watches,
-        '/watches/brand/Rolex',
+        AppRouteNames.gemstones,
+        AppRouteNames.jewelry,
         AppRouteNames.auctions,
         AppRouteNames.buyerWallet,
         AppRouteNames.productDetailPath('diamond', '42'),
         AppRouteNames.comparison,
         AppRouteNames.paymentConfirmationPath('7'),
         AppRouteNames.watchesFilters,
+        AppRouteNames.bullionsFilters,
         AppRouteNames.brandWatchFiltersPath('Rolex'),
         AppRouteNames.login,
         AppRouteNames.sellerDashboard,

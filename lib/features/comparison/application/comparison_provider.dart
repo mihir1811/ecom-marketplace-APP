@@ -68,6 +68,7 @@ class ComparisonNotifier extends Notifier<ComparisonState> {
     ref.watch(authProvider.select((s) => s.user?.id));
     return const ComparisonState();
   }
+
   /// Toggles [item] in the tray. Returns a result describing the outcome.
   CompareAddResult toggle(CompareItem item) {
     if (state.containsId(item.id)) {
@@ -107,6 +108,24 @@ class ComparisonNotifier extends Notifier<ComparisonState> {
 
   void clear() {
     state = const ComparisonState();
+  }
+
+  /// Replaces the tray with [items] (single category, at most [ComparisonState.maxItems]).
+  void replaceAll(List<CompareItem> items) {
+    final next = items.take(ComparisonState.maxItems).toList(growable: false);
+    state = ComparisonState(
+      items: next,
+      category: next.isEmpty ? null : next.first.category,
+    );
+  }
+
+  /// Puts back an item removed at [index] (undo).
+  void restore(CompareItem item, int index) {
+    if (state.containsId(item.id) || state.isFull) return;
+    if (state.category != null && state.category != item.category) return;
+    final next = [...state.items]
+      ..insert(index.clamp(0, state.items.length), item);
+    state = ComparisonState(items: next, category: item.category);
   }
 
   /// Moves the item at [oldIndex] to [newIndex] (column reorder on compare screen).

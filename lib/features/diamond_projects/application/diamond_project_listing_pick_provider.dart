@@ -20,6 +20,20 @@ class DiamondProjectListingPickNotifier extends Notifier<Set<String>> {
     state = Set<String>.unmodifiable(next);
   }
 
+  void addAll(Iterable<String> ids) {
+    final next = Set<String>.from(state)
+      ..addAll(ids.where((e) => e.isNotEmpty));
+    if (next.length == state.length) return;
+    state = Set<String>.unmodifiable(next);
+  }
+
+  void remove(String diamondId) {
+    if (!state.contains(diamondId)) return;
+    state = Set<String>.unmodifiable(
+      Set<String>.from(state)..remove(diamondId),
+    );
+  }
+
   void clear() {
     if (state.isEmpty) return;
     state = const {};
@@ -28,8 +42,8 @@ class DiamondProjectListingPickNotifier extends Notifier<Set<String>> {
 
 final diamondProjectListingPickProvider =
     NotifierProvider<DiamondProjectListingPickNotifier, Set<String>>(
-  DiamondProjectListingPickNotifier.new,
-);
+      DiamondProjectListingPickNotifier.new,
+    );
 
 final isDiamondProjectPickedProvider = Provider.family<bool, String>((ref, id) {
   return ref.watch(

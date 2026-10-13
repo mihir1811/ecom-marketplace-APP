@@ -21,6 +21,7 @@ class AppNetworkImage extends StatelessWidget {
     this.borderRadius,
     this.memCacheWidth,
     this.error,
+    this.placeholder,
   });
 
   final String url;
@@ -32,6 +33,9 @@ class AppNetworkImage extends StatelessWidget {
 
   /// Shown on load failure (bad URL, 4xx/5xx, etc.).
   final Widget? error;
+
+  /// Shown while loading; defaults to a small spinner.
+  final Widget? placeholder;
 
   @override
   Widget build(BuildContext context) {
@@ -105,19 +109,21 @@ class AppNetworkImage extends StatelessWidget {
     );
   }
 
-  Widget _placeholder(BuildContext context) => ColoredBox(
-    color: AppColors.surface(context),
-    child: Center(
-      child: SizedBox(
-        width: 22,
-        height: 22,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: AppColors.bronze,
+  Widget _placeholder(BuildContext context) =>
+      placeholder ??
+      ColoredBox(
+        color: AppColors.surface(context),
+        child: Center(
+          child: SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.bronze,
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   Widget _fallback(BuildContext context) => ColoredBox(
     color: AppColors.surface(context),

@@ -56,10 +56,14 @@ class CatalogCompareButton extends ConsumerWidget {
   const CatalogCompareButton({
     required this.item,
     super.key,
+    this.onAdded,
     this.onLight = false,
   });
 
   final CompareItem item;
+
+  /// Called once the item joins the comparison (e.g. to cache its detail).
+  final VoidCallback? onAdded;
   final bool onLight;
 
   @override
@@ -70,7 +74,10 @@ class CatalogCompareButton extends ConsumerWidget {
       tooltip: context.tr(CatalogL10n.compare),
       glass: !onLight,
       active: inCompare,
-      onTap: () => handleCompareToggle(context, ref, item),
+      onTap: () {
+        handleCompareToggle(context, ref, item);
+        if (ref.read(isInComparisonProvider(item.id))) onAdded?.call();
+      },
       child: Icon(
         inCompare ? Icons.check_rounded : Icons.compare_arrows_rounded,
         size: 17,

@@ -104,15 +104,18 @@ Widget _status(BuildContext context, Jewelry j) {
   );
 }
 
-CatalogSaveButton _save(Jewelry j, {bool onLight = false}) =>
-    CatalogSaveButton(
-      item: WishlistItem.fromJewelry(j),
+CatalogSaveButton _save(Jewelry j, {bool onLight = false}) => CatalogSaveButton(
+  item: WishlistItem.fromJewelry(j),
+  onAdded: () => rememberProductDetail(jewelryProductDetail(j)),
+  onLight: onLight,
+);
+
+CatalogCompareButton _compare(Jewelry j, {bool onLight = false}) =>
+    CatalogCompareButton(
+      item: CompareItem.fromJewelry(j),
       onAdded: () => rememberProductDetail(jewelryProductDetail(j)),
       onLight: onLight,
     );
-
-CatalogCompareButton _compare(Jewelry j, {bool onLight = false}) =>
-    CatalogCompareButton(item: CompareItem.fromJewelry(j), onLight: onLight);
 
 /// Two-column jewelry result card: serif piece name, metal line, stones
 /// and the price, with the metal options floating over the photo.

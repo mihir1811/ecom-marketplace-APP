@@ -59,7 +59,11 @@ CatalogSaveButton _save(Watch w, {bool onLight = false}) => CatalogSaveButton(
 );
 
 CatalogCompareButton _compare(Watch w, {bool onLight = false}) =>
-    CatalogCompareButton(item: CompareItem.fromWatch(w), onLight: onLight);
+    CatalogCompareButton(
+      item: CompareItem.fromWatch(w),
+      onAdded: () => rememberProductDetail(watchProductDetail(w)),
+      onLight: onLight,
+    );
 
 /// Two-column watch result card: brand as the serif title, model beneath.
 class WatchLuxeGridCard extends ConsumerWidget {

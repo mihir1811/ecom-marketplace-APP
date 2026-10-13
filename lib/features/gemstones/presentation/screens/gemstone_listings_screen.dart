@@ -12,7 +12,6 @@ import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
-import '../../../comparison/presentation/widgets/comparison_bottom_bar.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/gemstone_list_provider.dart';
 import '../../application/gemstone_search_provider.dart';
@@ -114,35 +113,33 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
         scrollOffset: listingOffset,
         actions: const [CatalogFlowActions()],
       ),
-      body: ComparisonTrayHost(
-        child: LuxeListingScrollView(
-          controller: listingScroll,
-          offset: listingOffset,
-          onRefresh: () => ref.read(gemstoneListProvider.notifier).refresh(),
-          onBackToTop: listingBackToTop,
-          backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
-          slivers: [
-            SliverToBoxAdapter(
-              child: KeyedSubtree(
-                key: listingHeaderKey,
-                child: _ActiveFilterPills(
-                  onEdit: _editFilters,
-                  onResetAll: _resetFilters,
-                ),
+      body: LuxeListingScrollView(
+        controller: listingScroll,
+        offset: listingOffset,
+        onRefresh: () => ref.read(gemstoneListProvider.notifier).refresh(),
+        onBackToTop: listingBackToTop,
+        backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
+        slivers: [
+          SliverToBoxAdapter(
+            child: KeyedSubtree(
+              key: listingHeaderKey,
+              child: _ActiveFilterPills(
+                onEdit: _editFilters,
+                onResetAll: _resetFilters,
               ),
             ),
-            LuxePinnedBar(
-              child: Center(
-                child: _Toolbar(
-                  onEditFilters: _editFilters,
-                  onSort: () => _openSort(context),
-                  onSwitchViewMode: switchListingViewMode,
-                ),
+          ),
+          LuxePinnedBar(
+            child: Center(
+              child: _Toolbar(
+                onEditFilters: _editFilters,
+                onSort: () => _openSort(context),
+                onSwitchViewMode: switchListingViewMode,
               ),
             ),
-            ..._content(context),
-          ],
-        ),
+          ),
+          ..._content(context),
+        ],
       ),
     );
   }
