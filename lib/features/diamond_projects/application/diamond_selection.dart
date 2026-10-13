@@ -7,8 +7,9 @@ import '../../comparison/domain/models/compare_item.dart';
 import '../../diamonds/domain/models/diamond.dart';
 import 'diamond_project_listing_pick_provider.dart';
 
-/// Whether the signed-in user can pick stones for diamond projects.
-final canPickDiamondsProvider = Provider<bool>(
+/// Whether the signed-in user gets detailed analytics (diamond projects).
+/// Selecting, comparing and the summary strip are for everyone.
+final canAnalyzeDiamondsProvider = Provider<bool>(
   (ref) =>
       ref.watch(authProvider.select((s) => s.isSeller || s.sellerId != null)),
 );
@@ -18,6 +19,19 @@ final _pickSnapshotsProvider = StateProvider<Map<String, CompareItem>>(
   (ref) => const {},
 );
 
+/// Full rows of picked stones, for the summary strip and the project. Rows
+/// outlive an unpick (so an undo restores them) until the picks are cleared.
+final _pickedRowsProvider = StateProvider<Map<String, Diamond>>(
+  (ref) => const {},
+);
+
+/// Picked stones whose full row is known, in pick order.
+final pickedDiamondsProvider = Provider<List<Diamond>>((ref) {
+  final picks = ref.watch(diamondProjectListingPickProvider);
+  final rows = ref.watch(_pickedRowsProvider);
+  return [for (final id in picks) ?rows[id]];
+});
+
 enum DiamondSelectionOutcome {
   added,
   removed,
@@ -25,15 +39,16 @@ enum DiamondSelectionOutcome {
   switchedCategory,
 }
 
-/// One selection, two uses: every pick feeds the diamond project, and while
-/// at most [ComparisonState.maxItems] stones are picked the comparison
-/// mirrors them. Above that the comparison steps aside (empty) until the
+/// One selection, two uses: every pick feeds the summary strip (and, for
+/// sellers, the diamond project), and while at most
+/// [ComparisonState.maxItems] stones are picked the comparison mirrors them. Above that the comparison steps aside (empty) until the
 /// picks drop back within the limit.
 abstract final class DiamondSelection {
   static DiamondSelectionOutcome toggle(WidgetRef ref, Diamond d) {
     _adoptCompared(ref);
     final picks = ref.read(diamondProjectListingPickProvider.notifier);
     final snaps = ref.read(_pickSnapshotsProvider.notifier);
+    final rows = ref.read(_pickedRowsProvider.notifier);
     final had = ref.read(diamondProjectListingPickProvider).contains(d.id);
     if (had) {
       picks.remove(d.id);
@@ -41,6 +56,7 @@ abstract final class DiamondSelection {
     } else {
       picks.addAll([d.id]);
       snaps.state = {...snaps.state, d.id: CompareItem.fromDiamond(d)};
+      rows.state = {...rows.state, d.id: d};
     }
     final switched = _sync(ref);
     if (had) return DiamondSelectionOutcome.removed;
@@ -49,6 +65,29 @@ abstract final class DiamondSelection {
             ComparisonState.maxItems
         ? DiamondSelectionOutcome.addedOverLimit
         : DiamondSelectionOutcome.added;
+  }
+
+  /// Picks every stone in [all] (the whole matching inventory, not just
+  /// the loaded page). Above four picks the comparison steps aside.
+  static void selectAll(WidgetRef ref, List<Diamond> all) {
+    _adoptCompared(ref);
+    final fresh = [
+      for (final d in all)
+        if (d.id.isNotEmpty) d,
+    ];
+    if (fresh.isEmpty) return;
+    ref
+        .read(diamondProjectListingPickProvider.notifier)
+        .addAll(fresh.map((d) => d.id));
+    final snaps = ref.read(_pickSnapshotsProvider.notifier);
+    final rows = ref.read(_pickedRowsProvider.notifier);
+    snaps.state = {
+      ...snaps.state,
+      for (final d in fresh)
+        if (!snaps.state.containsKey(d.id)) d.id: CompareItem.fromDiamond(d),
+    };
+    rows.state = {...rows.state, for (final d in fresh) d.id: d};
+    _sync(ref);
   }
 
   /// Removes [id] from the comparison and from the picks. Returns whether
@@ -97,6 +136,7 @@ abstract final class DiamondSelection {
   static void _clearPicks(WidgetRef ref) {
     ref.read(diamondProjectListingPickProvider.notifier).clear();
     ref.read(_pickSnapshotsProvider.notifier).state = const {};
+    ref.read(_pickedRowsProvider.notifier).state = const {};
   }
 
   /// Diamonds compared from elsewhere (detail page, recently viewed) join

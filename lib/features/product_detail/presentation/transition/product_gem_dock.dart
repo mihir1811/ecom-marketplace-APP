@@ -7,7 +7,6 @@ import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../domain/models/product_detail.dart';
-import 'product_frame_shape.dart';
 import 'product_pager.dart';
 
 /// Height the dock reserves under the sheet.
@@ -23,9 +22,9 @@ const double _kRowY = 53;
 ///
 /// Five frames are in sight at once: the one on show in the middle, one
 /// either side of it, and half of the next one at each end of the rail.
-/// The centre frame is larger, sits higher and glows. Diamonds and gemstones are framed in their own cut (a
-/// pear in a pear), everything else keeps the gem-cut octagon. Swiping the
-/// rail, tapping a frame, or swiping the cards above all move the same pager.
+/// The centre frame is larger, sits higher and glows. Every product sits in
+/// the same rounded square. Swiping the rail, tapping a frame, or swiping the
+/// cards above all move the same pager.
 class ProductGemDock extends StatefulWidget {
   const ProductGemDock({
     required this.pager,
@@ -50,7 +49,15 @@ class _ProductGemDockState extends State<ProductGemDock>
   /// Widgets that only change with the product, kept so a turning rail
   /// repaints transforms instead of rebuilding pictures.
   final Map<int, Widget> _contents = {};
-  final Map<String, Path> _outlines = {};
+
+  /// Rounded square every frame is cut from.
+  static final Path _frame = Path()
+    ..addRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(0, 0, _kFrame, _kFrame),
+        const Radius.circular(18),
+      ),
+    );
 
   @override
   void didChangeDependencies() {
@@ -67,11 +74,6 @@ class _ProductGemDockState extends State<ProductGemDock>
     _idle.dispose();
     super.dispose();
   }
-
-  Path _outline(ProductFrameShape shape) => _outlines.putIfAbsent(
-    shape.key ?? '_octagon',
-    () => shape.pathIn(const Rect.fromLTWH(0, 0, _kFrame, _kFrame)),
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -138,11 +140,9 @@ class _ProductGemDockState extends State<ProductGemDock>
 
   Widget _frameAt(int i, double pos, double width, double slot, LuxePalette p) {
     final detail = widget.detailAt(i);
-    final shape = ProductFrameShape.of(detail);
-    final path = _outline(shape);
     final content = _contents.putIfAbsent(
       i,
-      () => _GemContent(detail: detail, shape: shape, palette: p),
+      () => _GemContent(detail: detail, palette: p),
     );
     final d = i - pos;
     final away = d.abs();
@@ -173,7 +173,7 @@ class _ProductGemDockState extends State<ProductGemDock>
             child: Transform.scale(
               scale: scale,
               child: _GemFrame(
-                path: path,
+                path: _frame,
                 near: near,
                 palette: p,
                 idle: _idle,
@@ -302,14 +302,9 @@ class _GemFrame extends StatelessWidget {
 
 /// What sits inside a frame: the product photo, or the cut drawn as facets.
 class _GemContent extends StatelessWidget {
-  const _GemContent({
-    required this.detail,
-    required this.shape,
-    required this.palette,
-  });
+  const _GemContent({required this.detail, required this.palette});
 
   final ProductDetail detail;
-  final ProductFrameShape shape;
   final LuxePalette palette;
 
   @override
@@ -318,7 +313,7 @@ class _GemContent extends StatelessWidget {
     final image = media.imageAt(0);
 
     Widget fallback() {
-      final key = shape.key;
+      final key = _shapeKey(detail);
       return Center(
         child: key != null
             ? renderShapeSvg(key, size: _kFrame * 0.58, color: palette.accent)
@@ -348,6 +343,16 @@ class _GemContent extends StatelessWidget {
     return ColoredBox(color: palette.surfaceRaised, child: picture);
   }
 }
+
+/// Cut drawn when a diamond or gemstone has no photo; null otherwise.
+String? _shapeKey(ProductDetail detail) => switch (detail.segment) {
+  ProductSegment.naturalDiamond ||
+  ProductSegment.labGrownDiamond ||
+  ProductSegment.gemstone => resolveShapeSvgKey(
+    detail.shapeKey ?? detail.media.shapeKey,
+  ),
+  _ => null,
+};
 
 /// Glow, drop shadow and base fill, drawn from the frame's own outline.
 class _FramePainter extends CustomPainter {

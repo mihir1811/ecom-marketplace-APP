@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gemstone/core/l10n/app_localizations.dart';
 import 'package:gemstone/core/widgets/luxe/product_card_anchor.dart';
 import 'package:gemstone/features/product_detail/domain/models/product_detail.dart';
-import 'package:gemstone/features/product_detail/presentation/transition/product_frame_shape.dart';
 import 'package:gemstone/features/product_detail/presentation/transition/product_gem_dock.dart';
 import 'package:gemstone/features/product_detail/presentation/transition/product_sheet_launch.dart';
 import 'package:gemstone/features/product_detail/presentation/transition/product_sheet_screen.dart';
@@ -272,9 +271,7 @@ void main() {
     }
   });
 
-  sheetTest('other segments keep the gem-cut octagon', (tester) async {
-    expect(ProductFrameShape.of(_product(0, watch: true)).key, isNull);
-    expect(ProductFrameShape.of(_product(2)).key, 'Pear');
+  sheetTest('other segments share the rounded-square frame', (tester) async {
     await _open(tester, launch: _launch(watch: true));
     await tester.pump(const Duration(milliseconds: 1000));
     await tester.pump(const Duration(milliseconds: 700));

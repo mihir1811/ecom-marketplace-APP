@@ -117,7 +117,7 @@ abstract final class AppBottomNav {
         isVisibleOn(path);
   }
 
-  /// Diamond result listings, where sellers' picks drive the comparison.
+  /// Diamond result listings, where listing picks drive the comparison.
   static bool isDiamondListing(String rawPath) {
     final path = _normalize(rawPath);
     return path == AppRouteNames.diamondResults ||

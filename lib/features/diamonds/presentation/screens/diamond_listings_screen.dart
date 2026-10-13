@@ -13,20 +13,20 @@ import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../ai_chat/application/ai_pending_filters.dart';
 import '../../../diamond_projects/application/diamond_selection.dart';
-import '../../../diamond_projects/presentation/widgets/diamond_project_listing_actions.dart';
+import '../../../diamond_projects/presentation/widgets/diamond_insight_strip.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_filter_summary.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
-import '../widgets/diamond_listing_stats_bar.dart';
 import '../widgets/diamond_luxe_cards.dart';
 import '../widgets/diamond_sorting_bottom_sheet.dart';
 
 /// Diamond results (natural and lab grown).
 ///
-/// Insights and active-filter pills scroll away; the sort / filter / view
-/// toolbar stays pinned. Cards enter with a short stagger on first load,
+/// Active-filter pills scroll away; the sort / filter / view toolbar and a
+/// slim insight strip (selection, KPIs, Select all) stay pinned. Buyers and
+/// sellers share it all; sellers also get a link to detailed analytics. Cards enter with a short stagger on first load,
 /// skeletons cover loading, and empty / error states offer the next step.
 class DiamondListingsScreen extends ConsumerStatefulWidget {
   const DiamondListingsScreen({
@@ -131,26 +131,26 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
         backToTopLabel: context.tr(DiamondFlowL10n.backToTop),
         slivers: [
           SliverToBoxAdapter(
-            child: Column(
+            child: KeyedSubtree(
               key: listingHeaderKey,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _ActiveFilterPills(
-                  onEdit: _editFilters,
-                  onResetAll: () => ref
-                      .read(diamondListProvider.notifier)
-                      .resetFiltersAndReload(),
-                ),
-                const DiamondListingStatsBar(),
-              ],
+              child: _ActiveFilterPills(
+                onEdit: _editFilters,
+                onResetAll: () => ref
+                    .read(diamondListProvider.notifier)
+                    .resetFiltersAndReload(),
+              ),
             ),
           ),
           LuxePinnedBar(
-            child: Center(
-              child: _Toolbar(
-                onEditFilters: _editFilters,
-                onSwitchViewMode: switchListingViewMode,
-              ),
+            extent: 56 + kDiamondInsightStripHeight + 6,
+            child: Column(
+              children: [
+                _Toolbar(
+                  onEditFilters: _editFilters,
+                  onSwitchViewMode: switchListingViewMode,
+                ),
+                const DiamondInsightStrip(),
+              ],
             ),
           ),
           ..._content(context),
@@ -303,8 +303,8 @@ class _Toolbar extends ConsumerWidget {
       onViewMode: onSwitchViewMode,
       gridLabel: context.tr(DiamondFlowL10n.grid),
       listLabel: context.tr(DiamondFlowL10n.list),
-      extra: ref.watch(canPickDiamondsProvider)
-          ? const DiamondProjectToolbarButton()
+      extra: ref.watch(canAnalyzeDiamondsProvider)
+          ? const DiamondAnalyticsLink()
           : null,
     );
   }

@@ -282,16 +282,14 @@ abstract final class AccountCommerceL10n {
   static const compareGroupMetal = 'commerce.compare.group.metal';
   static const compareGroupStones = 'commerce.compare.group.stones';
   static const compareGroupDetails = 'commerce.compare.group.details';
-  static const projectEyebrow = 'commerce.project.eyebrow';
-  static const projectTitle = 'commerce.project.title';
-  static const projectHint = 'commerce.project.hint';
-  static const projectSelected = 'commerce.project.selected';
-  static const projectSelectedBody = 'commerce.project.selectedBody';
-  static const projectNoneSelected = 'commerce.project.noneSelected';
-  static const projectPage = 'commerce.project.page';
-  static const projectPageBody = 'commerce.project.pageBody';
   static const projectClear = 'commerce.project.clear';
-  static const projectButton = 'commerce.project.button';
+  static const projectShown = 'commerce.project.shown';
+  static const projectSelectedCount = 'commerce.project.selectedCount';
+  static const projectSelectAll = 'commerce.project.selectAll';
+  static const projectSelecting = 'commerce.project.selecting';
+  static const projectLoadFailed = 'commerce.project.loadFailed';
+  static const projectAnalytics = 'commerce.project.analytics';
+  static const projectAnalyticsHint = 'commerce.project.analyticsHint';
   static const notAvailable = 'commerce.value.notAvailable';
   static const compareDiamond = 'commerce.category.diamond';
   static const compareDiamonds = 'commerce.category.diamonds';
@@ -1754,9 +1752,9 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     gujarati: 'સરખામણી માટે 4 સુધીની વસ્તુઓ પસંદ કરો',
   ),
   AccountCommerceL10n.compareFabOver: LocalizedMessage(
-    english: 'Compare holds 4 · {count} kept for your project',
-    hindi: 'तुलना में 4 तक · {count} आपके प्रोजेक्ट के लिए रखे गए',
-    gujarati: 'સરખામણીમાં 4 સુધી · {count} તમારા પ્રોજેક્ટ માટે રાખ્યા',
+    english: 'Compare holds up to 4 · {count} selected',
+    hindi: 'तुलना में 4 तक · {count} चुने गए',
+    gujarati: 'સરખામણીમાં 4 સુધી · {count} પસંદ કર્યા',
   ),
   AccountCommerceL10n.compareFabOpen: LocalizedMessage(
     english: 'Compare {count} pieces',
@@ -1769,9 +1767,12 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     gujarati: 'સરખામણીમાં હવે હીરા છે',
   ),
   AccountCommerceL10n.compareOverLimit: LocalizedMessage(
-    english: '{count} selected · compare pauses above 4, your project keeps them all',
-    hindi: '{count} चुने गए · 4 से अधिक पर तुलना रुकती है, प्रोजेक्ट में सभी रहते हैं',
-    gujarati: '{count} પસંદ · 4 થી વધુ પર સરખામણી અટકે છે, પ્રોજેક્ટમાં બધા રહે છે',
+    english:
+        '{count} selected · compare pauses above 4, your project keeps them all',
+    hindi:
+        '{count} चुने गए · 4 से अधिक पर तुलना रुकती है, प्रोजेक्ट में सभी रहते हैं',
+    gujarati:
+        '{count} પસંદ · 4 થી વધુ પર સરખામણી અટકે છે, પ્રોજેક્ટમાં બધા રહે છે',
   ),
   AccountCommerceL10n.compareSelect: LocalizedMessage(
     english: 'Select for compare and project',
@@ -1833,58 +1834,45 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     hindi: 'विवरण',
     gujarati: 'વિગતો',
   ),
-  AccountCommerceL10n.projectEyebrow: LocalizedMessage(
-    english: 'Diamond project',
-    hindi: 'डायमंड प्रोजेक्ट',
-    gujarati: 'ડાયમંડ પ્રોજેક્ટ',
-  ),
-  AccountCommerceL10n.projectTitle: LocalizedMessage(
-    english: 'Analyze stones',
-    hindi: 'पत्थरों का विश्लेषण करें',
-    gujarati: 'પથ્થરોનું વિશ્લેષણ કરો',
-  ),
-  AccountCommerceL10n.projectHint: LocalizedMessage(
-    english:
-        'The select button on each stone adds it to your project and, up to four, to compare.',
-    hindi:
-        'हर पत्थर पर चयन बटन उसे आपके प्रोजेक्ट में और चार तक तुलना में जोड़ता है।',
-    gujarati:
-        'દરેક પથ્થર પરનું પસંદગી બટન તેને તમારા પ્રોજેક્ટમાં અને ચાર સુધી સરખામણીમાં ઉમેરે છે.',
-  ),
-  AccountCommerceL10n.projectSelected: LocalizedMessage(
-    english: 'Selected stones',
-    hindi: 'चुने गए पत्थर',
-    gujarati: 'પસંદ કરેલા પથ્થરો',
-  ),
-  AccountCommerceL10n.projectSelectedBody: LocalizedMessage(
-    english: '{count} stones you picked',
-    hindi: 'आपके चुने {count} पत्थर',
-    gujarati: 'તમે પસંદ કરેલા {count} પથ્થરો',
-  ),
-  AccountCommerceL10n.projectNoneSelected: LocalizedMessage(
-    english: 'Nothing selected yet',
-    hindi: 'अभी कुछ नहीं चुना गया',
-    gujarati: 'હજી કંઈ પસંદ નથી',
-  ),
-  AccountCommerceL10n.projectPage: LocalizedMessage(
-    english: 'Everything loaded',
-    hindi: 'सभी लोड किए गए',
-    gujarati: 'બધા લોડ થયેલા',
-  ),
-  AccountCommerceL10n.projectPageBody: LocalizedMessage(
-    english: '{count} stones on this page',
-    hindi: 'इस पेज पर {count} पत्थर',
-    gujarati: 'આ પેજ પર {count} પથ્થરો',
-  ),
   AccountCommerceL10n.projectClear: LocalizedMessage(
     english: 'Clear selection',
     hindi: 'चयन साफ़ करें',
     gujarati: 'પસંદગી સાફ કરો',
   ),
-  AccountCommerceL10n.projectButton: LocalizedMessage(
-    english: 'Analyze',
+  AccountCommerceL10n.projectShown: LocalizedMessage(
+    english: '{shown} of {total}',
+    hindi: '{total} में से {shown}',
+    gujarati: '{total} માંથી {shown}',
+  ),
+  AccountCommerceL10n.projectSelectedCount: LocalizedMessage(
+    english: '{count} selected',
+    hindi: '{count} चुने गए',
+    gujarati: '{count} પસંદ કર્યા',
+  ),
+  AccountCommerceL10n.projectSelectAll: LocalizedMessage(
+    english: 'Select all',
+    hindi: 'सभी चुनें',
+    gujarati: 'બધા પસંદ કરો',
+  ),
+  AccountCommerceL10n.projectSelecting: LocalizedMessage(
+    english: 'Selecting every matching stone',
+    hindi: 'सभी मेल खाते पत्थर चुने जा रहे हैं',
+    gujarati: 'બધા મેળ ખાતા પથ્થરો પસંદ થઈ રહ્યા છે',
+  ),
+  AccountCommerceL10n.projectLoadFailed: LocalizedMessage(
+    english: "Couldn't load every stone. Try again.",
+    hindi: 'सभी पत्थर लोड नहीं हो सके। फिर से प्रयास करें।',
+    gujarati: 'બધા પથ્થરો લોડ થઈ શક્યા નહીં. ફરી પ્રયાસ કરો.',
+  ),
+  AccountCommerceL10n.projectAnalytics: LocalizedMessage(
+    english: 'Analytics',
     hindi: 'विश्लेषण',
     gujarati: 'વિશ્લેષણ',
+  ),
+  AccountCommerceL10n.projectAnalyticsHint: LocalizedMessage(
+    english: 'View detailed analytics',
+    hindi: 'विस्तृत विश्लेषण देखें',
+    gujarati: 'વિગતવાર વિશ્લેષણ જુઓ',
   ),
   AccountCommerceL10n.notAvailable: LocalizedMessage(
     english: 'N/A',

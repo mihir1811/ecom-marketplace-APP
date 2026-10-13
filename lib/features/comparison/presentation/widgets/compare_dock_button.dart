@@ -8,16 +8,16 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../diamond_projects/application/diamond_project_listing_pick_provider.dart';
-import '../../../diamond_projects/application/diamond_selection.dart';
 import '../../application/comparison_provider.dart';
 
 /// Round compare button that sits in the dock's row, after Profile.
 ///
 /// It fills the box the dock gives it (the dock sizes and folds it along
 /// with itself). A ring of four arcs fills as pieces are selected. With one
-/// to four selected it opens the comparison; with none, or more than four
-/// (seller picks kept for the diamond project), it stays muted and a tap
-/// explains why in a pill that rises above it.
+/// to four selected it opens the comparison; with none it stays muted, and
+/// with more than four (picks kept for the insight strip / project) it
+/// greys out as disabled. Either way a tap explains why in a pill that rises
+/// above it.
 class CompareDockButton extends ConsumerStatefulWidget {
   const CompareDockButton({
     required this.visible,
@@ -28,7 +28,7 @@ class CompareDockButton extends ConsumerStatefulWidget {
 
   final bool visible;
 
-  /// Seller picks drive the count on diamond listings.
+  /// Listing picks drive the count on diamond listings.
   final bool diamondListing;
   final VoidCallback onOpen;
 
@@ -91,8 +91,7 @@ class _CompareDockButtonState extends ConsumerState<CompareDockButton>
   }
 
   int _count() {
-    final seller = ref.watch(canPickDiamondsProvider);
-    if (widget.diamondListing && seller) {
+    if (widget.diamondListing) {
       return ref.watch(
         diamondProjectListingPickProvider.select((s) => s.length),
       );
@@ -156,19 +155,22 @@ class _CompareDockButtonState extends ConsumerState<CompareDockButton>
                         AppHaptics.medium();
                         _dismissHint();
                         widget.onOpen();
-                      } else if (!over) {
+                      } else {
                         AppHaptics.warning();
                         _showHint(label);
                       }
                     },
                     child: ScaleTransition(
                       scale: _pop,
-                      child: _Face(
-                        count: count,
-                        ready: ready,
-                        over: over,
-                        palette: p,
-                        compact: size < 50,
+                      child: _Disabled(
+                        disabled: over,
+                        child: _Face(
+                          count: count,
+                          ready: ready,
+                          over: over,
+                          palette: p,
+                          compact: size < 50,
+                        ),
                       ),
                     ),
                   ),
@@ -178,6 +180,41 @@ class _CompareDockButtonState extends ConsumerState<CompareDockButton>
           ),
         );
       },
+    );
+  }
+}
+
+/// Desaturates and fades the button while more than four are picked, so it
+/// reads as disabled. The filter is always applied (identity when enabled)
+/// so the face keeps its animation state across the switch.
+class _Disabled extends StatelessWidget {
+  const _Disabled({required this.disabled, required this.child});
+
+  final bool disabled;
+  final Widget child;
+
+  static const _grey = ColorFilter.matrix([
+    0.2126, 0.7152, 0.0722, 0, 0, //
+    0.2126, 0.7152, 0.0722, 0, 0, //
+    0.2126, 0.7152, 0.0722, 0, 0, //
+    0, 0, 0, 1, 0,
+  ]);
+  static const _identity = ColorFilter.matrix([
+    1, 0, 0, 0, 0, //
+    0, 1, 0, 0, 0, //
+    0, 0, 1, 0, 0, //
+    0, 0, 0, 1, 0,
+  ]);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      duration: LuxeMotion.fast,
+      opacity: disabled ? 0.5 : 1,
+      child: ColorFiltered(
+        colorFilter: disabled ? _grey : _identity,
+        child: child,
+      ),
     );
   }
 }

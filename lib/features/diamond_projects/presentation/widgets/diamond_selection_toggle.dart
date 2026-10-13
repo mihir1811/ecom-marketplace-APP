@@ -16,9 +16,10 @@ import '../../application/diamond_selection.dart';
 
 /// The one select control on a diamond card.
 ///
-/// Sellers: a tap picks the stone for the diamond project and, while at most
-/// four are picked, for comparison too. Everyone else: a plain compare
-/// toggle.
+/// Buyers and sellers alike: a tap picks the stone for the insight strip
+/// (and, for sellers, the diamond project) and, while at most four are
+/// picked, for comparison too. Stones without an id fall back to a plain
+/// compare toggle.
 class DiamondSelectionToggle extends ConsumerWidget {
   const DiamondSelectionToggle({
     required this.diamond,
@@ -35,7 +36,7 @@ class DiamondSelectionToggle extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!ref.watch(canPickDiamondsProvider) || diamond.id.isEmpty) {
+    if (diamond.id.isEmpty) {
       return CatalogCompareButton(
         item: CompareItem.fromDiamond(diamond),
         onAdded: _remember,
