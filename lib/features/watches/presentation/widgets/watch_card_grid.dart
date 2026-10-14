@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -22,11 +22,7 @@ import '../../domain/models/watch.dart';
 import '../../../../core/utils/app_currency.dart';
 
 class WatchCardGrid extends ConsumerWidget {
-  const WatchCardGrid({
-    required this.watch,
-    this.onTap,
-    super.key,
-  });
+  const WatchCardGrid({required this.watch, this.onTap, super.key});
 
   final Watch watch;
   final VoidCallback? onTap;
@@ -47,9 +43,7 @@ class WatchCardGrid extends ConsumerWidget {
             aspectRatio: 1.05,
             child: Stack(
               children: [
-                Positioned.fill(
-                  child: _WatchCardImage(watch: watch),
-                ),
+                Positioned.fill(child: _WatchCardImage(watch: watch)),
                 Positioned(
                   top: AppSpacing.s4,
                   right: AppSpacing.s4,
@@ -135,7 +129,7 @@ class WatchCardGrid extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           AppCurrency.format(formatGroupedPrice(watch.price)),
-                          style: GoogleFonts.manrope(
+                          style: AppFonts.primary(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             height: 1.2,
@@ -174,11 +168,7 @@ class WatchCardGrid extends ConsumerWidget {
 }
 
 class WatchCardList extends ConsumerWidget {
-  const WatchCardList({
-    required this.watch,
-    this.onTap,
-    super.key,
-  });
+  const WatchCardList({required this.watch, this.onTap, super.key});
 
   final Watch watch;
   final VoidCallback? onTap;
@@ -201,9 +191,7 @@ class WatchCardList extends ConsumerWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Positioned.fill(
-                  child: _WatchCardImage(watch: watch),
-                ),
+                Positioned.fill(child: _WatchCardImage(watch: watch)),
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
@@ -303,7 +291,7 @@ class WatchCardList extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           AppCurrency.format(formatGroupedPrice(watch.price)),
-                          style: GoogleFonts.manrope(
+                          style: AppFonts.primary(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
                             height: 1.2,

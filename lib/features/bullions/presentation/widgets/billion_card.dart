@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -41,11 +41,7 @@ class BullionCard extends StatelessWidget {
 
 /// Grid card — mirrors [WatchCardGrid] layout and padding (no compare).
 class BullionCardGrid extends StatelessWidget {
-  const BullionCardGrid({
-    required this.bullion,
-    this.onTap,
-    super.key,
-  });
+  const BullionCardGrid({required this.bullion, this.onTap, super.key});
 
   final Bullion bullion;
   final VoidCallback? onTap;
@@ -68,9 +64,7 @@ class BullionCardGrid extends StatelessWidget {
             aspectRatio: 1.05,
             child: Stack(
               children: [
-                Positioned.fill(
-                  child: _BullionCardImage(bullion: bullion),
-                ),
+                Positioned.fill(child: _BullionCardImage(bullion: bullion)),
                 Positioned(
                   top: AppSpacing.s4,
                   right: AppSpacing.s4,
@@ -83,9 +77,7 @@ class BullionCardGrid extends StatelessWidget {
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
-                  child: AvailabilityStatusBadge(
-                    status: bullion.availability,
-                  ),
+                  child: AvailabilityStatusBadge(status: bullion.availability),
                 ),
               ],
             ),
@@ -143,10 +135,8 @@ class BullionCardGrid extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          AppCurrency.format(
-                            formatGroupedPrice(bullion.price),
-                          ),
-                          style: GoogleFonts.manrope(
+                          AppCurrency.format(formatGroupedPrice(bullion.price)),
+                          style: AppFonts.primary(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             height: 1.2,
@@ -174,11 +164,7 @@ class BullionCardGrid extends StatelessWidget {
 
 /// List card — mirrors [WatchCardList] layout and padding (no compare).
 class BullionCardList extends StatelessWidget {
-  const BullionCardList({
-    required this.bullion,
-    this.onTap,
-    super.key,
-  });
+  const BullionCardList({required this.bullion, this.onTap, super.key});
 
   final Bullion bullion;
   final VoidCallback? onTap;
@@ -203,9 +189,7 @@ class BullionCardList extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Positioned.fill(
-                  child: _BullionCardImage(bullion: bullion),
-                ),
+                Positioned.fill(child: _BullionCardImage(bullion: bullion)),
                 Positioned(
                   top: AppSpacing.s8,
                   left: AppSpacing.s8,
@@ -223,8 +207,9 @@ class BullionCardList extends StatelessWidget {
                       ),
                       WishlistToggleButton(
                         item: WishlistItem.fromBullion(bullion),
-                        onAdded: () =>
-                            rememberProductDetail(bullionProductDetail(bullion)),
+                        onAdded: () => rememberProductDetail(
+                          bullionProductDetail(bullion),
+                        ),
                       ),
                     ],
                   ),
@@ -299,10 +284,8 @@ class BullionCardList extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          AppCurrency.format(
-                            formatGroupedPrice(bullion.price),
-                          ),
-                          style: GoogleFonts.manrope(
+                          AppCurrency.format(formatGroupedPrice(bullion.price)),
+                          style: AppFonts.primary(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
                             height: 1.2,
@@ -348,12 +331,12 @@ class _BullionCardImage extends StatelessWidget {
 }
 
 String _metalLabel(BullionMetal metal) => switch (metal) {
-      BullionMetal.gold => 'Gold',
-      BullionMetal.silver => 'Silver',
-      BullionMetal.platinum => 'Platinum',
-      BullionMetal.palladium => 'Palladium',
-      BullionMetal.copper => 'Copper',
-    };
+  BullionMetal.gold => 'Gold',
+  BullionMetal.silver => 'Silver',
+  BullionMetal.platinum => 'Platinum',
+  BullionMetal.palladium => 'Palladium',
+  BullionMetal.copper => 'Copper',
+};
 
 String _gridTitle(Bullion b) {
   final parts = [

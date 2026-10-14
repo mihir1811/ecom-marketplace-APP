@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
@@ -190,7 +190,7 @@ class JewelryProductCard extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           AppCurrency.format(formatInrPrice(item.price)),
-                          style: GoogleFonts.manrope(
+                          style: AppFonts.primary(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             height: 1.2,
@@ -329,7 +329,7 @@ class JewelryProductCard extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.s8),
                   Text(
                     AppCurrency.format(formatInrPrice(item.price)),
-                    style: GoogleFonts.manrope(
+                    style: AppFonts.primary(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       height: 1.2,
@@ -368,11 +368,7 @@ class JewelryProductCard extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.s8),
                     Row(
                       children: [
-                        Icon(
-                          Icons.star,
-                          size: 14,
-                          color: AppColors.bronze,
-                        ),
+                        Icon(Icons.star, size: 14, color: AppColors.bronze),
                         const SizedBox(width: 4),
                         Text(
                           '${item.rating}',
@@ -553,7 +549,9 @@ class JewelryProductListCard extends ConsumerWidget {
                           child: Icon(
                             wishlisted ? Icons.favorite : Icons.favorite_border,
                             size: WishlistToggleButton.listingIconSize,
-                            color: wishlisted ? AppColors.terracotta : secondary,
+                            color: wishlisted
+                                ? AppColors.terracotta
+                                : secondary,
                           ),
                         ),
                       ),
@@ -634,7 +632,7 @@ class JewelryProductListCard extends ConsumerWidget {
                       children: [
                         Text(
                           AppCurrency.format(formatInrPrice(item.price)),
-                          style: GoogleFonts.manrope(
+                          style: AppFonts.primary(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
                           ).copyWith(color: text),

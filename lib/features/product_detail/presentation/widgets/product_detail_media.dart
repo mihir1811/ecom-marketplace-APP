@@ -430,7 +430,7 @@ class _ViewCertificateButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppSpacing.r16),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppSpacing.r16),
-        onTap: () => openCertificateViewer(url: url, title: label),
+        onTap: () => openCertificateViewer(context, url: url, title: label),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(

@@ -614,6 +614,7 @@ class LuxeCertificateCard extends StatelessWidget {
               height: 44,
               expand: true,
               onPressed: () => openCertificateViewer(
+                context,
                 url: cert.certificateUrl!,
                 title:
                     cert.certificateLabel ??

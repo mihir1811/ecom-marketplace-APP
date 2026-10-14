@@ -1,44 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 /// Typography tokens for the GemWorld design system.
-/// All styles use Manrope.
+/// Headings use [AppFonts.primary]; body/UI text uses [AppFonts.secondary].
 class AppTypography {
   const AppTypography._();
 
-  static String get fontFamily => GoogleFonts.manrope().fontFamily!;
+  static String get fontFamily => AppFonts.secondary().fontFamily!;
 
-  static TextStyle get display => GoogleFonts.manrope(
-    fontSize: 28,
-    fontWeight: FontWeight.w700,
-    height: 1.2,
-  );
+  static TextStyle get display =>
+      AppFonts.primary(fontSize: 28, fontWeight: FontWeight.w700, height: 1.2);
 
-  static TextStyle get headline => GoogleFonts.manrope(
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
-    height: 1.25,
-  );
+  static TextStyle get headline =>
+      AppFonts.primary(fontSize: 24, fontWeight: FontWeight.w700, height: 1.25);
 
-  static TextStyle get title => GoogleFonts.manrope(
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    height: 1.3,
-  );
+  static TextStyle get title =>
+      AppFonts.primary(fontSize: 18, fontWeight: FontWeight.w600, height: 1.3);
 
-  static TextStyle get body => GoogleFonts.manrope(
+  static TextStyle get body => AppFonts.secondary(
     fontSize: 16,
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
-  static TextStyle get label => GoogleFonts.manrope(
+  static TextStyle get label => AppFonts.secondary(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 1.4,
   );
 
-  static TextStyle get caption => GoogleFonts.manrope(
+  static TextStyle get caption => AppFonts.secondary(
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 1.4,

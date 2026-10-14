@@ -1,4 +1,5 @@
 import '../../../../core/network/api_config.dart';
+import '../../../../core/utils/certificate_url.dart';
 import '../../../product_detail/domain/models/listing_seller_info.dart';
 import '../../domain/models/gemstone.dart';
 import '../models/gemstone_dto.dart';
@@ -26,7 +27,12 @@ abstract final class GemstoneMapper {
       dimensions: _clean(dto.measurement) ?? '',
       cut: _clean(dto.cut),
       certificate: _clean(dto.certificateNumber),
-      certificateUrl: _asHttpUrl(dto.certification),
+      certificateUrl: CertificateUrl.resolve(
+        lab: lab,
+        certificateNumber: dto.certificateNumber,
+        certificateFileUrl: dto.certification,
+        fallbackUrl: _asHttpUrl(dto.certification),
+      ),
       imageUrl: firstImage,
       discount: dto.discount,
       stockNumber: _clean(dto.stockNumber),

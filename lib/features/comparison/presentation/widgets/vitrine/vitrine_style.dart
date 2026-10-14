@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 /// Colour tokens for the comparison "vitrine": bone paper and champagne
 /// gold by day, onyx and warm gold by night.
@@ -68,9 +68,9 @@ class Vitrine {
   static Vitrine of(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark ? _dark : _light;
 
-  /// Bodoni display, for names and numbers that should feel engraved.
+  /// Primary display, for names and numbers that should feel engraved.
   TextStyle display(double size, {Color? color, FontStyle? style}) =>
-      GoogleFonts.bodoniModa(
+      AppFonts.primary(
         fontSize: size,
         height: 1.08,
         fontWeight: FontWeight.w500,
@@ -79,13 +79,13 @@ class Vitrine {
         color: color ?? ink,
       );
 
-  /// Manrope interface text.
+  /// Interface text ([AppFonts.secondary]).
   TextStyle text(
     double size, {
     Color? color,
     FontWeight weight = FontWeight.w500,
     double height = 1.3,
-  }) => GoogleFonts.manrope(
+  }) => AppFonts.secondary(
     fontSize: size,
     height: height,
     fontWeight: weight,
@@ -93,7 +93,7 @@ class Vitrine {
   );
 
   /// Tracked capitals for row and section labels.
-  TextStyle eyebrow({Color? color, double size = 10}) => GoogleFonts.manrope(
+  TextStyle eyebrow({Color? color, double size = 10}) => AppFonts.secondary(
     fontSize: size,
     height: 1.2,
     fontWeight: FontWeight.w700,
@@ -103,7 +103,7 @@ class Vitrine {
 
   /// Tabular figures.
   TextStyle figure(double size, {Color? color, FontWeight? weight}) =>
-      GoogleFonts.manrope(
+      AppFonts.primary(
         fontSize: size,
         height: 1.2,
         fontWeight: weight ?? FontWeight.w700,

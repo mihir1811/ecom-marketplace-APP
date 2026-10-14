@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/error/failure.dart';
@@ -717,7 +718,7 @@ class _KeyWell extends StatelessWidget {
                   value,
                   maxLines: shown ? 3 : 1,
                   style: AtelierType.label(p.ink, size: 13).copyWith(
-                    fontFamily: 'monospace',
+                    fontFamily: AppFonts.monoFontFamily,
                     letterSpacing: shown ? 0.4 : 1.6,
                   ),
                 ),
@@ -1378,7 +1379,7 @@ class _KeyCreatedDialogState extends State<_KeyCreatedDialog> {
               style: AtelierType.label(
                 p.ink,
                 size: 13,
-              ).copyWith(fontFamily: 'monospace', height: 1.5),
+              ).copyWith(fontFamily: AppFonts.monoFontFamily, height: 1.5),
             ),
           ),
           const SizedBox(height: 12),

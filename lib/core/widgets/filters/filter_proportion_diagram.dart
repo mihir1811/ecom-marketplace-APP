@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
@@ -413,7 +414,7 @@ class _ProportionPainter extends CustomPainter {
     final tp = TextPainter(
       text: TextSpan(
         text: text,
-        style: TextStyle(
+        style: AppFonts.secondary(
           color: muted ? this.muted : label,
           fontSize: muted ? 10 : 11,
           fontWeight: FontWeight.w700,

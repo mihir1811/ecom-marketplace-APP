@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gemstone/core/widgets/app_scaffold.dart';
 
@@ -142,7 +142,7 @@ class _OrderBody extends ConsumerWidget {
                     AppCurrency.usd(
                       pricing.totalUsd > 0 ? pricing.totalUsd : order.amountUsd,
                     ),
-                    style: GoogleFonts.manrope(
+                    style: AppFonts.primary(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                       color: AppColors.bronze,

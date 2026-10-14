@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 import 'stardust_field.dart';
 
@@ -77,7 +78,7 @@ class StardustSprites {
 
 /// Rasterises [char] and returns its stroke pixels as a normalised cloud.
 Future<GlyphCloud> sampleGlyph(String char) async {
-  final style = GoogleFonts.cormorantGaramond(
+  final style = AppFonts.display(
     fontSize: 300,
     fontWeight: FontWeight.w600,
     color: Colors.white,
@@ -86,7 +87,7 @@ Future<GlyphCloud> sampleGlyph(String char) async {
   try {
     await GoogleFonts.pendingFonts([style]);
   } catch (_) {
-    // Offline or fonts unavailable: the fallback serif still reads as a G.
+    // Offline or fonts unavailable: the fallback font still reads as a G.
   }
   final painter = TextPainter(
     text: TextSpan(text: char, style: style),

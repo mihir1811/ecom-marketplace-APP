@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 import '../theme/app_colors.dart';
 import '../utils/app_currency.dart';
@@ -34,7 +34,7 @@ class CatalogDiscountPrice extends StatelessWidget {
         ? listOverride
         : (inferred != null && inferred > net ? inferred : null);
     final primary = textColor ?? AppColors.textPrimary(context);
-    final saleStyle = GoogleFonts.manrope(
+    final saleStyle = AppFonts.primary(
       fontSize: fontSize,
       fontWeight: FontWeight.bold,
       height: 1.2,
@@ -56,7 +56,7 @@ class CatalogDiscountPrice extends StatelessWidget {
         Text(
           AppCurrency.format(format(list)),
           style:
-              GoogleFonts.manrope(
+              AppFonts.primary(
                 fontSize: fontSize * 0.78,
                 fontWeight: FontWeight.w600,
                 height: 1.15,

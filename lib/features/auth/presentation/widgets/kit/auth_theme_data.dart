@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 import 'auth_tokens.dart';
 
@@ -35,7 +35,7 @@ ThemeData authThemeData(ThemeData base, AuthPalette p) {
   return base.copyWith(
     colorScheme: scheme,
     scaffoldBackgroundColor: p.bg,
-    textTheme: GoogleFonts.jostTextTheme(
+    textTheme: AppFonts.secondaryTextTheme(
       base.textTheme,
     ).apply(bodyColor: p.ink, displayColor: p.ink),
     iconTheme: IconThemeData(color: p.ink, size: 22),

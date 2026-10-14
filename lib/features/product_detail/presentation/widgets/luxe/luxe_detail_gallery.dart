@@ -186,6 +186,7 @@ class _LuxeDetailGalleryState extends State<LuxeDetailGallery> {
                             icon: Icons.verified_outlined,
                             label: context.tr(DiamondFlowL10n.viewCertificate),
                             onTap: () => openCertificateViewer(
+                              context,
                               url: widget.media.certificateUrl!,
                               title:
                                   widget.media.certificateLabel ??

@@ -1,3 +1,4 @@
+import '../../../../core/utils/certificate_url.dart';
 import '../../../diamond_viewer/utils/viewer_url_resolver.dart';
 import '../../../product_detail/domain/models/listing_seller_info.dart';
 import '../../domain/models/diamond.dart';
@@ -21,14 +22,14 @@ abstract final class DiamondMapper {
       final polish = _range(dto.polishFrom, dto.polishTo) ?? _clean(dto.polish);
       final symmetry =
           _range(dto.symmetryFrom, dto.symmetryTo) ?? _clean(dto.symmetry);
-      final fluorescence = _clean(dto.fluorescenceIntensityFrom) ??
+      final fluorescence =
+          _clean(dto.fluorescenceIntensityFrom) ??
           _clean(dto.fluorescenceIntensity);
-      final carat = dto.totalCaratWeight ??
-          dto.caratWeightPerpcs ??
-          dto.caratWeight ??
-          0;
+      final carat =
+          dto.totalCaratWeight ?? dto.caratWeightPerpcs ?? dto.caratWeight ?? 0;
       final sieve = _range(dto.sieveSizeMin, dto.sieveSizeMax);
-      final measurement = _range(dto.measurementMin, dto.measurementMax) ??
+      final measurement =
+          _range(dto.measurementMin, dto.measurementMax) ??
           _clean(dto.measurement);
 
       return Diamond(
@@ -67,7 +68,7 @@ abstract final class DiamondMapper {
         tablePercent: _clean(dto.table),
         depthPercent: _clean(dto.depth),
         certificateNumber: _clean(dto.certificateNumber),
-        certificateUrl: _asHttpUrl(dto.certification),
+        certificateUrl: _certificateUrl(dto),
         shade: _clean(dto.shade),
         fancyColor: _clean(dto.fancyColor),
         fancyIntensity: _clean(dto.fancyIntencity),
@@ -133,7 +134,7 @@ abstract final class DiamondMapper {
       tablePercent: _clean(dto.table),
       depthPercent: _clean(dto.depth),
       certificateNumber: _clean(dto.certificateNumber),
-      certificateUrl: _asHttpUrl(dto.certification),
+      certificateUrl: _certificateUrl(dto),
       shade: _clean(dto.shade),
       fancyColor: _clean(dto.fancyColor),
       fancyIntensity: _clean(dto.fancyIntencity),
@@ -170,6 +171,13 @@ abstract final class DiamondMapper {
   }
 
   /// Maps API `certification` column to a viewable URL (http/https/www only).
+  static String? _certificateUrl(DiamondDto dto) => CertificateUrl.resolve(
+    lab: dto.certificateCompanyName,
+    certificateNumber: dto.certificateNumber,
+    certificateFileUrl: dto.certification,
+    fallbackUrl: _asHttpUrl(dto.certification),
+  );
+
   static String? _asHttpUrl(String? value) {
     final cleaned = _clean(value);
     if (cleaned == null) return null;

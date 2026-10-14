@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 import 'app_palette.dart';
 
@@ -130,21 +130,20 @@ abstract final class LuxeStage {
   static const glassBorder = Color(0x29FFFFFF);
 }
 
-/// Editorial type scale: Cormorant Garamond display, Jost for interface.
+/// Editorial type scale: [AppFonts.display] display, [AppFonts.secondary] for interface.
 abstract final class LuxeType {
-  static TextStyle display(double size, Color color) =>
-      GoogleFonts.cormorantGaramond(
-        fontSize: size,
-        height: 1.02,
-        fontWeight: FontWeight.w500,
-        letterSpacing: -0.4,
-        color: color,
-      );
+  static TextStyle display(double size, Color color) => AppFonts.display(
+    fontSize: size,
+    height: 1.02,
+    fontWeight: FontWeight.w500,
+    letterSpacing: -0.4,
+    color: color,
+  );
 
   static TextStyle displayItalic(double size, Color color) =>
       display(size, color).copyWith(fontStyle: FontStyle.italic);
 
-  static TextStyle eyebrow(Color color) => GoogleFonts.jost(
+  static TextStyle eyebrow(Color color) => AppFonts.secondary(
     fontSize: 11,
     height: 1.2,
     fontWeight: FontWeight.w500,
@@ -152,14 +151,14 @@ abstract final class LuxeType {
     color: color,
   );
 
-  static TextStyle body(Color color, {double size = 15}) => GoogleFonts.jost(
+  static TextStyle body(Color color, {double size = 15}) => AppFonts.secondary(
     fontSize: size,
     height: 1.5,
     fontWeight: FontWeight.w400,
     color: color,
   );
 
-  static TextStyle label(Color color, {double size = 13}) => GoogleFonts.jost(
+  static TextStyle label(Color color, {double size = 13}) => AppFonts.secondary(
     fontSize: size,
     height: 1.25,
     fontWeight: FontWeight.w500,
@@ -167,7 +166,7 @@ abstract final class LuxeType {
     color: color,
   );
 
-  static TextStyle figure(Color color, {double size = 15}) => GoogleFonts.jost(
+  static TextStyle figure(Color color, {double size = 15}) => AppFonts.primary(
     fontSize: size,
     height: 1.2,
     fontWeight: FontWeight.w500,

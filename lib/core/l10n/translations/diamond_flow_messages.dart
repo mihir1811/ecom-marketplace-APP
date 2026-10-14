@@ -42,6 +42,8 @@ abstract final class DiamondFlowL10n {
   static const certifiedBy = 'diamondFlow.certifiedBy';
   static const reportNumber = 'diamondFlow.reportNumber';
   static const viewCertificate = 'diamondFlow.viewCertificate';
+  static const downloadCertificate = 'diamondFlow.downloadCertificate';
+  static const certificateLoadFailed = 'diamondFlow.certificateLoadFailed';
   static const view360 = 'diamondFlow.view360';
   static const specifications = 'diamondFlow.specifications';
   static const soldBy = 'diamondFlow.soldBy';
@@ -241,6 +243,16 @@ const diamondFlowMessages = <String, LocalizedMessage>{
     english: 'View certificate',
     hindi: 'प्रमाणपत्र देखें',
     gujarati: 'પ્રમાણપત્ર જુઓ',
+  ),
+  DiamondFlowL10n.downloadCertificate: LocalizedMessage(
+    english: 'Download certificate',
+    hindi: 'प्रमाणपत्र डाउनलोड करें',
+    gujarati: 'પ્રમાણપત્ર ડાઉનલોડ કરો',
+  ),
+  DiamondFlowL10n.certificateLoadFailed: LocalizedMessage(
+    english: 'Could not load the certificate.',
+    hindi: 'प्रमाणपत्र लोड नहीं हो सका।',
+    gujarati: 'પ્રમાણપત્ર લોડ થઈ શક્યું નથી.',
   ),
   DiamondFlowL10n.view360: LocalizedMessage(
     english: '360° view',

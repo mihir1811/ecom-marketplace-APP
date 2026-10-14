@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 import '../../../../core/theme/atelier_palette.dart';
 
@@ -61,23 +61,23 @@ abstract final class AtelierMotion {
   static const stagger = Duration(milliseconds: 45);
 }
 
-/// Typography: a high-contrast serif for display numerals and titles, a
-/// neutral grotesk for everything functional.
+/// Typography: [AppFonts.display] for display numerals, [AppFonts.primary] for titles,
+/// [AppFonts.secondary] for everything functional.
 abstract final class AtelierType {
   static const _tabular = [FontFeature.tabularFigures()];
 
-  /// Lining, tabular numerals: the serif's old-style digits read "1" as "I".
+  /// Lining, tabular numerals so figures align.
   static const _display = [
     FontFeature.tabularFigures(),
     FontFeature.liningFigures(),
   ];
 
-  /// Large editorial serif — page titles, hero values.
+  /// Large display — page titles, hero values.
   static TextStyle display(
     Color color, {
     double size = 34,
     FontWeight? weight,
-  }) => GoogleFonts.cormorantGaramond(
+  }) => AppFonts.display(
     fontSize: size,
     fontWeight: weight ?? FontWeight.w600,
     height: 1.05,
@@ -87,7 +87,7 @@ abstract final class AtelierType {
   );
 
   /// Section / card titles.
-  static TextStyle title(Color color, {double size = 16}) => GoogleFonts.inter(
+  static TextStyle title(Color color, {double size = 16}) => AppFonts.primary(
     fontSize: size,
     fontWeight: FontWeight.w600,
     height: 1.25,
@@ -95,7 +95,7 @@ abstract final class AtelierType {
     color: color,
   );
 
-  static TextStyle body(Color color, {double size = 14}) => GoogleFonts.inter(
+  static TextStyle body(Color color, {double size = 14}) => AppFonts.secondary(
     fontSize: size,
     fontWeight: FontWeight.w400,
     height: 1.45,
@@ -103,7 +103,7 @@ abstract final class AtelierType {
   );
 
   static TextStyle label(Color color, {double size = 13, FontWeight? weight}) =>
-      GoogleFonts.inter(
+      AppFonts.secondary(
         fontSize: size,
         fontWeight: weight ?? FontWeight.w600,
         height: 1.2,
@@ -112,7 +112,7 @@ abstract final class AtelierType {
       );
 
   static TextStyle caption(Color color, {double size = 12}) =>
-      GoogleFonts.inter(
+      AppFonts.secondary(
         fontSize: size,
         fontWeight: FontWeight.w500,
         height: 1.35,
@@ -120,7 +120,7 @@ abstract final class AtelierType {
       );
 
   /// Spaced small caps used as quiet section markers.
-  static TextStyle overline(Color color) => GoogleFonts.inter(
+  static TextStyle overline(Color color) => AppFonts.secondary(
     fontSize: 10.5,
     fontWeight: FontWeight.w600,
     height: 1.2,
@@ -133,7 +133,7 @@ abstract final class AtelierType {
     Color color, {
     double size = 15,
     FontWeight? weight,
-  }) => GoogleFonts.inter(
+  }) => AppFonts.primary(
     fontSize: size,
     fontWeight: weight ?? FontWeight.w600,
     height: 1.2,

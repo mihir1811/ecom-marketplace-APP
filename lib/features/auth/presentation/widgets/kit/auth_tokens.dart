@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:gemstone/core/theme/app_fonts.dart';
 
 /// Colour tokens for the authentication experience.
 ///
@@ -103,9 +103,9 @@ class AuthPalette {
   );
 }
 
-/// Type scale: a high-contrast serif for statements, a geometric sans for UI.
+/// Type scale: [AppFonts.display] for statements, [AppFonts.secondary] for UI.
 abstract final class AuthType {
-  static TextStyle display(AuthPalette p) => GoogleFonts.cormorantGaramond(
+  static TextStyle display(AuthPalette p) => AppFonts.display(
     fontSize: 38,
     fontWeight: FontWeight.w500,
     height: 1.05,
@@ -113,14 +113,14 @@ abstract final class AuthType {
     color: p.ink,
   );
 
-  static TextStyle title(AuthPalette p) => GoogleFonts.cormorantGaramond(
+  static TextStyle title(AuthPalette p) => AppFonts.display(
     fontSize: 26,
     fontWeight: FontWeight.w600,
     height: 1.15,
     color: p.ink,
   );
 
-  static TextStyle eyebrow(AuthPalette p) => GoogleFonts.jost(
+  static TextStyle eyebrow(AuthPalette p) => AppFonts.secondary(
     fontSize: 11,
     fontWeight: FontWeight.w500,
     letterSpacing: 2.6,
@@ -128,21 +128,21 @@ abstract final class AuthType {
     color: p.accent,
   );
 
-  static TextStyle body(AuthPalette p) => GoogleFonts.jost(
+  static TextStyle body(AuthPalette p) => AppFonts.secondary(
     fontSize: 15,
     fontWeight: FontWeight.w400,
     height: 1.5,
     color: p.inkSoft,
   );
 
-  static TextStyle field(AuthPalette p) => GoogleFonts.jost(
+  static TextStyle field(AuthPalette p) => AppFonts.secondary(
     fontSize: 15.5,
     fontWeight: FontWeight.w400,
     height: 1.3,
     color: p.ink,
   );
 
-  static TextStyle label(AuthPalette p) => GoogleFonts.jost(
+  static TextStyle label(AuthPalette p) => AppFonts.secondary(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.2,
@@ -150,14 +150,14 @@ abstract final class AuthType {
     color: p.ink,
   );
 
-  static TextStyle caption(AuthPalette p) => GoogleFonts.jost(
+  static TextStyle caption(AuthPalette p) => AppFonts.secondary(
     fontSize: 12.5,
     fontWeight: FontWeight.w400,
     height: 1.4,
     color: p.inkMuted,
   );
 
-  static TextStyle button(AuthPalette p) => GoogleFonts.jost(
+  static TextStyle button(AuthPalette p) => AppFonts.primary(
     fontSize: 15,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.6,
