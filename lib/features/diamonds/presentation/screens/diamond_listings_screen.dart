@@ -12,6 +12,7 @@ import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../ai_chat/application/ai_pending_filters.dart';
+import '../../../diamond_projects/application/diamond_project_listing_pick_provider.dart';
 import '../../../diamond_projects/application/diamond_selection.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_insight_strip.dart';
 import '../../../product_detail/product_detail_navigation.dart';
@@ -114,6 +115,9 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
     final title = widget.title == 'Diamond Results'
         ? context.tr(RemainingL10n.naturalDiamonds)
         : widget.title;
+    final selecting = ref.watch(
+      diamondProjectListingPickProvider.select((s) => s.isNotEmpty),
+    );
 
     return AppScaffold(
       backgroundColor: p.canvas,
@@ -142,14 +146,15 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
             ),
           ),
           LuxePinnedBar(
-            extent: 56 + kDiamondInsightStripHeight + 6,
+            extent: selecting ? 56 + kDiamondInsightStripHeight + 6 : 56,
             child: Column(
               children: [
                 _Toolbar(
                   onEditFilters: _editFilters,
                   onSwitchViewMode: switchListingViewMode,
                 ),
-                const DiamondInsightStrip(),
+                // Only while something is picked.
+                if (selecting) const DiamondInsightStrip(),
               ],
             ),
           ),
@@ -303,7 +308,12 @@ class _Toolbar extends ConsumerWidget {
       onViewMode: onSwitchViewMode,
       gridLabel: context.tr(DiamondFlowL10n.grid),
       listLabel: context.tr(DiamondFlowL10n.list),
-      extra: ref.watch(canAnalyzeDiamondsProvider)
+      // Sellers only, and only once stones are picked.
+      extra:
+          ref.watch(canAnalyzeDiamondsProvider) &&
+              ref.watch(
+                diamondProjectListingPickProvider.select((s) => s.isNotEmpty),
+              )
           ? const DiamondAnalyticsLink()
           : null,
     );

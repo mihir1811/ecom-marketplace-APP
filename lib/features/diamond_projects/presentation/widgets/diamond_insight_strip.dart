@@ -22,7 +22,12 @@ import '../../application/diamond_project_selection_provider.dart';
 import '../../application/diamond_selection.dart';
 
 /// Height of [DiamondInsightStrip], for the pinned header's extent.
-const double kDiamondInsightStripHeight = 34;
+const double kDiamondInsightStripHeight = _kHeaderHeight + 4 + _kCardHeight;
+
+const double _kHeaderHeight = 20;
+const double _kCardHeight = 36;
+
+const double _kCardRadius = 10;
 
 /// Loads the whole matching inventory on demand, with a busy flag and a
 /// cancel on dispose.
@@ -63,10 +68,10 @@ mixin _InventoryLoad<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
 /// Slim, pinned summary of the listing for buyers and sellers alike.
 ///
-/// One 34 px capsule under the toolbar: the scope ("24 of 1,284", or
-/// "12 selected" with a clear button), the KPIs of that scope scrolling
-/// sideways, and Select all — which picks every matching stone in the
-/// inventory, not only the loaded pages.
+/// A slim caption row — the scope ("24 of 1,284", or "12 selected" with a
+/// clear button) on the left, Select all (every matching stone in the
+/// inventory, not only the loaded pages) on the right — over the KPIs of
+/// that scope, which share the full width as small cards.
 class DiamondInsightStrip extends ConsumerStatefulWidget {
   const DiamondInsightStrip({super.key});
 
@@ -102,81 +107,58 @@ class _DiamondInsightStripState extends ConsumerState<DiamondInsightStrip>
     );
     final canSelectAll = settled && total > 0 && picks < total;
 
-    return Container(
-      height: kDiamondInsightStripHeight,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.only(left: 4, right: 4),
-      decoration: ShapeDecoration(
-        color: p.surface.withValues(alpha: 0.72),
-        shape: StadiumBorder(side: BorderSide(color: p.hairline, width: 0.6)),
-      ),
-      child: Row(
-        children: [
-          _Scope(
-            selected: picks,
-            shown: loaded.length,
-            total: total,
-            settled: settled,
-          ),
-          Expanded(
-            child: ShaderMask(
-              blendMode: BlendMode.dstIn,
-              shaderCallback: (r) => const LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  Colors.black,
-                  Colors.black,
-                  Colors.transparent,
-                ],
-                stops: [0, 0.05, 0.92, 1],
-              ).createShader(r),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: AnimatedSwitcher(
-                  duration: LuxeMotion.fast,
-                  child: Row(
-                    key: ValueKey(stats.isEmpty),
-                    children: stats.isEmpty
-                        ? [
-                            Text(
-                              '—',
-                              style: LuxeType.figure(p.inkFaint, size: 12),
-                            ),
-                          ]
-                        : _kpis(context, stats, p),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: SizedBox(
+        height: kDiamondInsightStripHeight,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: _kHeaderHeight,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _Scope(
+                      selected: picks,
+                      shown: loaded.length,
+                      total: total,
+                      settled: settled,
+                    ),
                   ),
+                  AnimatedSwitcher(
+                    duration: LuxeMotion.fast,
+                    child: canSelectAll || busy
+                        ? _SelectAll(busy: busy, onTap: _selectAll)
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              height: _kCardHeight,
+              child: AnimatedSwitcher(
+                duration: LuxeMotion.fast,
+                child: Row(
+                  key: ValueKey(stats.isEmpty),
+                  children: stats.isEmpty
+                      ? [
+                          Expanded(
+                            child: _StatCard(
+                              child: Text(
+                                '—',
+                                style: LuxeType.figure(p.inkFaint, size: 12),
+                              ),
+                            ),
+                          ),
+                        ]
+                      : _kpis(context, stats, p),
                 ),
               ),
             ),
-          ),
-          AnimatedSwitcher(
-            duration: LuxeMotion.fast,
-            child: busy
-                ? Semantics(
-                    key: const ValueKey('busy'),
-                    label: context.tr(AccountCommerceL10n.projectSelecting),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: SizedBox.square(
-                        dimension: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.6,
-                          color: p.accent,
-                        ),
-                      ),
-                    ),
-                  )
-                : canSelectAll
-                ? _StripAction(
-                    key: const ValueKey('all'),
-                    icon: Icons.done_all_rounded,
-                    label: context.tr(AccountCommerceL10n.projectSelectAll),
-                    onTap: _selectAll,
-                  )
-                : const SizedBox.shrink(key: ValueKey('none')),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -197,30 +179,35 @@ class _DiamondInsightStripState extends ConsumerState<DiamondInsightStrip>
     ];
     return [
       for (var i = 0; i < items.length; i++) ...[
-        if (i > 0)
-          Container(
-            width: 3,
-            height: 3,
-            margin: const EdgeInsets.symmetric(horizontal: 9),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: p.inkFaint,
+        if (i > 0) const SizedBox(width: 6),
+        Expanded(
+          child: _StatCard(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    context.tr(items[i].$1),
+                    maxLines: 1,
+                    style: LuxeType.label(
+                      p.inkMuted,
+                      size: 9,
+                    ).copyWith(letterSpacing: 0.6, height: 1.1),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    items[i].$2,
+                    maxLines: 1,
+                    style: LuxeType.figure(
+                      p.ink,
+                      size: 12.5,
+                    ).copyWith(fontWeight: FontWeight.w600, height: 1.15),
+                  ),
+                ],
+              ),
             ),
           ),
-        Text(
-          context.tr(items[i].$1),
-          style: LuxeType.label(
-            p.inkMuted,
-            size: 9.5,
-          ).copyWith(letterSpacing: 0.6),
-        ),
-        const SizedBox(width: 5),
-        Text(
-          items[i].$2,
-          style: LuxeType.figure(
-            p.ink,
-            size: 12.5,
-          ).copyWith(fontWeight: FontWeight.w600),
         ),
       ],
     ];
@@ -238,8 +225,31 @@ class _DiamondInsightStripState extends ConsumerState<DiamondInsightStrip>
   }
 }
 
-/// "24 of 1,284" while nothing is picked; an accent "12 selected ×" pill
-/// once something is.
+/// One centred card of the strip.
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return Container(
+      height: _kCardHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: p.surface.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(_kCardRadius),
+        border: Border.all(color: p.hairline, width: 0.6),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Left caption: "24 of 1,284" while nothing is picked; an accent
+/// "12 selected ×" once something is.
 class _Scope extends ConsumerWidget {
   const _Scope({
     required this.selected,
@@ -267,87 +277,96 @@ class _Scope extends ConsumerWidget {
             'total': formatGroupedWhole(total.toDouble()),
           })
         : context.tr(DiamondFlowL10n.searching);
-    final ink = active ? p.onAccent : p.inkMuted;
+    final ink = active ? p.accent : p.inkMuted;
 
-    return AnimatedContainer(
-      duration: LuxeMotion.medium,
-      curve: LuxeMotion.settle,
-      height: 26,
-      padding: EdgeInsets.only(left: 10, right: active ? 2 : 10),
-      decoration: ShapeDecoration(
-        color: active ? p.accent : p.surfaceRaised,
-        shape: const StadiumBorder(),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
             text,
-            style: LuxeType.figure(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: LuxeType.label(
               ink,
               size: 11.5,
-            ).copyWith(fontWeight: FontWeight.w600),
+            ).copyWith(fontWeight: FontWeight.w600, height: 1.1),
           ),
-          if (active)
-            Semantics(
-              button: true,
-              label: context.tr(AccountCommerceL10n.projectClear),
-              excludeSemantics: true,
-              child: Tooltip(
-                message: context.tr(AccountCommerceL10n.projectClear),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    AppHaptics.medium();
-                    DiamondSelection.clearPicks(ref);
-                  },
-                  child: Container(
-                    width: 22,
-                    height: 22,
-                    margin: const EdgeInsets.only(left: 4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: p.onAccent.withValues(alpha: 0.2),
-                    ),
-                    child: Icon(Icons.close_rounded, size: 13, color: ink),
+        ),
+        if (active)
+          Semantics(
+            button: true,
+            label: context.tr(AccountCommerceL10n.projectClear),
+            excludeSemantics: true,
+            child: Tooltip(
+              message: context.tr(AccountCommerceL10n.projectClear),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  AppHaptics.medium();
+                  DiamondSelection.clearPicks(ref);
+                },
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: p.accent.withValues(alpha: 0.14),
                   ),
+                  child: Icon(Icons.close_rounded, size: 11, color: ink),
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
 
-class _StripAction extends StatelessWidget {
-  const _StripAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    super.key,
-  });
+/// Right caption: picks every matching stone, with a
+/// spinner while the inventory loads.
+class _SelectAll extends StatelessWidget {
+  const _SelectAll({required this.busy, required this.onTap});
 
-  final IconData icon;
-  final String label;
+  final bool busy;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    return Material(
-      color: Colors.transparent,
+    final label = context.tr(AccountCommerceL10n.projectSelectAll);
+    return Semantics(
+      button: true,
+      label: busy ? context.tr(AccountCommerceL10n.projectSelecting) : label,
+      excludeSemantics: true,
       child: InkWell(
-        customBorder: const StadiumBorder(),
-        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        onTap: busy ? null : onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 2),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: p.accent),
+              SizedBox.square(
+                dimension: 13,
+                child: busy
+                    ? Padding(
+                        padding: const EdgeInsets.all(1.5),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.4,
+                          color: p.accent,
+                        ),
+                      )
+                    : Icon(Icons.done_all_rounded, size: 13, color: p.accent),
+              ),
               const SizedBox(width: 4),
-              Text(label, style: LuxeType.label(p.accent, size: 11.5)),
+              Text(
+                label,
+                style: LuxeType.label(
+                  p.accent,
+                  size: 11.5,
+                ).copyWith(fontWeight: FontWeight.w600, height: 1.1),
+              ),
             ],
           ),
         ),

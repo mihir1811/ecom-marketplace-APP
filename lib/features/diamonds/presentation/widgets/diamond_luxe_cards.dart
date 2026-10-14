@@ -80,8 +80,8 @@ CatalogSaveButton _save(Diamond d, {bool onLight = false}) => CatalogSaveButton(
 
 /// Two-column diamond result card on the shared [LuxeProductGridCard].
 ///
-/// Status sits top-left, save top-right and the one select control
-/// bottom-right: for sellers it picks for compare and project at once.
+/// Status sits top-left, the one select control top-right (for sellers it
+/// picks for compare and project at once) and save bottom-right.
 class DiamondLuxeGridCard extends ConsumerWidget {
   const DiamondLuxeGridCard({
     required this.diamond,
@@ -105,8 +105,8 @@ class DiamondLuxeGridCard extends ConsumerWidget {
       price: _price(d),
       overlays: LuxeMediaOverlays(
         topLeft: AvailabilityStatusBadge(status: d.available),
-        topRight: _save(d),
-        bottomRight: DiamondSelectionToggle(diamond: d),
+        topRight: DiamondSelectionToggle(diamond: d),
+        bottomRight: _save(d),
       ),
     );
   }
@@ -143,8 +143,8 @@ class DiamondLuxeListCard extends ConsumerWidget {
       subtitle: diamondGradesLine(d) ?? DiamondDisplay.missing,
       detail: detail,
       price: _price(d, showList: true),
-      titleAction: _save(d, onLight: true),
-      priceAction: DiamondSelectionToggle(diamond: d, onLight: true),
+      titleAction: DiamondSelectionToggle(diamond: d, onLight: true),
+      priceAction: _save(d, onLight: true),
       thumbTopLeft: AvailabilityStatusBadge(status: d.available),
     );
   }

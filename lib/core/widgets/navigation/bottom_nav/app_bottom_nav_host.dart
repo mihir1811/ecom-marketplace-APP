@@ -9,7 +9,6 @@ import '../../../../features/buyer/application/wishlist_provider.dart';
 import '../../../../features/cart/application/cart_provider.dart';
 import '../../../../features/comparison/presentation/widgets/compare_dock_button.dart';
 import '../../../auth/auth_providers.dart';
-import '../../../haptics/app_haptics.dart';
 import '../../../router/app_navigation.dart';
 import '../../../router/route_names.dart';
 import '../../../theme/luxe_tokens.dart';
@@ -18,9 +17,7 @@ import '../app_tab_top_bar.dart';
 import 'app_bottom_nav_bar.dart';
 import 'app_bottom_nav_destinations.dart';
 import 'app_category_menu.dart';
-import 'diamond_transition/diamond_cut.dart';
-import 'diamond_transition/diamond_tab_transition.dart';
-import 'diamond_transition/diamond_transition_controller.dart';
+import 'tab_reveal_transition.dart';
 
 /// Tracks dialogs, sheets and menus on the root navigator so the bar (which
 /// sits outside the navigator) dims and blocks taps with them.
@@ -76,7 +73,9 @@ final appPopupRouteObserver = AppPopupRouteObserver();
 /// Floats the [AppBottomNavBar] dock over the app's navigator.
 ///
 /// On comparable catalog listings a round [CompareDockButton] joins the
-/// dock's row after Profile; the dock narrows to make room for it.
+/// dock's row after Profile. Once the dock has slid in and settled, the
+/// button peels off its end like chewing gum while the dock narrows to make
+/// room.
 ///
 /// The dock lives outside every page, so it stays put through page
 /// transitions and scrolling, and its spring state carries across tab
@@ -91,10 +90,9 @@ final appPopupRouteObserver = AppPopupRouteObserver();
 /// under the dock, so while one is open the dock steps aside
 /// ([reportDrawer]).
 ///
-/// Switching tabs folds the page into a faceted gem and unfolds the next
-/// one out of it ([DiamondTransitionController]); holding or dragging along
-/// the bar scrubs that transition by hand. The shared [AppTabTopBar] stays
-/// put above the switch.
+/// Switching tabs grows the next page out of the touch point on the bar
+/// ([TabRevealController]). The shared [AppTabTopBar] stays put above the
+/// switch.
 class AppBottomNavHost extends ConsumerStatefulWidget {
   const AppBottomNavHost({
     required this.router,
@@ -122,30 +120,10 @@ class AppBottomNavHost extends ConsumerStatefulWidget {
 
 class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     with TickerProviderStateMixin {
-  /// Cut per tab, in bar order: Home and Profile share the brilliant.
-  static final _cuts = <AppBottomNavTab, DiamondCut>{
-    AppBottomNavTab.home: DiamondCut.brilliant,
-    AppBottomNavTab.wishlist: DiamondCut.marquise,
-    AppBottomNavTab.cart: DiamondCut.emerald,
-    AppBottomNavTab.profile: DiamondCut.brilliant,
-  };
+  late final _reveal = TabRevealController(vsync: this);
 
-  late final DiamondTransitionController _diamond = DiamondTransitionController(
-    vsync: this,
-    routes: [for (final d in AppBottomNav.destinations) d.route],
-    cuts: [for (final d in AppBottomNav.destinations) _cuts[d.tab]!],
-    // Peer destinations: replace the stack so back never walks tabs.
-    navigate: widget.router.go,
-    currentPath: _currentPath,
-    currentTab: () => AppBottomNav.tabFor(_currentPath())?.index,
-  );
-  late final _scrub = AppBottomNavScrub(
-    onStart: _diamond.scrubStart,
-    onUpdate: _diamond.scrubUpdate,
-    onEnd: _diamond.scrubEnd,
-    onCancel: _diamond.scrubCancel,
-  );
-  int? _lastPreview;
+  /// Last pointer-down on the bar (global): where the next page grows from.
+  Offset? _touch;
 
   late final AnimationController _show = AnimationController(
     vsync: this,
@@ -158,18 +136,20 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     reverseCurve: Curves.easeInCubic,
   );
 
-  /// 1 while a drawer is open: the dock fades and sinks out of its way.
-  /// 1 while the compare button holds its place in the dock's row.
+  /// 1 while the compare button holds its place in the dock's row. It only
+  /// runs once the dock is fully in view: a short beat, then the button
+  /// peels off the dock's end (the bar's built-in timeline).
   late final AnimationController _compareSlot = AnimationController(
     vsync: this,
-    duration: LuxeMotion.medium,
+    duration: const Duration(milliseconds: 2850),
+    reverseDuration: const Duration(milliseconds: 350),
   );
   late final Animation<double> _compareShown = CurvedAnimation(
     parent: _compareSlot,
-    curve: LuxeMotion.settle,
-    reverseCurve: Curves.easeInCubic,
+    curve: const Interval(0.088, 1),
   );
 
+  /// 1 while a drawer is open: the dock fades and sinks out of its way.
   late final AnimationController _veil = AnimationController(
     vsync: this,
     duration: LuxeMotion.fast,
@@ -205,11 +185,11 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     _shownTab = _tab;
     _show.value = AppBottomNav.isVisibleOn(_path) ? 1 : 0;
     _compareSlot.value = AppBottomNav.comparesOn(_path) ? 1 : 0;
+    _show.addStatusListener(_onShowStatus);
     _awaitingFirstRoute =
         widget.router.routerDelegate.currentConfiguration.isEmpty;
     widget.router.routerDelegate.addListener(_onRoute);
     appPopupRouteObserver.top.addListener(_onPopup);
-    _diamond.preview.addListener(_onPreview);
     AppBottomNavHost.drawerOpen.addListener(_onDrawer);
   }
 
@@ -217,10 +197,11 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
   void dispose() {
     widget.router.routerDelegate.removeListener(_onRoute);
     appPopupRouteObserver.top.removeListener(_onPopup);
-    _diamond.preview.removeListener(_onPreview);
     AppBottomNavHost.drawerOpen.removeListener(_onDrawer);
-    _diamond.dispose();
-    _show.dispose();
+    _reveal.dispose();
+    _show
+      ..removeStatusListener(_onShowStatus)
+      ..dispose();
     _veil.dispose();
     _compareSlot.dispose();
     super.dispose();
@@ -251,10 +232,8 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     }
     final path = _currentPath();
     // Somebody else navigated mid-switch (deep link, redirect, back).
-    final expected = _diamond.expectedRoute;
-    if (expected != null &&
-        (path != expected || AppBottomNav.tabFor(path) == null)) {
-      _diamond.abort();
+    if (_reveal.active.value && AppBottomNav.tabFor(path) == null) {
+      _reveal.stop();
     }
     final first = _awaitingFirstRoute;
     _awaitingFirstRoute = false;
@@ -279,9 +258,30 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     final compares = AppBottomNav.comparesOn(path);
     if (still) {
       _compareSlot.value = compares ? 1 : 0;
-    } else {
-      compares ? _compareSlot.forward() : _compareSlot.reverse();
+    } else if (!compares) {
+      _compareSlot.reverse();
+    } else if (_show.isCompleted) {
+      _emergeCompare();
     }
+    // Otherwise the dock is still sliding in; [_onShowStatus] follows up.
+  }
+
+  /// The compare button never enters alongside the dock: it waits for the
+  /// dock to settle, then peels off it.
+  void _onShowStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed &&
+        mounted &&
+        AppBottomNav.comparesOn(_path)) {
+      _emergeCompare();
+    }
+  }
+
+  void _emergeCompare() {
+    if (_compareSlot.status == AnimationStatus.forward ||
+        _compareSlot.isCompleted) {
+      return;
+    }
+    _compareSlot.forward();
   }
 
   void _onDrawer() {
@@ -295,16 +295,6 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
   }
 
   void _onPopup() {
-    if (mounted) setState(() {});
-  }
-
-  void _onPreview() {
-    final index = _diamond.preview.value;
-    // Tick as the finger crosses onto another tab.
-    if (index != null && _lastPreview != null && index != _lastPreview) {
-      AppHaptics.selection();
-    }
-    _lastPreview = index;
     if (mounted) setState(() {});
   }
 
@@ -349,13 +339,21 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
   }
 
   void _select(AppBottomNavDestination destination) {
-    if (_animate) {
-      _diamond.requestTab(AppBottomNav.destinations.indexOf(destination));
-      return;
-    }
     if (_path == destination.route) return;
+    if (_animate) _reveal.reveal(_touch ?? _tabCentre(destination));
     // Peer destinations: replace the stack so back never walks other tabs.
     widget.router.go(destination.route);
+  }
+
+  /// Fallback origin (keyboard / semantics activation): the tab's slot.
+  Offset _tabCentre(AppBottomNavDestination destination) {
+    final size = MediaQuery.sizeOf(context);
+    final slots = AppBottomNav.destinations.length;
+    final i = AppBottomNav.destinations.indexOf(destination);
+    final dock = AppBottomNavBar.extent(
+      MediaQuery.viewPaddingOf(context).bottom,
+    );
+    return Offset(size.width * (i + 0.5) / slots, size.height - dock / 2);
   }
 
   /// A bar tap while the category menu is up: close it, then go there.
@@ -392,12 +390,6 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     } else if (menu.isActive) {
       menu.navigator?.removeRoute(menu);
     }
-  }
-
-  /// Tab under the finger while scrubbing.
-  AppBottomNavTab? get _previewTab {
-    final index = _diamond.preview.value;
-    return index == null ? null : AppBottomNav.destinations[index].tab;
   }
 
   void _openCompare() => widget.router.push(AppRouteNames.comparison);
@@ -445,14 +437,14 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      DiamondTabTransition(
-                        controller: _diamond,
+                      TabRevealTransition(
+                        controller: _reveal,
                         child: widget.child,
                       ),
                       // Every tab shows the same top bar: hold a copy over
                       // the switch so only the page changes underneath.
                       ValueListenableBuilder<bool>(
-                        valueListenable: _diamond.active,
+                        valueListenable: _reveal.active,
                         builder: (context, active, _) => active
                             ? Align(
                                 alignment: Alignment.topCenter,
@@ -488,17 +480,20 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
                 transform: ride,
                 child: Offstage(
                   offstage: shown == 0 || veil == 1,
-                  child: IgnorePointer(
-                    ignoring: veil > 0 || staged > 0,
-                    child: Opacity(
-                      opacity: 1 - veil,
-                      child: Transform.translate(
-                        // Bubble included, the dock sinks fully out of view.
-                        offset: Offset(
-                          0,
-                          (1 - shown) * (extent + 48) + veil * 24,
+                  child: Listener(
+                    onPointerDown: (e) => _touch = e.position,
+                    child: IgnorePointer(
+                      ignoring: veil > 0 || staged > 0,
+                      child: Opacity(
+                        opacity: 1 - veil,
+                        child: Transform.translate(
+                          // Bubble included, the dock sinks fully out of view.
+                          offset: Offset(
+                            0,
+                            (1 - shown) * (extent + 48) + veil * 24,
+                          ),
+                          child: bar,
                         ),
-                        child: bar,
                       ),
                     ),
                   ),
@@ -514,10 +509,9 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
         popup: open ? null : appPopupRouteObserver.top.value,
         child: _LiveBar(
           barKey: _barKey,
-          tab: _previewTab ?? _tab ?? _shownTab,
+          tab: _tab ?? _shownTab,
           bottomInset: inset,
           onSelect: open ? _selectFromMenu : _select,
-          onScrub: _animate && !open ? _scrub : null,
           onCategories: open ? _closeCategories : _openCategories,
           categoriesOpen: open,
           compact: _compact && !open,
@@ -537,7 +531,6 @@ class _LiveBar extends ConsumerWidget {
     required this.tab,
     required this.bottomInset,
     required this.onSelect,
-    required this.onScrub,
     required this.onCategories,
     required this.categoriesOpen,
     required this.compact,
@@ -550,7 +543,6 @@ class _LiveBar extends ConsumerWidget {
   final AppBottomNavTab? tab;
   final double bottomInset;
   final ValueChanged<AppBottomNavDestination> onSelect;
-  final AppBottomNavScrub? onScrub;
   final VoidCallback onCategories;
   final bool categoriesOpen;
   final bool compact;
@@ -572,7 +564,6 @@ class _LiveBar extends ConsumerWidget {
         selected: tab,
         bottomInset: bottomInset,
         onSelect: onSelect,
-        onScrub: onScrub,
         onCategories: onCategories,
         categoriesOpen: categoriesOpen,
         compact: compact,

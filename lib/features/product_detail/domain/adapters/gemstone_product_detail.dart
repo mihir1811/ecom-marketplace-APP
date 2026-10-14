@@ -33,6 +33,11 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
     referenceLabel: 'Stock ID',
     referenceValue: g.stockNumber ?? g.id,
     shapeKey: g.shape,
+    stoneColor: ProductStoneColor(
+      grade: g.color,
+      intensity: g.colorIntensity,
+      species: g.type,
+    ),
     badges: [
       const ProductBadge('Gemstone', tone: ProductBadgeTone.accent),
       if (authority != null)

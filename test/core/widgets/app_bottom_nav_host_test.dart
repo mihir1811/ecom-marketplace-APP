@@ -5,6 +5,7 @@ import 'package:gemstone/core/haptics/app_haptics.dart';
 import 'package:gemstone/core/router/route_names.dart';
 import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_bar.dart';
 import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_host.dart';
+import 'package:gemstone/core/widgets/navigation/bottom_nav/tab_reveal_transition.dart';
 import 'package:gemstone/features/comparison/presentation/widgets/compare_dock_button.dart';
 import 'package:go_router/go_router.dart';
 
@@ -118,6 +119,27 @@ void main() {
     router.pop();
     await tester.pumpAndSettle();
     expect(tester.getSize(button).width, 0);
+  });
+
+  testWidgets('the compare button waits for the dock to settle first', (
+    tester,
+  ) async {
+    final router = await pumpApp(tester);
+    final button = find.byType(CompareDockButton);
+    router.push(AppRouteNames.comparison);
+    await tester.pumpAndSettle();
+
+    // The dock slides back in; the button has no room yet.
+    router.go(AppRouteNames.gemstoneResults);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.getSize(button).width, 0);
+
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(button).width,
+      closeTo(AppBottomNavBar.trailingSize, 0.5),
+    );
   });
 
   testWidgets('taps beside the floating dock reach the page', (tester) async {
@@ -285,13 +307,7 @@ void main() {
     );
   });
 
-  group('diamond transition', () {
-    final overlay = find.byWidgetPredicate(
-      (w) =>
-          w is CustomPaint &&
-          w.painter.runtimeType.toString() == '_DiamondPainter',
-    );
-
+  group('tab reveal transition', () {
     String path(GoRouter router) =>
         router.routerDelegate.currentConfiguration.uri.path;
 
@@ -309,20 +325,16 @@ void main() {
       tabArea(const ['Home', 'Wishlist', 'Cart', 'Profile'][index]),
     );
 
-    Future<void> slide(
-      WidgetTester tester,
-      TestGesture gesture,
-      Offset from,
-      Offset to,
-    ) async {
-      const steps = 12;
-      for (var i = 1; i <= steps; i++) {
-        await gesture.moveTo(Offset.lerp(from, to, i / steps)!);
-        await tester.pump(const Duration(milliseconds: 16));
-      }
-    }
+    ClipPath reveal(WidgetTester tester) => tester.widget<ClipPath>(
+      find
+          .descendant(
+            of: find.byType(TabRevealTransition),
+            matching: find.byType(ClipPath),
+          )
+          .first,
+    );
 
-    testWidgets('a tap wraps the page into the gem and reveals the tab', (
+    testWidgets('a tap grows the tab out of the touch point once', (
       tester,
     ) async {
       final router = await pumpApp(tester);
@@ -331,74 +343,29 @@ void main() {
       await tester.tapAt(tabCentre(tester, 2));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
-      expect(overlay, findsOneWidget);
+      expect(path(router), AppRouteNames.cart);
+      final clip = reveal(tester).clipper!.getClip(tester.view.physicalSize);
+      // Still a small blob hugging the bar.
+      expect(clip.getBounds().top, greaterThan(200));
 
       await tester.pumpAndSettle();
-      expect(overlay, findsNothing);
-      expect(path(router), AppRouteNames.cart);
+      expect(reveal(tester).clipper, isNull);
       expect(seen, [AppRouteNames.cart]);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('holding and dragging previews; release navigates once', (
-      tester,
-    ) async {
-      final router = await pumpApp(tester);
-      final seen = track(router);
-
-      final start = tabCentre(tester, 1);
-      final gesture = await tester.startGesture(start);
-      await tester.pump(AppBottomNavBar.scrubHold);
-      await tester.pump(const Duration(milliseconds: 300));
-      // Holding another tab starts the wrap but never reveals it.
-      expect(overlay, findsOneWidget);
-      expect(path(router), AppRouteNames.home);
-
-      await slide(tester, gesture, start, tabCentre(tester, 2));
-      await slide(tester, gesture, tabCentre(tester, 2), tabCentre(tester, 3));
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(path(router), AppRouteNames.home);
-      expect(seen, isEmpty);
-
-      await gesture.up();
-      await tester.pumpAndSettle();
-      expect(overlay, findsNothing);
-      expect(path(router), AppRouteNames.buyerProfile);
-      expect(seen, [AppRouteNames.buyerProfile]);
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('dragging back to the original tab cancels', (tester) async {
-      final router = await pumpApp(tester);
-      final seen = track(router);
-
-      final home = tabCentre(tester, 0);
-      final gesture = await tester.startGesture(home);
-      await tester.pump(const Duration(milliseconds: 16));
-      await slide(tester, gesture, home, tabCentre(tester, 2));
-      await tester.pump(const Duration(milliseconds: 200));
-      expect(overlay, findsOneWidget);
-      await slide(tester, gesture, tabCentre(tester, 2), home);
-      await gesture.up();
-      await tester.pumpAndSettle();
-
-      expect(overlay, findsNothing);
-      expect(path(router), AppRouteNames.home);
-      expect(seen, isEmpty);
-    });
-
-    testWidgets('an external navigation mid-switch drops the overlay', (
+    testWidgets('an external navigation mid-switch drops the reveal', (
       tester,
     ) async {
       final router = await pumpApp(tester);
       await tester.tapAt(tabCentre(tester, 1));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-      expect(overlay, findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(reveal(tester).clipper, isNotNull);
 
       router.go(AppRouteNames.comparison);
       await tester.pumpAndSettle();
-      expect(overlay, findsNothing);
+      expect(reveal(tester).clipper, isNull);
       expect(path(router), AppRouteNames.comparison);
     });
   });

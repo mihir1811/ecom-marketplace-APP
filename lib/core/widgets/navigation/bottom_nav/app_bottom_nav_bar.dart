@@ -91,7 +91,9 @@ class AppBottomNavBar extends StatefulWidget {
   /// narrows and shifts left to make room, and folds it along with itself.
   final Widget? trailing;
 
-  /// 0–1: how far [trailing] has made its room (it scales in with it).
+  /// 0–1 timeline of [trailing]'s entrance: it peels off the dock's right
+  /// end like chewing gum and springs into place. Drive it linearly; the
+  /// choreography is built in.
   final Animation<double>? trailingShown;
 
   /// Diameter of [trailing] beside the expanded and the folded dock.
@@ -130,22 +132,15 @@ class _Lift {
 double _lerp(double a, double b, double t) => a + (b - a) * t;
 
 /// The dock's metrics at fold [fold] (0 = expanded, 1 = compact), in the
-/// bar box's coordinates.
+/// bar box's coordinates. [trailing] is the trailing button's entrance
+/// timeline (see [_Gum]): 0 = no room for it, 1 = at rest beside the dock.
 class _Dock {
   factory _Dock(Size box, double fold, double inset, double trailing) {
+    final t = trailing.clamp(0.0, 1.0);
     // Room kept on the right for the trailing button and its gap.
-    final trail =
-        _lerp(
-          AppBottomNavBar.trailingSize,
-          AppBottomNavBar.trailingCompactSize,
-          fold,
-        ) *
-        trailing;
-    final reserve = (trail + AppBottomNavBar.trailingGap) * trailing;
-    final full = math.min(box.width - 2 * _side - reserve, _maxWidth);
-    final width = _lerp(
-      full,
-      math.min(full, math.max(full * 0.7, 240.0)),
+    final trail = _lerp(
+      AppBottomNavBar.trailingSize,
+      AppBottomNavBar.trailingCompactSize,
       fold,
     );
     final height = _lerp(
@@ -155,32 +150,51 @@ class _Dock {
     );
     final bottom = box.height - AppBottomNavBar.floatGap(inset);
     // Dock and button are centred as one group.
-    final pill = Rect.fromLTWH(
-      (box.width - width - reserve) / 2,
-      bottom - height,
-      width,
-      height,
+    Rect pillFor(double room) {
+      final reserve = (trail + AppBottomNavBar.trailingGap) * room;
+      final full = math.min(box.width - 2 * _side - reserve, _maxWidth);
+      final width = _lerp(
+        full,
+        math.min(full, math.max(full * 0.7, 240.0)),
+        fold,
+      );
+      return Rect.fromLTWH(
+        (box.width - width - reserve) / 2,
+        bottom - height,
+        width,
+        height,
+      );
+    }
+
+    final pill = pillFor(_Gum.room(t));
+    final rest = Offset(
+      pillFor(1).right + AppBottomNavBar.trailingGap + trail / 2,
+      pill.center.dy,
     );
-    final disc = _lerp(54, 42, fold);
+    final gum = _Gum(
+      t: t,
+      pill: pill,
+      startX: pillFor(0).right - height / 2,
+      rest: rest,
+      radius: trail / 2,
+    );
+    // The bubble only peeks ~13% above the dock, clear of the label.
+    final disc = _lerp(44, 40, fold);
     return _Dock._(
       pill: pill,
-      slot: (width - 2 * _pad) / AppBottomNav.slots.length,
+      slot: (pill.width - 2 * _pad) / AppBottomNav.slots.length,
       iconY: pill.top + _lerp(24, height / 2, fold),
-      bubbleY: pill.top + _lerp(-4, 6, fold),
+      bubbleY: pill.top + _lerp(16, 15, fold),
       disc: disc,
       reach: disc / 2 + _lerp(6, 5, fold),
       fillet: _lerp(14, 11, fold),
       iconSize: _lerp(22, 21, fold),
       labelTop: pill.top + _lerp(39, 33, fold),
       labelOpacity: (1 - fold * 1.8).clamp(0.0, 1.0),
-      trailing: Rect.fromCenter(
-        center: Offset(
-          pill.right + AppBottomNavBar.trailingGap * trailing + trail / 2,
-          pill.center.dy,
-        ),
-        width: trail,
-        height: trail,
-      ),
+      trailing: t <= 0
+          ? Rect.fromCenter(center: rest, width: 0, height: 0)
+          : Rect.fromCenter(center: gum.center, width: trail, height: trail),
+      gum: gum,
     );
   }
 
@@ -196,6 +210,7 @@ class _Dock {
     required this.labelTop,
     required this.labelOpacity,
     required this.trailing,
+    required this.gum,
   });
 
   static const _side = 14.0; // screen margin beside the expanded dock
@@ -221,8 +236,12 @@ class _Dock {
   final double labelTop;
   final double labelOpacity;
 
-  /// Where the trailing button sits (zero-sized while it has no room).
+  /// Box the trailing button is laid out in (zero-sized while it has no
+  /// room); [gum] scales and fades it on top of that.
   final Rect trailing;
+
+  /// The trailing button's entrance.
+  final _Gum gum;
 
   double centerX(int i) => pill.left + _pad + slot * (i + 0.5);
 
@@ -233,6 +252,178 @@ class _Dock {
   /// [x] from the pill's left edge, in tab coordinates.
   double slotAt(double x) =>
       AppBottomNav.tabCoordinate((x - _pad) / slot - 0.5);
+}
+
+/// The trailing button peeling off the dock like chewing gum, on a timeline
+/// [t] from 0 to 1.
+///
+/// The dock's right end swells, then the dock draws back to make room while
+/// the swelling holds on: it stretches out (and a little up) on a thinning
+/// neck of dock material until the neck snaps at [_snap]. Freed, the blob
+/// springs back to its resting spot with a small overshoot and a fading
+/// squash-and-stretch wobble while the neck's two ends recoil. The button's
+/// face only fades in once the blob is clear of the dock, and the blob's
+/// material then sinks under it. Played backwards, the button is drawn back
+/// into the dock.
+class _Gum {
+  factory _Gum({
+    required double t,
+    required Rect pill,
+    required double startX,
+    required Offset rest,
+    required double radius,
+  }) {
+    final r = pill.height / 2;
+    final cy = pill.center.dy;
+    final small = radius * 0.8;
+    // How far past its resting spot the blob is pulled before the snap.
+    const pullX = 8.0, pullY = 7.0;
+
+    final double x, y, size, stretch, anchorR, waist, tail, material;
+    if (t < _snap) {
+      final s = Curves.easeInOutSine.transform(t / _snap);
+      final swell = 1 + 0.14 * math.sin(math.pi * (t / 0.36).clamp(0.0, 1.0));
+      x = _lerp(startX, rest.dx + pullX, s);
+      y = cy - pullY * s * s;
+      size = _lerp(r, small, s) * swell;
+      stretch = 1 + 0.22 * s * s;
+      anchorR = _lerp(r * 0.96, r * 0.5, s);
+      waist = _lerp(r * 1.8, 2.5, math.pow(s, 1.2).toDouble());
+      tail = 0;
+      material = size;
+    } else {
+      final u = (t - _snap) / (1 - _snap);
+      // Under-damped return: 1 at the snap, a small dip past 0, then rest.
+      final settle = 1 - math.pow(u, 4);
+      final swing = math.exp(-4.5 * u) * math.cos(3 * math.pi * u) * settle;
+      x = rest.dx + pullX * swing;
+      y = cy - pullY * swing;
+      size = radius - (radius - small) * swing;
+      stretch =
+          1 + 0.22 * math.exp(-5 * u) * math.cos(4 * math.pi * u) * settle;
+      anchorR = r * 0.5;
+      waist = 0;
+      tail =
+          14 * (1 - Curves.easeOutCubic.transform((u / 0.3).clamp(0.0, 1.0)));
+      // Sinks under the face's opaque disc as the face takes over.
+      material = size * _lerp(1, 0.72, ((u - 0.25) / 0.45).clamp(0.0, 1.0));
+    }
+    return _Gum._(
+      t: t,
+      center: Offset(x, y),
+      scaleX: stretch * size / radius,
+      scaleY: size / radius / stretch,
+      material: material,
+      stretch: stretch,
+      anchor: Offset(pill.right - anchorR, cy),
+      anchorR: anchorR,
+      waist: waist,
+      tail: tail,
+      faceOpacity: Curves.easeOut.transform(((t - 0.5) / 0.25).clamp(0.0, 1.0)),
+    );
+  }
+
+  const _Gum._({
+    required this.t,
+    required this.center,
+    required this.scaleX,
+    required this.scaleY,
+    required this.material,
+    required this.stretch,
+    required this.anchor,
+    required this.anchorR,
+    required this.waist,
+    required this.tail,
+    required this.faceOpacity,
+  });
+
+  /// Where the neck snaps on the timeline.
+  static const _snap = 0.62;
+
+  /// 0–1: how much room the dock has made at timeline [t].
+  static double room(double t) =>
+      Curves.easeInOutCubic.transform(((t - 0.14) / 0.5).clamp(0.0, 1.0));
+
+  final double t;
+
+  /// Blob centre.
+  final Offset center;
+
+  /// Scale of the button's face against its resting size.
+  final double scaleX, scaleY;
+
+  /// Radius of the dock material in the blob, and its horizontal stretch.
+  final double material;
+  final double stretch;
+
+  /// Circle inside the dock's right end the neck grows from.
+  final Offset anchor;
+  final double anchorR;
+
+  /// Neck width at its thinnest; 0 once it has snapped.
+  final double waist;
+
+  /// Length of the recoiling neck ends after the snap.
+  final double tail;
+  final double faceOpacity;
+
+  /// Whether any dock material is outside the dock this frame.
+  bool get active => t > 0 && t < 1;
+
+  /// The dock material: blob, neck (or its recoiling ends) and anchor.
+  Path path() {
+    final rx = material * stretch, ry = material / stretch;
+    var path = Path()
+      ..addOval(Rect.fromCenter(center: center, width: rx * 2, height: ry * 2))
+      ..addOval(Rect.fromCircle(center: anchor, radius: anchorR));
+    Path join(Path other) => Path.combine(PathOperation.union, path, other);
+    if (waist > 0) {
+      return join(_neck(anchor, anchorR, anchorR, center, rx, ry, waist));
+    }
+    if (tail > 0.5) {
+      final back = Offset(center.dx - rx - tail, center.dy + tail * 0.3);
+      final out = Offset(anchor.dx + anchorR + tail * 0.8, anchor.dy);
+      path = join(_neck(center, rx, ry, back, 1.5, 1.5, 2));
+      path = join(_neck(anchor, anchorR, anchorR, out, 1.5, 1.5, 2));
+    }
+    return path;
+  }
+
+  /// A pinched neck from the ellipse at [a] (radii [arx], [ary]) to the one
+  /// at [b], its sides curving through a waist [waist] wide halfway along.
+  static Path _neck(
+    Offset a,
+    double arx,
+    double ary,
+    Offset b,
+    double brx,
+    double bry,
+    double waist,
+  ) {
+    final dir = b - a;
+    final ang = math.atan2(dir.dy, dir.dx);
+    const spread = 1.0; // where the neck meets each end, either side
+    Offset on(Offset c, double rx, double ry, double angle) =>
+        c + Offset(math.cos(angle) * rx, math.sin(angle) * ry);
+    final a1 = on(a, arx, ary, ang - spread);
+    final a2 = on(a, arx, ary, ang + spread);
+    final b1 = on(b, brx, bry, ang + math.pi + spread);
+    final b2 = on(b, brx, bry, ang + math.pi - spread);
+    final mid = (a + b) / 2;
+    final normal = Offset(-math.sin(ang), math.cos(ang));
+    // Control points that put each side's midpoint on the waist.
+    Offset through(Offset p, Offset q, Offset m) => m * 2 - (p + q) / 2;
+    final c1 = through(a1, b1, mid - normal * (waist / 2));
+    final c2 = through(b2, a2, mid + normal * (waist / 2));
+    return Path()
+      ..moveTo(a1.dx, a1.dy)
+      ..quadraticBezierTo(c1.dx, c1.dy, b1.dx, b1.dy)
+      ..lineTo(b.dx, b.dy)
+      ..lineTo(b2.dx, b2.dy)
+      ..quadraticBezierTo(c2.dx, c2.dy, a2.dx, a2.dy)
+      ..lineTo(a.dx, a.dy)
+      ..close();
+  }
 }
 
 /// The dock's outline for one frame: the [silhouette] (body, bubbles' glass
@@ -306,9 +497,19 @@ class _DockShape {
       rim.lineTo(xs[j], outer[j]);
     }
 
+    var silhouette = trace(outer, floor);
+    var body = trace(inner, floor);
+    final gum = dock.gum;
+    if (gum.active) {
+      // The peeling button is dock material until it breaks free.
+      final material = gum.path();
+      silhouette = Path.combine(PathOperation.union, silhouette, material);
+      body = Path.combine(PathOperation.union, body, material);
+    }
+
     return _DockShape._(
-      silhouette: trace(outer, floor),
-      body: trace(inner, floor),
+      silhouette: silhouette,
+      body: body,
       glass: trace(outer, inner),
       rim: rim,
       hasGlass: bubbles.isNotEmpty,
@@ -705,16 +906,29 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
                 if (widget.trailing != null)
                   AnimatedBuilder(
                     animation: _repaint,
-                    builder: (context, child) => Positioned.fromRect(
-                      rect: _dock.trailing,
-                      child: Opacity(
-                        opacity: (widget.trailingShown?.value ?? 1).clamp(
-                          0.0,
-                          1.0,
+                    builder: (context, child) {
+                      final dock = _dock;
+                      final gum = dock.gum;
+                      return Positioned.fromRect(
+                        rect: dock.trailing,
+                        child: IgnorePointer(
+                          // Not tappable while it is still dock material.
+                          ignoring: gum.faceOpacity < 0.5,
+                          child: Opacity(
+                            opacity: gum.faceOpacity,
+                            child: Transform(
+                              alignment: Alignment.center,
+                              transform: Matrix4.diagonal3Values(
+                                gum.scaleX,
+                                gum.scaleY,
+                                1,
+                              ),
+                              child: child,
+                            ),
+                          ),
                         ),
-                        child: child,
-                      ),
-                    ),
+                      );
+                    },
                     child: widget.trailing,
                   ),
               ],

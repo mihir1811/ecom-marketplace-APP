@@ -6,6 +6,7 @@ import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/catalog_missing_image.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
+import '../../../diamonds/presentation/widgets/stone_tint.dart';
 import '../../domain/models/product_detail.dart';
 import 'product_pager.dart';
 
@@ -300,7 +301,8 @@ class _GemFrame extends StatelessWidget {
   }
 }
 
-/// What sits inside a frame: the product photo, or the cut drawn as facets.
+/// What sits inside a frame: a diamond or gemstone is drawn as its cut in
+/// its own colour ([StoneTint]); anything else shows its photo.
 class _GemContent extends StatelessWidget {
   const _GemContent({required this.detail, required this.palette});
 
@@ -309,42 +311,118 @@ class _GemContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final media = detail.media;
-    final image = media.imageAt(0);
-
-    Widget fallback() {
-      final key = _shapeKey(detail);
-      return Center(
-        child: key != null
-            ? renderShapeSvg(key, size: _kFrame * 0.58, color: palette.accent)
-            : Icon(media.fallbackIcon, size: 26, color: palette.accent),
+    final key = _shapeKey(detail);
+    if (key != null) {
+      final color = detail.stoneColor;
+      return _TintedCut(
+        shape: key,
+        tint: StoneTint.resolve(
+          grade: color?.grade,
+          fancyColor: color?.fancyColor,
+          intensity: color?.intensity,
+          overtone: color?.overtone,
+          species: color?.species,
+        ),
+        palette: palette,
       );
     }
 
+    final media = detail.media;
+    final image = media.imageAt(0);
+    final fallback = Center(
+      child: Icon(media.fallbackIcon, size: 26, color: palette.accent),
+    );
+
     Widget picture;
-    if (image == null) {
-      picture = fallback();
+    if (image == null || image.path == CatalogMissingImage.assetPath) {
+      picture = fallback;
     } else if (!image.isAsset) {
       picture = AppNetworkImage(
         url: image.path,
         fit: BoxFit.cover,
         memCacheWidth: 200,
-        error: fallback(),
+        error: fallback,
       );
-    } else if (image.path == CatalogMissingImage.assetPath) {
-      picture = fallback();
     } else {
       picture = Image.asset(
         image.path,
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback(),
+        errorBuilder: (_, _, _) => fallback,
       );
     }
     return ColoredBox(color: palette.surfaceRaised, child: picture);
   }
 }
 
-/// Cut drawn when a diamond or gemstone has no photo; null otherwise.
+/// The cut's outline drawn lit from the top left: a soft glow of the body
+/// colour behind, an engraved shade under the lines so pale stones still
+/// read on a light frame, then the lines in the stone's light → body →
+/// shade gradient.
+class _TintedCut extends StatelessWidget {
+  const _TintedCut({
+    required this.shape,
+    required this.tint,
+    required this.palette,
+  });
+
+  final String shape;
+  final StoneTint tint;
+  final LuxePalette palette;
+
+  static const double _size = _kFrame * 0.66;
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(-0.15, -0.2),
+            radius: 0.85,
+            colors: [
+              Color.alphaBlend(
+                tint.body.withValues(alpha: 0.3),
+                palette.surfaceRaised,
+              ),
+              palette.surfaceRaised,
+            ],
+          ),
+        ),
+        child: Center(
+          child: SizedBox.square(
+            dimension: _size,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Transform.translate(
+                  offset: const Offset(0.4, 0.9),
+                  child: renderShapeSvg(
+                    shape,
+                    size: _size,
+                    color: tint.deep.withValues(
+                      alpha: palette.isDark ? 0.55 : 0.85,
+                    ),
+                  ),
+                ),
+                ShaderMask(
+                  blendMode: BlendMode.srcIn,
+                  shaderCallback: tint.shader,
+                  child: renderShapeSvg(
+                    shape,
+                    size: _size,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Cut drawn for a diamond or gemstone; null for every other segment.
 String? _shapeKey(ProductDetail detail) => switch (detail.segment) {
   ProductSegment.naturalDiamond ||
   ProductSegment.labGrownDiamond ||

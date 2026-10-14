@@ -369,6 +369,27 @@ ProductSpecSection specSection(
   return ProductSpecSection(group, specs);
 }
 
+/// Colour facts of a loose stone, so it can be drawn in its own tint.
+///
+/// Raw catalog wording: [grade] is a D–Z letter (diamonds) or a colour name
+/// (gemstones); [species] is the gem type (`Ruby`), used when no colour is
+/// given.
+class ProductStoneColor {
+  const ProductStoneColor({
+    this.grade,
+    this.fancyColor,
+    this.intensity,
+    this.overtone,
+    this.species,
+  });
+
+  final String? grade;
+  final String? fancyColor;
+  final String? intensity;
+  final String? overtone;
+  final String? species;
+}
+
 /// Segment-agnostic product detail view model.
 ///
 /// Every segment maps onto this same shape so the detail screen renders an
@@ -392,6 +413,7 @@ class ProductDetail {
     this.availabilityStatus,
     this.listingSeller,
     this.shapeKey,
+    this.stoneColor,
     this.note,
     this.isMakeAnOfferAllowed = false,
     this.minimumOfferPrice,
@@ -429,6 +451,9 @@ class ProductDetail {
 
   /// Shape name forwarded to the cart, which renders a shape glyph.
   final String? shapeKey;
+
+  /// Colour of a diamond or gemstone; null for every other segment.
+  final ProductStoneColor? stoneColor;
   final String? note;
   final bool isMakeAnOfferAllowed;
   final double? minimumOfferPrice;

@@ -12,6 +12,7 @@ import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
 import 'fancy_color_gem_painter.dart';
+import 'stone_tint.dart';
 
 class ColorTabsSelector extends ConsumerStatefulWidget {
   const ColorTabsSelector({super.key});
@@ -470,25 +471,8 @@ class FancyColorDiamondButton extends StatelessWidget {
   static const _tile = 58.0;
   static const _gem = 38.0;
 
-  static Color hueFor(String name) {
-    return switch (name.toLowerCase()) {
-      'yellow' => const Color(0xFFF7C726),
-      'orange' => const Color(0xFFF7841F),
-      'blue' => const Color(0xFF2F6FEB),
-      'red' => const Color(0xFFD8232F),
-      'pink' => const Color(0xFFF26BAE),
-      'green' => const Color(0xFF1FA559),
-      'olive' => const Color(0xFF8C8A1E),
-      'brown' => const Color(0xFF9A6236),
-      'purple' => const Color(0xFF8E3BE0),
-      'violet' => const Color(0xFF6A3FD8),
-      'grey' || 'gray' => const Color(0xFF9AA3AE),
-      'black' => const Color(0xFF2A2F38),
-      'white' => const Color(0xFFE9ECF1),
-      'teal' => const Color(0xFF16B3A3),
-      _ => const Color(0xFFB08BE0),
-    };
-  }
+  static Color hueFor(String name) =>
+      StoneTint.hueOf(name) ?? const Color(0xFFB08BE0);
 
   @override
   Widget build(BuildContext context) {

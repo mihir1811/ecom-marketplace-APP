@@ -70,6 +70,12 @@ ProductDetail diamondProductDetail(Diamond d) {
     referenceLabel: 'Stock ID',
     referenceValue: DiamondDisplay.optional(d.stockNumber) ?? d.id,
     shapeKey: d.shape,
+    stoneColor: ProductStoneColor(
+      grade: d.color,
+      fancyColor: d.fancyColor,
+      intensity: d.fancyIntensity,
+      overtone: d.fancyOvertone,
+    ),
     badges: [
       ProductBadge(segment.label, tone: ProductBadgeTone.accent),
       if (authority != null)
