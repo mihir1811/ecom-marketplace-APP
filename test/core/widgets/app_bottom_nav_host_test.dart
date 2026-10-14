@@ -109,7 +109,8 @@ void main() {
     expect(rect.width, closeTo(AppBottomNavBar.trailingSize, 0.5));
     expect(rect.left, greaterThan(profile.right));
     // Dock and button are centred as one group.
-    final dockLeft = tester.getRect(tabArea('Home')).left - 6;
+    // The tab hit row spans the whole pill.
+    final dockLeft = tester.getRect(tabArea('Home')).left;
     expect(screen - rect.right, closeTo(dockLeft, 1));
     // Hit areas reach 8px above the pill, so its centre sits 4px lower.
     expect(rect.center.dy, closeTo(profile.center.dy + 4, 1));

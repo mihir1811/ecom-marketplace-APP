@@ -67,10 +67,13 @@ class DiamondTransitionController extends ChangeNotifier
   }) : assert(routes.length == cuts.length && routes.length >= 2) {
     _ticker = vsync.createTicker(_tick);
     _lifecycle = AppLifecycleListener(onStateChange: _onLifecycle);
-    // Facet geometry is built once per cut; do it while the app is idle.
+    // Facet geometry is built once per cut; do it off the frame. Not
+    // Priority.idle: while any ticker is pending the scheduler refuses idle
+    // tasks and re-posts itself every event-loop turn, which busy-spins the
+    // app and never terminates under a widget test's fake clock.
     SchedulerBinding.instance.scheduleTask(
       () => DiamondCut.warmUp(cuts),
-      Priority.idle,
+      Priority.animation,
     );
   }
 
