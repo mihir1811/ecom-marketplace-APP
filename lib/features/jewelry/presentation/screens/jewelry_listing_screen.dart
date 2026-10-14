@@ -183,6 +183,8 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
     final p = LuxePalette.of(context);
     final category = ref.watch(jewelryFilterProvider.select((s) => s.category));
     return AppScaffold(
+      // Runs on behind the floating dock; the scroll view clears it.
+      safeBottom: false,
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
         title: jewelryCollectionTitle(context, category),

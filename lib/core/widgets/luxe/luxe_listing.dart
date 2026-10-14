@@ -910,6 +910,9 @@ class LuxeListingScrollView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
+    // The page runs on behind the floating dock (and system inset); the last
+    // item and the back-to-top button stay clear of it.
+    final bottom = MediaQuery.paddingOf(context).bottom;
     return Stack(
       children: [
         RefreshIndicator(
@@ -919,12 +922,15 @@ class LuxeListingScrollView extends StatelessWidget {
           child: CustomScrollView(
             controller: controller,
             physics: const AlwaysScrollableScrollPhysics(),
-            slivers: slivers,
+            slivers: [
+              ...slivers,
+              SliverToBoxAdapter(child: SizedBox(height: bottom)),
+            ],
           ),
         ),
         Positioned(
           right: 16,
-          bottom: 16,
+          bottom: 16 + bottom,
           child: LuxeBackToTop(
             offset: offset,
             tooltip: backToTopLabel,

@@ -60,10 +60,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
     final media = MediaQuery.of(context);
-    // The hero fills the view between the shared tab bar and the bottom nav.
+    // The hero runs from the shared tab bar to the screen's bottom edge,
+    // under the floating dock; its spotlight stays clear of the dock.
+    final dockClearance = media.padding.bottom;
     final viewHeight =
-        media.size.height - media.padding.vertical - AppTabTopBar.height;
-    final heroHeight = (viewHeight - 28).clamp(560.0, 940.0);
+        media.size.height - media.padding.top - AppTabTopBar.height;
+    final heroHeight = viewHeight.clamp(
+      560.0 + dockClearance,
+      940.0 + dockClearance,
+    );
 
     return AppSystemBackScope(
       child: AppScaffold(
@@ -80,6 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: HomeHero(
                 height: heroHeight,
                 topInset: 8,
+                bottomInset: dockClearance,
                 scrollOffset: _offset,
               ),
             ),

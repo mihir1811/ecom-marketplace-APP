@@ -106,6 +106,8 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
   Widget _buildScaffold(BuildContext context) {
     final p = LuxePalette.of(context);
     return AppScaffold(
+      // Runs on behind the floating dock; the scroll view clears it.
+      safeBottom: false,
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
         title: context.tr(RemainingL10n.gemstones),

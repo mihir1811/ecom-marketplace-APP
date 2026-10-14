@@ -145,6 +145,8 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
   Widget _buildScaffold(BuildContext context) {
     final p = LuxePalette.of(context);
     return AppScaffold(
+      // Runs on behind the floating dock; the scroll view clears it.
+      safeBottom: false,
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
         title: context.tr(CatalogL10n.bullions),

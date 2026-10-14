@@ -120,6 +120,8 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
     );
 
     return AppScaffold(
+      // Runs on behind the floating dock; the scroll view clears it.
+      safeBottom: false,
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
         title: title,

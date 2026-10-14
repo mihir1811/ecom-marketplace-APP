@@ -134,6 +134,8 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
     final notifier = ref.read(auctionFeedProvider(_query).notifier);
 
     return AppScaffold(
+      // Runs on behind the floating dock; the scroll view clears it.
+      safeBottom: false,
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
         title: widget.title,

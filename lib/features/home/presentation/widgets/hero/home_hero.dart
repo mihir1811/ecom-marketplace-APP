@@ -23,6 +23,7 @@ class HomeHero extends StatefulWidget {
     required this.height,
     required this.topInset,
     required this.scrollOffset,
+    this.bottomInset = 0,
     super.key,
   });
 
@@ -31,6 +32,10 @@ class HomeHero extends StatefulWidget {
   /// Space reserved above the cosmos.
   final double topInset;
   final ValueListenable<double> scrollOffset;
+
+  /// Space kept clear at the bottom: the stage runs on behind the floating
+  /// dock, the spotlight stays above it.
+  final double bottomInset;
 
   @override
   State<HomeHero> createState() => _HomeHeroState();
@@ -218,7 +223,9 @@ class _HomeHeroState extends State<HomeHero>
                         );
                       },
                       child: Padding(
-                        padding: const EdgeInsets.only(bottom: 24),
+                        padding: EdgeInsets.only(
+                          bottom: 24 + widget.bottomInset,
+                        ),
                         child: HeroSpotlight(
                           animate: !_reduceMotion,
                           gutter: gutter,
