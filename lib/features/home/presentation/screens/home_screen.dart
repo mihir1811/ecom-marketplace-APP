@@ -7,11 +7,11 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/navigation/app_tab_top_bar.dart';
 import '../../../../core/widgets/app_system_back_scope.dart';
+import '../../../../core/widgets/luxe/scroll_reveal.dart';
 import '../../../../core/widgets/navigation/start_selling_flow.dart';
 import '../../../ai_chat/application/ai_chat_providers.dart';
 import '../theme/home_tokens.dart';
 import '../widgets/hero/home_hero.dart';
-import '../widgets/home_atelier_links.dart';
 import '../widgets/home_collections.dart';
 import '../widgets/home_ai_search_card.dart';
 import '../widgets/home_footer.dart';
@@ -75,41 +75,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         backgroundColor: palette.canvas,
         safeBottom: false,
         appBar: const AppTabTopBar(),
-        body: CustomScrollView(
-          controller: _scroll,
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          slivers: [
-            SliverToBoxAdapter(
-              child: HomeHero(
-                height: heroHeight,
-                topInset: 8,
-                bottomInset: dockClearance,
-                scrollOffset: _offset,
-              ),
+        body: ScrollRevealScope(
+          child: CustomScrollView(
+            controller: _scroll,
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
             ),
-            if (auth.isAuthenticated)
-              const SliverToBoxAdapter(child: HomeAtelierLinks()),
-            const SliverToBoxAdapter(child: HomeCollections()),
-            const SliverToBoxAdapter(child: HomeLiveAuctions()),
-            SliverToBoxAdapter(child: HomeAiSearchCard(onAsk: _askGemAi)),
-            if (!auth.isSeller)
+            slivers: [
+              // One sliver so the collections paint above the hero's fade:
+              // the viewport paints earlier slivers on top of later ones.
               SliverToBoxAdapter(
-                child: HomeSellCard(
-                  isAuthenticatedIndividual: auth.isAuthenticated,
-                  onTap: () => startSellingFlow(context, ref),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    HomeHero(
+                      height: heroHeight,
+                      topInset: 8,
+                      bottomInset: dockClearance,
+                      overlap: 72,
+                      scrollOffset: _offset,
+                    ),
+                    // Rides up into the hero's fade so both read as one
+                    // surface.
+                    const HomeCollections(topSpacing: 8),
+                  ],
                 ),
               ),
-            // Last stage fills the viewport and runs to the screen's bottom
-            // edge behind the floating dock; its links clear the dock.
-            SliverToBoxAdapter(
-              child: HomeFooter(
-                stageHeight:
-                    media.size.height - media.padding.top - AppTabTopBar.height,
+              const SliverToBoxAdapter(child: HomeLiveAuctions()),
+              SliverToBoxAdapter(child: HomeAiSearchCard(onAsk: _askGemAi)),
+              if (!auth.isSeller)
+                SliverToBoxAdapter(
+                  child: HomeSellCard(
+                    isAuthenticatedIndividual: auth.isAuthenticated,
+                    onTap: () => startSellingFlow(context, ref),
+                  ),
+                ),
+              // Last stage fills the viewport and runs to the screen's bottom
+              // edge behind the floating dock; its links clear the dock.
+              SliverToBoxAdapter(
+                child: HomeFooter(
+                  stageHeight:
+                      media.size.height -
+                      media.padding.top -
+                      AppTabTopBar.height,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

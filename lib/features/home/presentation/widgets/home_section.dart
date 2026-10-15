@@ -40,6 +40,7 @@ class HomeSectionHeading extends StatelessWidget {
           builder: (context, _) {
             final t = reveal.value;
             final opacity = t.clamp(0.0, 1.0);
+            final sign = ScrollReveal.directionOf(context);
             return Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -50,7 +51,7 @@ class HomeSectionHeading extends StatelessWidget {
                 Expanded(
                   child: ClipRect(
                     child: FractionalTranslation(
-                      translation: Offset(0, 1 - t),
+                      translation: Offset(0, (1 - t) * sign),
                       child: Text(
                         title,
                         style: HomeType.display(34, palette.ink),

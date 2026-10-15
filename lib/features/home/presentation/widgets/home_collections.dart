@@ -11,7 +11,10 @@ import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
 /// Bento grid of the six catalogue worlds.
 class HomeCollections extends StatelessWidget {
-  const HomeCollections({super.key});
+  const HomeCollections({super.key, this.topSpacing = HomeSpace.section});
+
+  /// Space above the heading.
+  final double topSpacing;
 
   static const _gap = 10.0;
 
@@ -21,7 +24,7 @@ class HomeCollections extends StatelessWidget {
     const items = HomeContent.collections;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(gutter, HomeSpace.section, gutter, 0),
+      padding: EdgeInsets.fromLTRB(gutter, topSpacing, gutter, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -116,7 +119,10 @@ class _Tile extends StatelessWidget {
             return Opacity(
               opacity: t.clamp(0.0, 1.0),
               child: Transform.translate(
-                offset: Offset(0, (1 - t) * 36),
+                offset: Offset(
+                  0,
+                  (1 - t) * 36 * ScrollReveal.directionOf(context),
+                ),
                 child: child,
               ),
             );
