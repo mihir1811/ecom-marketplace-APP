@@ -485,8 +485,9 @@ class DiamondBatch {
   }
 }
 
-/// Lazily rendered small white sparkle: a bright point in a soft halo with
-/// short, faint diffraction spikes, as a camera sees a diamond's sparkle.
+/// Lazily rendered crisp optical star-glint sprite: razor-thin tapered
+/// diffraction needles with a tiny diamond-point core (no circular bubble
+/// halo).
 abstract final class DiamondSparkle {
   static ui.Image? _image;
 
@@ -494,46 +495,56 @@ abstract final class DiamondSparkle {
 
   static ui.Image _render() {
     const size = 64.0;
+    const c = size / 2;
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    const c = Offset(size / 2, size / 2);
-    canvas
-      ..drawCircle(
-        c,
-        size * 0.3,
+
+    void drawNeedle(double angle, double length, double halfWidth, int alpha) {
+      final ca = math.cos(angle), sa = math.sin(angle);
+      final nx = -sa * halfWidth, ny = ca * halfWidth;
+      final tip1 = Offset(c + ca * length, c + sa * length);
+      final tip2 = Offset(c - ca * length, c - sa * length);
+      final path = Path()
+        ..moveTo(tip1.dx, tip1.dy)
+        ..lineTo(c + nx, c + ny)
+        ..lineTo(tip2.dx, tip2.dy)
+        ..lineTo(c - nx, c - ny)
+        ..close();
+      final col = Color.fromARGB(alpha, 255, 255, 255);
+      canvas.drawPath(
+        path,
         Paint()
-          ..shader = ui.Gradient.radial(c, size * 0.3, const [
-            Color(0x55FFFFFF),
-            Color(0x00FFFFFF),
-          ]),
-      )
-      ..drawCircle(
-        c,
-        size * 0.07,
-        Paint()
-          ..shader = ui.Gradient.radial(c, size * 0.07, const [
-            Color(0xFFFFFFFF),
-            Color(0x00FFFFFF),
-          ]),
-      );
-    final ray = Paint()
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.8);
-    for (final vertical in [false, true]) {
-      ray.shader = ui.Gradient.linear(
-        vertical ? const Offset(size / 2, 0) : const Offset(0, size / 2),
-        vertical ? const Offset(size / 2, size) : const Offset(size, size / 2),
-        const [Color(0x00FFFFFF), Color(0x88FFFFFF), Color(0x00FFFFFF)],
-        const [0.15, 0.5, 0.85],
-      );
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: c,
-          width: vertical ? 1.4 : size * 0.8,
-          height: vertical ? size * 0.8 : 1.4,
-        ),
-        ray,
+          ..shader = ui.Gradient.linear(
+            tip1,
+            tip2,
+            [
+              const Color(0x00FFFFFF),
+              col,
+              const Color(0xFFFFFFFF),
+              col,
+              const Color(0x00FFFFFF),
+            ],
+            const [0.0, 0.38, 0.5, 0.62, 1.0],
+          ),
       );
     }
+
+    // Primary cross needles and subtle diagonal glass glint rays.
+    drawNeedle(0, size * 0.46, 1.1, 220);
+    drawNeedle(math.pi / 2, size * 0.46, 1.1, 220);
+    drawNeedle(math.pi / 4, size * 0.24, 0.75, 140);
+    drawNeedle(-math.pi / 4, size * 0.24, 0.75, 140);
+
+    // Tiny sharp diamond-shaped core at intersection (no round circle).
+    const rCore = 2.2;
+    final core = Path()
+      ..moveTo(c, c - rCore)
+      ..lineTo(c + rCore, c)
+      ..lineTo(c, c + rCore)
+      ..lineTo(c - rCore, c)
+      ..close();
+    canvas.drawPath(core, Paint()..color = const Color(0xFFFFFFFF));
+
     final picture = recorder.endRecording();
     final image = picture.toImageSync(size.toInt(), size.toInt());
     picture.dispose();

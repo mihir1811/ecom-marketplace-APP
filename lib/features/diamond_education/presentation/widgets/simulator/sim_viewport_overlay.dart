@@ -26,14 +26,14 @@ class SimViewportOverlay extends StatelessWidget {
         children: [
           const Positioned(
             left: 16,
-            top: 12,
+            top: 10,
             right: 16,
             child: IgnorePointer(child: _Summary()),
           ),
           const Positioned.fill(child: IgnorePointer(child: _Hint())),
           Positioned(
             left: 16,
-            bottom: 62,
+            bottom: 54,
             child: IgnorePointer(
               child: _ScaleBar(
                 controller: controller,
@@ -44,7 +44,7 @@ class SimViewportOverlay extends StatelessWidget {
           Positioned(
             left: 12,
             right: 12,
-            bottom: 10,
+            bottom: 8,
             child: _ViewControls(controller: controller),
           ),
         ],
@@ -81,15 +81,15 @@ class _Summary extends ConsumerWidget {
             children: [
               Text(
                 context.tr(EducationL10n.estimatedCut).toUpperCase(),
-                style: LuxeType.eyebrow(p.inkFaint),
+                style: LuxeType.eyebrow(const Color(0xFFB4BCD0)),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               AnimatedSwitcher(
                 duration: LuxeMotion.fast,
                 child: Text(
                   context.cutName(s.cut),
                   key: ValueKey(s.cut),
-                  style: LuxeType.display(22, p.accent),
+                  style: LuxeType.display(21, p.accent),
                 ),
               ),
             ],
@@ -102,7 +102,7 @@ class _Summary extends ConsumerWidget {
             textAlign: TextAlign.end,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: LuxeType.label(p.inkMuted, size: 12.5),
+            style: LuxeType.label(const Color(0xFFD6DCEC), size: 12.5),
           ),
         ),
       ],
@@ -138,16 +138,15 @@ class _HintState extends State<_Hint> {
 
   @override
   Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
     return Align(
-      alignment: const Alignment(0, 0.62),
+      alignment: const Alignment(0, 0.68),
       child: AnimatedOpacity(
         opacity: _show ? 1 : 0,
         duration: LuxeMotion.medium,
         child: Text(
           context.tr(EducationL10n.simHint),
           textAlign: TextAlign.center,
-          style: LuxeType.label(p.inkFaint, size: 11.5),
+          style: LuxeType.label(const Color(0xFFB8C0D2), size: 11.5),
         ),
       ),
     );
@@ -168,7 +167,7 @@ class _ScaleBar extends ConsumerWidget {
     final radiusMm = ref.watch(
       diamondSimulatorProvider.select((s) => s.mesh.radius * s.mmPerUnit),
     );
-    final p = LuxePalette.of(context);
+    const barColor = Color(0xFFCFD6E6);
     return ValueListenableBuilder<double>(
       valueListenable: controller.zoom,
       builder: (context, zoom, _) {
@@ -182,9 +181,9 @@ class _ScaleBar extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('$mm mm', style: LuxeType.figure(p.inkMuted, size: 11)),
+            Text('$mm mm', style: LuxeType.figure(barColor, size: 11)),
             const SizedBox(height: 4),
-            CustomPaint(size: Size(width, 8), painter: _BarPainter(p.inkMuted)),
+            CustomPaint(size: Size(width, 8), painter: _BarPainter(barColor)),
           ],
         );
       },
@@ -296,7 +295,7 @@ class _GlassPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = palette;
-    final fg = selected ? p.accent : p.inkMuted;
+    final fg = selected ? p.accent : const Color(0xFFD6DCEC);
     return Semantics(
       button: true,
       selected: selected,
@@ -307,23 +306,23 @@ class _GlassPill extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: LuxeMotion.fast,
-          height: 40,
-          constraints: const BoxConstraints(minWidth: 44),
-          padding: EdgeInsets.symmetric(horizontal: iconOnly ? 10 : 14),
+          height: 36,
+          constraints: const BoxConstraints(minWidth: 40),
+          padding: EdgeInsets.symmetric(horizontal: iconOnly ? 9 : 13),
           alignment: Alignment.center,
           decoration: ShapeDecoration(
-            color: LuxeStage.glass,
+            color: const Color(0x28FFFFFF),
             shape: StadiumBorder(
               side: BorderSide(
                 color: selected
-                    ? p.accent.withValues(alpha: 0.7)
-                    : LuxeStage.glassBorder,
+                    ? p.accent.withValues(alpha: 0.75)
+                    : const Color(0x36FFFFFF),
               ),
             ),
           ),
           child: iconOnly
-              ? Icon(icon, size: 20, color: fg)
-              : Text(label, style: LuxeType.label(fg, size: 12.5)),
+              ? Icon(icon, size: 19, color: fg)
+              : Text(label, style: LuxeType.label(fg, size: 12)),
         ),
       ),
     );

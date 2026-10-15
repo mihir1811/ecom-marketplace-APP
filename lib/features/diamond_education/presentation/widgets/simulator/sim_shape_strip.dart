@@ -19,7 +19,7 @@ class SimShapeStrip extends ConsumerWidget {
     );
     final p = LuxePalette.of(context);
     return SizedBox(
-      height: 82,
+      height: 64,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -44,8 +44,8 @@ class SimShapeStrip extends ConsumerWidget {
               },
               child: AnimatedContainer(
                 duration: LuxeMotion.fast,
-                width: 68,
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                width: 64,
+                padding: const EdgeInsets.symmetric(vertical: 6),
                 decoration: BoxDecoration(
                   color: on ? p.accentSoft : p.surface,
                   borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
@@ -56,18 +56,18 @@ class SimShapeStrip extends ConsumerWidget {
                   children: [
                     SvgPicture.asset(
                       shape.svgAsset,
-                      width: 34,
-                      height: 34,
+                      width: 26,
+                      height: 26,
                       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
                       placeholderBuilder: (_) =>
-                          const SizedBox.square(dimension: 34),
+                          const SizedBox.square(dimension: 26),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
                       context.shapeName(shape),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: LuxeType.label(color, size: 11),
+                      style: LuxeType.label(color, size: 10.5),
                     ),
                   ],
                 ),
