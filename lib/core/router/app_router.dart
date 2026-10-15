@@ -22,6 +22,7 @@ import '../../features/wallet/wallet_routes.dart';
 import '../../features/rewards/rewards_routes.dart';
 import '../../features/info/info_routes.dart';
 import '../../features/auction/auction_routes.dart';
+import '../../features/diamond_education/diamond_education_routes.dart';
 
 export 'navigator_keys.dart';
 
@@ -52,5 +53,6 @@ final GoRouter appRouter = GoRouter(
     ...walletRoutes,
     ...rewardsRoutes,
     ...auctionRoutes,
+    ...diamondEducationRoutes,
   ],
 );

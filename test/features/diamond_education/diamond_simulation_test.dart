@@ -1,0 +1,227 @@
+import 'dart:math' as math;
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:gemstone/features/diamond_education/application/diamond_simulator_controller.dart';
+import 'package:gemstone/features/diamond_education/domain/cut_grade_estimator.dart';
+import 'package:gemstone/features/diamond_education/domain/diamond_grades.dart';
+import 'package:gemstone/features/diamond_education/domain/diamond_proportions.dart';
+import 'package:gemstone/features/diamond_education/domain/diamond_shape.dart';
+import 'package:gemstone/features/diamond_education/simulation/sim_inclusions.dart';
+import 'package:gemstone/features/diamond_education/simulation/sim_mesh.dart';
+import 'package:gemstone/features/diamond_education/simulation/sim_tracer.dart';
+
+void main() {
+  group('SimMesh', () {
+    for (final shape in SimShape.values) {
+      for (final grade in CutGrade.values) {
+        test(
+          '${shape.name} ${grade.name} is a closed, outward-facing solid',
+          () {
+            final p = DiamondProportions.forGrade(shape, grade);
+            final mesh = SimMesh.build(shape, p);
+            expect(mesh.facetCount, greaterThan(40));
+            expect(mesh.volume, greaterThan(0.5));
+            expect(mesh.width, closeTo(2, 0.02));
+            expect(mesh.length / mesh.width, closeTo(shape.ratio, 0.1));
+
+            for (var f = 0; f < mesh.facetCount; f++) {
+              final nx = mesh.planes[f * 4], ny = mesh.planes[f * 4 + 1];
+              final nz = mesh.planes[f * 4 + 2];
+              expect(math.sqrt(nx * nx + ny * ny + nz * nz), closeTo(1, 1e-9));
+              // The centre lies inside every facet plane.
+              expect(mesh.planes[f * 4 + 3], greaterThan(0));
+            }
+            // Crown and pavilion match the proportions they were cut to.
+            // (Curved outlines measure a hair under 2 wide, hence 0.1.)
+            expect(mesh.crownHeightPct, closeTo(p.crownHeightPct, 0.1));
+            expect(
+              mesh.pavilionDepthPct,
+              closeTo(p.pavilionDepthPct(shape.family), 0.1),
+            );
+            expect(
+              mesh.totalDepthPct,
+              greaterThan(p.approxDepthPct(shape.family) - 0.1),
+            );
+          },
+        );
+      }
+    }
+
+    test('ideal shapes have realistic total depth', () {
+      for (final shape in SimShape.values) {
+        final mesh = SimMesh.build(shape, DiamondProportions.ideal(shape));
+        expect(
+          mesh.totalDepthPct,
+          inInclusiveRange(58, 70),
+          reason: shape.name,
+        );
+      }
+    });
+
+    test('table faces up and the culet down', () {
+      final mesh = SimMesh.build(
+        SimShape.round,
+        DiamondProportions.ideal(SimShape.round),
+      );
+      final table = mesh.kinds.indexOf(SimFacetKind.table.index);
+      expect(mesh.planes[table * 4 + 1], closeTo(1, 1e-9));
+      final withCulet = SimMesh.build(
+        SimShape.round,
+        DiamondProportions.ideal(
+          SimShape.round,
+        ).copyWith(culet: CuletSize.medium),
+      );
+      final culet = withCulet.kinds.indexOf(SimFacetKind.culet.index);
+      expect(withCulet.planes[culet * 4 + 1], closeTo(-1, 1e-9));
+    });
+  });
+
+  group('SimTracer', () {
+    test('returns finite, non-negative light for every view ray', () {
+      final mesh = SimMesh.build(
+        SimShape.oval,
+        DiamondProportions.ideal(SimShape.oval),
+      );
+      final tracer = SimTracer()..mesh = mesh;
+      final rng = math.Random(4);
+      for (var i = 0; i < 400; i++) {
+        final f = rng.nextInt(mesh.facetCount);
+        final s = mesh.facetStart[f];
+        final v = mesh.facetVerts[s] * 3;
+        final nx = mesh.planes[f * 4], ny = mesh.planes[f * 4 + 1];
+        final nz = mesh.planes[f * 4 + 2];
+        // A ray striking the facet from outside.
+        var dx = -nx + (rng.nextDouble() - 0.5);
+        var dy = -ny + (rng.nextDouble() - 0.5);
+        var dz = -nz + (rng.nextDouble() - 0.5);
+        final l = math.sqrt(dx * dx + dy * dy + dz * dz);
+        dx /= l;
+        dy /= l;
+        dz /= l;
+        if (dx * nx + dy * ny + dz * nz >= -0.05) continue;
+        tracer.trace(
+          f,
+          mesh.positions[v],
+          mesh.positions[v + 1],
+          mesh.positions[v + 2],
+          dx,
+          dy,
+          dz,
+        );
+        for (final c in [tracer.outR, tracer.outG, tracer.outB]) {
+          expect(c.isFinite, isTrue);
+          expect(c, greaterThanOrEqualTo(0));
+        }
+      }
+    });
+  });
+
+  group('CutGradeEstimator', () {
+    test('every grade preset is graded as that grade', () {
+      for (final shape in SimShape.values) {
+        for (final grade in CutGrade.values) {
+          expect(
+            CutGradeEstimator.estimate(
+              shape,
+              DiamondProportions.forGrade(shape, grade),
+            ),
+            grade,
+            reason: '${shape.name} ${grade.name}',
+          );
+        }
+      }
+    });
+  });
+
+  group('SimInclusions', () {
+    test(
+      'cleaner grades carry fewer characteristics, all inside the stone',
+      () {
+        final mesh = SimMesh.build(
+          SimShape.round,
+          DiamondProportions.ideal(SimShape.round),
+        );
+        var previous = -1;
+        for (final grade in ClarityGrade.values) {
+          final list = SimInclusions.generate(mesh, grade);
+          expect(
+            list.length,
+            greaterThanOrEqualTo(previous == -1 ? 0 : previous - 1),
+          );
+          previous = list.length;
+          for (final inc in list) {
+            for (var f = 0; f < mesh.facetCount; f++) {
+              final p = mesh.planes;
+              final d =
+                  p[f * 4] * inc.x +
+                  p[f * 4 + 1] * inc.y +
+                  p[f * 4 + 2] * inc.z;
+              expect(d, lessThan(p[f * 4 + 3]));
+            }
+          }
+        }
+        expect(SimInclusions.generate(mesh, ClarityGrade.fl), isEmpty);
+        expect(
+          SimInclusions.generate(mesh, ClarityGrade.i3).length,
+          greaterThan(10),
+        );
+      },
+    );
+  });
+
+  group('DiamondSimulatorController', () {
+    late ProviderContainer container;
+    setUp(() => container = ProviderContainer());
+    tearDown(() => container.dispose());
+
+    DiamondSimulatorController notifier() =>
+        container.read(diamondSimulatorProvider.notifier);
+    DiamondSimulatorState state() => container.read(diamondSimulatorProvider);
+
+    test('a 1 ct ideal round measures about 6.4 mm', () {
+      final sub = container.listen(diamondSimulatorProvider, (_, _) {});
+      addTearDown(sub.close);
+      expect(state().widthMm, inInclusiveRange(6.2, 6.6));
+      notifier().setCarat(2);
+      // Size follows the cube root of weight.
+      expect(state().widthMm, closeTo(6.4 * math.pow(2, 1 / 3), 0.25));
+    });
+
+    test('derived proportions solve back to their inputs', () {
+      final sub = container.listen(diamondSimulatorProvider, (_, _) {});
+      addTearDown(sub.close);
+      notifier().setCrownHeight(12.5);
+      expect(state().mesh.crownHeightPct, closeTo(12.5, 0.05));
+      notifier().setPavilionDepth(45);
+      expect(state().mesh.pavilionDepthPct, closeTo(45, 0.05));
+      notifier().setTotalDepth(64);
+      expect(state().mesh.totalDepthPct, closeTo(64, 0.3));
+    });
+
+    test('changing shape keeps cut quality; options apply', () {
+      final sub = container.listen(diamondSimulatorProvider, (_, _) {});
+      addTearDown(sub.close);
+      notifier().applyCutGrade(CutGrade.good);
+      notifier().setShape(SimShape.emerald);
+      expect(state().spec.shape, SimShape.emerald);
+      expect(state().estimatedCut, CutGrade.good);
+      notifier().setFancyColor(FancyColor.pink);
+      expect(state().spec.isFancy, isTrue);
+      notifier().setColorGrade(ColorGrade.h);
+      expect(state().spec.isFancy, isFalse);
+      notifier().setLighting(SimLighting.ultraviolet);
+      expect(state().lighting, SimLighting.ultraviolet);
+    });
+
+    test('start shape can be scoped per route', () {
+      final scoped = ProviderContainer(
+        overrides: [
+          simulatorStartShapeProvider.overrideWithValue(SimShape.heart),
+        ],
+      );
+      addTearDown(scoped.dispose);
+      expect(scoped.read(diamondSimulatorProvider).spec.shape, SimShape.heart);
+    });
+  });
+}
