@@ -56,21 +56,52 @@ class SimOptics {
   final SimLighting lighting;
 }
 
-/// Studio lighting environment for the simulated diamond.
+/// Studio lighting environment for the simulated diamond, in world space
+/// (x right, y up, z toward the viewer).
 ///
-/// Models a luxury dark-field gemological studio with large rectangular
-/// glass-diffuser softboxes, linear overhead and rim strip panels, and
-/// structured geometric contrast baffles. Avoids small circular spot cones
-/// (which project round bubble artifacts onto facets) in favour of flat
-/// planar window panels and linear light strips that produce authentic
-/// glass-like sheet reflections and sharp geometric virtual facets.
+/// Built the way diamonds are lit for grading photography and jewellery
+/// counters: a segmented light tent around the viewing axis for white
+/// brilliance, the viewer's own head blocking the light straight behind
+/// the eye (the obscuration that draws a round brilliant's dark arrows and
+/// gives it contrast), a dim room below, and a handful of small, very
+/// bright spots. Broad, even light washes a diamond out to glass; the
+/// spots are what split into fire and flash as pinpoint sparkle.
 class SimStudio {
   SimStudio(SimLighting lighting) : _uv = lighting == SimLighting.ultraviolet;
 
   final bool _uv;
 
   /// Average studio fill for multi-bounce rays still inside the crystal.
-  double get ambientFill => _uv ? 0.02 : 0.42;
+  double get ambientFill => _uv ? 0.02 : 0.36;
+
+  /// Spot lights: unit direction, then linear RGB radiance.
+  static final List<double> _spots = _normalizedSpots(const [
+    -0.46, 0.66, 0.60, 19.0, 18.2, 16.8,
+    0.50, 0.60, 0.62, 16.6, 17.6, 19.4,
+    0.10, 0.98, 0.14, 18.0, 18.0, 18.0,
+    -0.74, 0.22, 0.64, 15.0, 15.4, 16.2,
+    0.76, 0.16, 0.63, 15.8, 15.2, 14.6,
+    -0.24, 0.40, 0.88, 13.0, 13.2, 13.8,
+    0.38, -0.24, 0.89, 11.0, 11.2, 11.6,
+    0.62, 0.74, -0.26, 14.0, 14.2, 15.0,
+    -0.58, 0.78, -0.22, 14.4, 14.0, 13.4,
+    0.0, 0.42, -0.91, 9.0, 9.4, 10.2,
+  ]);
+  static const _spotOuter = 0.99756; // cos 4Â°
+  static const _spotInner = 0.99905; // cos 2.5Â°
+
+  static List<double> _normalizedSpots(List<double> raw) {
+    final out = List<double>.of(raw);
+    for (var i = 0; i < out.length; i += 6) {
+      final l = math.sqrt(
+        out[i] * out[i] + out[i + 1] * out[i + 1] + out[i + 2] * out[i + 2],
+      );
+      out[i] /= l;
+      out[i + 1] /= l;
+      out[i + 2] /= l;
+    }
+    return out;
+  }
 
   /// Radiance seen along world direction (x, y, z), written to [r], [g],
   /// [b].
@@ -147,114 +178,64 @@ class SimStudio {
       return;
     }
 
-    // Soft dark studio environment with luminous glass-reflection panels:
-    // 1. Base crystal ambient so internal facets stay silvery-translucent
-    //    like real optical glass/diamond, never pitch-black.
-    final up = (0.5 + 0.5 * y).clamp(0.0, 1.0);
-    var lr = 0.12 + 0.14 * up;
-    var lg = 0.125 + 0.145 * up;
-    var lb = 0.14 + 0.16 * up;
+    // Dim room: a near-black floor rising to soft grey walls and ceiling.
+    final room = 0.05 + 0.12 * _smoothstep(-0.45, 0.75, y);
+    var lr = room, lg = room * 1.02, lb = room * 1.07;
 
-    // 2. Large overhead rectangular studio softbox (main glass reflection).
-    final mainBox = _windowPanel(
-      x, y, z,
-      0.0, 0.76, 0.65,
-      1.0, 0.0, 0.0,
-      0.0, 0.65, -0.76,
-      0.72, 0.34, 0.06,
-    );
-    lr += mainBox * 2.45;
-    lg += mainBox * 2.48;
-    lb += mainBox * 2.55;
+    // Light tent around the viewing axis: twelve diffuser panels split by
+    // dark seams and two seam rings, so each virtual facet catches light
+    // or shadow and the mosaic breaks up and re-forms as the stone turns.
+    var light = 0.0;
+    if (z > 0.18 && z < 0.94) {
+      final ring =
+          _smoothstep(0.18, 0.24, z) * (1 - _smoothstep(0.915, 0.93, z));
+      final seams =
+          _smoothstep(-0.55, -0.38, math.cos(12 * math.atan2(y, x))) *
+          _smoothstep(0.03, 0.045, (z - 0.4).abs()) *
+          _smoothstep(0.025, 0.04, (z - 0.62).abs()) *
+          _smoothstep(0.018, 0.028, (z - 0.8).abs());
+      light += ring * seams * (0.62 + 0.7 * _smoothstep(-0.7, 0.75, y));
+    }
 
-    // 3. Left & right vertical glass strip softboxes (warm/cool key & fill).
-    final leftStrip = _windowPanel(
-      x, y, z,
-      -0.78, 0.32, 0.54,
-      0.57, 0.0, 0.82,
-      -0.26, 0.95, 0.18,
-      0.24, 0.58, 0.05,
-    );
-    lr += leftStrip * 2.75;
-    lg += leftStrip * 2.68;
-    lb += leftStrip * 2.55;
+    // Overhead strip bank, so a stone seen side-on still has its crown lit.
+    if (y > 0.72) {
+      light +=
+          _smoothstep(0.72, 0.8, y) *
+          _smoothstep(0.1, 0.35, math.cos(x * 22)) *
+          0.6;
+    }
 
-    final rightStrip = _windowPanel(
-      x, y, z,
-      0.80, 0.28, 0.53,
-      -0.55, 0.0, 0.83,
-      -0.23, 0.96, -0.16,
-      0.24, 0.56, 0.05,
-    );
-    lr += rightStrip * 2.50;
-    lg += rightStrip * 2.62;
-    lb += rightStrip * 2.82;
-
-    // 4. Front upper & lower glass reflector cards near the viewing axis.
-    final upperCard = _windowPanel(
-      x, y, z,
-      0.0, 0.38, 0.925,
-      1.0, 0.0, 0.0,
-      0.0, 0.925, -0.38,
-      0.52, 0.16, 0.04,
-    );
-    lr += upperCard * 2.10;
-    lg += upperCard * 2.14;
-    lb += upperCard * 2.22;
-
-    final lowerCard = _windowPanel(
-      x, y, z,
-      0.0, -0.46, 0.888,
-      1.0, 0.0, 0.0,
-      0.0, 0.888, 0.46,
-      0.48, 0.14, 0.04,
-    );
-    lr += lowerCard * 1.65;
-    lg += lowerCard * 1.68;
-    lb += lowerCard * 1.76;
-
-    // 5. Rear rim & profile strip lights for crystal edge & pavilion depth.
-    final rearTop = _windowPanel(
+    // Rear rim strip for the pavilion in profile.
+    light += _windowPanel(
       x, y, z,
       0.0, 0.88, -0.47,
       1.0, 0.0, 0.0,
       0.0, 0.47, 0.88,
       0.64, 0.22, 0.06,
-    );
-    lr += rearTop * 1.45;
-    lg += rearTop * 1.48;
-    lb += rearTop * 1.55;
+    ) * 0.8;
 
-    // 6. Structured angular facet-reflection bands in the front hemisphere:
-    //    Sharp geometric sector steps (8-fold symmetric studio louvers) that
-    //    give internal pavilion reflections crisp triangular/kite glass
-    //    contrast and strong chromatic dispersion fire without round blobs.
-    if (z > 0.15) {
-      final az = math.atan2(x, y);
-      // Crisp 8-fold and 16-fold angular louver steps.
-      final s8 = math.cos(az * 8);
-      final s16 = math.cos(az * 16 + z * 6.0);
-      final elevBand = math.sin(z * 11.0);
-      final louver = _smoothstep(0.15, 0.55, s8 * 0.55 + s16 * 0.45) *
-          _smoothstep(-0.2, 0.4, elevBand);
-      final frontWeight = _smoothstep(0.15, 0.55, z) *
-          (1.0 - 0.78 * _smoothstep(0.955, 0.988, z));
-      final intensity = louver * frontWeight * 3.8;
-      // Narrow high-contrast linear louver edges drive dispersion fire when
-      // RGB rays exit at slightly different angles near critical angle.
-      final fireEdge = _smoothstep(0.72, 0.92, s16 * elevBand) *
-          frontWeight *
-          8.5;
-      lr += intensity * 0.98 + fireEdge * 1.04;
-      lg += intensity * 1.00 + fireEdge * 0.98;
-      lb += intensity * 1.04 + fireEdge * 1.06;
-    } else if (z < 0) {
-      // Soft dark studio backdrop seen through tilted/windowed facets:
-      // translucent smoky glass tone rather than opaque black.
-      final back = (-z).clamp(0.0, 1.0);
-      lr += 0.10 * (1 - 0.4 * back);
-      lg += 0.11 * (1 - 0.4 * back);
-      lb += 0.13 * (1 - 0.4 * back);
+    lr += light;
+    lg += light;
+    lb += light * 1.03;
+
+    // The viewer's head blocks the light straight behind the eye.
+    if (z > 0.94) {
+      final head = _smoothstep(0.945, 0.968, z);
+      lr += (0.032 - lr) * head;
+      lg += (0.034 - lg) * head;
+      lb += (0.038 - lb) * head;
+    }
+
+    // Compact spots: whole virtual facets flash on and off as they line
+    // up, and their small size lets red, green and blue exits separate.
+    final spots = _spots;
+    for (var i = 0; i < spots.length; i += 6) {
+      final d = x * spots[i] + y * spots[i + 1] + z * spots[i + 2];
+      if (d <= _spotOuter) continue;
+      final w = _smoothstep(_spotOuter, _spotInner, d);
+      lr += spots[i + 3] * w;
+      lg += spots[i + 4] * w;
+      lb += spots[i + 5] * w;
     }
 
     r = lr;

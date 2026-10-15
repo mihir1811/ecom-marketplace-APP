@@ -12,7 +12,7 @@ import 'sim_tracer.dart';
 
 /// Orientation and zoom of the simulated stone. [spin] turns it about its
 /// own table axis, [tilt] tips that axis toward the viewer: 0 is a side
-/// view with the table up, π/2 face up, −π/2 culet up.
+/// view with the table up, Ãâ‚¬/2 face up, Ã¢Ë†â€™Ãâ‚¬/2 culet up.
 class SimView {
   const SimView({required this.tilt, required this.spin, this.zoom = 1});
 
@@ -48,7 +48,7 @@ class SimRenderer {
   static const _eye = 9.0;
 
   /// Most samples in one stone, whatever its size on screen.
-  static const _sampleBudget = 6400;
+  static const _sampleBudget = 9000;
 
   void setStone(SimMesh mesh, List<SimInclusion> inclusions) {
     _mesh = mesh;
@@ -160,11 +160,6 @@ class SimRenderer {
   Int32List _bc = Int32List(0);
   Uint16List _bi = Uint16List(0);
   Float32List _px = Float32List(0), _py = Float32List(0);
-  Float32List _ipx = Float32List(0), _ipy = Float32List(0);
-
-  // Best sample per facet for sparkles: luminance, screen xy, rgb.
-  Float64List _spark = Float64List(0);
-
   final Paint _vertexPaint = Paint();
   final Paint _fill = Paint()..isAntiAlias = true;
   final Paint _line = Paint()
@@ -173,13 +168,13 @@ class SimRenderer {
     ..strokeCap = StrokeCap.round
     ..strokeJoin = StrokeJoin.round;
 
+  /// ACES filmic curve, then display gamma: lit facets roll off into
+  /// brilliant white while the reflected room and the viewer's head stay
+  /// genuinely dark, the contrast a diamond's sparkle depends on.
   static double _tone(double x) {
     if (x <= 0) return 0;
-    // Crisp crystal/glass filmic tone curve: keeps dark internal contrast
-    // facets translucent smoky-silver (never dead black) while driving
-    // studio window reflections to brilliant pure crystal white.
-    final y = (x * (2.45 * x + 0.08)) / (x * (2.32 * x + 0.62) + 0.14);
-    return y >= 1 ? 1.0 : math.pow(y, 0.48).toDouble();
+    final y = (x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14);
+    return y >= 1 ? 1.0 : math.pow(y, 1 / 2.2).toDouble();
   }
 
   /// Paints the stone centred in [size]. [pxPerUnit] maps model units to
@@ -190,8 +185,6 @@ class SimRenderer {
     required SimView view,
     required double pxPerUnit,
     required double samplePx,
-    double time = 0,
-    bool twinkle = false,
   }) {
     final mesh = _mesh;
     if (mesh == null || size.isEmpty) return;
@@ -202,7 +195,7 @@ class SimRenderer {
       _layout(mesh, units);
     }
 
-    // Model → world: spin about the table axis, then tilt toward viewer.
+    // Model Ã¢â€ â€™ world: spin about the table axis, then tilt toward viewer.
     final cs = math.cos(view.spin), ss = math.sin(view.spin);
     final ct = math.cos(view.tilt), st = math.sin(view.tilt);
     final r00 = cs, r01 = 0.0, r02 = ss;
@@ -221,8 +214,6 @@ class SimRenderer {
     if (_px.length < vcount) {
       _px = Float32List(vcount);
       _py = Float32List(vcount);
-      _ipx = Float32List(vcount);
-      _ipy = Float32List(vcount);
     }
     final pos = mesh.positions;
     for (var i = 0; i < vcount; i++) {
@@ -233,11 +224,6 @@ class SimRenderer {
       final k = scale * d0 / (d0 - wz);
       _px[i] = cx + wx * k;
       _py[i] = cy - wy * k;
-      // Refracted internal projection: pavilion vertices seen through the
-      // high-IOR crown appear magnified/pulled slightly toward the axis.
-      final pull = 0.90 + 0.06 * (wz / mesh.radius).clamp(-1.0, 1.0);
-      _ipx[i] = cx + wx * k * pull;
-      _ipy[i] = cy - wy * k * pull;
     }
 
     final hullPath = _hull(vcount);
@@ -280,8 +266,6 @@ class SimRenderer {
       _bp = Float32List(vcount * 2);
       _bc = Int32List(vcount);
     }
-    if (_spark.length < facets * 6) _spark = Float64List(facets * 6);
-
     // Base silhouette layer: cool smoky crystal slate so seams between
     // independently sampled facets never bleed background.
     final baseColor = isUv ? 0xFF0A0C18 : 0xFF282E3C;
@@ -304,7 +288,6 @@ class SimRenderer {
       final o = f * 4;
       final fnx = planes[o], fny = planes[o + 1], fnz = planes[o + 2];
       final facing = fnx * ex + fny * ey + fnz * ez - planes[o + 3];
-      _spark[f * 6] = 0;
       if (facing <= 1e-6) continue;
 
       final a = fv[starts[f]];
@@ -314,17 +297,13 @@ class SimRenderer {
         _bi[bi++] = fv[j + 1];
       }
 
-      // Per-facet planar normal orientation in world space: gives each flat
-      // facet a distinct planar glass reflection step so adjacent facets
-      // articulate as crisp flat crystal planes.
+      // A slight per-facet step from the polished surface catching the key
+      // light, so neighbouring facets read as separate flat planes.
       final wnx = r00 * fnx + r01 * fny + r02 * fnz;
       final wny = r10 * fnx + r11 * fny + r12 * fnz;
       final wnz = r20 * fnx + r21 * fny + r22 * fnz;
       final keyDot = (-0.28 * wnx + 0.68 * wny + 0.67 * wnz).clamp(0.0, 1.0);
-      final rimDot = (0.35 * wnx - 0.45 * wny + 0.82 * wnz).clamp(0.0, 1.0);
-      final facetPlanarStep = isUv
-          ? 0.0
-          : (0.075 * math.pow(keyDot, 3) - 0.025 * (1 - rimDot));
+      final facetPlanarStep = isUv ? 0.0 : 0.035 * math.pow(keyDot, 4);
 
       final faceUp = kinds[f] == tableKind || kinds[f] == crownKind;
       final isGirdle = kinds[f] == girdleKind;
@@ -347,9 +326,15 @@ class SimRenderer {
           hg = 0.30 + 0.46 * avg;
           hb = 0.34 + 0.48 * avg;
         }
-        final r = (_tone(hr) + facetPlanarStep).clamp(0.0, 1.0);
-        final g = (_tone(hg) + facetPlanarStep).clamp(0.0, 1.0);
-        final b = (_tone(hb) + facetPlanarStep).clamp(0.0, 1.0);
+        var r = _tone(hr) + facetPlanarStep;
+        var g = _tone(hg) + facetPlanarStep;
+        var b = _tone(hb) + facetPlanarStep;
+        // Per-channel tone mapping greys out spectral exits; restore the
+        // saturation of fire.
+        final grey = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        r = (grey + (r - grey) * 1.1).clamp(0.0, 1.0);
+        g = (grey + (g - grey) * 1.1).clamp(0.0, 1.0);
+        b = (grey + (b - grey) * 1.1).clamp(0.0, 1.0);
 
         final wx = r00 * px + r01 * py + r02 * pz;
         final wy = r10 * px + r11 * py + r12 * pz;
@@ -373,16 +358,7 @@ class SimRenderer {
               (math.max(r, math.max(g, b)) - math.min(r, math.min(g, b))) * tl;
           crownSamples++;
         }
-        if (lum > best) {
-          best = lum;
-          _spark
-            ..[f * 6] = lum
-            ..[f * 6 + 1] = sx
-            ..[f * 6 + 2] = sy
-            ..[f * 6 + 3] = hr
-            ..[f * 6 + 4] = hg
-            ..[f * 6 + 5] = hb;
-        }
+        if (lum > best) best = lum;
       }
       if (faceUp && best > sparkThreshold) flashing++;
       for (var t = _ft[f] * 3; t < _ft[f + 1] * 3; t++) {
@@ -419,12 +395,10 @@ class SimRenderer {
       body.dispose();
     }
 
-    // Internal refracted pavilion facet web, planar glass sheet reflections,
-    // and external crystal ridge bevels.
     canvas
       ..save()
       ..clipPath(hullPath);
-    _paintFacetArchitecture(
+    _paintFacetEdges(
       canvas,
       mesh,
       ex,
@@ -445,10 +419,10 @@ class SimRenderer {
     }
     canvas.restore();
 
-    // Crisp outer glass rim definition against the soft dark studio.
+    // Fine outline against the dark studio.
     _line
-      ..color = isUv ? const Color(0x406088E0) : const Color(0x66DCE6F8)
-      ..strokeWidth = 0.85;
+      ..color = isUv ? const Color(0x406088E0) : const Color(0x40DCE6F8)
+      ..strokeWidth = 0.6;
     canvas.drawPath(hullPath, _line);
 
     if (isUv) {
@@ -475,23 +449,12 @@ class SimRenderer {
         );
       }
     }
-
-    _paintGlassSparkles(
-      canvas,
-      mesh,
-      facets,
-      scale,
-      time,
-      twinkle,
-      sparkThreshold,
-      isUv: isUv,
-    );
   }
 
-  /// Draws the internal refracted pavilion facet lines seen through the
-  /// transparent crystal, planar glass-sheet surface sheen on each flat
-  /// facet, and crisp specular bevel ridges where facets meet.
-  void _paintFacetArchitecture(
+  /// Facet junctions: a hairline of shadow where two polished planes meet,
+  /// lit along ridges that face the key light. Kept faint, since on a real
+  /// stone facets read from the mosaic of light inside them.
+  void _paintFacetEdges(
     Canvas canvas,
     SimMesh mesh,
     double ex,
@@ -502,67 +465,21 @@ class SimRenderer {
   }) {
     final planes = mesh.planes, kinds = mesh.kinds;
     final starts = mesh.facetStart, fv = mesh.facetVerts;
-    final facets = mesh.facetCount;
-    final pavilionKind = SimFacetKind.pavilion.index;
     final girdleKind = SimFacetKind.girdle.index;
     final tableKind = SimFacetKind.table.index;
+    final pavilionKind = SimFacetKind.pavilion.index;
 
-    // 1. Back-facing facets (pavilion seen through the crown): subtle
-    // refracted internal facet lines that give the crystalline kaleidoscope
-    // depth of real optical glass/diamond.
-    _line.strokeWidth = 0.65;
-    for (var f = 0; f < facets; f++) {
-      final o = f * 4;
-      final facing =
-          planes[o] * ex +
-          planes[o + 1] * ey +
-          planes[o + 2] * ez -
-          planes[o + 3];
-      if (facing > 1e-6) continue;
-      if (kinds[f] == girdleKind) continue;
-
-      final wnz =
-          r[6] * planes[o] + r[7] * planes[o + 1] + r[8] * planes[o + 2];
-      final vis = (-wnz).clamp(0.0, 1.0);
-      if (vis < 0.08) continue;
-
-      final s0 = starts[f], s1 = starts[f + 1];
-      _line.color = isUv
-          ? Color.fromRGBO(140, 175, 255, 0.12 * vis)
-          : Color.fromRGBO(210, 225, 250, 0.16 * vis);
-      for (var j = s0; j < s1; j++) {
-        final a = fv[j], b = fv[s0 + (j - s0 + 1) % (s1 - s0)];
-        if (a < b) {
-          canvas.drawLine(
-            Offset(_ipx[a], _ipy[a]),
-            Offset(_ipx[b], _ipy[b]),
-            _line,
-          );
-        }
-      }
-    }
-
-    // 2. Front-facing facets: planar glass-sheet surface sheen + razor-sharp
-    // crystal ridge bevels.
-    final sheenPaint = Paint()..isAntiAlias = true;
-    for (var f = 0; f < facets; f++) {
+    for (var f = 0; f < mesh.facetCount; f++) {
       final o = f * 4;
       final fnx = planes[o], fny = planes[o + 1], fnz = planes[o + 2];
-      final facing = fnx * ex + fny * ey + fnz * ez - planes[o + 3];
-      if (facing <= 1e-6) continue;
+      if (fnx * ex + fny * ey + fnz * ez - planes[o + 3] <= 1e-6) continue;
 
       final kind = kinds[f];
-      final wnx = r[0] * fnx + r[1] * fny + r[2] * fnz;
-      final wny = r[3] * fnx + r[4] * fny + r[5] * fnz;
-      final wnz = r[6] * fnx + r[7] * fny + r[8] * fnz;
       final s0 = starts[f], s1 = starts[f + 1];
-
       if (kind == girdleKind) {
         _line
-          ..color = isUv
-              ? const Color(0x2890B0FF)
-              : const Color(0x42B8C6DC)
-          ..strokeWidth = 0.55;
+          ..color = isUv ? const Color(0x2890B0FF) : const Color(0x30B8C6DC)
+          ..strokeWidth = 0.5;
         for (var j = s0; j < s1; j++) {
           final a = fv[j], b = fv[s0 + (j - s0 + 1) % (s1 - s0)];
           if (a < b) {
@@ -576,262 +493,35 @@ class SimRenderer {
         continue;
       }
 
-      // Surface glass reflection sheen across the flat facet polygon:
-      // Fresnel grazing reflection + overhead studio window alignment.
-      final ndv = wnz.clamp(0.0, 1.0);
-      final fresnel = 0.17 + 0.83 * math.pow(1 - ndv, 3);
-      final rx = -2 * ndv * wnx;
-      final ry = -2 * ndv * wny;
-      final rz = 2 * ndv * wnz - 1.0;
-      final winAlign =
-          (-0.22 * rx + 0.72 * ry + 0.66 * rz).clamp(0.0, 1.0);
-      final sideAlign =
-          (0.75 * rx.abs() + 0.35 * ry + 0.56 * rz).clamp(0.0, 1.0);
-      final glassIntensity = isUv
-          ? 0.08 * winAlign
-          : (0.28 * math.pow(winAlign, 2) + 0.18 * fresnel * sideAlign)
-                .clamp(0.0, 0.36);
-
-      if (glassIntensity > 0.03) {
-        final poly = Path();
-        var minX = double.infinity, maxX = -double.infinity;
-        var minY = double.infinity, maxY = -double.infinity;
-        for (var j = s0; j < s1; j++) {
-          final v = fv[j];
-          final vx = _px[v], vy = _py[v];
-          if (j == s0) {
-            poly.moveTo(vx, vy);
-          } else {
-            poly.lineTo(vx, vy);
-          }
-          if (vx < minX) minX = vx;
-          if (vx > maxX) maxX = vx;
-          if (vy < minY) minY = vy;
-          if (vy > maxY) maxY = vy;
-        }
-        poly.close();
-
-        // Linear glass reflection sweeping across the flat facet plane at
-        // the facet's projected reflection angle (never a round bubble).
-        final cxF = (minX + maxX) * 0.5, cyF = (minY + maxY) * 0.5;
-        final dxF = maxX - minX, dyF = maxY - minY;
-        final span = math.max(8.0, math.sqrt(dxF * dxF + dyF * dyF) * 0.5);
-        final gx = wnx * 0.85 - 0.32, gy = -wny * 0.85 - 0.55;
-        final gl = math.max(1e-4, math.sqrt(gx * gx + gy * gy));
-        final ux = gx / gl * span, uy = gy / gl * span;
-        final p0 = Offset(cxF - ux, cyF - uy);
-        final p1 = Offset(cxF + ux, cyF + uy);
-        sheenPaint.shader = ui.Gradient.linear(
-          p0,
-          p1,
-          [
-            Color.fromRGBO(255, 255, 255, glassIntensity),
-            Color.fromRGBO(230, 240, 255, glassIntensity * 0.35),
-            const Color(0x00FFFFFF),
-            Color.fromRGBO(210, 228, 255, glassIntensity * 0.22),
-          ],
-          const [0.0, 0.36, 0.72, 1.0],
-        );
-        canvas.drawPath(poly, sheenPaint);
-      }
-
-      // Specular glint on facet ridges catching the overhead/key lights,
-      // paired with a crisp bevel contrast line.
+      final wnx = r[0] * fnx + r[1] * fny + r[2] * fnz;
+      final wny = r[3] * fnx + r[4] * fny + r[5] * fnz;
+      final wnz = r[6] * fnx + r[7] * fny + r[8] * fnz;
       final spec = (-0.25 * wnx + 0.65 * wny + 0.71 * wnz).clamp(0.0, 1.0);
       final isTable = kind == tableKind;
-      final isPav = kind == pavilionKind;
-      final ridgeAlpha = isTable
-          ? 0.62
-          : isPav
-          ? 0.40
-          : 0.52;
+      final weight = isTable
+          ? 1.0
+          : kind == pavilionKind
+          ? 0.6
+          : 0.8;
+      final glint = math.pow(spec, 6).toDouble();
 
       for (var j = s0; j < s1; j++) {
         final a = fv[j], b = fv[s0 + (j - s0 + 1) % (s1 - s0)];
         if (!isTable && a > b) continue;
         final pa = Offset(_px[a], _py[a]);
         final pb = Offset(_px[b], _py[b]);
-
         if (!isUv) {
           _line
-            ..color = Color.fromRGBO(
-              18,
-              22,
-              32,
-              (isTable ? 0.28 : 0.20) * (1 - 0.3 * spec),
-            )
-            ..strokeWidth = isTable ? 1.0 : 0.75;
+            ..color = Color.fromRGBO(6, 8, 14, 0.22 * weight)
+            ..strokeWidth = 0.7;
           canvas.drawLine(pa, pb, _line);
         }
-
-        // Crisp linear glass-bevel highlight along the straight facet edge.
         _line
           ..color = isUv
-              ? Color.fromRGBO(180, 205, 255, 0.26 * ridgeAlpha)
-              : Color.fromRGBO(
-                  255,
-                  255,
-                  255,
-                  (0.32 + 0.62 * spec * spec) * ridgeAlpha,
-                )
-          ..strokeWidth = isTable ? 0.85 : 0.6;
+              ? Color.fromRGBO(180, 205, 255, 0.12 * weight)
+              : Color.fromRGBO(255, 255, 255, (0.06 + 0.5 * glint) * weight)
+          ..strokeWidth = 0.5;
         canvas.drawLine(pa, pb, _line);
-      }
-    }
-  }
-
-  /// Renders glass-reflection facet flashes and razor-thin optical edge
-  /// glints without any circular/bubble sprites:
-  /// 1. Flashing facets light up across their exact polygonal crystal plane
-  ///    with a linear glass-sheet reflection gradient.
-  /// 2. The brightest facet ridges emit crisp linear bevel gleams and
-  ///    ultra-thin tapered optical needle rays (zero circular halo).
-  void _paintGlassSparkles(
-    Canvas canvas,
-    SimMesh mesh,
-    int facets,
-    double scale,
-    double time,
-    bool twinkle,
-    double threshold, {
-    required bool isUv,
-  }) {
-    final picks = <int>[];
-    for (var f = 0; f < facets; f++) {
-      if (_spark[f * 6] > threshold) picks.add(f);
-    }
-    if (picks.isEmpty) return;
-    picks.sort((a, b) => _spark[b * 6].compareTo(_spark[a * 6]));
-
-    final starts = mesh.facetStart, fv = mesh.facetVerts;
-    final flashCount = math.min(picks.length, 14);
-    final flashPaint = Paint()
-      ..isAntiAlias = true
-      ..blendMode = BlendMode.plus;
-
-    for (var i = 0; i < flashCount; i++) {
-      final f = picks[i];
-      final lum = _spark[f * 6];
-      final over = ((lum - threshold) / threshold).clamp(0.0, 2.2);
-      var flick = 1.0;
-      if (twinkle) flick = 0.78 + 0.22 * math.sin(time * 7.5 + f * 2.17);
-
-      final r = _spark[f * 6 + 3], g = _spark[f * 6 + 4], b = _spark[f * 6 + 5];
-      final m = math.max(1e-4, math.max(r, math.max(g, b)));
-      int ch(double v) => (math.pow(v / m, 1.4) * 255).round().clamp(0, 255);
-      final cr = ch(r), cg = ch(g), cb = ch(b);
-
-      // 1. Polygonal glass-sheet flash across the facet's own straight edges.
-      final s0 = starts[f], s1 = starts[f + 1];
-      if (s1 - s0 >= 3) {
-        final poly = Path();
-        var minX = double.infinity, maxX = -double.infinity;
-        var minY = double.infinity, maxY = -double.infinity;
-        for (var j = s0; j < s1; j++) {
-          final v = fv[j];
-          final vx = _px[v], vy = _py[v];
-          if (j == s0) {
-            poly.moveTo(vx, vy);
-          } else {
-            poly.lineTo(vx, vy);
-          }
-          if (vx < minX) minX = vx;
-          if (vx > maxX) maxX = vx;
-          if (vy < minY) minY = vy;
-          if (vy > maxY) maxY = vy;
-        }
-        poly.close();
-
-        final sheetAlpha = ((0.16 + 0.18 * over) * flick).clamp(0.0, 0.42);
-        final pStart = Offset(minX, minY);
-        final pEnd = Offset(
-          maxX == minX ? minX + 1 : maxX,
-          maxY == minY ? minY + 1 : maxY,
-        );
-        flashPaint.shader = ui.Gradient.linear(
-          pStart,
-          pEnd,
-          [
-            Color.fromRGBO(cr, cg, cb, sheetAlpha),
-            Color.fromRGBO(255, 255, 255, sheetAlpha * 0.75),
-            Color.fromRGBO(cr, cg, cb, sheetAlpha * 0.12),
-          ],
-          const [0.0, 0.45, 1.0],
-        );
-        canvas.drawPath(poly, flashPaint);
-
-        // Crisp specular glass edge gleam on the facet's longest ridge.
-        var bestLen = 0.0;
-        Offset ea = pStart, eb = pEnd;
-        for (var j = s0; j < s1; j++) {
-          final va = fv[j], vb = fv[s0 + (j - s0 + 1) % (s1 - s0)];
-          final pa = Offset(_px[va], _py[va]);
-          final pb = Offset(_px[vb], _py[vb]);
-          final d = (pb - pa).distance;
-          if (d > bestLen) {
-            bestLen = d;
-            ea = pa;
-            eb = pb;
-          }
-        }
-        if (bestLen > 2.0) {
-          final edgeAlpha = ((0.35 + 0.35 * over) * flick).clamp(0.0, 0.85);
-          _line
-            ..color = Color.fromRGBO(255, 255, 255, edgeAlpha)
-            ..strokeWidth = 1.05;
-          canvas.drawLine(ea, eb, _line);
-        }
-      }
-
-      // 2. Top 6 brightest facets emit a razor-thin optical needle glint
-      //    anchored at the facet's brightest reflection point (no circular
-      //    bubble or round halo).
-      if (i < 6 && over > 0.18) {
-        final sx = _spark[f * 6 + 1], sy = _spark[f * 6 + 2];
-        final rayLen = scale * (0.045 + 0.055 * math.sqrt(over)) * flick;
-        final glintAlpha = ((0.48 + 0.38 * over) * flick).clamp(0.0, 0.92);
-        final tiltAngle = (f % 4) * (math.pi / 16);
-
-        void drawNeedleRay(double angle, double len, double halfW, double a) {
-          final ca = math.cos(angle), sa = math.sin(angle);
-          final nx = -sa * halfW, ny = ca * halfW;
-          final t1 = Offset(sx + ca * len, sy + sa * len);
-          final t2 = Offset(sx - ca * len, sy - sa * len);
-          final rayPath = Path()
-            ..moveTo(t1.dx, t1.dy)
-            ..lineTo(sx + nx, sy + ny)
-            ..lineTo(t2.dx, t2.dy)
-            ..lineTo(sx - nx, sy - ny)
-            ..close();
-          flashPaint.shader = ui.Gradient.linear(
-            t1,
-            t2,
-            [
-              Color.fromRGBO(cr, cg, cb, 0),
-              Color.fromRGBO(cr, cg, cb, a * 0.75),
-              Color.fromRGBO(255, 255, 255, a),
-              Color.fromRGBO(cr, cg, cb, a * 0.75),
-              Color.fromRGBO(cr, cg, cb, 0),
-            ],
-            const [0.0, 0.38, 0.5, 0.62, 1.0],
-          );
-          canvas.drawPath(rayPath, flashPaint);
-        }
-
-        drawNeedleRay(tiltAngle, rayLen, 0.85, glintAlpha);
-        drawNeedleRay(tiltAngle + math.pi / 2, rayLen, 0.85, glintAlpha);
-        drawNeedleRay(
-          tiltAngle + math.pi / 4,
-          rayLen * 0.48,
-          0.55,
-          glintAlpha * 0.65,
-        );
-        drawNeedleRay(
-          tiltAngle - math.pi / 4,
-          rayLen * 0.48,
-          0.55,
-          glintAlpha * 0.65,
-        );
       }
     }
   }
@@ -1131,8 +821,8 @@ extension on SimRenderer {
 }
 
 /// Sample grid over a k-sided facet fanned from its centroid: ring r of
-/// n holds k·r points, and each fan sector is a triangular grid between
-/// rings. Point q is `wc·centroid + wa·v[sector] + wb·v[sector + 1]`.
+/// n holds kÃ‚Â·r points, and each fan sector is a triangular grid between
+/// rings. Point q is `wcÃ‚Â·centroid + waÃ‚Â·v[sector] + wbÃ‚Â·v[sector + 1]`.
 class _Template {
   _Template._(this.count, this.sector, this.wa, this.wb, this.wc, this.tris);
 
