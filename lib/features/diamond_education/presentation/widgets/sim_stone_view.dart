@@ -42,7 +42,9 @@ class SimStoneView extends StatefulWidget {
 class _SimStoneViewState extends State<SimStoneView>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker(_tick);
-  final _renderer = SimRenderer()..maxBounces = 8;
+  final _renderer = SimRenderer()
+    ..maxBounces = 7
+    ..measureStats = false;
   final _frame = ValueNotifier(0);
   ScrollPosition? _scroll;
   Duration _last = Duration.zero;
@@ -101,7 +103,7 @@ class _SimStoneViewState extends State<SimStoneView>
     _scroll?.removeListener(_checkVisible);
     _ticker.dispose();
     _frame.dispose();
-    _renderer.shader?.dispose();
+    _renderer.dispose();
     super.dispose();
   }
 
@@ -128,6 +130,11 @@ class _SimStoneViewState extends State<SimStoneView>
   }
 
   void _tick(Duration elapsed) {
+    // About 60 frames a second at most, on high refresh screens too.
+    if (_last != Duration.zero &&
+        elapsed - _last < const Duration(microseconds: 10500)) {
+      return;
+    }
     final dt = _last == Duration.zero
         ? 1 / 60
         : ((elapsed - _last).inMicroseconds / 1e6).clamp(0.0, 1 / 20);
@@ -171,6 +178,8 @@ class _StonePainter extends CustomPainter {
       pxPerUnit: size.shortestSide * 0.4,
       samplePx: 5,
       devicePixelRatio: dpr,
+      // A small, always-moving stone: 2 traced pixels per point is sharp.
+      renderScale: math.min(dpr, 2),
       time: t,
       twinkle: true,
     );

@@ -162,6 +162,23 @@ class SimStudio {
     packedSpots = Float32List(maxSpots * 8)..setAll(0, spots);
     ambient = uv ? 0.0 : 1.0;
     _uv = uv;
+
+    // Lowest any light reaches: below it only the room is left to sample,
+    // which spares most of the work for light leaking toward the floor.
+    var low = 1.0;
+    for (var o = 0; o < boxes.length; o += 12) {
+      final spread = math.atan(
+        math.sqrt(boxes[o + 7] * boxes[o + 7] + boxes[o + 11] * boxes[o + 11]),
+      );
+      low = math.min(low, math.sin(math.asin(boxes[o + 1]) - spread));
+    }
+    for (var o = 0; o < spots.length; o += 8) {
+      low = math.min(
+        low,
+        math.sin(math.asin(spots[o + 1]) - math.acos(spots[o + 3])),
+      );
+    }
+    lowestLight = low - 0.01;
   }
 
   /// Light slots in the shader.
@@ -181,6 +198,9 @@ class SimStudio {
 
   /// Room brightness: 1 in daylight, 0 under ultraviolet.
   late final double ambient;
+
+  /// Height (world y of a unit direction) below which no light reaches.
+  late final double lowestLight;
 
   /// Radiance seen along world direction (x, y, z), written to [r], [g],
   /// [b].
@@ -205,6 +225,12 @@ class SimStudio {
       lr += 0.004;
       lg += 0.001;
       lb += 0.012;
+    }
+    if (y < lowestLight) {
+      r = lr;
+      g = lg;
+      b = lb;
+      return;
     }
     final bx = _boxes;
     for (var i = 0, o = 0; i < _boxCount; i++, o += 12) {

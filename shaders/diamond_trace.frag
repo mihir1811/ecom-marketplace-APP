@@ -38,7 +38,7 @@ uniform vec4 uCounts;  // solid planes, all planes, bounces, exposure
 uniform vec4 uRim;     // 1/a², 1/b², girdle threshold, room ambient
 uniform vec4 uAbsorb;  // absorption rgb (with haze), scatter
 uniform vec4 uEmit;    // emission rgb, ultraviolet flag
-uniform vec4 uMisc;    // bounding radius, model units per device px, device px
+uniform vec4 uMisc;    // bounding radius, model units per traced px, traced px, lowest light
 uniform vec4 uPlanes[MAX_PLANES];      // outward normal, offset
 uniform vec4 uBoxes[MAX_BOXES * 3];  // centre; right axis + tan half width; rgb + tan half height
 uniform vec4 uSpots[MAX_SPOTS * 2];  // dir + cos outer; rgb + 1/(cos inner − cos outer)
@@ -64,6 +64,8 @@ vec3 studio(vec3 d) {
   float head = smoothstep(0.968, 0.986, z);
   vec3 c = vec3((room + tent) * (1.0 - 0.9 * head) * uRim.w);
   c += uEmit.w * vec3(0.004, 0.001, 0.012);
+  // Below every light only the room remains.
+  if (y < uMisc.w) return c;
   for (int i = 0; i < MAX_BOXES; i++) {
     vec4 a = uBoxes[i * 3];
     vec4 b = uBoxes[i * 3 + 1];

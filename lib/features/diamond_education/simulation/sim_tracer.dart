@@ -86,7 +86,7 @@ class SimTracer {
   }
 
   /// Sets the model → world rotation.
-  void rotation(List<double> m) {
+  void rotation(Float64List m) {
     r00 = m[0];
     r01 = m[1];
     r02 = m[2];

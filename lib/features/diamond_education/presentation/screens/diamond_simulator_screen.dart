@@ -34,6 +34,8 @@ class _DiamondSimulatorScreenState
     extends ConsumerState<DiamondSimulatorScreen> {
   final _viewport = SimViewportController();
   _SimTab _tab = _SimTab.cut;
+  ThemeData? _theme;
+  Object? _themeFor;
 
   @override
   void dispose() {
@@ -61,8 +63,14 @@ class _DiamondSimulatorScreenState
 
   @override
   Widget build(BuildContext context) {
+    // Built once per palette, not on every tab switch.
+    final palette = AppPalette.resolve(context).night;
+    if (!identical(palette, _themeFor)) {
+      _themeFor = palette;
+      _theme = AppTheme.build(palette);
+    }
     return Theme(
-      data: AppTheme.build(AppPalette.resolve(context).night),
+      data: _theme!,
       child: Builder(builder: _build),
     );
   }

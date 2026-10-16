@@ -40,8 +40,13 @@ class SimFrameStats {
 /// (Gouraud); the spacing is set in screen pixels so cost follows the
 /// stone's size on screen, and callers can coarsen it to hold frame rate.
 ///
+/// The GPU trace can run at fewer pixels than the screen has
+/// ([renderScale]) and is then scaled up smoothly: the cost of a moving
+/// stone drops by half or more for a barely visible softening.
+///
 /// Buffers are reused frame to frame, so steady painting allocates only
-/// the [ui.Vertices] handed to the canvas.
+/// the [ui.Vertices] (CPU) or one offscreen image (GPU, reduced scale)
+/// handed to the canvas.
 class SimRenderer {
   final SimTracer _tracer = SimTracer();
   final SimFrameStats stats = SimFrameStats();
@@ -68,6 +73,33 @@ class SimRenderer {
   /// Per-pixel GPU tracer; null falls back to the CPU renderer.
   ui.FragmentShader? shader;
 
+  /// Whether the GPU path measures [stats]; off when nothing shows them.
+  bool measureStats = true;
+
+  /// Most bounces the light-performance measurement follows; the meters
+  /// settle well before the picture does.
+  static const _measureBounces = 6;
+
+  /// Shortest gap between measurements while the stone moves.
+  static const _measureGap = Duration(milliseconds: 220);
+
+  final Stopwatch _clock = Stopwatch()..start();
+  Duration _measuredAt = -_measureGap;
+  bool _statsDirty = true;
+
+  /// Asks for fresh [stats] on the next paint, e.g. once a stone settles.
+  void requestStats() => _statsDirty = true;
+
+  ui.Image? _frameImage;
+
+  /// Releases GPU resources; the renderer must not paint afterwards.
+  void dispose() {
+    _frameImage?.dispose();
+    _frameImage = null;
+    shader?.dispose();
+    shader = null;
+  }
+
   static Future<ui.FragmentProgram>? _program;
 
   /// The per-pixel tracer program, loaded once per run.
@@ -81,10 +113,12 @@ class SimRenderer {
     _mesh = mesh;
     _inclusions = inclusions;
     _tracer.mesh = mesh;
+    _statsDirty = true;
   }
 
   void setOptics(SimOptics optics) {
     _tracer.optics = optics;
+    _statsDirty = true;
     if (_lighting != optics.lighting) {
       _lighting = optics.lighting;
       _tracer.studio = SimStudio(optics.lighting);
@@ -210,11 +244,13 @@ class SimRenderer {
     return g + 0.3 * (g * g * (3 - 2 * g) - g);
   }
 
-  int _frame = 0;
+  final Float64List _rot = Float64List(9);
+  final List<int> _hullIds = [];
 
   /// Paints the stone centred in [size]. [pxPerUnit] maps model units to
   /// logical pixels at zoom 1; CPU samples land about [samplePx] pixels
-  /// apart. [devicePixelRatio] sizes the shader's edge anti-aliasing.
+  /// apart. The GPU traces [renderScale] pixels per logical pixel, capped
+  /// at [devicePixelRatio], which also sizes its edge anti-aliasing.
   void paint(
     Canvas canvas,
     Size size, {
@@ -222,6 +258,7 @@ class SimRenderer {
     required double pxPerUnit,
     required double samplePx,
     double devicePixelRatio = 1,
+    double? renderScale,
     double time = 0,
     bool twinkle = false,
   }) {
@@ -230,11 +267,20 @@ class SimRenderer {
     final scale = pxPerUnit * view.zoom;
     final gpu = shader != null && fitsShader(mesh);
     // On the GPU path the CPU trace only measures light, so a coarse,
-    // fixed spacing is plenty, and it need not run every frame.
-    final units = gpu ? 0.16 : samplePx / scale;
-    final measure = !gpu || _frame++ % 4 == 0;
-    if (!identical(_layoutFor, mesh) ||
-        (units - _layoutUnits).abs() > _layoutUnits * 0.12) {
+    // fixed spacing is plenty, and only a few times a second.
+    final units = gpu ? 0.2 : samplePx / scale;
+    var measure = !gpu;
+    if (gpu && measureStats) {
+      final now = _clock.elapsed;
+      if (_statsDirty || now - _measuredAt >= _measureGap) {
+        measure = true;
+        _statsDirty = false;
+        _measuredAt = now;
+      }
+    }
+    if ((measure || !gpu) &&
+        (!identical(_layoutFor, mesh) ||
+            (units - _layoutUnits).abs() > _layoutUnits * 0.12)) {
       _layout(mesh, units);
     }
 
@@ -244,8 +290,17 @@ class SimRenderer {
     final r00 = cs, r01 = 0.0, r02 = ss;
     final r10 = st * ss, r11 = ct, r12 = -st * cs;
     final r20 = -ct * ss, r21 = st, r22 = ct * cs;
-    final tracer = _tracer
-      ..rotation([r00, r01, r02, r10, r11, r12, r20, r21, r22]);
+    final rot = _rot
+      ..[0] = r00
+      ..[1] = r01
+      ..[2] = r02
+      ..[3] = r10
+      ..[4] = r11
+      ..[5] = r12
+      ..[6] = r20
+      ..[7] = r21
+      ..[8] = r22;
+    final tracer = _tracer..rotation(rot);
     const d0 = _eye;
     final ex = d0 * r20, ey = d0 * r21, ez = d0 * r22;
     final cx = size.width / 2, cy = size.height / 2;
@@ -267,10 +322,15 @@ class SimRenderer {
       _py[i] = cy - wy * k;
     }
 
-    final rot = [r00, r01, r02, r10, r11, r12, r20, r21, r22];
     if (gpu) {
-      _paintGpu(canvas, mesh, scale, cx, cy, devicePixelRatio, rot);
-      if (measure) _measure(mesh, ex, ey, ez);
+      final s = math.min(renderScale ?? devicePixelRatio, devicePixelRatio);
+      _paintGpu(canvas, mesh, scale, cx, cy, devicePixelRatio, s, rot);
+      if (measure) {
+        final bounces = tracer.maxBounces;
+        tracer.maxBounces = math.min(bounces, _measureBounces);
+        _measure(mesh, ex, ey, ez);
+        tracer.maxBounces = bounces;
+      }
     } else {
       _paintCpu(canvas, mesh, scale, cx, cy, ex, ey, ez, rot, time, twinkle);
     }
@@ -308,8 +368,7 @@ class SimRenderer {
         canvas.drawCircle(
           c,
           radius,
-          Paint()
-            ..blendMode = BlendMode.plus
+          _glowPaint
             ..shader = ui.Gradient.radial(c, radius, [
               tint((0.16 * glow).clamp(0.0, 0.3)),
               tint(0),
@@ -322,6 +381,8 @@ class SimRenderer {
   // ---- GPU path ------------------------------------------------------
 
   final Paint _gpuPaint = Paint();
+  final Paint _glowPaint = Paint()..blendMode = BlendMode.plus;
+  final Paint _blitPaint = Paint()..filterQuality = FilterQuality.medium;
   ui.FragmentShader? _uniformShader;
   SimMesh? _uniformMesh;
   SimStudio? _uniformStudio;
@@ -338,7 +399,8 @@ class SimRenderer {
     double cx,
     double cy,
     double dpr,
-    List<double> r,
+    double renderScale,
+    Float64List r,
   ) {
     final sh = shader!;
     if (!identical(sh, _uniformShader)) {
@@ -363,15 +425,18 @@ class SimRenderer {
       sh.setFloat(23, studio.ambient);
     }
     final o = _tracer.optics;
-    final values = [
-      cx, cy, scale, _eye, //
-      r[0], r[1], r[2], 0.0, //
-      r[3], r[4], r[5], 0.0, //
-      r[6], r[7], r[8], 0.0, //
-    ];
-    for (var i = 0; i < values.length; i++) {
-      sh.setFloat(i, values[i]);
+    sh
+      ..setFloat(0, cx)
+      ..setFloat(1, cy)
+      ..setFloat(2, scale)
+      ..setFloat(3, _eye);
+    for (var row = 0; row < 3; row++) {
+      for (var k = 0; k < 3; k++) {
+        sh.setFloat(4 + row * 4 + k, r[row * 3 + k]);
+      }
     }
+    // Pixels actually traced per logical pixel.
+    final s = renderScale.clamp(0.5, dpr);
     sh
       ..setFloat(18, _tracer.maxBounces.toDouble())
       ..setFloat(19, _exposure)
@@ -384,15 +449,47 @@ class SimRenderer {
       ..setFloat(30, o.emitB)
       ..setFloat(31, o.lighting == SimLighting.ultraviolet ? 1 : 0)
       ..setFloat(32, mesh.radius)
-      ..setFloat(33, 1 / (scale * dpr))
-      ..setFloat(34, 1 / dpr)
-      ..setFloat(35, 0);
-    // Perspective enlarges the near side a little; pad the bounds.
-    final reach = mesh.radius * scale * _eye / (_eye - mesh.radius) * 1.04 + 2;
-    canvas.drawRect(
-      Rect.fromCircle(center: Offset(cx, cy), radius: reach),
-      _gpuPaint..shader = sh,
+      ..setFloat(33, 1 / (scale * s))
+      ..setFloat(34, 1 / s)
+      ..setFloat(35, studio.lowestLight);
+
+    // Trace only the silhouette's bounds: the projected corners plus a
+    // pixel for the anti-aliased edge.
+    var l = double.infinity, t = double.infinity;
+    var rt = -double.infinity, b = -double.infinity;
+    for (var i = 0; i < mesh.vertexCount; i++) {
+      l = math.min(l, _px[i]);
+      rt = math.max(rt, _px[i]);
+      t = math.min(t, _py[i]);
+      b = math.max(b, _py[i]);
+    }
+    final bounds = Rect.fromLTRB(l - 2, t - 2, rt + 2, b + 2);
+    _gpuPaint.shader = sh;
+
+    if (s >= dpr - 0.05) {
+      canvas.drawRect(bounds, _gpuPaint);
+      return;
+    }
+    // Trace at reduced density offscreen, then scale up with filtering.
+    final w = (bounds.width * s).ceil(), h = (bounds.height * s).ceil();
+    if (w <= 0 || h <= 0) return;
+    final recorder = ui.PictureRecorder();
+    Canvas(recorder)
+      ..scale(s)
+      ..translate(-bounds.left, -bounds.top)
+      ..drawRect(bounds, _gpuPaint);
+    final picture = recorder.endRecording();
+    final image = picture.toImageSync(w, h);
+    picture.dispose();
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
+      Rect.fromLTWH(bounds.left, bounds.top, w / s, h / s),
+      _blitPaint,
     );
+    // The canvas keeps its own reference until the frame is drawn.
+    _frameImage?.dispose();
+    _frameImage = image;
   }
 
   /// Facet planes, solid ones first, and the band beyond which a ray has
@@ -506,7 +603,7 @@ class SimRenderer {
     double ex,
     double ey,
     double ez,
-    List<double> rot,
+    Float64List rot,
     double time,
     bool twinkle,
   ) {
@@ -710,7 +807,7 @@ class SimRenderer {
     double scale,
     double cx,
     double cy,
-    List<double> r, {
+    Float64List r, {
     required double mirror,
   }) {
     Offset project(double x, double y, double z) {
@@ -786,11 +883,14 @@ class SimRenderer {
 extension on SimRenderer {
   /// Convex hull of the first [count] projected vertices (monotone chain).
   Path _hull(int count) {
-    final ids = List<int>.generate(count, (i) => i)
-      ..sort((a, b) {
-        final c = _px[a].compareTo(_px[b]);
-        return c != 0 ? c : _py[a].compareTo(_py[b]);
-      });
+    final ids = _hullIds..clear();
+    for (var i = 0; i < count; i++) {
+      ids.add(i);
+    }
+    ids.sort((a, b) {
+      final c = _px[a].compareTo(_px[b]);
+      return c != 0 ? c : _py[a].compareTo(_py[b]);
+    });
     double cross(int o, int a, int b) =>
         (_px[a] - _px[o]) * (_py[b] - _py[o]) -
         (_py[a] - _py[o]) * (_px[b] - _px[o]);

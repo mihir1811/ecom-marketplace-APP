@@ -51,8 +51,9 @@ class SimViewportController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Smoothed light performance, a few times a second.
-  final readout = ValueNotifier(const SimLightReadout());
+  /// Smoothed light performance, a few times a second. Measured only
+  /// while something listens.
+  final readout = _ReadoutNotifier();
 
   /// Current zoom (pinch), for the scale bar.
   final zoom = ValueNotifier(1.0);
@@ -62,6 +63,22 @@ class SimViewportController extends ChangeNotifier {
     readout.dispose();
     zoom.dispose();
     super.dispose();
+  }
+}
+
+/// [SimLightReadout] that knows whether anyone is showing it.
+class _ReadoutNotifier extends ValueNotifier<SimLightReadout> {
+  _ReadoutNotifier() : super(const SimLightReadout());
+
+  /// Called when a listener arrives, so fresh numbers can be measured.
+  VoidCallback? onWatch;
+
+  bool get watched => hasListeners;
+
+  @override
+  void addListener(VoidCallback listener) {
+    super.addListener(listener);
+    onWatch?.call();
   }
 }
 
@@ -84,8 +101,13 @@ abstract final class SimScale {
 /// is on; otherwise it renders only when something changes, and then
 /// once more at higher quality when the stone comes to rest.
 ///
-/// Rendering adapts to the device: frame cost is measured every frame and
-/// the sampling density follows it, so slow devices keep a fluid stone.
+/// Rendering adapts to the device. On the GPU, real raster times set how
+/// many pixels a moving stone traces (scaled up smoothly), frames are
+/// capped near 60 per second on high refresh screens, and a stone at rest
+/// is redrawn once at full resolution. The stone starts only once the
+/// page has finished sliding in, and light is measured only while the
+/// meters are on screen. On the CPU fallback, frame cost sets the sample
+/// spacing.
 class DiamondSimViewport extends ConsumerStatefulWidget {
   const DiamondSimViewport({required this.controller, super.key});
 
@@ -123,6 +145,21 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   double _mmPerUnit = 1, _radius = 1;
   double _dpr = 1;
 
+  // GPU budget: traced pixels per logical pixel while moving, and bounces.
+  static const _scaleCap = 2.0, _scaleFloor = 1.4;
+  double _renderScale = 1.75;
+  int _movingBounces = 7;
+
+  /// Shortest gap between drawn frames: about 60 per second on 120 Hz
+  /// screens, every frame on 60 and 90 Hz.
+  static const _minFrameGap = Duration(microseconds: 10500);
+
+  // Start after the route transition; fade in.
+  Animation<double>? _route;
+  bool _ready = true;
+  double _appear = 1;
+  final Paint _fadePaint = Paint();
+
   SimViewportController get _c => widget.controller;
 
   @override
@@ -136,7 +173,8 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _radius = s.mesh.radius;
     _seenRequest = _c._presetRequest;
     _c.addListener(_onCommand);
-    _syncTicker();
+    _c.readout.onWatch = _onReadoutWatched;
+    SchedulerBinding.instance.addTimingsCallback(_onTimings);
     SimRenderer.loadProgram()
         .then((program) {
           if (!mounted) return;
@@ -151,6 +189,21 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final route = ModalRoute.of(context)?.animation;
+    if (route != _route) {
+      _route?.removeStatusListener(_onRouteStatus);
+      _route = route;
+      if (route != null && !route.isCompleted) {
+        // Hold the stone back while the page slides in: tracing it then
+        // would compete with the transition for the GPU.
+        _ready = false;
+        _appear = 0;
+        route.addStatusListener(_onRouteStatus);
+      } else {
+        _ready = true;
+      }
+    }
+    _syncTicker();
     if (MediaQuery.disableAnimationsOf(context) && _c.autoRotate) {
       // Settle without motion; the user can still turn it by hand.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -162,11 +215,59 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   @override
   void dispose() {
     _c.removeListener(_onCommand);
+    if (_c.readout.onWatch == _onReadoutWatched) _c.readout.onWatch = null;
+    _route?.removeStatusListener(_onRouteStatus);
+    SchedulerBinding.instance.removeTimingsCallback(_onTimings);
     _refineTimer?.cancel();
     _ticker.dispose();
     _frame.dispose();
-    _renderer.shader?.dispose();
+    _renderer.dispose();
     super.dispose();
+  }
+
+  void _onRouteStatus(AnimationStatus status) {
+    if (!mounted || status != AnimationStatus.completed || _ready) return;
+    _route?.removeStatusListener(_onRouteStatus);
+    _ready = true;
+    if (MediaQuery.disableAnimationsOf(context)) _appear = 1;
+    _syncTicker();
+    _invalidate();
+  }
+
+  void _onReadoutWatched() {
+    // Listeners arrive during build; measure on the next frame.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _renderer.requestStats();
+      _invalidate();
+    });
+  }
+
+  /// Steers the moving trace density from real raster times, reported in
+  /// batches about once a second.
+  void _onTimings(List<FrameTiming> timings) {
+    if (!_ticker.isActive || _renderer.shader == null || timings.isEmpty) {
+      return;
+    }
+    var total = 0;
+    for (final t in timings) {
+      total += t.rasterDuration.inMicroseconds;
+    }
+    final ms = total / timings.length / 1000;
+    final cap = math.min(_dpr, _scaleCap);
+    if (ms > 13) {
+      if (_renderScale > _scaleFloor + 0.01) {
+        _renderScale = math.max(_scaleFloor, _renderScale * 0.85);
+      } else if (_movingBounces > 5) {
+        _movingBounces--;
+      }
+    } else if (ms < 8) {
+      if (_movingBounces < 7) {
+        _movingBounces++;
+      } else {
+        _renderScale = math.min(cap, _renderScale * 1.08);
+      }
+    }
   }
 
   void _onCommand() {
@@ -182,6 +283,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   }
 
   bool get _moving =>
+      _appear < 1 ||
       _c.autoRotate ||
       _dragging ||
       _anim < 1 ||
@@ -189,6 +291,10 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       _wTilt.abs() > 0.004;
 
   void _syncTicker() {
+    if (!_ready) {
+      if (_ticker.isActive) _ticker.stop();
+      return;
+    }
     if (_moving && !_ticker.isActive) {
       _last = Duration.zero;
       _ticker.start();
@@ -215,6 +321,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   }
 
   void _tick(Duration elapsed) {
+    if (_last != Duration.zero && elapsed - _last < _minFrameGap) return;
     final dt = _last == Duration.zero
         ? 1 / 60
         : ((elapsed - _last).inMicroseconds / 1e6).clamp(0.0, 1 / 20);
@@ -233,12 +340,14 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       final e = 1 - math.pow(1 - _anim, 3).toDouble();
       _tilt = _fromTilt + (_toTilt - _fromTilt) * e;
     }
+    if (_appear < 1) _appear = math.min(1, _appear + dt / 0.35);
     _refined = false;
     _frame.value++;
     if (!_moving) _syncTicker();
   }
 
   void _paint(Canvas canvas, Size size) {
+    if (!_ready) return;
     final pxPerMm = SimScale.pxPerMm(size, _radius * _mmPerUnit);
     // A gentle rock while spinning, as a jeweller tilts a stone in light.
     final rock = _c.autoRotate && !_dragging
@@ -246,9 +355,15 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         : 0.0;
     final quality = _refined;
     final gpu = _renderer.shader != null;
-    // The GPU traces every pixel deeply at any time; holding the depth
-    // steady means nothing shifts when the stone comes to rest.
-    _renderer.maxBounces = gpu ? 10 : (quality ? 11 : 8);
+    _renderer
+      ..maxBounces = gpu ? (quality ? 10 : _movingBounces) : (quality ? 11 : 8)
+      ..measureStats = _c.readout.watched;
+    if (quality) _renderer.requestStats();
+    final fade = _appear < 1;
+    if (fade) {
+      _fadePaint.color = Color.fromRGBO(0, 0, 0, _appear);
+      canvas.saveLayer(Offset.zero & size, _fadePaint);
+    }
     final sw = Stopwatch()..start();
     _renderer.paint(
       canvas,
@@ -261,12 +376,15 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       pxPerUnit: pxPerMm * _mmPerUnit,
       samplePx: quality ? math.max(3.6, _samplePx * 0.55) : _samplePx,
       devicePixelRatio: _dpr,
+      // At rest, one frame at full resolution.
+      renderScale: quality ? _dpr : math.min(_renderScale, _dpr),
       time: _time,
       twinkle: _ticker.isActive,
     );
     sw.stop();
+    if (fade) canvas.restore();
     if (!quality && !gpu) _adapt(sw.elapsedMicroseconds / 1000);
-    _report();
+    if (_c.readout.watched) _report();
   }
 
   /// Keeps moving frames near 7 ms of tracing.
