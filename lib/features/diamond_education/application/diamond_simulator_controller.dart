@@ -97,7 +97,8 @@ class DiamondSimulatorController
 
   SimCutFamily get _family => state.spec.shape.family;
 
-  /// Switches shape, keeping the current cut quality.
+  /// Switches shape, keeping the current cut quality. Leaves the hearts &
+  /// arrows scope for shapes that cannot show the pattern.
   void setShape(SimShape shape) {
     if (shape == state.spec.shape) return;
     _update(
@@ -106,6 +107,10 @@ class DiamondSimulatorController
         proportions: DiamondProportions.forGrade(shape, state.estimatedCut),
       ),
     );
+    if (state.lighting == SimLighting.heartsArrows &&
+        !shape.showsHeartsArrows) {
+      setLighting(SimLighting.daylight);
+    }
   }
 
   void setColorGrade(ColorGrade grade) =>
@@ -133,6 +138,21 @@ class DiamondSimulatorController
   void setLighting(SimLighting lighting) {
     if (lighting == state.lighting) return;
     state = state.copyWith(lighting: lighting);
+  }
+
+  /// Puts the stone in a hearts & arrows scope, or back in daylight. The
+  /// pattern only forms in a precisely cut round, so a stone cut below
+  /// Excellent is recut to ideal proportions first.
+  void setHeartsArrows(bool on) {
+    if (!on) {
+      if (state.lighting == SimLighting.heartsArrows) {
+        setLighting(SimLighting.daylight);
+      }
+      return;
+    }
+    if (!state.spec.shape.showsHeartsArrows) return;
+    if (state.estimatedCut != CutGrade.excellent) resetProportions();
+    setLighting(SimLighting.heartsArrows);
   }
 
   /// Cuts the stone to the representative proportions of [grade].

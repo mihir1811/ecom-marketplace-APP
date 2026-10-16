@@ -297,8 +297,11 @@ class SimFluorescencePanel extends ConsumerWidget {
       children: [
         SimLabel(context.tr(EducationL10n.lighting)),
         LuxeSegmented<SimLighting>(
-          options: SimLighting.values,
-          selected: s.lighting,
+          options: const [SimLighting.daylight, SimLighting.ultraviolet],
+          // The hearts & arrows scope is chosen from the cut panel.
+          selected: s.lighting == SimLighting.ultraviolet
+              ? SimLighting.ultraviolet
+              : SimLighting.daylight,
           dense: true,
           height: 40,
           labelOf: (l) => context.tr(

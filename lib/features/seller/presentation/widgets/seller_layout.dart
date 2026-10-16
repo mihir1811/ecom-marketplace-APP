@@ -38,6 +38,10 @@ class SellerLayout extends ConsumerWidget {
     AppRouteNames.sellerReferences,
     AppRouteNames.sellerInquiries,
     AppRouteNames.sellerNotifications,
+    AppRouteNames.sellerAbout,
+    AppRouteNames.sellerPrivacy,
+    AppRouteNames.sellerTerms,
+    AppRouteNames.sellerPolicies,
   };
 
   @override
@@ -160,6 +164,7 @@ class SellerLayout extends ConsumerWidget {
       return true;
     }
     if (_pendingAllowedExact.contains(route)) return true;
+    if (route.startsWith('${AppRouteNames.sellerPolicies}/')) return true;
     return route.startsWith('${AppRouteNames.sellerInquiries}/');
   }
 
@@ -169,6 +174,13 @@ class SellerLayout extends ConsumerWidget {
   /// Stacked detail/flow routes (back button instead of drawer menu).
   static bool _isDetailRoute(String route) {
     if (route == AppRouteNames.sellerInquiryNew) return true;
+    if (route == AppRouteNames.sellerAbout ||
+        route == AppRouteNames.sellerPrivacy ||
+        route == AppRouteNames.sellerTerms ||
+        route == AppRouteNames.sellerPolicies ||
+        route.startsWith('${AppRouteNames.sellerPolicies}/')) {
+      return true;
+    }
     if (_isProductEditRoute(route)) return true;
     return _isNestedUnder(route, AppRouteNames.sellerOrders) ||
         _isNestedUnder(route, AppRouteNames.sellerChat) ||

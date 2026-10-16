@@ -13,7 +13,8 @@ import '../diamond_profile_diagram.dart';
 import 'diamond_sim_viewport.dart';
 import 'sim_controls.dart';
 
-/// Cut grade presets and the stone's measured light performance.
+/// Cut grade presets, the stone's measured light performance and the
+/// hearts & arrows scope.
 class SimCutPanel extends ConsumerWidget {
   const SimCutPanel({required this.viewport, super.key});
 
@@ -56,6 +57,54 @@ class SimCutPanel extends ConsumerWidget {
                 value: r.sparkle,
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: 22),
+        _HeartsArrows(viewport: viewport),
+      ],
+    );
+  }
+}
+
+/// One switch puts the stone in a hearts & arrows scope, held still face
+/// up for the arrows; the Pavilion view turns it over for the hearts.
+/// Round brilliants only.
+class _HeartsArrows extends ConsumerWidget {
+  const _HeartsArrows({required this.viewport});
+
+  final SimViewportController viewport;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(
+      diamondSimulatorProvider.select(
+        (s) => (
+          on: s.lighting == SimLighting.heartsArrows,
+          round: s.spec.shape.showsHeartsArrows,
+        ),
+      ),
+    );
+    void toggle(bool on) {
+      ref.read(diamondSimulatorProvider.notifier).setHeartsArrows(on);
+      // The patterns read only with the stone held still, square on.
+      viewport
+        ..autoRotate = !on
+        ..show(on ? SimViewPreset.faceUp : SimViewPreset.angled);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SimSwitch(
+          label: context.tr(EducationL10n.heartsArrows),
+          value: s.on,
+          enabled: s.round,
+          onChanged: toggle,
+        ),
+        const SizedBox(height: 6),
+        SimNote(
+          context.tr(
+            s.round ? EducationL10n.haBody : EducationL10n.haRoundOnly,
           ),
         ),
       ],

@@ -140,18 +140,30 @@ class BuyerSettingsScreen extends ConsumerWidget {
                       SettingsRow(
                         icon: Icons.diamond_outlined,
                         title: context.tr(AccountCommerceL10n.aboutGemWorld),
-                        onTap: () => context.openRoute(AppRouteNames.aboutUs),
+                        caption: 'Our story, promise and marketplace',
+                        onTap: () =>
+                            context.openRoute(AppRouteNames.buyerAbout),
                       ),
                       SettingsRow(
-                        icon: Icons.gavel_outlined,
-                        title: context.tr(AccountCommerceL10n.policiesLegal),
-                        onTap: () => context.openRoute(AppRouteNames.policies),
+                        icon: Icons.privacy_tip_outlined,
+                        title: context.tr(AccountCommerceL10n.privacyPolicy),
+                        caption: 'How we collect and use your data',
+                        onTap: () =>
+                            context.openRoute(AppRouteNames.buyerPrivacy),
                       ),
                       SettingsRow(
                         icon: Icons.description_outlined,
                         title: context.tr(AccountCommerceL10n.termsConditions),
+                        caption: 'Marketplace rules of use',
                         onTap: () =>
-                            context.openRoute(AppRouteNames.termsAndConditions),
+                            context.openRoute(AppRouteNames.buyerTerms),
+                      ),
+                      SettingsRow(
+                        icon: Icons.menu_book_outlined,
+                        title: context.tr(AccountCommerceL10n.policiesLegal),
+                        caption: 'All policies in one place',
+                        onTap: () =>
+                            context.openRoute(AppRouteNames.buyerPolicies),
                       ),
                     ],
                   ),

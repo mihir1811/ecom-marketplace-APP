@@ -124,6 +124,13 @@ abstract final class AppNavigation {
     for (final parent in _listParents) {
       if (path.startsWith('$parent/')) return parent;
     }
+    if (path == AppRouteNames.buyerAbout ||
+        path == AppRouteNames.buyerPrivacy ||
+        path == AppRouteNames.buyerTerms ||
+        path == AppRouteNames.buyerPolicies ||
+        path.startsWith('${AppRouteNames.buyerPolicies}/')) {
+      return AppRouteNames.buyerSettings;
+    }
     if (path.startsWith('/seller/') && path != AppRouteNames.sellerDashboard) {
       return AppRouteNames.sellerDashboard;
     }

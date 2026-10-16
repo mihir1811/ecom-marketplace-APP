@@ -193,6 +193,9 @@ abstract final class EducationL10n {
   static const brightness = 'education.brightness';
   static const fire = 'education.fire';
   static const sparkle = 'education.sparkle';
+  static const heartsArrows = 'education.heartsArrows';
+  static const haBody = 'education.haBody';
+  static const haRoundOnly = 'education.haRoundOnly';
 
   // Simulator: carat
   static const caratWeight = 'education.caratWeight';
@@ -1240,6 +1243,46 @@ const educationMessages = <String, LocalizedMessage>{
     english: 'Sparkle',
     hindi: 'झिलमिलाहट',
     gujarati: 'ઝગમગાટ',
+  ),
+  EducationL10n.heartsArrows: LocalizedMessage(
+    english: 'Hearts & arrows',
+    hindi: 'हार्ट्स एंड एरोज़',
+    gujarati: 'હાર્ટ્સ એન્ડ એરોઝ',
+  ),
+  EducationL10n.haBody: LocalizedMessage(
+    english:
+        'Switch it on to view the stone through a hearts & arrows scope: a '
+        'precisely cut round shows eight arrows face up. Turn it over with '
+        'the Pavilion view to see the eight hearts. The red comes from the '
+        'scope filter, not the diamond. Change the proportions and watch the '
+        'pattern break.',
+    hindi:
+        'इसे चालू करें और हीरे को हार्ट्स एंड एरोज़ स्कोप से देखें: सटीक कटा गोल '
+        'हीरा ऊपर से आठ तीर दिखाता है। पवेलियन व्यू से इसे पलटें और आठ दिल '
+        'देखें। लाल रंग स्कोप के फ़िल्टर से आता है, हीरे से नहीं। अनुपात बदलें '
+        'और पैटर्न को बिखरते देखें।',
+    gujarati:
+        'તેને ચાલુ કરો અને હીરાને હાર્ટ્સ એન્ડ એરોઝ સ્કોપમાંથી જુઓ: ચોક્કસ '
+        'કાપેલો ગોળ હીરો ઉપરથી આઠ તીર બતાવે છે. પેવિલિયન વ્યૂથી તેને ઉલટાવો '
+        'અને આઠ હૃદય જુઓ. લાલ રંગ સ્કોપના ફિલ્ટરનો છે, હીરાનો નહીં. પ્રમાણ '
+        'બદલો અને પેટર્ન તૂટતી જુઓ.',
+  ),
+  EducationL10n.haRoundOnly: LocalizedMessage(
+    english:
+        'Only round brilliants show hearts & arrows: the pattern needs their '
+        'eight-fold symmetry, eight pavilion mains and sixteen lower halves '
+        'in perfect alignment. Fancy shapes cannot form it; a few patented '
+        'square and cushion designs only imitate it.',
+    hindi:
+        'हार्ट्स एंड एरोज़ केवल गोल ब्रिलियंट में दिखते हैं: इस पैटर्न के लिए '
+        'उनकी आठ-गुना समरूपता चाहिए, यानी आठ पवेलियन मेन और सोलह लोअर हाफ़ '
+        'पूरी तरह संरेखित। फ़ैंसी आकार इसे नहीं बना सकते; कुछ पेटेंट वाले '
+        'स्क्वेयर और कुशन डिज़ाइन केवल इसकी नकल करते हैं।',
+    gujarati:
+        'હાર્ટ્સ એન્ડ એરોઝ ફક્ત ગોળ બ્રિલિયન્ટમાં દેખાય છે: આ પેટર્ન માટે તેમની '
+        'આઠ-ગણી સમપ્રમાણતા જોઈએ, એટલે કે આઠ પેવિલિયન મેઇન અને સોળ લોઅર હાફ '
+        'સંપૂર્ણ સંરેખિત. ફેન્સી આકાર તે બનાવી શકતા નથી; થોડા પેટન્ટવાળા '
+        'સ્ક્વેર અને કુશન ડિઝાઇન ફક્ત તેની નકલ કરે છે.',
   ),
   EducationL10n.caratWeight: LocalizedMessage(
     english: 'Carat weight',

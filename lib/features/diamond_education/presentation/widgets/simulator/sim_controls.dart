@@ -45,6 +45,65 @@ class SimNote extends StatelessWidget {
   }
 }
 
+/// A labelled on/off switch, the label in small caps like [SimLabel].
+class SimSwitch extends StatelessWidget {
+  const SimSwitch({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.enabled = true,
+    super.key,
+  });
+
+  final String label;
+  final bool value, enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    void toggle() {
+      AppHaptics.selection();
+      onChanged(!value);
+    }
+
+    return Semantics(
+      toggled: value,
+      enabled: enabled,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: enabled ? toggle : null,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: LuxeType.eyebrow(enabled ? p.inkMuted : p.inkFaint),
+                ),
+              ),
+              Switch.adaptive(
+                value: value && enabled,
+                onChanged: enabled ? (_) => toggle() : null,
+                activeThumbColor: p.onAccent,
+                activeTrackColor: p.accent,
+                inactiveThumbColor: p.inkMuted,
+                inactiveTrackColor: p.surfaceRaised,
+                trackOutlineColor: WidgetStatePropertyAll(p.hairline),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Single-select wrap of pill chips. [swatchOf] adds a colour dot.
 class SimChoiceChips<T> extends StatelessWidget {
   const SimChoiceChips({

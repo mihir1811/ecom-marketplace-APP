@@ -34,9 +34,21 @@ class SimMesh {
     required this.totalDepth,
     required this.volume,
     required this.radius,
+    required this.mirrorX,
+    required this.tracedFacets,
   });
 
   final SimShape shape;
+
+  /// Whether light is traced through the +x half alone, with a mirror at
+  /// x = 0. A heart's cleft makes the whole stone concave, which a plane
+  /// tracer cannot follow, but each half is convex: a ray crossing into
+  /// the −x half is the mirror image of one staying in the +x half.
+  final bool mirrorX;
+
+  /// Facets `0 .. tracedFacets` bound the traced solid; any after them
+  /// are their mirror images (see [mirrorX]), drawn but never traced.
+  final int tracedFacets;
 
   /// Vertex positions, xyz.
   final Float64List positions;
@@ -75,16 +87,117 @@ class SimMesh {
   double get pavilionDepthPct => pavilionDepth / width * 100;
   double get totalDepthPct => totalDepth / width * 100;
 
+  /// Distance from (x, y, z) to the nearest traced facet plane, negative
+  /// outside the stone.
+  double inset(double x, double y, double z) {
+    if (mirrorX) x = x.abs();
+    var best = double.infinity;
+    for (var f = 0; f < tracedFacets; f++) {
+      final d =
+          planes[f * 4 + 3] -
+          (planes[f * 4] * x + planes[f * 4 + 1] * y + planes[f * 4 + 2] * z);
+      if (d < best) best = d;
+    }
+    return best;
+  }
+
   /// Builds [shape] cut to [proportions].
   static SimMesh build(SimShape shape, DiamondProportions proportions) {
     final b = _Builder(shape);
-    if (shape.family == SimCutFamily.step) {
-      b.step(proportions);
-    } else {
-      b.brilliant(proportions);
+    switch (shape) {
+      case _ when shape.family == SimCutFamily.step:
+        b.step(proportions);
+      case SimShape.princess || SimShape.cushion || SimShape.heart:
+        b.fancy(proportions);
+      default:
+        b.brilliant(proportions);
     }
     return b.finish();
   }
+}
+
+/// A point in model space.
+typedef _V = ({double x, double y, double z});
+
+/// A facet plane as a height field, y = a·x + b·z + c.
+typedef _Plane = ({double a, double b, double c, SimFacetKind kind});
+
+double _eval(_Plane p, double x, double z) => p.a * x + p.b * z + p.c;
+
+/// Plane through three points.
+_Plane _through(_V p, _V q, _V r, SimFacetKind kind) {
+  final ux = q.x - p.x, uy = q.y - p.y, uz = q.z - p.z;
+  final vx = r.x - p.x, vy = r.y - p.y, vz = r.z - p.z;
+  return _normal(
+    p,
+    uy * vz - uz * vy,
+    uz * vx - ux * vz,
+    ux * vy - uy * vx,
+    kind,
+  );
+}
+
+/// Plane through [p] and [q], level across the plan line between them:
+/// a facet symmetric about its own axis, like a kite or a main.
+_Plane _axial(_V p, _V q, SimFacetKind kind) =>
+    _level(p, q, -(q.z - p.z), q.x - p.x, kind);
+
+/// Plane through [p] and [q], level along plan direction (dx, dz).
+_Plane _level(_V p, _V q, double dx, double dz, SimFacetKind kind) {
+  final ux = q.x - p.x, uy = q.y - p.y, uz = q.z - p.z;
+  return _normal(p, uy * dz, uz * dx - ux * dz, -uy * dx, kind);
+}
+
+_Plane _normal(_V p, double nx, double ny, double nz, SimFacetKind kind) {
+  final a = -nx / ny, b = -nz / ny;
+  return (a: a, b: b, c: p.y - a * p.x - b * p.z, kind: kind);
+}
+
+/// A point on the line where planes [p] and [q] meet: at height [y]
+/// where the line slopes, else nearest [near] in plan.
+_V _meet(_Plane p, _Plane q, SimPoint near, double y) {
+  final da = p.a - q.a, db = p.b - q.b, dc = p.c - q.c;
+  final l2 = da * da + db * db;
+  var x = near.x, z = near.z;
+  if (l2 > 1e-12) {
+    final f = (da * x + db * z + dc) / l2;
+    x -= da * f;
+    z -= db * f;
+    // Along the line (−db, da), scaled to unit length in plan.
+    final l = math.sqrt(l2);
+    final ux = -db / l, uz = da / l;
+    final rate = p.a * ux + p.b * uz;
+    if (rate.abs() > 1e-6) {
+      final s = ((y - _eval(p, x, z)) / rate).clamp(-0.5, 0.5);
+      x += ux * s;
+      z += uz * s;
+    }
+  }
+  return (x: x, y: _eval(p, x, z), z: z);
+}
+
+/// Keeps the part of convex polygon [poly] where a·x + b·z + c ≤ 0.
+List<SimPoint> _clip(List<SimPoint> poly, double a, double b, double c) {
+  final out = <SimPoint>[];
+  for (var i = 0; i < poly.length; i++) {
+    final p = poly[i], q = poly[(i + 1) % poly.length];
+    final fp = a * p.x + b * p.z + c, fq = a * q.x + b * q.z + c;
+    if (fp <= 1e-12) out.add(p);
+    if ((fp < -1e-12 && fq > 1e-12) || (fp > 1e-12 && fq < -1e-12)) {
+      final s = fp / (fp - fq);
+      out.add((x: p.x + (q.x - p.x) * s, z: p.z + (q.z - p.z) * s));
+    }
+  }
+  return out;
+}
+
+double _area(List<SimPoint> poly) {
+  var s = 0.0;
+  for (var i = 0; i < poly.length; i++) {
+    final p = poly[i], q = poly[(i + 1) % poly.length];
+    s += p.x * q.z - q.x * p.z;
+  }
+  return s / 2;
 }
 
 class _Builder {
@@ -94,6 +207,10 @@ class _Builder {
   final List<double> _pos = [];
   final List<(List<int>, SimFacetKind)> _polys = [];
   double _crownHeight = 0, _pavilionDepth = 0, _girdle = 0;
+
+  /// With a mirrored half ([SimMesh.mirrorX]): how many of [_polys] are
+  /// the traced half; the rest are its mirror image.
+  int? _tracedPolys;
 
   static const _cos8 = 0.9238795325112867;
 
@@ -274,6 +391,398 @@ class _Builder {
     if (culet.length == 8) _polys.add((culet, SimFacetKind.culet));
   }
 
+  /// Princess, cushion and heart, cut facet by facet as on a cutter's
+  /// diagram: every facet is a plane set by the points it meets (table
+  /// corners, star and girdle points, the culet), and the stone is
+  /// whatever those planes leave standing. That makes each facet exactly
+  /// flat and the solid exactly convex, however unusual the plan.
+  ///
+  /// - Princess (square modified brilliant): a brilliant crown with corner
+  ///   and side bezels, and a pavilion of chevrons, nested V-shaped tiers
+  ///   along each side that steepen toward the girdle, around the four
+  ///   corner mains that read as an X face up.
+  /// - Cushion (cushion brilliant): a brilliant crown and pavilion, eight
+  ///   mains and sixteen lower halves, on a pillowed square.
+  /// - Heart: a brilliant on a heart outline, built as its +x half
+  ///   ([SimMesh.mirrorX]): mains at the cleft, both lobes, shoulders,
+  ///   wings and point.
+  void fancy(DiamondProportions p) {
+    final half = shape == SimShape.heart;
+    final t = p.tablePct / 100;
+    final tc = math.tan(p.crownAngle * math.pi / 180);
+    final tp = math.tan(p.pavilionAngle * math.pi / 180);
+    final cs = p.culetScale;
+    final g = p.girdle.percent / 100 * 2;
+
+    const n = 48;
+    final ring = [for (var j = 0; j < n; j++) SimOutline.even(shape, j / n)];
+    var area = 0.0, cx = 0.0, cz = 0.0;
+    for (var j = 0; j < n; j++) {
+      final a = ring[j], b = ring[(j + 1) % n];
+      final cross = a.x * b.z - b.x * a.z;
+      area += cross;
+      cx += (a.x + b.x) * cross;
+      cz += (a.z + b.z) * cross;
+    }
+    cx /= 3 * area;
+    cz /= 3 * area;
+    if (half) cx = 0;
+    SimPoint at(double u, double s) {
+      final o = SimOutline.even(shape, u);
+      return (x: cx + (o.x - cx) * s, z: cz + (o.z - cz) * s);
+    }
+
+    _V v(SimPoint q, double y) => (x: q.x, y: y, z: q.z);
+
+    // Plan of the traced solid: the girdle outline, or its +x half closed
+    // along the axis (the last edge, from point back to cleft).
+    final domain = <SimPoint>[
+      for (var j = 0; j <= (half ? n ~/ 2 : n - 1); j++)
+        if (half && (j == 0 || j == n ~/ 2))
+          (x: 0.0, z: ring[j].z)
+        else
+          ring[j],
+    ];
+    if (half) {
+      // The lobes' widest point, so the stone measures its true width.
+      var best = 0.0, bestU = 0.0;
+      for (var u = 0.0; u <= 0.5; u += 1 / 4096) {
+        final x = SimOutline.even(shape, u).x;
+        if (x > best) {
+          best = x;
+          bestU = u;
+        }
+      }
+      final i = (bestU * n).floor() + 1;
+      if ((bestU * n - i + 1).abs() > 1e-6) {
+        domain.insert(i, SimOutline.even(shape, bestU));
+      }
+    }
+    // Straight runs of girdle are one facet each.
+    for (var i = domain.length - 1; i >= 0 && domain.length > 3; i--) {
+      final a = domain[(i - 1) % domain.length], b = domain[i];
+      final c = domain[(i + 1) % domain.length];
+      final cross = (b.x - a.x) * (c.z - b.z) - (b.z - a.z) * (c.x - b.x);
+      if (cross.abs() < 1e-9) domain.removeAt(i);
+    }
+
+    final mains = half ? 5 : 8, stars = half ? 4 : 8, nodes = half ? 9 : 16;
+    final princess = shape == SimShape.princess;
+    SimPoint node(int j) => at(j / 16, 1);
+
+    // Level direction of a main reaching the girdle at u: along the
+    // girdle there, so the facet meets it at that point and stays clear
+    // of it elsewhere (the outline is convex). Null at a corner (a
+    // princess corner, the heart's point): the facet is then level across
+    // its own axis. At the heart's cleft, along the lobe.
+    (double, double)? level(double u) {
+      const e = 1e-4;
+      final m = at(u, 1), b = at(u + e, 1);
+      if (half && u == 0) return (b.x - m.x, b.z - m.z);
+      final a = at(u - e, 1);
+      final ax = m.x - a.x, az = m.z - a.z, bx = b.x - m.x, bz = b.z - m.z;
+      final turn =
+          (ax * bz - az * bx) /
+          math.sqrt((ax * ax + az * az) * (bx * bx + bz * bz));
+      return turn.abs() > 0.05 ? null : (b.x - a.x, b.z - a.z);
+    }
+
+    /// Unit plan direction from main k's girdle point straight into the
+    /// stone, across its level line.
+    SimPoint inward(int k) {
+      final m = node(2 * k % 16);
+      final d = level(k / 8);
+      var nx = cx - m.x, nz = cz - m.z;
+      if (d != null) {
+        final l = math.sqrt(d.$1 * d.$1 + d.$2 * d.$2);
+        final px = -d.$2 / l, pz = d.$1 / l;
+        final sign = px * nx + pz * nz >= 0 ? 1.0 : -1.0;
+        return (x: px * sign, z: pz * sign);
+      }
+      final l = math.sqrt(nx * nx + nz * nz);
+      nx /= l;
+      nz /= l;
+      return (x: nx, z: nz);
+    }
+
+    _Plane main(_V inner, int k, SimFacetKind kind, [double y = 0]) {
+      final m = v(node(2 * k % 16), y);
+      final d = level(k / 8);
+      return d == null
+          ? _axial(inner, m, kind)
+          : _level(inner, m, d.$1, d.$2, kind);
+    }
+
+    // Crown. A princess's corners sit a touch low, so its corner bezels
+    // stand clear of the side bezels, which meet the straight girdle along
+    // a stretch rather than at a point.
+    final hT = tc * (1 - t);
+    final corner = princess ? tc * 0.06 : 0.0;
+    _V girdleAt(int j) => v(node(j % 16), j % 4 == 2 ? -corner : 0);
+    final crown = <_Plane>[(a: 0, b: 0, c: hT, kind: SimFacetKind.table)];
+    // A princess table's corners sit a touch in from a true square, so
+    // its stars have room between the side bezels and the table. At a
+    // heart's cleft the table comes no nearer than the crown angle
+    // allows, so the cleft bezels are no steeper than the rest.
+    _V tableAt(int k) {
+      if (half && k == 0) {
+        final m = node(2 * k % 16), n = inward(k);
+        return v((x: m.x + n.x * (1 - t), z: m.z + n.z * (1 - t)), hT);
+      }
+      return v(at((k % 8) / 8, princess && k.isOdd ? t * 0.93 : t), hT);
+    }
+
+    final bezels = [
+      for (var k = 0; k < mains; k++)
+        main(tableAt(k), k, SimFacetKind.crown, girdleAt(2 * k).y),
+    ];
+    crown.addAll(bezels);
+    final starS = t * _cos8 + 0.5 * (1 - t * _cos8);
+    final star = <_V>[];
+    for (var k = 0; k < stars; k++) {
+      // Star point: on the line where two neighbouring bezels meet, so
+      // both stay flat kites.
+      final q = _meet(
+        bezels[k],
+        bezels[(k + 1) % mains],
+        at((k + 0.5) / 8, starS),
+        tc * (1 - starS * _cos8),
+      );
+      star.add(half && q.x < 0 ? (x: 0.0, y: q.y, z: q.z) : q);
+      // A star that would reach down past the girdle (at a heart's
+      // cleft) is left uncut: the bezels on either side meet instead.
+      final p = _through(
+        tableAt(k),
+        tableAt(k + 1),
+        star[k],
+        SimFacetKind.crown,
+      );
+      if (domain.every((d) => _eval(p, d.x, d.z) > -0.005)) crown.add(p);
+    }
+    for (var j = 0; j < nodes - (half ? 1 : 0); j++) {
+      crown.add(
+        _through(
+          star[j ~/ 2],
+          girdleAt(j),
+          girdleAt(j + 1),
+          SimFacetKind.crown,
+        ),
+      );
+    }
+
+    // Pavilion.
+    final pavilion = <_Plane>[];
+    final apex = (x: cx, y: -tp, z: cz);
+    _V bottomAt(int j) => v(node(j % 16), 0);
+    if (princess) {
+      // Ridge down each side's centre line: girdle, three chevron tiers,
+      // then the corner mains, each tier shallower toward the culet.
+      const reach = [1.0, 0.75, 0.5, 0.3];
+      const slope = [1.4, 1.2, 1.0];
+      for (var s = 0; s < 4; s++) {
+        final side = at(s / 4, 1);
+        final ridge = <_V>[v(side, 0)];
+        for (var j = 0; j < 3; j++) {
+          final y = ridge.last.y - tp * slope[j] * (reach[j] - reach[j + 1]);
+          ridge.add(v((x: side.x * reach[j + 1], z: side.z * reach[j + 1]), y));
+        }
+        for (final c in [at(s / 4 - 1 / 8, 1), at(s / 4 + 1 / 8, 1)]) {
+          for (var j = 0; j < 3; j++) {
+            pavilion.add(
+              _through(v(c, 0), ridge[j], ridge[j + 1], SimFacetKind.pavilion),
+            );
+          }
+        }
+        pavilion.add(main(apex, 2 * s + 1, SimFacetKind.pavilion));
+      }
+    } else {
+      final mainsP = [
+        for (var k = 0; k < mains; k++) main(apex, k, SimFacetKind.pavilion),
+      ];
+      final lowS = math.max(0.23, cs + 0.06);
+      final lower = <_V>[];
+      for (var k = 0; k < stars; k++) {
+        lower.add(
+          _meet(
+            mainsP[k],
+            mainsP[(k + 1) % mains],
+            at((k + 0.5) / 8, lowS),
+            -tp * (1 - lowS * _cos8),
+          ),
+        );
+      }
+      pavilion.addAll(mainsP);
+      for (var j = 0; j < nodes - (half ? 1 : 0); j++) {
+        pavilion.add(
+          _through(
+            lower[j ~/ 2],
+            bottomAt(j),
+            bottomAt(j + 1),
+            SimFacetKind.pavilion,
+          ),
+        );
+      }
+    }
+    if (cs > 0.001) {
+      pavilion.add((
+        a: 0,
+        b: 0,
+        c: -tp * (1 - cs * _cos8),
+        kind: SimFacetKind.culet,
+      ));
+    }
+
+    // Each facet is the part of the plan where its plane is the crown's
+    // lowest (the pavilion's highest).
+    List<List<SimPoint>> regions(List<_Plane> planes, double sign) {
+      final out = <List<SimPoint>>[];
+      for (var i = 0; i < planes.length; i++) {
+        var poly = domain;
+        final pi = planes[i];
+        for (var j = 0; j < planes.length && poly.length >= 3; j++) {
+          if (j == i) continue;
+          final pj = planes[j];
+          final da = pi.a - pj.a, db = pi.b - pj.b, dc = pi.c - pj.c;
+          if (da.abs() + db.abs() + dc.abs() < 1e-10) {
+            if (j < i) poly = const [];
+            continue;
+          }
+          poly = _clip(poly, da * sign, db * sign, dc * sign);
+        }
+        out.add(poly.length >= 3 && _area(poly).abs() > 1e-7 ? poly : const []);
+      }
+      return out;
+    }
+
+    final crownCells = regions(crown, 1), pavilionCells = regions(pavilion, -1);
+    double crownY(double x, double z) {
+      var y = double.infinity;
+      for (final q in crown) {
+        y = math.min(y, _eval(q, x, z));
+      }
+      return y;
+    }
+
+    double pavilionY(double x, double z) {
+      var y = -double.infinity;
+      for (final q in pavilion) {
+        y = math.max(y, _eval(q, x, z));
+      }
+      return y;
+    }
+
+    // Girdle edges (all but the mirror axis) and the cell corners on each.
+    final edges = half ? domain.length - 1 : domain.length;
+    double? along(int e, SimPoint q) {
+      final a = domain[e], b = domain[(e + 1) % domain.length];
+      final ex = b.x - a.x, ez = b.z - a.z;
+      final len2 = ex * ex + ez * ez;
+      final s = ((q.x - a.x) * ex + (q.z - a.z) * ez) / len2;
+      final off = (q.x - a.x) * ez - (q.z - a.z) * ex;
+      if (off * off > 1e-16 * len2 || s < -1e-9 || s > 1 + 1e-9) return null;
+      return s;
+    }
+
+    List<double> breaks(int e, List<List<SimPoint>> cells) {
+      final out = <double>[0, 1];
+      for (final c in cells) {
+        for (final q in c) {
+          final s = along(e, q);
+          if (s != null && s > 1e-9 && s < 1 - 1e-9) out.add(s);
+        }
+      }
+      out.sort();
+      for (var i = out.length - 1; i > 0; i--) {
+        if (out[i] - out[i - 1] < 1e-9) out.removeAt(i);
+      }
+      return out;
+    }
+
+    SimPoint lerp(int e, double s) {
+      final a = domain[e], b = domain[(e + 1) % domain.length];
+      return (x: a.x + (b.x - a.x) * s, z: a.z + (b.z - a.z) * s);
+    }
+
+    // Open the girdle so its thinnest point is the requested thickness.
+    final tops = [for (var e = 0; e < edges; e++) breaks(e, crownCells)];
+    final bottoms = [for (var e = 0; e < edges; e++) breaks(e, pavilionCells)];
+    var thinnest = double.infinity;
+    for (var e = 0; e < edges; e++) {
+      for (final s in [...tops[e], ...bottoms[e]]) {
+        final q = lerp(e, s);
+        thinnest = math.min(thinnest, crownY(q.x, q.z) - pavilionY(q.x, q.z));
+      }
+    }
+    final lift = g - thinnest;
+
+    final ids = <(int, int, int), int>{};
+    int vert(double x, double y, double z) => ids.putIfAbsent((
+      (x * 1e7).round(),
+      (y * 1e7).round(),
+      (z * 1e7).round(),
+    ), () => _add(x, y, z));
+
+    for (var i = 0; i < crown.length; i++) {
+      if (crownCells[i].isEmpty) continue;
+      _polys.add((
+        [
+          for (final q in crownCells[i])
+            vert(q.x, _eval(crown[i], q.x, q.z) + lift, q.z),
+        ],
+        crown[i].kind,
+      ));
+    }
+    for (var i = 0; i < pavilion.length; i++) {
+      if (pavilionCells[i].isEmpty) continue;
+      _polys.add((
+        [
+          for (final q in pavilionCells[i])
+            vert(q.x, _eval(pavilion[i], q.x, q.z), q.z),
+        ],
+        pavilion[i].kind,
+      ));
+    }
+    int top(int e, double s) {
+      final q = lerp(e, s);
+      return vert(q.x, crownY(q.x, q.z) + lift, q.z);
+    }
+
+    int bottom(int e, double s) {
+      final q = lerp(e, s);
+      return vert(q.x, pavilionY(q.x, q.z), q.z);
+    }
+
+    for (var e = 0; e < edges; e++) {
+      _polys.add((
+        [
+          for (final s in tops[e]) top(e, s),
+          for (final s in bottoms[e].reversed) bottom(e, s),
+        ],
+        SimFacetKind.girdle,
+      ));
+    }
+
+    final m0 = node(0);
+    _crownHeight = hT - crownY(m0.x, m0.z);
+    _pavilionDepth =
+        pavilionY(m0.x, m0.z) - (cs > 0.001 ? -tp * (1 - cs * _cos8) : -tp);
+    _girdle = crownY(m0.x, m0.z) + lift - pavilionY(m0.x, m0.z);
+
+    if (half) {
+      // The −x half, mirrored.
+      _tracedPolys = _polys.length;
+      final mirrored = <int, int>{};
+      int flip(int i) => mirrored.putIfAbsent(i, () {
+        final x = _pos[i * 3];
+        return x.abs() < 1e-9 ? i : _add(-x, _pos[i * 3 + 1], _pos[i * 3 + 2]);
+      });
+      for (var k = 0, end = _polys.length; k < end; k++) {
+        final (poly, kind) = _polys[k];
+        _polys.add(([for (final i in poly.reversed) flip(i)], kind));
+      }
+    }
+  }
+
   void step(DiamondProportions p) {
     final o = StepOutline.of(shape);
     final t = p.tablePct / 100;
@@ -362,7 +871,9 @@ class _Builder {
       minZ = math.min(minZ, _pos[i + 2]);
       maxZ = math.max(maxZ, _pos[i + 2]);
     }
-    final ox = (minX + maxX) / 2, oy = (minY + maxY) / 2;
+    // A mirrored half keeps its mirror plane at x = 0.
+    final ox = _tracedPolys != null ? 0.0 : (minX + maxX) / 2;
+    final oy = (minY + maxY) / 2;
     final oz = (minZ + maxZ) / 2;
     final pos = Float64List(_pos.length);
     var radius = 0.0;
@@ -418,7 +929,10 @@ class _Builder {
       volume += len / 2 * d / 3;
     }
 
-    for (final (raw, kind) in _polys) {
+    var traced = -1;
+    for (var k = 0; k < _polys.length; k++) {
+      if (k == _tracedPolys) traced = kinds.length;
+      final (raw, kind) = _polys[k];
       // Drop repeated corners left by collapsed rings.
       final poly = <int>[];
       for (final i in raw) {
@@ -440,6 +954,11 @@ class _Builder {
 
     final ext = (x: maxX - minX, z: maxZ - minZ);
     final heart = shape == SimShape.heart;
+    if (traced < 0) traced = kinds.length;
+    final tracedGirdle = [
+      for (final f in girdle)
+        if (f < traced) f,
+    ];
     return SimMesh._(
       shape: shape,
       positions: pos,
@@ -448,7 +967,7 @@ class _Builder {
       planes: Float64List.fromList(planes),
       kinds: Uint8List.fromList(kinds),
       girdleFacets: Int32List.fromList(girdle),
-      innerRadius: _innerRadius(pos, verts, starts, girdle),
+      innerRadius: _innerRadius(pos, verts, starts, tracedGirdle),
       length: heart ? ext.z : ext.x,
       width: heart ? ext.x : ext.z,
       crownHeight: _crownHeight,
@@ -457,6 +976,8 @@ class _Builder {
       totalDepth: maxY - minY,
       volume: volume,
       radius: math.sqrt(radius),
+      mirrorX: _tracedPolys != null,
+      tracedFacets: traced,
     );
   }
 
@@ -503,11 +1024,16 @@ class _Builder {
     List<int> starts,
     List<int> girdle,
   ) {
-    // Girdle edges in plan view: each girdle facet's first two corners.
+    // Girdle edges in plan view: every side of each girdle facet (its
+    // upright sides have no length in plan and drop out below).
     final edges = <double>[];
     for (final f in girdle) {
-      final a = verts[starts[f]] * 3, b = verts[starts[f] + 1] * 3;
-      edges.addAll([pos[a], pos[a + 2], pos[b], pos[b + 2]]);
+      final k = starts[f + 1] - starts[f];
+      for (var j = 0; j < k; j++) {
+        final a = verts[starts[f] + j] * 3;
+        final b = verts[starts[f] + (j + 1) % k] * 3;
+        edges.addAll([pos[a], pos[a + 2], pos[b], pos[b + 2]]);
+      }
     }
     const bins = SimMesh.radialBins;
     final out = Float64List(bins);

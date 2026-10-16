@@ -5,13 +5,18 @@ import 'presentation/screens/about_us_screen.dart';
 import 'presentation/screens/policies_hub_screen.dart';
 import 'presentation/screens/policy_detail_screen.dart';
 
-/// Static informational pages (About, legal, etc.).
+/// Public informational pages (About, Privacy, Terms, Policies hub).
+/// Buyer and seller workspaces use their own dedicated screens.
 final List<RouteBase> infoRoutes = [
   GoRoute(
     path: AppRouteNames.aboutUs,
     builder: (context, state) => const AboutUsScreen(),
   ),
-  // Backward-compatible shortcut to Terms.
+  GoRoute(
+    path: AppRouteNames.privacyPolicy,
+    builder: (context, state) =>
+        const PolicyDetailScreen(policyId: 'privacy'),
+  ),
   GoRoute(
     path: AppRouteNames.termsAndConditions,
     builder: (context, state) => const PolicyDetailScreen(policyId: 'terms'),

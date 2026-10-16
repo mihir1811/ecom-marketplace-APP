@@ -48,6 +48,31 @@ void main() {
       }
     }
 
+    test('a heart is traced as a convex half and its mirror image', () {
+      final mesh = SimMesh.build(
+        SimShape.heart,
+        DiamondProportions.ideal(SimShape.heart),
+      );
+      expect(mesh.mirrorX, isTrue);
+      expect(mesh.tracedFacets, lessThan(mesh.facetCount));
+      // Every traced facet faces +x or straddles the axis, and the half
+      // is convex: no corner of it lies outside any traced plane.
+      for (var i = 0; i < mesh.vertexCount; i++) {
+        final x = mesh.positions[i * 3];
+        if (x < -1e-9) continue;
+        expect(
+          mesh.inset(x, mesh.positions[i * 3 + 1], mesh.positions[i * 3 + 2]),
+          greaterThan(-1e-6),
+        );
+      }
+      final round = SimMesh.build(
+        SimShape.round,
+        DiamondProportions.ideal(SimShape.round),
+      );
+      expect(round.mirrorX, isFalse);
+      expect(round.tracedFacets, round.facetCount);
+    });
+
     test('ideal shapes have realistic total depth', () {
       for (final shape in SimShape.values) {
         final mesh = SimMesh.build(shape, DiamondProportions.ideal(shape));
@@ -78,43 +103,43 @@ void main() {
   });
 
   group('SimTracer', () {
-    test('returns finite, non-negative light for every view ray', () {
-      final mesh = SimMesh.build(
-        SimShape.oval,
-        DiamondProportions.ideal(SimShape.oval),
-      );
-      final tracer = SimTracer()..mesh = mesh;
-      final rng = math.Random(4);
-      for (var i = 0; i < 400; i++) {
-        final f = rng.nextInt(mesh.facetCount);
-        final s = mesh.facetStart[f];
-        final v = mesh.facetVerts[s] * 3;
-        final nx = mesh.planes[f * 4], ny = mesh.planes[f * 4 + 1];
-        final nz = mesh.planes[f * 4 + 2];
-        // A ray striking the facet from outside.
-        var dx = -nx + (rng.nextDouble() - 0.5);
-        var dy = -ny + (rng.nextDouble() - 0.5);
-        var dz = -nz + (rng.nextDouble() - 0.5);
-        final l = math.sqrt(dx * dx + dy * dy + dz * dz);
-        dx /= l;
-        dy /= l;
-        dz /= l;
-        if (dx * nx + dy * ny + dz * nz >= -0.05) continue;
-        tracer.trace(
-          f,
-          mesh.positions[v],
-          mesh.positions[v + 1],
-          mesh.positions[v + 2],
-          dx,
-          dy,
-          dz,
-        );
-        for (final c in [tracer.outR, tracer.outG, tracer.outB]) {
-          expect(c.isFinite, isTrue);
-          expect(c, greaterThanOrEqualTo(0));
+    for (final shape in [SimShape.oval, SimShape.heart]) {
+      test('returns finite, non-negative light for every view ray '
+          '(${shape.name})', () {
+        final mesh = SimMesh.build(shape, DiamondProportions.ideal(shape));
+        final tracer = SimTracer()..mesh = mesh;
+        final rng = math.Random(4);
+        for (var i = 0; i < 400; i++) {
+          final f = rng.nextInt(mesh.facetCount);
+          final s = mesh.facetStart[f];
+          final v = mesh.facetVerts[s] * 3;
+          final nx = mesh.planes[f * 4], ny = mesh.planes[f * 4 + 1];
+          final nz = mesh.planes[f * 4 + 2];
+          // A ray striking the facet from outside.
+          var dx = -nx + (rng.nextDouble() - 0.5);
+          var dy = -ny + (rng.nextDouble() - 0.5);
+          var dz = -nz + (rng.nextDouble() - 0.5);
+          final l = math.sqrt(dx * dx + dy * dy + dz * dz);
+          dx /= l;
+          dy /= l;
+          dz /= l;
+          if (dx * nx + dy * ny + dz * nz >= -0.05) continue;
+          tracer.trace(
+            f,
+            mesh.positions[v],
+            mesh.positions[v + 1],
+            mesh.positions[v + 2],
+            dx,
+            dy,
+            dz,
+          );
+          for (final c in [tracer.outR, tracer.outG, tracer.outB]) {
+            expect(c.isFinite, isTrue);
+            expect(c, greaterThanOrEqualTo(0));
+          }
         }
-      }
-    });
+      });
+    }
   });
 
   group('CutGradeEstimator', () {
@@ -162,10 +187,19 @@ void main() {
           }
         }
         expect(SimInclusions.generate(mesh, ClarityGrade.fl), isEmpty);
-        expect(
-          SimInclusions.generate(mesh, ClarityGrade.i3).length,
-          greaterThan(10),
-        );
+        final i3 = SimInclusions.generate(mesh, ClarityGrade.i3);
+        expect(i3.length, greaterThan(10));
+        expect(i3.length, lessThanOrEqualTo(SimInclusions.maxCount));
+        // Packed for the shader: kind in the whole part, seed in the
+        // fraction, unit axes.
+        final packed = SimInclusions.pack(i3);
+        expect(packed.length, SimInclusions.maxCount * 8);
+        for (var i = 0; i < i3.length; i++) {
+          expect(packed[i * 8 + 7].floor(), i3[i].kind.code);
+          final ax = packed[i * 8 + 4], ay = packed[i * 8 + 5];
+          final az = packed[i * 8 + 6];
+          expect(math.sqrt(ax * ax + ay * ay + az * az), closeTo(1, 1e-5));
+        }
       },
     );
   });
@@ -212,6 +246,24 @@ void main() {
       expect(state().spec.isFancy, isFalse);
       notifier().setLighting(SimLighting.ultraviolet);
       expect(state().lighting, SimLighting.ultraviolet);
+    });
+
+    test('hearts & arrows scope is for well cut rounds only', () {
+      final sub = container.listen(diamondSimulatorProvider, (_, _) {});
+      addTearDown(sub.close);
+      notifier().applyCutGrade(CutGrade.fair);
+      notifier().setHeartsArrows(true);
+      expect(state().lighting, SimLighting.heartsArrows);
+      // Recut precisely, or the pattern could not form.
+      expect(state().estimatedCut, CutGrade.excellent);
+      notifier().setShape(SimShape.princess);
+      expect(state().lighting, SimLighting.daylight);
+      notifier().setHeartsArrows(true);
+      expect(state().lighting, SimLighting.daylight);
+      notifier().setShape(SimShape.round);
+      notifier().setHeartsArrows(true);
+      notifier().setHeartsArrows(false);
+      expect(state().lighting, SimLighting.daylight);
     });
 
     test('start shape can be scoped per route', () {

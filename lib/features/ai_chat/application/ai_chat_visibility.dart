@@ -32,6 +32,7 @@ abstract final class AiChatVisibility {
       AppRouteNames.verifyOtp,
       AppRouteNames.resetPassword,
       AppRouteNames.aboutUs,
+      AppRouteNames.privacyPolicy,
       AppRouteNames.termsAndConditions,
       AppRouteNames.policies,
       AppRouteNames.diamondViewer,

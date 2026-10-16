@@ -18,7 +18,10 @@ import 'sim_optics.dart';
 /// environment lookups, not three traces.
 ///
 /// Works in model space against the stone's facet planes: the stone is
-/// convex, so a ray leaves through the nearest plane ahead of it.
+/// convex, so a ray leaves through the nearest plane ahead of it. A heart
+/// is convex only by halves ([SimMesh.mirrorX]): there the ray is tested
+/// against the +x half's planes, mirrored whenever it is in the −x half,
+/// and crosses freely between them at x = 0.
 class SimTracer {
   // Diamond's refractive index at red (687 nm), green (589 nm, the D
   // line) and blue (431 nm); B–G spread is its 0.044 dispersion. Must match
@@ -32,6 +35,7 @@ class SimTracer {
   late Int32List _girdleIndex;
   late Float64List _inner;
   double _innerMin = 0;
+  bool _mirror = false;
 
   SimOptics optics = const SimOptics(
     absorbR: 0,
@@ -66,9 +70,10 @@ class SimTracer {
     final planes = mesh.planes;
     final girdle = mesh.girdleFacets.toSet();
     final solid = <int>[], ring = <int>[];
-    for (var f = 0; f < mesh.facetCount; f++) {
+    for (var f = 0; f < mesh.tracedFacets; f++) {
       (girdle.contains(f) ? ring : solid).add(f);
     }
+    _mirror = mesh.mirrorX;
     Float64List pack(List<int> ids) {
       final out = Float64List(ids.length * 4);
       for (var i = 0; i < ids.length; i++) {
@@ -155,17 +160,21 @@ class SimTracer {
     final solidCount = solidIndex.length, girdleCount = girdleIndex.length;
     final inner = _inner;
     const bins = SimMesh.radialBins;
+    final mirror = _mirror;
+    // −1 while the ray is in the −x half of a mirrored stone.
+    var side = mirror && px < 0 ? -1.0 : 1.0;
 
-    for (var bounce = 0; bounce < maxBounces; bounce++) {
-      // Nearest facet plane ahead.
+    for (var bounce = 0, step = 0; bounce < maxBounces && step < 40; step++) {
+      // Nearest facet plane ahead, in the traced half's frame.
+      final qx = px * side, qtx = tx * side;
       var tMin = double.infinity;
       var hit = -1;
       for (var j = 0, q = 0; j < solidCount; j++, q += 4) {
-        final den = tx * solid[q] + ty * solid[q + 1] + tz * solid[q + 2];
+        final den = qtx * solid[q] + ty * solid[q + 1] + tz * solid[q + 2];
         if (den <= 1e-9) continue;
         final t =
             (solid[q + 3] -
-                (px * solid[q] + py * solid[q + 1] + pz * solid[q + 2])) /
+                (qx * solid[q] + py * solid[q + 1] + pz * solid[q + 2])) /
             den;
         if (t < tMin) {
           tMin = t;
@@ -175,7 +184,7 @@ class SimTracer {
       // The girdle only matters if that point lies outside its edge.
       var ring = hit < 0;
       if (!ring) {
-        final hx = px + tx * tMin, hz = pz + tz * tMin;
+        final hx = qx + qtx * tMin, hz = pz + tz * tMin;
         final r2 = hx * hx + hz * hz;
         if (r2 >= _innerMin * _innerMin) {
           final bin =
@@ -186,11 +195,11 @@ class SimTracer {
       }
       if (ring) {
         for (var j = 0, q = 0; j < girdleCount; j++, q += 4) {
-          final den = tx * girdle[q] + ty * girdle[q + 1] + tz * girdle[q + 2];
+          final den = qtx * girdle[q] + ty * girdle[q + 1] + tz * girdle[q + 2];
           if (den <= 1e-9) continue;
           final t =
               (girdle[q + 3] -
-                  (px * girdle[q] + py * girdle[q + 1] + pz * girdle[q + 2])) /
+                  (qx * girdle[q] + py * girdle[q + 1] + pz * girdle[q + 2])) /
               den;
           if (t < tMin) {
             tMin = t;
@@ -198,7 +207,16 @@ class SimTracer {
           }
         }
       }
-      if (hit < 0 || !tMin.isFinite) break;
+      // Into the other half, if the axis comes first.
+      var cross = false;
+      if (mirror && qtx < -1e-9) {
+        final t = -qx / qtx;
+        if (t < tMin) {
+          tMin = t;
+          cross = true;
+        }
+      }
+      if ((hit < 0 && !cross) || !tMin.isFinite) break;
       if (tMin < 0) tMin = 0;
 
       px += tx * tMin;
@@ -226,7 +244,12 @@ class SimTracer {
         accB += w * 0.52;
       }
 
-      nx = planes[hit * 4];
+      if (cross) {
+        side = -side;
+        continue;
+      }
+      bounce++;
+      nx = planes[hit * 4] * side;
       ny = planes[hit * 4 + 1];
       nz = planes[hit * 4 + 2];
       final c = tx * nx + ty * ny + tz * nz;
@@ -234,8 +257,9 @@ class SimTracer {
 
       // Escape, per colour. Higher index traps blue first.
       final s2G = _iorG * _iorG * s1;
-      if (s2G < 0.5) {
-        // Steep exit: the three colours leave almost together.
+      if (s2G < 0.5 || (env.isScope && s2G < 1)) {
+        // Steep exit: the three colours leave almost together. In the
+        // scope its diffuse light washes fire out, so they always do.
         final cG = math.sqrt(1 - s2G);
         final ex = _iorG * tx - (_iorG * c - cG) * nx;
         final ey = _iorG * ty - (_iorG * c - cG) * ny;

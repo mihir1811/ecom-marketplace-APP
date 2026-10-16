@@ -1,0 +1,238 @@
+import 'package:flutter/material.dart';
+
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/app_navigation.dart';
+import '../../../../core/router/route_names.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../../../../core/widgets/gem3d/gem_renderer.dart';
+import '../../../info/data/policies_repository.dart';
+import '../../../info/domain/models/policy_document.dart';
+import '../../../info/presentation/widgets/policy_body.dart';
+import '../../../info/presentation/widgets/policy_icons.dart';
+import '../../../seller/presentation/atelier/atelier_components.dart';
+import '../../../seller/presentation/atelier/atelier_motion.dart';
+import '../../../seller/presentation/atelier/atelier_theme.dart';
+import '../maison/maison_kit.dart';
+import '../maison/maison_layout.dart';
+
+/// Buyer policies index — jump to privacy, terms, or any marketplace policy.
+class BuyerPoliciesHubScreen extends StatefulWidget {
+  const BuyerPoliciesHubScreen({super.key});
+
+  @override
+  State<BuyerPoliciesHubScreen> createState() => _BuyerPoliciesHubScreenState();
+}
+
+class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
+  Locale? _locale;
+  Future<List<PolicyDocument>>? _future;
+  String _query = '';
+  final _searchCtrl = TextEditingController();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = Localizations.localeOf(context);
+    if (_locale?.languageCode == locale.languageCode && _future != null) {
+      return;
+    }
+    _locale = locale;
+    _reload();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  void _reload() {
+    _future = PoliciesRepository.loadAll(
+      _locale ?? Localizations.localeOf(context),
+    );
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    final gutter = AtelierSpace.gutter(MediaQuery.sizeOf(context).width);
+    var i = 1;
+    Widget reveal(Widget child) => Reveal(index: i++, child: child);
+
+    return MaisonLayout(
+      detail: true,
+      child: FutureBuilder<List<PolicyDocument>>(
+        future: _future,
+        builder: (context, snapshot) {
+          final loading = snapshot.connectionState != ConnectionState.done;
+          final policies = snapshot.data ?? const <PolicyDocument>[];
+          final failed =
+              snapshot.connectionState == ConnectionState.done &&
+              (snapshot.hasError || snapshot.data == null);
+          final q = _query.trim().toLowerCase();
+          final visible = q.isEmpty
+              ? policies
+              : policies
+                    .where(
+                      (d) =>
+                          d.title.toLowerCase().contains(q) ||
+                          d.subtitle.toLowerCase().contains(q),
+                    )
+                    .toList();
+
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 48),
+            children: [
+              MaisonCentered(
+                maxWidth: 720,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    MaisonHeader(
+                      title: context.tr(RemainingL10n.policiesLegal),
+                      cut: GemCut.asscher,
+                      look: GemLook.ice,
+                    ),
+                    const SizedBox(height: 10),
+                    reveal(
+                      Text(
+                        context.tr(
+                          RemainingL10n.readTheTermsAndCategoryPolicies,
+                        ),
+                        style: AtelierType.body(p.inkSoft, size: 15),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    reveal(
+                      AtelierSearchField(
+                        controller: _searchCtrl,
+                        hint: 'Search policies',
+                        onChanged: (v) => setState(() => _query = v),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    if (loading)
+                      reveal(const PolicyDocumentSkeleton())
+                    else if (failed)
+                      reveal(
+                        MaisonEmptyState(
+                          title: context.tr(RemainingL10n.unableLoadPolicies),
+                          message: context.tr(
+                            RemainingL10n.readTheTermsAndCategoryPolicies,
+                          ),
+                          actionLabel: context.tr(RemainingL10n.retry),
+                          onAction: _reload,
+                        ),
+                      )
+                    else if (visible.isEmpty)
+                      reveal(
+                        MaisonEmptyState(
+                          title: 'No matching policies',
+                          message: 'Try a different search term.',
+                        ),
+                      )
+                    else ...[
+                      reveal(
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            AtelierButton(
+                              label: context.tr(
+                                AccountCommerceL10n.privacyPolicy,
+                              ),
+                              icon: Icons.privacy_tip_outlined,
+                              variant: AtelierButtonVariant.gold,
+                              onPressed: () => context.openRoute(
+                                AppRouteNames.buyerPrivacy,
+                              ),
+                            ),
+                            AtelierButton(
+                              label: context.tr(
+                                AccountCommerceL10n.termsConditions,
+                              ),
+                              icon: Icons.gavel_outlined,
+                              variant: AtelierButtonVariant.secondary,
+                              onPressed: () =>
+                                  context.openRoute(AppRouteNames.buyerTerms),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      for (final policy in visible) ...[
+                        reveal(
+                          AtelierCard(
+                            onTap: () {
+                              AppHaptics.selection();
+                              context.openRoute(
+                                AppRouteNames.buyerPolicyPath(policy.id),
+                              );
+                            },
+                            semanticLabel: policy.title,
+                            child: Row(
+                              children: [
+                                AtelierIconBadge(
+                                  icon: policyIconFor(policy.id),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        policy.title,
+                                        style: AtelierType.title(
+                                          p.ink,
+                                          size: 15.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        policy.subtitle,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AtelierType.body(
+                                          p.inkSoft,
+                                          size: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: p.muted,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ],
+                    const SizedBox(height: 12),
+                    const MaisonListFooter(
+                      loadingMore: false,
+                      hasMore: false,
+                      onLoadMore: _noop,
+                      endLabel: 'GemWorld · policies',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  static void _noop() {}
+}

@@ -186,5 +186,8 @@ enum CuletSize {
   final double percent;
 }
 
-/// Lighting the simulator studio is set to.
-enum SimLighting { daylight, ultraviolet }
+/// Lighting the simulator studio is set to. [heartsArrows] is a hearts &
+/// arrows scope: a red filter cone around a white disc and a dark viewing
+/// hole, which reveals the eight arrows and hearts of a precisely cut
+/// round brilliant.
+enum SimLighting { daylight, ultraviolet, heartsArrows }

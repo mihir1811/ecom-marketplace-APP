@@ -136,6 +136,26 @@ class SellerDrawer extends ConsumerWidget {
               RemainingL10n.apiKeys,
               Icons.vpn_key_outlined,
             ),
+          item(
+            AppRouteNames.sellerAbout,
+            RemainingL10n.aboutGemWorld,
+            Icons.diamond_outlined,
+          ),
+          item(
+            AppRouteNames.sellerPrivacy,
+            AccountCommerceL10n.privacyPolicy,
+            Icons.privacy_tip_outlined,
+          ),
+          item(
+            AppRouteNames.sellerTerms,
+            RemainingL10n.termsConditions,
+            Icons.description_outlined,
+          ),
+          item(
+            AppRouteNames.sellerPolicies,
+            RemainingL10n.policiesLegal,
+            Icons.menu_book_outlined,
+          ),
         ],
       ),
     ];

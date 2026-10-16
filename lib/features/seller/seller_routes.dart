@@ -16,6 +16,9 @@ import 'presentation/screens/seller_products_screen.dart';
 import 'presentation/screens/seller_product_edit_screen.dart';
 import 'presentation/screens/seller_api_keys_screen.dart';
 import 'presentation/screens/seller_promotions_screen.dart';
+import 'presentation/screens/seller_about_screen.dart';
+import 'presentation/screens/seller_policies_hub_screen.dart';
+import 'presentation/screens/seller_legal_document_screen.dart';
 import 'presentation/widgets/seller_layout.dart';
 import '../auth/presentation/screens/profile_screen.dart';
 import '../help_center/presentation/screens/help_center_screen.dart';
@@ -118,6 +121,28 @@ final List<RouteBase> sellerRoutes = [
       GoRoute(
         path: AppRouteNames.sellerApiKeys,
         builder: (context, state) => const SellerApiKeysScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerAbout,
+        builder: (context, state) => const SellerAboutScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerPrivacy,
+        builder: (context, state) => const SellerPrivacyScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerTerms,
+        builder: (context, state) => const SellerTermsScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerPolicies,
+        builder: (context, state) => const SellerPoliciesHubScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerPolicyDetail,
+        builder: (context, state) => SellerPolicyDetailScreen(
+          policyId: state.pathParameters['policyId'] ?? '',
+        ),
       ),
     ],
   ),

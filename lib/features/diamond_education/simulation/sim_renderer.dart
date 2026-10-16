@@ -58,8 +58,10 @@ class SimRenderer {
   /// Camera distance in model units; enough perspective to feel solid.
   static const _eye = 9.0;
 
-  /// Most samples in one stone, whatever its size on screen.
-  static const _sampleBudget = 2600;
+  /// Most samples in one stone, whatever its size on screen: drawing on
+  /// the CPU, or only measuring light beside the GPU (the meters are
+  /// smoothed, so a coarse sample reads the same and costs a third).
+  static const _sampleBudget = 2600, _measureBudget = 900;
 
   /// Linear light to display; matches the shader.
   static const _exposure = 0.95;
@@ -81,7 +83,7 @@ class SimRenderer {
   static const _measureBounces = 6;
 
   /// Shortest gap between measurements while the stone moves.
-  static const _measureGap = Duration(milliseconds: 220);
+  static const _measureGap = Duration(milliseconds: 300);
 
   final Stopwatch _clock = Stopwatch()..start();
   Duration _measuredAt = -_measureGap;
@@ -107,7 +109,7 @@ class SimRenderer {
       _program ??= ui.FragmentProgram.fromAsset('shaders/diamond_trace.frag');
 
   /// Whether [shader] can draw [mesh] (its plane slots are bounded).
-  static bool fitsShader(SimMesh mesh) => mesh.facetCount <= _maxPlanes;
+  static bool fitsShader(SimMesh mesh) => mesh.tracedFacets <= _maxPlanes;
 
   void setStone(SimMesh mesh, List<SimInclusion> inclusions) {
     _mesh = mesh;
@@ -135,8 +137,9 @@ class SimRenderer {
   Int32List _fs = Int32List(1), _ft = Int32List(1);
   Int32List _tri = Int32List(0);
 
-  /// Lays samples on every facet about [units] apart (model units).
-  void _layout(SimMesh mesh, double units) {
+  /// Lays samples on every facet about [units] apart (model units), at
+  /// most [budget] in all.
+  void _layout(SimMesh mesh, double units, int budget) {
     final starts = mesh.facetStart, fv = mesh.facetVerts;
     final pos = mesh.positions;
     for (var pass = 0; pass < 4; pass++) {
@@ -167,8 +170,8 @@ class SimRenderer {
         samples += 1 + k * n * (n + 1) ~/ 2;
         tris += k * n * n;
       }
-      if (samples > _sampleBudget && pass < 3) {
-        units *= math.sqrt(samples / _sampleBudget) * 1.05;
+      if (samples > budget && pass < 3) {
+        units *= math.sqrt(samples / budget) * 1.05;
         continue;
       }
 
@@ -266,11 +269,13 @@ class SimRenderer {
     if (mesh == null || size.isEmpty) return;
     final scale = pxPerUnit * view.zoom;
     final gpu = shader != null && fitsShader(mesh);
+    final scope = _tracer.optics.lighting == SimLighting.heartsArrows;
     // On the GPU path the CPU trace only measures light, so a coarse,
     // fixed spacing is plenty, and only a few times a second.
     final units = gpu ? 0.2 : samplePx / scale;
     var measure = !gpu;
-    if (gpu && measureStats) {
+    // Light performance means nothing inside a scope: skip the CPU work.
+    if (gpu && measureStats && !scope) {
       final now = _clock.elapsed;
       if (_statsDirty || now - _measuredAt >= _measureGap) {
         measure = true;
@@ -281,7 +286,7 @@ class SimRenderer {
     if ((measure || !gpu) &&
         (!identical(_layoutFor, mesh) ||
             (units - _layoutUnits).abs() > _layoutUnits * 0.12)) {
-      _layout(mesh, units);
+      _layout(mesh, units, gpu ? _measureBudget : _sampleBudget);
     }
 
     // Model → world: spin about the table axis, then tilt toward viewer.
@@ -301,6 +306,9 @@ class SimRenderer {
       ..[7] = r21
       ..[8] = r22;
     final tracer = _tracer..rotation(rot);
+    // A scope shows the arrows face up with a wider viewing hole than the
+    // hearts face down: each view's working distance in a real scope.
+    tracer.studio.scopeHole = 0.976 + 0.012 * (-st).clamp(0.0, 1.0);
     const d0 = _eye;
     final ex = d0 * r20, ey = d0 * r21, ez = d0 * r22;
     final cx = size.width / 2, cy = size.height / 2;
@@ -322,6 +330,8 @@ class SimRenderer {
       _py[i] = cy - wy * k;
     }
 
+    if (scope) _paintScopeStage(canvas, Offset(cx, cy), mesh.radius * scale);
+
     if (gpu) {
       final s = math.min(renderScale ?? devicePixelRatio, devicePixelRatio);
       _paintGpu(canvas, mesh, scale, cx, cy, devicePixelRatio, s, rot);
@@ -335,20 +345,13 @@ class SimRenderer {
       _paintCpu(canvas, mesh, scale, cx, cy, ex, ey, ez, rot, time, twinkle);
     }
 
-    if (_inclusions.isNotEmpty) {
-      // Inclusions and their mirror images stay inside the silhouette.
+    if (!gpu && _inclusions.isNotEmpty) {
+      // The GPU traces inclusions with the stone; the CPU fallback only
+      // marks where they sit, inside the silhouette.
       canvas
         ..save()
         ..clipPath(_hull(vcount));
-      _paintInclusions(
-        canvas,
-        scale,
-        cx,
-        cy,
-        rot,
-        // Pavilion mirrors show when looking in through the crown.
-        mirror: st.clamp(0.0, 1.0),
-      );
+      _paintInclusions(canvas, scale, cx, cy, rot);
       canvas.restore();
     }
 
@@ -378,6 +381,25 @@ class SimRenderer {
     }
   }
 
+  final Paint _stagePaint = Paint();
+
+  /// The scope's dark red stage behind the stone, as it sits in a real
+  /// hearts & arrows viewer.
+  void _paintScopeStage(Canvas canvas, Offset c, double radius) {
+    final r = radius * 1.7;
+    canvas.drawCircle(
+      c,
+      r,
+      _stagePaint
+        ..shader = ui.Gradient.radial(
+          c,
+          r,
+          const [Color(0xFF2B0709), Color(0xCC1A0406), Color(0x00120304)],
+          const [0.0, 0.62, 1.0],
+        ),
+    );
+  }
+
   // ---- GPU path ------------------------------------------------------
 
   final Paint _gpuPaint = Paint();
@@ -386,11 +408,14 @@ class SimRenderer {
   ui.FragmentShader? _uniformShader;
   SimMesh? _uniformMesh;
   SimStudio? _uniformStudio;
+  List<SimInclusion>? _uniformInclusions;
 
   // Uniform float offsets in shaders/diamond_trace.frag.
   static const _uPlanes = 36;
   static const _uBoxes = _uPlanes + _maxPlanes * 4;
   static const _uSpots = _uBoxes + SimStudio.maxBoxes * 12;
+  static const _uScope = _uSpots + SimStudio.maxSpots * 8;
+  static const _uIncl = _uScope + 4;
 
   void _paintGpu(
     Canvas canvas,
@@ -407,6 +432,7 @@ class SimRenderer {
       _uniformShader = sh;
       _uniformMesh = null;
       _uniformStudio = null;
+      _uniformInclusions = null;
     }
     if (!identical(mesh, _uniformMesh)) {
       _uniformMesh = mesh;
@@ -424,8 +450,21 @@ class SimRenderer {
       }
       sh.setFloat(23, studio.ambient);
     }
+    if (!identical(_inclusions, _uniformInclusions)) {
+      _uniformInclusions = _inclusions;
+      final packed = SimInclusions.pack(_inclusions);
+      for (var i = 0; i < packed.length; i++) {
+        sh.setFloat(_uIncl + i, packed[i]);
+      }
+      sh.setFloat(
+        _uScope + 1,
+        math.min(_inclusions.length, SimInclusions.maxCount).toDouble(),
+      );
+    }
     final o = _tracer.optics;
     sh
+      ..setFloat(_uScope, o.lighting == SimLighting.heartsArrows ? 1 : 0)
+      ..setFloat(_uScope + 2, _tracer.studio.scopeHole)
       ..setFloat(0, cx)
       ..setFloat(1, cy)
       ..setFloat(2, scale)
@@ -496,11 +535,16 @@ class SimRenderer {
   /// to test the girdle (see [SimMesh.innerRadius]).
   static void _setPlanes(ui.FragmentShader sh, SimMesh mesh) {
     final planes = mesh.planes, pos = mesh.positions;
-    final girdle = mesh.girdleFacets.toSet();
+    final traced = mesh.tracedFacets;
+    final girdle = [
+      for (final f in mesh.girdleFacets)
+        if (f < traced) f,
+    ];
+    final ring = girdle.toSet();
     final order = [
-      for (var f = 0; f < mesh.facetCount; f++)
-        if (!girdle.contains(f)) f,
-      ...mesh.girdleFacets,
+      for (var f = 0; f < traced; f++)
+        if (!ring.contains(f)) f,
+      ...girdle,
     ];
     for (var i = 0; i < order.length; i++) {
       for (var k = 0; k < 4; k++) {
@@ -517,7 +561,7 @@ class SimRenderer {
     // and the midpoints of the chords between them.
     var rim = double.infinity;
     final starts = mesh.facetStart, fv = mesh.facetVerts;
-    for (final f in mesh.girdleFacets) {
+    for (final f in girdle) {
       final k = starts[f + 1] - starts[f];
       for (var j = 0; j < k; j++) {
         final p = fv[starts[f] + j] * 3;
@@ -531,8 +575,9 @@ class SimRenderer {
     }
     if (!rim.isFinite) rim = 0;
     sh
-      ..setFloat(16, (mesh.facetCount - girdle.length).toDouble())
-      ..setFloat(17, mesh.facetCount.toDouble())
+      ..setFloat(16, (traced - girdle.length).toDouble())
+      ..setFloat(17, traced.toDouble())
+      ..setFloat(_uScope + 3, mesh.mirrorX ? 1 : 0)
       ..setFloat(20, ia)
       ..setFloat(21, ib)
       ..setFloat(22, rim * 0.95);
@@ -802,14 +847,14 @@ class SimRenderer {
     );
   }
 
+  /// Where the inclusions sit, for the CPU fallback (the GPU traces them).
   void _paintInclusions(
     Canvas canvas,
     double scale,
     double cx,
     double cy,
-    Float64List r, {
-    required double mirror,
-  }) {
+    Float64List r,
+  ) {
     Offset project(double x, double y, double z) {
       final wx = r[0] * x + r[1] * y + r[2] * z;
       final wy = r[3] * x + r[4] * y + r[5] * z;
@@ -820,61 +865,43 @@ class SimRenderer {
 
     for (final inc in _inclusions) {
       final at = project(inc.x, inc.y, inc.z);
-      final size = inc.size * scale;
+      final size = math.max(0.6, inc.size * scale);
       switch (inc.kind) {
         case SimInclusionKind.pinpoint:
-          _dot.color = const Color(0xB3FFFFFF);
-          canvas.drawCircle(at, math.max(0.6, size), _dot);
-        case SimInclusionKind.crystal:
-          void crystal(Offset p, double alpha) {
-            _dot.color = Color.fromRGBO(4, 4, 6, 0.82 * alpha);
-            canvas.drawCircle(p, math.max(0.8, size), _dot);
-            _dot.color = Color.fromRGBO(255, 255, 255, 0.22 * alpha);
-            canvas.drawCircle(
-              p.translate(-size * 0.3, -size * 0.3),
-              math.max(0.4, size * 0.35),
-              _dot,
-            );
+          _dot.color = const Color(0x99FFFFFF);
+          canvas.drawCircle(at, size, _dot);
+        case SimInclusionKind.darkCrystal:
+          _dot.color = const Color(0xB3141210);
+          canvas.drawCircle(at, size, _dot);
+        case SimInclusionKind.clearCrystal:
+          _line
+            ..color = const Color(0x66202024)
+            ..strokeWidth = 0.8;
+          canvas.drawCircle(at, size, _line);
+        case SimInclusionKind.feather || SimInclusionKind.needle:
+          // Its trace across the view: perpendicular to a feather's
+          // normal, along a needle.
+          var dx = inc.ax, dy = inc.ay, dz = inc.az;
+          if (inc.kind == SimInclusionKind.feather) {
+            (dx, dy, dz) = (-inc.az, 0.0, inc.ax);
           }
-
-          crystal(at, 1);
-          final m = inc.mirrors;
-          for (var i = 0; i + 2 < m.length; i += 3) {
-            crystal(project(m[i], m[i + 1], m[i + 2]), 0.4 * mirror);
-          }
-        case SimInclusionKind.feather:
-          void feather(Offset a, Offset b, double alpha) {
-            _line
-              ..color = Color.fromRGBO(235, 240, 255, 0.12 * alpha)
-              ..strokeWidth = math.max(1.4, inc.size * scale * 0.16);
-            canvas.drawLine(a, b, _line);
-            _line
-              ..color = Color.fromRGBO(245, 248, 255, 0.42 * alpha)
-              ..strokeWidth = math.max(0.6, inc.size * scale * 0.05);
-            canvas.drawLine(a, b, _line);
-          }
-
-          feather(at, project(inc.ex, inc.ey, inc.ez), 1);
-          final m = inc.mirrors;
-          for (var i = 0; i + 5 < m.length; i += 6) {
-            feather(
-              project(m[i], m[i + 1], m[i + 2]),
-              project(m[i + 3], m[i + 4], m[i + 5]),
-              0.35 * mirror,
-            );
-          }
+          final a = project(
+            inc.x - dx * inc.size,
+            inc.y - dy * inc.size,
+            inc.z - dz * inc.size,
+          );
+          final b = project(
+            inc.x + dx * inc.size,
+            inc.y + dy * inc.size,
+            inc.z + dz * inc.size,
+          );
+          _line
+            ..color = const Color(0x40F2F4FA)
+            ..strokeWidth = inc.kind == SimInclusionKind.feather ? 1.6 : 0.8;
+          canvas.drawLine(a, b, _line);
         case SimInclusionKind.cloud:
-          final rng = math.Random((inc.seed * 1e6).round());
-          _dot.color = const Color(0x40FFFFFF);
-          for (var i = 0; i < 10; i++) {
-            final a = rng.nextDouble() * math.pi * 2;
-            final d = math.sqrt(rng.nextDouble()) * size;
-            canvas.drawCircle(
-              at.translate(math.cos(a) * d, math.sin(a) * d),
-              0.5 + rng.nextDouble() * 0.6,
-              _dot,
-            );
-          }
+          _dot.color = const Color(0x1FFFFFFF);
+          canvas.drawCircle(at, size, _dot);
       }
     }
   }

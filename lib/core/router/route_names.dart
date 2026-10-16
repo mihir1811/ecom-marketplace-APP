@@ -4,6 +4,7 @@ class AppRouteNames {
 
   static const String home = '/';
   static const String aboutUs = '/about';
+  static const String privacyPolicy = '/privacy';
   static const String termsAndConditions = '/terms';
   static const String policies = '/policies';
   static const String policyDetail = '/policies/:policyId';
@@ -87,6 +88,13 @@ class AppRouteNames {
       '/buyer/messages/${Uri.encodeComponent(chatId)}';
   static const String buyerSettings = '/buyer/settings';
   static const String buyerNotifications = '/buyer/notifications';
+  static const String buyerAbout = '/buyer/about';
+  static const String buyerPrivacy = '/buyer/privacy';
+  static const String buyerTerms = '/buyer/terms';
+  static const String buyerPolicies = '/buyer/policies';
+  static const String buyerPolicyDetail = '/buyer/policies/:policyId';
+  static String buyerPolicyPath(String policyId) =>
+      '/buyer/policies/${Uri.encodeComponent(policyId)}';
   static const String auctions = '/auctions';
   static const String auctionActivity = '/auctions/activity';
   static const String auctionWins = '/auctions/wins';
@@ -124,4 +132,11 @@ class AppRouteNames {
   static const String sellerPromotions = '/seller/promotions';
   static const String sellerProfile = '/seller/profile';
   static const String sellerApiKeys = '/seller/api-keys';
+  static const String sellerAbout = '/seller/about';
+  static const String sellerPrivacy = '/seller/privacy';
+  static const String sellerTerms = '/seller/terms';
+  static const String sellerPolicies = '/seller/policies';
+  static const String sellerPolicyDetail = '/seller/policies/:policyId';
+  static String sellerPolicyPath(String policyId) =>
+      '/seller/policies/${Uri.encodeComponent(policyId)}';
 }

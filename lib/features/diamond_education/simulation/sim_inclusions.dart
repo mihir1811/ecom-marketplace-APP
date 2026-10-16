@@ -1,10 +1,36 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import '../domain/diamond_grades.dart';
 import 'sim_mesh.dart';
 
-/// Kinds of clarity characteristics the simulator draws.
-enum SimInclusionKind { pinpoint, crystal, feather, cloud }
+/// Kinds of clarity characteristics the simulator traces; [code] is how
+/// `shaders/diamond_trace.frag` tells them apart.
+enum SimInclusionKind {
+  /// A speck too small to resolve: a single sparkling white point.
+  pinpoint(1),
+
+  /// A dark included mineral (graphite, sulphide): absorbs light.
+  darkCrystal(2),
+
+  /// A transparent included mineral (olivine, garnet, diamond): bends
+  /// and mirrors light at its faces.
+  clearCrystal(3),
+
+  /// A thin fracture: mirrors light past diamond's critical angle, frosty
+  /// and broken at its edges.
+  feather(4),
+
+  /// A hazy drift of countless pinpoints.
+  cloud(5),
+
+  /// A thin rod-like crystal, bright white.
+  needle(6);
+
+  const SimInclusionKind(this.code);
+
+  final int code;
+}
 
 /// One clarity characteristic inside the stone, model space.
 class SimInclusion {
@@ -14,193 +40,281 @@ class SimInclusion {
     required this.y,
     required this.z,
     required this.size,
-    this.ex = 0,
-    this.ey = 0,
-    this.ez = 0,
-    this.mirrors = const [],
+    this.ax = 0,
+    this.ay = 1,
+    this.az = 0,
     this.seed = 0,
   });
 
   final SimInclusionKind kind;
   final double x, y, z;
 
-  /// Radius (crystals, pinpoints, clouds) in model units.
+  /// Radius (crystals, pinpoints, feathers, clouds) or half length
+  /// (needles), model units.
   final double size;
 
-  /// Far end of a feather.
-  final double ex, ey, ez;
+  /// Unit axis: a feather's plane normal, a crystal's or needle's long
+  /// axis, the axis a cloud is flattened along.
+  final double ax, ay, az;
 
-  /// Mirror images in the nearest pavilion facets, xyz (and the far end
-  /// for feathers): a diamond's pavilion acts as a mirror, so a crystal is
-  /// often seen two or three times.
-  final List<double> mirrors;
+  /// 0..1; varies outline, habit and tint between inclusions.
   final double seed;
 }
 
 /// Places inclusions for a clarity grade. Deterministic per grade, so
 /// stepping between grades reads as the stone getting cleaner or more
 /// included, and placement follows the stone through proportion changes.
+///
+/// Sizes follow how graders see them in a one carat stone (the stone is
+/// two units wide, so a unit is about 3.2 mm): VVS points of a few
+/// hundredths of a millimetre, VS crystals and feathers around a tenth,
+/// SI ones up to half a millimetre, I grades millimetre-scale crystals
+/// and fractures with clouds that dull the stone.
 abstract final class SimInclusions {
+  /// Inclusion slots in the shader.
+  static const maxCount = 12;
+
   static List<SimInclusion> generate(SimMesh mesh, ClarityGrade grade) {
-    final recipe = switch (grade) {
+    final r = switch (grade) {
       ClarityGrade.fl || ClarityGrade.internallyFlawless => null,
-      ClarityGrade.vvs1 => (pin: 1, crystal: 0, feather: 0, cloud: 0, s: 0.6),
-      ClarityGrade.vvs2 => (pin: 2, crystal: 1, feather: 0, cloud: 0, s: 0.7),
-      ClarityGrade.vs1 => (pin: 2, crystal: 1, feather: 1, cloud: 0, s: 0.9),
-      ClarityGrade.vs2 => (pin: 3, crystal: 2, feather: 1, cloud: 0, s: 1.0),
-      ClarityGrade.si1 => (pin: 3, crystal: 3, feather: 1, cloud: 1, s: 1.3),
-      ClarityGrade.si2 => (pin: 4, crystal: 4, feather: 2, cloud: 1, s: 1.6),
-      ClarityGrade.i1 => (pin: 4, crystal: 5, feather: 2, cloud: 1, s: 2.1),
-      ClarityGrade.i2 => (pin: 5, crystal: 7, feather: 3, cloud: 2, s: 2.6),
-      ClarityGrade.i3 => (pin: 6, crystal: 10, feather: 4, cloud: 3, s: 3.1),
+      ClarityGrade.vvs1 => (
+        pin: 1,
+        needle: 0,
+        dark: 0,
+        clear: 0,
+        feather: 0,
+        cloud: 0,
+        s: 0.5,
+      ),
+      ClarityGrade.vvs2 => (
+        pin: 2,
+        needle: 1,
+        dark: 0,
+        clear: 0,
+        feather: 0,
+        cloud: 0,
+        s: 0.6,
+      ),
+      ClarityGrade.vs1 => (
+        pin: 2,
+        needle: 0,
+        dark: 0,
+        clear: 1,
+        feather: 1,
+        cloud: 0,
+        s: 0.9,
+      ),
+      ClarityGrade.vs2 => (
+        pin: 2,
+        needle: 1,
+        dark: 1,
+        clear: 1,
+        feather: 1,
+        cloud: 1,
+        s: 1.15,
+      ),
+      ClarityGrade.si1 => (
+        pin: 2,
+        needle: 1,
+        dark: 2,
+        clear: 1,
+        feather: 1,
+        cloud: 1,
+        s: 1.4,
+      ),
+      ClarityGrade.si2 => (
+        pin: 2,
+        needle: 1,
+        dark: 3,
+        clear: 1,
+        feather: 2,
+        cloud: 1,
+        s: 1.8,
+      ),
+      ClarityGrade.i1 => (
+        pin: 2,
+        needle: 1,
+        dark: 3,
+        clear: 1,
+        feather: 2,
+        cloud: 2,
+        s: 2.6,
+      ),
+      ClarityGrade.i2 => (
+        pin: 1,
+        needle: 1,
+        dark: 4,
+        clear: 1,
+        feather: 3,
+        cloud: 2,
+        s: 3.4,
+      ),
+      ClarityGrade.i3 => (
+        pin: 1,
+        needle: 0,
+        dark: 4,
+        clear: 0,
+        feather: 4,
+        cloud: 3,
+        s: 4.2,
+      ),
     };
-    if (recipe == null) return const [];
+    if (r == null) return const [];
 
     final rng = math.Random(31 + grade.index * 7);
     final out = <SimInclusion>[];
     final half = mesh.length / 2;
     final low = grade.index >= ClarityGrade.si1.index;
+    double vary() => 0.7 + rng.nextDouble() * 0.6;
 
-    // A random point inside the stone, clear of its surface. Lower
-    // grades crowd under the table where they are easy to see; higher
-    // grades hide near the girdle.
-    (double, double, double)? inside({required bool central}) {
-      for (var attempt = 0; attempt < 60; attempt++) {
-        final reach = central ? 0.42 : 0.92;
+    // A random point inside the stone, [margin] clear of its surface.
+    // Lower grades crowd under the table where they are easy to see;
+    // higher grades hide out toward the girdle.
+    (double, double, double)? inside({
+      required bool central,
+      double margin = 0.03,
+    }) {
+      for (var attempt = 0; attempt < 80; attempt++) {
+        final reach = central ? 0.4 : 0.9;
         final x = (rng.nextDouble() * 2 - 1) * half * reach;
         final z = (rng.nextDouble() * 2 - 1) * reach;
-        final y = (rng.nextDouble() * 2 - 1) * mesh.totalDepth * 0.42;
-        if (!central && !low && x * x / (half * half) + z * z < 0.45) {
+        final y = (rng.nextDouble() * 2 - 1) * mesh.totalDepth * 0.4;
+        if (!central && !low && x * x / (half * half) + z * z < 0.4) {
           continue;
         }
-        if (_margin(mesh, x, y, z) > 0.05) return (x, y, z);
+        if (_margin(mesh, x, y, z) > margin) return (x, y, z);
       }
       return null;
     }
 
-    List<double> mirrorsOf(double x, double y, double z, [List<double>? e]) {
-      // Two nearest pavilion planes reflect it.
-      final planes = mesh.planes;
-      final best = <(double, int)>[];
-      for (var f = 0; f < mesh.facetCount; f++) {
-        if (mesh.kinds[f] != SimFacetKind.pavilion.index) continue;
-        final ny = planes[f * 4 + 1];
-        if (ny > -0.3) continue;
-        final dist =
-            planes[f * 4 + 3] -
-            (planes[f * 4] * x + ny * y + planes[f * 4 + 2] * z);
-        best.add((dist, f));
-      }
-      best.sort((a, b) => a.$1.compareTo(b.$1));
-      final out = <double>[];
-      for (final (_, f) in best.take(2)) {
-        final nx = planes[f * 4], ny = planes[f * 4 + 1];
-        final nz = planes[f * 4 + 2], d = planes[f * 4 + 3];
-        void reflect(double px, double py, double pz) {
-          final s = 2 * (nx * px + ny * py + nz * pz - d);
-          out.addAll([px - s * nx, py - s * ny, pz - s * nz]);
-        }
-
-        reflect(x, y, z);
-        if (e != null) reflect(e[0], e[1], e[2]);
-      }
-      return out;
-    }
-
-    for (var i = 0; i < recipe.pin; i++) {
-      final p = inside(central: false);
-      if (p == null) continue;
-      out.add(
-        SimInclusion(
-          kind: SimInclusionKind.pinpoint,
-          x: p.$1,
-          y: p.$2,
-          z: p.$3,
-          size: 0.006 + rng.nextDouble() * 0.005 * recipe.s,
-          seed: rng.nextDouble(),
-        ),
-      );
-    }
-    for (var i = 0; i < recipe.crystal; i++) {
-      // The first crystal of an included stone sits right under the table.
-      final p = inside(central: low && i < 2);
-      if (p == null) continue;
-      final size =
-          (0.011 + rng.nextDouble() * 0.016) *
-          recipe.s *
-          (low && i == 0 ? 1.8 : 1);
-      out.add(
-        SimInclusion(
-          kind: SimInclusionKind.crystal,
-          x: p.$1,
-          y: p.$2,
-          z: p.$3,
-          size: size,
-          mirrors: mirrorsOf(p.$1, p.$2, p.$3),
-          seed: rng.nextDouble(),
-        ),
-      );
-    }
-    for (var i = 0; i < recipe.feather; i++) {
-      final p = inside(central: low && i == 0);
-      if (p == null) continue;
-      final len = (0.07 + rng.nextDouble() * 0.08) * recipe.s;
+    // A random unit vector; [flat] keeps it away from straight up so a
+    // plane through it faces the viewer obliquely.
+    (double, double, double) axis({double flat = 1}) {
       final a = rng.nextDouble() * math.pi * 2;
-      final tilt = (rng.nextDouble() - 0.5) * 0.8;
-      var ex = p.$1 + math.cos(a) * len, ez = p.$3 + math.sin(a) * len;
-      var ey = p.$2 + tilt * len;
-      // Keep the far end inside too.
-      for (
-        var shrink = 0;
-        shrink < 4 && _margin(mesh, ex, ey, ez) < 0.02;
-        shrink++
-      ) {
-        ex = (ex + p.$1) / 2;
-        ey = (ey + p.$2) / 2;
-        ez = (ez + p.$3) / 2;
-      }
+      final y = (rng.nextDouble() * 2 - 1) * flat;
+      final h = math.sqrt(1 - y * y);
+      return (math.cos(a) * h, y, math.sin(a) * h);
+    }
+
+    void add(
+      SimInclusionKind kind,
+      (double, double, double)? at,
+      double size, [
+      (double, double, double)? dir,
+    ]) {
+      if (at == null || out.length >= maxCount) return;
+      final d = dir ?? axis();
       out.add(
         SimInclusion(
-          kind: SimInclusionKind.feather,
-          x: p.$1,
-          y: p.$2,
-          z: p.$3,
-          ex: ex,
-          ey: ey,
-          ez: ez,
-          size: len,
-          mirrors: mirrorsOf(p.$1, p.$2, p.$3, [ex, ey, ez]),
-          seed: rng.nextDouble(),
+          kind: kind,
+          x: at.$1,
+          y: at.$2,
+          z: at.$3,
+          size: size,
+          ax: d.$1,
+          ay: d.$2,
+          az: d.$3,
+          seed: rng.nextDouble() * 0.999,
         ),
       );
     }
-    for (var i = 0; i < recipe.cloud; i++) {
-      final p = inside(central: false);
-      if (p == null) continue;
-      out.add(
-        SimInclusion(
-          kind: SimInclusionKind.cloud,
-          x: p.$1,
-          y: p.$2,
-          z: p.$3,
-          size: (0.04 + rng.nextDouble() * 0.04) * recipe.s,
-          seed: rng.nextDouble(),
-        ),
+
+    // The defining inclusion first: lower grades show it under the table.
+    for (var i = 0; i < r.dark; i++) {
+      final big = low && i == 0;
+      final size = 0.011 * r.s * vary() * (big ? 1.6 : 1);
+      final at = inside(central: low && i < 2, margin: size * 2);
+      add(SimInclusionKind.darkCrystal, at, size);
+      // Large crystals strain the stone around them: a tension feather.
+      if (big && grade.index >= ClarityGrade.i1.index && at != null) {
+        add(SimInclusionKind.feather, at, size * 3.2, axis(flat: 0.7));
+      }
+    }
+    for (var i = 0; i < r.feather; i++) {
+      // Feathers commonly run in from the girdle.
+      final edge = i.isOdd || !low;
+      final size = 0.04 * r.s * vary();
+      final at = edge
+          ? _nearGirdle(mesh, rng, size * 0.4)
+          : inside(central: true, margin: size * 0.2);
+      add(SimInclusionKind.feather, at, size, axis(flat: 0.75));
+    }
+    for (var i = 0; i < r.clear; i++) {
+      final size = 0.012 * r.s * vary();
+      add(
+        SimInclusionKind.clearCrystal,
+        inside(central: low, margin: size * 2),
+        size,
+      );
+    }
+    for (var i = 0; i < r.cloud; i++) {
+      final size = 0.035 * r.s * vary();
+      add(
+        SimInclusionKind.cloud,
+        inside(central: false, margin: size * 0.5),
+        size,
+        axis(flat: 0.4),
+      );
+    }
+    for (var i = 0; i < r.needle; i++) {
+      final size = 0.03 * math.min(r.s, 2.0) * vary();
+      add(
+        SimInclusionKind.needle,
+        inside(central: false, margin: size),
+        size,
+        axis(flat: 0.6),
+      );
+    }
+    for (var i = 0; i < r.pin; i++) {
+      add(
+        SimInclusionKind.pinpoint,
+        inside(central: false),
+        0.004 + rng.nextDouble() * 0.003,
       );
     }
     return out;
   }
 
+  /// Packs [inclusions] the way the shader reads them: per inclusion,
+  /// centre and size, then axis and `kind + seed`.
+  static Float32List pack(List<SimInclusion> inclusions) {
+    final out = Float32List(maxCount * 8);
+    final n = math.min(inclusions.length, maxCount);
+    for (var i = 0; i < n; i++) {
+      final c = inclusions[i];
+      out.setAll(i * 8, [
+        c.x,
+        c.y,
+        c.z,
+        c.size,
+        c.ax,
+        c.ay,
+        c.az,
+        c.kind.code + c.seed.clamp(0.0, 0.999),
+      ]);
+    }
+    return out;
+  }
+
+  /// A point just inside the girdle, [margin] clear of the surface.
+  static (double, double, double)? _nearGirdle(
+    SimMesh mesh,
+    math.Random rng,
+    double margin,
+  ) {
+    final half = mesh.length / 2;
+    for (var attempt = 0; attempt < 60; attempt++) {
+      final a = rng.nextDouble() * math.pi * 2;
+      final reach = 0.72 + rng.nextDouble() * 0.18;
+      final x = math.cos(a) * half * reach, z = math.sin(a) * reach;
+      final y = (rng.nextDouble() - 0.6) * mesh.totalDepth * 0.25;
+      if (_margin(mesh, x, y, z) > margin) return (x, y, z);
+    }
+    return null;
+  }
+
   /// Smallest distance from (x, y, z) to any facet plane; negative when
   /// outside the stone.
-  static double _margin(SimMesh mesh, double x, double y, double z) {
-    final p = mesh.planes;
-    var best = double.infinity;
-    for (var f = 0; f < mesh.facetCount; f++) {
-      final d =
-          p[f * 4 + 3] - (p[f * 4] * x + p[f * 4 + 1] * y + p[f * 4 + 2] * z);
-      if (d < best) best = d;
-    }
-    return best;
-  }
+  static double _margin(SimMesh mesh, double x, double y, double z) =>
+      mesh.inset(x, y, z);
 }

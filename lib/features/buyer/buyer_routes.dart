@@ -15,6 +15,9 @@ import 'presentation/screens/buyer_refunds_screen.dart';
 import 'presentation/screens/buyer_reviews_screen.dart';
 import 'presentation/screens/buyer_settings_screen.dart';
 import 'presentation/screens/buyer_wishlist_screen.dart';
+import 'presentation/screens/buyer_about_screen.dart';
+import 'presentation/screens/buyer_policies_hub_screen.dart';
+import 'presentation/screens/buyer_legal_document_screen.dart';
 import '../recently_viewed/presentation/screens/buyer_recently_viewed_screen.dart';
 import '../notifications/presentation/screens/notifications_screen.dart';
 import '../auth/presentation/screens/profile_screen.dart';
@@ -123,5 +126,27 @@ final List<RouteBase> buyerRoutes = [
     path: AppRouteNames.buyerNotifications,
     builder: (context, state) =>
         const MaisonLayout(detail: true, child: NotificationsScreen()),
+  ),
+  GoRoute(
+    path: AppRouteNames.buyerAbout,
+    builder: (context, state) => const BuyerAboutScreen(),
+  ),
+  GoRoute(
+    path: AppRouteNames.buyerPrivacy,
+    builder: (context, state) => const BuyerPrivacyScreen(),
+  ),
+  GoRoute(
+    path: AppRouteNames.buyerTerms,
+    builder: (context, state) => const BuyerTermsScreen(),
+  ),
+  GoRoute(
+    path: AppRouteNames.buyerPolicies,
+    builder: (context, state) => const BuyerPoliciesHubScreen(),
+  ),
+  GoRoute(
+    path: AppRouteNames.buyerPolicyDetail,
+    builder: (context, state) => BuyerPolicyDetailScreen(
+      policyId: state.pathParameters['policyId'] ?? '',
+    ),
   ),
 ];

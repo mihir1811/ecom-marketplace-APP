@@ -167,6 +167,7 @@ abstract final class AccountCommerceL10n {
   static const submitReview = 'commerce.reviews.submit';
   static const helpCenter = 'account.helpCenter';
   static const aboutGemWorld = 'account.about';
+  static const privacyPolicy = 'account.privacy';
   static const policiesLegal = 'account.policies';
   static const termsConditions = 'account.terms';
   static const signOut = 'account.signOut';
@@ -1241,6 +1242,11 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     english: 'About GemWorld',
     hindi: 'GemWorld के बारे में',
     gujarati: 'GemWorld વિશે',
+  ),
+  AccountCommerceL10n.privacyPolicy: LocalizedMessage(
+    english: 'Privacy Policy',
+    hindi: 'गोपनीयता नीति',
+    gujarati: 'ગોપનીયતા નીતિ',
   ),
   AccountCommerceL10n.policiesLegal: LocalizedMessage(
     english: 'Policies & Legal',

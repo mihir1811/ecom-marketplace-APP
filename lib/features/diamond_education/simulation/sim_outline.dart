@@ -25,6 +25,7 @@ abstract final class SimOutline {
       case SimShape.emerald:
       case SimShape.asscher:
       case SimShape.round:
+      case SimShape.heart: // already by arc length
         return at(shape, u);
       default:
         final table = _arc.putIfAbsent(shape, () => _arcTable(shape));
@@ -85,18 +86,7 @@ abstract final class SimOutline {
         if (math.cos(a) <= 0) return (x: math.cos(a), z: math.sin(a));
         return _lens(a, shape.ratio * 2 - 1, both: false);
       case SimShape.heart:
-        final s = math.sin(a);
-        const k = 1 / 16;
-        // Classic heart curve: cleft at u = 0, tip at u = 0.5.
-        return (
-          x: 16 * s * s * s * k,
-          z:
-              -(13 * math.cos(a) -
-                  5 * math.cos(2 * a) -
-                  2 * math.cos(3 * a) -
-                  math.cos(4 * a)) *
-              k,
-        );
+        return _heart(u, shape.ratio);
       case SimShape.emerald:
       case SimShape.asscher:
         // Step cuts are built from [StepOutline]; this is its silhouette.
@@ -116,6 +106,41 @@ abstract final class SimOutline {
     final r = (-b + math.sqrt(b * b + 4 * tip * tip)) / 2;
     if (!both && c < 0) return (x: c, z: s);
     return (x: r * c, z: r * s);
+  }
+
+  /// Heart of a cut diamond, by arc length: cleft at u = 0, tip at
+  /// u = 0.5, the +x half first. Two round lobes meet in a V cleft and
+  /// run into dead straight wings down to a sharp point, as on a real
+  /// stone (no cartoon swell or inward curl toward the point). Width 2,
+  /// length (lobe tops to point) 2 × [ratio]; lobe centres at z = 0.
+  static SimPoint _heart(double u, double ratio) {
+    const c = 0.45, r = 0.55;
+    final tip = 2 * ratio - r;
+    // Wing: tangent from the tip to the lobe circle.
+    final d = math.sqrt(c * c + tip * tip);
+    final toCentre = math.atan2(c, tip), half = math.asin(r / d);
+    final wing = toCentre + half; // from the −z axis
+    // Lobe arc from the cleft, over the top, to the wing's tangent point.
+    final cleft = math.atan2(-math.sqrt(r * r - c * c), -c);
+    final end = math.atan2(math.sin(wing), math.cos(wing));
+    final sweep = end - cleft;
+    final arc = r * sweep, line = math.sqrt(d * d - r * r);
+    var s = u % 1;
+    final mirror = s > 0.5;
+    if (mirror) s = 1 - s;
+    final at = s * 2 * (arc + line);
+    double x, z;
+    if (at <= arc) {
+      final a = cleft + at / r;
+      x = c + r * math.cos(a);
+      z = r * math.sin(a);
+    } else {
+      final f = (at - arc) / line;
+      final tx = c + r * math.cos(end), tz = r * math.sin(end);
+      x = tx * (1 - f);
+      z = tz + (tip - tz) * f;
+    }
+    return (x: mirror ? -x : x, z: z);
   }
 
   /// Square of half-size 1; corners at u = 1/8 + k/4.

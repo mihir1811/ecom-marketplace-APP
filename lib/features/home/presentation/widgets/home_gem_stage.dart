@@ -114,6 +114,10 @@ class HomeGemStage extends StatelessWidget {
                       ),
                       link(RemainingL10n.aboutGemWorld, AppRouteNames.aboutUs),
                       link(
+                        AccountCommerceL10n.privacyPolicy,
+                        AppRouteNames.privacyPolicy,
+                      ),
+                      link(
                         RemainingL10n.termsConditions,
                         AppRouteNames.termsAndConditions,
                       ),

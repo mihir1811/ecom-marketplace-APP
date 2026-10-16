@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/app_top_bar.dart';
+import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../data/policies_repository.dart';
 import '../../domain/models/policy_document.dart';
+import '../widgets/policy_body.dart';
+import '../widgets/policy_icons.dart';
+import '../../../seller/presentation/atelier/atelier_components.dart';
+import '../../../seller/presentation/atelier/atelier_feedback.dart';
+import '../../../seller/presentation/atelier/atelier_motion.dart';
+import '../../../seller/presentation/atelier/atelier_studio.dart';
+import '../../../seller/presentation/atelier/atelier_theme.dart';
 
-import '../../../../core/l10n/app_localizations.dart';
-
-/// Index of GemWorld Terms and marketplace policies (from JSON).
+/// Public policies index (guest / home footer).
 class PoliciesHubScreen extends StatefulWidget {
   const PoliciesHubScreen({super.key});
 
@@ -21,151 +26,171 @@ class PoliciesHubScreen extends StatefulWidget {
 }
 
 class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
-  Locale? _loadedLocale;
-  late Future<List<PolicyDocument>> _future;
+  Locale? _locale;
+  Future<List<PolicyDocument>>? _future;
+  String _query = '';
+  final _searchCtrl = TextEditingController();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final locale = Localizations.localeOf(context);
-    if (_loadedLocale?.languageCode == locale.languageCode) return;
-    _loadedLocale = locale;
-    _future = PoliciesRepository.loadAll(locale);
+    if (_locale?.languageCode == locale.languageCode && _future != null) {
+      return;
+    }
+    _locale = locale;
+    _reload();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  void _reload() {
+    _future = PoliciesRepository.loadAll(
+      _locale ?? Localizations.localeOf(context),
+    );
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final isWide = width >= 720;
-    final horizontal = isWide ? AppSpacing.s48 : AppSpacing.s20;
+    final p = context.atelier;
 
     return AppScaffold(
-      backgroundColor: AppColors.bg(context),
-      appBar: SimpleAppTopBar(
-        title: context.tr(RemainingL10n.policiesLegal),
-        backgroundColor: AppColors.bg(context),
+      backgroundColor: p.canvas,
+      appBar: AppBar(
+        backgroundColor: p.canvas,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: AtelierIconButton(
+          icon: Icons.arrow_back_rounded,
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          onPressed: () => context.goBack(fallbackLocation: AppRouteNames.home),
+          filled: true,
+        ),
       ),
       body: FutureBuilder<List<PolicyDocument>>(
         future: _future,
         builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError || snapshot.data == null) {
-            return Center(
-              child: Text(
-                context.tr(RemainingL10n.unableLoadPolicies),
-                style: AppTypography.body.copyWith(
-                  color: AppColors.textSecondaryLight,
-                ),
-              ),
-            );
-          }
+          final loading = snapshot.connectionState != ConnectionState.done;
+          final policies = snapshot.data ?? const <PolicyDocument>[];
+          final failed =
+              snapshot.connectionState == ConnectionState.done &&
+              (snapshot.hasError || snapshot.data == null);
+          final q = _query.trim().toLowerCase();
+          final visible = q.isEmpty
+              ? policies
+              : policies
+                    .where(
+                      (d) =>
+                          d.title.toLowerCase().contains(q) ||
+                          d.subtitle.toLowerCase().contains(q),
+                    )
+                    .toList();
 
-          final policies = snapshot.data!;
-          return CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  horizontal,
-                  AppSpacing.s8,
-                  horizontal,
-                  AppSpacing.s48,
-                ),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    Text(
-                      'GemWorld Marketplace',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.bronze,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.6,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s8),
-                    Text(
-                      context.tr(RemainingL10n.policiesLegal),
-                      style: AppTypography.headline.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
-                    Text(
-                      context.tr(RemainingL10n.readTheTermsAndCategoryPolicies),
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.textSecondaryLight,
-                        height: 1.55,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s24),
-                    for (final policy in policies) ...[
-                      _PolicyTile(policy: policy),
-                      const SizedBox(height: AppSpacing.s12),
-                    ],
-                  ]),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _PolicyTile extends StatelessWidget {
-  const _PolicyTile({required this.policy});
-
-  final PolicyDocument policy;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.warmWhite,
-      borderRadius: BorderRadius.circular(AppSpacing.r12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        onTap: () => context.push(AppRouteNames.policyPath(policy.id)),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.s20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.r12),
-            border: Border.all(color: AppColors.warmBorder),
-          ),
-          child: Row(
+          return AtelierPage(
+            onRefresh: () async => _reload(),
+            maxWidth: 860,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              AtelierHero(
+                title: context.tr(RemainingL10n.policiesLegal),
+                cut: GemCut.asscher,
+                look: GemLook.ice,
+                action: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
                   children: [
-                    Text(
-                      policy.title,
-                      style: AppTypography.title.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
+                    AtelierButton(
+                      label: context.tr(AccountCommerceL10n.privacyPolicy),
+                      icon: Icons.privacy_tip_outlined,
+                      variant: AtelierButtonVariant.gold,
+                      onPressed: () =>
+                          context.openRoute(AppRouteNames.privacyPolicy),
                     ),
-                    const SizedBox(height: AppSpacing.s4),
-                    Text(
-                      policy.subtitle,
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.textSecondaryLight,
-                        height: 1.4,
-                        fontSize: 14,
+                    AtelierButton(
+                      label: context.tr(AccountCommerceL10n.termsConditions),
+                      icon: Icons.gavel_outlined,
+                      variant: AtelierButtonVariant.secondary,
+                      onPressed: () => context.openRoute(
+                        AppRouteNames.termsAndConditions,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.textMutedLight,
+              const SizedBox(height: 16),
+              Text(
+                context.tr(RemainingL10n.readTheTermsAndCategoryPolicies),
+                style: AtelierType.body(p.inkSoft, size: 15),
               ),
+              const SizedBox(height: 16),
+              AtelierSearchField(
+                controller: _searchCtrl,
+                hint: 'Search policies',
+                onChanged: (v) => setState(() => _query = v),
+              ),
+              const SizedBox(height: 18),
+              if (loading)
+                const PolicyDocumentSkeleton()
+              else if (failed)
+                AtelierEmptyState(
+                  title: context.tr(RemainingL10n.unableLoadPolicies),
+                  message: context.tr(
+                    RemainingL10n.readTheTermsAndCategoryPolicies,
+                  ),
+                  actionLabel: context.tr(RemainingL10n.retry),
+                  onAction: _reload,
+                )
+              else if (visible.isEmpty)
+                const AtelierEmptyState(
+                  title: 'No matching policies',
+                  message: 'Try a different search term.',
+                  icon: Icons.search_off_rounded,
+                )
+              else
+                for (final policy in visible) ...[
+                  Reveal(
+                    child: AtelierCard(
+                      onTap: () {
+                        AppHaptics.selection();
+                        context.openRoute(AppRouteNames.policyPath(policy.id));
+                      },
+                      semanticLabel: policy.title,
+                      child: Row(
+                        children: [
+                          AtelierIconBadge(icon: policyIconFor(policy.id)),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  policy.title,
+                                  style: AtelierType.title(p.ink, size: 15.5),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  policy.subtitle,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AtelierType.body(p.inkSoft, size: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.chevron_right_rounded, color: p.muted),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }

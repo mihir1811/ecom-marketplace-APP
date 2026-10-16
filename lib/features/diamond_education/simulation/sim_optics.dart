@@ -63,10 +63,16 @@ class SimOptics {
 /// moves. Floor and walls are dim grey, never pure black, so light leaking
 /// out of a poor cut reads as dull rather than void.
 ///
-/// Must stay in step with `studio()` in `shaders/diamond_trace.frag`.
+/// Under [SimLighting.heartsArrows] the studio is a hearts & arrows scope
+/// instead: no lamps, only the scope's red cone, white disc and viewing
+/// hole.
+///
+/// Must stay in step with `studio()` and `scope()` in
+/// `shaders/diamond_trace.frag`.
 class SimStudio {
   SimStudio(SimLighting lighting) {
     final uv = lighting == SimLighting.ultraviolet;
+    _scope = lighting == SimLighting.heartsArrows;
     final scale = uv ? 0.06 : 1.0;
     final boxes = <double>[], spots = <double>[];
     List<double> tint(double r, double g, double b) => [
@@ -108,15 +114,17 @@ class SimStudio {
     }
 
     // Overhead key, a wide strip leaning toward the viewer.
-    box(0, 0.8, 0.6, 26, 12, 2.2, 2.2, 2.15);
-    // Tall side boxes, one a touch warm, one a touch cool.
-    box(-0.78, 0.35, 0.52, 9, 17, 2.8, 2.76, 2.68);
-    box(0.78, 0.3, 0.55, 9, 17, 2.6, 2.66, 2.78);
-    // Overhead strip and rims behind: they model a side view, too weak to
-    // brighten light that leaks out of the back of a poor cut.
-    box(0, 0.93, -0.36, 24, 7, 1.3, 1.3, 1.3);
-    box(-0.6, 0.5, -0.62, 7, 12, 0.7, 0.7, 0.7);
-    box(0.62, 0.45, -0.64, 7, 12, 0.65, 0.66, 0.68);
+    if (!_scope) box(0, 0.8, 0.6, 26, 12, 2.2, 2.2, 2.15);
+    if (!_scope) {
+      // Tall side boxes, one a touch warm, one a touch cool.
+      box(-0.78, 0.35, 0.52, 9, 17, 2.8, 2.76, 2.68);
+      box(0.78, 0.3, 0.55, 9, 17, 2.6, 2.66, 2.78);
+      // Overhead strip and rims behind: they model a side view, too weak
+      // to brighten light that leaks out of the back of a poor cut.
+      box(0, 0.93, -0.36, 24, 7, 1.3, 1.3, 1.3);
+      box(-0.6, 0.5, -0.62, 7, 12, 0.7, 0.7, 0.7);
+      box(0.62, 0.45, -0.64, 7, 12, 0.65, 0.66, 0.68);
+    }
 
     // Small, intense spots: the pin-point flashes that read as sparkle
     // and split into colour (fire) through the stone. Most sit in the
@@ -141,7 +149,11 @@ class SimStudio {
     ];
     final co = math.cos(2.0 * math.pi / 180);
     final ci = math.cos(0.6 * math.pi / 180);
+    // In the scope only a faint few remain, the room's stray light: the
+    // pin-point glints that keep the stone reading as a diamond.
+    final glint = _scope ? 0.22 : 1.0;
     for (var i = 0; i < at.length; i++) {
+      if (_scope && i.isOdd) continue;
       final az = at[i].$1 * math.pi / 180, el = at[i].$2 * math.pi / 180;
       final warm = i.isEven;
       spots.addAll([
@@ -149,7 +161,7 @@ class SimStudio {
         math.sin(el),
         math.cos(el) * math.cos(az),
         co,
-        ...tint(warm ? 29 : 26, 28, warm ? 26 : 30),
+        ...tint((warm ? 29 : 26) * glint, 28 * glint, (warm ? 26 : 30) * glint),
         1 / (ci - co),
       ]);
     }
@@ -187,6 +199,7 @@ class SimStudio {
   late final Float64List _boxes, _spots;
   late final int _boxCount, _spotCount;
   late final bool _uv;
+  late final bool _scope;
 
   /// Soft boxes as the shader reads them, [maxBoxes] × (centre, 0; right
   /// axis, tan half width; rgb, tan half height); unused slots are dark.
@@ -198,6 +211,12 @@ class SimStudio {
 
   /// Room brightness: 1 in daylight, 0 under ultraviolet.
   late final double ambient;
+
+  /// Whether this is the hearts & arrows scope rather than the studio.
+  bool get isScope => _scope;
+
+  /// Cosine of the scope's viewing hole edge, around the view axis.
+  double scopeHole = 0.976;
 
   /// Height (world y of a unit direction) below which no light reaches.
   late final double lowestLight;
@@ -212,6 +231,33 @@ class SimStudio {
   }
 
   void sample(double x, double y, double z) {
+    if (_scope) {
+      // Viewing hole, white reflector (brightest toward the hole), red
+      // filter cone glowing toward the reflector and lit unevenly by the
+      // ring of lamps, dim stage behind.
+      final ring = 1 + 0.14 * math.cos(6 * math.atan2(y, x + 1e-5));
+      final k = (0.25 + 0.75 * z * z) * ring, lift = 0.93 + 0.07 * y;
+      final cone = _smooth(0, 0.35, z), disc = _smooth(0.86, 0.9, z);
+      final glow = 0.7 + 0.45 * _smooth(0.87, scopeHole, z);
+      final hole = _smooth(scopeHole - 0.002, scopeHole + 0.006, z);
+      double mix(
+        double stage,
+        double red,
+        double haze,
+        double white,
+        double dark,
+      ) {
+        final c = stage + ((red * k + haze) * lift - stage) * cone;
+        final d = c + (white * glow - c) * disc;
+        return d + (dark - d) * hole;
+      }
+
+      r = mix(0.025, 0.92, 0.05, 1.05, 0.01);
+      g = mix(0.012, 0.075, 0.018, 0.97, 0.006);
+      b = mix(0.014, 0.095, 0.026, 0.97, 0.007);
+      if (y >= lowestLight) _addSpots(x, y, z);
+      return;
+    }
     // Dark floor, dim walls brightening toward the ceiling.
     final room = y < 0 ? 0.02 + 0.04 * (1 + y) : 0.06 + 0.22 * y * (2 - y);
     // The light tent around the viewer, dimmer below eye level.
@@ -252,7 +298,15 @@ class SimStudio {
       lg += w * bx[o + 9];
       lb += w * bx[o + 10];
     }
+    r = lr;
+    g = lg;
+    b = lb;
+    _addSpots(x, y, z);
+  }
+
+  void _addSpots(double x, double y, double z) {
     final p = _spots;
+    var lr = r, lg = g, lb = b;
     for (var i = 0, o = 0; i < _spotCount; i++, o += 8) {
       final c = x * p[o] + y * p[o + 1] + z * p[o + 2];
       if (c <= p[o + 3]) continue;

@@ -18,7 +18,7 @@ enum SimShape {
   marquise('Marquise', SimCutFamily.brilliant, 2.0),
   radiant('Radiant', SimCutFamily.brilliant, 1.25),
   asscher('Asscher', SimCutFamily.step, 1.0),
-  heart('Heart', SimCutFamily.brilliant, 0.92);
+  heart('Heart', SimCutFamily.brilliant, 1.0);
 
   const SimShape(this.catalogValue, this.family, this.ratio);
 
@@ -27,4 +27,10 @@ enum SimShape {
   final double ratio;
 
   String get svgAsset => 'assets/shapes/$catalogValue.svg';
+
+  /// Whether a well cut stone of this shape shows hearts & arrows. The
+  /// pattern needs a round brilliant's eight-fold symmetry; fancy shapes
+  /// cannot form it (a few patented square and cushion designs imitate it
+  /// with their own facet plans).
+  bool get showsHeartsArrows => this == SimShape.round;
 }
