@@ -21,7 +21,7 @@ import 'sim_optics.dart';
 /// convex, so a ray leaves through the nearest plane ahead of it.
 class SimTracer {
   // Diamond's dispersion, nudged a little wider so fire reads on screen.
-  static const _iorR = 2.392, _iorG = 2.418, _iorB = 2.464;
+  static const _iorR = 2.4, _iorG = 2.418, _iorB = 2.456;
 
   SimMesh? _mesh;
   late Float64List _solid; // non-girdle planes, packed nx ny nz d
@@ -232,8 +232,8 @@ class SimTracer {
 
       // Escape, per colour. Higher index traps blue first.
       final s2G = _iorG * _iorG * s1;
-      if (s2G < 0.14) {
-        // Near-normal exit: the three colours leave almost together.
+      if (s2G < 0.5) {
+        // Steep exit: the three colours leave almost together.
         final cG = math.sqrt(1 - s2G);
         final ex = _iorG * tx - (_iorG * c - cG) * nx;
         final ey = _iorG * ty - (_iorG * c - cG) * ny;
@@ -264,23 +264,10 @@ class SimTracer {
       if (thrR < 0.012 && thrG < 0.012 && thrB < 0.012) break;
     }
 
-    // Light still bouncing inside after maxBounces exits into the white
-    // studio tent on subsequent bounces: sample the remaining direction
-    // blended with the studio dome average so multi-bounce TIR facets
-    // stay luminous and body-tinted rather than turning black.
-    if (thrR + thrG + thrB > 0.005) {
-      _env(tx, ty, tz);
-      final fill = env.ambientFill;
-      final remR = 0.55 * env.r + 0.45 * fill;
-      final remG = 0.55 * env.g + 0.45 * fill;
-      final remB = 0.55 * env.b + 0.45 * fill;
-      accR += thrR * remR;
-      accG += thrG * remG;
-      accB += thrB * remB;
-    }
-    outR = accR;
-    outG = accG;
-    outB = accB;
+    // Whatever is still trapped returns as a faint average of the room.
+    outR = accR + thrR * 0.02;
+    outG = accG + thrG * 0.02;
+    outB = accB + thrB * 0.02;
     pathLength = length;
   }
 

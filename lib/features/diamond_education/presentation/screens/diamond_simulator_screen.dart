@@ -10,7 +10,6 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../application/diamond_simulator_controller.dart';
-import '../../domain/diamond_grades.dart';
 import '../widgets/simulator/diamond_sim_viewport.dart';
 import '../widgets/simulator/sim_cut_panels.dart';
 import '../widgets/simulator/sim_grade_panels.dart';
@@ -19,9 +18,9 @@ import '../widgets/simulator/sim_viewport_overlay.dart';
 
 enum _SimTab { cut, color, clarity, carat, fluorescence, proportions }
 
-/// Full-screen 3D diamond simulator: a live stone in a soft dark studio
-/// (or UV chamber) above controls for shape, the 4Cs, fluorescence and
-/// every proportion.
+/// Full-screen 3D diamond simulator: a live stone in a dark studio above
+/// controls for shape, the 4Cs, fluorescence and every proportion. Always
+/// dark, whatever the app theme, so the stone's light reads truly.
 class DiamondSimulatorScreen extends ConsumerStatefulWidget {
   const DiamondSimulatorScreen({super.key});
 
@@ -69,38 +68,16 @@ class _DiamondSimulatorScreenState
 
   Widget _build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final isUv = ref.watch(
-      diamondSimulatorProvider.select(
-        (s) => s.lighting == SimLighting.ultraviolet,
-      ),
-    );
     final stage = Stack(
       fit: StackFit.expand,
       children: [
-        AnimatedContainer(
-          duration: LuxeMotion.medium,
+        DecoratedBox(
           decoration: BoxDecoration(
-            gradient: isUv
-                ? const RadialGradient(
-                    center: Alignment(0, -0.1),
-                    radius: 0.98,
-                    colors: [
-                      Color(0xFF1C2340),
-                      Color(0xFF101426),
-                      Color(0xFF090B15),
-                    ],
-                    stops: [0.0, 0.6, 1.0],
-                  )
-                : const RadialGradient(
-                    center: Alignment(0, -0.1),
-                    radius: 1.0,
-                    colors: [
-                      Color(0xFF2E3546),
-                      Color(0xFF1F2430),
-                      Color(0xFF151821),
-                    ],
-                    stops: [0.0, 0.58, 1.0],
-                  ),
+            gradient: RadialGradient(
+              center: const Alignment(0, -0.15),
+              radius: 0.95,
+              colors: [LuxeStage.glow, LuxeStage.obsidian],
+            ),
           ),
         ),
         DiamondSimViewport(controller: _viewport),
@@ -120,7 +97,7 @@ class _DiamondSimulatorScreenState
         child: SingleChildScrollView(
           key: ValueKey(_tab),
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
           child: _panel(_tab),
         ),
       ),
@@ -167,9 +144,9 @@ class _DiamondSimulatorScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         const SimShapeStrip(),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                         tabs,
                         Expanded(child: panel),
                       ],
@@ -182,14 +159,11 @@ class _DiamondSimulatorScreenState
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(flex: 16, child: ClipRect(child: stage)),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: p.canvas,
-                  border: Border(top: BorderSide(color: p.hairline)),
-                ),
+              Expanded(flex: 11, child: ClipRect(child: stage)),
+              ColoredBox(
+                color: p.canvas,
                 child: const Padding(
-                  padding: EdgeInsets.only(top: 6, bottom: 4),
+                  padding: EdgeInsets.only(top: 10, bottom: 6),
                   child: SimShapeStrip(),
                 ),
               ),
@@ -223,7 +197,7 @@ class _SimTabs extends StatelessWidget {
         border: Border(bottom: BorderSide(color: p.hairline)),
       ),
       child: SizedBox(
-        height: 40,
+        height: 46,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),

@@ -116,7 +116,7 @@ abstract final class SimInclusions {
           x: p.$1,
           y: p.$2,
           z: p.$3,
-          size: 0.003 + rng.nextDouble() * 0.0025 * recipe.s,
+          size: 0.006 + rng.nextDouble() * 0.005 * recipe.s,
           seed: rng.nextDouble(),
         ),
       );
@@ -126,9 +126,9 @@ abstract final class SimInclusions {
       final p = inside(central: low && i < 2);
       if (p == null) continue;
       final size =
-          (0.0055 + rng.nextDouble() * 0.0075) *
+          (0.011 + rng.nextDouble() * 0.016) *
           recipe.s *
-          (low && i == 0 ? 1.35 : 1);
+          (low && i == 0 ? 1.8 : 1);
       out.add(
         SimInclusion(
           kind: SimInclusionKind.crystal,
@@ -144,7 +144,7 @@ abstract final class SimInclusions {
     for (var i = 0; i < recipe.feather; i++) {
       final p = inside(central: low && i == 0);
       if (p == null) continue;
-      final len = (0.045 + rng.nextDouble() * 0.055) * recipe.s;
+      final len = (0.07 + rng.nextDouble() * 0.08) * recipe.s;
       final a = rng.nextDouble() * math.pi * 2;
       final tilt = (rng.nextDouble() - 0.5) * 0.8;
       var ex = p.$1 + math.cos(a) * len, ez = p.$3 + math.sin(a) * len;
@@ -183,7 +183,7 @@ abstract final class SimInclusions {
           x: p.$1,
           y: p.$2,
           z: p.$3,
-          size: (0.028 + rng.nextDouble() * 0.032) * recipe.s,
+          size: (0.04 + rng.nextDouble() * 0.04) * recipe.s,
           seed: rng.nextDouble(),
         ),
       );

@@ -34,14 +34,11 @@ class SimStoneView extends StatefulWidget {
 class _SimStoneViewState extends State<SimStoneView>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker(_tick);
-  final _renderer = SimRenderer()..maxBounces = 10;
+  final _renderer = SimRenderer()..maxBounces = 8;
   final _frame = ValueNotifier(0);
   ScrollPosition? _scroll;
   Duration _last = Duration.zero;
   double _time = 0;
-  double _spin = 0.4, _tilt = 1.05;
-  double _wSpin = 0, _wTilt = 0;
-  bool _dragging = false;
   bool _visible = true;
 
   @override
@@ -103,8 +100,7 @@ class _SimStoneViewState extends State<SimStoneView>
   }
 
   void _sync() {
-    final run =
-        _visible && (_dragging || !MediaQuery.disableAnimationsOf(context));
+    final run = _visible && !MediaQuery.disableAnimationsOf(context);
     if (run && !_ticker.isActive) {
       _last = Duration.zero;
       _ticker.start();
@@ -119,48 +115,19 @@ class _SimStoneViewState extends State<SimStoneView>
         : ((elapsed - _last).inMicroseconds / 1e6).clamp(0.0, 1 / 20);
     _last = elapsed;
     _time += dt;
-    if (!_dragging) {
-      _spin += (0.32 + _wSpin) * dt;
-      _tilt = (_tilt + _wTilt * dt).clamp(-math.pi / 2, math.pi / 2);
-      final decay = math.exp(-3.0 * dt);
-      _wSpin *= decay;
-      _wTilt *= decay;
-    }
     _frame.value++;
   }
 
   @override
   Widget build(BuildContext context) {
-    final k = 2.6 / math.max(180.0, widget.size);
     return Semantics(
       image: true,
       label: widget.semanticLabel,
       excludeSemantics: widget.semanticLabel == null,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onPanStart: (_) {
-          _dragging = true;
-          _wSpin = 0;
-          _wTilt = 0;
-          _sync();
-        },
-        onPanUpdate: (d) {
-          _spin += d.delta.dx * k * 1.2;
-          _tilt = (_tilt + d.delta.dy * k).clamp(-math.pi / 2, math.pi / 2);
-          _frame.value++;
-        },
-        onPanEnd: (d) {
-          _dragging = false;
-          final v = d.velocity.pixelsPerSecond;
-          _wSpin = (v.dx * k * 0.8).clamp(-6.0, 6.0);
-          _wTilt = (v.dy * k * 0.4).clamp(-2.5, 2.5);
-          _sync();
-        },
-        child: RepaintBoundary(
-          child: CustomPaint(
-            size: Size.square(widget.size),
-            painter: _StonePainter(this),
-          ),
+      child: RepaintBoundary(
+        child: CustomPaint(
+          size: Size.square(widget.size),
+          painter: _StonePainter(this),
         ),
       ),
     );
@@ -175,16 +142,15 @@ class _StonePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final t = state._time;
-    final rock = state._dragging ? 0.0 : 0.10 * math.sin(t * 0.9);
     state._renderer.paint(
       canvas,
       size,
       view: SimView(
-        tilt: (state._tilt + rock).clamp(-math.pi / 2, math.pi / 2),
-        spin: state._spin,
+        tilt: 1.05 + 0.12 * math.sin(t * 0.9),
+        spin: 0.4 + t * 0.35,
       ),
-      pxPerUnit: size.shortestSide * 0.45,
-      samplePx: 3.6,
+      pxPerUnit: size.shortestSide * 0.4,
+      samplePx: 5,
       time: t,
       twinkle: true,
     );

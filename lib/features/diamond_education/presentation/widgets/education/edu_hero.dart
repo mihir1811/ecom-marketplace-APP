@@ -6,8 +6,8 @@ import '../../../../../core/widgets/luxe/luxe_button.dart';
 import '../sim_stone_view.dart';
 import 'edu_blocks.dart';
 
-/// Opening stage: a live traced diamond turning in a soft dark studio
-/// environment, the page promise and the way into the simulator.
+/// Opening stage: a live traced diamond turning in the dark, the page
+/// promise and the way into the simulator.
 class EduHero extends StatelessWidget {
   const EduHero({required this.onOpenSimulator, super.key});
 
@@ -16,23 +16,18 @@ class EduHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final stone = width >= 720 ? 360.0 : 300.0;
+    final stone = width >= 720 ? 260.0 : 200.0;
     return EduDarkScope(
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(LuxeSpace.radius + 10),
         ),
         child: DecoratedBox(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: RadialGradient(
-              center: Alignment(0, -0.28),
-              radius: 1.08,
-              colors: [
-                Color(0xFF2D3444),
-                Color(0xFF1E232E),
-                Color(0xFF141820),
-              ],
-              stops: [0.0, 0.58, 1.0],
+              center: const Alignment(0, -0.35),
+              radius: 1.1,
+              colors: [LuxeStage.glow, LuxeStage.obsidian],
             ),
           ),
           child: Padding(
@@ -44,14 +39,14 @@ class EduHero extends StatelessWidget {
             ),
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 680),
+                constraints: const BoxConstraints(maxWidth: 640),
                 child: Column(
                   children: [
                     SimStoneView(
                       size: stone,
                       semanticLabel: context.tr(EducationL10n.simCardTitle),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Text(
                       context.tr(EducationL10n.eyebrow),
                       textAlign: TextAlign.center,

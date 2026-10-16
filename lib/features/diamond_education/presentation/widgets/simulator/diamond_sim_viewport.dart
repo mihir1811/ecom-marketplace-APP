@@ -72,9 +72,9 @@ abstract final class SimScale {
   /// carat weights, shrunk only when a stone would overflow.
   static double pxPerMm(Size size, double radiusMm) {
     final short = size.shortestSide;
-    var px = short * 0.118;
+    var px = short * 0.085;
     final reach = radiusMm * px;
-    if (reach > short * 0.46) px *= short * 0.46 / reach;
+    if (reach > short * 0.44) px *= short * 0.44 / reach;
     return px;
   }
 }
@@ -114,7 +114,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   int _seenRequest = 0;
 
   // Adaptive quality.
-  double _samplePx = 4.2;
+  double _samplePx = 7.5;
   double _cost = 0;
   bool _refined = false;
   int _frames = 0;
@@ -234,7 +234,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         ? 0.07 * math.sin(_time * 1.15)
         : 0.0;
     final quality = _refined;
-    _renderer.maxBounces = quality ? 12 : 9;
+    _renderer.maxBounces = quality ? 11 : 8;
     final sw = Stopwatch()..start();
     _renderer.paint(
       canvas,
@@ -245,7 +245,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         zoom: _zoom,
       ),
       pxPerUnit: pxPerMm * _mmPerUnit,
-      samplePx: quality ? math.max(2.4, _samplePx * 0.55) : _samplePx,
+      samplePx: quality ? math.max(3.6, _samplePx * 0.55) : _samplePx,
       time: _time,
       twinkle: _ticker.isActive,
     );
@@ -257,10 +257,10 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   /// Keeps moving frames near 7 ms of tracing.
   void _adapt(double ms) {
     _cost = _cost == 0 ? ms : _cost * 0.8 + ms * 0.2;
-    if (_cost > 11) {
-      _samplePx = math.min(8.5, _samplePx * 1.08);
-    } else if (_cost < 5.5) {
-      _samplePx = math.max(3.2, _samplePx / 1.06);
+    if (_cost > 9) {
+      _samplePx = math.min(20, _samplePx * 1.1);
+    } else if (_cost < 4.5) {
+      _samplePx = math.max(5.5, _samplePx / 1.06);
     }
   }
 
