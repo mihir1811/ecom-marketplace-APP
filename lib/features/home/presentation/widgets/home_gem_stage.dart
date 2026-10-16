@@ -108,10 +108,6 @@ class HomeGemStage extends StatelessWidget {
                     alignment: WrapAlignment.center,
                     spacing: 14,
                     children: [
-                      link(
-                        EducationL10n.navEducation,
-                        AppRouteNames.diamondEducation,
-                      ),
                       link(RemainingL10n.aboutGemWorld, AppRouteNames.aboutUs),
                       link(
                         RemainingL10n.termsConditions,

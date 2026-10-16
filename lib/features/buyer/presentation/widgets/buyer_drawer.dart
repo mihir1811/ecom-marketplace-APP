@@ -95,16 +95,6 @@ class BuyerDrawer extends ConsumerWidget {
         ],
       ),
       AppNavGroup(
-        title: context.tr(EducationL10n.navLearn),
-        items: [
-          item(
-            AppRouteNames.diamondEducation,
-            EducationL10n.navEducation,
-            Icons.school_outlined,
-          ),
-        ],
-      ),
-      AppNavGroup(
         title: context.tr(NavL10n.groupConversations),
         items: [
           if (auth.isSeller && auth.verified)

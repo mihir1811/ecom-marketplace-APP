@@ -9,7 +9,6 @@ import 'translations/auth_experience_messages.dart';
 import 'translations/catalog_messages.dart';
 import 'translations/core_messages.dart';
 import 'translations/diamond_flow_messages.dart';
-import 'translations/education_messages.dart';
 import 'translations/experience_messages.dart';
 import 'translations/gemstone_flow_messages.dart';
 import 'translations/catalog_flow_messages.dart';
@@ -24,7 +23,6 @@ export 'translations/auth_experience_messages.dart';
 export 'translations/catalog_messages.dart';
 export 'translations/core_messages.dart';
 export 'translations/diamond_flow_messages.dart';
-export 'translations/education_messages.dart';
 export 'translations/experience_messages.dart';
 export 'translations/gemstone_flow_messages.dart';
 export 'translations/catalog_flow_messages.dart';
@@ -66,7 +64,6 @@ class AppLocalizations {
     ...jewelryFlowMessages,
     ...experienceMessages,
     ...navigationMessages,
-    ...educationMessages,
   };
 
   /// Complete immutable message catalog, exposed for validation tests.
