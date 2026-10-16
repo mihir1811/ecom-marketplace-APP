@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../application/diamond_simulator_controller.dart';
+import '../widgets/sim_stone_view.dart';
 import '../widgets/simulator/diamond_sim_viewport.dart';
 import '../widgets/simulator/sim_cut_panels.dart';
 import '../widgets/simulator/sim_grade_panels.dart';
@@ -74,9 +75,14 @@ class _DiamondSimulatorScreenState
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: RadialGradient(
-              center: const Alignment(0, -0.15),
-              radius: 0.95,
-              colors: [LuxeStage.glow, LuxeStage.obsidian],
+              center: const Alignment(0, -0.1),
+              radius: 1.05,
+              colors: [
+                SimStageTones.lit,
+                SimStageTones.mid,
+                LuxeStage.obsidian,
+              ],
+              stops: const [0, 0.5, 1],
             ),
           ),
         ),

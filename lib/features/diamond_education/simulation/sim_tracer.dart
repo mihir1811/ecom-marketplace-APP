@@ -20,8 +20,10 @@ import 'sim_optics.dart';
 /// Works in model space against the stone's facet planes: the stone is
 /// convex, so a ray leaves through the nearest plane ahead of it.
 class SimTracer {
-  // Diamond's dispersion, nudged a little wider so fire reads on screen.
-  static const _iorR = 2.4, _iorG = 2.418, _iorB = 2.456;
+  // Diamond's refractive index at red (687 nm), green (589 nm, the D
+  // line) and blue (431 nm); B–G spread is its 0.044 dispersion. Must match
+  // `shaders/diamond_trace.frag`.
+  static const _iorR = 2.407, _iorG = 2.418, _iorB = 2.451;
 
   SimMesh? _mesh;
   late Float64List _solid; // non-girdle planes, packed nx ny nz d

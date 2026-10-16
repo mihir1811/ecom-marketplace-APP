@@ -54,135 +54,191 @@ class SimOptics {
   final SimLighting lighting;
 }
 
-/// The dark studio the stone sits in. Its light sources are never drawn:
-/// they exist only as directions the stone can reflect, so all the viewer
-/// sees is their effect, the flashes and fire inside the diamond, against
-/// black. Camera-fixed: x right, y up, z toward the viewer, whose own head
-/// blocks the light straight behind the camera.
+/// The jeweller's studio the stone sits in, camera-fixed: x right, y up,
+/// z toward the viewer. Modelled on how diamonds are judged and filmed: a
+/// diffuse light tent around the viewer returns most of the light face
+/// up, the viewer's own head straight behind the camera gives the dark
+/// contrast pattern every real stone shows, rectangular soft boxes add
+/// broad flashes and small intense spots split into fire as the stone
+/// moves. Floor and walls are dim grey, never pure black, so light leaking
+/// out of a poor cut reads as dull rather than void.
+///
+/// Must stay in step with `studio()` in `shaders/diamond_trace.frag`.
 class SimStudio {
   SimStudio(SimLighting lighting) {
     final uv = lighting == SimLighting.ultraviolet;
     final scale = uv ? 0.06 : 1.0;
-    void light(
+    final boxes = <double>[], spots = <double>[];
+    List<double> tint(double r, double g, double b) => [
+      r * scale,
+      (uv ? g * 0.4 : g) * scale,
+      (uv ? b * 1.6 : b) * scale,
+    ];
+
+    /// A rectangular soft box centred on (x, y, z), [wDeg] × [hDeg] half
+    /// extents, level with the floor.
+    void box(
       double x,
       double y,
       double z,
-      double outerDeg,
-      double innerDeg,
+      double wDeg,
+      double hDeg,
       double r,
       double g,
       double b,
     ) {
       final l = math.sqrt(x * x + y * y + z * z);
-      final co = math.cos(outerDeg * math.pi / 180);
-      final ci = math.cos(innerDeg * math.pi / 180);
-      _lights.addAll([
-        x / l,
-        y / l,
-        z / l,
-        co,
-        1 / (ci - co),
-        r * scale,
-        (uv ? g * 0.4 : g) * scale,
-        (uv ? b * 1.6 : b) * scale,
+      x /= l;
+      y /= l;
+      z /= l;
+      // Right = up × centre.
+      final rl = math.sqrt(z * z + x * x);
+      boxes.addAll([
+        x,
+        y,
+        z,
+        0,
+        z / rl,
+        0,
+        -x / rl,
+        math.tan(wDeg * math.pi / 180),
+        ...tint(r, g, b),
+        math.tan(hDeg * math.pi / 180),
       ]);
     }
 
-    // Overhead soft box, slightly toward the viewer.
-    light(0, 0.75, 0.66, 26, 12, 2.6, 2.6, 2.5);
-    // Side strips.
-    light(-0.8, 0.42, 0.43, 9, 3, 3.4, 3.35, 3.2);
-    light(0.82, 0.36, 0.44, 9, 3, 3.1, 3.15, 3.3);
-    light(0.9, -0.15, 0.4, 16, 6, 0.9, 0.9, 0.95);
-    light(-0.7, -0.35, 0.62, 18, 8, 0.8, 0.8, 0.8);
-    // Overhead and faint rims behind: enough to model a side view, too
-    // weak to brighten light that leaks out of the back of a poor cut.
-    light(0, 0.95, -0.3, 18, 8, 1.1, 1.1, 1.1);
-    light(-0.55, 0.62, -0.56, 14, 6, 0.55, 0.55, 0.55);
-    light(0.6, 0.55, -0.58, 12, 5, 0.5, 0.5, 0.52);
+    // Overhead key, a wide strip leaning toward the viewer.
+    box(0, 0.8, 0.6, 26, 12, 2.2, 2.2, 2.15);
+    // Tall side boxes, one a touch warm, one a touch cool.
+    box(-0.78, 0.35, 0.52, 9, 17, 2.8, 2.76, 2.68);
+    box(0.78, 0.3, 0.55, 9, 17, 2.6, 2.66, 2.78);
+    // Overhead strip and rims behind: they model a side view, too weak to
+    // brighten light that leaks out of the back of a poor cut.
+    box(0, 0.93, -0.36, 24, 7, 1.3, 1.3, 1.3);
+    box(-0.6, 0.5, -0.62, 7, 12, 0.7, 0.7, 0.7);
+    box(0.62, 0.45, -0.64, 7, 12, 0.65, 0.66, 0.68);
+
     // Small, intense spots: the pin-point flashes that read as sparkle
-    // and split into colour (fire) through the stone.
-    const spots = [
-      (-118.0, 46.0),
-      (-92.0, 64.0),
-      (-64.0, 36.0),
-      (-38.0, 58.0),
-      (-22.0, 30.0),
-      (24.0, 40.0),
-      (40.0, 66.0),
-      (62.0, 32.0),
-      (88.0, 54.0),
-      (116.0, 42.0),
-      (0.0, 78.0),
-      (-48.0, 12.0),
-      (52.0, 16.0),
-      (170.0, 60.0),
+    // and split into colour (fire) through the stone. Most sit in the
+    // half of the room a face-up stone returns to the viewer.
+    const at = [
+      (-120.0, 40.0),
+      (-85.0, 58.0),
+      (-60.0, 28.0),
+      (-40.0, 48.0),
+      (-24.0, 20.0),
+      (-12.0, 36.0),
+      (8.0, 26.0),
+      (20.0, 50.0),
+      (34.0, 18.0),
+      (46.0, 40.0),
+      (68.0, 30.0),
+      (92.0, 52.0),
+      (118.0, 38.0),
+      (0.0, 70.0),
+      (-150.0, 55.0),
+      (150.0, 45.0),
     ];
-    for (var i = 0; i < spots.length; i++) {
-      final az = spots[i].$1 * math.pi / 180, el = spots[i].$2 * math.pi / 180;
+    final co = math.cos(2.0 * math.pi / 180);
+    final ci = math.cos(0.6 * math.pi / 180);
+    for (var i = 0; i < at.length; i++) {
+      final az = at[i].$1 * math.pi / 180, el = at[i].$2 * math.pi / 180;
       final warm = i.isEven;
-      light(
+      spots.addAll([
         math.cos(el) * math.sin(az),
         math.sin(el),
         math.cos(el) * math.cos(az),
-        2.6,
-        0.8,
-        warm ? 27 : 24,
-        26,
-        warm ? 24 : 27.5,
-      );
+        co,
+        ...tint(warm ? 29 : 26, 28, warm ? 26 : 30),
+        1 / (ci - co),
+      ]);
     }
-    _count = _lights.length ~/ 8;
-    _packed = Float64List.fromList(_lights);
-    _ambient = uv ? 0.0 : 1.0;
+    assert(boxes.length <= maxBoxes * 12 && spots.length <= maxSpots * 8);
+    _boxCount = boxes.length ~/ 12;
+    _spotCount = spots.length ~/ 8;
+    _boxes = Float64List.fromList(boxes);
+    _spots = Float64List.fromList(spots);
+    packedBoxes = Float32List(maxBoxes * 12)..setAll(0, boxes);
+    packedSpots = Float32List(maxSpots * 8)..setAll(0, spots);
+    ambient = uv ? 0.0 : 1.0;
     _uv = uv;
   }
 
-  final List<double> _lights = [];
-  late final Float64List _packed;
-  late final int _count;
-  late final double _ambient;
+  /// Light slots in the shader.
+  static const maxBoxes = 6, maxSpots = 16;
+
+  late final Float64List _boxes, _spots;
+  late final int _boxCount, _spotCount;
   late final bool _uv;
+
+  /// Soft boxes as the shader reads them, [maxBoxes] × (centre, 0; right
+  /// axis, tan half width; rgb, tan half height); unused slots are dark.
+  late final Float32List packedBoxes;
+
+  /// Spots as the shader reads them, [maxSpots] × (direction, cos outer
+  /// edge; rgb, 1 / (cos inner − cos outer)).
+  late final Float32List packedSpots;
+
+  /// Room brightness: 1 in daylight, 0 under ultraviolet.
+  late final double ambient;
 
   /// Radiance seen along world direction (x, y, z), written to [r], [g],
   /// [b].
   double r = 0, g = 0, b = 0;
 
+  static double _smooth(double e0, double e1, double x) {
+    final t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
+    return t * t * (3 - 2 * t);
+  }
+
   void sample(double x, double y, double z) {
-    // A black room, a touch brighter overhead, darker toward the floor.
-    final up = y > 0 ? y * y : 0.0;
-    var base = (0.01 + 0.03 * up) * _ambient;
-    // The room around the viewer: a soft tent of light that the stone
-    // returns face up. Only the viewer's own head, straight behind the
-    // camera, blocks it, which gives a well cut stone its contrast.
-    if (z > 0.62) {
-      final band = z > 0.975
-          ? 0.0
-          : z > 0.94
-          ? (0.975 - z) / 0.035
-          : 1.0;
-      final edge = ((z - 0.62) / 0.2).clamp(0.0, 1.0);
-      base += (0.34 + 0.3 * (y > 0 ? y : 0.3 * y)) * band * edge * _ambient;
-    }
+    // Dark floor, dim walls brightening toward the ceiling.
+    final room = y < 0 ? 0.02 + 0.04 * (1 + y) : 0.06 + 0.22 * y * (2 - y);
+    // The light tent around the viewer, dimmer below eye level.
+    final tent =
+        0.4 * _smooth(0.15, 0.55, z) * (0.5 + 0.5 * _smooth(-0.5, 0.4, y));
+    // The viewer's head blocks it straight behind the camera.
+    final head = _smooth(0.968, 0.986, z);
+    final base = (room + tent) * (1 - 0.9 * head) * ambient;
     var lr = base, lg = base, lb = base;
     if (_uv) {
       lr += 0.004;
       lg += 0.001;
       lb += 0.012;
     }
-    final p = _packed;
-    for (var i = 0, o = 0; i < _count; i++, o += 8) {
+    final bx = _boxes;
+    for (var i = 0, o = 0; i < _boxCount; i++, o += 12) {
+      final k = x * bx[o] + y * bx[o + 1] + z * bx[o + 2];
+      if (k <= 0.2) continue;
+      // Up = centre × right.
+      final ux = bx[o + 1] * bx[o + 6] - bx[o + 2] * bx[o + 5];
+      final uy = bx[o + 2] * bx[o + 4] - bx[o] * bx[o + 6];
+      final uz = bx[o] * bx[o + 5] - bx[o + 1] * bx[o + 4];
+      final qx =
+          (x * bx[o + 4] + y * bx[o + 5] + z * bx[o + 6]) / k / bx[o + 7];
+      final qy = (x * ux + y * uy + z * uz) / k / bx[o + 11];
+      final w =
+          (1 - _smooth(0.82, 1, qx.abs())) *
+          (1 - _smooth(0.82, 1, qy.abs())) *
+          (1 - 0.25 * (qx * qx + qy * qy));
+      if (w <= 0) continue;
+      lr += w * bx[o + 8];
+      lg += w * bx[o + 9];
+      lb += w * bx[o + 10];
+    }
+    final p = _spots;
+    for (var i = 0, o = 0; i < _spotCount; i++, o += 8) {
       final c = x * p[o] + y * p[o + 1] + z * p[o + 2];
       if (c <= p[o + 3]) continue;
-      var w = (c - p[o + 3]) * p[o + 4];
+      var w = (c - p[o + 3]) * p[o + 7];
       if (w > 1) {
         w = 1;
       } else {
         w = w * w * (3 - 2 * w);
       }
-      lr += w * p[o + 5];
-      lg += w * p[o + 6];
-      lb += w * p[o + 7];
+      lr += w * p[o + 4];
+      lg += w * p[o + 5];
+      lb += w * p[o + 6];
     }
     r = lr;
     g = lg;

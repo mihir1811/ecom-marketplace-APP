@@ -121,6 +121,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   double _brightness = 0, _fire = 0, _sparkle = 0;
 
   double _mmPerUnit = 1, _radius = 1;
+  double _dpr = 1;
 
   SimViewportController get _c => widget.controller;
 
@@ -136,6 +137,15 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _seenRequest = _c._presetRequest;
     _c.addListener(_onCommand);
     _syncTicker();
+    SimRenderer.loadProgram()
+        .then((program) {
+          if (!mounted) return;
+          _renderer.shader = program.fragmentShader();
+          _invalidate();
+        })
+        .catchError((Object _) {
+          // The CPU tracer keeps drawing.
+        });
   }
 
   @override
@@ -155,6 +165,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _refineTimer?.cancel();
     _ticker.dispose();
     _frame.dispose();
+    _renderer.shader?.dispose();
     super.dispose();
   }
 
@@ -234,7 +245,10 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         ? 0.07 * math.sin(_time * 1.15)
         : 0.0;
     final quality = _refined;
-    _renderer.maxBounces = quality ? 11 : 8;
+    final gpu = _renderer.shader != null;
+    // The GPU traces every pixel deeply at any time; holding the depth
+    // steady means nothing shifts when the stone comes to rest.
+    _renderer.maxBounces = gpu ? 10 : (quality ? 11 : 8);
     final sw = Stopwatch()..start();
     _renderer.paint(
       canvas,
@@ -246,11 +260,12 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       ),
       pxPerUnit: pxPerMm * _mmPerUnit,
       samplePx: quality ? math.max(3.6, _samplePx * 0.55) : _samplePx,
+      devicePixelRatio: _dpr,
       time: _time,
       twinkle: _ticker.isActive,
     );
     sw.stop();
-    if (!quality) _adapt(sw.elapsedMicroseconds / 1000);
+    if (!quality && !gpu) _adapt(sw.elapsedMicroseconds / 1000);
     _report();
   }
 
@@ -290,6 +305,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
 
   @override
   Widget build(BuildContext context) {
+    _dpr = MediaQuery.devicePixelRatioOf(context);
     ref.listen(diamondSimulatorProvider.select((s) => (s.mesh, s.inclusions)), (
       _,
       next,

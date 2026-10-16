@@ -90,6 +90,7 @@ flutter:
   shaders:
     - shaders/home_cosmos.frag
     - shaders/auth_silk.frag
+    - shaders/diamond_trace.frag
 
   # To add assets to your application, add an assets section, like this:
   # assets:

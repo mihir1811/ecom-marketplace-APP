@@ -25,9 +25,15 @@ class EduHero extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             gradient: RadialGradient(
-              center: const Alignment(0, -0.35),
+              center: const Alignment(0, -0.55),
               radius: 1.1,
-              colors: [LuxeStage.glow, LuxeStage.obsidian],
+              colors: [
+                SimStageTones.lit,
+                SimStageTones.mid,
+                LuxeStage.glow,
+                LuxeStage.obsidian,
+              ],
+              stops: const [0, 0.22, 0.48, 1],
             ),
           ),
           child: Padding(

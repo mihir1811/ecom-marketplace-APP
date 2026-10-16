@@ -12,8 +12,16 @@ import '../../simulation/sim_mesh.dart';
 import '../../simulation/sim_optics.dart';
 import '../../simulation/sim_renderer.dart';
 
-/// A small, self-running traced diamond: spins and rocks in the dark
-/// studio. Pauses while scrolled off screen and holds still under reduced
+/// Backdrop tones for stages that show a traced stone: a lit, neutral
+/// grey behind the stone, so its white light, dark contrast and outline
+/// all read, falling off to the stage's dark edge.
+abstract final class SimStageTones {
+  static const lit = Color(0xFF6A717C);
+  static const mid = Color(0xFF3A4049);
+}
+
+/// A small, self-running traced diamond: spins and rocks in the
+/// jeweller's studio. Pauses while scrolled off screen and holds still under reduced
 /// motion.
 class SimStoneView extends StatefulWidget {
   const SimStoneView({
@@ -45,6 +53,15 @@ class _SimStoneViewState extends State<SimStoneView>
   void initState() {
     super.initState();
     _stone();
+    SimRenderer.loadProgram()
+        .then((program) {
+          if (!mounted) return;
+          _renderer.shader = program.fragmentShader();
+          _frame.value++;
+        })
+        .catchError((Object _) {
+          // The CPU tracer keeps drawing.
+        });
   }
 
   void _stone() {
@@ -84,6 +101,7 @@ class _SimStoneViewState extends State<SimStoneView>
     _scroll?.removeListener(_checkVisible);
     _ticker.dispose();
     _frame.dispose();
+    _renderer.shader?.dispose();
     super.dispose();
   }
 
@@ -127,7 +145,7 @@ class _SimStoneViewState extends State<SimStoneView>
       child: RepaintBoundary(
         child: CustomPaint(
           size: Size.square(widget.size),
-          painter: _StonePainter(this),
+          painter: _StonePainter(this, MediaQuery.devicePixelRatioOf(context)),
         ),
       ),
     );
@@ -135,9 +153,10 @@ class _SimStoneViewState extends State<SimStoneView>
 }
 
 class _StonePainter extends CustomPainter {
-  _StonePainter(this.state) : super(repaint: state._frame);
+  _StonePainter(this.state, this.dpr) : super(repaint: state._frame);
 
   final _SimStoneViewState state;
+  final double dpr;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -151,11 +170,13 @@ class _StonePainter extends CustomPainter {
       ),
       pxPerUnit: size.shortestSide * 0.4,
       samplePx: 5,
+      devicePixelRatio: dpr,
       time: t,
       twinkle: true,
     );
   }
 
   @override
-  bool shouldRepaint(covariant _StonePainter old) => old.state != state;
+  bool shouldRepaint(covariant _StonePainter old) =>
+      old.state != state || old.dpr != dpr;
 }

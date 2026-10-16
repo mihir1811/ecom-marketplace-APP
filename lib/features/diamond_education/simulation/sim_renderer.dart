@@ -28,12 +28,17 @@ class SimFrameStats {
   int samples = 0;
 }
 
-/// Draws a [SimMesh] by tracing light through it at sample points spread
-/// over every visible facet, then filling the facet between them
-/// (Gouraud). Facets are sampled densely enough that the patterns inside
-/// each one, the reflections of other facets, read clearly; the spacing
-/// is set in screen pixels so cost follows the stone's size on screen,
-/// and callers can coarsen it to hold frame rate.
+/// Draws a [SimMesh] by tracing light through it.
+///
+/// With a [shader] (`shaders/diamond_trace.frag`) every pixel traces its
+/// own path on the GPU: facet patterns come out exact and crisp, with
+/// anti-aliased edges. The CPU tracer then runs only at a coarse sample
+/// spacing, every few frames, to measure light performance ([stats]).
+///
+/// Without one (while it loads, or where fragment programs are missing)
+/// the CPU tracer samples every visible facet and fills between samples
+/// (Gouraud); the spacing is set in screen pixels so cost follows the
+/// stone's size on screen, and callers can coarsen it to hold frame rate.
 ///
 /// Buffers are reused frame to frame, so steady painting allocates only
 /// the [ui.Vertices] handed to the canvas.
@@ -50,6 +55,27 @@ class SimRenderer {
 
   /// Most samples in one stone, whatever its size on screen.
   static const _sampleBudget = 2600;
+
+  /// Linear light to display; matches the shader.
+  static const _exposure = 0.95;
+
+  /// HDR luminance above which a facet counts as flashing.
+  static const _sparkThreshold = 6.0;
+
+  /// Facet plane slots in the shader.
+  static const _maxPlanes = 140;
+
+  /// Per-pixel GPU tracer; null falls back to the CPU renderer.
+  ui.FragmentShader? shader;
+
+  static Future<ui.FragmentProgram>? _program;
+
+  /// The per-pixel tracer program, loaded once per run.
+  static Future<ui.FragmentProgram> loadProgram() =>
+      _program ??= ui.FragmentProgram.fromAsset('shaders/diamond_trace.frag');
+
+  /// Whether [shader] can draw [mesh] (its plane slots are bounded).
+  static bool fitsShader(SimMesh mesh) => mesh.facetCount <= _maxPlanes;
 
   void setStone(SimMesh mesh, List<SimInclusion> inclusions) {
     _mesh = mesh;
@@ -175,28 +201,38 @@ class SimRenderer {
 
   static double _tone(double x) {
     if (x <= 0) return 0;
-    // ACES filmic fit, gamma ≈ 2, then a gentle S-curve: diamonds read
-    // as crisp white against near black, never a soft grey.
+    // ACES filmic fit, display gamma and a little S-curve: the same
+    // curve as the shader.
+    x *= _exposure;
     final y = (x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14);
-    final g = y >= 1 ? 1.0 : math.sqrt(y);
-    return g + 0.45 * (g * g * (3 - 2 * g) - g);
+    if (y >= 1) return 1;
+    final g = math.pow(y, 1 / 2.2).toDouble();
+    return g + 0.3 * (g * g * (3 - 2 * g) - g);
   }
 
+  int _frame = 0;
+
   /// Paints the stone centred in [size]. [pxPerUnit] maps model units to
-  /// logical pixels at zoom 1; samples land about [samplePx] pixels apart.
+  /// logical pixels at zoom 1; CPU samples land about [samplePx] pixels
+  /// apart. [devicePixelRatio] sizes the shader's edge anti-aliasing.
   void paint(
     Canvas canvas,
     Size size, {
     required SimView view,
     required double pxPerUnit,
     required double samplePx,
+    double devicePixelRatio = 1,
     double time = 0,
     bool twinkle = false,
   }) {
     final mesh = _mesh;
     if (mesh == null || size.isEmpty) return;
     final scale = pxPerUnit * view.zoom;
-    final units = samplePx / scale;
+    final gpu = shader != null && fitsShader(mesh);
+    // On the GPU path the CPU trace only measures light, so a coarse,
+    // fixed spacing is plenty, and it need not run every frame.
+    final units = gpu ? 0.16 : samplePx / scale;
+    final measure = !gpu || _frame++ % 4 == 0;
     if (!identical(_layoutFor, mesh) ||
         (units - _layoutUnits).abs() > _layoutUnits * 0.12) {
       _layout(mesh, units);
@@ -231,6 +267,255 @@ class SimRenderer {
       _py[i] = cy - wy * k;
     }
 
+    final rot = [r00, r01, r02, r10, r11, r12, r20, r21, r22];
+    if (gpu) {
+      _paintGpu(canvas, mesh, scale, cx, cy, devicePixelRatio, rot);
+      if (measure) _measure(mesh, ex, ey, ez);
+    } else {
+      _paintCpu(canvas, mesh, scale, cx, cy, ex, ey, ez, rot, time, twinkle);
+    }
+
+    if (_inclusions.isNotEmpty) {
+      // Inclusions and their mirror images stay inside the silhouette.
+      canvas
+        ..save()
+        ..clipPath(_hull(vcount));
+      _paintInclusions(
+        canvas,
+        scale,
+        cx,
+        cy,
+        rot,
+        // Pavilion mirrors show when looking in through the crown.
+        mirror: st.clamp(0.0, 1.0),
+      );
+      canvas.restore();
+    }
+
+    final optics = tracer.optics;
+    if (optics.lighting == SimLighting.ultraviolet) {
+      final glow = (optics.emitR + optics.emitG + optics.emitB) / 1.5;
+      if (glow > 0.01) {
+        final radius = mesh.radius * scale * 1.5;
+        final c = Offset(cx, cy);
+        final m = math.max(optics.emitR, math.max(optics.emitG, optics.emitB));
+        Color tint(double a) => Color.fromRGBO(
+          (optics.emitR / m * 255).round(),
+          (optics.emitG / m * 255).round(),
+          (optics.emitB / m * 255).round(),
+          a,
+        );
+        canvas.drawCircle(
+          c,
+          radius,
+          Paint()
+            ..blendMode = BlendMode.plus
+            ..shader = ui.Gradient.radial(c, radius, [
+              tint((0.16 * glow).clamp(0.0, 0.3)),
+              tint(0),
+            ]),
+        );
+      }
+    }
+  }
+
+  // ---- GPU path ------------------------------------------------------
+
+  final Paint _gpuPaint = Paint();
+  ui.FragmentShader? _uniformShader;
+  SimMesh? _uniformMesh;
+  SimStudio? _uniformStudio;
+
+  // Uniform float offsets in shaders/diamond_trace.frag.
+  static const _uPlanes = 36;
+  static const _uBoxes = _uPlanes + _maxPlanes * 4;
+  static const _uSpots = _uBoxes + SimStudio.maxBoxes * 12;
+
+  void _paintGpu(
+    Canvas canvas,
+    SimMesh mesh,
+    double scale,
+    double cx,
+    double cy,
+    double dpr,
+    List<double> r,
+  ) {
+    final sh = shader!;
+    if (!identical(sh, _uniformShader)) {
+      _uniformShader = sh;
+      _uniformMesh = null;
+      _uniformStudio = null;
+    }
+    if (!identical(mesh, _uniformMesh)) {
+      _uniformMesh = mesh;
+      _setPlanes(sh, mesh);
+    }
+    final studio = _tracer.studio;
+    if (!identical(studio, _uniformStudio)) {
+      _uniformStudio = studio;
+      final boxes = studio.packedBoxes, spots = studio.packedSpots;
+      for (var i = 0; i < boxes.length; i++) {
+        sh.setFloat(_uBoxes + i, boxes[i]);
+      }
+      for (var i = 0; i < spots.length; i++) {
+        sh.setFloat(_uSpots + i, spots[i]);
+      }
+      sh.setFloat(23, studio.ambient);
+    }
+    final o = _tracer.optics;
+    final values = [
+      cx, cy, scale, _eye, //
+      r[0], r[1], r[2], 0.0, //
+      r[3], r[4], r[5], 0.0, //
+      r[6], r[7], r[8], 0.0, //
+    ];
+    for (var i = 0; i < values.length; i++) {
+      sh.setFloat(i, values[i]);
+    }
+    sh
+      ..setFloat(18, _tracer.maxBounces.toDouble())
+      ..setFloat(19, _exposure)
+      ..setFloat(24, o.absorbR + o.haze)
+      ..setFloat(25, o.absorbG + o.haze)
+      ..setFloat(26, o.absorbB + o.haze)
+      ..setFloat(27, o.haze * 0.35 + o.milk)
+      ..setFloat(28, o.emitR)
+      ..setFloat(29, o.emitG)
+      ..setFloat(30, o.emitB)
+      ..setFloat(31, o.lighting == SimLighting.ultraviolet ? 1 : 0)
+      ..setFloat(32, mesh.radius)
+      ..setFloat(33, 1 / (scale * dpr))
+      ..setFloat(34, 1 / dpr)
+      ..setFloat(35, 0);
+    // Perspective enlarges the near side a little; pad the bounds.
+    final reach = mesh.radius * scale * _eye / (_eye - mesh.radius) * 1.04 + 2;
+    canvas.drawRect(
+      Rect.fromCircle(center: Offset(cx, cy), radius: reach),
+      _gpuPaint..shader = sh,
+    );
+  }
+
+  /// Facet planes, solid ones first, and the band beyond which a ray has
+  /// to test the girdle (see [SimMesh.innerRadius]).
+  static void _setPlanes(ui.FragmentShader sh, SimMesh mesh) {
+    final planes = mesh.planes, pos = mesh.positions;
+    final girdle = mesh.girdleFacets.toSet();
+    final order = [
+      for (var f = 0; f < mesh.facetCount; f++)
+        if (!girdle.contains(f)) f,
+      ...mesh.girdleFacets,
+    ];
+    for (var i = 0; i < order.length; i++) {
+      for (var k = 0; k < 4; k++) {
+        sh.setFloat(_uPlanes + i * 4 + k, planes[order[i] * 4 + k]);
+      }
+    }
+    var a = 0.0, b = 0.0;
+    for (var i = 0; i < mesh.vertexCount; i++) {
+      a = math.max(a, pos[i * 3].abs());
+      b = math.max(b, pos[i * 3 + 2].abs());
+    }
+    final ia = 1 / (a * a), ib = 1 / (b * b);
+    // Inner reach of the girdle, in units of that ellipse: its corners
+    // and the midpoints of the chords between them.
+    var rim = double.infinity;
+    final starts = mesh.facetStart, fv = mesh.facetVerts;
+    for (final f in mesh.girdleFacets) {
+      final k = starts[f + 1] - starts[f];
+      for (var j = 0; j < k; j++) {
+        final p = fv[starts[f] + j] * 3;
+        final q = fv[starts[f] + (j + 1) % k] * 3;
+        for (final w in const [0.0, 0.5]) {
+          final x = pos[p] + (pos[q] - pos[p]) * w;
+          final z = pos[p + 2] + (pos[q + 2] - pos[p + 2]) * w;
+          rim = math.min(rim, x * x * ia + z * z * ib);
+        }
+      }
+    }
+    if (!rim.isFinite) rim = 0;
+    sh
+      ..setFloat(16, (mesh.facetCount - girdle.length).toDouble())
+      ..setFloat(17, mesh.facetCount.toDouble())
+      ..setFloat(20, ia)
+      ..setFloat(21, ib)
+      ..setFloat(22, rim * 0.95);
+  }
+
+  /// Traces the crown's layout samples for [stats], without drawing.
+  void _measure(SimMesh mesh, double ex, double ey, double ez) {
+    final tracer = _tracer;
+    final planes = mesh.planes, kinds = mesh.kinds;
+    final tableKind = SimFacetKind.table.index;
+    final crownKind = SimFacetKind.crown.index;
+    var lumSum = 0.0, fireSum = 0.0, crownSamples = 0;
+    var crownFacets = 0, flashing = 0;
+    for (var f = 0; f < mesh.facetCount; f++) {
+      if (kinds[f] != tableKind && kinds[f] != crownKind) continue;
+      final o = f * 4;
+      final facing =
+          planes[o] * ex +
+          planes[o + 1] * ey +
+          planes[o + 2] * ez -
+          planes[o + 3];
+      if (facing <= 1e-6) continue;
+      crownFacets++;
+      var best = 0.0;
+      for (var s = _fs[f]; s < _fs[f + 1]; s++) {
+        final px = _sp[s * 3], py = _sp[s * 3 + 1], pz = _sp[s * 3 + 2];
+        final dx = px - ex, dy = py - ey, dz = pz - ez;
+        final l = 1 / math.sqrt(dx * dx + dy * dy + dz * dz);
+        tracer.trace(f, px, py, pz, dx * l, dy * l, dz * l);
+        final hr = tracer.outR, hg = tracer.outG, hb = tracer.outB;
+        final r = _tone(hr), g = _tone(hg), b = _tone(hb);
+        final tl = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        lumSum += tl;
+        fireSum +=
+            (math.max(r, math.max(g, b)) - math.min(r, math.min(g, b))) * tl;
+        crownSamples++;
+        best = math.max(best, 0.2126 * hr + 0.7152 * hg + 0.0722 * hb);
+      }
+      if (best > _sparkThreshold) flashing++;
+    }
+    _setStats(lumSum, fireSum, crownSamples, crownFacets, flashing);
+  }
+
+  void _setStats(
+    double lumSum,
+    double fireSum,
+    int crownSamples,
+    int crownFacets,
+    int flashing,
+  ) {
+    stats
+      ..samples = crownSamples
+      ..brightness = crownSamples == 0 ? 0 : lumSum / crownSamples
+      ..fire = crownSamples == 0
+          ? 0
+          : (fireSum / crownSamples * 4).clamp(0.0, 1.0)
+      ..sparkle = crownFacets == 0 ? 0 : flashing / crownFacets;
+  }
+
+  // ---- CPU path ------------------------------------------------------
+
+  void _paintCpu(
+    Canvas canvas,
+    SimMesh mesh,
+    double scale,
+    double cx,
+    double cy,
+    double ex,
+    double ey,
+    double ez,
+    List<double> rot,
+    double time,
+    bool twinkle,
+  ) {
+    const d0 = _eye;
+    final tracer = _tracer;
+    final r00 = rot[0], r01 = rot[1], r02 = rot[2];
+    final r10 = rot[3], r11 = rot[4], r12 = rot[5];
+    final r20 = rot[6], r21 = rot[7], r22 = rot[8];
+    final vcount = mesh.vertexCount;
     final planes = mesh.planes, kinds = mesh.kinds;
     final starts = mesh.facetStart, fv = mesh.facetVerts;
     final facets = mesh.facetCount;
@@ -262,7 +547,7 @@ class SimRenderer {
     var vn = 0, in_ = 0;
     var lumSum = 0.0, fireSum = 0.0, crownSamples = 0;
     var crownFacets = 0, flashing = 0;
-    const sparkThreshold = 1.8;
+    const sparkThreshold = _sparkThreshold;
     final tableKind = SimFacetKind.table.index;
     final crownKind = SimFacetKind.crown.index;
 
@@ -337,13 +622,7 @@ class SimRenderer {
       }
     }
 
-    stats
-      ..samples = vn
-      ..brightness = crownSamples == 0 ? 0 : lumSum / crownSamples
-      ..fire = crownSamples == 0
-          ? 0
-          : (fireSum / crownSamples * 4).clamp(0.0, 1.0)
-      ..sparkle = crownFacets == 0 ? 0 : flashing / crownFacets;
+    _setStats(lumSum, fireSum, crownSamples, crownFacets, flashing);
 
     if (bi > 0) {
       final base = ui.Vertices.raw(
@@ -364,49 +643,6 @@ class SimRenderer {
       );
       canvas.drawVertices(body, BlendMode.dst, _vertexPaint);
       body.dispose();
-    }
-
-    if (_inclusions.isNotEmpty) {
-      // Inclusions and their mirror images stay inside the silhouette.
-      canvas
-        ..save()
-        ..clipPath(_hull(vcount));
-      _paintInclusions(
-        canvas,
-        scale,
-        cx,
-        cy,
-        [r00, r01, r02, r10, r11, r12, r20, r21, r22],
-        // Pavilion mirrors show when looking in through the crown.
-        mirror: st.clamp(0.0, 1.0),
-      );
-      canvas.restore();
-    }
-
-    final optics = tracer.optics;
-    if (optics.lighting == SimLighting.ultraviolet) {
-      final glow = (optics.emitR + optics.emitG + optics.emitB) / 1.5;
-      if (glow > 0.01) {
-        final radius = mesh.radius * scale * 1.5;
-        final c = Offset(cx, cy);
-        final m = math.max(optics.emitR, math.max(optics.emitG, optics.emitB));
-        Color tint(double a) => Color.fromRGBO(
-          (optics.emitR / m * 255).round(),
-          (optics.emitG / m * 255).round(),
-          (optics.emitB / m * 255).round(),
-          a,
-        );
-        canvas.drawCircle(
-          c,
-          radius,
-          Paint()
-            ..blendMode = BlendMode.plus
-            ..shader = ui.Gradient.radial(c, radius, [
-              tint((0.16 * glow).clamp(0.0, 0.3)),
-              tint(0),
-            ]),
-        );
-      }
     }
 
     _paintSparkles(canvas, facets, scale, time, twinkle, sparkThreshold);
