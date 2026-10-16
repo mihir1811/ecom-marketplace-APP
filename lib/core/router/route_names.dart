@@ -46,6 +46,13 @@ class AppRouteNames {
   /// Fullscreen interactive Vision360 / WebGL product viewer.
   static const String diamondViewer = '/viewer/360';
 
+  /// Diamond education page and its 3D simulator (`?shape=` opens the
+  /// simulator cut in that shape).
+  static const String diamondEducation = '/learn/diamonds';
+  static const String diamondSimulator = '/learn/diamonds/simulator';
+  static String diamondSimulatorFor(String shape) =>
+      '$diamondSimulator?shape=${Uri.encodeQueryComponent(shape)}';
+
   // Auth
   static const String login = '/login';
   static const String register = '/register';
