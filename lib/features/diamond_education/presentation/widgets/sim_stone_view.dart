@@ -184,7 +184,9 @@ class _StonePainter extends CustomPainter {
         spin: state._spin,
       ),
       pxPerUnit: size.shortestSide * 0.45,
-      samplePx: 2.8,
+      samplePx: 3.6,
+      time: t,
+      twinkle: true,
     );
   }
 

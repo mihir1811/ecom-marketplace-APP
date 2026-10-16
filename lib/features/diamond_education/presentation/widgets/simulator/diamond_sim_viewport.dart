@@ -245,7 +245,9 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         zoom: _zoom,
       ),
       pxPerUnit: pxPerMm * _mmPerUnit,
-      samplePx: quality ? math.max(2.0, _samplePx * 0.5) : _samplePx,
+      samplePx: quality ? math.max(2.4, _samplePx * 0.55) : _samplePx,
+      time: _time,
+      twinkle: _ticker.isActive,
     );
     sw.stop();
     if (!quality) _adapt(sw.elapsedMicroseconds / 1000);
