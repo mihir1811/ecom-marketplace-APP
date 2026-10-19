@@ -10,6 +10,7 @@ import '../domain/models/diamond.dart';
 import '../domain/models/diamond_catalog_type.dart';
 import '../domain/models/sorting_criteria.dart';
 import '../domain/repositories/diamond_repository.dart';
+import 'diamond_results_handoff.dart';
 import 'diamond_search_provider.dart';
 import '../../recently_viewed/application/recently_viewed_providers.dart';
 
@@ -17,8 +18,9 @@ enum ViewMode { grid, list }
 
 /// Holds the active multi-criteria sorting configuration.
 /// Empty list means no sorting applied (default order).
-final diamondSortingProvider =
-    StateProvider<List<SortingCriteria>>((ref) => []);
+final diamondSortingProvider = StateProvider<List<SortingCriteria>>(
+  (ref) => [],
+);
 
 typedef DiamondListState = PaginatedListState<Diamond>;
 
@@ -31,8 +33,8 @@ final diamondViewModeProvider = StateProvider<ViewMode>((ref) => ViewMode.grid);
 /// Results list. Invalidated on every SHOW DIAMONDS so filters always refetch.
 final diamondListProvider =
     AsyncNotifierProvider<DiamondListNotifier, DiamondListState>(
-  DiamondListNotifier.new,
-);
+      DiamondListNotifier.new,
+    );
 
 /// Paged diamond results — uses backend `page` / `limit` + `meta.next`.
 class DiamondListNotifier extends PaginatedAsyncNotifier<Diamond> {
@@ -50,7 +52,6 @@ class DiamondListNotifier extends PaginatedAsyncNotifier<Diamond> {
     _cancelToken = CancelToken();
   }
 
-
   @override
   void onBeforePageLoad({required int page, required bool isFirstPage}) {
     if (isFirstPage) {
@@ -64,6 +65,20 @@ class DiamondListNotifier extends PaginatedAsyncNotifier<Diamond> {
     final filters = ref.read(diamondSearchProvider);
     final sorting = ref.read(diamondSortingProvider);
     final catalog = ref.read(diamondCatalogTypeProvider);
+    if (page == 1) {
+      final prefetched = ref
+          .read(diamondResultsHandoffProvider)
+          ?.takeFirstPage(catalog, filters);
+      if (prefetched != null) {
+        return Success(
+          PaginatedPage<Diamond>(
+            items: prefetched.diamonds,
+            hasMore: prefetched.hasMore,
+            totalCount: prefetched.totalCount,
+          ),
+        );
+      }
+    }
     final repo = ref.read(diamondRepositoryProvider);
     final result = await repo.getDiamonds(
       filters: filters,
@@ -75,12 +90,12 @@ class DiamondListNotifier extends PaginatedAsyncNotifier<Diamond> {
     );
     return switch (result) {
       Success(value: final response) => Success(
-          PaginatedPage<Diamond>(
-            items: response.diamonds,
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
-          ),
+        PaginatedPage<Diamond>(
+          items: response.diamonds,
+          hasMore: response.hasMore,
+          totalCount: response.totalCount,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }

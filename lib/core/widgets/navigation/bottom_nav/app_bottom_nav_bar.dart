@@ -33,13 +33,16 @@ import 'app_bottom_nav_destinations.dart';
 /// first tab, 1 = the next, …), until it lifts. A plain tap still goes
 /// through [onSelect].
 ///
-/// The centre slot is the Categories action: tapping it calls
-/// [onCategories], and while [categoriesOpen] it pops like a selected tab.
+/// The centre slots are the Agent and Categories actions: tapping them calls
+/// [onAgent] / [onCategories], and while [agentOpen] / [categoriesOpen] they
+/// pop like a selected tab.
 class AppBottomNavBar extends StatefulWidget {
   const AppBottomNavBar({
     required this.selected,
     required this.onSelect,
     this.onScrub,
+    this.onAgent,
+    this.agentOpen = false,
     this.onCategories,
     this.categoriesOpen = false,
     this.compact = false,
@@ -74,6 +77,8 @@ class AppBottomNavBar extends StatefulWidget {
   final AppBottomNavTab? selected;
   final ValueChanged<AppBottomNavDestination> onSelect;
   final AppBottomNavScrub? onScrub;
+  final VoidCallback? onAgent;
+  final bool agentOpen;
   final VoidCallback? onCategories;
   final bool categoriesOpen;
 
@@ -592,6 +597,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
 
   int get _selectedIndex {
     if (widget.categoriesOpen) return AppBottomNav.categoriesSlot;
+    if (widget.agentOpen) return AppBottomNav.agentSlot;
     if (widget.selected == null) return -1;
     return AppBottomNav.slots.indexWhere((d) => d?.tab == widget.selected);
   }
@@ -635,6 +641,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     }
     if (old.selected != widget.selected ||
         old.categoriesOpen != widget.categoriesOpen ||
+        old.agentOpen != widget.agentOpen ||
         old.compact != widget.compact) {
       _wake();
     }
@@ -736,10 +743,15 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
       return;
     }
     final destination = AppBottomNav.slots[index];
-    if (destination == null) {
-      widget.onCategories?.call();
-    } else {
+    if (destination != null) {
       widget.onSelect(destination);
+      return;
+    }
+    switch (AppBottomNav.actionAt(index)!) {
+      case AppBottomNavAction.agent:
+        widget.onAgent?.call();
+      case AppBottomNavAction.categories:
+        widget.onCategories?.call();
     }
   }
 
@@ -806,7 +818,8 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
   }
 
   static String _labelKey(int i) =>
-      AppBottomNav.slots[i]?.labelKey ?? AppBottomNav.categoriesLabelKey;
+      AppBottomNav.slots[i]?.labelKey ??
+      AppBottomNav.actionLabelKey(AppBottomNav.actionAt(i)!);
 
   /// A full-width layer reaching [_overhang] above the box.
   static Widget _layer(Widget child) => Positioned(
@@ -960,9 +973,15 @@ class _TabVisual extends StatelessWidget {
     final p = LuxePalette.of(context);
     final destination = AppBottomNav.slots[index];
     final label = context.tr(_AppBottomNavBarState._labelKey(index));
-    final icon = selected
-        ? destination?.selectedIcon ?? AppBottomNav.categoriesSelectedIcon
-        : destination?.icon ?? AppBottomNav.categoriesIcon;
+    final isAgent = AppBottomNav.actionAt(index) == AppBottomNavAction.agent;
+    final icon = destination == null
+        ? AppBottomNav.actionIcon(
+            AppBottomNav.actionAt(index)!,
+            selected: selected,
+          )
+        : selected
+        ? destination.selectedIcon
+        : destination.icon;
 
     return Positioned.fill(
       child: IgnorePointer(
@@ -1004,11 +1023,31 @@ class _TabVisual extends StatelessWidget {
                       textColor: p.canvas,
                       offset: const Offset(8, -6),
                       label: Text(badge > 99 ? '99+' : '$badge'),
-                      child: Icon(
-                        icon,
-                        size: dock.iconSize + 1.5 * shown,
-                        color: color,
-                      ),
+                      child: isAgent
+                          ? SizedBox.square(
+                              dimension: dock.iconSize + 1.5 * shown,
+                              child: Center(
+                                child: Text(
+                                  AppBottomNav.agentGlyph,
+                                  maxLines: 1,
+                                  textScaler: TextScaler.noScaling,
+                                  style:
+                                      LuxeType.display(
+                                        dock.iconSize + 1.5 * shown,
+                                        color,
+                                      ).copyWith(
+                                        fontWeight: FontWeight.w800,
+                                        height: 1,
+                                        letterSpacing: 0,
+                                      ),
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              icon,
+                              size: dock.iconSize + 1.5 * shown,
+                              color: color,
+                            ),
                     ),
                   ),
                 ),

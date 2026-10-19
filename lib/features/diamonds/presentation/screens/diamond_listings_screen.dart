@@ -6,6 +6,7 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
@@ -17,7 +18,10 @@ import '../../../diamond_projects/application/diamond_selection.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_insight_strip.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/diamond_list_provider.dart';
+import '../../application/diamond_results_handoff.dart';
 import '../../application/diamond_search_provider.dart';
+import '../../domain/models/diamond_active_filters.dart';
+import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_summary.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
 import '../widgets/diamond_luxe_cards.dart';
@@ -52,9 +56,21 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
   void initState() {
     super.initState();
     initListing();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _applyPendingAiFilters(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyPendingAiFilters();
+      _claimResultsHandoff(ref.read(diamondResultsHandoffProvider));
+    });
+  }
+
+  /// Adopts prefetched results whose filters this screen's (possibly
+  /// already-built) search notifier has not claimed yet.
+  void _claimResultsHandoff(DiamondResultsHandoff? handoff) {
+    if (!mounted || handoff == null) return;
+    final filters = handoff.claimFilters(ref.read(diamondCatalogTypeProvider));
+    if (filters == null) return;
+    ref.read(diamondSearchProvider.notifier).replaceFilters(filters);
+    ref.read(diamondSortingProvider.notifier).state = const [];
+    ref.invalidate(diamondListProvider);
   }
 
   void _applyPendingAiFilters() {
@@ -107,6 +123,12 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Must stay in this build (not the Builder below): ref.listen asserts
+    // it runs during the consumer's own build.
+    ref.listen(
+      diamondResultsHandoffProvider,
+      (_, next) => _claimResultsHandoff(next),
+    );
     return LuxeScope(child: Builder(builder: _buildScaffold));
   }
 
@@ -266,17 +288,20 @@ class _ActiveFilterPills extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final summary = ref.watch(
-      diamondSearchProvider.select(DiamondFilterSummary.of),
+    final filters = ref.watch(diamondSearchProvider);
+    final summary = DiamondFilterSummary.of(filters);
+    // Applied values first (also what Gem Agent set), then a count for any
+    // section filters that have no value pill.
+    final active = DiamondActiveFilters.of(
+      filters,
+      formatPrice: (v) => AppCurrency.format(formatCatalogPriceWholeK(v)),
     );
-    final shapes = ref.watch(diamondSearchProvider.select((s) => s.shapes));
     return LuxeActiveFilterPills(
       labels: [
+        ...active.labels,
         for (final s in DiamondFinderSection.values)
-          if (summary.count(s) > 0)
-            s == DiamondFinderSection.shape && shapes.length <= 2
-                ? shapes.join(', ')
-                : '${_label(context, s)} · ${summary.count(s)}',
+          if (summary.count(s) - active.covered(s) > 0)
+            '${_label(context, s)} · ${summary.count(s) - active.covered(s)}',
       ],
       onEdit: onEdit,
       onReset: onResetAll,

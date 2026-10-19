@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/active_filter_labels.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../application/watch_filter_provider.dart';
@@ -40,20 +42,32 @@ class WatchActiveFilterPills extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final summary = ref.watch(provider.select(WatchFilterSummary.of));
-    final brands = ref.watch(provider.select((s) => s.brands));
-    final brandsOnly =
-        summary.count(WatchFilterSection.brandModel) == brands.length;
+    final f = ref.watch(provider);
+    final summary = WatchFilterSummary.of(f);
+    // Applied values first (also what Gem Agent set), then counts for the rest.
+    final pills = ActiveFilterLabels<WatchFilterSection>()
+      ..values(WatchFilterSection.brandModel, f.brands)
+      ..values(WatchFilterSection.brandModel, f.models)
+      ..values(WatchFilterSection.style, f.categories)
+      ..values(WatchFilterSection.style, f.genders)
+      ..range(
+        WatchFilterSection.price,
+        min: f.priceMin > 0 ? f.priceMin : null,
+        max: f.priceMax > 0 ? f.priceMax : null,
+        format: _price,
+      )
+      ..values(WatchFilterSection.movement, f.movements)
+      ..values(WatchFilterSection.caseBezel, f.caseMaterials)
+      ..values(WatchFilterSection.caseBezel, f.caseSizeRanges)
+      ..values(WatchFilterSection.dial, f.dialColors, name: 'Dial')
+      ..values(WatchFilterSection.strap, f.strapMaterials, name: 'Strap')
+      ..values(WatchFilterSection.condition, f.conditions);
     return LuxeActiveFilterPills(
-      labels: [
-        for (final s in WatchFilterSection.values)
-          if (summary.count(s) > 0)
-            s == WatchFilterSection.brandModel &&
-                    brandsOnly &&
-                    brands.length <= 2
-                ? brands.join(', ')
-                : '${watchSectionTitle(context, s)} · ${summary.count(s)}',
-      ],
+      labels: pills.build(
+        sections: WatchFilterSection.values,
+        count: summary.count,
+        title: (s) => watchSectionTitle(context, s),
+      ),
       onEdit: onEdit,
       onReset: onReset,
       resetLabel: context.tr(DiamondFlowL10n.reset),
@@ -117,3 +131,5 @@ class WatchCountLine extends StatelessWidget {
     );
   }
 }
+
+String _price(double v) => AppCurrency.format(formatCatalogPriceWholeK(v));

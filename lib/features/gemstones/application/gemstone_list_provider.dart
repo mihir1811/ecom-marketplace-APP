@@ -5,8 +5,10 @@ import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../../../core/pagination/paginated_async_notifier.dart';
 import '../../../core/pagination/paginated_list_state.dart';
+import '../../../core/pagination/prefetched_first_page.dart';
 import '../data/repositories/gemstone_repository_impl.dart';
 import '../domain/models/gemstone.dart';
+import '../domain/models/gemstone_filter_state.dart';
 import '../domain/models/gemstone_sort_option.dart';
 import '../domain/repositories/gemstone_repository.dart';
 import 'gemstone_search_provider.dart';
@@ -25,6 +27,21 @@ final gemstoneViewModeProvider =
 
 final gemstoneSortProvider =
     StateProvider<GemstoneSortOption>((ref) => GemstoneSortOption.newest);
+
+/// First page fetched outside the finder (e.g. Gem Agent), served once.
+final gemstonePrefetchProvider = StateProvider<
+  PrefetchedFirstPage<GemstoneFilterState, Gemstone>?
+>((ref) => null);
+
+/// Applies [prefetched]'s filters and primes results to show its page.
+void presentPrefetchedGemstones(
+  Ref ref,
+  PrefetchedFirstPage<GemstoneFilterState, Gemstone> prefetched,
+) {
+  ref.read(gemstonePrefetchProvider.notifier).state = prefetched;
+  ref.read(gemstoneSearchProvider.notifier).replaceFilters(prefetched.filters);
+  ref.invalidate(gemstoneListProvider);
+}
 
 /// Results list. Uses backend `page` / `limit` + `meta.next` for infinite scroll.
 final gemstoneListProvider =
@@ -62,6 +79,10 @@ class GemstoneListNotifier extends PaginatedAsyncNotifier<Gemstone> {
     _cancelToken ??= CancelToken();
     final filters = ref.read(gemstoneSearchProvider);
     final sort = ref.read(gemstoneSortProvider);
+    if (page == 1) {
+      final prefetched = ref.read(gemstonePrefetchProvider)?.take(filters);
+      if (prefetched != null) return Success(prefetched);
+    }
     final repo = ref.read(gemstoneRepositoryProvider);
     final result = await repo.getGemstones(
       filters: filters,

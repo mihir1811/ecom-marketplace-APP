@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/active_filter_labels.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../application/jewelry_filter_provider.dart';
@@ -49,15 +51,33 @@ class JewelryActiveFilterPills extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final summary = ref.watch(
-      jewelryFilterProvider.select(JewelryFilterSummary.of),
-    );
+    final f = ref.watch(jewelryFilterProvider);
+    final summary = JewelryFilterSummary.of(f);
+    // Applied values first (also what Gem Agent set), then counts for the rest.
+    final pills = ActiveFilterLabels<JewelryFilterSection>()
+      ..values(JewelryFilterSection.style, f.genders)
+      ..values(JewelryFilterSection.style, f.occasions)
+      ..range(
+        JewelryFilterSection.price,
+        min: f.priceMin > JewelryFilterState.priceMinLimit ? f.priceMin : null,
+        max: f.priceMax < JewelryFilterState.priceMaxLimit ? f.priceMax : null,
+        format: _price,
+      )
+      ..values(JewelryFilterSection.metal, f.metalTypes)
+      ..values(JewelryFilterSection.metal, f.metalColors)
+      ..values(JewelryFilterSection.metal, f.metalPurities)
+      ..values(JewelryFilterSection.stone, f.stoneCategories)
+      ..values(JewelryFilterSection.stone, f.stoneShapes)
+      ..values(JewelryFilterSection.size, f.ringSizes, name: 'Ring size');
+    if (f.stoneType != null) {
+      pills.add(JewelryFilterSection.stone, '${f.stoneType} stone');
+    }
     return LuxeActiveFilterPills(
-      labels: [
-        for (final s in JewelryFilterSection.values)
-          if (summary.count(s) > 0)
-            '${jewelrySectionTitle(context, s)} · ${summary.count(s)}',
-      ],
+      labels: pills.build(
+        sections: JewelryFilterSection.values,
+        count: summary.count,
+        title: (s) => jewelrySectionTitle(context, s),
+      ),
       onEdit: onEdit,
       onReset: onReset,
       resetLabel: context.tr(DiamondFlowL10n.reset),
@@ -117,3 +137,5 @@ class JewelryCountLine extends StatelessWidget {
     );
   }
 }
+
+String _price(double v) => AppCurrency.format(formatCatalogPriceWholeK(v));

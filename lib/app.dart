@@ -10,6 +10,7 @@ import 'core/widgets/keyboard_aware.dart';
 import 'core/widgets/navigation/bottom_nav/app_bottom_nav_host.dart';
 import 'features/ai_chat/presentation/widgets/gem_ai_overlay.dart';
 import 'features/auth/application/user_profile_providers.dart';
+import 'features/gem_agent/gem_agent.dart';
 import 'features/notifications/application/notifications_provider.dart';
 import 'features/notifications/presentation/widgets/in_app_notification_host.dart';
 
@@ -46,6 +47,7 @@ class GemWorldApp extends ConsumerWidget {
                 router: appRouter,
                 child: child ?? const SizedBox.shrink(),
               ),
+              const Positioned.fill(child: GemAgentOverlay()),
               const Positioned.fill(child: GemAiOverlay()),
               const _AccountProfileSync(),
               const _PreferenceHydrator(child: SizedBox.shrink()),

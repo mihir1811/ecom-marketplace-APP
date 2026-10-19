@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../features/buyer/application/wishlist_provider.dart';
 import '../../../../features/comparison/presentation/widgets/compare_dock_button.dart';
+import '../../../../features/gem_agent/application/gem_agent_controller.dart';
 import '../../../auth/auth_providers.dart';
 import '../../../router/app_navigation.dart';
 import '../../../router/route_names.dart';
@@ -347,8 +348,8 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
   /// Fallback origin (keyboard / semantics activation): the tab's slot.
   Offset _tabCentre(AppBottomNavDestination destination) {
     final size = MediaQuery.sizeOf(context);
-    final slots = AppBottomNav.destinations.length;
-    final i = AppBottomNav.destinations.indexOf(destination);
+    final slots = AppBottomNav.slots.length;
+    final i = AppBottomNav.slots.indexOf(destination);
     final dock = AppBottomNavBar.extent(
       MediaQuery.viewPaddingOf(context).bottom,
     );
@@ -391,6 +392,11 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     }
   }
 
+  void _openAgent() {
+    _closeCategories();
+    ref.read(gemAgentControllerProvider.notifier).open();
+  }
+
   void _openCompare() => widget.router.push(AppRouteNames.comparison);
 
   @override
@@ -400,6 +406,9 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
     final extent = AppBottomNavBar.extent(inset);
     final clearance = AppBottomNavBar.clearance(inset);
     final open = _categoriesMenu != null;
+    final agentOpen = ref.watch(
+      gemAgentControllerProvider.select((s) => s.isOpen),
+    );
     final compare = CompareDockButton(
       visible: AppBottomNav.comparesOn(_path) && !open,
       diamondListing: AppBottomNav.isDiamondListing(_path),
@@ -511,6 +520,8 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
           tab: _tab ?? _shownTab,
           bottomInset: inset,
           onSelect: open ? _selectFromMenu : _select,
+          onAgent: _openAgent,
+          agentOpen: agentOpen,
           onCategories: open ? _closeCategories : _openCategories,
           categoriesOpen: open,
           compact: _compact && !open,
@@ -530,6 +541,8 @@ class _LiveBar extends ConsumerWidget {
     required this.tab,
     required this.bottomInset,
     required this.onSelect,
+    required this.onAgent,
+    required this.agentOpen,
     required this.onCategories,
     required this.categoriesOpen,
     required this.compact,
@@ -542,6 +555,8 @@ class _LiveBar extends ConsumerWidget {
   final AppBottomNavTab? tab;
   final double bottomInset;
   final ValueChanged<AppBottomNavDestination> onSelect;
+  final VoidCallback onAgent;
+  final bool agentOpen;
   final VoidCallback onCategories;
   final bool categoriesOpen;
   final bool compact;
@@ -562,6 +577,8 @@ class _LiveBar extends ConsumerWidget {
         selected: tab,
         bottomInset: bottomInset,
         onSelect: onSelect,
+        onAgent: onAgent,
+        agentOpen: agentOpen,
         onCategories: onCategories,
         categoriesOpen: categoriesOpen,
         compact: compact,

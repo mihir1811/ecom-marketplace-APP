@@ -4,14 +4,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/pagination/paginated_async_notifier.dart';
 import '../../../core/pagination/paginated_list_state.dart';
+import '../../../core/pagination/prefetched_first_page.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/jewelry_repository_impl.dart';
 import '../domain/models/jewelry.dart';
+import '../domain/models/jewelry_filter_state.dart';
 import '../domain/repositories/jewelry_repository.dart';
 import 'jewelry_filter_provider.dart';
 import '../../recently_viewed/application/recently_viewed_providers.dart';
 
 typedef JewelryListState = PaginatedListState<Jewelry>;
+
+/// First page fetched outside the screen (e.g. Gem Agent), served once.
+final jewelryPrefetchProvider =
+    StateProvider<PrefetchedFirstPage<JewelryFilterState, Jewelry>?>(
+      (ref) => null,
+    );
+
+/// Applies [prefetched]'s filters; the list reloads and shows its page.
+void presentPrefetchedJewelry(
+  Ref ref,
+  PrefetchedFirstPage<JewelryFilterState, Jewelry> prefetched,
+) {
+  ref.read(jewelryPrefetchProvider.notifier).state = prefetched;
+  ref.read(jewelryFilterProvider.notifier).replaceWith(prefetched.filters);
+}
 
 final jewelryListProvider =
     AsyncNotifierProvider<JewelryListNotifier, JewelryListState>(
@@ -49,6 +66,10 @@ class JewelryListNotifier extends PaginatedAsyncNotifier<Jewelry> {
     _cancelToken ??= CancelToken();
     final filters = ref.read(jewelryFilterProvider);
     final sort = ref.read(jewelrySortProvider);
+    if (page == 1) {
+      final prefetched = ref.read(jewelryPrefetchProvider)?.take(filters);
+      if (prefetched != null) return Success(prefetched);
+    }
     final repo = ref.read(jewelryRepositoryProvider);
     final result = await repo.getJewelry(
       filters: filters,

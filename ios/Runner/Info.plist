@@ -96,5 +96,9 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Gem Agent listens to your voice so you can search diamonds hands-free.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Gem Agent turns your voice into a search, such as "2 carat round natural diamond".</string>
 </dict>
 </plist>

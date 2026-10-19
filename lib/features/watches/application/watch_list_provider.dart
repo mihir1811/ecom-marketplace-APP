@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/pagination/paginated_async_notifier.dart';
 import '../../../core/pagination/paginated_list_state.dart';
+import '../../../core/pagination/prefetched_first_page.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/watch_repository_impl.dart';
 import '../domain/models/watch.dart';
+import '../domain/models/watch_filter_state.dart';
 import '../domain/repositories/watch_repository.dart';
 import 'watch_filter_provider.dart';
 import '../../recently_viewed/application/recently_viewed_providers.dart';
@@ -15,6 +17,21 @@ typedef WatchListState = PaginatedListState<Watch>;
 
 extension WatchListStateX on WatchListState {
   List<Watch> get watches => items;
+}
+
+/// First page fetched outside the screen (e.g. Gem Agent), served once.
+final watchPrefetchProvider =
+    StateProvider<PrefetchedFirstPage<WatchFilterState, Watch>?>(
+      (ref) => null,
+    );
+
+/// Applies [prefetched]'s filters; the list reloads and shows its page.
+void presentPrefetchedWatches(
+  Ref ref,
+  PrefetchedFirstPage<WatchFilterState, Watch> prefetched,
+) {
+  ref.read(watchPrefetchProvider.notifier).state = prefetched;
+  ref.read(watchFilterProvider.notifier).replaceWith(prefetched.filters);
 }
 
 final watchListProvider =
@@ -53,6 +70,10 @@ class WatchListNotifier extends PaginatedAsyncNotifier<Watch> {
     _cancelToken ??= CancelToken();
     final filters = ref.read(watchFilterProvider);
     final sort = ref.read(watchSortProvider);
+    if (page == 1) {
+      final prefetched = ref.read(watchPrefetchProvider)?.take(filters);
+      if (prefetched != null) return Success(prefetched);
+    }
     final repo = ref.read(watchRepositoryProvider);
     final result = await repo.getWatches(
       filters: filters,

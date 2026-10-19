@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../router/route_names.dart';
 
-/// The four main tabs of the buyer side.
-enum AppBottomNavTab { home, wishlist, auctions, profile }
+/// The main tabs of the buyer side.
+enum AppBottomNavTab { home, wishlist, profile }
+
+/// Dock buttons that run an action instead of owning a route.
+enum AppBottomNavAction { agent, categories }
 
 /// One tab of the sticky bottom navigation.
 class AppBottomNavDestination {
@@ -25,7 +28,7 @@ class AppBottomNavDestination {
 
 /// Tabs, which routes show the bar, and which tab a route belongs to.
 ///
-/// The bar shows on the four tab screens and on catalog product listing
+/// The bar shows on the tab screens and on catalog product listing
 /// screens. Filter, detail, checkout, account, and seller screens keep the
 /// full height for their own actions.
 abstract final class AppBottomNav {
@@ -38,6 +41,7 @@ abstract final class AppBottomNav {
     AppRouteNames.jewelryListing,
     AppRouteNames.watches,
     AppRouteNames.bullions,
+    AppRouteNames.auctions,
   };
 
   static const destinations = <AppBottomNavDestination>[
@@ -56,13 +60,6 @@ abstract final class AppBottomNav {
       selectedIcon: Icons.favorite_rounded,
     ),
     AppBottomNavDestination(
-      tab: AppBottomNavTab.auctions,
-      route: AppRouteNames.auctions,
-      labelKey: HomeL10n.auctions,
-      icon: Icons.gavel_outlined,
-      selectedIcon: Icons.gavel_rounded,
-    ),
-    AppBottomNavDestination(
       tab: AppBottomNavTab.profile,
       route: AppRouteNames.buyerProfile,
       labelKey: RemainingL10n.profile,
@@ -71,35 +68,59 @@ abstract final class AppBottomNav {
     ),
   ];
 
-  /// Bar slots, left to right: the tabs with the Categories action (null)
-  /// in the centre. Categories opens a menu and never owns a route.
+  /// Bar slots, left to right: the tabs with the Agent and Categories
+  /// actions (null) between them. Actions never own a route.
   static final slots = <AppBottomNavDestination?>[
-    ...destinations.take(categoriesSlot),
+    ...destinations.take(agentSlot),
     null,
-    ...destinations.skip(categoriesSlot),
+    null,
+    ...destinations.skip(agentSlot),
   ];
 
-  /// Position of the Categories action among [slots].
-  static const categoriesSlot = 2;
-  static const categoriesLabelKey = NavL10n.categories;
-  static const categoriesIcon = Icons.grid_view_outlined;
-  static const categoriesSelectedIcon = Icons.grid_view_rounded;
+  /// Positions of the actions among [slots].
+  static const agentSlot = 2;
+  static const categoriesSlot = 3;
+
+  /// The action in [slot], or null for a tab.
+  static AppBottomNavAction? actionAt(int slot) => switch (slot) {
+    agentSlot => AppBottomNavAction.agent,
+    categoriesSlot => AppBottomNavAction.categories,
+    _ => null,
+  };
+
+  static String actionLabelKey(AppBottomNavAction action) => switch (action) {
+    AppBottomNavAction.agent => NavL10n.agent,
+    AppBottomNavAction.categories => NavL10n.categories,
+  };
+
+  /// Gemworld mark the bar draws in place of an icon for the Agent action.
+  static const agentGlyph = 'G';
+
+  static IconData actionIcon(
+    AppBottomNavAction action, {
+    bool selected = false,
+  }) => switch (action) {
+    AppBottomNavAction.agent =>
+      selected ? Icons.auto_awesome_rounded : Icons.auto_awesome_outlined,
+    AppBottomNavAction.categories =>
+      selected ? Icons.grid_view_rounded : Icons.grid_view_outlined,
+  };
 
   /// Maps a position along the bar (0 = centre of the first slot) onto tab
-  /// coordinates (0 = first tab), squeezing the Categories slot out so a
-  /// scrub glides straight from the tab on its left to the one on its right.
+  /// coordinates (0 = first tab), squeezing the action slots out so a scrub
+  /// glides straight from the tab on their left to the one on their right.
   static double tabCoordinate(double slot) {
-    const left = categoriesSlot - 1.0, right = categoriesSlot + 1.0;
+    const left = agentSlot - 1.0, right = categoriesSlot + 1.0;
     if (slot <= left) return slot;
-    if (slot >= right) return slot - 1;
-    return left + (slot - left) / 2;
+    if (slot >= right) return slot - (right - left - 1);
+    return left + (slot - left) / (right - left);
   }
 
   static String _normalize(String path) => path.length > 1 && path.endsWith('/')
       ? path.substring(0, path.length - 1)
       : path;
 
-  /// The tab [path] belongs to, or null when none of the four tabs own it.
+  /// The tab [path] belongs to, or null when none of the tabs own it.
   static AppBottomNavTab? tabFor(String rawPath) {
     final path = _normalize(rawPath);
     for (final d in destinations) {
@@ -114,6 +135,7 @@ abstract final class AppBottomNav {
     final path = _normalize(rawPath);
     return tabFor(path) == null &&
         path != AppRouteNames.bullions &&
+        path != AppRouteNames.auctions &&
         isVisibleOn(path);
   }
 

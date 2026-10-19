@@ -14,6 +14,7 @@ abstract final class NavL10n {
   static const pendingLocked = 'nav.mode.pendingLocked';
   static const home = 'nav.home';
   static const categories = 'nav.categories';
+  static const agent = 'nav.agent';
   static const closeCategories = 'nav.categories.close';
   static const groupShopping = 'nav.group.shopping';
   static const groupAuctions = 'nav.group.auctions';
@@ -86,6 +87,11 @@ const navigationMessages = <String, LocalizedMessage>{
     english: 'Categories',
     hindi: 'श्रेणियाँ',
     gujarati: 'શ્રેણીઓ',
+  ),
+  NavL10n.agent: LocalizedMessage(
+    english: 'Agent',
+    hindi: 'एजेंट',
+    gujarati: 'એજન્ટ',
   ),
   NavL10n.closeCategories: LocalizedMessage(
     english: 'Close categories',
