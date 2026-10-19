@@ -121,6 +121,7 @@ class RewardsSummary {
     required this.balanceValueInr,
     required this.settings,
     this.recentTransactions = const [],
+    this.club = RewardClubStatus.empty,
   });
 
   final int balance;
@@ -129,6 +130,10 @@ class RewardsSummary {
   final double balanceValueInr;
   final RewardSettings settings;
   final List<RewardTransaction> recentTransactions;
+  final RewardClubStatus club;
+
+  /// Bonus orders placed now earn; 1 outside a club.
+  double get earnMultiplier => club.current?.earnMultiplier ?? 1;
 
   /// Points still needed before the balance can be spent.
   int get pointsToUnlock => balance >= settings.minRedeemPoints
@@ -136,6 +141,67 @@ class RewardsSummary {
       : settings.minRedeemPoints - balance;
 
   bool get canSpend => settings.canRedeem && balance > 0 && pointsToUnlock == 0;
+}
+
+/// An admin-defined club, by lifetime points.
+class RewardClub {
+  const RewardClub({
+    required this.id,
+    required this.name,
+    required this.minPoints,
+    this.maxPoints,
+    required this.color,
+    this.earnMultiplier = 1,
+  });
+
+  final String id;
+  final String name;
+  final int minPoints;
+
+  /// Null for the top club.
+  final int? maxPoints;
+
+  /// Badge colour as 0xAARRGGBB.
+  final int color;
+
+  /// Orders placed in this club earn this many times the points.
+  final double earnMultiplier;
+
+  bool get hasBonus => earnMultiplier > 1;
+}
+
+/// The buyer's club and progress, from the `club` block of GET /rewards.
+class RewardClubStatus {
+  const RewardClubStatus({
+    required this.lifetimePoints,
+    this.current,
+    this.next,
+    this.pointsToNext,
+    this.clubs = const [],
+  });
+
+  static const empty = RewardClubStatus(lifetimePoints: 0);
+
+  /// Earned plus added by GemWorld, less removals. Spending never lowers it.
+  final int lifetimePoints;
+  final RewardClub? current;
+  final RewardClub? next;
+  final int? pointsToNext;
+
+  /// Every club, lowest first. Empty: hide the club UI.
+  final List<RewardClub> clubs;
+
+  bool get hasClubs => clubs.isNotEmpty;
+
+  /// 0..1 from the current club's start (or 0) to the next club.
+  double get progress {
+    final target = next;
+    if (target == null) return 1;
+    final start = current?.minPoints ?? 0;
+    final span = target.minPoints - start;
+    if (span <= 0) return 1;
+    return ((lifetimePoints - start) / span).clamp(0.0, 1.0).toDouble();
+  }
 }
 
 /// Paged GET /rewards/transactions.

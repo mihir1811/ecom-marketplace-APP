@@ -144,4 +144,72 @@ void main() {
     expect(page.transactions.last.label, 'Bonus Drop');
     expect(page.hasMore, isFalse);
   });
+
+  test('club bonus multiplies the earn estimate', () {
+    expect(
+      estimateEarnedPoints(
+        itemsInr: 230000,
+        pointsAmountInr: 1250,
+        settings: settings,
+        earnMultiplier: 1.5,
+      ),
+      68,
+    );
+  });
+
+  test('parses the club block', () {
+    final summary = RewardsMapper.summaryFromJson({
+      'balance': 1250,
+      'balanceValueInr': 1250,
+      'settings': {'enabled': true, 'earnRupeesPerPoint': 5000},
+      'recentTransactions': [],
+      'club': {
+        'lifetimePoints': 1480,
+        'current': {
+          'id': 'g',
+          'name': 'Gold',
+          'minPoints': 1000,
+          'maxPoints': 2499,
+          'color': '#D4AF37',
+          'earnMultiplier': 1.5,
+        },
+        'next': {
+          'id': 'p',
+          'name': 'Platinum',
+          'minPoints': 2500,
+          'maxPoints': null,
+          'color': '#7F8C9A',
+          'earnMultiplier': 2,
+        },
+        'pointsToNext': 1020,
+        'clubs': [
+          {
+            'id': 'p',
+            'name': 'Platinum',
+            'minPoints': 2500,
+            'color': '#7F8C9A',
+            'earnMultiplier': 2,
+          },
+          {
+            'id': 's',
+            'name': 'Silver',
+            'minPoints': 500,
+            'color': '#A8A9AD',
+            'earnMultiplier': 1,
+          },
+        ],
+      },
+    });
+    expect(summary.club.current?.color, 0xFFD4AF37);
+    expect(summary.earnMultiplier, 1.5);
+    expect(summary.club.next?.maxPoints, isNull);
+    expect(summary.club.clubs.first.name, 'Silver');
+    expect(summary.club.progress, closeTo(0.32, 1e-9));
+  });
+
+  test('missing club block hides clubs', () {
+    final summary = RewardsMapper.summaryFromJson({'balance': 10});
+    expect(summary.club.hasClubs, isFalse);
+    expect(summary.earnMultiplier, 1);
+  });
 }

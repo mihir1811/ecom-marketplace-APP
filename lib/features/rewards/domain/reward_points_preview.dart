@@ -73,19 +73,22 @@ PointsRedemption previewPointsRedemption({
   return (walletInr: wallet, razorpayInr: razorpay);
 }
 
-/// Points the order should earn once it completes. The part paid with
-/// points earns nothing; rejected or returned items earn less.
+/// Points the order should earn once it completes, with the club bonus.
+/// The part paid with points earns nothing; rejected or returned items
+/// earn less.
 int estimateEarnedPoints({
   required double itemsInr,
   required double pointsAmountInr,
   required RewardSettings? settings,
+  double earnMultiplier = 1,
 }) {
   if (settings == null ||
       !settings.enabled ||
       settings.earnRupeesPerPoint <= 0) {
     return 0;
   }
-  final base = math.max(0.0, itemsInr - pointsAmountInr);
+  final multiplier = earnMultiplier >= 1 ? earnMultiplier : 1.0;
+  final base = math.max(0.0, itemsInr - pointsAmountInr) * multiplier;
   return (base / settings.earnRupeesPerPoint + 1e-9).floor();
 }
 
@@ -96,6 +99,7 @@ class CheckoutSplitPreview {
     required this.walletInr,
     required this.razorpayInr,
     required this.earnPoints,
+    this.earnBonus,
   });
 
   factory CheckoutSplitPreview.compute({
@@ -125,7 +129,11 @@ class CheckoutSplitPreview {
         itemsInr: itemsInr,
         pointsAmountInr: points.amountInr,
         settings: rewards?.settings,
+        earnMultiplier: rewards?.earnMultiplier ?? 1,
       ),
+      earnBonus: (rewards?.club.current?.hasBonus ?? false)
+          ? rewards!.club.current
+          : null,
     );
   }
 
@@ -133,6 +141,9 @@ class CheckoutSplitPreview {
   final double walletInr;
   final double razorpayInr;
   final int earnPoints;
+
+  /// The buyer's club when it boosts [earnPoints].
+  final RewardClub? earnBonus;
 
   bool get usesPoints => points.points > 0;
   bool get usesWallet => walletInr > 0;

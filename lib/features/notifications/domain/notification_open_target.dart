@@ -79,6 +79,10 @@ NotificationOpenTarget notificationOpenTarget(
             ? AppRouteNames.sellerHelpCenter
             : AppRouteNames.buyerHelpCenter,
       );
+    case 'REWARD_CLUB_REACHED':
+      return isSeller
+          ? const NotificationStay()
+          : const NotificationInApp(AppRouteNames.buyerRewards);
     case 'ADMIN_BROADCAST':
       return _fromLink(notification.link, isSeller: isSeller);
     case 'AUCTION_OUTBID':

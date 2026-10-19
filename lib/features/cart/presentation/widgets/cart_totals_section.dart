@@ -8,6 +8,7 @@ import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
 import '../../../rewards/application/rewards_provider.dart';
+import '../../../rewards/domain/models/rewards.dart';
 import '../../../rewards/domain/reward_points_preview.dart';
 import '../../../rewards/presentation/rewards_format.dart';
 import '../../../wallet/application/wallet_provider.dart';
@@ -300,7 +301,7 @@ class CartTotalsSection extends ConsumerWidget {
                     child: Text(
                       'You\'ll earn about '
                       '${rewardPointsLabel(split.earnPoints)} when this order '
-                      'completes',
+                      'completes${_bonusLabel(split.earnBonus)}',
                       style: LuxeType.label(p.ink, size: 12),
                     ),
                   ),
@@ -410,3 +411,8 @@ class CartTotalsSection extends ConsumerWidget {
   String _inrLabel(double amount) =>
       '${AppCurrency.inrSymbol}${formatGroupedWhole(amount.roundToDouble())}';
 }
+
+/// ` (Gold 1.5×)` when a club boosts the estimate.
+String _bonusLabel(RewardClub? club) => club == null
+    ? ''
+    : ' (${club.name} ${rewardMultiplierLabel(club.earnMultiplier)})';

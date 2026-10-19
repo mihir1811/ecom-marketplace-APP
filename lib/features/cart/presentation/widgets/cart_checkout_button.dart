@@ -127,7 +127,10 @@ class CartCheckoutBar extends ConsumerWidget {
           (label: 'Via Razorpay', value: AppCurrency.inr(split.razorpayInr)),
         if (split.earnPoints > 0)
           (
-            label: 'You\'ll earn about',
+            label: split.earnBonus == null
+                ? 'You\'ll earn about'
+                : 'You\'ll earn (${split.earnBonus!.name} '
+                      '${rewardMultiplierLabel(split.earnBonus!.earnMultiplier)})',
             value: rewardPointsLabel(split.earnPoints),
           ),
       ],

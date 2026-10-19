@@ -119,11 +119,15 @@ abstract final class PaymentMapper {
 
   static PaymentOrderRewardPoints rewardPointsFromJson(Object? raw) {
     if (raw is! Map) return PaymentOrderRewardPoints.none;
+    final club = raw['club'];
+    final clubName = club is Map ? club['name']?.toString().trim() : null;
     return PaymentOrderRewardPoints(
       used: _int(raw['used']) ?? 0,
       usedAmountInr: _num(raw['usedAmountInr']) ?? 0,
       earnsPoints: raw['earnsPoints'] == true,
       earned: _int(raw['earned']),
+      clubName: clubName == null || clubName.isEmpty ? null : clubName,
+      earnMultiplier: club is Map ? (_num(club['earnMultiplier']) ?? 1) : 1,
     );
   }
 

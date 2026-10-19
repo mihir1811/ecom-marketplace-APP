@@ -11,7 +11,54 @@ abstract final class RewardsMapper {
           ? settingsFromJson(settings)
           : RewardSettings.disabled,
       recentTransactions: _transactions(json['recentTransactions']),
+      club: clubStatusFromJson(json['club']),
     );
+  }
+
+  static RewardClubStatus clubStatusFromJson(Object? raw) {
+    if (raw is! Map<String, dynamic>) return RewardClubStatus.empty;
+    final clubs = <RewardClub>[];
+    final list = raw['clubs'];
+    if (list is List) {
+      for (final item in list) {
+        final club = clubFromJson(item);
+        if (club != null) clubs.add(club);
+      }
+      clubs.sort((a, b) => a.minPoints.compareTo(b.minPoints));
+    }
+    return RewardClubStatus(
+      lifetimePoints: _int(raw['lifetimePoints']) ?? 0,
+      current: clubFromJson(raw['current']),
+      next: clubFromJson(raw['next']),
+      pointsToNext: _int(raw['pointsToNext']),
+      clubs: clubs,
+    );
+  }
+
+  static RewardClub? clubFromJson(Object? raw) {
+    if (raw is! Map<String, dynamic>) return null;
+    final id = _str(raw['id']);
+    final name = _str(raw['name']);
+    if (id == null || name == null) return null;
+    return RewardClub(
+      id: id,
+      name: name,
+      minPoints: _int(raw['minPoints']) ?? 0,
+      maxPoints: _int(raw['maxPoints']),
+      color: _color(raw['color']),
+      earnMultiplier: (_num(raw['earnMultiplier']) ?? 1)
+          .clamp(1.0, 10.0)
+          .toDouble(),
+    );
+  }
+
+  /// `#RRGGBB` → 0xFFRRGGBB; muted silver when missing or malformed.
+  static int _color(Object? raw) {
+    final hex = _str(raw)?.replaceFirst('#', '');
+    final value = hex != null && hex.length == 6
+        ? int.tryParse(hex, radix: 16)
+        : null;
+    return value == null ? 0xFFA8A9AD : 0xFF000000 | value;
   }
 
   static RewardSettings settingsFromJson(Map<String, dynamic> json) {

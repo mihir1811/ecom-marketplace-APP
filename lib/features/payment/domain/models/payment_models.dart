@@ -162,6 +162,8 @@ class PaymentOrderRewardPoints {
     this.usedAmountInr = 0,
     this.earnsPoints = false,
     this.earned,
+    this.clubName,
+    this.earnMultiplier = 1,
   });
 
   static const none = PaymentOrderRewardPoints();
@@ -175,6 +177,13 @@ class PaymentOrderRewardPoints {
 
   /// Null until the order completes, then a number (can be 0).
   final int? earned;
+
+  /// The buyer's club when the order was placed, and its bonus (already
+  /// included in [earned]).
+  final String? clubName;
+  final double earnMultiplier;
+
+  bool get hasClubBonus => clubName != null && earnMultiplier > 1;
 }
 
 class PaymentOrderItem {

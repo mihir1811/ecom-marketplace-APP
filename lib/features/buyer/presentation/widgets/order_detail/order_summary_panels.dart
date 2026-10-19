@@ -310,6 +310,10 @@ class _RewardEarnNote extends StatelessWidget {
     final earned = points.earned;
     if (earned == 0) return const SizedBox.shrink();
     final pending = earned == null;
+    final bonus = points.hasClubBonus
+        ? ' ${points.clubName} bonus: '
+              '${rewardMultiplierLabel(points.earnMultiplier)} points.'
+        : '';
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: AtelierNotice(
@@ -318,8 +322,8 @@ class _RewardEarnNote extends StatelessWidget {
             ? Icons.hourglass_top_rounded
             : Icons.auto_awesome_outlined,
         text: pending
-            ? "You'll earn reward points when this order is complete."
-            : 'Earned ${rewardPointsLabel(earned)} on this order.',
+            ? "You'll earn reward points when this order is complete.$bonus"
+            : 'Earned ${rewardPointsLabel(earned)} on this order.$bonus',
         actionLabel: 'Rewards',
         onAction: () => context.openRoute(AppRouteNames.buyerRewards),
       ),

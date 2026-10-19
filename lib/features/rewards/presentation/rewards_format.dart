@@ -14,3 +14,9 @@ String rewardPointsLabel(num points) {
 String rewardPercentLabel(double percent) => percent == percent.roundToDouble()
     ? '${percent.toStringAsFixed(0)}%'
     : '${percent.toStringAsFixed(1)}%';
+
+/// `1.5×` / `2×`.
+String rewardMultiplierLabel(double multiplier) =>
+    multiplier == multiplier.roundToDouble()
+    ? '${multiplier.toStringAsFixed(0)}×'
+    : '${multiplier.toStringAsFixed(1)}×';

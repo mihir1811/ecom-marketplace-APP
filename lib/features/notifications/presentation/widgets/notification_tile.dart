@@ -172,6 +172,7 @@ IconData notificationTypeIcon(String type) {
     'OFFER_REJECTED' => Icons.local_offer_outlined,
     'HELP_CENTER_ANSWERED' => Icons.help_outline,
     'ADMIN_BROADCAST' => Icons.campaign_outlined,
+    'REWARD_CLUB_REACHED' => Icons.workspace_premium_outlined,
     _ => Icons.notifications_none,
   };
 }
