@@ -7,6 +7,9 @@ import '../../../../core/widgets/gem3d/gem_field.dart';
 import '../theme/home_tokens.dart';
 import 'home_section.dart';
 
+/// Whether the jewelry education link shows along the bottom edge.
+const _showJewelryEducation = false;
+
 /// Last section of home, one full screen tall: a dark field of live 3D
 /// diamonds in every bundled cut and size (baked from the .glb models in
 /// `assets_src/gem_models`) streaming from the top-left to the
@@ -112,10 +115,13 @@ class HomeGemStage extends StatelessWidget {
                         EducationL10n.navEducation,
                         AppRouteNames.diamondEducation,
                       ),
-                      link(
-                        JewelryEduL10n.navEducation,
-                        AppRouteNames.jewelryEducation,
-                      ),
+                      // Jewelry education is hidden for now; its route
+                      // and engine stay in place.
+                      if (_showJewelryEducation)
+                        link(
+                          JewelryEduL10n.navEducation,
+                          AppRouteNames.jewelryEducation,
+                        ),
                       link(RemainingL10n.aboutGemWorld, AppRouteNames.aboutUs),
                       link(
                         AccountCommerceL10n.privacyPolicy,

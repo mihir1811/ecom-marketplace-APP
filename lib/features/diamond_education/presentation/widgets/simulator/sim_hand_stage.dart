@@ -11,6 +11,7 @@ import '../../../application/diamond_simulator_controller.dart';
 import '../../../domain/average_hand.dart';
 import '../../../simulation/sim_optics.dart';
 import '../../../simulation/sim_renderer.dart';
+import '../../../simulation/sim_wireframe.dart';
 import 'diamond_sim_viewport.dart';
 import 'sim_hand_painter.dart';
 
@@ -57,6 +58,8 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
   void initState() {
     super.initState();
     widget.controller.lifeSize.addListener(_onLifeSize);
+    widget.controller.addListener(_onMode);
+    _vector = widget.controller.vector;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (MediaQuery.disableAnimationsOf(context)) {
@@ -70,10 +73,19 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
   @override
   void dispose() {
     widget.controller.lifeSize.removeListener(_onLifeSize);
+    widget.controller.removeListener(_onMode);
     _enter.dispose();
     _zoom.dispose();
     _spinTicker.dispose();
     super.dispose();
+  }
+
+  late bool _vector;
+
+  void _onMode() {
+    if (widget.controller.vector != _vector) {
+      setState(() => _vector = widget.controller.vector);
+    }
   }
 
   void _onLifeSize() {
@@ -269,6 +281,7 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
                   // Long shapes run along the finger.
                   spin: math.pi / 2 - digit.lean + (_spin[f] ?? 0),
                   moving: selected && (_dragging || _spinTicker.isActive),
+                  vector: _vector,
                 ),
               ),
             ),
@@ -317,6 +330,7 @@ class SimFingerStone extends StatefulWidget {
     required this.pxPerMm,
     required this.spin,
     required this.moving,
+    this.vector = false,
     super.key,
   });
 
@@ -325,12 +339,17 @@ class SimFingerStone extends StatefulWidget {
   final double spin;
   final bool moving;
 
+  /// Drawn as facet edges only (see [SimRenderMode.vector]).
+  final bool vector;
+
   @override
   State<SimFingerStone> createState() => _SimFingerStoneState();
 }
 
 class _SimFingerStoneState extends State<SimFingerStone> {
   final _renderer = SimRenderer()..measureStats = false;
+  final _wire = SimWireRenderer();
+  late SimWireStyle _wireStyle;
   int _version = 0;
 
   @override
@@ -352,7 +371,9 @@ class _SimFingerStoneState extends State<SimFingerStone> {
 
   void _load(DiamondSimulatorState s, {required bool mesh}) {
     if (mesh) _renderer.setStone(s.mesh, s.inclusions);
-    _renderer.setOptics(SimOptics.of(s.spec, s.lighting));
+    final optics = SimOptics.of(s.spec, s.lighting);
+    _renderer.setOptics(optics);
+    _wireStyle = SimWireStyle.of(optics);
     _version++;
   }
 
@@ -382,6 +403,9 @@ class _SimFingerStoneState extends State<SimFingerStone> {
         size: Size.infinite,
         painter: _FingerStonePainter(
           renderer: _renderer,
+          wire: widget.vector ? _wire : null,
+          stone: widget.stone,
+          wireStyle: _wireStyle,
           version: _version,
           pxPerUnit: widget.pxPerMm * widget.stone.mmPerUnit,
           spin: widget.spin,
@@ -396,6 +420,9 @@ class _SimFingerStoneState extends State<SimFingerStone> {
 class _FingerStonePainter extends CustomPainter {
   _FingerStonePainter({
     required this.renderer,
+    required this.wire,
+    required this.stone,
+    required this.wireStyle,
     required this.version,
     required this.pxPerUnit,
     required this.spin,
@@ -404,12 +431,28 @@ class _FingerStonePainter extends CustomPainter {
   });
 
   final SimRenderer renderer;
+  final SimWireRenderer? wire;
+  final DiamondSimulatorState stone;
+  final SimWireStyle wireStyle;
   final int version;
   final double pxPerUnit, spin, dpr;
   final bool moving;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final wire = this.wire;
+    if (wire != null) {
+      wire.paint(
+        canvas,
+        size,
+        mesh: stone.mesh,
+        view: SimView(tilt: math.pi / 2, spin: spin),
+        pxPerUnit: pxPerUnit,
+        style: wireStyle,
+        inclusions: stone.inclusions,
+      );
+      return;
+    }
     renderer.maxBounces = SimRenderer.bounces;
     renderer.paint(
       canvas,
@@ -425,6 +468,8 @@ class _FingerStonePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _FingerStonePainter old) =>
       old.version != version ||
+      old.wire != wire ||
+      !identical(old.stone, stone) ||
       old.pxPerUnit != pxPerUnit ||
       old.spin != spin ||
       old.moving != moving ||

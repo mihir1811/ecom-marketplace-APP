@@ -277,6 +277,7 @@ abstract final class EducationL10n {
   static const lifeSize = 'education.lifeSize';
   static const fitHand = 'education.fitHand';
   static const autoSpin = 'education.autoSpin';
+  static const vectorView = 'education.vectorView';
   static const handTitle = 'education.handTitle';
   static const handFacts = 'education.handFacts';
   static const handHint = 'education.handHint';
@@ -1732,6 +1733,11 @@ const educationMessages = <String, LocalizedMessage>{
     english: 'Whole hand',
     hindi: 'पूरा हाथ',
     gujarati: 'આખો હાથ',
+  ),
+  EducationL10n.vectorView: LocalizedMessage(
+    english: 'Vector',
+    hindi: 'वेक्टर',
+    gujarati: 'વેક્ટર',
   ),
   EducationL10n.autoSpin: LocalizedMessage(
     english: 'Auto-spin',

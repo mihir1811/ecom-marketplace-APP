@@ -24,6 +24,7 @@ class SimMesh {
     required this.facetVerts,
     required this.planes,
     required this.kinds,
+    required this.facetGroup,
     required this.girdleFacets,
     required this.innerRadius,
     required this.length,
@@ -61,6 +62,11 @@ class SimMesh {
   /// Outward unit normal and offset per facet: `n · p = d` on the facet.
   final Float64List planes;
   final Uint8List kinds;
+
+  /// The cut facet each polygon belongs to: a facet a fancy outline bends
+  /// slightly is split into triangles ([_Builder.finish]), and those
+  /// share one group, so a line drawing never shows the split.
+  final Int32List facetGroup;
 
   /// Girdle facets; a ray only needs to test them when it reaches the
   /// girdle band (see [innerRadius]).
@@ -887,10 +893,10 @@ class _Builder {
     }
 
     final starts = <int>[0], verts = <int>[], planes = <double>[];
-    final kinds = <int>[], girdle = <int>[];
+    final kinds = <int>[], girdle = <int>[], groups = <int>[];
     var volume = 0.0;
 
-    void emit(List<int> poly, SimFacetKind kind) {
+    void emit(List<int> poly, SimFacetKind kind, int group) {
       var cx = 0.0, cy = 0.0, cz = 0.0;
       for (final i in poly) {
         cx += pos[i * 3];
@@ -926,6 +932,7 @@ class _Builder {
       final d = nx * cx + ny * cy + nz * cz;
       planes.addAll([nx, ny, nz, d]);
       kinds.add(kind.index);
+      groups.add(group);
       volume += len / 2 * d / 3;
     }
 
@@ -943,11 +950,11 @@ class _Builder {
       }
       if (poly.length < 3) continue;
       if (_isPlanar(poly, pos)) {
-        emit(poly, kind);
+        emit(poly, kind, k);
       } else {
         // Fancy outlines bend a few kites and mains slightly: split them.
-        for (var k = 1; k < poly.length - 1; k++) {
-          emit([poly[0], poly[k], poly[k + 1]], kind);
+        for (var j = 1; j < poly.length - 1; j++) {
+          emit([poly[0], poly[j], poly[j + 1]], kind, k);
         }
       }
     }
@@ -966,6 +973,7 @@ class _Builder {
       facetVerts: Int32List.fromList(verts),
       planes: Float64List.fromList(planes),
       kinds: Uint8List.fromList(kinds),
+      facetGroup: Int32List.fromList(groups),
       girdleFacets: Int32List.fromList(girdle),
       innerRadius: _innerRadius(pos, verts, starts, tracedGirdle),
       length: heart ? ext.z : ext.x,

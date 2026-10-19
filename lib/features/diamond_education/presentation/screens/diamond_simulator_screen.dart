@@ -29,6 +29,10 @@ import '../widgets/simulator/sim_quality_panels.dart';
 import '../widgets/simulator/sim_shape_strip.dart';
 import '../widgets/simulator/sim_viewport_overlay.dart';
 
+/// Whether the stone can be taken into the jewelry simulator from here.
+/// Hidden for now; the handoff and the jewelry engine stay in place.
+const _showJewelryHandoff = false;
+
 enum _SimTool {
   shape,
   cut,
@@ -119,6 +123,12 @@ class _DiamondSimulatorScreenState
     context.openRoute(AppRouteNames.jewelrySimulator);
   }
 
+  void _toggleVector() {
+    _viewport.mode = _viewport.vector
+        ? SimRenderMode.realistic
+        : SimRenderMode.vector;
+  }
+
   void _reset() {
     AppHaptics.light();
     ref.read(simHandProvider.notifier).reset();
@@ -179,18 +189,34 @@ class _DiamondSimulatorScreenState
           return Stack(
             fit: StackFit.expand,
             children: [
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(0, -0.1),
-                    radius: 1.05,
-                    colors: [
-                      SimStageTones.lit,
-                      SimStageTones.mid,
-                      Color(0xFF0B0C0E),
-                    ],
-                    stops: [0, 0.5, 1],
-                  ),
+              // A line drawing reads best on plain black; the traced stone
+              // on its lit studio grey.
+              ListenableBuilder(
+                listenable: _viewport,
+                builder: (context, _) => AnimatedSwitcher(
+                  duration: LuxeMotion.medium,
+                  child: _viewport.vector
+                      ? const ColoredBox(
+                          key: ValueKey('vector'),
+                          color: Color(0xFF000000),
+                          child: SizedBox.expand(),
+                        )
+                      : const DecoratedBox(
+                          key: ValueKey('realistic'),
+                          decoration: BoxDecoration(
+                            gradient: RadialGradient(
+                              center: Alignment(0, -0.1),
+                              radius: 1.05,
+                              colors: [
+                                SimStageTones.lit,
+                                SimStageTones.mid,
+                                Color(0xFF0B0C0E),
+                              ],
+                              stops: [0, 0.5, 1],
+                            ),
+                          ),
+                          child: SizedBox.expand(),
+                        ),
                 ),
               ),
               AnimatedPositioned(
@@ -260,7 +286,12 @@ class _DiamondSimulatorScreenState
                 left: 8,
                 right: 12,
                 top: barTop,
-                child: _TopBar(onReset: _reset, onUseInJewelry: _useInJewelry),
+                child: _TopBar(
+                  viewport: _viewport,
+                  onReset: _reset,
+                  onToggleVector: _toggleVector,
+                  onUseInJewelry: _useInJewelry,
+                ),
               ),
               Positioned(
                 left: 16,
@@ -360,11 +391,18 @@ class _DiamondSimulatorScreenState
   }
 }
 
-/// Back, title and reset, floating over the stage.
+/// Back, title, the realistic / vector switch and reset, floating over
+/// the stage.
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.onReset, required this.onUseInJewelry});
+  const _TopBar({
+    required this.viewport,
+    required this.onReset,
+    required this.onToggleVector,
+    required this.onUseInJewelry,
+  });
 
-  final VoidCallback onReset, onUseInJewelry;
+  final SimViewportController viewport;
+  final VoidCallback onReset, onToggleVector, onUseInJewelry;
 
   @override
   Widget build(BuildContext context) {
@@ -389,22 +427,35 @@ class _TopBar extends StatelessWidget {
         ),
         // Into the jewelry simulator with this stone: a labelled pill
         // where there is room, an icon on narrow phones.
-        if (MediaQuery.sizeOf(context).width >= 440)
-          SimGlassPill(
-            label: context.tr(JewelryEduL10n.useInJewelry),
-            selected: true,
+        if (_showJewelryHandoff) ...[
+          if (MediaQuery.sizeOf(context).width >= 440)
+            SimGlassPill(
+              label: context.tr(JewelryEduL10n.useInJewelry),
+              selected: true,
+              palette: p,
+              height: 34,
+              onTap: onUseInJewelry,
+            )
+          else
+            LuxeIconButton(
+              icon: Icons.diamond_outlined,
+              tooltip: context.tr(JewelryEduL10n.useInJewelry),
+              size: 36,
+              glass: true,
+              onPressed: onUseInJewelry,
+            ),
+          const SizedBox(width: 6),
+        ],
+        ListenableBuilder(
+          listenable: viewport,
+          builder: (context, _) => SimGlassPill(
+            label: context.tr(EducationL10n.vectorView),
+            selected: viewport.vector,
             palette: p,
             height: 34,
-            onTap: onUseInJewelry,
-          )
-        else
-          LuxeIconButton(
-            icon: Icons.diamond_outlined,
-            tooltip: context.tr(JewelryEduL10n.useInJewelry),
-            size: 36,
-            glass: true,
-            onPressed: onUseInJewelry,
+            onTap: onToggleVector,
           ),
+        ),
         const SizedBox(width: 6),
         SimGlassPill(
           label: context.tr(EducationL10n.reset),

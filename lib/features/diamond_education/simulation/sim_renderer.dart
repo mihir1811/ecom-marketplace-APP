@@ -18,6 +18,23 @@ class SimView {
   const SimView({required this.tilt, required this.spin, this.zoom = 1});
 
   final double tilt, spin, zoom;
+
+  /// Model → world rotation, row major into [r]: spin about the table
+  /// axis, then tilt toward the viewer.
+  void rotationInto(Float64List r) {
+    final cs = math.cos(spin), ss = math.sin(spin);
+    final ct = math.cos(tilt), st = math.sin(tilt);
+    r
+      ..[0] = cs
+      ..[1] = 0
+      ..[2] = ss
+      ..[3] = st * ss
+      ..[4] = ct
+      ..[5] = -st * cs
+      ..[6] = -ct * ss
+      ..[7] = st
+      ..[8] = ct * cs;
+  }
 }
 
 /// Light performance measured on the last frame, 0..1: [brightness] is
@@ -57,6 +74,7 @@ class SimRenderer {
 
   /// Camera distance in model units; enough perspective to feel solid.
   static const _eye = 9.0;
+  static const eyeDistance = _eye;
 
   /// Most samples in one stone, whatever its size on screen: drawing on
   /// the CPU, or only measuring light beside the GPU (the meters are
@@ -295,21 +313,12 @@ class SimRenderer {
     }
 
     // Model → world: spin about the table axis, then tilt toward viewer.
-    final cs = math.cos(view.spin), ss = math.sin(view.spin);
-    final ct = math.cos(view.tilt), st = math.sin(view.tilt);
-    final r00 = cs, r01 = 0.0, r02 = ss;
-    final r10 = st * ss, r11 = ct, r12 = -st * cs;
-    final r20 = -ct * ss, r21 = st, r22 = ct * cs;
-    final rot = _rot
-      ..[0] = r00
-      ..[1] = r01
-      ..[2] = r02
-      ..[3] = r10
-      ..[4] = r11
-      ..[5] = r12
-      ..[6] = r20
-      ..[7] = r21
-      ..[8] = r22;
+    final rot = _rot;
+    view.rotationInto(rot);
+    final r00 = rot[0], r01 = rot[1], r02 = rot[2];
+    final r10 = rot[3], r11 = rot[4], r12 = rot[5];
+    final r20 = rot[6], r21 = rot[7], r22 = rot[8];
+    final st = math.sin(view.tilt);
     final tracer = _tracer..rotation(rot);
     // A scope shows the arrows face up with a wider viewing hole than the
     // hearts face down: each view's working distance in a real scope.
@@ -384,6 +393,31 @@ class SimRenderer {
         );
       }
     }
+  }
+
+  /// Measures light performance ([stats]) for [view] without drawing,
+  /// at most a few times a second: the meters keep working while the
+  /// stone is shown some other way (as a line drawing).
+  void measure(SimView view) {
+    final mesh = _mesh;
+    if (mesh == null) return;
+    if (_tracer.optics.lighting == SimLighting.heartsArrows) return;
+    final now = _clock.elapsed;
+    if (!_statsDirty && now - _measuredAt < _measureGap) return;
+    _statsDirty = false;
+    _measuredAt = now;
+    const units = 0.2;
+    if (!identical(_layoutFor, mesh) ||
+        (units - _layoutUnits).abs() > _layoutUnits * 0.12) {
+      _layout(mesh, units, _measureBudget);
+    }
+    final rot = _rot;
+    view.rotationInto(rot);
+    final tracer = _tracer..rotation(rot);
+    final bounces = tracer.maxBounces;
+    tracer.maxBounces = math.min(bounces, _measureBounces);
+    _measure(mesh, _eye * rot[6], _eye * rot[7], _eye * rot[8]);
+    tracer.maxBounces = bounces;
   }
 
   final Paint _stagePaint = Paint();

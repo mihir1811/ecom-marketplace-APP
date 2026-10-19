@@ -8,7 +8,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/haptics/app_haptics.dart';
 import '../../../application/diamond_simulator_controller.dart';
 import '../../../simulation/sim_optics.dart';
+import '../../../simulation/sim_inclusions.dart';
+import '../../../simulation/sim_mesh.dart';
 import '../../../simulation/sim_renderer.dart';
+import '../../../simulation/sim_wireframe.dart';
 
 /// Camera presets for the simulated stone.
 enum SimViewPreset {
@@ -21,6 +24,10 @@ enum SimViewPreset {
 
   final double tilt;
 }
+
+/// How the stone is drawn: traced in light, or as a 3D line drawing of
+/// its facet edges alone. Every control works in both.
+enum SimRenderMode { realistic, vector }
 
 /// Light performance read off the rendered stone, 0..1.
 @immutable
@@ -40,6 +47,16 @@ class SimViewportController extends ChangeNotifier {
     _autoRotate = value;
     notifyListeners();
   }
+
+  SimRenderMode _mode = SimRenderMode.realistic;
+  SimRenderMode get mode => _mode;
+  set mode(SimRenderMode value) {
+    if (value == _mode) return;
+    _mode = value;
+    notifyListeners();
+  }
+
+  bool get vector => _mode == SimRenderMode.vector;
 
   SimViewPreset _preset = SimViewPreset.angled;
   int _presetRequest = 0;
@@ -125,6 +142,10 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker(_tick);
   final _renderer = SimRenderer();
+  final _wire = SimWireRenderer();
+  late SimMesh _mesh;
+  late List<SimInclusion> _inclusions;
+  late SimWireStyle _wireStyle;
   final _frame = ValueNotifier(0);
   Timer? _refineTimer;
 
@@ -178,9 +199,13 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   void initState() {
     super.initState();
     final s = ref.read(diamondSimulatorProvider);
+    final optics = SimOptics.of(s.spec, s.lighting);
     _renderer
       ..setStone(s.mesh, s.inclusions)
-      ..setOptics(SimOptics.of(s.spec, s.lighting));
+      ..setOptics(optics);
+    _mesh = s.mesh;
+    _inclusions = s.inclusions;
+    _wireStyle = SimWireStyle.of(optics);
     _mmPerUnit = s.mmPerUnit;
     _radius = s.mesh.radius;
     _seenRequest = _c._presetRequest;
@@ -258,7 +283,10 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   /// Steers the moving trace density from real raster times, reported in
   /// batches about once a second.
   void _onTimings(List<FrameTiming> timings) {
-    if (!_ticker.isActive || _renderer.shader == null || timings.isEmpty) {
+    if (!_ticker.isActive ||
+        _renderer.shader == null ||
+        _c.vector ||
+        timings.isEmpty) {
       return;
     }
     var total = 0;
@@ -366,6 +394,15 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     final rock = _c.autoRotate && !_dragging
         ? 0.07 * math.sin(_time * 1.15)
         : 0.0;
+    final view = SimView(
+      tilt: (_tilt + rock).clamp(-math.pi / 2, math.pi / 2),
+      spin: _spin,
+      zoom: _zoom,
+    );
+    if (_c.vector) {
+      _paintVector(canvas, size, view, pxPerMm);
+      return;
+    }
     final quality = _refined;
     final gpu = _renderer.shader != null;
     // The same bounces moving and still, so light never jumps.
@@ -382,11 +419,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _renderer.paint(
       canvas,
       size,
-      view: SimView(
-        tilt: (_tilt + rock).clamp(-math.pi / 2, math.pi / 2),
-        spin: _spin,
-        zoom: _zoom,
-      ),
+      view: view,
       pxPerUnit: pxPerMm * _mmPerUnit,
       samplePx: quality ? math.max(3.6, _samplePx * 0.55) : _samplePx,
       devicePixelRatio: _dpr,
@@ -399,6 +432,30 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     if (fade) canvas.restore();
     if (!quality && !gpu) _adapt(sw.elapsedMicroseconds / 1000);
     if (_c.readout.watched) _report();
+  }
+
+  /// The stone as a line drawing; light is still measured for the meters.
+  void _paintVector(Canvas canvas, Size size, SimView view, double pxPerMm) {
+    final fade = _appear < 1;
+    if (fade) {
+      _fadePaint.color = Color.fromRGBO(0, 0, 0, _appear);
+      canvas.saveLayer(Offset.zero & size, _fadePaint);
+    }
+    _wire.paint(
+      canvas,
+      size,
+      mesh: _mesh,
+      view: view,
+      pxPerUnit: pxPerMm * _mmPerUnit,
+      style: _wireStyle,
+      inclusions: _inclusions,
+    );
+    if (fade) canvas.restore();
+    if (_c.readout.watched) {
+      if (_refined) _renderer.requestStats();
+      _renderer.measure(view);
+      _report();
+    }
   }
 
   /// Keeps moving frames near 7 ms of tracing.
@@ -443,6 +500,8 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       next,
     ) {
       _renderer.setStone(next.$1, next.$2);
+      _mesh = next.$1;
+      _inclusions = next.$2;
       _radius = next.$1.radius;
       _invalidate();
     });
@@ -450,7 +509,9 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       _,
       next,
     ) {
-      _renderer.setOptics(SimOptics.of(next.$1, next.$2));
+      final optics = SimOptics.of(next.$1, next.$2);
+      _renderer.setOptics(optics);
+      _wireStyle = SimWireStyle.of(optics);
       _invalidate();
     });
     ref.listen(diamondSimulatorProvider.select((s) => s.mmPerUnit), (_, next) {
