@@ -9,11 +9,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
+import '../../../jewelry_education/application/jewelry_simulator_controller.dart';
 import '../../application/diamond_simulator_controller.dart';
 import '../../domain/average_hand.dart';
 import '../../domain/diamond_proportions.dart';
@@ -107,6 +109,15 @@ class _DiamondSimulatorScreenState
     _open = null;
     _panelHeight = 0;
   });
+
+  /// Takes the stone as it is now into the jewelry simulator.
+  void _useInJewelry() {
+    AppHaptics.selection();
+    ref.read(jewelryStoneHandoffProvider.notifier).state = ref
+        .read(diamondSimulatorProvider)
+        .spec;
+    context.openRoute(AppRouteNames.jewelrySimulator);
+  }
 
   void _reset() {
     AppHaptics.light();
@@ -249,7 +260,7 @@ class _DiamondSimulatorScreenState
                 left: 8,
                 right: 12,
                 top: barTop,
-                child: _TopBar(onReset: _reset),
+                child: _TopBar(onReset: _reset, onUseInJewelry: _useInJewelry),
               ),
               Positioned(
                 left: 16,
@@ -351,9 +362,9 @@ class _DiamondSimulatorScreenState
 
 /// Back, title and reset, floating over the stage.
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.onReset});
+  const _TopBar({required this.onReset, required this.onUseInJewelry});
 
-  final VoidCallback onReset;
+  final VoidCallback onReset, onUseInJewelry;
 
   @override
   Widget build(BuildContext context) {
@@ -376,6 +387,25 @@ class _TopBar extends StatelessWidget {
             style: LuxeType.display(19, p.ink),
           ),
         ),
+        // Into the jewelry simulator with this stone: a labelled pill
+        // where there is room, an icon on narrow phones.
+        if (MediaQuery.sizeOf(context).width >= 440)
+          SimGlassPill(
+            label: context.tr(JewelryEduL10n.useInJewelry),
+            selected: true,
+            palette: p,
+            height: 34,
+            onTap: onUseInJewelry,
+          )
+        else
+          LuxeIconButton(
+            icon: Icons.diamond_outlined,
+            tooltip: context.tr(JewelryEduL10n.useInJewelry),
+            size: 36,
+            glass: true,
+            onPressed: onUseInJewelry,
+          ),
+        const SizedBox(width: 6),
         SimGlassPill(
           label: context.tr(EducationL10n.reset),
           selected: false,

@@ -112,6 +112,10 @@ class HomeGemStage extends StatelessWidget {
                         EducationL10n.navEducation,
                         AppRouteNames.diamondEducation,
                       ),
+                      link(
+                        JewelryEduL10n.navEducation,
+                        AppRouteNames.jewelryEducation,
+                      ),
                       link(RemainingL10n.aboutGemWorld, AppRouteNames.aboutUs),
                       link(
                         AccountCommerceL10n.privacyPolicy,

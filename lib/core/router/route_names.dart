@@ -53,6 +53,10 @@ class AppRouteNames {
   static const String diamondSimulator = '/learn/diamonds/simulator';
   static String diamondSimulatorFor(String shape) =>
       '$diamondSimulator?shape=${Uri.encodeQueryComponent(shape)}';
+  static const String jewelryEducation = '/learn/jewelry';
+  static const String jewelrySimulator = '/learn/jewelry/simulator';
+  static String jewelrySimulatorFor(String type) =>
+      '$jewelrySimulator?type=${Uri.encodeQueryComponent(type)}';
 
   // Auth
   static const String login = '/login';

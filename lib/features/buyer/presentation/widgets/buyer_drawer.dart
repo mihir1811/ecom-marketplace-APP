@@ -102,6 +102,11 @@ class BuyerDrawer extends ConsumerWidget {
             EducationL10n.navEducation,
             Icons.school_outlined,
           ),
+          item(
+            AppRouteNames.jewelryEducation,
+            JewelryEduL10n.navEducation,
+            Icons.diamond_outlined,
+          ),
         ],
       ),
       AppNavGroup(
