@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/l10n/app_localizations.dart';
-import '../../../../../core/theme/luxe_tokens.dart';
 import '../../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../application/diamond_simulator_controller.dart';
 import '../../../domain/cut_grade_estimator.dart';
@@ -25,7 +24,8 @@ class SimCutPanel extends ConsumerWidget {
     final grade = ref.watch(
       diamondSimulatorProvider.select((s) => s.estimatedCut),
     );
-    final p = LuxePalette.of(context);
+    // Light is measured in the 3D view; a scope cannot sit on a finger.
+    final onHand = ref.watch(simHandProvider.select((h) => h.onHand));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -35,32 +35,30 @@ class SimCutPanel extends ConsumerWidget {
           labelOf: context.cutName,
           onSelected: ref.read(diamondSimulatorProvider.notifier).applyCutGrade,
         ),
-        const SizedBox(height: 14),
-        Text(context.cutName(grade), style: LuxeType.display(28, p.ink)),
-        const SizedBox(height: 6),
-        SimNote(context.cutBody(grade)),
-        const SizedBox(height: 18),
-        SimLabel(context.tr(EducationL10n.lightPerformance)),
-        ValueListenableBuilder<SimLightReadout>(
-          valueListenable: viewport.readout,
-          builder: (context, r, _) => Column(
-            children: [
-              SimMeter(
-                label: context.tr(EducationL10n.brightness),
-                value: r.brightness,
-              ),
-              const SizedBox(height: 10),
-              SimMeter(label: context.tr(EducationL10n.fire), value: r.fire),
-              const SizedBox(height: 10),
-              SimMeter(
-                label: context.tr(EducationL10n.sparkle),
-                value: r.sparkle,
-              ),
-            ],
+        if (!onHand) ...[
+          const SizedBox(height: 14),
+          SimLabel(context.tr(EducationL10n.lightPerformance)),
+          ValueListenableBuilder<SimLightReadout>(
+            valueListenable: viewport.readout,
+            builder: (context, r, _) => Column(
+              children: [
+                SimMeter(
+                  label: context.tr(EducationL10n.brightness),
+                  value: r.brightness,
+                ),
+                const SizedBox(height: 8),
+                SimMeter(label: context.tr(EducationL10n.fire), value: r.fire),
+                const SizedBox(height: 8),
+                SimMeter(
+                  label: context.tr(EducationL10n.sparkle),
+                  value: r.sparkle,
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 22),
-        _HeartsArrows(viewport: viewport),
+          const SizedBox(height: 14),
+          _HeartsArrows(viewport: viewport),
+        ],
       ],
     );
   }
@@ -100,12 +98,6 @@ class _HeartsArrows extends ConsumerWidget {
           value: s.on,
           enabled: s.round,
           onChanged: toggle,
-        ),
-        const SizedBox(height: 6),
-        SimNote(
-          context.tr(
-            s.round ? EducationL10n.haBody : EducationL10n.haRoundOnly,
-          ),
         ),
       ],
     );
@@ -151,7 +143,7 @@ class SimProportionsPanel extends ConsumerWidget {
         DiamondProfileDiagram(
           proportions: pr,
           family: family,
-          height: 132,
+          height: 112,
           labels: DiamondProfileLabels(
             table: _pct(pr.tablePct),
             crownAngle: _deg(pr.crownAngle),

@@ -326,7 +326,7 @@ float featherOpen(vec2 q, float seed) {
   if (r > rim) return 0.0;
   float body = 0.6 * noise3(vec3(q * 4.0, seed * 23.0)) +
                0.4 * noise3(vec3(q * 13.0, seed * 3.0));
-  if (body < 0.3 + 0.25 * r) return 0.0;
+  if (body < 0.16 + 0.2 * r) return 0.0;
   return clamp((rim - r) / (0.45 * rim), 0.15, 1.0);
 }
 
@@ -443,7 +443,8 @@ vec3 shade(vec3 p, vec3 d, vec3 n, float side) {
           evB = b;
           evN = normalOut(nIn, u, ax, v, sc);
         }
-      } else if (kind < 4.5) {
+      } else if (kind < 4.5 || kind > 6.5) {
+        // Feather, open or glass-filled.
         float den = dot(t, b.xyz);
         if (abs(den) < 1e-5) continue;
         float s = dot(oc, b.xyz) / den;
@@ -531,7 +532,7 @@ vec3 shade(vec3 p, vec3 d, vec3 n, float side) {
       float kind = floor(b.w);
       float seed = fract(b.w);
       skip = ev;
-      if (kind < 1.5 || kind > 5.5) {
+      if (kind < 1.5 || (kind > 5.5 && kind < 6.5)) {
         // Pinpoint or needle: light scattered back white, the rest on.
         acc += thr * evW * (innerLight(t) * 1.5 + vec3(0.15 * uRim.w));
         thr *= 1.0 - 0.8 * evW;
@@ -587,7 +588,20 @@ vec3 shade(vec3 p, vec3 d, vec3 n, float side) {
         vec3 film = 0.5 + 0.5 * cos(6.2832 * (evW * 1.6 + seed +
                                                 vec3(0.0, 0.33, 0.67)));
         vec3 tint = mix(film, vec3(1.0), 0.6 + 0.4 * evW);
-        acc += thr * innerLight(t) * (0.35 + 0.5 * evW);
+        // Frosted, broken faces: a crack reads white against the stone.
+        vec3 glow = vec3(0.8 + 1.1 * evW);
+        if (kind > 6.5) {
+          // Glass-filled: the filling's index is close to diamond's, so
+          // the crack mostly lets light through, but what it returns is
+          // split into orange and electric blue flashes.
+          float flash = c1 < 0.75 ? 1.0 : 0.35;
+          vec3 hue = mix(vec3(1.0, 0.45, 0.08), vec3(0.15, 0.45, 1.0),
+                         step(0.5, fract(seed * 5.0 + evW * 0.7)));
+          r = 0.3;
+          tint = mix(vec3(0.9), hue * 2.2, flash);
+          glow = 1.3 * tint;
+        }
+        acc += thr * innerLight(t) * glow;
         if (r > 0.5) {
           thr *= r * tint;
           t = reflect(t, evN);

@@ -60,12 +60,12 @@ class SimColorPanel extends ConsumerWidget {
               ? c.setFancyColor(s.fancy ?? FancyColor.yellow)
               : c.useColorScale(),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         if (!fancy) ...[
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(s.grade.label, style: LuxeType.display(40, p.ink)),
+              Text(s.grade.label, style: LuxeType.display(28, p.ink)),
               const SizedBox(width: 12),
               Expanded(
                 child: Padding(
@@ -78,7 +78,7 @@ class SimColorPanel extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _ColorScaleBar(selected: s.grade),
           Slider(
             value: s.grade.index.toDouble(),
@@ -90,7 +90,6 @@ class SimColorPanel extends ConsumerWidget {
                 ColorGrade.values[v.round()].label,
             onChanged: (v) => c.setColorGrade(ColorGrade.values[v.round()]),
           ),
-          SimNote(context.colorGroupBody(s.grade.group)),
         ] else ...[
           SimLabel(context.tr(EducationL10n.color)),
           SimChoiceChips<FancyColor>(
@@ -108,8 +107,6 @@ class SimColorPanel extends ConsumerWidget {
             labelOf: context.fancyIntensityName,
             onSelected: c.setFancyIntensity,
           ),
-          const SizedBox(height: 14),
-          SimNote(context.tr(EducationL10n.colorFancyBody)),
         ],
       ],
     );
@@ -183,7 +180,6 @@ class SimClarityPanel extends ConsumerWidget {
     final grade = ref.watch(
       diamondSimulatorProvider.select((s) => s.spec.clarity),
     );
-    final p = LuxePalette.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -193,12 +189,6 @@ class SimClarityPanel extends ConsumerWidget {
           labelOf: (g) => g.label,
           onSelected: ref.read(diamondSimulatorProvider.notifier).setClarity,
         ),
-        const SizedBox(height: 16),
-        Text(grade.label, style: LuxeType.display(30, p.ink)),
-        const SizedBox(height: 6),
-        SimNote(context.clarityBody(grade)),
-        const SizedBox(height: 12),
-        SimNote(context.tr(EducationL10n.clarityBody)),
       ],
     );
   }
@@ -239,7 +229,7 @@ class SimCaratPanel extends ConsumerWidget {
           children: [
             Text(
               s.carat.toStringAsFixed(2),
-              style: LuxeType.display(40, p.ink),
+              style: LuxeType.display(28, p.ink),
             ),
             const SizedBox(width: 6),
             Text('ct', style: LuxeType.label(p.inkMuted, size: 16)),
@@ -268,9 +258,6 @@ class SimCaratPanel extends ConsumerWidget {
           labelOf: (v) => '${v.toStringAsFixed(v % 1 == 0 ? 0 : 1)} ct',
           onSelected: c.setCarat,
         ),
-        const SizedBox(height: 14),
-        SimLabel(context.tr(EducationL10n.dimensions)),
-        SimNote(context.tr(EducationL10n.caratPanelBody)),
       ],
     );
   }
@@ -329,8 +316,6 @@ class SimFluorescencePanel extends ConsumerWidget {
           swatchOf: (f) => _rgb((r: f.r, g: f.g, b: f.b)),
           onSelected: c.setFluorescenceColor,
         ),
-        const SizedBox(height: 14),
-        SimNote(context.tr(EducationL10n.fluorPanelBody)),
       ],
     );
   }

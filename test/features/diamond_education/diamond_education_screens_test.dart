@@ -59,27 +59,53 @@ void main() {
         await _pump(tester, size, const DiamondSimulatorScreen());
         expect(tester.takeException(), isNull);
 
-        for (final tab in const [
-          'Color',
-          'Clarity',
-          'Carat',
-          'Fluorescence',
-          'Proportions',
-          'Cut',
-        ]) {
-          final target = find.text(tab).last;
+        Future<void> tapText(String text) async {
+          final target = find.text(text).first;
           await tester.ensureVisible(target);
           await tester.pump();
           await tester.tap(target);
           await tester.pump(const Duration(milliseconds: 300));
-          expect(tester.takeException(), isNull, reason: tab);
+          expect(tester.takeException(), isNull, reason: text);
         }
 
+        // Each tool opens on its own and closes again.
+        for (final tool in const [
+          'Shape',
+          'Cut',
+          'Color',
+          'Clarity',
+          'Inclusions',
+          'BGM',
+          'Milky',
+          'Enhancement',
+          'Fluorescence',
+          'Proportions',
+        ]) {
+          await tapText(tool);
+          expect(find.text('Done'), findsOneWidget, reason: tool);
+          await tapText('Done');
+        }
+
+        // Carat brings up the hand; a second finger gets its own stone.
+        await tapText('Carat');
+        await tester.pump(const Duration(milliseconds: 1200));
+        expect(find.text('Average adult hand'), findsNothing);
+        await tapText('Index · Add');
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.textContaining('Index · 1.00 ct'), findsOneWidget);
+        await tapText('Done');
+        expect(find.text('Average adult hand'), findsOneWidget);
+        await tester.drag(
+          find.byType(DiamondSimulatorScreen),
+          const Offset(80, 0),
+        );
+        await tester.pump(const Duration(milliseconds: 400));
+        await tapText('Go back');
+
         // Recut and turn the stone.
-        await tester.ensureVisible(find.text('Emerald').first);
-        await tester.pump();
-        await tester.tap(find.text('Emerald').first);
-        await tester.pump(const Duration(milliseconds: 50));
+        await tapText('Shape');
+        await tapText('Emerald');
+        await tapText('Done');
         await tester.drag(
           find.byType(DiamondSimulatorScreen),
           const Offset(80, 30),

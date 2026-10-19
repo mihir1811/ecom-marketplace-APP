@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../../../core/l10n/app_localizations.dart';
+import '../domain/average_hand.dart';
 import '../domain/diamond_grades.dart';
 import '../domain/diamond_shape.dart';
 
@@ -66,6 +67,53 @@ extension SimLabels on BuildContext {
     ClarityGrade.vs1 || ClarityGrade.vs2 => EducationL10n.clarityVs,
     ClarityGrade.si1 || ClarityGrade.si2 => EducationL10n.claritySi,
     _ => EducationL10n.clarityI,
+  });
+
+  String inclusionName(InclusionType t) => tr(switch (t) {
+    InclusionType.crystal => EducationL10n.incTypeCrystal,
+    InclusionType.carbon => EducationL10n.incTypeCarbon,
+    InclusionType.feather => EducationL10n.incTypeFeather,
+    InclusionType.cloud => EducationL10n.incTypeCloud,
+    InclusionType.pinpoint => EducationL10n.incTypePinpoint,
+    InclusionType.needle => EducationL10n.incTypeNeedle,
+  });
+
+  /// What an inclusion kind is, in one line.
+  String inclusionBody(InclusionType t) => tr(switch (t) {
+    InclusionType.crystal => EducationL10n.incCrystal,
+    InclusionType.carbon => EducationL10n.incCarbon,
+    InclusionType.feather => EducationL10n.incFeather,
+    InclusionType.cloud => EducationL10n.incCloud,
+    InclusionType.pinpoint => EducationL10n.incPinpoint,
+    InclusionType.needle => EducationL10n.incNeedle,
+  });
+
+  String tingeName(TingeLevel l) => tr(switch (l) {
+    TingeLevel.none => EducationL10n.tingeNone,
+    TingeLevel.faint => EducationL10n.tingeFaint,
+    TingeLevel.light => EducationL10n.tingeLight,
+    TingeLevel.medium => EducationL10n.tingeMedium,
+    TingeLevel.strong => EducationL10n.tingeStrong,
+  });
+
+  String milkyName(MilkyLevel l) => trCatalogValue(l.catalogValue);
+
+  String enhancementName(Enhancement e) => trCatalogValue(e.catalogValue);
+
+  String enhancementBody(Enhancement e) => tr(switch (e) {
+    Enhancement.none => EducationL10n.enhNoneBody,
+    Enhancement.hpht => EducationL10n.enhHphtBody,
+    Enhancement.irradiation => EducationL10n.enhIrradiationBody,
+    Enhancement.fractureFilling => EducationL10n.enhFillingBody,
+    Enhancement.laserDrilling => EducationL10n.enhDrillingBody,
+    Enhancement.surfaceCoating => EducationL10n.enhCoatingBody,
+  });
+
+  String fingerName(HandFinger f) => tr(switch (f) {
+    HandFinger.little => EducationL10n.fingerLittle,
+    HandFinger.ring => EducationL10n.fingerRing,
+    HandFinger.middle => EducationL10n.fingerMiddle,
+    HandFinger.forefinger => EducationL10n.fingerIndex,
   });
 
   String fluorescenceName(FluorescenceIntensity i) =>

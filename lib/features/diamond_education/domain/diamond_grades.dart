@@ -115,6 +115,68 @@ enum ClarityGrade {
   };
 }
 
+/// Kinds of inclusion a viewer can pick to see inside the stone.
+enum InclusionType { crystal, carbon, feather, cloud, pinpoint, needle }
+
+/// Strength of a brown or green body tinge (the B and G of BGM).
+enum TingeLevel {
+  none(0),
+  faint(0.4),
+  light(0.75),
+  medium(1.1),
+  strong(1.6);
+
+  const TingeLevel(this.strength);
+
+  /// Multiplier on the tinge's absorption.
+  final double strength;
+
+  /// Absorption per unit path of a medium brown tinge: brown soaks up
+  /// blue, then green, and leaves red.
+  static const SimRgb brown = (r: 0.03, g: 0.075, b: 0.16);
+
+  /// Absorption per unit path of a medium green tinge: soaks up red and
+  /// some blue.
+  static const SimRgb green = (r: 0.14, g: 0.01, b: 0.09);
+}
+
+/// Milkiness (the M of BGM): a hazy veil from sub-microscopic clouds
+/// that scatters light and dulls brilliance. [catalogValue] is the
+/// shared catalog label key.
+enum MilkyLevel {
+  none('None', 0),
+  slightly('Slightly', 0.025),
+  moderately('Moderately', 0.05),
+  strongly('Strongly', 0.085),
+  severely('Severely', 0.13);
+
+  const MilkyLevel(this.catalogValue, this.scatter);
+
+  final String catalogValue;
+
+  /// Scatter per unit path.
+  final double scatter;
+}
+
+/// Treatments applied after cutting to improve how a stone looks.
+/// [catalogValue] is the shared catalog label key.
+enum Enhancement {
+  none('None (Treatment)'),
+  hpht('HPHT (Treatment)'),
+  irradiation('Irradiation'),
+  fractureFilling('Fracture Filling'),
+  laserDrilling('Laser Drilling'),
+  surfaceCoating('Surface Coating');
+
+  const Enhancement(this.catalogValue);
+
+  final String catalogValue;
+
+  /// Whether this treatment changes the stone's inclusions.
+  bool get altersInclusions =>
+      this == Enhancement.fractureFilling || this == Enhancement.laserDrilling;
+}
+
 /// Overall cut grade, from proportions.
 enum CutGrade { excellent, veryGood, good, fair, poor }
 

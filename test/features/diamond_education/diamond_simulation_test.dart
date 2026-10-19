@@ -3,12 +3,15 @@ import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gemstone/features/diamond_education/application/diamond_simulator_controller.dart';
+import 'package:gemstone/features/diamond_education/domain/average_hand.dart';
 import 'package:gemstone/features/diamond_education/domain/cut_grade_estimator.dart';
 import 'package:gemstone/features/diamond_education/domain/diamond_grades.dart';
 import 'package:gemstone/features/diamond_education/domain/diamond_proportions.dart';
 import 'package:gemstone/features/diamond_education/domain/diamond_shape.dart';
+import 'package:gemstone/features/diamond_education/domain/diamond_spec.dart';
 import 'package:gemstone/features/diamond_education/simulation/sim_inclusions.dart';
 import 'package:gemstone/features/diamond_education/simulation/sim_mesh.dart';
+import 'package:gemstone/features/diamond_education/simulation/sim_optics.dart';
 import 'package:gemstone/features/diamond_education/simulation/sim_tracer.dart';
 
 void main() {
@@ -213,13 +216,21 @@ void main() {
         container.read(diamondSimulatorProvider.notifier);
     DiamondSimulatorState state() => container.read(diamondSimulatorProvider);
 
-    test('a 1 ct ideal round measures about 6.4 mm', () {
+    test('round sizes match trade size charts', () {
       final sub = container.listen(diamondSimulatorProvider, (_, _) {});
       addTearDown(sub.close);
-      expect(state().widthMm, inInclusiveRange(6.2, 6.6));
-      notifier().setCarat(2);
-      // Size follows the cube root of weight.
-      expect(state().widthMm, closeTo(6.4 * math.pow(2, 1 / 3), 0.25));
+      // Carat → diameter, as size charts list them.
+      for (final (ct, mm) in const [
+        (0.5, 5.2),
+        (1.0, 6.5),
+        (1.5, 7.4),
+        (2.0, 8.1),
+        (3.0, 9.4),
+        (5.0, 11.0),
+      ]) {
+        notifier().setCarat(ct);
+        expect(state().widthMm, closeTo(mm, 0.15), reason: '$ct ct');
+      }
     });
 
     test('derived proportions solve back to their inputs', () {
@@ -274,6 +285,125 @@ void main() {
       );
       addTearDown(scoped.dispose);
       expect(scoped.read(diamondSimulatorProvider).spec.shape, SimShape.heart);
+    });
+  });
+
+  group('Inclusions, BGM and treatment', () {
+    final mesh = SimMesh.build(
+      SimShape.round,
+      DiamondProportions.ideal(SimShape.round),
+    );
+
+    test('chosen inclusion kinds are the only ones placed', () {
+      final only = SimInclusions.generate(
+        mesh,
+        ClarityGrade.vs1,
+        only: {InclusionType.carbon, InclusionType.needle},
+      );
+      expect(only, isNotEmpty);
+      expect(only.map((i) => i.kind).toSet(), {
+        SimInclusionKind.darkCrystal,
+        SimInclusionKind.needle,
+      });
+      expect(
+        SimInclusions.generate(
+          mesh,
+          ClarityGrade.fl,
+          only: {InclusionType.cloud},
+        ),
+        isEmpty,
+      );
+    });
+
+    test('laser drilling bleaches dark crystals and bores channels', () {
+      final plain = SimInclusions.generate(mesh, ClarityGrade.si2);
+      final drilled = SimInclusions.generate(
+        mesh,
+        ClarityGrade.si2,
+        enhancement: Enhancement.laserDrilling,
+      );
+      expect(
+        drilled.where((i) => i.kind == SimInclusionKind.darkCrystal),
+        isEmpty,
+      );
+      expect(
+        drilled.where((i) => i.kind == SimInclusionKind.needle).length,
+        greaterThan(
+          plain.where((i) => i.kind == SimInclusionKind.needle).length,
+        ),
+      );
+    });
+
+    test('brown warms the stone, milky veils it, HPHT clears brown', () {
+      final base = DiamondSpec.initial();
+      final brown = base.copyWith(brown: TingeLevel.medium);
+      expect(brown.absorption.b, greaterThan(base.absorption.b));
+      expect(
+        brown.copyWith(enhancement: Enhancement.hpht).absorption.b,
+        lessThan(base.absorption.b),
+      );
+      final milky = SimOptics.of(
+        base.copyWith(milky: MilkyLevel.strongly),
+        SimLighting.daylight,
+      );
+      expect(milky.milk, greaterThan(0.05));
+    });
+  });
+
+  group('SimHandController', () {
+    late ProviderContainer container;
+    setUp(() => container = ProviderContainer());
+    tearDown(() => container.dispose());
+
+    test('each finger keeps its own stone', () {
+      final sub = container.listen(simHandProvider, (_, _) {});
+      addTearDown(sub.close);
+      final stone = container.read(diamondSimulatorProvider.notifier);
+      final hand = container.read(simHandProvider.notifier);
+      hand.show(true);
+      stone.setColorGrade(ColorGrade.f);
+      stone.setCarat(1.5);
+
+      hand.select(HandFinger.forefinger);
+      final second = container.read(diamondSimulatorProvider);
+      expect(second.spec.shape, isNot(SimShape.round));
+      stone
+        ..setCarat(0.5)
+        ..setColorGrade(ColorGrade.j);
+
+      final h = container.read(simHandProvider);
+      expect(h.active, HandFinger.forefinger);
+      final ring = h.parked[HandFinger.ring]!.spec;
+      expect(ring.carat, 1.5);
+      expect(ring.colorGrade, ColorGrade.f);
+
+      hand.select(HandFinger.ring);
+      expect(container.read(diamondSimulatorProvider).spec.carat, 1.5);
+      expect(
+        container
+            .read(simHandProvider)
+            .parked[HandFinger.forefinger]!
+            .spec
+            .colorGrade,
+        ColorGrade.j,
+      );
+
+      hand.remove(HandFinger.ring);
+      expect(container.read(simHandProvider).count, 1);
+      expect(container.read(diamondSimulatorProvider).spec.carat, 0.5);
+      hand.remove(HandFinger.forefinger);
+      expect(container.read(simHandProvider).count, 1);
+    });
+
+    test('fingers match average ring sizes, stones sit mid-finger', () {
+      expect(AverageHand.ring.seatWidth, closeTo(16.5, 0.2));
+      expect(AverageHand.ring.usRingSize, closeTo(6, 0.3));
+      expect(AverageHand.middle.usRingSize, closeTo(7, 0.4));
+      expect(AverageHand.index.usRingSize, closeTo(6.5, 0.4));
+      expect(AverageHand.little.usRingSize, closeTo(4, 0.4));
+      // The ring seat is the origin.
+      expect(AverageHand.ring.seatPoint.x, closeTo(0, 1e-9));
+      expect(AverageHand.ring.seatPoint.y, closeTo(0, 1e-9));
     });
   });
 }

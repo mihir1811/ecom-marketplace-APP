@@ -35,7 +35,7 @@ class SimOptics {
       emitG: emit * c.g,
       emitB: emit * c.b,
       haze: spec.clarity.haze,
-      milk: !uv && f > 0.6 ? (f - 0.6) * 0.09 : 0,
+      milk: spec.milky.scatter + (!uv && f > 0.6 ? (f - 0.6) * 0.09 : 0),
       lighting: lighting,
     );
   }
@@ -49,7 +49,8 @@ class SimOptics {
   /// Cloud scatter per unit path (low clarity).
   final double haze;
 
-  /// Milky veil from very strong fluorescence in daylight.
+  /// Milky veil: a milky stone's own haze, plus very strong fluorescence
+  /// in daylight.
   final double milk;
   final SimLighting lighting;
 }

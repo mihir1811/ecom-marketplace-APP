@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/haptics/app_haptics.dart';
 import '../../../application/diamond_simulator_controller.dart';
-import '../../../domain/diamond_grades.dart';
 import '../../../simulation/sim_optics.dart';
 import '../../../simulation/sim_renderer.dart';
 
@@ -59,10 +58,14 @@ class SimViewportController extends ChangeNotifier {
   /// Current zoom (pinch), for the scale bar.
   final zoom = ValueNotifier(1.0);
 
+  /// Whether the hand view shows the hand at life size rather than whole.
+  final lifeSize = ValueNotifier(false);
+
   @override
   void dispose() {
     readout.dispose();
     zoom.dispose();
+    lifeSize.dispose();
     super.dispose();
   }
 }
@@ -144,15 +147,20 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   double _brightness = 0, _fire = 0, _sparkle = 0;
 
   double _mmPerUnit = 1, _radius = 1;
-  bool _scope = false;
   double _dpr = 1;
 
-  // GPU budget: traced pixels per logical pixel while moving, and bounces.
-  // Weak GPUs (often the low-memory phones) drop to one traced pixel per
-  // logical pixel and five bounces before frames slip.
-  static const _scaleCap = 2.0, _scaleFloor = 1.0;
+  // GPU budget: traced pixels per logical pixel while moving. Weak GPUs
+  // (often the low-memory phones) drop toward three traced pixels per four
+  // logical ones before frames slip. Only resolution adapts: the bounce
+  // count stays at [SimRenderer.bounces], since light left trapped when a
+  // path stops returns almost black, and changing it made facets flicker
+  // between brighter and darker.
+  static const _scaleCap = 2.0, _scaleFloor = 0.75;
   double _renderScale = 1.75;
-  int _movingBounces = 7;
+
+  /// Consecutive slow (positive) or fast (negative) timing batches; the
+  /// scale moves only on a trend, never on one noisy batch.
+  int _trend = 0;
 
   /// Shortest gap between drawn frames: about 60 per second on 120 Hz
   /// screens, every frame on 60 and 90 Hz.
@@ -175,7 +183,6 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       ..setOptics(SimOptics.of(s.spec, s.lighting));
     _mmPerUnit = s.mmPerUnit;
     _radius = s.mesh.radius;
-    _scope = s.lighting == SimLighting.heartsArrows;
     _seenRequest = _c._presetRequest;
     _c.addListener(_onCommand);
     _c.readout.onWatch = _onReadoutWatched;
@@ -261,17 +268,18 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     final ms = total / timings.length / 1000;
     final cap = math.min(_dpr, _scaleCap);
     if (ms > 13) {
-      if (_renderScale > _scaleFloor + 0.01) {
-        _renderScale = math.max(_scaleFloor, _renderScale * 0.85);
-      } else if (_movingBounces > 5) {
-        _movingBounces--;
-      }
-    } else if (ms < 8) {
-      if (_movingBounces < 7) {
-        _movingBounces++;
-      } else {
-        _renderScale = math.min(cap, _renderScale * 1.08);
-      }
+      _trend = math.max(1, _trend + 1);
+    } else if (ms < 7) {
+      _trend = math.min(-1, _trend - 1);
+    } else {
+      _trend = 0;
+    }
+    if (_trend >= 2) {
+      _renderScale = math.max(_scaleFloor, _renderScale * 0.88);
+      _trend = 0;
+    } else if (_trend <= -3) {
+      _renderScale = math.min(cap, _renderScale * 1.06);
+      _trend = 0;
     }
   }
 
@@ -360,13 +368,9 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         : 0.0;
     final quality = _refined;
     final gpu = _renderer.shader != null;
-    // The scope's pattern forms within a few bounces; its still frame need
-    // not follow light as far as the studio's.
-    final rest = _scope ? 8 : 10;
+    // The same bounces moving and still, so light never jumps.
     _renderer
-      ..maxBounces = gpu
-          ? (quality ? rest : _movingBounces)
-          : (quality ? 11 : 8)
+      ..maxBounces = SimRenderer.bounces
       ..measureStats = _c.readout.watched;
     if (quality) _renderer.requestStats();
     final fade = _appear < 1;
@@ -446,7 +450,6 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       _,
       next,
     ) {
-      _scope = next.$2 == SimLighting.heartsArrows;
       _renderer.setOptics(SimOptics.of(next.$1, next.$2));
       _invalidate();
     });

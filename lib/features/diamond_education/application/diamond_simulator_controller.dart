@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../domain/average_hand.dart';
 import '../domain/cut_grade_estimator.dart';
 import '../domain/diamond_grades.dart';
 import '../domain/diamond_proportions.dart';
@@ -32,9 +33,16 @@ class DiamondSimulatorState {
   /// One carat of diamond (0.2 g at 3.515 g/cm³) fills 56.9 mm³.
   static const mm3PerCarat = 56.9;
 
+  /// Matches the model's spread to trade size charts: a 1 ct ideal round
+  /// measures 6.5 mm across (1.5 ct 7.4, 2 ct 8.1, 3 ct 9.4, 5 ct
+  /// 11.0). The model's slightly fuller girdle and culet would otherwise
+  /// read about 2% small.
+  static const spreadCalibration = 1.0236;
+
   /// Millimetres per model unit for the current carat weight.
   double get mmPerUnit =>
-      math.pow(spec.carat * mm3PerCarat / mesh.volume, 1 / 3).toDouble();
+      math.pow(spec.carat * mm3PerCarat / mesh.volume, 1 / 3).toDouble() *
+      spreadCalibration;
 
   double get lengthMm => mesh.length * mmPerUnit;
   double get widthMm => mesh.width * mmPerUnit;
@@ -78,8 +86,19 @@ class DiamondSimulatorController
     final mesh = reshape
         ? SimMesh.build(spec.shape, spec.proportions)
         : from.mesh;
-    final inclusions = reshape || from.spec.clarity != spec.clarity
-        ? SimInclusions.generate(mesh, spec.clarity)
+    final inclusions =
+        reshape ||
+            from.spec.clarity != spec.clarity ||
+            !setEquals(from.spec.inclusionTypes, spec.inclusionTypes) ||
+            (from.spec.enhancement != spec.enhancement &&
+                (from.spec.enhancement.altersInclusions ||
+                    spec.enhancement.altersInclusions))
+        ? SimInclusions.generate(
+            mesh,
+            spec.clarity,
+            only: spec.inclusionTypes,
+            enhancement: spec.enhancement,
+          )
         : from.inclusions;
     return DiamondSimulatorState(
       spec: spec,
@@ -126,6 +145,29 @@ class DiamondSimulatorController
 
   void setClarity(ClarityGrade grade) =>
       _update(state.spec.copyWith(clarity: grade));
+
+  /// Shows only [types] inside the stone; null returns to the grade's
+  /// usual mix.
+  void setInclusionTypes(Set<InclusionType>? types) => _update(
+    types == null
+        ? state.spec.copyWith(gradedInclusions: true)
+        : state.spec.copyWith(inclusionTypes: Set.unmodifiable(types)),
+  );
+
+  void toggleInclusionType(InclusionType type) {
+    final current = state.spec.inclusionTypes;
+    final next = {...?current}..toggle(type);
+    setInclusionTypes(next.isEmpty ? null : next);
+  }
+
+  void setBrown(TingeLevel level) => _update(state.spec.copyWith(brown: level));
+
+  void setGreen(TingeLevel level) => _update(state.spec.copyWith(green: level));
+
+  void setMilky(MilkyLevel level) => _update(state.spec.copyWith(milky: level));
+
+  void setEnhancement(Enhancement enhancement) =>
+      _update(state.spec.copyWith(enhancement: enhancement));
 
   void setCarat(double carat) => _update(state.spec.copyWith(carat: carat));
 
@@ -211,6 +253,25 @@ class DiamondSimulatorController
 
   void reset() =>
       state = _withSpec(null, _initial(ref.read(simulatorStartShapeProvider)));
+
+  /// Makes [stone] the one being edited, e.g. another finger's stone.
+  void load(DiamondSimulatorState stone) => state = stone;
+
+  /// A new stone like [from] but cut as [shape], at [from]'s cut quality.
+  DiamondSimulatorState recut(DiamondSimulatorState from, SimShape shape) =>
+      _withSpec(
+        from,
+        from.spec.copyWith(
+          shape: shape,
+          proportions: DiamondProportions.forGrade(shape, from.estimatedCut),
+        ),
+      ).copyWith(lighting: SimLighting.daylight);
+}
+
+extension on Set<InclusionType> {
+  void toggle(InclusionType t) {
+    if (!remove(t)) add(t);
+  }
 }
 
 /// Shape the simulator opens on; overridden per route.
@@ -224,4 +285,106 @@ final diamondSimulatorProvider =
     >(
       DiamondSimulatorController.new,
       dependencies: [simulatorStartShapeProvider],
+    );
+
+/// The hand view: whether it shows, which finger's stone is being edited,
+/// and the stones parked on the other fingers. The edited stone itself
+/// lives in [diamondSimulatorProvider], so every control keeps working on
+/// whichever stone is selected.
+@immutable
+class SimHand {
+  const SimHand({
+    this.onHand = false,
+    this.active = HandFinger.ring,
+    this.parked = const {},
+  });
+
+  final bool onHand;
+  final HandFinger active;
+  final Map<HandFinger, DiamondSimulatorState> parked;
+
+  bool wears(HandFinger f) => f == active || parked.containsKey(f);
+
+  int get count => parked.length + 1;
+
+  SimHand copyWith({
+    bool? onHand,
+    HandFinger? active,
+    Map<HandFinger, DiamondSimulatorState>? parked,
+  }) => SimHand(
+    onHand: onHand ?? this.onHand,
+    active: active ?? this.active,
+    parked: parked ?? this.parked,
+  );
+}
+
+/// Moves stones between fingers. Each stone keeps its own spec; only the
+/// selected one is edited.
+class SimHandController extends AutoDisposeNotifier<SimHand> {
+  @override
+  SimHand build() => const SimHand();
+
+  DiamondSimulatorController get _stone =>
+      ref.read(diamondSimulatorProvider.notifier);
+
+  void show(bool onHand) {
+    if (onHand == state.onHand) return;
+    // A scope cannot sit on a finger.
+    if (onHand) _stone.setHeartsArrows(false);
+    state = state.copyWith(onHand: onHand);
+  }
+
+  /// Edits [finger]'s stone, first placing one there if it is bare: a
+  /// copy of the selected stone in a shape not yet on the hand, for an
+  /// easy comparison.
+  void select(HandFinger finger) {
+    if (finger == state.active) return;
+    final current = ref.read(diamondSimulatorProvider);
+    final parked = {...state.parked, state.active: current};
+    final next = parked.remove(finger) ?? _newStone(current);
+    _stone.load(next);
+    state = state.copyWith(active: finger, parked: parked);
+  }
+
+  DiamondSimulatorState _newStone(DiamondSimulatorState from) {
+    final worn = {
+      from.spec.shape,
+      for (final s in state.parked.values) s.spec.shape,
+    };
+    const order = [
+      SimShape.oval,
+      SimShape.princess,
+      SimShape.pear,
+      SimShape.emerald,
+      SimShape.cushion,
+      SimShape.marquise,
+      SimShape.round,
+    ];
+    final shape = order.firstWhere((s) => !worn.contains(s));
+    return _stone.recut(from, shape);
+  }
+
+  /// Takes [finger]'s stone off; the last stone always stays.
+  void remove(HandFinger finger) {
+    if (!state.wears(finger) || state.count <= 1) return;
+    if (finger != state.active) {
+      state = state.copyWith(parked: {...state.parked}..remove(finger));
+      return;
+    }
+    final parked = {...state.parked};
+    final next = parked.containsKey(HandFinger.ring)
+        ? HandFinger.ring
+        : parked.keys.first;
+    _stone.load(parked.remove(next)!);
+    state = state.copyWith(active: next, parked: parked);
+  }
+
+  void reset() => state = SimHand(onHand: state.onHand);
+}
+
+/// The hand view; disposed with the simulator screen.
+final simHandProvider =
+    NotifierProvider.autoDispose<SimHandController, SimHand>(
+      SimHandController.new,
+      dependencies: [diamondSimulatorProvider],
     );

@@ -25,12 +25,27 @@ enum SimInclusionKind {
   cloud(5),
 
   /// A thin rod-like crystal, bright white.
-  needle(6);
+  needle(6),
+
+  /// A feather filled with lead glass: the crack all but vanishes, but
+  /// flashes orange and blue as the stone moves.
+  filledFeather(7);
 
   const SimInclusionKind(this.code);
 
   final int code;
 }
+
+/// How many of each inclusion a grade holds, and their size scale.
+typedef _Mix = ({
+  int pin,
+  int needle,
+  int dark,
+  int clear,
+  int feather,
+  int cloud,
+  double s,
+});
 
 /// One clarity characteristic inside the stone, model space.
 class SimInclusion {
@@ -59,6 +74,30 @@ class SimInclusion {
 
   /// 0..1; varies outline, habit and tint between inclusions.
   final double seed;
+
+  SimInclusion resized(double size) => SimInclusion(
+    kind: kind,
+    x: x,
+    y: y,
+    z: z,
+    size: size,
+    ax: ax,
+    ay: ay,
+    az: az,
+    seed: seed,
+  );
+
+  SimInclusion as(SimInclusionKind kind) => SimInclusion(
+    kind: kind,
+    x: x,
+    y: y,
+    z: z,
+    size: size,
+    ax: ax,
+    ay: ay,
+    az: az,
+    seed: seed,
+  );
 }
 
 /// Places inclusions for a clarity grade. Deterministic per grade, so
@@ -74,97 +113,197 @@ abstract final class SimInclusions {
   /// Inclusion slots in the shader.
   static const maxCount = 12;
 
-  static List<SimInclusion> generate(SimMesh mesh, ClarityGrade grade) {
-    final r = switch (grade) {
-      ClarityGrade.fl || ClarityGrade.internallyFlawless => null,
-      ClarityGrade.vvs1 => (
-        pin: 1,
-        needle: 0,
-        dark: 0,
-        clear: 0,
-        feather: 0,
-        cloud: 0,
-        s: 0.5,
-      ),
-      ClarityGrade.vvs2 => (
-        pin: 2,
-        needle: 1,
-        dark: 0,
-        clear: 0,
-        feather: 0,
-        cloud: 0,
-        s: 0.6,
-      ),
-      ClarityGrade.vs1 => (
-        pin: 2,
-        needle: 0,
-        dark: 0,
-        clear: 1,
-        feather: 1,
-        cloud: 0,
-        s: 0.9,
-      ),
-      ClarityGrade.vs2 => (
-        pin: 2,
-        needle: 1,
-        dark: 1,
-        clear: 1,
-        feather: 1,
-        cloud: 1,
-        s: 1.15,
-      ),
-      ClarityGrade.si1 => (
-        pin: 2,
-        needle: 1,
-        dark: 2,
-        clear: 1,
-        feather: 1,
-        cloud: 1,
-        s: 1.4,
-      ),
-      ClarityGrade.si2 => (
-        pin: 2,
-        needle: 1,
-        dark: 3,
-        clear: 1,
-        feather: 2,
-        cloud: 1,
-        s: 1.8,
-      ),
-      ClarityGrade.i1 => (
-        pin: 2,
-        needle: 1,
-        dark: 3,
-        clear: 1,
-        feather: 2,
-        cloud: 2,
-        s: 2.6,
-      ),
-      ClarityGrade.i2 => (
-        pin: 1,
-        needle: 1,
-        dark: 4,
-        clear: 1,
-        feather: 3,
-        cloud: 2,
-        s: 3.4,
-      ),
-      ClarityGrade.i3 => (
-        pin: 1,
-        needle: 0,
-        dark: 4,
-        clear: 0,
-        feather: 4,
-        cloud: 3,
-        s: 4.2,
-      ),
-    };
-    if (r == null) return const [];
+  /// How much larger than true scale inclusions are drawn.
+  static const visibility = 1.8;
 
+  /// [only] limits the stone to those kinds, each present at least twice
+  /// and large enough to see under the table (null keeps the grade's
+  /// usual mix). Flawless grades stay clean.
+  /// [enhancement] applies treatments that work on inclusions, adding
+  /// what each one treats if the stone lacks it: fracture filling turns
+  /// feathers into glass-filled cracks that flash colour; laser drilling
+  /// bleaches dark crystals and leaves a fine channel up to the surface.
+  ///
+  /// Sizes are enlarged over true scale ([visibility]) so they read on a
+  /// phone screen: at true scale a VS crystal is a pixel or less.
+  static List<SimInclusion> generate(
+    SimMesh mesh,
+    ClarityGrade grade, {
+    Set<InclusionType>? only,
+    Enhancement enhancement = Enhancement.none,
+  }) {
+    final mix = _mix(grade);
+    if (mix == null) return const [];
+    int pick(InclusionType t, int n) =>
+        only == null ? n : (only.contains(t) ? math.max(n, 2) : 0);
+    final filling = enhancement == Enhancement.fractureFilling;
+    final drilling = enhancement == Enhancement.laserDrilling;
+    final picked = only != null || filling || drilling;
+    final r = (
+      pin: pick(InclusionType.pinpoint, mix.pin),
+      needle: pick(InclusionType.needle, mix.needle),
+      dark: math.max(pick(InclusionType.carbon, mix.dark), drilling ? 2 : 0),
+      clear: pick(InclusionType.crystal, mix.clear),
+      feather: math.max(
+        pick(InclusionType.feather, mix.feather),
+        filling ? 2 : 0,
+      ),
+      cloud: pick(InclusionType.cloud, mix.cloud),
+      // Chosen kinds show at least at an I2's size, under the table.
+      s: (picked ? math.max(mix.s, 3.4) : mix.s) * visibility,
+    );
+    final out = _place(
+      mesh,
+      grade,
+      r,
+      central: picked,
+      pinScale: picked ? 4 : 1.8,
+    );
+    return switch (enhancement) {
+      Enhancement.fractureFilling => [
+        for (final c in out)
+          c.kind == SimInclusionKind.feather
+              ? c.as(SimInclusionKind.filledFeather)
+              : c,
+      ],
+      Enhancement.laserDrilling => _drill(mesh, out),
+      _ => out,
+    };
+  }
+
+  /// Bleaches dark crystals and bores a channel from each up to the
+  /// crown, as a laser does to reach and dissolve them.
+  static List<SimInclusion> _drill(SimMesh mesh, List<SimInclusion> found) {
+    final pos = mesh.positions;
+    var top = 0.0;
+    for (var i = 1; i < pos.length; i += 3) {
+      top = math.max(top, pos[i]);
+    }
+    final out = <SimInclusion>[];
+    final channels = <SimInclusion>[];
+    for (final c in found) {
+      if (c.kind != SimInclusionKind.darkCrystal) {
+        out.add(c);
+        continue;
+      }
+      out.add(c.as(SimInclusionKind.clearCrystal));
+      final half = (top - c.y) / 2 - 0.01;
+      if (half > 0.02) {
+        channels.add(
+          SimInclusion(
+            kind: SimInclusionKind.needle,
+            x: c.x,
+            y: c.y + half,
+            z: c.z,
+            size: half,
+            seed: c.seed,
+          ),
+        );
+      }
+    }
+    // Channels before the smallest specks if slots run out.
+    return [
+      ...out.take(maxCount - channels.length),
+      ...channels,
+    ].take(maxCount).toList();
+  }
+
+  static _Mix? _mix(ClarityGrade grade) => switch (grade) {
+    ClarityGrade.fl || ClarityGrade.internallyFlawless => null,
+    ClarityGrade.vvs1 => (
+      pin: 1,
+      needle: 0,
+      dark: 0,
+      clear: 0,
+      feather: 0,
+      cloud: 0,
+      s: 0.5,
+    ),
+    ClarityGrade.vvs2 => (
+      pin: 2,
+      needle: 1,
+      dark: 0,
+      clear: 0,
+      feather: 0,
+      cloud: 0,
+      s: 0.6,
+    ),
+    ClarityGrade.vs1 => (
+      pin: 2,
+      needle: 0,
+      dark: 0,
+      clear: 1,
+      feather: 1,
+      cloud: 0,
+      s: 0.9,
+    ),
+    ClarityGrade.vs2 => (
+      pin: 2,
+      needle: 1,
+      dark: 1,
+      clear: 1,
+      feather: 1,
+      cloud: 1,
+      s: 1.15,
+    ),
+    ClarityGrade.si1 => (
+      pin: 2,
+      needle: 1,
+      dark: 2,
+      clear: 1,
+      feather: 1,
+      cloud: 1,
+      s: 1.4,
+    ),
+    ClarityGrade.si2 => (
+      pin: 2,
+      needle: 1,
+      dark: 3,
+      clear: 1,
+      feather: 2,
+      cloud: 1,
+      s: 1.8,
+    ),
+    ClarityGrade.i1 => (
+      pin: 2,
+      needle: 1,
+      dark: 3,
+      clear: 1,
+      feather: 2,
+      cloud: 2,
+      s: 2.6,
+    ),
+    ClarityGrade.i2 => (
+      pin: 1,
+      needle: 1,
+      dark: 4,
+      clear: 1,
+      feather: 3,
+      cloud: 2,
+      s: 3.4,
+    ),
+    ClarityGrade.i3 => (
+      pin: 1,
+      needle: 0,
+      dark: 4,
+      clear: 0,
+      feather: 4,
+      cloud: 3,
+      s: 4.2,
+    ),
+  };
+
+  static List<SimInclusion> _place(
+    SimMesh mesh,
+    ClarityGrade grade,
+    _Mix r, {
+    bool central = false,
+    double pinScale = 1,
+  }) {
     final rng = math.Random(31 + grade.index * 7);
     final out = <SimInclusion>[];
     final half = mesh.length / 2;
-    final low = grade.index >= ClarityGrade.si1.index;
+    final low = central || grade.index >= ClarityGrade.si1.index;
     double vary() => 0.7 + rng.nextDouble() * 0.6;
 
     // A random point inside the stone, [margin] clear of its surface.
@@ -237,7 +376,14 @@ abstract final class SimInclusions {
       final at = edge
           ? _nearGirdle(mesh, rng, size * 0.4)
           : inside(central: true, margin: size * 0.2);
-      add(SimInclusionKind.feather, at, size, axis(flat: 0.75));
+      // Chosen ones lie broad side up, so the crack shows through the
+      // table rather than edge on.
+      add(
+        SimInclusionKind.feather,
+        at,
+        size,
+        central ? _faceUp(rng) : axis(flat: 0.75),
+      );
     }
     for (var i = 0; i < r.clear; i++) {
       final size = 0.012 * r.s * vary();
@@ -269,7 +415,7 @@ abstract final class SimInclusions {
       add(
         SimInclusionKind.pinpoint,
         inside(central: false),
-        0.004 + rng.nextDouble() * 0.003,
+        (0.004 + rng.nextDouble() * 0.003) * pinScale,
       );
     }
     return out;
@@ -294,6 +440,14 @@ abstract final class SimInclusions {
       ]);
     }
     return out;
+  }
+
+  /// A unit normal tipped 20–45° from straight up.
+  static (double, double, double) _faceUp(math.Random rng) {
+    final a = rng.nextDouble() * math.pi * 2;
+    final y = 0.7 + rng.nextDouble() * 0.24;
+    final h = math.sqrt(1 - y * y);
+    return (math.cos(a) * h, y, math.sin(a) * h);
   }
 
   /// A point just inside the girdle, [margin] clear of the surface.

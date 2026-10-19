@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,54 +5,16 @@ import '../../../../../core/haptics/app_haptics.dart';
 import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/theme/luxe_tokens.dart';
 import '../../../application/diamond_simulator_controller.dart';
+import '../../../domain/average_hand.dart';
 import '../../sim_labels.dart';
 import 'diamond_sim_viewport.dart';
 
-/// HUD over the live stone: grade summary, true-scale bar, camera
-/// presets and auto-rotate. Only the buttons take touches; everything
-/// else lets gestures through to the stone.
-class SimViewportOverlay extends StatelessWidget {
-  const SimViewportOverlay({required this.controller, super.key});
+/// Pieces laid over the full-screen stone. Only buttons take touches;
+/// everything else lets gestures through to the stone.
 
-  final SimViewportController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) => Stack(
-        fit: StackFit.expand,
-        children: [
-          const Positioned(
-            left: 16,
-            top: 12,
-            right: 16,
-            child: IgnorePointer(child: _Summary()),
-          ),
-          const Positioned.fill(child: IgnorePointer(child: _Hint())),
-          Positioned(
-            left: 16,
-            bottom: 62,
-            child: IgnorePointer(
-              child: _ScaleBar(
-                controller: controller,
-                viewport: constraints.biggest,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 12,
-            right: 12,
-            bottom: 10,
-            child: _ViewControls(controller: controller),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Summary extends ConsumerWidget {
-  const _Summary();
+/// Estimated cut and the selected stone's grades, top left.
+class SimSummary extends ConsumerWidget {
+  const SimSummary({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,92 +31,52 @@ class _Summary extends ConsumerWidget {
         ),
       ),
     );
+    final finger = ref.watch(
+      simHandProvider.select((h) => h.onHand ? h.active : null),
+    );
     final p = LuxePalette.of(context);
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.tr(EducationL10n.estimatedCut).toUpperCase(),
-                style: LuxeType.eyebrow(p.inkFaint),
-              ),
-              const SizedBox(height: 4),
-              AnimatedSwitcher(
-                duration: LuxeMotion.fast,
-                child: Text(
-                  context.cutName(s.cut),
-                  key: ValueKey(s.cut),
-                  style: LuxeType.display(22, p.accent),
-                ),
-              ),
-            ],
+        Text(
+          context.tr(EducationL10n.estimatedCut).toUpperCase(),
+          style: LuxeType.eyebrow(p.inkFaint),
+        ),
+        const SizedBox(height: 2),
+        AnimatedSwitcher(
+          duration: LuxeMotion.fast,
+          child: Text(
+            context.cutName(s.cut),
+            key: ValueKey(s.cut),
+            style: LuxeType.display(20, p.accent),
           ),
         ),
-        Flexible(
-          child: Text(
-            '${context.shapeName(s.shape)}\n'
-            '${s.carat.toStringAsFixed(2)} ct · ${s.color} · ${s.clarity}',
-            textAlign: TextAlign.end,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: LuxeType.label(p.inkMuted, size: 12.5),
-          ),
+        const SizedBox(height: 2),
+        Text(
+          [
+            if (finger != null) context.fingerName(finger),
+            context.shapeName(s.shape),
+            '${s.carat.toStringAsFixed(2)} ct',
+            s.color,
+            s.clarity,
+          ].join(' · '),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: LuxeType.label(p.inkMuted, size: 12),
         ),
       ],
     );
   }
 }
 
-/// Shows the gesture hint briefly, then gets out of the way.
-class _Hint extends StatefulWidget {
-  const _Hint();
-
-  @override
-  State<_Hint> createState() => _HintState();
-}
-
-class _HintState extends State<_Hint> {
-  bool _show = true;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer(const Duration(seconds: 5), () {
-      if (mounted) setState(() => _show = false);
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    return Align(
-      alignment: const Alignment(0, 0.62),
-      child: AnimatedOpacity(
-        opacity: _show ? 1 : 0,
-        duration: LuxeMotion.medium,
-        child: Text(
-          context.tr(EducationL10n.simHint),
-          textAlign: TextAlign.center,
-          style: LuxeType.label(p.inkFaint, size: 11.5),
-        ),
-      ),
-    );
-  }
-}
-
 /// A millimetre bar at the stone's true on-screen scale.
-class _ScaleBar extends ConsumerWidget {
-  const _ScaleBar({required this.controller, required this.viewport});
+class SimScaleBar extends ConsumerWidget {
+  const SimScaleBar({
+    required this.controller,
+    required this.viewport,
+    super.key,
+  });
 
   final SimViewportController controller;
 
@@ -213,14 +133,61 @@ class _BarPainter extends CustomPainter {
   bool shouldRepaint(covariant _BarPainter old) => old.color != color;
 }
 
-class _ViewControls extends StatelessWidget {
-  const _ViewControls({required this.controller});
-
-  final SimViewportController controller;
+/// Average hand measurements, for reference in the hand view.
+class SimHandFacts extends StatelessWidget {
+  const SimHandFacts({super.key});
 
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
+    final size = AverageHand.ring.usRingSize;
+    final half = (size * 2).round() / 2;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0x99101010),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: LuxeStage.glassBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 7, 10, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              context.tr(EducationL10n.handTitle),
+              style: LuxeType.label(p.ink, size: 11.5),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              context.tr(EducationL10n.handFacts, {
+                'length': AverageHand.lengthCm.toStringAsFixed(1),
+                'palm': AverageHand.palmCm.toStringAsFixed(1),
+                'size': half % 1 == 0
+                    ? half.toStringAsFixed(0)
+                    : half.toStringAsFixed(1),
+              }),
+              style: LuxeType.label(p.inkMuted, size: 10.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Camera presets, auto-spin and the hand view, as words; in the hand
+/// view, the way back to 3D and the hand's scale.
+class SimViewControls extends ConsumerWidget {
+  const SimViewControls({required this.controller, super.key});
+
+  final SimViewportController controller;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final p = LuxePalette.of(context);
+    final onHand = ref.watch(simHandProvider.select((h) => h.onHand));
+    final hand = ref.read(simHandProvider.notifier);
     String label(SimViewPreset v) => context.tr(switch (v) {
       SimViewPreset.faceUp => EducationL10n.viewFaceUp,
       SimViewPreset.angled => EducationL10n.viewAngled,
@@ -228,75 +195,88 @@ class _ViewControls extends StatelessWidget {
       SimViewPreset.pavilion => EducationL10n.viewPavilion,
     });
 
+    List<Widget> pills() {
+      if (onHand) {
+        return [
+          SimGlassPill(
+            label: context.tr(EducationL10n.goBack),
+            selected: false,
+            palette: p,
+            onTap: () => hand.show(false),
+          ),
+          ValueListenableBuilder<bool>(
+            valueListenable: controller.lifeSize,
+            builder: (context, life, _) => SimGlassPill(
+              label: context.tr(
+                life ? EducationL10n.fitHand : EducationL10n.lifeSize,
+              ),
+              selected: life,
+              palette: p,
+              onTap: () => controller.lifeSize.value = !life,
+            ),
+          ),
+        ];
+      }
+      return [
+        for (final v in SimViewPreset.values)
+          SimGlassPill(
+            label: label(v),
+            selected: controller.preset == v,
+            palette: p,
+            onTap: () => controller.show(v),
+          ),
+        SimGlassPill(
+          label: context.tr(EducationL10n.autoSpin),
+          selected: controller.autoRotate,
+          palette: p,
+          onTap: () => controller.autoRotate = !controller.autoRotate,
+        ),
+        SimGlassPill(
+          label: context.tr(EducationL10n.onHand),
+          selected: false,
+          palette: p,
+          onTap: () => hand.show(true),
+        ),
+      ];
+    }
+
     return ListenableBuilder(
       listenable: controller,
-      builder: (context, _) => Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: [
-                  for (final v in SimViewPreset.values) ...[
-                    _GlassPill(
-                      label: label(v),
-                      selected: controller.preset == v,
-                      palette: p,
-                      onTap: () {
-                        AppHaptics.selection();
-                        controller.show(v);
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Tooltip(
-            message: context.tr(EducationL10n.autoRotate),
-            child: _GlassPill(
-              icon: controller.autoRotate
-                  ? Icons.pause_rounded
-                  : Icons.threesixty_rounded,
-              label: context.tr(EducationL10n.autoRotate),
-              iconOnly: true,
-              selected: controller.autoRotate,
-              palette: p,
-              onTap: () {
-                AppHaptics.selection();
-                controller.autoRotate = !controller.autoRotate;
-              },
-            ),
-          ),
-        ],
+      builder: (context, _) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          children: [
+            for (final pill in pills()) ...[pill, const SizedBox(width: 6)],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _GlassPill extends StatelessWidget {
-  const _GlassPill({
+/// A frosted pill of text over the stage.
+class SimGlassPill extends StatelessWidget {
+  const SimGlassPill({
     required this.label,
     required this.selected,
     required this.palette,
     required this.onTap,
-    this.icon,
-    this.iconOnly = false,
+    this.height = 36,
+    super.key,
   });
 
   final String label;
-  final IconData? icon;
-  final bool iconOnly, selected;
+  final bool selected;
   final LuxePalette palette;
   final VoidCallback onTap;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     final p = palette;
-    final fg = selected ? p.accent : p.inkMuted;
+    final fg = selected ? p.accent : p.ink;
     return Semantics(
       button: true,
       selected: selected,
@@ -304,26 +284,27 @@ class _GlassPill extends StatelessWidget {
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: () {
+          AppHaptics.selection();
+          onTap();
+        },
         child: AnimatedContainer(
           duration: LuxeMotion.fast,
-          height: 40,
+          height: height,
           constraints: const BoxConstraints(minWidth: 44),
-          padding: EdgeInsets.symmetric(horizontal: iconOnly ? 10 : 14),
+          padding: const EdgeInsets.symmetric(horizontal: 13),
           alignment: Alignment.center,
           decoration: ShapeDecoration(
-            color: LuxeStage.glass,
+            color: const Color(0x8C101010),
             shape: StadiumBorder(
               side: BorderSide(
                 color: selected
-                    ? p.accent.withValues(alpha: 0.7)
+                    ? p.accent.withValues(alpha: 0.8)
                     : LuxeStage.glassBorder,
               ),
             ),
           ),
-          child: iconOnly
-              ? Icon(icon, size: 20, color: fg)
-              : Text(label, style: LuxeType.label(fg, size: 12.5)),
+          child: Text(label, style: LuxeType.label(fg, size: 12.5)),
         ),
       ),
     );

@@ -14,7 +14,7 @@ class SimLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           Expanded(
@@ -41,7 +41,7 @@ class SimNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    return Text(text, style: LuxeType.body(p.inkMuted, size: 13));
+    return Text(text, style: LuxeType.body(p.inkMuted, size: 12.5));
   }
 }
 
@@ -104,7 +104,8 @@ class SimSwitch extends StatelessWidget {
   }
 }
 
-/// Single-select wrap of pill chips. [swatchOf] adds a colour dot.
+/// Single-select wrap of pill chips. [swatchOf] adds a colour dot,
+/// [leadingOf] any small picture.
 class SimChoiceChips<T> extends StatelessWidget {
   const SimChoiceChips({
     required this.options,
@@ -112,6 +113,7 @@ class SimChoiceChips<T> extends StatelessWidget {
     required this.labelOf,
     required this.onSelected,
     this.swatchOf,
+    this.leadingOf,
     this.enabled = true,
     super.key,
   });
@@ -121,26 +123,63 @@ class SimChoiceChips<T> extends StatelessWidget {
   final String Function(T) labelOf;
   final ValueChanged<T> onSelected;
   final Color Function(T)? swatchOf;
+  final Widget Function(T)? leadingOf;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) => SimToggleChips<T>(
+    options: options,
+    isSelected: (o) => o == selected,
+    labelOf: labelOf,
+    swatchOf: swatchOf,
+    leadingOf: leadingOf,
+    enabled: enabled,
+    onTap: (o) {
+      if (o == selected) return;
+      onSelected(o);
+    },
+  );
+}
+
+/// Wrap of pill chips that each toggle; [isSelected] says which are on.
+class SimToggleChips<T> extends StatelessWidget {
+  const SimToggleChips({
+    required this.options,
+    required this.isSelected,
+    required this.labelOf,
+    required this.onTap,
+    this.swatchOf,
+    this.leadingOf,
+    this.enabled = true,
+    super.key,
+  });
+
+  final List<T> options;
+  final bool Function(T) isSelected;
+  final String Function(T) labelOf;
+  final ValueChanged<T> onTap;
+  final Color Function(T)? swatchOf;
+  final Widget Function(T)? leadingOf;
   final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 6,
+      runSpacing: 6,
       children: [
         for (final o in options)
           _Chip(
             label: labelOf(o),
             swatch: swatchOf?.call(o),
-            selected: o == selected,
+            leading: leadingOf?.call(o),
+            selected: isSelected(o),
             enabled: enabled,
             palette: p,
             onTap: () {
-              if (o == selected) return;
               AppHaptics.selection();
-              onSelected(o);
+              onTap(o);
             },
           ),
       ],
@@ -156,10 +195,12 @@ class _Chip extends StatelessWidget {
     required this.palette,
     required this.onTap,
     this.swatch,
+    this.leading,
   });
 
   final String label;
   final Color? swatch;
+  final Widget? leading;
   final bool selected, enabled;
   final LuxePalette palette;
   final VoidCallback onTap;
@@ -184,8 +225,13 @@ class _Chip extends StatelessWidget {
         child: AnimatedContainer(
           duration: LuxeMotion.fast,
           curve: LuxeMotion.press,
-          constraints: const BoxConstraints(minHeight: 40, minWidth: 44),
-          padding: EdgeInsets.fromLTRB(swatch == null ? 14 : 8, 8, 14, 8),
+          constraints: const BoxConstraints(minHeight: 36, minWidth: 44),
+          padding: EdgeInsets.fromLTRB(
+            swatch == null && leading == null ? 12 : 7,
+            6,
+            12,
+            6,
+          ),
           decoration: ShapeDecoration(
             color: selected && enabled ? p.accent : p.surfaceRaised,
             shape: StadiumBorder(
@@ -204,9 +250,13 @@ class _Chip extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: p.hairline),
                   ),
-                  child: const SizedBox.square(dimension: 20),
+                  child: const SizedBox.square(dimension: 18),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 7),
+              ],
+              if (leading != null) ...[
+                SizedBox.square(dimension: 20, child: leading),
+                const SizedBox(width: 6),
               ],
               Flexible(
                 child: Text(

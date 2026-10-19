@@ -1,27 +1,51 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
-import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../application/diamond_simulator_controller.dart';
+import '../../domain/average_hand.dart';
+import '../../domain/diamond_proportions.dart';
+import '../sim_labels.dart';
 import '../widgets/sim_stone_view.dart';
 import '../widgets/simulator/diamond_sim_viewport.dart';
 import '../widgets/simulator/sim_cut_panels.dart';
 import '../widgets/simulator/sim_grade_panels.dart';
+import '../widgets/simulator/sim_hand_stage.dart';
+import '../widgets/simulator/sim_quality_panels.dart';
 import '../widgets/simulator/sim_shape_strip.dart';
 import '../widgets/simulator/sim_viewport_overlay.dart';
 
-enum _SimTab { cut, color, clarity, carat, fluorescence, proportions }
+enum _SimTool {
+  shape,
+  cut,
+  color,
+  clarity,
+  inclusions,
+  bgm,
+  milky,
+  enhancement,
+  carat,
+  fluorescence,
+  proportions,
+}
 
-/// Full-screen 3D diamond simulator: a live stone in a dark studio above
-/// controls for shape, the 4Cs, fluorescence and every proportion. Always
-/// dark, whatever the app theme, so the stone's light reads truly.
+/// Full-screen 3D diamond simulator. The stone fills the screen; a slim
+/// rail of tools sits at the side, and choosing one opens only that
+/// tool's controls in a compact sheet, out of the stone's way. Carat
+/// brings an average hand up from below with the stones on its fingers.
+/// Always dark, whatever the app theme, so the stone's light reads truly.
 class DiamondSimulatorScreen extends ConsumerStatefulWidget {
   const DiamondSimulatorScreen({super.key});
 
@@ -33,7 +57,8 @@ class DiamondSimulatorScreen extends ConsumerStatefulWidget {
 class _DiamondSimulatorScreenState
     extends ConsumerState<DiamondSimulatorScreen> {
   final _viewport = SimViewportController();
-  _SimTab _tab = _SimTab.cut;
+  _SimTool? _open;
+  double _panelHeight = 0;
   ThemeData? _theme;
   Object? _themeFor;
 
@@ -43,27 +68,58 @@ class _DiamondSimulatorScreenState
     super.dispose();
   }
 
-  String _tabLabel(_SimTab t) => context.tr(switch (t) {
-    _SimTab.cut => EducationL10n.cut,
-    _SimTab.color => EducationL10n.color,
-    _SimTab.clarity => EducationL10n.clarity,
-    _SimTab.carat => EducationL10n.carat,
-    _SimTab.fluorescence => EducationL10n.fluorescence,
-    _SimTab.proportions => EducationL10n.proportions,
+  String _toolLabel(_SimTool t) => context.tr(switch (t) {
+    _SimTool.shape => EducationL10n.shape,
+    _SimTool.cut => EducationL10n.cut,
+    _SimTool.color => EducationL10n.color,
+    _SimTool.clarity => EducationL10n.clarity,
+    _SimTool.inclusions => EducationL10n.inclusions,
+    _SimTool.bgm => EducationL10n.bgm,
+    _SimTool.milky => EducationL10n.milky,
+    _SimTool.enhancement => EducationL10n.enhancement,
+    _SimTool.carat => EducationL10n.carat,
+    _SimTool.fluorescence => EducationL10n.fluorescence,
+    _SimTool.proportions => EducationL10n.proportions,
   });
 
-  Widget _panel(_SimTab t) => switch (t) {
-    _SimTab.cut => SimCutPanel(viewport: _viewport),
-    _SimTab.color => const SimColorPanel(),
-    _SimTab.clarity => const SimClarityPanel(),
-    _SimTab.carat => const SimCaratPanel(),
-    _SimTab.fluorescence => const SimFluorescencePanel(),
-    _SimTab.proportions => const SimProportionsPanel(),
+  Widget _panel(_SimTool t) => switch (t) {
+    _SimTool.shape => const SimShapeStrip(),
+    _SimTool.cut => SimCutPanel(viewport: _viewport),
+    _SimTool.color => const SimColorPanel(),
+    _SimTool.clarity => const SimClarityPanel(),
+    _SimTool.inclusions => const SimInclusionsPanel(),
+    _SimTool.bgm => const SimBgmPanel(),
+    _SimTool.milky => const SimMilkyPanel(),
+    _SimTool.enhancement => const SimEnhancementPanel(),
+    _SimTool.carat => const SimCaratPanel(),
+    _SimTool.fluorescence => const SimFluorescencePanel(),
+    _SimTool.proportions => const SimProportionsPanel(),
   };
+
+  void _openTool(_SimTool t) {
+    AppHaptics.selection();
+    setState(() => _open = t);
+    // Carat is judged on a hand.
+    if (t == _SimTool.carat) ref.read(simHandProvider.notifier).show(true);
+  }
+
+  void _close() => setState(() {
+    _open = null;
+    _panelHeight = 0;
+  });
+
+  void _reset() {
+    AppHaptics.light();
+    ref.read(simHandProvider.notifier).reset();
+    ref.read(diamondSimulatorProvider.notifier).reset();
+    _viewport
+      ..autoRotate = true
+      ..show(SimViewPreset.angled);
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Built once per palette, not on every tab switch.
+    // Built once per palette, not on every tool switch.
     final palette = AppPalette.resolve(context).night;
     if (!identical(palette, _themeFor)) {
       _themeFor = palette;
@@ -71,118 +127,220 @@ class _DiamondSimulatorScreenState
     }
     return Theme(
       data: _theme!,
-      child: Builder(builder: _build),
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
+        child: Builder(builder: _build),
+      ),
     );
   }
 
   Widget _build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    final stage = Stack(
-      fit: StackFit.expand,
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: const Alignment(0, -0.1),
-              radius: 1.05,
-              colors: [
-                SimStageTones.lit,
-                SimStageTones.mid,
-                LuxeStage.obsidian,
-              ],
-              stops: const [0, 0.5, 1],
-            ),
-          ),
-        ),
-        DiamondSimViewport(controller: _viewport),
-        SimViewportOverlay(controller: _viewport),
-      ],
-    );
-
-    final tabs = _SimTabs(
-      selected: _tab,
-      labelOf: _tabLabel,
-      onSelected: (t) => setState(() => _tab = t),
-    );
-    final panel = ColoredBox(
-      color: p.surface,
-      child: AnimatedSwitcher(
-        duration: LuxeMotion.fast,
-        child: SingleChildScrollView(
-          key: ValueKey(_tab),
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-          child: _panel(_tab),
-        ),
-      ),
-    );
+    final onHand = ref.watch(simHandProvider.select((h) => h.onHand));
+    final pad = MediaQuery.paddingOf(context);
+    final open = _open;
 
     return AppScaffold(
       enableAppDrawer: false,
-      backgroundColor: p.canvas,
-      appBar: LuxeTopBar(
-        title: context.tr(EducationL10n.simTitle),
-        actions: [
-          LuxeIconButton(
-            icon: Icons.restart_alt_rounded,
-            tooltip: context.tr(EducationL10n.reset),
-            size: 40,
-            onPressed: () {
-              AppHaptics.light();
-              ref.read(diamondSimulatorProvider.notifier).reset();
-              _viewport
-                ..autoRotate = true
-                ..show(SimViewPreset.angled);
-            },
-          ),
-        ],
-      ),
+      backgroundColor: LuxeStage.obsidian,
+      resizeToAvoidBottomInset: false,
       body: LayoutBuilder(
         builder: (context, constraints) {
+          final size = constraints.biggest;
           final wide =
-              constraints.maxWidth >= 860 ||
-              (constraints.maxWidth > constraints.maxHeight &&
-                  constraints.maxWidth >= 640);
-          if (wide) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: ClipRect(child: stage)),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: p.surface,
-                    border: Border(left: BorderSide(color: p.hairline)),
+              size.width >= 860 ||
+              (size.width > size.height && size.width >= 640);
+          final panelWidth = size.width >= 1100 ? 420.0 : 380.0;
+          final maxPanel = math.min(size.height * 0.44, 400.0);
+          final barTop = pad.top + 6;
+          final summaryTop = barTop + 48;
+          // The stone moves clear of an open sheet.
+          final stageBottom = open != null && !wide
+              ? math.max(0.0, _panelHeight - 16)
+              : 0.0;
+          // Beside the open sheet on wide screens; on phones, nudged clear
+          // of the tool rail (the hand stays centred on its ring finger).
+          final stageRight = open != null && wide
+              ? panelWidth + 16
+              : (open == null && !wide && !onHand ? 56.0 : 0.0);
+
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment(0, -0.1),
+                    radius: 1.05,
+                    colors: [
+                      SimStageTones.lit,
+                      SimStageTones.mid,
+                      Color(0xFF0B0C0E),
+                    ],
+                    stops: [0, 0.5, 1],
                   ),
-                  child: SizedBox(
-                    width: constraints.maxWidth >= 1100 ? 440 : 380,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 12),
-                        const SimShapeStrip(),
-                        const SizedBox(height: 8),
-                        tabs,
-                        Expanded(child: panel),
+                ),
+              ),
+              AnimatedPositioned(
+                duration: LuxeMotion.medium,
+                curve: LuxeMotion.settle,
+                left: 0,
+                top: 0,
+                right: stageRight,
+                bottom: stageBottom,
+                child: LayoutBuilder(
+                  builder: (context, stage) => Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Paused and hidden under the hand, keeping its pose.
+                      Offstage(
+                        offstage: onHand,
+                        child: TickerMode(
+                          enabled: !onHand,
+                          child: DiamondSimViewport(controller: _viewport),
+                        ),
+                      ),
+                      if (!onHand && open == null) ...[
+                        Positioned(
+                          left: 16,
+                          bottom: pad.bottom + 92,
+                          child: IgnorePointer(
+                            child: SimScaleBar(
+                              controller: _viewport,
+                              viewport: stage.biggest,
+                            ),
+                          ),
+                        ),
                       ],
+                      AnimatedSwitcher(
+                        duration: LuxeMotion.medium,
+                        child: onHand
+                            ? SimHandStage(
+                                key: const ValueKey('hand'),
+                                controller: _viewport,
+                                topInset: summaryTop + 56,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Keeps the chrome legible over the stone or the hand.
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                height: summaryTop + 90,
+                child: const IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xB3000000), Color(0x00000000)],
+                      ),
                     ),
                   ),
                 ),
-              ],
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(flex: 11, child: ClipRect(child: stage)),
-              ColoredBox(
-                color: p.canvas,
-                child: const Padding(
-                  padding: EdgeInsets.only(top: 10, bottom: 6),
-                  child: SimShapeStrip(),
-                ),
               ),
-              ColoredBox(color: p.canvas, child: tabs),
-              Expanded(flex: 9, child: panel),
+              Positioned(
+                left: 8,
+                right: 12,
+                top: barTop,
+                child: _TopBar(onReset: _reset),
+              ),
+              Positioned(
+                left: 16,
+                right: wide ? 16 : 116,
+                top: summaryTop,
+                child: const IgnorePointer(child: SimSummary()),
+              ),
+              if (onHand && open == null)
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  top: summaryTop + 62,
+                  child: const IgnorePointer(
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: SimHandFacts(),
+                    ),
+                  ),
+                ),
+              if (open == null) ...[
+                // At the side over the stone; along the palm on the hand,
+                // clear of the fingers.
+                if (onHand)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: pad.bottom + 56,
+                    child: _ToolRail(
+                      labelOf: _toolLabel,
+                      onOpen: _openTool,
+                      axis: Axis.horizontal,
+                    ),
+                  )
+                else
+                  Positioned(
+                    right: 10,
+                    top: summaryTop,
+                    bottom: pad.bottom + 58,
+                    child: _ToolRail(labelOf: _toolLabel, onOpen: _openTool),
+                  ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: pad.bottom + 12,
+                  child: SimViewControls(controller: _viewport),
+                ),
+              ],
+              if (open != null)
+                wide
+                    ? Positioned(
+                        right: 16,
+                        top: summaryTop,
+                        bottom: 16 + pad.bottom,
+                        width: panelWidth,
+                        child: _ToolSheet(
+                          key: ValueKey(open),
+                          title: _toolLabel(open),
+                          onDone: _close,
+                          rounded: BorderRadius.circular(LuxeSpace.radius),
+                          padBottom: 0,
+                          child: _panel(open),
+                        ),
+                      )
+                    : Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: maxPanel + pad.bottom,
+                          ),
+                          child: _MeasureSize(
+                            onSize: (s) {
+                              if (!mounted) return;
+                              if ((s.height - _panelHeight).abs() > 1) {
+                                setState(() => _panelHeight = s.height);
+                              }
+                            },
+                            child: _ToolSheet(
+                              key: ValueKey(open),
+                              title: _toolLabel(open),
+                              onDone: _close,
+                              rounded: const BorderRadius.vertical(
+                                top: Radius.circular(20),
+                              ),
+                              padBottom: pad.bottom,
+                              child: _panel(open),
+                            ),
+                          ),
+                        ),
+                      ),
             ],
           );
         },
@@ -191,75 +349,407 @@ class _DiamondSimulatorScreenState
   }
 }
 
-/// Scrollable row of panel tabs with a champagne underline.
-class _SimTabs extends StatelessWidget {
-  const _SimTabs({
-    required this.selected,
-    required this.labelOf,
-    required this.onSelected,
-  });
+/// Back, title and reset, floating over the stage.
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.onReset});
 
-  final _SimTab selected;
-  final String Function(_SimTab) labelOf;
-  final ValueChanged<_SimTab> onSelected;
+  final VoidCallback onReset;
 
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: p.hairline)),
+    return Row(
+      children: [
+        LuxeIconButton(
+          icon: Icons.arrow_back_rounded,
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          size: 40,
+          glass: true,
+          onPressed: () => context.goBack(),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            context.tr(EducationL10n.simTitle),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: LuxeType.display(19, p.ink),
+          ),
+        ),
+        SimGlassPill(
+          label: context.tr(EducationL10n.reset),
+          selected: false,
+          palette: p,
+          height: 34,
+          onTap: onReset,
+        ),
+      ],
+    );
+  }
+}
+
+/// The tools, as words with a glimpse of each one's current setting.
+class _ToolRail extends ConsumerWidget {
+  const _ToolRail({
+    required this.labelOf,
+    required this.onOpen,
+    this.axis = Axis.vertical,
+  });
+
+  final String Function(_SimTool) labelOf;
+  final ValueChanged<_SimTool> onOpen;
+  final Axis axis;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(diamondSimulatorProvider.select((s) => s.spec));
+    final cut = ref.watch(
+      diamondSimulatorProvider.select((s) => s.estimatedCut),
+    );
+    final p = LuxePalette.of(context);
+
+    String valueOf(_SimTool t) => switch (t) {
+      _SimTool.shape => context.shapeName(s.shape),
+      _SimTool.cut => context.cutName(cut),
+      _SimTool.color =>
+        s.fancyColor == null
+            ? s.colorGrade.label
+            : context.fancyName(s.fancyColor!),
+      _SimTool.clarity => s.clarity.label,
+      _SimTool.inclusions =>
+        s.inclusionTypes == null
+            ? context.tr(EducationL10n.asGraded)
+            : context.tr(EducationL10n.typesCount, {
+                'count': s.inclusionTypes!.length,
+              }),
+      _SimTool.bgm =>
+        s.brown == s.green
+            ? context.tingeName(s.brown)
+            : [
+                if (s.brown.index > 0)
+                  '${context.tr(EducationL10n.brown)} ${context.tingeName(s.brown)}',
+                if (s.green.index > 0)
+                  '${context.tr(EducationL10n.green)} ${context.tingeName(s.green)}',
+              ].join(' · '),
+      _SimTool.milky => context.milkyName(s.milky),
+      _SimTool.enhancement => context.enhancementName(s.enhancement),
+      _SimTool.carat => '${s.carat.toStringAsFixed(2)} ct',
+      _SimTool.fluorescence => context.fluorescenceName(s.fluorescence),
+      _SimTool.proportions => context.tr(
+        s.proportions == DiamondProportions.ideal(s.shape)
+            ? EducationL10n.ideal
+            : EducationL10n.custom,
       ),
-      child: SizedBox(
-        height: 46,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+    };
+
+    Widget? visualOf(_SimTool t) => switch (t) {
+      _SimTool.shape => SvgPicture.asset(
+        s.shape.svgAsset,
+        width: 18,
+        height: 18,
+        colorFilter: ColorFilter.mode(p.ink, BlendMode.srcIn),
+        placeholderBuilder: (_) => const SizedBox.square(dimension: 18),
+      ),
+      _SimTool.color when s.fancyColor == null => _Dot(
+        colorGradeSwatch(s.colorGrade),
+      ),
+      _ => null,
+    };
+
+    final items = [
+      for (final t in _SimTool.values)
+        Padding(
+          padding: axis == Axis.vertical
+              ? const EdgeInsets.only(bottom: 5)
+              : const EdgeInsets.only(right: 6),
+          child: _RailItem(
+            label: labelOf(t),
+            value: valueOf(t),
+            visual: visualOf(t),
+            onTap: () => onOpen(t),
+          ),
+        ),
+    ];
+    if (axis == Axis.horizontal) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(children: items),
+      );
+    }
+    return Align(
+      alignment: Alignment.centerRight,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: items,
+        ),
+      ),
+    );
+  }
+}
+
+class _Dot extends StatelessWidget {
+  const _Dot(this.color);
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: color,
+      shape: BoxShape.circle,
+      border: Border.all(color: LuxeStage.glassBorder),
+    ),
+    child: const SizedBox.square(dimension: 14),
+  );
+}
+
+class _RailItem extends StatelessWidget {
+  const _RailItem({
+    required this.label,
+    required this.value,
+    required this.onTap,
+    this.visual,
+  });
+
+  final String label, value;
+  final Widget? visual;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return Semantics(
+      button: true,
+      label: '$label, $value',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 36, maxWidth: 104),
+          padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+          decoration: BoxDecoration(
+            color: const Color(0x8C101010),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: LuxeStage.glassBorder),
+          ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              for (final t in _SimTab.values)
-                Semantics(
-                  button: true,
-                  selected: t == selected,
-                  label: labelOf(t),
-                  excludeSemantics: true,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (t == selected) return;
-                      AppHaptics.selection();
-                      onSelected(t);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Spacer(),
-                          Text(
-                            labelOf(t),
-                            style: LuxeType.label(
-                              t == selected ? p.ink : p.inkMuted,
-                              size: 13.5,
-                            ),
-                          ),
-                          const Spacer(),
-                          AnimatedContainer(
-                            duration: LuxeMotion.fast,
-                            height: 2,
-                            width: t == selected ? 28 : 0,
-                            color: p.accent,
-                          ),
-                        ],
-                      ),
+              if (visual != null) ...[visual!, const SizedBox(width: 6)],
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.label(p.ink, size: 12),
                     ),
-                  ),
+                    Text(
+                      value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.label(p.accent, size: 10),
+                    ),
+                  ],
                 ),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+}
+
+/// The open tool's controls: its name, Done, and on the hand which
+/// finger's stone they change.
+class _ToolSheet extends ConsumerWidget {
+  const _ToolSheet({
+    required this.title,
+    required this.onDone,
+    required this.rounded,
+    required this.padBottom,
+    required this.child,
+    super.key,
+  });
+
+  final String title;
+  final VoidCallback onDone;
+  final BorderRadius rounded;
+  final double padBottom;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final p = LuxePalette.of(context);
+    final onHand = ref.watch(simHandProvider.select((h) => h.onHand));
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: LuxeMotion.fast,
+      curve: LuxeMotion.press,
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(
+          offset: Offset(0, (1 - t) * 24),
+          child: child,
+        ),
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: p.surface.withValues(alpha: 0.95),
+          borderRadius: rounded,
+          border: Border.all(color: p.hairline),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 6, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.display(19, p.ink),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: onDone,
+                    style: TextButton.styleFrom(
+                      foregroundColor: p.accent,
+                      minimumSize: const Size(64, 40),
+                    ),
+                    child: Text(
+                      context.tr(EducationL10n.done),
+                      style: LuxeType.label(p.accent, size: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (onHand) const _FingerPicker(),
+            Flexible(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 14 + padBottom),
+                child: child,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Which finger's stone the controls change; bare fingers offer one.
+class _FingerPicker extends ConsumerWidget {
+  const _FingerPicker();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hand = ref.watch(simHandProvider);
+    final carat = ref.watch(
+      diamondSimulatorProvider.select((s) => s.spec.carat),
+    );
+    final c = ref.read(simHandProvider.notifier);
+    final p = LuxePalette.of(context);
+    String worn(HandFinger f) {
+      final ct = f == hand.active ? carat : hand.parked[f]?.spec.carat;
+      return ct == null
+          ? context.tr(EducationL10n.addStone)
+          : '${ct.toStringAsFixed(2)} ct';
+    }
+
+    return SizedBox(
+      height: 44,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Center(
+              child: Text(
+                context.tr(EducationL10n.editingFinger).toUpperCase(),
+                style: LuxeType.eyebrow(p.inkFaint),
+              ),
+            ),
+            const SizedBox(width: 8),
+            for (final f in HandFinger.values) ...[
+              Center(
+                child: SimGlassPill(
+                  label: '${context.fingerName(f)} · ${worn(f)}',
+                  selected: f == hand.active,
+                  palette: p,
+                  height: 32,
+                  onTap: () => c.select(f),
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
+            if (hand.count > 1)
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    AppHaptics.light();
+                    c.remove(hand.active);
+                  },
+                  style: TextButton.styleFrom(foregroundColor: p.inkMuted),
+                  child: Text(
+                    context.tr(EducationL10n.removeStone),
+                    style: LuxeType.label(p.inkMuted, size: 12),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Reports its child's laid out size after each layout.
+class _MeasureSize extends SingleChildRenderObjectWidget {
+  const _MeasureSize({required this.onSize, required super.child});
+
+  final ValueChanged<Size> onSize;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderMeasureSize(onSize);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant _RenderMeasureSize renderObject,
+  ) => renderObject.onSize = onSize;
+}
+
+class _RenderMeasureSize extends RenderProxyBox {
+  _RenderMeasureSize(this.onSize);
+
+  ValueChanged<Size> onSize;
+  Size? _last;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    if (size == _last) return;
+    _last = size;
+    final s = size;
+    WidgetsBinding.instance.addPostFrameCallback((_) => onSize(s));
   }
 }

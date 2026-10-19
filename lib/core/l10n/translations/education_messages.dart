@@ -235,6 +235,59 @@ abstract final class EducationL10n {
   static const culetLarge = 'education.culetLarge';
   static const culetVeryLarge = 'education.culetVeryLarge';
   static const culetExtremelyLarge = 'education.culetExtremelyLarge';
+
+  // Simulator: inclusions, BGM, treatment, hand
+  static const done = 'education.done';
+  static const inclusions = 'education.inclusions';
+  static const bgm = 'education.bgm';
+  static const milky = 'education.milky';
+  static const enhancement = 'education.enhancement';
+  static const custom = 'education.custom';
+  static const asGraded = 'education.asGraded';
+  static const typesCount = 'education.typesCount';
+  static const incTypeCrystal = 'education.incTypeCrystal';
+  static const incTypeCarbon = 'education.incTypeCarbon';
+  static const incTypeFeather = 'education.incTypeFeather';
+  static const incTypeCloud = 'education.incTypeCloud';
+  static const incTypePinpoint = 'education.incTypePinpoint';
+  static const incTypeNeedle = 'education.incTypeNeedle';
+  static const incCarbon = 'education.incCarbon';
+  static const inclusionsBody = 'education.inclusionsBody';
+  static const inclusionsFlawless = 'education.inclusionsFlawless';
+  static const lowerClarity = 'education.lowerClarity';
+  static const noInclusions = 'education.noInclusions';
+  static const goBack = 'education.goBack';
+  static const brown = 'education.brown';
+  static const green = 'education.green';
+  static const tingeNone = 'education.tingeNone';
+  static const tingeFaint = 'education.tingeFaint';
+  static const tingeLight = 'education.tingeLight';
+  static const tingeMedium = 'education.tingeMedium';
+  static const tingeStrong = 'education.tingeStrong';
+  static const bgmBody = 'education.bgmBody';
+  static const milkyBody = 'education.milkyBody';
+  static const enhNoneBody = 'education.enhNoneBody';
+  static const enhHphtBody = 'education.enhHphtBody';
+  static const enhIrradiationBody = 'education.enhIrradiationBody';
+  static const enhFillingBody = 'education.enhFillingBody';
+  static const enhDrillingBody = 'education.enhDrillingBody';
+  static const enhCoatingBody = 'education.enhCoatingBody';
+  static const onHand = 'education.onHand';
+  static const view3d = 'education.view3d';
+  static const lifeSize = 'education.lifeSize';
+  static const fitHand = 'education.fitHand';
+  static const autoSpin = 'education.autoSpin';
+  static const handTitle = 'education.handTitle';
+  static const handFacts = 'education.handFacts';
+  static const handHint = 'education.handHint';
+  static const fingerLittle = 'education.fingerLittle';
+  static const fingerRing = 'education.fingerRing';
+  static const fingerMiddle = 'education.fingerMiddle';
+  static const fingerIndex = 'education.fingerIndex';
+  static const addStone = 'education.addStone';
+  static const removeStone = 'education.removeStone';
+  static const editingFinger = 'education.editingFinger';
+  static const handCaratBody = 'education.handCaratBody';
 }
 
 const educationMessages = <String, LocalizedMessage>{
@@ -1464,5 +1517,294 @@ const educationMessages = <String, LocalizedMessage>{
     english: 'Extremely large',
     hindi: 'अत्यंत बड़ा',
     gujarati: 'અત્યંત મોટું',
+  ),
+  EducationL10n.done: LocalizedMessage(
+    english: 'Done',
+    hindi: 'हो गया',
+    gujarati: 'થઈ ગયું',
+  ),
+  EducationL10n.inclusions: LocalizedMessage(
+    english: 'Inclusions',
+    hindi: 'समावेशन',
+    gujarati: 'સમાવેશ',
+  ),
+  EducationL10n.bgm: LocalizedMessage(
+    english: 'BGM',
+    hindi: 'BGM',
+    gujarati: 'BGM',
+  ),
+  EducationL10n.milky: LocalizedMessage(
+    english: 'Milky',
+    hindi: 'दूधियापन',
+    gujarati: 'દૂધિયાપણું',
+  ),
+  EducationL10n.enhancement: LocalizedMessage(
+    english: 'Enhancement',
+    hindi: 'उपचार',
+    gujarati: 'ઉપચાર',
+  ),
+  EducationL10n.custom: LocalizedMessage(
+    english: 'Custom',
+    hindi: 'कस्टम',
+    gujarati: 'કસ્ટમ',
+  ),
+  EducationL10n.asGraded: LocalizedMessage(
+    english: 'As graded',
+    hindi: 'ग्रेड के अनुसार',
+    gujarati: 'ગ્રેડ મુજબ',
+  ),
+  EducationL10n.typesCount: LocalizedMessage(
+    english: '{count} types',
+    hindi: '{count} प्रकार',
+    gujarati: '{count} પ્રકાર',
+  ),
+  EducationL10n.incTypeCrystal: LocalizedMessage(
+    english: 'Crystal',
+    hindi: 'क्रिस्टल',
+    gujarati: 'ક્રિસ્ટલ',
+  ),
+  EducationL10n.incTypeCarbon: LocalizedMessage(
+    english: 'Carbon',
+    hindi: 'कार्बन',
+    gujarati: 'કાર્બન',
+  ),
+  EducationL10n.incTypeFeather: LocalizedMessage(
+    english: 'Feather',
+    hindi: 'फ़ेदर',
+    gujarati: 'ફેધર',
+  ),
+  EducationL10n.incTypeCloud: LocalizedMessage(
+    english: 'Cloud',
+    hindi: 'क्लाउड',
+    gujarati: 'ક્લાઉડ',
+  ),
+  EducationL10n.incTypePinpoint: LocalizedMessage(
+    english: 'Pinpoint',
+    hindi: 'पिनपॉइंट',
+    gujarati: 'પિનપોઇન્ટ',
+  ),
+  EducationL10n.incTypeNeedle: LocalizedMessage(
+    english: 'Needle',
+    hindi: 'नीडल',
+    gujarati: 'નીડલ',
+  ),
+  EducationL10n.incCarbon: LocalizedMessage(
+    english:
+        'Carbon: a dark included mineral, often graphite, that shows as a black spot.',
+    hindi:
+        'कार्बन: अंदर फँसा गहरा खनिज, अक्सर ग्रेफ़ाइट, जो काले धब्बे जैसा दिखता है।',
+    gujarati:
+        'કાર્બન: અંદર ફસાયેલું ઘેરું ખનિજ, મોટે ભાગે ગ્રેફાઇટ, જે કાળા ડાઘ જેવું દેખાય છે.',
+  ),
+  EducationL10n.inclusionsBody: LocalizedMessage(
+    english:
+        'Pick the kinds to see inside the stone. Size and number follow the clarity grade.',
+    hindi:
+        'हीरे के अंदर देखने के लिए प्रकार चुनें। आकार और संख्या क्लैरिटी ग्रेड के अनुसार होते हैं।',
+    gujarati:
+        'હીરાની અંદર જોવા માટે પ્રકાર પસંદ કરો. કદ અને સંખ્યા ક્લેરિટી ગ્રેડ મુજબ રહે છે.',
+  ),
+  EducationL10n.inclusionsFlawless: LocalizedMessage(
+    english:
+        'Flawless and internally flawless stones have no inclusions. Pick VVS1 or lower to add some.',
+    hindi:
+        'फ़्लॉलेस और इंटरनली फ़्लॉलेस हीरों में समावेशन नहीं होते। जोड़ने के लिए VVS1 या नीचे चुनें।',
+    gujarati:
+        'ફ્લૉલેસ અને ઇન્ટરનલી ફ્લૉલેસ હીરામાં સમાવેશ નથી હોતા. ઉમેરવા VVS1 કે નીચે પસંદ કરો.',
+  ),
+  EducationL10n.lowerClarity: LocalizedMessage(
+    english: 'Use VS1',
+    hindi: 'VS1 चुनें',
+    gujarati: 'VS1 પસંદ કરો',
+  ),
+  EducationL10n.brown: LocalizedMessage(
+    english: 'Brown',
+    hindi: 'भूरा',
+    gujarati: 'ભૂરો',
+  ),
+  EducationL10n.green: LocalizedMessage(
+    english: 'Green',
+    hindi: 'हरा',
+    gujarati: 'લીલો',
+  ),
+  EducationL10n.tingeNone: LocalizedMessage(
+    english: 'None',
+    hindi: 'कोई नहीं',
+    gujarati: 'કોઈ નહીં',
+  ),
+  EducationL10n.tingeFaint: LocalizedMessage(
+    english: 'Faint',
+    hindi: 'हल्का',
+    gujarati: 'આછો',
+  ),
+  EducationL10n.tingeLight: LocalizedMessage(
+    english: 'Light',
+    hindi: 'हल्का-सा',
+    gujarati: 'હળવો',
+  ),
+  EducationL10n.tingeMedium: LocalizedMessage(
+    english: 'Medium',
+    hindi: 'मध्यम',
+    gujarati: 'મધ્યમ',
+  ),
+  EducationL10n.tingeStrong: LocalizedMessage(
+    english: 'Strong',
+    hindi: 'तीव्र',
+    gujarati: 'તીવ્ર',
+  ),
+  EducationL10n.bgmBody: LocalizedMessage(
+    english:
+        'BGM stands for Brown, Green, Milky: tints and haze that a colour grade does not show. Even a faint brown dulls a stone; most buyers ask for No BGM.',
+    hindi:
+        'BGM का अर्थ है भूरा, हरा, दूधिया: ऐसी रंगत और धुंध जो कलर ग्रेड में नहीं दिखती। हल्का भूरा भी चमक घटाता है; अधिकतर खरीदार No BGM चाहते हैं।',
+    gujarati:
+        'BGM એટલે ભૂરો, લીલો, દૂધિયો: એવી રંગછટા અને ધુમ્મસ જે કલર ગ્રેડમાં દેખાતાં નથી. આછો ભૂરો પણ ચમક ઘટાડે છે; મોટા ભાગના ખરીદદારો No BGM માગે છે.',
+  ),
+  EducationL10n.milkyBody: LocalizedMessage(
+    english:
+        'Milkiness is a soft haze from countless tiny clouds. It scatters light, so the stone looks oily and loses contrast and sparkle.',
+    hindi:
+        'दूधियापन अनगिनत छोटे क्लाउड से बनी हल्की धुंध है। यह रोशनी बिखेरता है, जिससे हीरा तैलीय दिखता है और कंट्रास्ट व चमक खो देता है।',
+    gujarati:
+        'દૂધિયાપણું અસંખ્ય નાના ક્લાઉડથી બનતું આછું ધુમ્મસ છે. તે પ્રકાશ વિખેરે છે, તેથી હીરો તેલિયો લાગે છે અને કોન્ટ્રાસ્ટ તથા ચમક ગુમાવે છે.',
+  ),
+  EducationL10n.enhNoneBody: LocalizedMessage(
+    english: 'Untreated: the stone looks as it came from the cutter.',
+    hindi: 'बिना उपचार: हीरा वैसा ही दिखता है जैसा कटर से निकला।',
+    gujarati: 'ઉપચાર વગર: હીરો કટરમાંથી આવ્યો તેવો જ દેખાય છે.',
+  ),
+  EducationL10n.enhHphtBody: LocalizedMessage(
+    english:
+        'High pressure and heat lift colour by several grades and remove brown. Permanent, but must be disclosed.',
+    hindi:
+        'उच्च दबाव और ताप रंग को कई ग्रेड ऊपर ले जाते हैं और भूरापन हटाते हैं। स्थायी है, पर बताना ज़रूरी है।',
+    gujarati:
+        'ઊંચું દબાણ અને ગરમી રંગને કેટલાક ગ્રેડ ઉપર લાવે છે અને ભૂરાશ દૂર કરે છે. કાયમી છે, પણ જાહેર કરવું જરૂરી છે.',
+  ),
+  EducationL10n.enhIrradiationBody: LocalizedMessage(
+    english:
+        'Radiation changes the crystal lattice to create colours such as blue and green. Often followed by heating.',
+    hindi:
+        'विकिरण क्रिस्टल संरचना बदलकर नीला और हरा जैसे रंग बनाता है। अक्सर बाद में गर्म किया जाता है।',
+    gujarati:
+        'વિકિરણ ક્રિસ્ટલ બંધારણ બદલીને વાદળી અને લીલા જેવા રંગો બનાવે છે. ઘણી વાર પછી ગરમ કરાય છે.',
+  ),
+  EducationL10n.enhFillingBody: LocalizedMessage(
+    english:
+        'Glass is forced into fractures so feathers nearly vanish. It can show colour flashes and may be damaged by heat.',
+    hindi:
+        'दरारों में काँच भरा जाता है जिससे फ़ेदर लगभग गायब हो जाते हैं। रंगीन चमक दिख सकती है और गर्मी से नुकसान हो सकता है।',
+    gujarati:
+        'તિરાડોમાં કાચ ભરાય છે જેથી ફેધર લગભગ અદૃશ્ય થાય છે. રંગીન ઝબકારા દેખાઈ શકે અને ગરમીથી નુકસાન થઈ શકે.',
+  ),
+  EducationL10n.enhDrillingBody: LocalizedMessage(
+    english:
+        'A laser bores a fine channel to a dark crystal and bleaches it. The channel stays visible as a thin white line.',
+    hindi:
+        'लेज़र गहरे क्रिस्टल तक बारीक छेद कर उसे सफ़ेद कर देता है। छेद पतली सफ़ेद रेखा जैसा दिखता रहता है।',
+    gujarati:
+        'લેસર ઘેરા ક્રિસ્ટલ સુધી બારીક છિદ્ર કરી તેને સફેદ કરે છે. છિદ્ર પાતળી સફેદ રેખા તરીકે દેખાતું રહે છે.',
+  ),
+  EducationL10n.enhCoatingBody: LocalizedMessage(
+    english:
+        'A thin film on the surface masks yellow. It wears off with cleaning and wear, so it is the least stable treatment.',
+    hindi:
+        'सतह पर पतली परत पीलापन छिपाती है। सफ़ाई और पहनने से उतर जाती है, इसलिए यह सबसे अस्थिर उपचार है।',
+    gujarati:
+        'સપાટી પરની પાતળી પરત પીળાશ છુપાવે છે. સફાઈ અને પહેરવાથી ઊતરી જાય છે, તેથી આ સૌથી અસ્થિર ઉપચાર છે.',
+  ),
+  EducationL10n.onHand: LocalizedMessage(
+    english: 'On hand',
+    hindi: 'हाथ पर',
+    gujarati: 'હાથ પર',
+  ),
+  EducationL10n.view3d: LocalizedMessage(
+    english: '3D view',
+    hindi: '3D दृश्य',
+    gujarati: '3D દૃશ્ય',
+  ),
+  EducationL10n.lifeSize: LocalizedMessage(
+    english: 'Life size',
+    hindi: 'असली आकार',
+    gujarati: 'સાચું કદ',
+  ),
+  EducationL10n.fitHand: LocalizedMessage(
+    english: 'Whole hand',
+    hindi: 'पूरा हाथ',
+    gujarati: 'આખો હાથ',
+  ),
+  EducationL10n.autoSpin: LocalizedMessage(
+    english: 'Auto-spin',
+    hindi: 'अपने-आप घुमाएँ',
+    gujarati: 'આપમેળે ફેરવો',
+  ),
+  EducationL10n.handTitle: LocalizedMessage(
+    english: 'Average adult hand',
+    hindi: 'औसत वयस्क हाथ',
+    gujarati: 'સરેરાશ પુખ્ત હાથ',
+  ),
+  EducationL10n.handFacts: LocalizedMessage(
+    english: 'Length {length} cm · palm {palm} cm · ring size US {size}',
+    hindi: 'लंबाई {length} सेमी · हथेली {palm} सेमी · रिंग साइज़ US {size}',
+    gujarati: 'લંબાઈ {length} સેમી · હથેળી {palm} સેમી · રિંગ સાઇઝ US {size}',
+  ),
+  EducationL10n.handHint: LocalizedMessage(
+    english: 'Tap a finger to add or pick a stone · drag sideways to spin it',
+    hindi:
+        'हीरा जोड़ने या चुनने के लिए उँगली टैप करें · घुमाने के लिए बगल में खींचें',
+    gujarati: 'હીરો ઉમેરવા કે પસંદ કરવા આંગળી ટૅપ કરો · ફેરવવા બાજુમાં ખેંચો',
+  ),
+  EducationL10n.fingerLittle: LocalizedMessage(
+    english: 'Little',
+    hindi: 'छोटी',
+    gujarati: 'ટચલી',
+  ),
+  EducationL10n.fingerRing: LocalizedMessage(
+    english: 'Ring',
+    hindi: 'अनामिका',
+    gujarati: 'અનામિકા',
+  ),
+  EducationL10n.fingerMiddle: LocalizedMessage(
+    english: 'Middle',
+    hindi: 'मध्यमा',
+    gujarati: 'વચલી',
+  ),
+  EducationL10n.fingerIndex: LocalizedMessage(
+    english: 'Index',
+    hindi: 'तर्जनी',
+    gujarati: 'તર્જની',
+  ),
+  EducationL10n.addStone: LocalizedMessage(
+    english: 'Add',
+    hindi: 'जोड़ें',
+    gujarati: 'ઉમેરો',
+  ),
+  EducationL10n.removeStone: LocalizedMessage(
+    english: 'Remove stone',
+    hindi: 'हीरा हटाएँ',
+    gujarati: 'હીરો દૂર કરો',
+  ),
+  EducationL10n.editingFinger: LocalizedMessage(
+    english: 'Editing',
+    hindi: 'संपादन',
+    gujarati: 'ફેરફાર',
+  ),
+  EducationL10n.handCaratBody: LocalizedMessage(
+    english:
+        'Each finger holds its own stone: pick one to change its shape, carat or any grade without touching the others. Widths are an average adult hand, for reference only.',
+    hindi:
+        'हर उँगली पर अपना अलग हीरा है: किसी एक को चुनकर उसका आकार, कैरेट या कोई भी ग्रेड बदलें, बाकी पर असर नहीं होगा। चौड़ाई औसत वयस्क हाथ की है, केवल संदर्भ के लिए।',
+    gujarati:
+        'દરેક આંગળી પર પોતાનો અલગ હીરો છે: એક પસંદ કરી તેનો આકાર, કેરેટ કે કોઈ પણ ગ્રેડ બદલો, બાકીના પર અસર નહીં થાય. પહોળાઈ સરેરાશ પુખ્ત હાથની છે, ફક્ત સંદર્ભ માટે.',
+  ),
+  EducationL10n.noInclusions: LocalizedMessage(
+    english: 'None in FL & IF',
+    hindi: 'FL और IF में नहीं',
+    gujarati: 'FL અને IF માં નથી',
+  ),
+  EducationL10n.goBack: LocalizedMessage(
+    english: 'Go back',
+    hindi: 'वापस जाएँ',
+    gujarati: 'પાછા જાઓ',
   ),
 };

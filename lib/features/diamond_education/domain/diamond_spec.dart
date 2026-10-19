@@ -5,7 +5,8 @@ import 'diamond_proportions.dart';
 import 'diamond_shape.dart';
 
 /// Everything that describes the simulated stone: shape, the 4Cs,
-/// fluorescence and cutting proportions.
+/// inclusions, BGM tinges, treatment, fluorescence and cutting
+/// proportions.
 @immutable
 class DiamondSpec {
   const DiamondSpec({
@@ -15,6 +16,11 @@ class DiamondSpec {
     this.fancyColor,
     this.fancyIntensity = FancyIntensity.fancyIntense,
     this.clarity = ClarityGrade.vs1,
+    this.inclusionTypes,
+    this.brown = TingeLevel.none,
+    this.green = TingeLevel.none,
+    this.milky = MilkyLevel.none,
+    this.enhancement = Enhancement.none,
     this.carat = 1.0,
     this.fluorescence = FluorescenceIntensity.none,
     this.fluorescenceColor = FluorescenceColor.blue,
@@ -37,14 +43,57 @@ class DiamondSpec {
   final FancyColor? fancyColor;
   final FancyIntensity fancyIntensity;
   final ClarityGrade clarity;
+
+  /// Inclusion kinds to show, or null for the clarity grade's usual mix.
+  final Set<InclusionType>? inclusionTypes;
+  final TingeLevel brown, green;
+  final MilkyLevel milky;
+  final Enhancement enhancement;
   final double carat;
   final FluorescenceIntensity fluorescence;
   final FluorescenceColor fluorescenceColor;
 
   bool get isFancy => fancyColor != null;
 
-  /// Body absorption per unit path length, from colour.
+  bool get hasBgm =>
+      brown != TingeLevel.none ||
+      green != TingeLevel.none ||
+      milky != MilkyLevel.none;
+
+  /// Body absorption per unit path length, from colour, tinges and
+  /// treatment.
   SimRgb get absorption {
+    var (:r, :g, :b) = _bodyColor;
+    if (enhancement == Enhancement.hpht && fancyColor == null) {
+      // High pressure and heat anneal out most of the yellow and brown.
+      r *= 0.25;
+      g *= 0.25;
+      b *= 0.25;
+    }
+    final bs = enhancement == Enhancement.hpht ? 0.0 : brown.strength;
+    final gs = green.strength;
+    r += TingeLevel.brown.r * bs + TingeLevel.green.r * gs;
+    g += TingeLevel.brown.g * bs + TingeLevel.green.g * gs;
+    b += TingeLevel.brown.b * bs + TingeLevel.green.b * gs;
+    switch (enhancement) {
+      case Enhancement.irradiation:
+        // Radiation damage turns the body blue-green.
+        r += 0.3;
+        g += 0.05;
+        b += 0.09;
+      case Enhancement.surfaceCoating:
+        // A thin bluish film masks the yellow, until it wears off.
+        r += 0.05;
+        g *= 0.5;
+        b *= 0.3;
+      default:
+    }
+    // Milky stones also lose a little light overall.
+    final grey = milky.scatter * 0.25;
+    return (r: r + grey, g: g + grey, b: b + grey);
+  }
+
+  SimRgb get _bodyColor {
     final fancy = fancyColor;
     if (fancy == null) return colorGrade.absorption;
     final s = fancyIntensity.strength;
@@ -65,6 +114,12 @@ class DiamondSpec {
     bool clearFancy = false,
     FancyIntensity? fancyIntensity,
     ClarityGrade? clarity,
+    Set<InclusionType>? inclusionTypes,
+    bool gradedInclusions = false,
+    TingeLevel? brown,
+    TingeLevel? green,
+    MilkyLevel? milky,
+    Enhancement? enhancement,
     double? carat,
     FluorescenceIntensity? fluorescence,
     FluorescenceColor? fluorescenceColor,
@@ -75,6 +130,13 @@ class DiamondSpec {
     fancyColor: clearFancy ? null : (fancyColor ?? this.fancyColor),
     fancyIntensity: fancyIntensity ?? this.fancyIntensity,
     clarity: clarity ?? this.clarity,
+    inclusionTypes: gradedInclusions
+        ? null
+        : (inclusionTypes ?? this.inclusionTypes),
+    brown: brown ?? this.brown,
+    green: green ?? this.green,
+    milky: milky ?? this.milky,
+    enhancement: enhancement ?? this.enhancement,
     carat: (carat ?? this.carat).clamp(minCarat, maxCarat),
     fluorescence: fluorescence ?? this.fluorescence,
     fluorescenceColor: fluorescenceColor ?? this.fluorescenceColor,
@@ -89,6 +151,11 @@ class DiamondSpec {
       other.fancyColor == fancyColor &&
       other.fancyIntensity == fancyIntensity &&
       other.clarity == clarity &&
+      setEquals(other.inclusionTypes, inclusionTypes) &&
+      other.brown == brown &&
+      other.green == green &&
+      other.milky == milky &&
+      other.enhancement == enhancement &&
       other.carat == carat &&
       other.fluorescence == fluorescence &&
       other.fluorescenceColor == fluorescenceColor;
@@ -101,6 +168,11 @@ class DiamondSpec {
     fancyColor,
     fancyIntensity,
     clarity,
+    inclusionTypes == null ? null : Object.hashAllUnordered(inclusionTypes!),
+    brown,
+    green,
+    milky,
+    enhancement,
     carat,
     fluorescence,
     fluorescenceColor,

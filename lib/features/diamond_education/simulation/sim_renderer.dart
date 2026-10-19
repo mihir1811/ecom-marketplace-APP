@@ -72,6 +72,11 @@ class SimRenderer {
   /// Facet plane slots in the shader.
   static const _maxPlanes = 140;
 
+  /// Bounces a live stone traces, the same moving or still: light still
+  /// trapped when a path stops returns almost black, so changing this
+  /// between frames makes facets flicker.
+  static const bounces = 8;
+
   /// Per-pixel GPU tracer; null falls back to the CPU renderer.
   ui.FragmentShader? shader;
 
@@ -878,11 +883,13 @@ class SimRenderer {
             ..color = const Color(0x66202024)
             ..strokeWidth = 0.8;
           canvas.drawCircle(at, size, _line);
-        case SimInclusionKind.feather || SimInclusionKind.needle:
+        case SimInclusionKind.feather ||
+            SimInclusionKind.filledFeather ||
+            SimInclusionKind.needle:
           // Its trace across the view: perpendicular to a feather's
           // normal, along a needle.
           var dx = inc.ax, dy = inc.ay, dz = inc.az;
-          if (inc.kind == SimInclusionKind.feather) {
+          if (inc.kind != SimInclusionKind.needle) {
             (dx, dy, dz) = (-inc.az, 0.0, inc.ax);
           }
           final a = project(
@@ -897,7 +904,7 @@ class SimRenderer {
           );
           _line
             ..color = const Color(0x40F2F4FA)
-            ..strokeWidth = inc.kind == SimInclusionKind.feather ? 1.6 : 0.8;
+            ..strokeWidth = inc.kind == SimInclusionKind.needle ? 0.8 : 1.6;
           canvas.drawLine(a, b, _line);
         case SimInclusionKind.cloud:
           _dot.color = const Color(0x1FFFFFFF);
