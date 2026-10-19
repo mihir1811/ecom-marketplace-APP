@@ -173,8 +173,8 @@ class JewelryRenderer {
     final f = cam.focal, cx = cam.cx, cy = cam.cy;
 
     // 1. Move, project and colour every vertex.
-    final metal = scene.design.metal;
-    final f0 = metal.f0(scene.design.purity);
+    final f0 = scene.design.metal.f0(scene.design.purity);
+    final f0b = scene.design.settingMetal.f0(scene.design.settingPurity);
     final rough = scene.design.finish.roughness;
     for (final (part, base) in _bases) {
       M34.mul(view, part.node.xf, _m);
@@ -203,7 +203,7 @@ class JewelryRenderer {
         final nz = m[8] * a + m[9] * b + m[10] * c;
         _col[k] = shade
             ? _encode(nx, ny, tag[i])
-            : _cpuShade(nx, ny, nz, tag[i], f0, rough);
+            : _cpuShade(nx, ny, nz, tag[i], f0, f0b, rough);
       }
     }
 
@@ -240,7 +240,7 @@ class JewelryRenderer {
     final scale = math
         .min(renderScale ?? devicePixelRatio, devicePixelRatio)
         .clamp(0.75, 4.0);
-    _drawTris(canvas, _order, visible, size, cam, scale, f0, rough);
+    _drawTris(canvas, _order, visible, size, cam, scale, f0, f0b, rough);
     final stones = <(double, int)>[];
     for (var i = 0; i < scene.stones.length; i++) {
       scene.stones[i].worldTransform(_stoneXf);
@@ -273,7 +273,18 @@ class JewelryRenderer {
       canvas
         ..save()
         ..clipRect(rect);
-      _drawTris(canvas, _pick, n, size, cam, scale, f0, rough, limit: rect);
+      _drawTris(
+        canvas,
+        _pick,
+        n,
+        size,
+        cam,
+        scale,
+        f0,
+        f0b,
+        rough,
+        limit: rect,
+      );
       canvas.restore();
     }
   }
@@ -326,6 +337,7 @@ class JewelryRenderer {
     JCamera cam,
     double scale,
     JRgb f0,
+    JRgb f0b,
     double rough, {
     Rect? limit,
   }) {
@@ -426,6 +438,10 @@ class JewelryRenderer {
       ..setFloat(29, velvet.g)
       ..setFloat(30, velvet.b)
       ..setFloat(31, 0.8)
+      ..setFloat(32, f0b.r)
+      ..setFloat(33, f0b.g)
+      ..setFloat(34, f0b.b)
+      ..setFloat(35, rough)
       ..setImageSampler(0, image, filterQuality: FilterQuality.low);
     canvas.drawRect(bounds, Paint()..shader = sh);
   }
@@ -516,12 +532,14 @@ class JewelryRenderer {
     double ny,
     double nz,
     double tag,
-    JRgb f0,
+    JRgb metal,
+    JRgb setting,
     double rough,
   ) {
     double r, g, b;
     if (JTag.isMetal(tag)) {
-      final ao = 0.3 + 0.7 * tag / 0.40;
+      final f0 = JTag.isHeadMetal(tag) ? setting : metal;
+      final ao = 0.3 + 0.7 * JTag.metalAo(tag);
       final ry = 2 * nz * ny; // reflected view ray's height
       final env =
           0.05 +

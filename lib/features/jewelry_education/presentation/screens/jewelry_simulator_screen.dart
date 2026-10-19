@@ -53,6 +53,7 @@ class _JewelrySimulatorScreenState
     JewelryTool.metal => JewelryEduL10n.toolMetal,
     JewelryTool.stone => JewelryEduL10n.toolStone,
     JewelryTool.setting => JewelryEduL10n.toolSetting,
+    JewelryTool.accents => JewelryEduL10n.toolAccents,
     JewelryTool.band => JewelryEduL10n.toolBand,
     JewelryTool.style => JewelryEduL10n.toolStyle,
     JewelryTool.chain => JewelryEduL10n.toolChain,
@@ -62,6 +63,7 @@ class _JewelrySimulatorScreenState
     JewelryTool.metal => const JewelryMetalPanel(),
     JewelryTool.stone => const JewelryStonePanel(),
     JewelryTool.setting => const JewelrySettingPanel(),
+    JewelryTool.accents => const JewelryAccentsPanel(),
     JewelryTool.band => const JewelryBandPanel(),
     JewelryTool.style => const JewelryStylePanel(),
     JewelryTool.chain => const JewelryChainPanel(),
@@ -430,15 +432,30 @@ class _ToolRail extends ConsumerWidget {
             ? '${d.stone.carat.toStringAsFixed(2)} ct ${d.stone.isFancy ? '' : d.stone.colorGrade.label} ${d.stone.clarity.label}'
             : '${d.stone.colorGrade.label} ${d.stone.clarity.label}',
       JewelryTool.setting =>
-        d.halo == HaloStyle.none
+        d.headSpec.isBezel
             ? context.headName(d.head)
-            : '${context.headName(d.head)} · ${context.tr(JewelryEduL10n.halo)}',
+            : '${context.headName(d.head)} · ${context.tipName(d.prongTip)}',
+      JewelryTool.accents => [
+        if (d.takesHalo && d.halo != HaloStyle.none)
+          context.tr(JewelryEduL10n.halo),
+        if (d.takesHalo && d.hiddenHalo) context.tr(JewelryEduL10n.hiddenHalo),
+        if (d.takesBandStones && d.bandAccent != BandAccent.plain)
+          context.accentName(d.bandAccent),
+        if (d.milgrain) context.tr(JewelryEduL10n.milgrain),
+      ].join(' · ').ifEmpty(context.tr(JewelryEduL10n.plain)),
       JewelryTool.band =>
-        '${context.profileName(d.bandProfile)} · ${d.bandWidthMm.toStringAsFixed(1)} mm',
+        '${context.shankName(d.shank)} · ${d.bandWidthMm.toStringAsFixed(1)} mm',
       JewelryTool.style =>
         d.type == JewelryType.earrings
             ? context.earringName(d.earringStyle)
-            : context.braceletName(d.braceletStyle),
+            : switch (d.braceletStyle) {
+                BraceletStyle.tennis =>
+                  '${context.braceletName(d.braceletStyle)} · ${context.tennisSettingName(d.tennisSetting)}',
+                BraceletStyle.bangle =>
+                  '${context.braceletName(d.braceletStyle)} · ${context.bangleName(d.bangleStyle)}',
+                BraceletStyle.chain =>
+                  '${context.chainName(d.chainStyle)} · ${context.claspName(d.clasp)}',
+              },
       JewelryTool.chain =>
         '${context.chainName(d.chainStyle)} · ${d.chainLength.inches}"',
     };
@@ -656,4 +673,8 @@ class _RenderMeasureSize extends RenderProxyBox {
     final s = size;
     WidgetsBinding.instance.addPostFrameCallback((_) => onSize(s));
   }
+}
+
+extension on String {
+  String ifEmpty(String other) => isEmpty ? other : this;
 }

@@ -102,6 +102,93 @@ abstract final class JewelryEduL10n {
   static const stoneSize = 'jewelryEdu.stoneSize';
   static const braceletNote = 'jewelryEdu.braceletNote';
 
+  // Customisation
+  static const toolAccents = 'jewelryEdu.toolAccents';
+  static const settingMetal = 'jewelryEdu.settingMetal';
+  static const sameMetal = 'jewelryEdu.sameMetal';
+  static const twoToneNote = 'jewelryEdu.twoToneNote';
+  static const prong3 = 'jewelryEdu.prong3';
+  static const prong8 = 'jewelryEdu.prong8';
+  static const compass = 'jewelryEdu.compass';
+  static const doubleClaw = 'jewelryEdu.doubleClaw';
+  static const halfBezel = 'jewelryEdu.halfBezel';
+  static const prongTip = 'jewelryEdu.prongTip';
+  static const tipRound = 'jewelryEdu.tipRound';
+  static const tipClaw = 'jewelryEdu.tipClaw';
+  static const tipTab = 'jewelryEdu.tipTab';
+  static const tipV = 'jewelryEdu.tipV';
+  static const gallery = 'jewelryEdu.gallery';
+  static const basket = 'jewelryEdu.basket';
+  static const trellis = 'jewelryEdu.trellis';
+  static const openGallery = 'jewelryEdu.openGallery';
+  static const settingHeight = 'jewelryEdu.settingHeight';
+  static const low = 'jewelryEdu.low';
+  static const medium = 'jewelryEdu.medium';
+  static const high = 'jewelryEdu.high';
+  static const orientation = 'jewelryEdu.orientation';
+  static const northSouth = 'jewelryEdu.northSouth';
+  static const eastWest = 'jewelryEdu.eastWest';
+  static const bail = 'jewelryEdu.bail';
+  static const bailLoop = 'jewelryEdu.bailLoop';
+  static const bailHidden = 'jewelryEdu.bailHidden';
+  static const bailSlide = 'jewelryEdu.bailSlide';
+  static const headNote = 'jewelryEdu.headNote';
+  static const hiddenHalo = 'jewelryEdu.hiddenHalo';
+  static const milgrain = 'jewelryEdu.milgrain';
+  static const half = 'jewelryEdu.half';
+  static const threeQuarter = 'jewelryEdu.threeQuarter';
+  static const accentSetting = 'jewelryEdu.accentSetting';
+  static const channel = 'jewelryEdu.channel';
+  static const sharedProng = 'jewelryEdu.sharedProng';
+  static const accentsNote = 'jewelryEdu.accentsNote';
+  static const shank = 'jewelryEdu.shank';
+  static const straight = 'jewelryEdu.straight';
+  static const tapered = 'jewelryEdu.tapered';
+  static const reverseTapered = 'jewelryEdu.reverseTapered';
+  static const split = 'jewelryEdu.split';
+  static const bypass = 'jewelryEdu.bypass';
+  static const twisted = 'jewelryEdu.twisted';
+  static const bandNote = 'jewelryEdu.bandNote';
+  static const huggie = 'jewelryEdu.huggie';
+  static const earringBack = 'jewelryEdu.earringBack';
+  static const butterfly = 'jewelryEdu.butterfly';
+  static const screwBack = 'jewelryEdu.screwBack';
+  static const discBack = 'jewelryEdu.discBack';
+  static const fitting = 'jewelryEdu.fitting';
+  static const postTop = 'jewelryEdu.postTop';
+  static const frenchHook = 'jewelryEdu.frenchHook';
+  static const leverBack = 'jewelryEdu.leverBack';
+  static const dropLength = 'jewelryEdu.dropLength';
+  static const linksValue = 'jewelryEdu.linksValue';
+  static const shapeLabel = 'jewelryEdu.shapeLabel';
+  static const oval = 'jewelryEdu.oval';
+  static const thickness = 'jewelryEdu.thickness';
+  static const closure = 'jewelryEdu.closure';
+  static const hinged = 'jewelryEdu.hinged';
+  static const latch = 'jewelryEdu.latch';
+  static const endless = 'jewelryEdu.endless';
+  static const figaro = 'jewelryEdu.figaro';
+  static const paperclip = 'jewelryEdu.paperclip';
+  static const snake = 'jewelryEdu.snake';
+  static const bead = 'jewelryEdu.bead';
+  static const len14 = 'jewelryEdu.len14';
+  static const len22 = 'jewelryEdu.len22';
+  static const len30 = 'jewelryEdu.len30';
+  static const yDrop = 'jewelryEdu.yDrop';
+  static const off = 'jewelryEdu.off';
+  static const stations = 'jewelryEdu.stations';
+  static const chainNote = 'jewelryEdu.chainNote';
+  static const safetyLatch = 'jewelryEdu.safetyLatch';
+  static const bangleStyle = 'jewelryEdu.bangleStyle';
+  static const slipOn = 'jewelryEdu.slipOn';
+  static const cuff = 'jewelryEdu.cuff';
+  static const width = 'jewelryEdu.width';
+  static const clasp = 'jewelryEdu.clasp';
+  static const lobster = 'jewelryEdu.lobster';
+  static const springRing = 'jewelryEdu.springRing';
+  static const toggle = 'jewelryEdu.toggle';
+  static const charms = 'jewelryEdu.charms';
+
   // Education page: hero
   static const eyebrow = 'jewelryEdu.eyebrow';
   static const title = 'jewelryEdu.title';
@@ -497,11 +584,11 @@ const jewelryEducationMessages = <String, LocalizedMessage>{
   ),
   JewelryEduL10n.earringNote: LocalizedMessage(
     english:
-        'Studs sit still; drops swing from two jump rings and hoops from the piercing, so each moves the way it hangs.',
+        'Studs are clamped by their backs; drops swing from their jump rings, hooks and hoops from the piercing, each with real friction, so each moves the way it hangs.',
     hindi:
-        'स्टड स्थिर रहते हैं; ड्रॉप दो जंप रिंग से और हूप छेद से झूलते हैं, इसलिए हर एक वैसा ही हिलता है जैसे वह लटकता है।',
+        'स्टड अपने लॉक से कसे रहते हैं; ड्रॉप अपनी जंप रिंग से, हुक और हूप छेद से झूलते हैं, असली घर्षण के साथ, इसलिए हर एक वैसा ही हिलता है जैसे वह लटकता है।',
     gujarati:
-        'સ્ટડ સ્થિર રહે છે; ડ્રોપ બે જમ્પ રિંગથી અને હૂપ છિદ્રથી ઝૂલે છે, તેથી દરેક જેમ લટકે તેમ જ હલે છે.',
+        'સ્ટડ તેમના લોકથી કસાયેલા રહે છે; ડ્રોપ તેમની જમ્પ રિંગથી, હૂક અને હૂપ છિદ્રથી ઝૂલે છે, સાચા ઘર્ષણ સાથે, તેથી દરેક જેમ લટકે તેમ જ હલે છે.',
   ),
   JewelryEduL10n.chainStyle: LocalizedMessage(
     english: 'Chain style',
@@ -929,5 +1016,445 @@ const jewelryEducationMessages = <String, LocalizedMessage>{
     english: 'Browse jewelry',
     hindi: 'आभूषण देखें',
     gujarati: 'ઝવેરાત જુઓ',
+  ),
+  JewelryEduL10n.toolAccents: LocalizedMessage(
+    english: 'Accents',
+    hindi: 'एक्सेंट',
+    gujarati: 'એક્સેન્ટ',
+  ),
+  JewelryEduL10n.settingMetal: LocalizedMessage(
+    english: 'Setting metal',
+    hindi: 'सेटिंग की धातु',
+    gujarati: 'સેટિંગની ધાતુ',
+  ),
+  JewelryEduL10n.sameMetal: LocalizedMessage(
+    english: 'Same as piece',
+    hindi: 'आभूषण जैसी ही',
+    gujarati: 'ઝવેરાત જેવી જ',
+  ),
+  JewelryEduL10n.twoToneNote: LocalizedMessage(
+    english:
+        'Two-tone: a white metal head on yellow or rose gold makes a white diamond look whiter.',
+    hindi:
+        'टू-टोन: पीले या रोज़ गोल्ड पर सफ़ेद धातु का हेड सफ़ेद हीरे को और सफ़ेद दिखाता है।',
+    gujarati:
+        'ટુ-ટોન: પીળા કે રોઝ ગોલ્ડ પર સફેદ ધાતુનું હેડ સફેદ હીરાને વધુ સફેદ બતાવે છે.',
+  ),
+  JewelryEduL10n.prong3: LocalizedMessage(
+    english: '3 prongs',
+    hindi: '3 प्रॉन्ग',
+    gujarati: '3 પ્રોંગ',
+  ),
+  JewelryEduL10n.prong8: LocalizedMessage(
+    english: '8 prongs',
+    hindi: '8 प्रॉन्ग',
+    gujarati: '8 પ્રોંગ',
+  ),
+  JewelryEduL10n.compass: LocalizedMessage(
+    english: 'Compass',
+    hindi: 'कम्पास',
+    gujarati: 'કંપાસ',
+  ),
+  JewelryEduL10n.doubleClaw: LocalizedMessage(
+    english: 'Double claw',
+    hindi: 'डबल क्लॉ',
+    gujarati: 'ડબલ ક્લો',
+  ),
+  JewelryEduL10n.halfBezel: LocalizedMessage(
+    english: 'Half bezel',
+    hindi: 'हाफ़ बेज़ल',
+    gujarati: 'હાફ બેઝલ',
+  ),
+  JewelryEduL10n.prongTip: LocalizedMessage(
+    english: 'Prong tips',
+    hindi: 'प्रॉन्ग के सिरे',
+    gujarati: 'પ્રોંગના છેડા',
+  ),
+  JewelryEduL10n.tipRound: LocalizedMessage(
+    english: 'Round',
+    hindi: 'गोल',
+    gujarati: 'ગોળ',
+  ),
+  JewelryEduL10n.tipClaw: LocalizedMessage(
+    english: 'Claw',
+    hindi: 'क्लॉ',
+    gujarati: 'ક્લો',
+  ),
+  JewelryEduL10n.tipTab: LocalizedMessage(
+    english: 'Flat tab',
+    hindi: 'फ़्लैट टैब',
+    gujarati: 'ફ્લેટ ટેબ',
+  ),
+  JewelryEduL10n.tipV: LocalizedMessage(
+    english: 'V-prong',
+    hindi: 'वी-प्रॉन्ग',
+    gujarati: 'વી-પ્રોંગ',
+  ),
+  JewelryEduL10n.gallery: LocalizedMessage(
+    english: 'Gallery',
+    hindi: 'गैलरी',
+    gujarati: 'ગેલેરી',
+  ),
+  JewelryEduL10n.basket: LocalizedMessage(
+    english: 'Basket',
+    hindi: 'बास्केट',
+    gujarati: 'બાસ્કેટ',
+  ),
+  JewelryEduL10n.trellis: LocalizedMessage(
+    english: 'Trellis',
+    hindi: 'ट्रेलिस',
+    gujarati: 'ટ્રેલિસ',
+  ),
+  JewelryEduL10n.openGallery: LocalizedMessage(
+    english: 'Peg (open)',
+    hindi: 'पेग (खुला)',
+    gujarati: 'પેગ (ખુલ્લું)',
+  ),
+  JewelryEduL10n.settingHeight: LocalizedMessage(
+    english: 'Setting height',
+    hindi: 'सेटिंग की ऊँचाई',
+    gujarati: 'સેટિંગની ઊંચાઈ',
+  ),
+  JewelryEduL10n.low: LocalizedMessage(
+    english: 'Low',
+    hindi: 'नीची',
+    gujarati: 'નીચી',
+  ),
+  JewelryEduL10n.medium: LocalizedMessage(
+    english: 'Medium',
+    hindi: 'मध्यम',
+    gujarati: 'મધ્યમ',
+  ),
+  JewelryEduL10n.high: LocalizedMessage(
+    english: 'High',
+    hindi: 'ऊँची',
+    gujarati: 'ઊંચી',
+  ),
+  JewelryEduL10n.orientation: LocalizedMessage(
+    english: 'Stone direction',
+    hindi: 'हीरे की दिशा',
+    gujarati: 'હીરાની દિશા',
+  ),
+  JewelryEduL10n.northSouth: LocalizedMessage(
+    english: 'North–south',
+    hindi: 'उत्तर–दक्षिण',
+    gujarati: 'ઉત્તર–દક્ષિણ',
+  ),
+  JewelryEduL10n.eastWest: LocalizedMessage(
+    english: 'East–west',
+    hindi: 'पूर्व–पश्चिम',
+    gujarati: 'પૂર્વ–પશ્ચિમ',
+  ),
+  JewelryEduL10n.bail: LocalizedMessage(
+    english: 'Bail',
+    hindi: 'बेल',
+    gujarati: 'બેલ',
+  ),
+  JewelryEduL10n.bailLoop: LocalizedMessage(
+    english: 'Loop',
+    hindi: 'लूप',
+    gujarati: 'લૂપ',
+  ),
+  JewelryEduL10n.bailHidden: LocalizedMessage(
+    english: 'Hidden',
+    hindi: 'छिपा हुआ',
+    gujarati: 'છુપાયેલું',
+  ),
+  JewelryEduL10n.bailSlide: LocalizedMessage(
+    english: 'Slide',
+    hindi: 'स्लाइड',
+    gujarati: 'સ્લાઇડ',
+  ),
+  JewelryEduL10n.headNote: LocalizedMessage(
+    english:
+        'Compass prongs sit north, south, east and west; V-prongs guard the points of pears, marquises, hearts and princess cuts; a higher head lets in more light but catches more easily.',
+    hindi:
+        'कम्पास प्रॉन्ग उत्तर, दक्षिण, पूर्व और पश्चिम में होते हैं; वी-प्रॉन्ग पियर, मार्क्विज़, हार्ट और प्रिंसेस के नुकीले सिरों को बचाते हैं; ऊँचा हेड ज़्यादा रोशनी देता है पर आसानी से अटकता है।',
+    gujarati:
+        'કંપાસ પ્રોંગ ઉત્તર, દક્ષિણ, પૂર્વ અને પશ્ચિમમાં હોય છે; વી-પ્રોંગ પિયર, માર્કીઝ, હાર્ટ અને પ્રિન્સેસના અણીદાર છેડાને બચાવે છે; ઊંચું હેડ વધુ પ્રકાશ આપે છે પણ સહેલાઈથી અટકે છે.',
+  ),
+  JewelryEduL10n.hiddenHalo: LocalizedMessage(
+    english: 'Hidden halo',
+    hindi: 'हिडन हेलो',
+    gujarati: 'હિડન હેલો',
+  ),
+  JewelryEduL10n.milgrain: LocalizedMessage(
+    english: 'Milgrain edges',
+    hindi: 'मिलग्रेन किनारे',
+    gujarati: 'મિલગ્રેન કિનારી',
+  ),
+  JewelryEduL10n.half: LocalizedMessage(
+    english: 'Half',
+    hindi: 'आधा',
+    gujarati: 'અડધું',
+  ),
+  JewelryEduL10n.threeQuarter: LocalizedMessage(
+    english: 'Three-quarter',
+    hindi: 'तीन-चौथाई',
+    gujarati: 'ત્રણ-ચતુર્થાંશ',
+  ),
+  JewelryEduL10n.accentSetting: LocalizedMessage(
+    english: 'Stone setting',
+    hindi: 'हीरों की सेटिंग',
+    gujarati: 'હીરાનું સેટિંગ',
+  ),
+  JewelryEduL10n.channel: LocalizedMessage(
+    english: 'Channel',
+    hindi: 'चैनल',
+    gujarati: 'ચેનલ',
+  ),
+  JewelryEduL10n.sharedProng: LocalizedMessage(
+    english: 'Shared prong',
+    hindi: 'शेयर्ड प्रॉन्ग',
+    gujarati: 'શેર્ડ પ્રોંગ',
+  ),
+  JewelryEduL10n.accentsNote: LocalizedMessage(
+    english:
+        'A hidden halo rings the stone under its girdle: plain from above, a flash of sparkle from the side. Milgrain is a row of tiny metal beads along the edges.',
+    hindi:
+        'हिडन हेलो हीरे के नीचे घेरा बनाता है: ऊपर से सादा, बगल से चमक। मिलग्रेन किनारों पर धातु के छोटे दानों की कतार है।',
+    gujarati:
+        'હિડન હેલો હીરાની નીચે ઘેરો બનાવે છે: ઉપરથી સાદું, બાજુથી ચમક. મિલગ્રેન કિનારીઓ પર ધાતુના નાના દાણાની હાર છે.',
+  ),
+  JewelryEduL10n.shank: LocalizedMessage(
+    english: 'Shank',
+    hindi: 'शैंक',
+    gujarati: 'શેંક',
+  ),
+  JewelryEduL10n.straight: LocalizedMessage(
+    english: 'Straight',
+    hindi: 'सीधा',
+    gujarati: 'સીધું',
+  ),
+  JewelryEduL10n.tapered: LocalizedMessage(
+    english: 'Tapered',
+    hindi: 'पतला होता',
+    gujarati: 'પાતળું થતું',
+  ),
+  JewelryEduL10n.reverseTapered: LocalizedMessage(
+    english: 'Reverse tapered',
+    hindi: 'उल्टा पतला',
+    gujarati: 'ઊલટું પાતળું',
+  ),
+  JewelryEduL10n.split: LocalizedMessage(
+    english: 'Split',
+    hindi: 'स्प्लिट',
+    gujarati: 'સ્પ્લિટ',
+  ),
+  JewelryEduL10n.bypass: LocalizedMessage(
+    english: 'Bypass',
+    hindi: 'बायपास',
+    gujarati: 'બાયપાસ',
+  ),
+  JewelryEduL10n.twisted: LocalizedMessage(
+    english: 'Twisted',
+    hindi: 'ट्विस्टेड',
+    gujarati: 'ટ્વિસ્ટેડ',
+  ),
+  JewelryEduL10n.bandNote: LocalizedMessage(
+    english:
+        'A tapered shank makes the centre stone look larger and a split shank frames it. A comfort fit is rounded inside and wears about half a size small.',
+    hindi:
+        'पतला होता शैंक मुख्य हीरे को बड़ा दिखाता है और स्प्लिट शैंक उसे घेरता है। कम्फ़र्ट फ़िट अंदर से गोल होता है और लगभग आधा साइज़ छोटा पहनता है।',
+    gujarati:
+        'પાતળું થતું શેંક મુખ્ય હીરાને મોટો બતાવે છે અને સ્પ્લિટ શેંક તેને ઘેરે છે. કમ્ફર્ટ ફિટ અંદરથી ગોળ હોય છે અને લગભગ અડધી સાઇઝ નાની પહેરાય છે.',
+  ),
+  JewelryEduL10n.huggie: LocalizedMessage(
+    english: 'Huggie',
+    hindi: 'हगी',
+    gujarati: 'હગી',
+  ),
+  JewelryEduL10n.earringBack: LocalizedMessage(
+    english: 'Back',
+    hindi: 'पीछे का लॉक',
+    gujarati: 'પાછળનું લોક',
+  ),
+  JewelryEduL10n.butterfly: LocalizedMessage(
+    english: 'Butterfly',
+    hindi: 'बटरफ़्लाई',
+    gujarati: 'બટરફ્લાય',
+  ),
+  JewelryEduL10n.screwBack: LocalizedMessage(
+    english: 'Screw',
+    hindi: 'स्क्रू',
+    gujarati: 'સ્ક્રૂ',
+  ),
+  JewelryEduL10n.discBack: LocalizedMessage(
+    english: 'Disc',
+    hindi: 'डिस्क',
+    gujarati: 'ડિસ્ક',
+  ),
+  JewelryEduL10n.fitting: LocalizedMessage(
+    english: 'Fitting',
+    hindi: 'फ़िटिंग',
+    gujarati: 'ફિટિંગ',
+  ),
+  JewelryEduL10n.postTop: LocalizedMessage(
+    english: 'Stud top',
+    hindi: 'स्टड टॉप',
+    gujarati: 'સ્ટડ ટોપ',
+  ),
+  JewelryEduL10n.frenchHook: LocalizedMessage(
+    english: 'French hook',
+    hindi: 'फ़्रेंच हुक',
+    gujarati: 'ફ્રેન્ચ હૂક',
+  ),
+  JewelryEduL10n.leverBack: LocalizedMessage(
+    english: 'Lever back',
+    hindi: 'लीवर बैक',
+    gujarati: 'લીવર બેક',
+  ),
+  JewelryEduL10n.dropLength: LocalizedMessage(
+    english: 'Drop length',
+    hindi: 'ड्रॉप की लंबाई',
+    gujarati: 'ડ્રોપની લંબાઈ',
+  ),
+  JewelryEduL10n.linksValue: LocalizedMessage(
+    english: '{count} links',
+    hindi: '{count} कड़ियाँ',
+    gujarati: '{count} કડી',
+  ),
+  JewelryEduL10n.shapeLabel: LocalizedMessage(
+    english: 'Shape',
+    hindi: 'आकार',
+    gujarati: 'આકાર',
+  ),
+  JewelryEduL10n.oval: LocalizedMessage(
+    english: 'Oval',
+    hindi: 'अंडाकार',
+    gujarati: 'અંડાકાર',
+  ),
+  JewelryEduL10n.thickness: LocalizedMessage(
+    english: 'Thickness',
+    hindi: 'मोटाई',
+    gujarati: 'જાડાઈ',
+  ),
+  JewelryEduL10n.closure: LocalizedMessage(
+    english: 'Closure',
+    hindi: 'बंद करने का तरीका',
+    gujarati: 'બંધ કરવાની રીત',
+  ),
+  JewelryEduL10n.hinged: LocalizedMessage(
+    english: 'Hinged',
+    hindi: 'हिंज वाला',
+    gujarati: 'હિંજવાળું',
+  ),
+  JewelryEduL10n.latch: LocalizedMessage(
+    english: 'Latch back',
+    hindi: 'लैच बैक',
+    gujarati: 'લેચ બેક',
+  ),
+  JewelryEduL10n.endless: LocalizedMessage(
+    english: 'Endless',
+    hindi: 'एंडलेस',
+    gujarati: 'એન્ડલેસ',
+  ),
+  JewelryEduL10n.figaro: LocalizedMessage(
+    english: 'Figaro',
+    hindi: 'फ़िगारो',
+    gujarati: 'ફિગારો',
+  ),
+  JewelryEduL10n.paperclip: LocalizedMessage(
+    english: 'Paperclip',
+    hindi: 'पेपरक्लिप',
+    gujarati: 'પેપરક્લિપ',
+  ),
+  JewelryEduL10n.snake: LocalizedMessage(
+    english: 'Snake',
+    hindi: 'स्नेक',
+    gujarati: 'સ્નેક',
+  ),
+  JewelryEduL10n.bead: LocalizedMessage(
+    english: 'Bead',
+    hindi: 'बीड',
+    gujarati: 'બીડ',
+  ),
+  JewelryEduL10n.len14: LocalizedMessage(
+    english: 'Collar · high and snug on the neck',
+    hindi: 'कॉलर · गर्दन पर ऊँचा और कसा हुआ',
+    gujarati: 'કોલર · ગરદન પર ઊંચું અને ચુસ્ત',
+  ),
+  JewelryEduL10n.len22: LocalizedMessage(
+    english: 'Matinee · above the bust',
+    hindi: 'मैटिनी · छाती के ऊपर',
+    gujarati: 'મેટિની · છાતીની ઉપર',
+  ),
+  JewelryEduL10n.len30: LocalizedMessage(
+    english: 'Opera · below the bust',
+    hindi: 'ओपेरा · छाती के नीचे',
+    gujarati: 'ઓપેરા · છાતીની નીચે',
+  ),
+  JewelryEduL10n.yDrop: LocalizedMessage(
+    english: 'Y drop',
+    hindi: 'Y ड्रॉप',
+    gujarati: 'Y ડ્રોપ',
+  ),
+  JewelryEduL10n.off: LocalizedMessage(
+    english: 'Off',
+    hindi: 'बंद',
+    gujarati: 'બંધ',
+  ),
+  JewelryEduL10n.stations: LocalizedMessage(
+    english: 'Diamond stations',
+    hindi: 'डायमंड स्टेशन',
+    gujarati: 'ડાયમંડ સ્ટેશન',
+  ),
+  JewelryEduL10n.chainNote: LocalizedMessage(
+    english:
+        'A Y drop hangs the pendant below the V on its own length of chain. Stations are bezel-set diamonds spaced along the chain.',
+    hindi:
+        'Y ड्रॉप पेंडेंट को V के नीचे अपनी चेन पर लटकाता है। स्टेशन चेन पर दूरी से लगे बेज़ल-सेट हीरे हैं।',
+    gujarati:
+        'Y ડ્રોપ પેન્ડન્ટને V ની નીચે તેની પોતાની ચેન પર લટકાવે છે. સ્ટેશન ચેન પર અંતરે જડેલા બેઝલ-સેટ હીરા છે.',
+  ),
+  JewelryEduL10n.safetyLatch: LocalizedMessage(
+    english: 'Figure-eight safety',
+    hindi: 'फ़िगर-एट सेफ़्टी',
+    gujarati: 'ફિગર-એઇટ સેફ્ટી',
+  ),
+  JewelryEduL10n.bangleStyle: LocalizedMessage(
+    english: 'Opening',
+    hindi: 'खुलने का तरीका',
+    gujarati: 'ખૂલવાની રીત',
+  ),
+  JewelryEduL10n.slipOn: LocalizedMessage(
+    english: 'Slip-on',
+    hindi: 'स्लिप-ऑन',
+    gujarati: 'સ્લિપ-ઓન',
+  ),
+  JewelryEduL10n.cuff: LocalizedMessage(
+    english: 'Cuff',
+    hindi: 'कफ़',
+    gujarati: 'કફ',
+  ),
+  JewelryEduL10n.width: LocalizedMessage(
+    english: 'Width',
+    hindi: 'चौड़ाई',
+    gujarati: 'પહોળાઈ',
+  ),
+  JewelryEduL10n.clasp: LocalizedMessage(
+    english: 'Clasp',
+    hindi: 'क्लैस्प',
+    gujarati: 'ક્લેસ્પ',
+  ),
+  JewelryEduL10n.lobster: LocalizedMessage(
+    english: 'Lobster',
+    hindi: 'लॉबस्टर',
+    gujarati: 'લોબસ્ટર',
+  ),
+  JewelryEduL10n.springRing: LocalizedMessage(
+    english: 'Spring ring',
+    hindi: 'स्प्रिंग रिंग',
+    gujarati: 'સ્પ્રિંગ રિંગ',
+  ),
+  JewelryEduL10n.toggle: LocalizedMessage(
+    english: 'Toggle',
+    hindi: 'टॉगल',
+    gujarati: 'ટોગલ',
+  ),
+  JewelryEduL10n.charms: LocalizedMessage(
+    english: 'Charms',
+    hindi: 'चार्म',
+    gujarati: 'ચાર્મ',
   ),
 };

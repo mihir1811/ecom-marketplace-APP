@@ -144,7 +144,7 @@ class _HeroState extends State<_Hero> {
         () => _scene = JewelrySceneFactory.build(
           JewelryDesign.initial().copyWith(
             halo: HaloStyle.single,
-            bandAccent: BandAccent.pave,
+            bandAccent: BandAccent.half,
           ),
         ),
       );

@@ -11,7 +11,8 @@ precision highp float;
 // view-space normal (red, green; blue is rebuilt facing the camera) and
 // a material tag (blue) packing what it is with one shading detail:
 //
-//   0.00 – 0.40   metal, ambient occlusion
+//   0.00 – 0.19   the setting's metal (two-tone), ambient occlusion
+//   0.21 – 0.40   metal, ambient occlusion
 //   0.45 – 0.65   display velvet, ambient occlusion
 //   0.70 – 1.00   small diamond facet, a per-facet seed
 //
@@ -44,6 +45,7 @@ uniform vec4 uRot2;
 uniform vec4 uMetal;   // F0 rgb (linear), roughness
 uniform vec4 uGem;     // body tint rgb, sparkle strength
 uniform vec4 uVelvet;  // base rgb (linear), sheen
+uniform vec4 uMetal2;  // the setting's F0 rgb (linear), roughness
 uniform sampler2D uG;
 
 out vec4 fragColor;
@@ -93,11 +95,11 @@ vec3 hash3(float s) {
   return fract(sin(vec3(s * 127.1, s * 311.7, s * 74.7)) * 43758.5453);
 }
 
-vec3 shadeMetal(vec3 n, vec3 v, float ao) {
-  float rough = uMetal.w;
+vec3 shadeMetal(vec3 n, vec3 v, float ao, vec4 metal) {
+  float rough = metal.w;
   vec3 r = reflect(-v, n);
   float nv = clamp(dot(n, v), 0.0, 1.0);
-  vec3 f0 = uMetal.rgb;
+  vec3 f0 = metal.rgb;
   vec3 fres = f0 + (1.0 - f0) * pow(1.0 - nv, 5.0);
   vec3 sharp = studio(r, rough);
   vec3 broad = studio(normalize(mix(r, n, 0.55)), 1.0);
@@ -157,8 +159,10 @@ void main() {
   vec3 v = normalize(vec3(dot(uRot0.xyz, vv), dot(uRot1.xyz, vv), dot(uRot2.xyz, vv)));
   float tag = e.b;
   vec3 c;
-  if (tag < 0.425) {
-    c = shadeMetal(n, v, tag / 0.40);
+  if (tag < 0.20) {
+    c = shadeMetal(n, v, tag / 0.19, uMetal2);
+  } else if (tag < 0.425) {
+    c = shadeMetal(n, v, clamp((tag - 0.21) / 0.19, 0.0, 1.0), uMetal);
   } else if (tag < 0.675) {
     c = shadeVelvet(n, v, clamp((tag - 0.45) / 0.20, 0.0, 1.0));
   } else {

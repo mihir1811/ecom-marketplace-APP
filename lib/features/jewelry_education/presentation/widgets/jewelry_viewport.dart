@@ -307,16 +307,32 @@ class _JewelryViewportState extends State<JewelryViewport>
     return best;
   }
 
+  /// A fingertip's speed as it taps, mm/s.
+  static const _tapSpeed = 140.0;
+
+  /// A fingertip's radius on screen, logical px.
+  static const _fingerPx = 22.0;
+
+  /// A tap: a fingertip coming in along the ray through [at] meets what
+  /// it lands on. On a rigid piece the surface's own normal there decides
+  /// the push; a chain particle is round, so where the fingertip (a ball,
+  /// [_fingerPx] across on screen) meets it does: dead centre presses it
+  /// straight in, off-centre pushes it sideways. The physics takes it
+  /// from there (an inelastic push with skin friction): no canned motion.
   void _poke(Offset at) {
     final t = _hit(at);
     if (t == null) return;
-    final p = _cam.project(t.world) ?? at;
-    // A fingertip pushes in, a little up, and sideways away from where
-    // it touched; dead centre it brushes past to one side.
-    var lat = (-(at.dx - p.dx) / 18).clamp(-1.0, 1.0);
-    if (lat.abs() < 0.2) lat = (at.dy.toInt().isEven ? 0.7 : -0.7);
-    final dir = _cam.forward * 0.55 + _cam.right * lat + _cam.up * 0.35;
-    widget.scene.physics.poke(t, dir, 230);
+    final d = _cam.ray(at);
+    var normal = t.normal;
+    if (normal == null) {
+      final c = t.world;
+      final along = (c - _cam.eye).dot(d);
+      final q = c - (_cam.eye + d * along);
+      final reach = t.radius + _fingerPx / _cam.pxPerMm(c);
+      final rim = math.sqrt(math.max(0.0, reach * reach - q.dot(q)));
+      normal = (-q - d * rim).normalized;
+    }
+    widget.scene.physics.touch(t, d * _tapSpeed, normal: normal);
     _sincePoke = 0;
     widget.controller?.autoRotate = false;
     AppHaptics.light();

@@ -89,6 +89,7 @@ void main() {
             'Metal',
             'Stone',
             'Setting',
+            'Accents',
             'Band',
             'Style',
             'Chain',
@@ -145,6 +146,8 @@ void main() {
     c.update(
       (d) => d.copyWith(purity: MetalPurity.k14, finish: MetalFinish.satin),
     );
+    // Two-tone only recolours the setting.
+    c.update((d) => d.copyWith(headMetal: JewelryMetal.platinum));
     final restyled = container.read(jewelrySimulatorProvider).scene;
     expect(identical(restyled.parts, before.parts), isTrue);
     c.update((d) => d.copyWith(halo: HaloStyle.single));

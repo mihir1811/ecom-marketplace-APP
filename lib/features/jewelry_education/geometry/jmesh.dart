@@ -8,7 +8,16 @@ import 'jmath.dart';
 /// `shaders/jewelry_shade.frag`, which decodes the same bands).
 abstract final class JTag {
   /// Metal with ambient occlusion [ao] (1 open, 0 fully hidden).
-  static double metal(double ao) => 0.40 * ao.clamp(0.0, 1.0);
+  static double metal(double ao) => 0.21 + 0.19 * ao.clamp(0.0, 1.0);
+
+  /// The setting's metal (head, prongs, bezel, halo) with ambient
+  /// occlusion [ao]: the same as [metal] unless the piece is two-tone.
+  static double head(double ao) => 0.19 * ao.clamp(0.0, 1.0);
+
+  /// Metal's ambient occlusion from either metal's tag.
+  static double metalAo(double t) => t < 0.20 ? t / 0.19 : (t - 0.21) / 0.19;
+
+  static bool isHeadMetal(double t) => t < 0.20;
 
   /// Display velvet with ambient occlusion [ao].
   static double velvet(double ao) => 0.45 + 0.20 * ao.clamp(0.0, 1.0);
@@ -245,7 +254,8 @@ class MeshBuilder {
     solidVolume += area.abs() / 2 * s * s * len;
   }
 
-  /// A round wire of radius [r] along [pts], with rounded ends.
+  /// A round wire of radius [r] along [pts], with rounded ends; [scales]
+  /// thins it along the way (a claw tapering to its point).
   void tube(
     List<V3> pts,
     double r,
@@ -253,6 +263,7 @@ class MeshBuilder {
     int sides = 8,
     bool closed = false,
     bool roundEnds = true,
+    List<double>? scales,
   }) {
     final n = pts.length;
     if (n < 2) return;
@@ -287,10 +298,31 @@ class MeshBuilder {
       tagAt: (_, _) => tag,
       closedPath: closed,
       capEnds: !roundEnds,
+      scales: scales,
     );
     if (!closed && roundEnds) {
-      sphere(pts.first, r, tag, segments: sides, rings: 4, count: false);
-      sphere(pts.last, r, tag, segments: sides, rings: 4, count: false);
+      final r0 = r * (scales?.first ?? 1), r1 = r * (scales?.last ?? 1);
+      sphere(pts.first, r0, tag, segments: sides, rings: 4, count: false);
+      sphere(pts.last, r1, tag, segments: sides, rings: 4, count: false);
+    }
+  }
+
+  /// Milgrain: a row of tiny beads [r] in radius along [pts], about
+  /// 2.4 radii apart.
+  void beads(List<V3> pts, double r, double tag, {bool closed = false}) {
+    if (pts.length < 2) return;
+    var carry = 0.0;
+    final step = r * 2.4;
+    final n = closed ? pts.length : pts.length - 1;
+    for (var i = 0; i < n; i++) {
+      final a = pts[i], b = pts[(i + 1) % pts.length];
+      final len = (b - a).length;
+      var s = carry;
+      while (s < len) {
+        sphere(a.lerp(b, s / len), r, tag, segments: 4, rings: 3);
+        s += step;
+      }
+      carry = s - len;
     }
   }
 

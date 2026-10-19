@@ -32,7 +32,7 @@ class JewelrySimState {
       !identical(scene.design, design) && scene.design != design;
 }
 
-/// Owns the design. A change of metal, purity or finish restyles the
+/// Owns the design. A change of metal, purity, finish or two-tone restyles the
 /// current scene at once; anything that changes the shape rebuilds it,
 /// coalesced so a dragged slider rebuilds at most every few frames.
 class JewelrySimulatorController extends AutoDisposeNotifier<JewelrySimState> {
@@ -93,9 +93,16 @@ class JewelrySimulatorController extends AutoDisposeNotifier<JewelrySimState> {
   }
 
   /// Whether [a] and [b] build the same geometry: they differ at most in
-  /// metal, purity or finish.
+  /// metal, purity, finish or the setting's second metal.
   static bool _sameShape(JewelryDesign a, JewelryDesign b) =>
-      a.copyWith(metal: b.metal, purity: b.purity, finish: b.finish) == b;
+      a.copyWith(
+        metal: b.metal,
+        purity: b.purity,
+        finish: b.finish,
+        headMetal: b.headMetal,
+        clearHeadMetal: b.headMetal == null,
+      ) ==
+      b;
 }
 
 /// The simulator's design; disposed with the simulator screen.

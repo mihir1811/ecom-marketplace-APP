@@ -16,8 +16,11 @@ import 'scene_kit.dart';
 /// The chain round the back of the neck lies still; from where it leaves
 /// the shoulders it hangs free as a chain of point masses, drapes over
 /// the chest under gravity with friction, and carries the pendant at its
-/// lowest point. Longer chains fall lower: 16" sits at the base of the
-/// neck, 18" on the collarbone, 20" below it, 24" toward the bust.
+/// lowest point, or at the end of a Y drop below it. Its links rub on
+/// each other under the chain's tension, so a swing dies in a few
+/// passes. Longer chains fall lower: 14" is a choker, 16" sits at the
+/// base of the neck, 18" on the collarbone, 20–22" below it, 24" toward
+/// the bust and 30" (opera) below it.
 abstract final class NecklaceScene {
   // The bust, mm: neck an ellipse rx × rz round (0, y, nz).
   static const _rx = 52.0, _rz = 46.0, _nz = -6.0;
@@ -82,10 +85,6 @@ abstract final class NecklaceScene {
     final cw = d.chainWidthMm;
     final style = d.chainStyle;
     final pitch = SceneKit.linkPitch(style, cw);
-    final linkMesh = SceneKit.link(style, cw);
-    final twist = style == ChainStyle.cable || style == ChainStyle.box
-        ? JLinkTwist.alternate
-        : JLinkTwist.none;
     final parts = <JPart>[];
 
     // Where the chain leaves the shoulders, and its still part behind.
@@ -105,22 +104,31 @@ abstract final class NecklaceScene {
     for (var i = 0; i < back.length - 1; i++) {
       backLen += (back[i + 1] - back[i]).length;
     }
-    final frontLen = d.chainLength.mm - backLen;
+    // A choker barely clears the anchors; keep it just longer than the
+    // straight line between them.
+    final frontLen = math.max(d.chainLength.mm - backLen, 2 * ax + 6);
 
     // The hanging part as particles about 5 mm apart.
     final n = math.max(9, (frontLen / 5).round() | 1);
     final seg = frontLen / (n - 1);
     final pendant = PendantBuilder.build(
       stone,
-      d.head,
-      d.halo,
+      d.headSpec,
       tally,
+      bailStyle: d.bail,
       bail: 1.2 + cw * 0.5,
+      chainWidth: cw,
       seed: 5,
     );
-    final rope = JRope(n + 1, friction: 0.25, passes: 4);
-    final linkGrams = linkMesh.volume * density / 1000;
-    final perParticle = linkGrams * seg / pitch;
+    final yLinks = d.yDropMm <= 0 ? 0 : math.max(2, (d.yDropMm / 4).round());
+    final rope = JRope(n + yLinks + 1, friction: 0.25, passes: 4);
+    final (linkMeshes, offsets, chainVolume) = SceneKit.chain(
+      style,
+      cw,
+      frontLen,
+    );
+    final linkGrams = chainVolume * density / 1000 / frontLen;
+    final perParticle = linkGrams * seg;
     // Start as a U on the chest; settling drapes it.
     final sag =
         math.sqrt(math.max(0.0, (frontLen / 2) * (frontLen / 2) - ax * ax)) *
@@ -136,45 +144,133 @@ abstract final class NecklaceScene {
         pinned ? (i == 0 ? left : right) : V3(px, py, pz),
         mass: pinned ? 0 : perParticle,
         r: cw * 0.5,
-        drag: 1.4,
+        drag: 0.15,
       );
       if (i > 0) rope.link(i - 1, i, seg, maxOnly: true);
     }
     final mid = n ~/ 2;
-    final bailAt = rope.at(mid);
+
+    // A Y drop: more chain from the V down to the pendant.
+    final yPath = <int>[mid];
+    var bail = mid;
+    if (yLinks > 0) {
+      final ySeg = d.yDropMm / yLinks;
+      for (var k = 0; k < yLinks; k++) {
+        final i = n + k;
+        rope.place(
+          i,
+          rope.at(mid) - V3(0, ySeg * (k + 1), -1),
+          mass: linkGrams * ySeg,
+          r: cw * 0.5,
+          drag: 0.15,
+        );
+        rope.link(bail, i, ySeg, maxOnly: true);
+        yPath.add(i);
+        bail = i;
+      }
+    }
+    final com = n + yLinks;
     final pm = pendant.grams(density) + SceneKit.stoneGrams(stone.spec.carat);
     rope.place(
-      n,
-      bailAt - V3(0, pendant.comDrop, 0) + const V3(0, 0, 3),
+      com,
+      rope.at(bail) - V3(0, pendant.comDrop, 0) + const V3(0, 0, 3),
       mass: pm,
       r: stone.depthMm * 0.5 + 0.6,
-      drag: 0.5,
+      drag: 0.15,
     );
     rope
-      ..link(mid, n, pendant.comDrop)
+      ..link(bail, com, pendant.comDrop)
       ..colliders.add(JFieldCollider(bustDistance));
-
-    final links = JChainSkin.linksFor(frontLen, pitch);
-    final linkNodes = [for (var i = 0; i < links; i++) JNode()];
-    for (final node in linkNodes) {
-      parts.add(JPart(linkMesh, node));
+    // Link on link: wire sliding on wire (μ ≈ 0.45) where the links
+    // bear, about a third of the link's width from the joint. Snake
+    // chain's close plates bend stiffly; a bead chain's wire hardly rubs.
+    final arm = switch (style) {
+      ChainStyle.snake => 0.4 * cw * 0.9,
+      ChainStyle.box || ChainStyle.rope => 0.45 * cw * 0.45,
+      ChainStyle.bead => 0.2 * cw * 0.1,
+      _ => 0.45 * cw * 0.3,
+    };
+    rope.chainJoints(0, n - 1, arm);
+    if (yLinks > 0) {
+      rope.joint(mid - 1, mid, yPath[1], arm: arm);
+      for (var k = 1; k < yPath.length - 1; k++) {
+        rope.joint(yPath[k - 1], yPath[k], yPath[k + 1], arm: arm);
+      }
     }
-    final skin = JChainSkin(
-      rope: rope,
-      nodes: linkNodes,
-      pitch: pitch,
-      from: 0,
-      to: n - 1,
-      front: _chestNormal,
-      twist: twist,
+    rope.joint(
+      yPath.length > 1 ? yPath[yPath.length - 2] : mid - 1,
+      bail,
+      com,
+      arm: 0.15,
     );
+
+    // Diamond stations, in pairs out from the middle of the chain.
+    final linkNodes = [for (var i = 0; i < linkMeshes.length; i++) JNode()];
+    final meshes = [...linkMeshes];
+    if (d.stations > 0) {
+      final dia = (cw * 1.6 + 1.2).clamp(2.4, 4.4);
+      final (stationMesh, stationVolume) = SceneKit.station(dia);
+      final k = linkMeshes.length;
+      for (var j = 0; j < d.stations ~/ 2; j++) {
+        for (final sgn in const [-1, 1]) {
+          final at = (k / 2 + sgn * k * 0.11 * (j + 1)).round().clamp(0, k - 1);
+          meshes[at] = stationMesh;
+          tally
+            ..accent(dia)
+            ..metalVolume += stationVolume;
+          // A station weighs on the chain where it sits.
+          final pi = (at / k * (n - 1)).round().clamp(1, n - 2);
+          final grams =
+              stationVolume * density / 1000 +
+              SceneKit.stoneGrams(JewelryStone.roundCarat(dia));
+          rope.invMass[pi] = 1 / (1 / rope.invMass[pi] + grams);
+        }
+      }
+    }
+    for (var i = 0; i < linkNodes.length; i++) {
+      parts.add(JPart(meshes[i], linkNodes[i]));
+    }
+    final skins = [
+      JChainSkin(
+        rope: rope,
+        nodes: linkNodes,
+        pitch: pitch,
+        from: 0,
+        to: n - 1,
+        front: _chestNormal,
+        twist: SceneKit.twistOf(style),
+        offsets: offsets,
+      ),
+    ];
+    if (yLinks > 0) {
+      final yLen = d.yDropMm;
+      final (yMeshes, yOffsets, yVolume) = SceneKit.chain(style, cw, yLen);
+      final yNodes = [for (var i = 0; i < yMeshes.length; i++) JNode()];
+      for (var i = 0; i < yNodes.length; i++) {
+        parts.add(JPart(yMeshes[i], yNodes[i]));
+      }
+      tally.metalVolume += yVolume;
+      skins.add(
+        JChainSkin(
+          rope: rope,
+          nodes: yNodes,
+          pitch: pitch,
+          from: 0,
+          to: 0,
+          path: yPath,
+          front: _chestNormal,
+          twist: SceneKit.twistOf(style),
+          offsets: yOffsets,
+        ),
+      );
+    }
     final pendantNode = JNode();
     parts.add(JPart(pendant.mesh, pendantNode));
     final frame = JRopeFrame(
       node: pendantNode,
       rope: rope,
-      bail: mid,
-      com: n,
+      bail: bail,
+      com: com,
       front: _chestNormal,
     );
 
@@ -185,11 +281,12 @@ abstract final class NecklaceScene {
     parts.add(JPart(still.build(), JNode()));
     parts.add(JPart(_bust(), JNode()));
 
-    final physics = JPhysics(ropes: [rope], frames: [frame], skins: [skin]);
+    final physics = JPhysics(ropes: [rope], frames: [frame], skins: skins);
     physics.settle(seconds: 3);
 
-    final low = rope.at(n);
-    final chainGrams = linkGrams * (d.chainLength.mm / pitch);
+    final low = rope.at(com);
+    final chainGrams =
+        chainVolume / frontLen * d.chainLength.mm * density / 1000;
     final grams = chainGrams + tally.metalVolume * density / 1000;
     return JScene(
       design: d,
@@ -242,7 +339,7 @@ abstract final class NecklaceScene {
       (u, v) {
         final x = -150 + 300 * u;
         final top = _shoulderY(x);
-        final y = top - (top + 240) * v;
+        final y = top - (top + 330) * v;
         return V3(x, y, chestZ(x, y));
       },
       (u, v) {
