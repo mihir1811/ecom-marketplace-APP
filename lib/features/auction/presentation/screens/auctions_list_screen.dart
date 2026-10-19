@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../../core/widgets/navigation/app_tab_top_bar.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
 import '../../application/auction_providers.dart';
 import '../../domain/models/auction_models.dart';
@@ -137,11 +138,14 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
       // Runs on behind the floating dock; the scroll view clears it.
       safeBottom: false,
       backgroundColor: p.canvas,
-      appBar: LuxeTopBar(
-        title: widget.title,
-        scrollOffset: listingOffset,
-        actions: const [CatalogFlowActions()],
-      ),
+      // Live auctions is a bottom-nav tab: it takes the shared tab bar.
+      appBar: widget.kind == AuctionFeedKind.live
+          ? const AppTabTopBar()
+          : LuxeTopBar(
+              title: widget.title,
+              scrollOffset: listingOffset,
+              actions: const [CatalogFlowActions()],
+            ),
       body: LuxeListingScrollView(
         controller: listingScroll,
         offset: listingOffset,
@@ -250,6 +254,15 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
           ],
           isSelected: (o) => o == _outcome,
           onTap: _setOutcome,
+        ),
+      );
+    }
+    if (widget.kind == AuctionFeedKind.live) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+        child: Text(
+          context.tr(NavL10n.liveAuctions),
+          style: LuxeType.display(26, LuxePalette.of(context).ink),
         ),
       );
     }

@@ -14,6 +14,9 @@ import '../../../../core/widgets/navigation/app_nav_drawer.dart';
 /// "Messages & support" and "Account" groups, same footer. Home, Wishlist,
 /// Cart and Profile live in the bottom nav and Notifications in the top bar,
 /// so the drawer leaves them out.
+/// Whether Jewelry education shows under Learn.
+const _showJewelryEducation = false;
+
 class BuyerDrawer extends ConsumerWidget {
   const BuyerDrawer({super.key});
 
@@ -102,11 +105,13 @@ class BuyerDrawer extends ConsumerWidget {
             EducationL10n.navEducation,
             Icons.school_outlined,
           ),
-          item(
-            AppRouteNames.jewelryEducation,
-            JewelryEduL10n.navEducation,
-            Icons.diamond_outlined,
-          ),
+          // Hidden for now; the route and page stay in place.
+          if (_showJewelryEducation)
+            item(
+              AppRouteNames.jewelryEducation,
+              JewelryEduL10n.navEducation,
+              Icons.diamond_outlined,
+            ),
         ],
       ),
       AppNavGroup(

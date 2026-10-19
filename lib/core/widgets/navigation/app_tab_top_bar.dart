@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../features/cart/application/cart_provider.dart';
 import '../../../features/home/presentation/widgets/home_search_overlay.dart';
 import '../../../features/notifications/application/notifications_provider.dart';
 import '../../auth/auth_providers.dart';
@@ -11,10 +12,10 @@ import '../../router/route_names.dart';
 import '../../theme/luxe_tokens.dart';
 import '../app_drawer_button.dart';
 
-/// Shared top bar of the bottom-nav tabs (Home, Wishlist, Cart, Profile).
+/// Shared top bar of the bottom-nav tabs (Home, Wishlist, Auctions, Profile).
 ///
 /// The same pinned bar on every tab: menu (login for guests), the
-/// search entry and notifications. Screens opened from a tab keep their own
+/// search entry, notifications and cart. Screens opened from a tab keep their own
 /// bars. During a tab switch [AppBottomNavHost] lays a copy over the page so
 /// the bar holds still while the page changes underneath.
 class AppTabTopBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -30,6 +31,7 @@ class AppTabTopBar extends ConsumerWidget implements PreferredSizeWidget {
     final p = LuxePalette.of(context);
     final signedIn = ref.watch(authProvider.select((s) => s.isAuthenticated));
     final unread = signedIn ? ref.watch(notificationUnreadCountProvider) : 0;
+    final bag = signedIn ? ref.watch(cartItemCountProvider) : 0;
 
     final Widget leading;
     if (signedIn) {
@@ -95,6 +97,18 @@ class AppTabTopBar extends ConsumerWidget implements PreferredSizeWidget {
                       child: const Icon(Icons.notifications_none_rounded),
                     ),
                   ),
+                  if (signedIn)
+                    IconButton(
+                      tooltip: context.tr(CoreL10n.cart),
+                      onPressed: () => context.openRoute(AppRouteNames.cart),
+                      icon: Badge(
+                        isLabelVisible: bag > 0,
+                        backgroundColor: p.accent,
+                        textColor: p.onAccent,
+                        label: Text(bag > 99 ? '99+' : '$bag'),
+                        child: const Icon(Icons.shopping_bag_outlined),
+                      ),
+                    ),
                   const SizedBox(width: 6),
                 ],
               ),

@@ -32,7 +32,7 @@ void main() {
         for (final path in [
           AppRouteNames.home,
           AppRouteNames.buyerWishlist,
-          AppRouteNames.cart,
+          AppRouteNames.auctions,
           AppRouteNames.buyerProfile,
           AppRouteNames.comparison,
           AppRouteNames.gemstones,
@@ -179,7 +179,7 @@ void main() {
     expect(compact(tester), isTrue);
 
     // A tap on the folded dock only unfolds it.
-    await tester.tap(tabArea('Cart'));
+    await tester.tap(tabArea('Auctions'));
     await tester.pumpAndSettle();
     expect(compact(tester), isFalse);
     expect(
@@ -206,11 +206,11 @@ void main() {
   testWidgets('tapping a tab navigates there', (tester) async {
     final router = await pumpApp(tester);
 
-    await tester.tap(find.bySemanticsLabel('Cart'));
+    await tester.tap(find.bySemanticsLabel('Auctions'));
     await tester.pumpAndSettle();
     expect(
       router.routerDelegate.currentConfiguration.uri.path,
-      AppRouteNames.cart,
+      AppRouteNames.auctions,
     );
   });
 
@@ -267,13 +267,13 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Categories'));
       await openMenu(tester);
-      await tester.tapAt(tester.getCenter(tabArea('Cart')));
+      await tester.tapAt(tester.getCenter(tabArea('Auctions')));
       await tester.pumpAndSettle();
 
       expect(find.bySemanticsLabel('Gemstones'), findsNothing);
       expect(
         router.routerDelegate.currentConfiguration.uri.path,
-        AppRouteNames.cart,
+        AppRouteNames.auctions,
       );
     },
   );
@@ -322,7 +322,7 @@ void main() {
     }
 
     Offset tabCentre(WidgetTester tester, int index) => tester.getCenter(
-      tabArea(const ['Home', 'Wishlist', 'Cart', 'Profile'][index]),
+      tabArea(const ['Home', 'Wishlist', 'Auctions', 'Profile'][index]),
     );
 
     ClipPath reveal(WidgetTester tester) => tester.widget<ClipPath>(
@@ -343,14 +343,14 @@ void main() {
       await tester.tapAt(tabCentre(tester, 2));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
-      expect(path(router), AppRouteNames.cart);
+      expect(path(router), AppRouteNames.auctions);
       final clip = reveal(tester).clipper!.getClip(tester.view.physicalSize);
       // Still a small blob hugging the bar.
       expect(clip.getBounds().top, greaterThan(200));
 
       await tester.pumpAndSettle();
       expect(reveal(tester).clipper, isNull);
-      expect(seen, [AppRouteNames.cart]);
+      expect(seen, [AppRouteNames.auctions]);
       expect(tester.takeException(), isNull);
     });
 

@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../features/buyer/application/wishlist_provider.dart';
-import '../../../../features/cart/application/cart_provider.dart';
 import '../../../../features/comparison/presentation/widgets/compare_dock_button.dart';
 import '../../../auth/auth_providers.dart';
 import '../../../router/app_navigation.dart';
@@ -524,7 +523,7 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
   }
 }
 
-/// Bar with live cart / wishlist counts (signed-in only).
+/// Bar with the live wishlist count (signed-in only).
 class _LiveBar extends ConsumerWidget {
   const _LiveBar({
     required this.barKey,
@@ -553,7 +552,6 @@ class _LiveBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final signedIn = ref.watch(authProvider.select((s) => s.isAuthenticated));
-    final cart = signedIn ? ref.watch(cartItemCountProvider) : 0;
     final saved = signedIn ? ref.watch(wishlistCountProvider) : 0;
     // Outside the navigator there is no page Material: supply the text
     // defaults here.
@@ -570,7 +568,7 @@ class _LiveBar extends ConsumerWidget {
         onExpand: onExpand,
         trailing: trailing,
         trailingShown: trailingShown,
-        badges: {AppBottomNavTab.cart: cart, AppBottomNavTab.wishlist: saved},
+        badges: {AppBottomNavTab.wishlist: saved},
       ),
     );
   }

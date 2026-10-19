@@ -6,12 +6,12 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
+import '../../../cart/application/cart_provider.dart';
 import '../../../home/presentation/widgets/home_search_overlay.dart';
 import '../../../notifications/application/notifications_provider.dart';
 
 /// Trailing top-bar actions shared by the luxe catalog flows (diamonds,
-/// gemstones): catalog search and notifications (when signed in). The cart
-/// lives in the app's bottom navigation bar.
+/// gemstones): catalog search, then notifications and cart (when signed in).
 class CatalogFlowActions extends ConsumerWidget {
   const CatalogFlowActions({
     super.key,
@@ -32,6 +32,7 @@ class CatalogFlowActions extends ConsumerWidget {
     final unread = auth.signedIn
         ? ref.watch(notificationUnreadCountProvider)
         : 0;
+    final bag = auth.signedIn ? ref.watch(cartItemCountProvider) : 0;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -55,6 +56,15 @@ class CatalogFlowActions extends ConsumerWidget {
             // Catalog pages are the buyer side; stay on it.
             onPressed: () =>
                 context.switchToRoute(AppRouteNames.buyerNotifications),
+          ),
+          const SizedBox(width: 6),
+          LuxeIconButton(
+            icon: Icons.shopping_bag_outlined,
+            tooltip: context.tr(CoreL10n.cart),
+            size: 40,
+            glass: glass,
+            badge: bag,
+            onPressed: () => context.openRoute(AppRouteNames.cart),
           ),
         ],
       ],

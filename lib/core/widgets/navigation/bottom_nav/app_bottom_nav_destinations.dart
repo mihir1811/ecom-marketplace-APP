@@ -4,7 +4,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../router/route_names.dart';
 
 /// The four main tabs of the buyer side.
-enum AppBottomNavTab { home, wishlist, cart, profile }
+enum AppBottomNavTab { home, wishlist, auctions, profile }
 
 /// One tab of the sticky bottom navigation.
 class AppBottomNavDestination {
@@ -56,11 +56,11 @@ abstract final class AppBottomNav {
       selectedIcon: Icons.favorite_rounded,
     ),
     AppBottomNavDestination(
-      tab: AppBottomNavTab.cart,
-      route: AppRouteNames.cart,
-      labelKey: CoreL10n.cart,
-      icon: Icons.shopping_bag_outlined,
-      selectedIcon: Icons.shopping_bag_rounded,
+      tab: AppBottomNavTab.auctions,
+      route: AppRouteNames.auctions,
+      labelKey: HomeL10n.auctions,
+      icon: Icons.gavel_outlined,
+      selectedIcon: Icons.gavel_rounded,
     ),
     AppBottomNavDestination(
       tab: AppBottomNavTab.profile,

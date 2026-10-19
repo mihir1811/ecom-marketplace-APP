@@ -16,7 +16,10 @@ void main() {
         AppBottomNav.tabFor(AppRouteNames.buyerWishlist),
         AppBottomNavTab.wishlist,
       );
-      expect(AppBottomNav.tabFor(AppRouteNames.cart), AppBottomNavTab.cart);
+      expect(
+        AppBottomNav.tabFor(AppRouteNames.auctions),
+        AppBottomNavTab.auctions,
+      );
       expect(
         AppBottomNav.tabFor(AppRouteNames.buyerProfile),
         AppBottomNavTab.profile,
@@ -43,7 +46,7 @@ void main() {
         AppRouteNames.diamonds,
         AppRouteNames.gemstones,
         AppRouteNames.jewelry,
-        AppRouteNames.auctions,
+        AppRouteNames.cart,
         AppRouteNames.buyerWallet,
         AppRouteNames.productDetailPath('diamond', '42'),
         AppRouteNames.comparison,
@@ -90,7 +93,7 @@ void main() {
                 valueListenable: selected,
                 builder: (context, tab, _) => AppBottomNavBar(
                   selected: tab,
-                  badges: const {AppBottomNavTab.cart: 3},
+                  badges: const {AppBottomNavTab.auctions: 3},
                   onSelect: (d) => taps.add(d.tab),
                 ),
               ),
@@ -105,8 +108,8 @@ void main() {
       final selected = ValueNotifier<AppBottomNavTab?>(AppBottomNavTab.home);
       final taps = await pumpBar(tester, selected: selected);
 
-      await tester.tap(find.bySemanticsLabel('Cart, 3'));
-      expect(taps, [AppBottomNavTab.cart]);
+      await tester.tap(find.bySemanticsLabel('Auctions, 3'));
+      expect(taps, [AppBottomNavTab.auctions]);
     });
 
     testWidgets('switching tabs animates and comes to rest', (tester) async {
@@ -115,7 +118,7 @@ void main() {
 
       for (final tab in [
         AppBottomNavTab.wishlist,
-        AppBottomNavTab.cart,
+        AppBottomNavTab.auctions,
         AppBottomNavTab.profile,
         AppBottomNavTab.home,
       ]) {
@@ -144,7 +147,7 @@ void main() {
                 builder: (context, folded, _) => AppBottomNavBar(
                   selected: AppBottomNavTab.home,
                   compact: folded,
-                  badges: const {AppBottomNavTab.cart: 3},
+                  badges: const {AppBottomNavTab.auctions: 3},
                   onExpand: () {
                     expands++;
                     compact.value = false;
@@ -163,13 +166,13 @@ void main() {
       expect(tester.hasRunningAnimations, isTrue);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.bySemanticsLabel('Cart, 3'));
+      await tester.tap(find.bySemanticsLabel('Auctions, 3'));
       expect(expands, 1);
       expect(taps, isEmpty);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.bySemanticsLabel('Cart, 3'));
-      expect(taps, [AppBottomNavTab.cart]);
+      await tester.tap(find.bySemanticsLabel('Auctions, 3'));
+      expect(taps, [AppBottomNavTab.auctions]);
       expect(tester.takeException(), isNull);
     });
   });
