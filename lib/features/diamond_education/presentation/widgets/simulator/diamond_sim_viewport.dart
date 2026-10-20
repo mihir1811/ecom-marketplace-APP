@@ -6,11 +6,12 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/haptics/app_haptics.dart';
+import '../../../../../core/l10n/app_localizations.dart';
 import '../../../application/diamond_simulator_controller.dart';
 import '../../../domain/diamond_grades.dart';
 import '../../sim_labels.dart';
 import '../../../simulation/sim_optics.dart';
-import '../../../simulation/sim_inclusion_shader.dart';
+import '../../../simulation/sim_inclusion_plot.dart';
 import '../../../simulation/sim_inclusions.dart';
 import '../../../simulation/sim_mesh.dart';
 import '../../../simulation/sim_morph.dart';
@@ -105,8 +106,13 @@ class SimViewportController extends ChangeNotifier {
   /// sets it.
   final focus = ValueNotifier<InclusionType?>(null);
 
+  /// Whether the stone is shown for its inclusions: the traced stone's
+  /// surface eases down so they read clearly through it.
+  final inclusionView = ValueNotifier(false);
+
   @override
   void dispose() {
+    inclusionView.dispose();
     fit.dispose();
     stage.dispose();
     labelled.dispose();
@@ -223,7 +229,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   late final Ticker _ticker = createTicker(_tick);
   final _renderer = SimRenderer();
   final _wire = SimWireRenderer();
-  final _incShader = SimInclusionShader();
+  final _incPlot = SimInclusionPlot();
   final _callouts = SimInclusionCallouts();
   Locale? _calloutLocale;
   Rect? _lastStage;
@@ -279,6 +285,10 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   // Shrinking to sit inside [SimViewportController.fit], 0..1.
   double _fitAmount = 0, _fitRadius = 0;
 
+  // Toning the surface down for [SimViewportController.inclusionView],
+  // 0..1.
+  double _focus = 0;
+
   // Start after the route transition; fade in.
   Animation<double>? _route;
   bool _ready = true;
@@ -305,6 +315,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _c.stage.addListener(_onCommand);
     _c.labelled.addListener(_invalidate);
     _c.focus.addListener(_invalidate);
+    _c.inclusionView.addListener(_onCommand);
     _c.readout.onWatch = _onReadoutWatched;
     SchedulerBinding.instance.addTimingsCallback(_onTimings);
     SimRenderer.loadProgram()
@@ -315,15 +326,6 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         })
         .catchError((Object _) {
           // The CPU tracer keeps drawing.
-        });
-    SimInclusionShader.loadProgram()
-        .then((program) {
-          if (!mounted) return;
-          _incShader.shader = program.fragmentShader();
-          _invalidate();
-        })
-        .catchError((Object _) {
-          // The line drawing shows the stone without its inclusions.
         });
   }
 
@@ -361,6 +363,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _c.stage.removeListener(_onCommand);
     _c.labelled.removeListener(_invalidate);
     _c.focus.removeListener(_invalidate);
+    _c.inclusionView.removeListener(_onCommand);
     if (_c.readout.onWatch == _onReadoutWatched) _c.readout.onWatch = null;
     _route?.removeStatusListener(_onRouteStatus);
     SchedulerBinding.instance.removeTimingsCallback(_onTimings);
@@ -368,7 +371,6 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _ticker.dispose();
     _frame.dispose();
     _renderer.dispose();
-    _incShader.dispose();
     _callouts.clear();
     super.dispose();
   }
@@ -458,9 +460,12 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
 
   double get _fitGoal => _c.fit.value == null ? 0 : 1;
 
+  double get _focusGoal => _c.inclusionView.value ? 1 : 0;
+
   bool get _moving =>
       _appear < 1 ||
       _fitAmount != _fitGoal ||
+      _focus != _focusGoal ||
       _c.autoRotate ||
       _dragging ||
       _anim < 1 ||
@@ -531,6 +536,12 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
           ? math.min(goal, _fitAmount + dt / 0.45)
           : math.max(goal, _fitAmount - dt / 0.45);
     }
+    final focus = _focusGoal;
+    if (_focus != focus) {
+      _focus = focus > _focus
+          ? math.min(focus, _focus + dt / 0.4)
+          : math.max(focus, _focus - dt / 0.4);
+    }
     _refined = false;
     _frame.value++;
     if (!_moving) _syncTicker();
@@ -580,7 +591,8 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     // mid-morph is not measured: the meters wait for the new shape.
     _renderer
       ..maxBounces = SimRenderer.bounces
-      ..measureStats = _c.readout.watched && morph == null;
+      ..measureStats = _c.readout.watched && morph == null
+      ..inclusionFocus = Curves.easeInOut.transform(_focus);
     if (quality) _renderer.requestStats();
     final fade = _appear < 1;
     if (fade) {
@@ -630,15 +642,14 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       pxPerUnit: pxPerUnit,
       style: _wireStyle,
       inclusions: inclusions,
-      inclusionShader: _incShader,
+      inclusionPlot: _incPlot,
       centre: centre,
-      time: _time,
     );
     if (_c.labelled.value && _fitAmount > 0) {
       // Labels glide while the stone moves and settle on the still frame.
       _callouts.paint(
         canvas,
-        anchors: _incShader.anchors,
+        anchors: _incPlot.anchors,
         mesh: mesh,
         stone: _wire.bounds,
         stage: _c.stage.value ?? _lastStage ?? Offset.zero & size,
@@ -700,13 +711,8 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       names: {
         for (final t in InclusionType.values) t: context.inclusionName(t),
       },
-      reach: {
-        for (final r in InclusionReach.values) r: context.inclusionReachName(r),
-      },
-      families: {
-        for (final f in InclusionFamily.values)
-          f: context.inclusionFamilyName(f),
-      },
+      internal: context.tr(EducationL10n.incInternal),
+      external: context.tr(EducationL10n.incExternal),
       places: {for (final f in SimFacetKind.values) f: context.facetPlace(f)},
     );
   }

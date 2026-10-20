@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,29 +6,16 @@ import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/theme/luxe_tokens.dart';
 import '../../../application/diamond_simulator_controller.dart';
 import '../../../domain/diamond_grades.dart';
-import '../../../simulation/sim_inclusion_shader.dart';
+import '../../../simulation/sim_inclusion_plot.dart';
 import '../../../simulation/sim_inclusions.dart';
-import '../../../simulation/sim_renderer.dart';
 import '../../sim_labels.dart';
 import 'diamond_sim_viewport.dart';
-import 'sim_inclusion_callouts.dart';
 
-/// Kinds wholly inside the stone, then those reaching its surface, in the
-/// picker's order.
-final _closed = [
-  for (final t in InclusionType.values)
-    if (!t.isOpen) t,
-];
-final _open = [
-  for (final t in InclusionType.values)
-    if (t.isOpen) t,
-];
-
-/// The inclusion picker: any number of kinds at once, closed ones (wholly
-/// inside) and open ones (reaching the surface) in their own rows, each
-/// shown as itself, and a card on the one last picked or tapped: what it
-/// is, how it is classed and how much it matters. The stone above shows
-/// them in the line drawing, each labelled outside it.
+/// The inclusion picker, laid out as GIA's key to symbols: any number of
+/// kinds at once, internal characteristics (red) and external ones
+/// (green) in their own rows, each with its plot symbol, and a card on
+/// the one last picked or tapped: what it is and how much it matters.
+/// The stone above plots them in the line drawing, each labelled.
 class SimInclusionsPanel extends ConsumerWidget {
   const SimInclusionsPanel({required this.viewport, super.key});
 
@@ -105,20 +90,20 @@ class SimInclusionsPanel extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         _GroupTitle(
-          label: context.tr(EducationL10n.incClosedTitle),
-          color: SimInclusionCallouts.closedColor,
+          label: context.tr(EducationL10n.incInternalTitle),
+          color: SimInclusionPlot.red,
           palette: p,
         ),
         const SizedBox(height: 6),
-        row(_closed),
+        row(giaInternalKey),
         const SizedBox(height: 12),
         _GroupTitle(
-          label: context.tr(EducationL10n.incOpenTitle),
-          color: SimInclusionCallouts.openColor,
+          label: context.tr(EducationL10n.incExternalTitle),
+          color: SimInclusionPlot.green,
           palette: p,
         ),
         const SizedBox(height: 6),
-        row(_open),
+        row(giaExternalKey),
         const SizedBox(height: 12),
         ValueListenableBuilder<InclusionType?>(
           valueListenable: viewport.focus,
@@ -214,8 +199,7 @@ class _GradedChip extends StatelessWidget {
   }
 }
 
-/// A kind's chip: a small render of it, its name, and the open or closed
-/// key colour.
+/// A kind's chip: its GIA plot symbol, its name, and its key colour.
 class _TypeChip extends StatelessWidget {
   const _TypeChip({
     required this.type,
@@ -232,14 +216,15 @@ class _TypeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = palette;
-    final key = type.isOpen
-        ? SimInclusionCallouts.openColor
-        : SimInclusionCallouts.closedColor;
+    final key = SimInclusionPlot.colorOf(type);
     final name = context.inclusionName(type);
+    final side = context.tr(
+      type.isExternal ? EducationL10n.incExternal : EducationL10n.incInternal,
+    );
     return Semantics(
       button: true,
       selected: selected,
-      label: '$name, ${context.inclusionReachName(type.info.reach)}',
+      label: '$name, $side',
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -264,7 +249,7 @@ class _TypeChip extends StatelessWidget {
               ClipOval(
                 child: ColoredBox(
                   color: const Color(0xFF050607),
-                  child: SimInclusionThumb(type: type, size: 36),
+                  child: SimInclusionSymbol(type: type, size: 36),
                 ),
               ),
               const SizedBox(width: 8),
@@ -284,8 +269,8 @@ class _TypeChip extends StatelessWidget {
   }
 }
 
-/// What a kind is and how it is classed, compact enough to sit under the
-/// picker on a phone.
+/// What a kind is and how much it matters, compact enough to sit under
+/// the picker on a phone.
 class _InfoCard extends StatelessWidget {
   const _InfoCard({required this.type, required this.palette, super.key});
 
@@ -296,9 +281,7 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = palette;
     final info = type.info;
-    final key = type.isOpen
-        ? SimInclusionCallouts.openColor
-        : SimInclusionCallouts.closedColor;
+    final key = SimInclusionPlot.colorOf(type);
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -316,7 +299,7 @@ class _InfoCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 child: ColoredBox(
                   color: const Color(0xFF050607),
-                  child: SimInclusionThumb(type: type, size: 58),
+                  child: SimInclusionSymbol(type: type, size: 58),
                 ),
               ),
               const SizedBox(width: 10),
@@ -325,30 +308,19 @@ class _InfoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      context.inclusionName(type),
+                      '${context.inclusionName(type)} (${type.giaCode})',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: LuxeType.display(16, p.ink),
                     ),
                     const SizedBox(height: 5),
-                    Wrap(
-                      spacing: 5,
-                      runSpacing: 5,
-                      children: [
-                        _Tag(
-                          label: context.inclusionReachName(info.reach),
-                          color: key,
-                          strong: true,
-                        ),
-                        _Tag(
-                          label: context.inclusionFamilyName(info.family),
-                          color: p.inkMuted,
-                        ),
-                        _Tag(
-                          label: context.inclusionOriginName(info.origin),
-                          color: p.inkMuted,
-                        ),
-                      ],
+                    _Tag(
+                      label: context.tr(
+                        type.isExternal
+                            ? EducationL10n.incExternal
+                            : EducationL10n.incInternal,
+                      ),
+                      color: key,
                     ),
                   ],
                 ),
@@ -387,19 +359,18 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _Tag extends StatelessWidget {
-  const _Tag({required this.label, required this.color, this.strong = false});
+  const _Tag({required this.label, required this.color});
 
   final String label;
   final Color color;
-  final bool strong;
 
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
     decoration: ShapeDecoration(
-      color: color.withValues(alpha: strong ? 0.16 : 0.08),
+      color: color.withValues(alpha: 0.16),
       shape: StadiumBorder(
-        side: BorderSide(color: color.withValues(alpha: strong ? 0.7 : 0.3)),
+        side: BorderSide(color: color.withValues(alpha: 0.7)),
       ),
     ),
     child: Text(label, style: LuxeType.label(color, size: 10.5)),
@@ -465,82 +436,33 @@ class _Meter extends StatelessWidget {
   }
 }
 
-/// A kind drawn on its own by the line drawing's inclusion shader, lit
-/// and turned as it is inside the stone: the picker shows each as it
-/// really looks, not as a symbol.
-class SimInclusionThumb extends StatefulWidget {
-  const SimInclusionThumb({required this.type, required this.size, super.key});
+/// A kind's GIA plot symbol on its own, as on the key to symbols.
+class SimInclusionSymbol extends StatelessWidget {
+  const SimInclusionSymbol({required this.type, required this.size, super.key});
 
   final InclusionType type;
   final double size;
 
   @override
-  State<SimInclusionThumb> createState() => _SimInclusionThumbState();
-}
-
-class _SimInclusionThumbState extends State<SimInclusionThumb> {
-  final _shader = SimInclusionShader();
-  bool _ready = false;
-
-  @override
-  void initState() {
-    super.initState();
-    SimInclusionShader.loadProgram()
-        .then((program) {
-          if (!mounted) return;
-          setState(() {
-            _shader.shader = program.fragmentShader();
-            _ready = true;
-          });
-        })
-        .catchError((Object _) {});
-  }
-
-  @override
-  void dispose() {
-    _shader.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) => SizedBox.square(
-    dimension: widget.size,
-    child: _ready
-        ? RepaintBoundary(
-            child: CustomPaint(painter: _ThumbPainter(_shader, widget.type)),
-          )
-        : null,
+    dimension: size,
+    child: CustomPaint(painter: _SymbolPainter(type)),
   );
 }
 
-class _ThumbPainter extends CustomPainter {
-  _ThumbPainter(this.shader, this.type);
+class _SymbolPainter extends CustomPainter {
+  _SymbolPainter(this.type);
 
-  final SimInclusionShader shader;
   final InclusionType type;
 
-  static final _rot = () {
-    final r = Float64List(9);
-    const SimView(tilt: 0.5, spin: 0.55).rotationInto(r);
-    return r;
-  }();
+  @override
+  void paint(Canvas canvas, Size size) => SimInclusionPlot.drawSymbol(
+    canvas,
+    type,
+    size.center(Offset.zero),
+    size.shortestSide * 0.3,
+  );
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final items = SimInclusions.specimen(type);
-    canvas.save();
-    canvas.clipRect(Offset.zero & size);
-    shader.paint(
-      canvas,
-      items,
-      rot: _rot,
-      scale: size.shortestSide * 0.46,
-      centre: size.center(Offset.zero),
-    );
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _ThumbPainter old) =>
-      old.type != type || !identical(old.shader, shader);
+  bool shouldRepaint(covariant _SymbolPainter old) => old.type != type;
 }

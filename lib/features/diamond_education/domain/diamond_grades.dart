@@ -115,10 +115,12 @@ enum ClarityGrade {
   };
 }
 
-/// Kinds of clarity characteristic a viewer can pick to see inside the
-/// stone, as GIA names them. The first eight stay wholly inside the
-/// stone (closed); the rest reach its surface (open). See
-/// `inclusion_catalog.dart` for how each is classed.
+/// Kinds of clarity characteristic, as GIA names them. GIA's plotting key
+/// splits them into internal characteristics (inclusions, plotted red)
+/// and external ones (blemishes, plotted green); see
+/// `inclusion_catalog.dart` for how each is classed and plotted.
+///
+/// New kinds go at the end: a kind's index seeds where it sits.
 enum InclusionType {
   crystal,
   carbon,
@@ -138,6 +140,17 @@ enum InclusionType {
   etchChannel,
   laserDrillHole,
   filledFeather,
+  cleavage,
+  grainCenter,
+  abrasion,
+  natural,
+  nick,
+  pit,
+  polishLines,
+  burnMark,
+  scratch,
+  surfaceGraining,
+  extraFacet,
 }
 
 /// Strength of a brown or green body tinge (the B and G of BGM).

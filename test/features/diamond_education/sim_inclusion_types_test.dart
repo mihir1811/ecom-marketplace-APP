@@ -20,7 +20,9 @@ void main() {
               InclusionType.carbon ||
               InclusionType.feather ||
               InclusionType.graining ||
-              InclusionType.twinningWisp:
+              InclusionType.twinningWisp ||
+              InclusionType.cleavage ||
+              InclusionType.grainCenter:
             expect(open, isFalse, reason: '$t stays inside');
           default:
             expect(open, isTrue, reason: '$t reaches the surface');
@@ -36,7 +38,7 @@ void main() {
           ClarityGrade.si1,
           only: InclusionType.values.toSet(),
         );
-        expect(all.length, lessThanOrEqualTo(SimInclusions.maxVectorCount));
+        expect(all.length, lessThanOrEqualTo(SimInclusions.maxShown));
         final shown = {
           for (final c in all)
             if (c.kind.labelled) c.kind.type,
@@ -109,11 +111,17 @@ void main() {
       expect(filled.where((c) => c.kind == SimInclusionKind.feather), isEmpty);
     });
 
-    test('a specimen of every kind exists for its picture', () {
+    test('the picker follows the GIA key to symbols', () {
+      expect(giaInternalKey, hasLength(15));
+      expect(giaExternalKey, hasLength(9));
+      expect(giaInternalKey.any((t) => t.isExternal), isFalse);
+      expect(giaExternalKey.every((t) => t.isExternal), isTrue);
+      final key = {...giaInternalKey, ...giaExternalKey};
+      final codes = {for (final t in key) t.giaCode};
+      expect(codes, hasLength(key.length), reason: 'one code per symbol');
+      // Kinds outside the key are plotted as one on it.
       for (final t in InclusionType.values) {
-        final items = SimInclusions.specimen(t);
-        expect(items, isNotEmpty);
-        expect(items.any((c) => c.kind.type == t), isTrue);
+        expect(key, contains(t.plotAs), reason: '$t');
       }
     });
   });

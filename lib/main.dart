@@ -5,7 +5,6 @@ import 'app.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/theme_preference_provider.dart';
-import 'features/diamond_education/simulation/sim_inclusion_shader.dart';
 import 'features/diamond_education/simulation/sim_renderer.dart';
 import 'features/notifications/application/push_messaging_service.dart';
 import 'features/product_detail/presentation/transition/product_sheet_launch.dart';
@@ -69,7 +68,6 @@ void main() {
       // Compiles the diamond tracer behind the splash, not on the first
       // screen that shows a stone.
       unawaited(SimRenderer.warmUp());
-      unawaited(SimInclusionShader.warmUp());
 
       runApp(
         ProviderScope(

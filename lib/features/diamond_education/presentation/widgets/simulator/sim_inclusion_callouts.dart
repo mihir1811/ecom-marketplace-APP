@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/painting.dart';
 
 import '../../../domain/diamond_grades.dart';
-import '../../../simulation/sim_inclusion_shader.dart';
+import '../../../simulation/sim_inclusion_plot.dart';
 import '../../../simulation/sim_inclusions.dart';
 import '../../../simulation/sim_mesh.dart';
 
@@ -12,14 +12,15 @@ import '../../../simulation/sim_mesh.dart';
 class SimCalloutText {
   const SimCalloutText({
     required this.names,
-    required this.reach,
-    required this.families,
+    required this.internal,
+    required this.external,
     required this.places,
   });
 
   final Map<InclusionType, String> names;
-  final Map<InclusionReach, String> reach;
-  final Map<InclusionFamily, String> families;
+
+  /// What GIA's key calls each side: internal, external.
+  final String internal, external;
   final Map<SimFacetKind, String> places;
 }
 
@@ -29,12 +30,9 @@ class SimCalloutText {
 /// labels glide to stay level with them and never overlap, and keep
 /// their side until an inclusion clearly crosses to the other.
 ///
-/// Open characteristics (reaching the surface) are keyed amber, closed
-/// ones cyan, matching the picker.
+/// Keyed as GIA plots them: internal characteristics red, external ones
+/// green, matching the picker and the symbols.
 class SimInclusionCallouts {
-  static const openColor = Color(0xFFFFB45C);
-  static const closedColor = Color(0xFF72D6FF);
-
   final Map<InclusionType, _Label> _labels = {};
   SimCalloutText? _text;
   final Map<SimInclusion, SimFacetKind> _places = Map.identity();
@@ -124,14 +122,10 @@ class SimInclusionCallouts {
       my /= group.length;
       final first = group.first.inclusion;
       final place = _places[first] ??= SimInclusions.nearestFacet(mesh, first);
-      final info = type.info;
       final label = _labels[type] ??= _Label(
-        name: text.names[type] ?? type.name,
-        tags: [
-          text.reach[info.reach],
-          text.families[info.family],
-        ].whereType<String>().join(' · '),
-        open: info.reach == InclusionReach.open,
+        name: '${text.names[type] ?? type.name} (${type.giaCode})',
+        tags: type.isExternal ? text.external : text.internal,
+        color: SimInclusionPlot.colorOf(type),
         left: mx < cx,
       );
       label.place(text.places[place] ?? '');
@@ -198,7 +192,7 @@ class SimInclusionCallouts {
       final label = _labels[type]!;
       final a = opacity * label.alpha;
       final focused = focus == type;
-      final color = label.open ? openColor : closedColor;
+      final color = label.color;
       final from = Offset(
         label.left ? label.x + label.width : label.x,
         label.y + label.height / 2,
@@ -266,12 +260,12 @@ class _Label {
   _Label({
     required this.name,
     required this.tags,
-    required this.open,
+    required this.color,
     required this.left,
   });
 
   final String name, tags;
-  final bool open;
+  final Color color;
   bool left;
   bool fresh = true;
   double x = 0, y = 0, alpha = 0;
@@ -318,11 +312,7 @@ class _Label {
       text: TextSpan(
         text: _place.isEmpty ? tags : '$tags · $_place',
         style: TextStyle(
-          color:
-              (open
-                      ? SimInclusionCallouts.openColor
-                      : SimInclusionCallouts.closedColor)
-                  .withValues(alpha: 0.92),
+          color: color.withValues(alpha: 0.92),
           fontSize: 9.5,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.3,

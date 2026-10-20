@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import '../domain/diamond_grades.dart';
+import '../domain/inclusion_catalog.dart';
 import 'sim_mesh.dart';
 
 export '../domain/inclusion_catalog.dart';
@@ -9,82 +10,112 @@ export '../domain/inclusion_catalog.dart';
 /// Kinds of clarity characteristics the simulator draws.
 ///
 /// [code] is how `shaders/diamond_trace.frag` tells them apart: the
-/// tracer knows seven looks, and every later kind is traced as the one
-/// closest to it. [vectorCode] is the kind in
-/// `shaders/inclusion_vector.frag`, which draws each one as itself in the
-/// line drawing.
+/// tracer knows eight looks, and every other kind is traced as the one
+/// closest to it. The line drawing plots each with its GIA key symbol
+/// instead (`SimInclusionPlot`).
 enum SimInclusionKind {
   /// A speck too small to resolve: a single sparkling white point.
-  pinpoint(1, 1, InclusionType.pinpoint, 4),
+  pinpoint(1, InclusionType.pinpoint, 4),
 
   /// A dark included mineral (graphite, sulphide): absorbs light.
-  darkCrystal(2, 5, InclusionType.carbon, 2.5),
+  darkCrystal(2, InclusionType.carbon, 2.5),
 
   /// A transparent included mineral (olivine, garnet, diamond): bends
   /// and mirrors light at its faces.
-  clearCrystal(3, 4, InclusionType.crystal, 1.8),
+  clearCrystal(3, InclusionType.crystal, 1.8),
 
   /// A thin fracture: mirrors light past diamond's critical angle, frosty
   /// and broken at its edges.
-  feather(4, 6, InclusionType.feather, 1.25),
+  feather(4, InclusionType.feather, 1.25),
 
   /// A hazy drift of countless pinpoints.
-  cloud(5, 2, InclusionType.cloud, 1.05),
+  cloud(5, InclusionType.cloud, 1.05),
 
   /// A thin rod-like crystal, bright white; often several together.
-  needle(6, 3, InclusionType.needle, 1.15),
+  needle(6, InclusionType.needle, 1.15),
 
   /// A feather filled with lead glass: the crack all but vanishes, but
   /// flashes orange and blue as the stone moves.
-  filledFeather(7, 8, InclusionType.filledFeather, 1.25),
+  filledFeather(7, InclusionType.filledFeather, 1.25),
 
   /// A feather that breaks the surface.
-  openFeather(4, 7, InclusionType.openFeather, 1.25),
+  openFeather(4, InclusionType.openFeather, 1.25),
 
   /// A diamond crystal cut through at the surface.
-  knot(3, 9, InclusionType.knot, 1.8),
+  knot(3, InclusionType.knot, 1.8),
 
   /// An angular hole in the surface.
-  cavity(4, 10, InclusionType.cavity, 1.35),
+  cavity(4, InclusionType.cavity, 1.35),
 
   /// A shallow, shell-like break at the girdle edge.
-  chip(4, 11, InclusionType.chip, 1.35),
+  chip(4, InclusionType.chip, 1.35),
 
   /// A crushed point at a facet junction with root-like feathers.
-  bruise(4, 12, InclusionType.bruise, 1.6),
+  bruise(4, InclusionType.bruise, 1.6),
 
   /// Hair-fine feathers running in from the girdle.
-  bearding(4, 13, InclusionType.bearding, 1.5),
+  bearding(4, InclusionType.bearding, 1.5),
 
   /// The rough's skin dipping below the girdle.
-  indentedNatural(4, 14, InclusionType.indentedNatural, 1.35),
+  indentedNatural(4, InclusionType.indentedNatural, 1.35),
 
   /// Faint planes of irregular growth.
-  graining(5, 15, InclusionType.graining, 1.2),
+  graining(5, InclusionType.graining, 1.2),
 
   /// A twisted ribbon of pinpoints along a twin plane.
-  twinningWisp(5, 16, InclusionType.twinningWisp, 1.2),
+  twinningWisp(5, InclusionType.twinningWisp, 1.2),
 
   /// A hollow, kinked tunnel dissolved in from the surface.
-  etchChannel(6, 17, InclusionType.etchChannel, 1.25),
+  etchChannel(6, InclusionType.etchChannel, 1.25),
 
   /// A straight laser-bored tunnel from the surface to a crystal.
-  laserDrillHole(6, 18, InclusionType.laserDrillHole, 1.1),
+  laserDrillHole(6, InclusionType.laserDrillHole, 1.1),
 
   /// A dark crystal bleached through a drill hole; drawn as part of the
   /// hole, never labelled on its own.
-  bleachedCrystal(3, 19, InclusionType.laserDrillHole, 1.8);
+  bleachedCrystal(3, InclusionType.laserDrillHole, 1.8),
 
-  const SimInclusionKind(this.code, this.vectorCode, this.type, this.reach);
+  /// A feather along a cleavage plane.
+  cleavage(4, InclusionType.cleavage, 1.25),
+
+  /// A small knot of distorted growth: a faint haze.
+  grainCenter(5, InclusionType.grainCenter, 1.05),
+
+  /// A row of tiny nicks along a facet junction: a fuzzy white line.
+  abrasion(6, InclusionType.abrasion, 1.15),
+
+  /// The rough's skin left on the girdle.
+  natural(4, InclusionType.natural, 1.35),
+
+  /// A small notch at the girdle edge.
+  nick(4, InclusionType.nick, 1.35),
+
+  /// A tiny opening in a facet: a white speck.
+  pit(1, InclusionType.pit, 4),
+
+  /// Fine parallel lines left by polishing.
+  polishLines(6, InclusionType.polishLines, 1.15),
+
+  /// A hazy patch from heat while polishing.
+  burnMark(5, InclusionType.burnMark, 1.05),
+
+  /// A fine line scratched into a facet.
+  scratch(6, InclusionType.scratch, 1.15),
+
+  /// Growth lines where they cross the polished surface.
+  surfaceGraining(6, InclusionType.surfaceGraining, 1.15),
+
+  /// A small facet polished where none belongs: a flat mirror.
+  extraFacet(8, InclusionType.extraFacet, 1.35);
+
+  const SimInclusionKind(this.code, this.type, this.reach);
 
   final int code;
-  final int vectorCode;
 
   /// The characteristic it shows, for its label.
   final InclusionType type;
 
-  /// Bounding radius in units of [SimInclusion.size]; must match
-  /// `reachOf` in the vector shader.
+  /// Bounding radius in units of [SimInclusion.size].
   final double reach;
 
   bool get labelled => this != SimInclusionKind.bleachedCrystal;
@@ -185,9 +216,9 @@ abstract final class SimInclusions {
   /// Inclusion slots in the tracer (`diamond_trace.frag`).
   static const maxCount = 12;
 
-  /// Inclusion slots in the line drawing (`inclusion_vector.frag`):
-  /// enough for every kind at once.
-  static const maxVectorCount = 20;
+  /// Most inclusions a stone holds: enough for every kind at once. The
+  /// line drawing plots them all; the tracer the first [maxCount].
+  static const maxShown = 36;
 
   /// How much larger than true scale inclusions are drawn.
   static const visibility = 1.8;
@@ -245,7 +276,7 @@ abstract final class SimInclusions {
     }
     if (filling) out = _fill(mesh, out);
     if (drilling) out = _drill(mesh, out);
-    return out.take(maxVectorCount).toList();
+    return out.take(maxShown).toList();
   }
 
   /// Fills every feather with glass, first opening any closed one to the
@@ -279,9 +310,9 @@ abstract final class SimInclusions {
     }
     // Tunnels before the smallest specks if slots run out.
     return [
-      ...out.take(maxVectorCount - holes.length),
+      ...out.take(maxShown - holes.length),
       ...holes,
-    ].take(maxVectorCount).toList();
+    ].take(maxShown).toList();
   }
 
   /// A drill hole from [from] out to the facet nearest it.
@@ -367,6 +398,8 @@ abstract final class SimInclusions {
     InclusionType.needle,
     InclusionType.graining,
     InclusionType.twinningWisp,
+    InclusionType.cleavage,
+    InclusionType.grainCenter,
   ];
 
   /// Open kinds, in their places around the stone.
@@ -382,6 +415,10 @@ abstract final class SimInclusions {
     InclusionType.laserDrillHole,
     InclusionType.filledFeather,
   ];
+
+  /// External characteristics (blemishes), in their places around the
+  /// stone.
+  static const _surfaceSlots = giaExternalKey;
 
   static List<SimInclusion> _specimen(
     SimMesh mesh,
@@ -427,6 +464,16 @@ abstract final class SimInclusions {
           0.28,
           _axis(rng, flat: 0.6),
         ),
+        InclusionType.cleavage => (
+          SimInclusionKind.cleavage,
+          0.22,
+          _faceUp(rng),
+        ),
+        InclusionType.grainCenter => (
+          SimInclusionKind.grainCenter,
+          0.09,
+          _axis(rng),
+        ),
         _ => (SimInclusionKind.twinningWisp, 0.27, _axis(rng, flat: 0.5)),
       };
       final r = size * k;
@@ -440,7 +487,9 @@ abstract final class SimInclusions {
         margin: switch (kind) {
           SimInclusionKind.clearCrystal ||
           SimInclusionKind.darkCrystal => r * 1.6,
-          SimInclusionKind.feather || SimInclusionKind.graining => r * 0.15,
+          SimInclusionKind.feather ||
+          SimInclusionKind.cleavage ||
+          SimInclusionKind.graining => r * 0.15,
           SimInclusionKind.pinpoint => 0.03,
           _ => r * 0.4,
         },
@@ -460,10 +509,147 @@ abstract final class SimInclusions {
       ];
     }
 
+    final found = _surfaceSlots.contains(type)
+        ? _surfaceSpecimen(mesh, type, copy, k, rng, seed, girdleY)
+        : _openSpecimen(mesh, type, copy, k, rng, seed, girdleY);
+    return [for (final c in found) _pullIn(mesh, c)];
+  }
+
+  /// A blemish where it typically shows: naturals and nicks on the
+  /// girdle, abrasions along a facet junction, pits, polish lines and
+  /// burn marks on the crown, scratches on the table, surface graining
+  /// and extra facets on the pavilion.
+  static List<SimInclusion> _surfaceSpecimen(
+    SimMesh mesh,
+    InclusionType type,
+    int copy,
+    double k,
+    math.Random rng,
+    double seed,
+    double girdleY,
+  ) {
+    final slot = _surfaceSlots.indexOf(type);
+    final az = slot * 2 * math.pi / _surfaceSlots.length + 0.2 + copy * math.pi;
+    final top = _topY(mesh);
+    final hx = mesh.length / 2, hz = mesh.width / 2;
+    final cs = math.cos(az), sn = math.sin(az);
+    final hit = switch (type) {
+      InclusionType.natural => _girdlePoint(mesh, az, girdleY),
+      InclusionType.nick => _girdlePoint(
+        mesh,
+        az,
+        girdleY + mesh.girdleThickness * 0.5,
+      ),
+      InclusionType.abrasion ||
+      InclusionType.pit ||
+      InclusionType.polishLines ||
+      InclusionType.burnMark => _crownPoint(mesh, az, girdleY, top),
+      InclusionType.scratch => _cast(
+        mesh,
+        (cs * hx * 0.18, girdleY + (top - girdleY) * 0.5, sn * hz * 0.18),
+        (0, 1, 0),
+      ),
+      InclusionType.extraFacet => _cast(mesh, (
+        cs * hx * 0.5,
+        girdleY - mesh.pavilionDepth * 0.1,
+        sn * hz * 0.5,
+      ), _norm((cs, -0.45, sn))),
+      _ => _cast(mesh, (
+        cs * hx * 0.35,
+        girdleY - mesh.pavilionDepth * 0.25,
+        sn * hz * 0.35,
+      ), _norm((cs * 0.6, -1, sn * 0.6))),
+    };
+    if (hit == null) return const [];
+    var (p, n, d) = hit;
+    if (type == InclusionType.abrasion) {
+      // Abrasions wear along the junctions where facets meet.
+      final v = _nearestCorner(mesh, p, girdleY);
+      if (v != null) {
+        final (nn, dd) = _nearestPlane(mesh, v.$1, v.$2, v.$3);
+        (p, n, d) = (v, nn, dd);
+      }
+    }
+    final r =
+        switch (type) {
+          InclusionType.pit => 0.022,
+          InclusionType.nick => 0.06,
+          InclusionType.natural => 0.09,
+          InclusionType.burnMark => 0.1,
+          InclusionType.extraFacet => 0.08,
+          InclusionType.scratch => 0.15,
+          InclusionType.surfaceGraining => 0.16,
+          _ => 0.12,
+        } *
+        k;
+    final girdleRun = _norm(_cross(n, (0, 1, 0)));
+    final (kind, axis, depth) = switch (type) {
+      InclusionType.natural => (SimInclusionKind.natural, girdleRun, 0.006),
+      InclusionType.nick => (SimInclusionKind.nick, girdleRun, 0.006),
+      InclusionType.pit => (SimInclusionKind.pit, (-n.$1, -n.$2, -n.$3), 0.006),
+      // A burn is a haze flattened against its facet.
+      InclusionType.burnMark => (SimInclusionKind.burnMark, n, r * 0.45),
+      // An extra facet is a small flat tipped off the facet it cuts.
+      InclusionType.extraFacet => (
+        SimInclusionKind.extraFacet,
+        _norm((n.$1 + 0.3 * sn, n.$2 + 0.25, n.$3 - 0.3 * cs)),
+        0.012,
+      ),
+      // The rest are lines along the facet.
+      _ => (
+        switch (type) {
+          InclusionType.abrasion => SimInclusionKind.abrasion,
+          InclusionType.polishLines => SimInclusionKind.polishLines,
+          InclusionType.scratch => SimInclusionKind.scratch,
+          _ => SimInclusionKind.surfaceGraining,
+        },
+        _tangent(n, rng.nextDouble() * math.pi),
+        0.006,
+      ),
+    };
+    final c = _inward(p, n, depth);
     return [
-      for (final c in _openSpecimen(mesh, type, copy, k, rng, seed, girdleY))
-        _pullIn(mesh, c),
+      SimInclusion(
+        kind: kind,
+        x: c.$1,
+        y: c.$2,
+        z: c.$3,
+        size: r,
+        ax: axis.$1,
+        ay: axis.$2,
+        az: axis.$3,
+        seed: seed,
+        sx: n.$1,
+        sy: n.$2,
+        sz: n.$3,
+        sd: d,
+      ),
     ];
+  }
+
+  /// Where the ray from [from] (inside) along unit [dir] leaves the
+  /// stone: the point and the facet there.
+  static (_V, _V, double)? _cast(SimMesh mesh, _V from, _V dir) {
+    final exit = _exit(mesh, from, dir);
+    if (exit == null) return null;
+    final (t, plane) = exit;
+    return (
+      (from.$1 + dir.$1 * t, from.$2 + dir.$2 * t, from.$3 + dir.$3 * t),
+      (plane.$1, plane.$2, plane.$3),
+      plane.$4,
+    );
+  }
+
+  /// A unit vector square to unit [n], turned by [a] about it.
+  static _V _tangent(_V n, double a) {
+    final u = _norm(_cross(n, n.$2.abs() < 0.9 ? (0, 1, 0) : (1, 0, 0)));
+    final v = _cross(n, u);
+    final c = math.cos(a), s = math.sin(a);
+    return _norm((
+      u.$1 * c + v.$1 * s,
+      u.$2 * c + v.$2 * s,
+      u.$3 * c + v.$3 * s,
+    ));
   }
 
   /// [c] nudged toward the stone's axis until it is clear inside: at a
@@ -1079,153 +1265,6 @@ abstract final class SimInclusions {
       );
     }
     return out;
-  }
-
-  /// One [type] on its own round the origin, about a unit across, for a
-  /// picture of it: open kinds break a facet at y = 0.3 (normal up).
-  static List<SimInclusion> specimen(InclusionType type) {
-    const up = (0.0, 1.0, 0.0, 0.3);
-    SimInclusion one(
-      SimInclusionKind kind,
-      double size, {
-      _V at = (0, 0, 0),
-      _V axis = (0, 1, 0),
-      double seed = 0.37,
-      bool open = false,
-    }) {
-      final a = _norm(axis);
-      return SimInclusion(
-        kind: kind,
-        x: at.$1,
-        y: at.$2,
-        z: at.$3,
-        size: size,
-        ax: a.$1,
-        ay: a.$2,
-        az: a.$3,
-        seed: seed,
-        sx: open ? up.$1 : 0,
-        sy: open ? up.$2 : 0,
-        sz: open ? up.$3 : 0,
-        sd: open ? up.$4 : 0,
-      );
-    }
-
-    return switch (type) {
-      InclusionType.pinpoint => [one(SimInclusionKind.pinpoint, 0.12)],
-      InclusionType.cloud => [
-        one(SimInclusionKind.cloud, 0.95, axis: (0.3, 0.9, 0.2)),
-      ],
-      InclusionType.needle => [
-        one(SimInclusionKind.needle, 0.95, axis: (1, 0.35, 0.2), seed: 0.7),
-      ],
-      InclusionType.crystal => [
-        one(SimInclusionKind.clearCrystal, 0.5, axis: (0.3, 1, 0.4)),
-      ],
-      InclusionType.carbon => [
-        one(SimInclusionKind.darkCrystal, 0.5, axis: (0.2, 1, 0.5), seed: 0.3),
-      ],
-      InclusionType.feather => [
-        one(SimInclusionKind.feather, 0.95, axis: (0.2, 0.9, 0.5)),
-      ],
-      InclusionType.graining => [
-        one(SimInclusionKind.graining, 0.95, axis: (0.6, 0.5, 0.6)),
-      ],
-      InclusionType.twinningWisp => [
-        one(SimInclusionKind.twinningWisp, 0.95, axis: (1, 0.25, 0.1)),
-      ],
-      InclusionType.openFeather => [
-        one(
-          SimInclusionKind.openFeather,
-          0.9,
-          at: (0, 0.05, 0),
-          axis: (-0.52, 0.15, 0.85),
-          open: true,
-        ),
-      ],
-      InclusionType.filledFeather => [
-        one(
-          SimInclusionKind.filledFeather,
-          0.9,
-          at: (0, 0.05, 0),
-          axis: (-0.52, 0.15, 0.85),
-          open: true,
-        ),
-      ],
-      InclusionType.knot => [
-        one(
-          SimInclusionKind.knot,
-          0.55,
-          at: (0, 0.08, 0),
-          axis: (0.3, 1, 0.2),
-          seed: 0.2,
-          open: true,
-        ),
-      ],
-      InclusionType.cavity => [
-        one(
-          SimInclusionKind.cavity,
-          0.6,
-          at: (0, 0.28, 0),
-          axis: (0, -1, 0),
-          open: true,
-        ),
-      ],
-      InclusionType.chip => [
-        one(
-          SimInclusionKind.chip,
-          0.75,
-          at: (0, 0.29, 0),
-          axis: (1, 0, 0),
-          open: true,
-        ),
-      ],
-      InclusionType.bruise => [
-        one(
-          SimInclusionKind.bruise,
-          0.55,
-          at: (0, 0.29, 0),
-          axis: (0, -1, 0),
-          open: true,
-        ),
-      ],
-      InclusionType.bearding => [
-        one(
-          SimInclusionKind.bearding,
-          0.95,
-          at: (0, 0.29, 0),
-          axis: (1, 0, 0),
-          open: true,
-        ),
-      ],
-      InclusionType.indentedNatural => [
-        one(
-          SimInclusionKind.indentedNatural,
-          0.8,
-          at: (0, 0.29, 0),
-          axis: (1, 0, 0),
-          open: true,
-        ),
-      ],
-      InclusionType.etchChannel => [
-        one(
-          SimInclusionKind.etchChannel,
-          0.5,
-          at: (0, -0.2, 0),
-          axis: (0.2, 1, 0.1),
-          open: true,
-        ),
-      ],
-      InclusionType.laserDrillHole => [
-        one(SimInclusionKind.bleachedCrystal, 0.3, at: (0, -0.45, 0)),
-        one(
-          SimInclusionKind.laserDrillHole,
-          0.375,
-          at: (0, -0.075, 0),
-          open: true,
-        ),
-      ],
-    };
   }
 
   /// Packs [inclusions] the way the shader reads them: per inclusion,

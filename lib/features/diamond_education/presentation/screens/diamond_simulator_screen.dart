@@ -122,7 +122,8 @@ class _DiamondSimulatorScreenState
   bool _handBeforeExplorer = false;
 
   /// Inclusions are explored on the single stone in the line drawing,
-  /// each labelled outside it: off the hand, out of the scope.
+  /// each labelled outside it: off the hand, out of the scope. Traced,
+  /// the stone's surface is toned down so they show through.
   void _enterExplorer() {
     _modeBeforeExplorer = _viewport.mode;
     final hand = ref.read(simHandProvider.notifier);
@@ -132,12 +133,14 @@ class _DiamondSimulatorScreenState
     _viewport
       ..mode = SimRenderMode.vector
       ..focus.value = null
-      ..labelled.value = true;
+      ..labelled.value = true
+      ..inclusionView.value = true;
   }
 
   void _leaveExplorer() {
     _viewport
       ..labelled.value = false
+      ..inclusionView.value = false
       ..focus.value = null
       ..stage.value = null
       ..mode = _modeBeforeExplorer;

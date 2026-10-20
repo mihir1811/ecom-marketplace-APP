@@ -199,7 +199,172 @@ extension InclusionTypeClass on InclusionType {
       clarity: InclusionLevel.medium,
       durability: InclusionLevel.medium,
     ),
+    InclusionType.cleavage => const InclusionClass(
+      reach: InclusionReach.closed,
+      family: InclusionFamily.fracture,
+      origin: InclusionOrigin.afterGrowth,
+      clarity: InclusionLevel.medium,
+      durability: InclusionLevel.high,
+    ),
+    InclusionType.grainCenter => const InclusionClass(
+      reach: InclusionReach.closed,
+      family: InclusionFamily.growth,
+      origin: InclusionOrigin.growth,
+      clarity: InclusionLevel.low,
+      durability: InclusionLevel.none,
+    ),
+    InclusionType.abrasion => const InclusionClass(
+      reach: InclusionReach.open,
+      family: InclusionFamily.damage,
+      origin: InclusionOrigin.cutting,
+      clarity: InclusionLevel.low,
+      durability: InclusionLevel.none,
+    ),
+    InclusionType.natural => const InclusionClass(
+      reach: InclusionReach.open,
+      family: InclusionFamily.growth,
+      origin: InclusionOrigin.growth,
+      clarity: InclusionLevel.low,
+      durability: InclusionLevel.none,
+    ),
+    InclusionType.nick => const InclusionClass(
+      reach: InclusionReach.open,
+      family: InclusionFamily.damage,
+      origin: InclusionOrigin.cutting,
+      clarity: InclusionLevel.low,
+      durability: InclusionLevel.low,
+    ),
+    InclusionType.pit => const InclusionClass(
+      reach: InclusionReach.open,
+      family: InclusionFamily.damage,
+      origin: InclusionOrigin.cutting,
+      clarity: InclusionLevel.low,
+      durability: InclusionLevel.none,
+    ),
+    InclusionType.polishLines => const InclusionClass(
+      reach: InclusionReach.open,
+      family: InclusionFamily.damage,
+      origin: InclusionOrigin.cutting,
+      clarity: InclusionLevel.none,
+      durability: InclusionLevel.none,
+    ),
+    InclusionType.burnMark => const InclusionClass(
+      reach: InclusionReach.open,
+      family: InclusionFamily.damage,
+      origin: InclusionOrigin.cutting,
+      clarity: InclusionLevel.low,
+      durability: InclusionLevel.none,
+    ),
+    InclusionType.scratch => const InclusionClass(
+      reach: InclusionReach.open,
+      family: InclusionFamily.damage,
+      origin: InclusionOrigin.cutting,
+      clarity: InclusionLevel.low,
+      durability: InclusionLevel.none,
+    ),
+    InclusionType.surfaceGraining => const InclusionClass(
+      reach: InclusionReach.open,
+      family: InclusionFamily.growth,
+      origin: InclusionOrigin.growth,
+      clarity: InclusionLevel.none,
+      durability: InclusionLevel.none,
+    ),
+    InclusionType.extraFacet => const InclusionClass(
+      reach: InclusionReach.open,
+      family: InclusionFamily.damage,
+      origin: InclusionOrigin.cutting,
+      clarity: InclusionLevel.none,
+      durability: InclusionLevel.none,
+    ),
   };
 
   bool get isOpen => info.reach == InclusionReach.open;
+
+  /// On GIA's plotting key: an external characteristic (a blemish,
+  /// plotted green) rather than an internal one (plotted red). Kinds
+  /// that reach the surface from inside (a feather, a knot, a cavity)
+  /// are internal.
+  bool get isExternal => switch (this) {
+    InclusionType.abrasion ||
+    InclusionType.natural ||
+    InclusionType.nick ||
+    InclusionType.pit ||
+    InclusionType.polishLines ||
+    InclusionType.burnMark ||
+    InclusionType.scratch ||
+    InclusionType.surfaceGraining ||
+    InclusionType.extraFacet => true,
+    _ => false,
+  };
+
+  /// The GIA key symbol it is plotted with: kinds outside the key are
+  /// plotted as the one GIA files them under.
+  InclusionType get plotAs => switch (this) {
+    InclusionType.carbon => InclusionType.crystal,
+    InclusionType.openFeather ||
+    InclusionType.filledFeather ||
+    InclusionType.bearding => InclusionType.feather,
+    InclusionType.etchChannel => InclusionType.needle,
+    _ => this,
+  };
+
+  /// GIA's abbreviation for it on the plotting key.
+  String get giaCode => switch (plotAs) {
+    InclusionType.bruise => 'Br',
+    InclusionType.cavity => 'Cv',
+    InclusionType.chip => 'Ch',
+    InclusionType.cleavage => 'Clv',
+    InclusionType.cloud => 'Cld',
+    InclusionType.crystal => 'Xtl',
+    InclusionType.feather => 'Ftr',
+    InclusionType.grainCenter => 'GrCnt',
+    InclusionType.indentedNatural => 'IndN',
+    InclusionType.graining => 'IntGr',
+    InclusionType.knot => 'K',
+    InclusionType.laserDrillHole => 'LDH',
+    InclusionType.needle => 'Ndl',
+    InclusionType.pinpoint => 'Pp',
+    InclusionType.twinningWisp => 'W',
+    InclusionType.abrasion => 'Abr',
+    InclusionType.natural => 'N',
+    InclusionType.nick => 'Nk',
+    InclusionType.pit => 'Pit',
+    InclusionType.polishLines => 'PL',
+    InclusionType.burnMark => 'Brn',
+    InclusionType.scratch => 'S',
+    InclusionType.surfaceGraining => 'SGr',
+    _ => 'EF',
+  };
 }
+
+/// GIA's plotting key, in its order: internal characteristics, then
+/// external ones.
+const giaInternalKey = [
+  InclusionType.bruise,
+  InclusionType.cavity,
+  InclusionType.chip,
+  InclusionType.cleavage,
+  InclusionType.cloud,
+  InclusionType.crystal,
+  InclusionType.feather,
+  InclusionType.grainCenter,
+  InclusionType.indentedNatural,
+  InclusionType.graining,
+  InclusionType.knot,
+  InclusionType.laserDrillHole,
+  InclusionType.needle,
+  InclusionType.pinpoint,
+  InclusionType.twinningWisp,
+];
+
+const giaExternalKey = [
+  InclusionType.abrasion,
+  InclusionType.natural,
+  InclusionType.nick,
+  InclusionType.pit,
+  InclusionType.polishLines,
+  InclusionType.burnMark,
+  InclusionType.scratch,
+  InclusionType.surfaceGraining,
+  InclusionType.extraFacet,
+];

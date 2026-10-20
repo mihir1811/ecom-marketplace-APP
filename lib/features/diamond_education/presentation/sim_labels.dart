@@ -93,6 +93,17 @@ extension SimLabels on BuildContext {
     InclusionType.etchChannel => EducationL10n.incTypeEtchChannel,
     InclusionType.laserDrillHole => EducationL10n.incTypeLaserDrillHole,
     InclusionType.filledFeather => EducationL10n.incTypeFilledFeather,
+    InclusionType.cleavage => EducationL10n.incTypeCleavage,
+    InclusionType.grainCenter => EducationL10n.incTypeGrainCenter,
+    InclusionType.abrasion => EducationL10n.incTypeAbrasion,
+    InclusionType.natural => EducationL10n.incTypeNatural,
+    InclusionType.nick => EducationL10n.incTypeNick,
+    InclusionType.pit => EducationL10n.incTypePit,
+    InclusionType.polishLines => EducationL10n.incTypePolishLines,
+    InclusionType.burnMark => EducationL10n.incTypeBurnMark,
+    InclusionType.scratch => EducationL10n.incTypeScratch,
+    InclusionType.surfaceGraining => EducationL10n.incTypeSurfaceGraining,
+    InclusionType.extraFacet => EducationL10n.incTypeExtraFacet,
   });
 
   /// What an inclusion kind is, in a sentence, after GIA's definitions.
@@ -115,6 +126,17 @@ extension SimLabels on BuildContext {
     InclusionType.etchChannel => EducationL10n.incDefEtchChannel,
     InclusionType.laserDrillHole => EducationL10n.incDefLaserDrillHole,
     InclusionType.filledFeather => EducationL10n.incDefFilledFeather,
+    InclusionType.cleavage => EducationL10n.incDefCleavage,
+    InclusionType.grainCenter => EducationL10n.incDefGrainCenter,
+    InclusionType.abrasion => EducationL10n.incDefAbrasion,
+    InclusionType.natural => EducationL10n.incDefNatural,
+    InclusionType.nick => EducationL10n.incDefNick,
+    InclusionType.pit => EducationL10n.incDefPit,
+    InclusionType.polishLines => EducationL10n.incDefPolishLines,
+    InclusionType.burnMark => EducationL10n.incDefBurnMark,
+    InclusionType.scratch => EducationL10n.incDefScratch,
+    InclusionType.surfaceGraining => EducationL10n.incDefSurfaceGraining,
+    InclusionType.extraFacet => EducationL10n.incDefExtraFacet,
   });
 
   String inclusionReachName(InclusionReach r) => tr(switch (r) {

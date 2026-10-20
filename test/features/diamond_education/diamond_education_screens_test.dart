@@ -183,13 +183,14 @@ void main() {
         expect(viewport.vector, isTrue);
         expect(viewport.labelled.value, isTrue);
         expect(viewport.stage.value, isNotNull);
-        expect(find.text('Closed · wholly inside the stone'), findsOneWidget);
-        expect(find.text('Open · reaching the surface'), findsOneWidget);
+        expect(find.text('Internal · inclusions'), findsOneWidget);
+        expect(find.text('External · blemishes'), findsOneWidget);
+        expect(viewport.inclusionView.value, isTrue);
 
-        // Several at once, open and closed.
+        // Several at once, internal and external.
         await tapText('Knot');
         await tapText('Needle');
-        await tapText('Surface-reaching feather');
+        await tapText('Scratch');
         final types = container
             .read(diamondSimulatorProvider)
             .spec
@@ -197,10 +198,10 @@ void main() {
         expect(types, {
           InclusionType.knot,
           InclusionType.needle,
-          InclusionType.openFeather,
+          InclusionType.scratch,
         });
         // The card describes the one last picked.
-        expect(viewport.focus.value, InclusionType.openFeather);
+        expect(viewport.focus.value, InclusionType.scratch);
         expect(find.text('Durability risk'), findsWidgets);
         await tester.pump(const Duration(milliseconds: 800));
         expect(tester.takeException(), isNull);
@@ -208,6 +209,7 @@ void main() {
         await tapText('Done');
         expect(viewport.vector, isFalse);
         expect(viewport.labelled.value, isFalse);
+        expect(viewport.inclusionView.value, isFalse);
         await tester.pump(const Duration(milliseconds: 800));
         expect(viewport.stage.value, isNull);
         await _teardown(tester);

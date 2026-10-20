@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart' show immutable;
 import 'package:flutter/painting.dart';
 
 import '../domain/diamond_grades.dart';
-import 'sim_inclusion_shader.dart';
+import 'sim_inclusion_plot.dart';
 import 'sim_inclusions.dart';
 import 'sim_mesh.dart';
 import 'sim_optics.dart';
@@ -261,7 +261,7 @@ class SimWireStyle {
 /// same perspective as [SimRenderer]. Edges on the side facing the viewer
 /// are drawn crisp, those on the far side faintly (the stone is clear, so
 /// they read as depth without cluttering the face), and inclusions are
-/// drawn inside as the lit objects they are ([SimInclusionShader]).
+/// plotted over them with GIA's key to symbols ([SimInclusionPlot]).
 ///
 /// Visibility is exact: an edge shows when a facet beside it faces the
 /// viewer, and on a stone that is not convex (a heart) each edge is also
@@ -306,8 +306,8 @@ class SimWireRenderer {
 
   /// Paints [mesh] centred in [size] (or at [centre]); [pxPerUnit] maps
   /// model units to logical pixels at zoom 1, as for [SimRenderer.paint].
-  /// [inclusions] are drawn by [inclusionShader], between the far side's
-  /// edges and the near side's, at [inclusionOpacity].
+  /// [inclusions] are plotted by [inclusionPlot] over the edges, at
+  /// [inclusionOpacity].
   void paint(
     Canvas canvas,
     Size size, {
@@ -316,10 +316,9 @@ class SimWireRenderer {
     required double pxPerUnit,
     required SimWireStyle style,
     List<SimInclusion> inclusions = const [],
-    SimInclusionShader? inclusionShader,
+    SimInclusionPlot? inclusionPlot,
     double inclusionOpacity = 1,
     Offset? centre,
-    double time = 0,
   }) {
     if (size.isEmpty) return;
     final wire = SimWireMesh.of(mesh);
@@ -407,17 +406,6 @@ class SimWireRenderer {
         _hidPaint,
       );
     }
-    if (inclusionShader != null) {
-      inclusionShader.paint(
-        canvas,
-        inclusions,
-        rot: _rot,
-        scale: _scale,
-        centre: Offset(_cx, _cy),
-        opacity: inclusionOpacity,
-        time: time,
-      );
-    }
     if (_nv > 0) {
       _visPaint
         ..color = line
@@ -428,6 +416,14 @@ class SimWireRenderer {
         _visPaint,
       );
     }
+    inclusionPlot?.paint(
+      canvas,
+      inclusions,
+      rot: _rot,
+      scale: _scale,
+      centre: Offset(_cx, _cy),
+      opacity: inclusionOpacity,
+    );
   }
 
   void _addVisible(double x0, double y0, double x1, double y1) {

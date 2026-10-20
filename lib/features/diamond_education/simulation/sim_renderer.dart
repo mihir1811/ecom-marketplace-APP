@@ -186,6 +186,13 @@ class SimRenderer {
 
   set maxBounces(int value) => _tracer.maxBounces = value;
 
+  /// 0..1: how far the stone's own surface is toned down so the
+  /// inclusions inside read clearly (GPU only): reflections dimmed and
+  /// the facet pattern pulled toward an even glow of [_focusLevel].
+  double inclusionFocus = 0;
+
+  static const _focusLevel = 0.05;
+
   // ---- Sample layout -------------------------------------------------
 
   SimMesh? _layoutFor;
@@ -491,6 +498,7 @@ class SimRenderer {
   static const _uSpots = _uBoxes + SimStudio.maxBoxes * 12;
   static const _uScope = _uSpots + SimStudio.maxSpots * 8;
   static const _uIncl = _uScope + 4;
+  static const _uFocus = _uIncl + SimInclusions.maxCount * 8;
 
   void _paintGpu(
     Canvas canvas,
@@ -565,7 +573,9 @@ class SimRenderer {
       ..setFloat(32, mesh.radius)
       ..setFloat(33, 1 / (scale * s))
       ..setFloat(34, 1 / s)
-      ..setFloat(35, studio.lowestLight);
+      ..setFloat(35, studio.lowestLight)
+      ..setFloat(_uFocus, inclusionFocus.clamp(0.0, 1.0))
+      ..setFloat(_uFocus + 1, _focusLevel * studio.ambient);
 
     // Trace only the silhouette's bounds: the projected corners plus a
     // pixel for the anti-aliased edge.

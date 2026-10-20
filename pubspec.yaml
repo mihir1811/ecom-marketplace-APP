@@ -96,7 +96,6 @@ flutter:
     - shaders/home_cosmos.frag
     - shaders/auth_silk.frag
     - shaders/diamond_trace.frag
-    - shaders/inclusion_vector.frag
     - shaders/jewelry_shade.frag
 
   # To add assets to your application, add an assets section, like this:

@@ -31,6 +31,11 @@ precision highp float;
 // where they thin out, crystals are small octahedra (dark ones absorb,
 // clear ones bend the light), clouds are hazy drifts of tiny points,
 // needles thin bright rods and pinpoints single sparkling specks.
+//
+// Inclusion focus (uFocus): while a viewer studies the inclusions, the
+// stone's own surface is toned down, its reflections dimmed and its facet
+// pattern pulled toward an even glow, so what lies inside reads clearly
+// through it. The inclusions themselves keep their full contrast.
 
 const int MAX_PLANES = 140;
 const int MAX_BOXES = 6;
@@ -58,6 +63,7 @@ uniform vec4 uBoxes[MAX_BOXES * 3];  // centre; right axis + tan half width; rgb
 uniform vec4 uSpots[MAX_SPOTS * 2];  // dir + cos outer; rgb + 1/(cos inner − cos outer)
 uniform vec4 uScope;   // hearts & arrows scope flag, inclusion count, scope hole, fold
 uniform vec4 uIncl[MAX_INCL * 2];  // centre + size; axis + kind (whole part) and seed (fraction)
+uniform vec4 uFocus;   // inclusion focus 0..1, the even level facets fade to
 
 out vec4 fragColor;
 
@@ -130,6 +136,12 @@ vec3 studio(vec3 d) {
     c += w * w * (3.0 - 2.0 * w) * b.rgb;
   }
   return c;
+}
+
+// Light the facets return, toned down under inclusion focus.
+vec3 soften(vec3 c) {
+  vec3 even = vec3(uFocus.y) + 0.24 * c / (1.0 + c);
+  return mix(c, even, uFocus.x * 0.85);
 }
 
 float fresnel(float cosI, float cosT, float n1, float n2) {
@@ -255,7 +267,7 @@ float escape(float ior, vec3 t, vec3 n, float c, float s1, float thr,
   float f = fresnel(c, cT, ior, 1.0);
   vec3 e = ior * t - (ior * c - cT) * n;
   keep = thr * f;
-  return thr * (1.0 - f) * dot(studio(toWorld(e)), mask);
+  return thr * (1.0 - f) * dot(soften(studio(toWorld(e))), mask);
 }
 
 float exitFresnel(float c, float s1, float ior) {
@@ -296,7 +308,8 @@ void frame(vec3 n, float a, out vec3 u, out vec3 v) {
 // a little of the room along d.
 vec3 innerLight(vec3 d) {
   vec3 around = uScope.x > 0.5 ? vec3(0.42, 0.07, 0.08) : vec3(0.3 * uRim.w);
-  return around + uEmit.xyz * 4.0 + 0.1 * min(studio(toWorld(d)), vec3(3.0));
+  return (around + uEmit.xyz * 4.0 + 0.1 * min(studio(toWorld(d)), vec3(3.0))) *
+         (1.0 + 0.5 * uFocus.x);
 }
 
 // A crystal in its own frame: an octahedron with its corners cut by a
@@ -367,11 +380,18 @@ float featherOpen(vec2 q, float seed) {
   return clamp((rim - r) / (0.45 * rim), 0.15, 1.0);
 }
 
+// Inside a small polished facet at in-plane point q (units of its
+// radius): a hexagon, 1 inside and 0 beyond.
+float facetOpen(vec2 q) {
+  vec2 a = abs(q);
+  return max(a.x * 0.866 + a.y * 0.5, a.y) < 0.9 ? 1.0 : 0.0;
+}
+
 vec3 shade(vec3 p, vec3 d, vec3 n, mat2 g) {
   float cosI = max(-dot(d, n), 1e-4);
   float cosT = sqrt(1.0 - (1.0 - cosI * cosI) / (IOR_G * IOR_G));
   float f0 = fresnel(cosI, cosT, 1.0, IOR_G);
-  vec3 acc = f0 * studio(toWorld(reflect(d, n)));
+  vec3 acc = f0 * (1.0 - 0.75 * uFocus.x) * studio(toWorld(reflect(d, n)));
 
   float eta = 1.0 / IOR_G;
   vec3 t = eta * d + (eta * cosI - cosT) * n;
@@ -491,7 +511,7 @@ vec3 shade(vec3 p, vec3 d, vec3 n, mat2 g) {
           evN = normalOut(nIn, u, ax, v, sc);
         }
       } else if (kind < 4.5 || kind > 6.5) {
-        // Feather, open or glass-filled.
+        // Feather, open or glass-filled, or a small polished facet.
         float den = dot(t, b.xyz);
         if (abs(den) < 1e-5) continue;
         float s = dot(oc, b.xyz) / den;
@@ -500,7 +520,8 @@ vec3 shade(vec3 p, vec3 d, vec3 n, mat2 g) {
         vec3 v;
         frame(b.xyz, seed * 6.2832, u, v);
         vec3 q = p + t * s - a.xyz;
-        float open = featherOpen(vec2(dot(q, u), dot(q, v)) / a.w, seed);
+        vec2 fq = vec2(dot(q, u), dot(q, v)) / a.w;
+        float open = kind > 7.5 ? facetOpen(fq) : featherOpen(fq, seed);
         if (open > 0.0) {
           sEv = s;
           ev = k;
@@ -637,7 +658,12 @@ vec3 shade(vec3 p, vec3 d, vec3 n, mat2 g) {
         vec3 tint = mix(film, vec3(1.0), 0.6 + 0.4 * evW);
         // Frosted, broken faces: a crack reads white against the stone.
         vec3 glow = vec3(0.8 + 1.1 * evW);
-        if (kind > 6.5) {
+        if (kind > 7.5) {
+          // A polished extra facet: a clean, flat mirror.
+          r = 0.9;
+          tint = vec3(1.0);
+          glow = vec3(0.12);
+        } else if (kind > 6.5) {
           // Glass-filled: the filling's index is close to diamond's, so
           // the crack mostly lets light through, but what it returns is
           // split into orange and electric blue flashes.
@@ -680,7 +706,7 @@ vec3 shade(vec3 p, vec3 d, vec3 n, mat2 g) {
       // scope its diffuse light washes fire out, so they always do.
       float cG = sqrt(1.0 - s2G);
       vec3 e = IOR_G * t - (IOR_G * c - cG) * hn;
-      vec3 env = studio(toWorld(e));
+      vec3 env = soften(studio(toWorld(e)));
       vec3 f = vec3(exitFresnel(c, s1, IOR_R), fresnel(c, cG, IOR_G, 1.0),
                     exitFresnel(c, s1, IOR_B));
       acc += thr * (1.0 - f) * env;

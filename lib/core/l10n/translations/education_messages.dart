@@ -290,6 +290,32 @@ abstract final class EducationL10n {
   static const incDefEtchChannel = 'education.incDefEtchChannel';
   static const incDefLaserDrillHole = 'education.incDefLaserDrillHole';
   static const incDefFilledFeather = 'education.incDefFilledFeather';
+  static const incTypeCleavage = 'education.incTypeCleavage';
+  static const incTypeGrainCenter = 'education.incTypeGrainCenter';
+  static const incTypeAbrasion = 'education.incTypeAbrasion';
+  static const incTypeNatural = 'education.incTypeNatural';
+  static const incTypeNick = 'education.incTypeNick';
+  static const incTypePit = 'education.incTypePit';
+  static const incTypePolishLines = 'education.incTypePolishLines';
+  static const incTypeBurnMark = 'education.incTypeBurnMark';
+  static const incTypeScratch = 'education.incTypeScratch';
+  static const incTypeSurfaceGraining = 'education.incTypeSurfaceGraining';
+  static const incTypeExtraFacet = 'education.incTypeExtraFacet';
+  static const incDefCleavage = 'education.incDefCleavage';
+  static const incDefGrainCenter = 'education.incDefGrainCenter';
+  static const incDefAbrasion = 'education.incDefAbrasion';
+  static const incDefNatural = 'education.incDefNatural';
+  static const incDefNick = 'education.incDefNick';
+  static const incDefPit = 'education.incDefPit';
+  static const incDefPolishLines = 'education.incDefPolishLines';
+  static const incDefBurnMark = 'education.incDefBurnMark';
+  static const incDefScratch = 'education.incDefScratch';
+  static const incDefSurfaceGraining = 'education.incDefSurfaceGraining';
+  static const incDefExtraFacet = 'education.incDefExtraFacet';
+  static const incInternal = 'education.incInternal';
+  static const incExternal = 'education.incExternal';
+  static const incInternalTitle = 'education.incInternalTitle';
+  static const incExternalTitle = 'education.incExternalTitle';
   static const incReachClosed = 'education.incReachClosed';
   static const incReachOpen = 'education.incReachOpen';
   static const incClosedTitle = 'education.incClosedTitle';
@@ -1711,12 +1737,9 @@ const educationMessages = <String, LocalizedMessage>{
     gujarati: 'ભરેલું ફેધર',
   ),
   EducationL10n.incDefCrystal: LocalizedMessage(
-    english:
-        'A mineral crystal trapped as the diamond grew: often clear diamond, sometimes orange garnet or green diopside.',
-    hindi:
-        'हीरे के बढ़ते समय फँसा खनिज क्रिस्टल: अक्सर पारदर्शी हीरा, कभी नारंगी गार्नेट या हरा डायोप्साइड।',
-    gujarati:
-        'હીરો વધતી વખતે ફસાયેલું ખનિજ ક્રિસ્ટલ: મોટે ભાગે પારદર્શક હીરો, ક્યારેક નારંગી ગાર્નેટ કે લીલું ડાયોપ્સાઇડ.',
+    english: 'A mineral crystal trapped inside as the diamond grew.',
+    hindi: 'हीरे के बढ़ते समय अंदर फँसा खनिज क्रिस्टल।',
+    gujarati: 'હીરો વધતી વખતે અંદર ફસાયેલું ખનિજ ક્રિસ્ટલ.',
   ),
   EducationL10n.incDefCarbon: LocalizedMessage(
     english:
@@ -1727,44 +1750,34 @@ const educationMessages = <String, LocalizedMessage>{
         'અંદર ફસાયેલું ઘેરું ખનિજ, સામાન્ય રીતે ગ્રેફાઇટ કે સલ્ફાઇડ, ઘણી વાર ઝીણી તણાવ-તિરાડોથી ઘેરાયેલું.',
   ),
   EducationL10n.incDefFeather: LocalizedMessage(
-    english:
-        'A break inside the stone, white and feathery; it flashes like a mirror at some angles.',
-    hindi:
-        'हीरे के अंदर की दरार, सफ़ेद और पंख जैसी; कुछ कोणों पर आईने जैसी चमकती है।',
-    gujarati:
-        'હીરાની અંદરની તિરાડ, સફેદ અને પીંછા જેવી; કેટલાક ખૂણે અરીસા જેવી ચમકે છે.',
+    english: 'A crack inside the stone; white and feathery.',
+    hindi: 'हीरे के अंदर की दरार; सफ़ेद और पंख जैसी।',
+    gujarati: 'હીરાની અંદરની તિરાડ; સફેદ અને પીંછા જેવી.',
   ),
   EducationL10n.incDefCloud: LocalizedMessage(
-    english: 'Many pinpoints grouped so tightly they look like a soft haze.',
-    hindi: 'इतने पास-पास पिनपॉइंट कि वे हल्की धुंध जैसे दिखते हैं।',
-    gujarati: 'એટલા નજીક પિનપોઇન્ટ કે તે હળવા ધુમ્મસ જેવા દેખાય છે.',
+    english: 'Many tiny pinpoints together, like a soft haze.',
+    hindi: 'बहुत से छोटे पिनपॉइंट एक साथ, हल्की धुंध जैसे।',
+    gujarati: 'ઘણા નાના પિનપોઇન્ટ સાથે, હળવા ધુમ્મસ જેવા.',
   ),
   EducationL10n.incDefPinpoint: LocalizedMessage(
-    english: 'A very small crystal that looks like a tiny bright dot at 10x.',
-    hindi: 'बहुत छोटा क्रिस्टल जो 10x पर एक चमकदार बिंदु जैसा दिखता है।',
-    gujarati: 'ખૂબ નાનું ક્રિસ્ટલ જે 10x પર ચમકતા ટપકા જેવું દેખાય છે.',
+    english: 'A very small crystal; a tiny dot at 10x.',
+    hindi: 'बहुत छोटा क्रिस्टल; 10x पर छोटा बिंदु।',
+    gujarati: 'ખૂબ નાનું ક્રિસ્ટલ; 10x પર નાનું ટપકું.',
   ),
   EducationL10n.incDefNeedle: LocalizedMessage(
-    english:
-        'A thin, long crystal like a tiny rod, often several lying together.',
-    hindi: 'छोटी छड़ जैसा पतला, लंबा क्रिस्टल, अक्सर कई एक साथ।',
-    gujarati: 'નાની સળી જેવું પાતળું, લાંબું ક્રિસ્ટલ, ઘણી વાર કેટલાંક સાથે.',
+    english: 'A long, thin crystal like a tiny rod.',
+    hindi: 'लंबा, पतला क्रिस्टल, छोटी छड़ जैसा।',
+    gujarati: 'લાંબું, પાતળું ક્રિસ્ટલ, નાની સળી જેવું.',
   ),
   EducationL10n.incDefGraining: LocalizedMessage(
-    english:
-        'Lines or planes from uneven crystal growth; faint, whitish or reflective.',
-    hindi:
-        'असमान क्रिस्टल वृद्धि से बनी रेखाएँ या तल; हल्की, सफ़ेद-सी या चमकीली।',
-    gujarati:
-        'અસમાન ક્રિસ્ટલ વૃદ્ધિથી બનેલી રેખાઓ કે સપાટીઓ; આછી, સફેદ જેવી કે ચમકતી.',
+    english: 'Faint lines from uneven crystal growth.',
+    hindi: 'असमान क्रिस्टल वृद्धि से बनी हल्की रेखाएँ।',
+    gujarati: 'અસમાન ક્રિસ્ટલ વૃદ્ધિથી બનેલી હળવી રેખાઓ.',
   ),
   EducationL10n.incDefTwinningWisp: LocalizedMessage(
-    english:
-        'A twisted ribbon of pinpoints, clouds or crystals along a growth twin plane.',
-    hindi:
-        'ग्रोथ ट्विन तल के साथ पिनपॉइंट, क्लाउड या क्रिस्टल की मुड़ी हुई पट्टी।',
-    gujarati:
-        'ગ્રોથ ટ્વિન સપાટી સાથે પિનપોઇન્ટ, ક્લાઉડ કે ક્રિસ્ટલની વળેલી પટ્ટી.',
+    english: 'A twisted ribbon of pinpoints along a growth plane.',
+    hindi: 'वृद्धि-तल पर पिनपॉइंट की मुड़ी हुई पट्टी।',
+    gujarati: 'વૃદ્ધિ-તલ પર પિનપોઇન્ટની વળેલી પટ્ટી.',
   ),
   EducationL10n.incDefOpenFeather: LocalizedMessage(
     english:
@@ -1773,36 +1786,24 @@ const educationMessages = <String, LocalizedMessage>{
     gujarati: 'પૉલિશ સપાટી સુધી પહોંચેલું ફેધર; જોરદાર ટક્કરથી તે વધી શકે છે.',
   ),
   EducationL10n.incDefKnot: LocalizedMessage(
-    english:
-        'A diamond crystal that reaches the surface after cutting, often with drag lines beside it.',
-    hindi:
-        'कटिंग के बाद सतह तक पहुँचा हीरे का क्रिस्टल, अक्सर पास में घिसाव की रेखाएँ।',
-    gujarati:
-        'કટિંગ પછી સપાટી સુધી પહોંચેલું હીરાનું ક્રિસ્ટલ, ઘણી વાર પાસે ઘસારાની રેખાઓ.',
+    english: 'A diamond crystal that reaches the surface.',
+    hindi: 'हीरे का क्रिस्टल जो सतह तक पहुँचता है।',
+    gujarati: 'હીરાનું ક્રિસ્ટલ જે સપાટી સુધી પહોંચે છે.',
   ),
   EducationL10n.incDefCavity: LocalizedMessage(
-    english:
-        'An angular opening left where a surface crystal or part of a feather broke away.',
-    hindi:
-        'जहाँ सतह का क्रिस्टल या फ़ेदर का हिस्सा टूटकर निकला, वहाँ बना कोणीय गड्ढा।',
-    gujarati:
-        'જ્યાં સપાટીનું ક્રિસ્ટલ કે ફેધરનો ભાગ તૂટીને નીકળ્યો, ત્યાં બનેલો ખૂણાદાર ખાડો.',
+    english: 'An opening in the surface where a crystal fell out.',
+    hindi: 'सतह में खुला गड्ढा, जहाँ से कोई क्रिस्टल निकल गया।',
+    gujarati: 'સપાટીમાં ખુલ્લો ખાડો, જ્યાંથી કોઈ ક્રિસ્ટલ નીકળી ગયું.',
   ),
   EducationL10n.incDefChip: LocalizedMessage(
-    english:
-        'A shallow, shell-like break in the surface, usually at the girdle edge or a facet junction.',
-    hindi:
-        'सतह पर उथली, सीप जैसी टूट, आमतौर पर गर्डल किनारे या फ़ैसेट जोड़ पर।',
-    gujarati:
-        'સપાટી પર છીછરું, છીપ જેવું તૂટવું, સામાન્ય રીતે ગર્ડલ કિનારે કે ફેસેટ જોડ પર.',
+    english: 'A small piece broken off, usually at the girdle edge.',
+    hindi: 'टूटकर निकला छोटा टुकड़ा, अक्सर गर्डल के किनारे पर।',
+    gujarati: 'તૂટીને નીકળેલો નાનો ટુકડો, મોટે ભાગે ગર્ડલની ધાર પર.',
   ),
   EducationL10n.incDefBruise: LocalizedMessage(
-    english:
-        'A tiny area of impact with root-like feathers, usually at a facet junction.',
-    hindi:
-        'टक्कर का छोटा स्थान, जड़ जैसी बारीक दरारों के साथ, आमतौर पर फ़ैसेट जोड़ पर।',
-    gujarati:
-        'ટક્કરનો નાનો ભાગ, મૂળ જેવી ઝીણી તિરાડો સાથે, સામાન્ય રીતે ફેસેટ જોડ પર.',
+    english: 'A tiny crushed spot from a knock, with root-like cracks.',
+    hindi: 'चोट से बना छोटा कुचला धब्बा, जड़ जैसी दरारों के साथ।',
+    gujarati: 'ટક્કરથી બનેલો નાનો કચડાયેલો ડાઘ, મૂળ જેવી તિરાડો સાથે.',
   ),
   EducationL10n.incDefBearding: LocalizedMessage(
     english:
@@ -1813,11 +1814,9 @@ const educationMessages = <String, LocalizedMessage>{
         'ગર્ડલથી અંદર જતી વાળ જેવી ઝીણી તિરાડો, જે આકાર આપતી વખતે બને છે.',
   ),
   EducationL10n.incDefIndentedNatural: LocalizedMessage(
-    english:
-        'A patch of the rough diamond\'s original skin that dips below the polished surface.',
-    hindi: 'कच्चे हीरे की मूल सतह का हिस्सा जो पॉलिश सतह से नीचे धँसा रहता है।',
-    gujarati:
-        'કાચા હીરાની મૂળ સપાટીનો ભાગ જે પૉલિશ સપાટીથી નીચે ઊતરેલો રહે છે.',
+    english: 'Original rough skin dipping below the polished surface.',
+    hindi: 'मूल कच्ची सतह जो पॉलिश सतह से नीचे धँसी हो।',
+    gujarati: 'મૂળ કાચી સપાટી જે પોલિશ સપાટીથી નીચે ઊતરેલી હોય.',
   ),
   EducationL10n.incDefEtchChannel: LocalizedMessage(
     english:
@@ -1827,12 +1826,9 @@ const educationMessages = <String, LocalizedMessage>{
     gujarati: 'પૃથ્વીના પ્રવાહીઓથી સપાટીથી અંદર ઓગળેલી પોલી, વળેલી સુરંગ.',
   ),
   EducationL10n.incDefLaserDrillHole: LocalizedMessage(
-    english:
-        'A straight tunnel a laser bores to a dark crystal so it can be bleached; a sign of treatment.',
-    hindi:
-        'गहरे क्रिस्टल तक लेज़र से बनी सीधी सुरंग ताकि उसे ब्लीच किया जा सके; उपचार का संकेत।',
-    gujarati:
-        'ઘેરા ક્રિસ્ટલ સુધી લેસરથી બનાવેલી સીધી સુરંગ જેથી તેને બ્લીચ કરી શકાય; ઉપચારની નિશાની.',
+    english: 'A fine tunnel a laser makes to remove a dark crystal.',
+    hindi: 'गहरे क्रिस्टल को हटाने के लिए लेज़र से बनी पतली सुरंग।',
+    gujarati: 'ઘેરા ક્રિસ્ટલને દૂર કરવા લેસરથી બનેલી પાતળી સુરંગ.',
   ),
   EducationL10n.incDefFilledFeather: LocalizedMessage(
     english:
@@ -1841,6 +1837,136 @@ const educationMessages = <String, LocalizedMessage>{
         'छिपाने के लिए काँच से भरा खुला फ़ेदर; हीरा हिलाने पर नारंगी और नीली चमक देता है।',
     gujarati:
         'છુપાવવા કાચથી ભરેલું ખુલ્લું ફેધર; હીરો હલાવતાં નારંગી અને વાદળી ચમક આપે છે.',
+  ),
+  EducationL10n.incTypeCleavage: LocalizedMessage(
+    english: 'Cleavage',
+    hindi: 'क्लीवेज',
+    gujarati: 'ક્લીવેજ',
+  ),
+  EducationL10n.incTypeGrainCenter: LocalizedMessage(
+    english: 'Grain center',
+    hindi: 'ग्रेन सेंटर',
+    gujarati: 'ગ્રેન સેન્ટર',
+  ),
+  EducationL10n.incTypeAbrasion: LocalizedMessage(
+    english: 'Abrasion',
+    hindi: 'एब्रेज़न',
+    gujarati: 'એબ્રેઝન',
+  ),
+  EducationL10n.incTypeNatural: LocalizedMessage(
+    english: 'Natural',
+    hindi: 'नैचुरल',
+    gujarati: 'નેચરલ',
+  ),
+  EducationL10n.incTypeNick: LocalizedMessage(
+    english: 'Nick',
+    hindi: 'निक',
+    gujarati: 'નિક',
+  ),
+  EducationL10n.incTypePit: LocalizedMessage(
+    english: 'Pit',
+    hindi: 'पिट',
+    gujarati: 'પિટ',
+  ),
+  EducationL10n.incTypePolishLines: LocalizedMessage(
+    english: 'Polish lines',
+    hindi: 'पॉलिश लाइन्स',
+    gujarati: 'પોલિશ લાઇન્સ',
+  ),
+  EducationL10n.incTypeBurnMark: LocalizedMessage(
+    english: 'Burn mark',
+    hindi: 'बर्न मार्क',
+    gujarati: 'બર્ન માર્ક',
+  ),
+  EducationL10n.incTypeScratch: LocalizedMessage(
+    english: 'Scratch',
+    hindi: 'स्क्रैच',
+    gujarati: 'સ્ક્રેચ',
+  ),
+  EducationL10n.incTypeSurfaceGraining: LocalizedMessage(
+    english: 'Surface graining',
+    hindi: 'सतही ग्रेनिंग',
+    gujarati: 'સપાટી ગ્રેનિંગ',
+  ),
+  EducationL10n.incTypeExtraFacet: LocalizedMessage(
+    english: 'Extra facet',
+    hindi: 'अतिरिक्त फ़ैसेट',
+    gujarati: 'વધારાનો ફેસેટ',
+  ),
+  EducationL10n.incDefCleavage: LocalizedMessage(
+    english: 'A straight crack along the diamond\'s natural split plane.',
+    hindi: 'हीरे की प्राकृतिक दरार-सतह पर सीधी दरार।',
+    gujarati: 'હીરાની કુદરતી ફાટ-સપાટી પર સીધી તિરાડ.',
+  ),
+  EducationL10n.incDefGrainCenter: LocalizedMessage(
+    english: 'A small spot of twisted crystal growth.',
+    hindi: 'टेढ़ी-मेढ़ी क्रिस्टल वृद्धि का छोटा केंद्र।',
+    gujarati: 'વાંકીચૂકી ક્રિસ્ટલ વૃદ્ધિનું નાનું કેન્દ્ર.',
+  ),
+  EducationL10n.incDefAbrasion: LocalizedMessage(
+    english: 'Tiny nicks along facet edges that make them look fuzzy.',
+    hindi: 'फ़ैसेट किनारों पर छोटे निशान, जो उन्हें धुंधला दिखाते हैं।',
+    gujarati: 'ફેસેટની ધાર પર નાના ઘસારા, જે તેને ઝાંખી બતાવે છે.',
+  ),
+  EducationL10n.incDefNatural: LocalizedMessage(
+    english: 'Original rough skin left on the girdle.',
+    hindi: 'गर्डल पर बची मूल कच्ची सतह।',
+    gujarati: 'ગર્ડલ પર રહી ગયેલી મૂળ કાચી સપાટી.',
+  ),
+  EducationL10n.incDefNick: LocalizedMessage(
+    english: 'A small notch, usually on the girdle or a facet edge.',
+    hindi: 'छोटा खाँचा, अक्सर गर्डल या फ़ैसेट किनारे पर।',
+    gujarati: 'નાનો ખાંચો, મોટે ભાગે ગર્ડલ કે ફેસેટની ધાર પર.',
+  ),
+  EducationL10n.incDefPit: LocalizedMessage(
+    english: 'A tiny hole in a facet; looks like a white dot.',
+    hindi: 'फ़ैसेट में छोटा छेद; सफ़ेद बिंदु जैसा।',
+    gujarati: 'ફેસેટમાં નાનું છિદ્ર; સફેદ ટપકા જેવું.',
+  ),
+  EducationL10n.incDefPolishLines: LocalizedMessage(
+    english: 'Fine parallel lines left by polishing.',
+    hindi: 'पॉलिश से बनी बारीक समानांतर रेखाएँ।',
+    gujarati: 'પોલિશથી બનેલી બારીક સમાંતર રેખાઓ.',
+  ),
+  EducationL10n.incDefBurnMark: LocalizedMessage(
+    english: 'A hazy patch from too much heat while polishing.',
+    hindi: 'पॉलिश के समय ज़्यादा गर्मी से बना धुंधला धब्बा।',
+    gujarati: 'પોલિશ વખતે વધુ ગરમીથી બનેલો ઝાંખો ડાઘ.',
+  ),
+  EducationL10n.incDefScratch: LocalizedMessage(
+    english: 'A fine line cut into the surface.',
+    hindi: 'सतह पर बारीक खरोंच की रेखा।',
+    gujarati: 'સપાટી પર બારીક ઘસરકાની રેખા.',
+  ),
+  EducationL10n.incDefSurfaceGraining: LocalizedMessage(
+    english: 'Growth lines that show on the polished surface.',
+    hindi: 'वृद्धि रेखाएँ जो पॉलिश सतह पर दिखती हैं।',
+    gujarati: 'વૃદ્ધિ રેખાઓ જે પોલિશ સપાટી પર દેખાય છે.',
+  ),
+  EducationL10n.incDefExtraFacet: LocalizedMessage(
+    english: 'A small facet added where the design has none.',
+    hindi: 'ऐसी जगह बना छोटा फ़ैसेट जहाँ डिज़ाइन में नहीं है।',
+    gujarati: 'એવી જગ્યાએ બનેલો નાનો ફેસેટ જ્યાં ડિઝાઇનમાં નથી.',
+  ),
+  EducationL10n.incInternal: LocalizedMessage(
+    english: 'Internal',
+    hindi: 'आंतरिक',
+    gujarati: 'આંતરિક',
+  ),
+  EducationL10n.incExternal: LocalizedMessage(
+    english: 'External',
+    hindi: 'बाहरी',
+    gujarati: 'બાહ્ય',
+  ),
+  EducationL10n.incInternalTitle: LocalizedMessage(
+    english: 'Internal · inclusions',
+    hindi: 'आंतरिक · समावेशन',
+    gujarati: 'આંતરિક · સમાવેશ',
+  ),
+  EducationL10n.incExternalTitle: LocalizedMessage(
+    english: 'External · blemishes',
+    hindi: 'बाहरी · सतही दोष',
+    gujarati: 'બાહ્ય · સપાટી દોષ',
   ),
   EducationL10n.incReachClosed: LocalizedMessage(
     english: 'Closed',
@@ -1968,12 +2094,9 @@ const educationMessages = <String, LocalizedMessage>{
     gujarati: 'ક્યુલેટ',
   ),
   EducationL10n.incExplorerHint: LocalizedMessage(
-    english:
-        'Pick any number. Each is labelled outside the stone and followed as it turns.',
-    hindi:
-        'जितने चाहें चुनें। हर एक का लेबल हीरे के बाहर दिखता है और घूमते समय साथ चलता है।',
-    gujarati:
-        'જેટલાં જોઈએ તેટલાં પસંદ કરો. દરેકનું લેબલ હીરાની બહાર દેખાય છે અને ફરતી વખતે સાથે ચાલે છે.',
+    english: 'Pick any. As on a GIA report: red inside, green on the surface.',
+    hindi: 'कोई भी चुनें। GIA रिपोर्ट की तरह: लाल अंदर, हरा सतह पर।',
+    gujarati: 'કોઈ પણ પસંદ કરો. GIA રિપોર્ટ જેવું: લાલ અંદર, લીલું સપાટી પર.',
   ),
   EducationL10n.incPickToSee: LocalizedMessage(
     english: 'Pick inclusions below to see them inside the stone.',
