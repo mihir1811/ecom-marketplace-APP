@@ -338,7 +338,9 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
     return LayoutBuilder(
       builder: (context, constraints) {
         _center = constraints.biggest.center(Offset.zero);
-        final ring = _Annulus(
+        // Faded through its colours, never an opacity layer: an offscreen
+        // pass every frame would compete with the stone's trace.
+        Widget ring(double fade) => _Annulus(
           inner: r - band / 2 - 10,
           outer: r + band / 2 + 12,
           child: Listener(
@@ -360,11 +362,13 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
                         accent: p.accent,
                         count: _n,
                         marks: _marks,
+                        fade: fade,
                       ),
                     ),
                     AnimatedBuilder(
                       animation: _dial,
-                      builder: (context, _) => Stack(children: _icons(p, r)),
+                      builder: (context, _) =>
+                          Stack(children: _icons(p, r, fade)),
                     ),
                   ],
                 ),
@@ -393,13 +397,13 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
                   child: child,
                 ),
                 child: _Entrance(
-                  child: AnimatedOpacity(
-                    opacity: _dim ? 0.22 : 1,
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(end: _dim ? 0.22 : 1),
                     duration: _dim
                         ? const Duration(milliseconds: 900)
                         : LuxeMotion.fast,
                     curve: Curves.easeOut,
-                    child: ring,
+                    builder: (context, fade, _) => ring(fade),
                   ),
                 ),
               ),
@@ -410,25 +414,29 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
               right: 16,
               top: _center.dy + r + band / 2 + 12,
               child: IgnorePointer(
-                child: AnimatedOpacity(
-                  opacity: _dim ? 0.35 : 1,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(end: _dim ? 0.35 : 1),
                   duration: _dim
                       ? const Duration(milliseconds: 900)
                       : LuxeMotion.fast,
-                  child: ValueListenableBuilder<SimShape>(
-                    valueListenable: _nearest,
-                    builder: (context, shape, _) => AnimatedSwitcher(
-                      duration: LuxeMotion.fast,
-                      child: Text(
-                        context.shapeName(shape),
-                        key: ValueKey(shape),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: LuxeType.display(20, p.ink),
+                  builder: (context, fade, _) =>
+                      ValueListenableBuilder<SimShape>(
+                        valueListenable: _nearest,
+                        builder: (context, shape, _) => AnimatedSwitcher(
+                          duration: LuxeMotion.fast,
+                          child: Text(
+                            context.shapeName(shape),
+                            key: ValueKey(shape),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: LuxeType.display(
+                              20,
+                              p.ink.withValues(alpha: p.ink.a * fade),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
                 ),
               ),
             ),
@@ -457,7 +465,7 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
 
   /// Each shape on the ring, upright, growing and taking the accent as it
   /// nears the top.
-  List<Widget> _icons(LuxePalette p, double r) {
+  List<Widget> _icons(LuxePalette p, double r, double fade) {
     final pos = _dial.value;
     return [
       for (var s = 0; s < _n; s++)
@@ -471,6 +479,7 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
             p.accent,
             near,
           )!;
+          final shown = color.withValues(alpha: color.a * fade);
           final c = _center + Offset(math.cos(a), math.sin(a)) * r;
           return Positioned(
             left: c.dx - size / 2,
@@ -479,7 +488,7 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
             height: size,
             child: SvgPicture.asset(
               _shapes[s].svgAsset,
-              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+              colorFilter: ColorFilter.mode(shown, BlendMode.srcIn),
               placeholderBuilder: (_) => const SizedBox.shrink(),
             ),
           );
@@ -518,6 +527,7 @@ class _RingPainter extends CustomPainter {
     required this.accent,
     required this.count,
     required this.marks,
+    required this.fade,
   }) : super(repaint: dial);
 
   final Animation<double> dial;
@@ -525,14 +535,17 @@ class _RingPainter extends CustomPainter {
   final Color accent;
   final int count, marks;
 
-  final Paint _band = Paint()
+  /// 1 in full view, less as the ring fades back.
+  final double fade;
+
+  late final Paint _band = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = SimShapeDial.band
-    ..color = const Color(0x52101114);
-  final Paint _edge = Paint()
+    ..color = Color.fromRGBO(16, 17, 20, 0.32 * fade);
+  late final Paint _edge = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1
-    ..color = const Color(0x2EFFFFFF);
+    ..color = Color.fromRGBO(255, 255, 255, 0.18 * fade);
   final Paint _mark = Paint()
     ..strokeWidth = 1.2
     ..strokeCap = StrokeCap.round;
@@ -558,7 +571,7 @@ class _RingPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = SimShapeDial.band - 8
         ..strokeCap = StrokeCap.round
-        ..color = accent.withValues(alpha: 0.16),
+        ..color = accent.withValues(alpha: 0.16 * fade),
     );
     // A pointer above the window.
     final tip = c + Offset(0, -radius - half + 1);
@@ -568,7 +581,7 @@ class _RingPainter extends CustomPainter {
         ..lineTo(tip.dx - 6, tip.dy - 7)
         ..lineTo(tip.dx + 6, tip.dy - 7)
         ..close(),
-      Paint()..color = accent,
+      Paint()..color = accent.withValues(alpha: accent.a * fade),
     );
 
     // Ratchet marks along the outer edge, turning with the dial; the
@@ -582,7 +595,7 @@ class _RingPainter extends CustomPainter {
       final a = -math.pi / 2 + rel * step;
       final near = (1 - rel.abs() / 2).clamp(0.0, 1.0);
       final dir = Offset(math.cos(a), math.sin(a));
-      _mark.color = Color.fromRGBO(255, 255, 255, 0.16 + 0.3 * near);
+      _mark.color = Color.fromRGBO(255, 255, 255, (0.16 + 0.3 * near) * fade);
       canvas.drawLine(
         c + dir * (radius + half - 8),
         c + dir * (radius + half - 3),
@@ -597,6 +610,7 @@ class _RingPainter extends CustomPainter {
       old.accent != accent ||
       old.count != count ||
       old.marks != marks ||
+      old.fade != fade ||
       old.dial != dial;
 }
 

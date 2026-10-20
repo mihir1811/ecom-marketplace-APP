@@ -352,9 +352,13 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   /// Steers the moving trace density from real raster times, reported in
   /// batches about once a second.
   void _onTimings(List<FrameTiming> timings) {
+    // Frames with the shape dial carry its drawing and the morph too: they
+    // say nothing about what the stone alone costs, and must never cost
+    // it resolution.
     if (!_ticker.isActive ||
         _renderer.shader == null ||
         _c.vector ||
+        _withDial ||
         timings.isEmpty) {
       return;
     }
@@ -402,6 +406,13 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _syncTicker();
     _invalidate();
   }
+
+  /// While the shape dial is open (or easing away) the stone is traced at
+  /// the screen's full resolution on every frame, moving or not: inside
+  /// the ring it is smaller, so that costs no more than usual, and a
+  /// stone being reshaped must stay perfectly crisp.
+  bool get _withDial =>
+      _c.fit.value != null || _fitAmount > 0 || _c.morph.value != null;
 
   double get _fitGoal => _c.fit.value == null ? 0 : 1;
 
@@ -537,7 +548,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       samplePx: quality ? math.max(3.6, _samplePx * 0.55) : _samplePx,
       devicePixelRatio: _dpr,
       // At rest, one frame at full resolution.
-      renderScale: quality ? _dpr : math.min(_renderScale, _dpr),
+      renderScale: quality || _withDial ? _dpr : math.min(_renderScale, _dpr),
       time: _time,
       twinkle: _ticker.isActive,
     );
