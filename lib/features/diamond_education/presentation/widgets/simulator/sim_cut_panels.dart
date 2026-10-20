@@ -12,8 +12,7 @@ import '../diamond_profile_diagram.dart';
 import 'diamond_sim_viewport.dart';
 import 'sim_controls.dart';
 
-/// Cut grade presets, the stone's measured light performance and the
-/// hearts & arrows scope.
+/// Cut grade presets and the hearts & arrows scope.
 class SimCutPanel extends ConsumerWidget {
   const SimCutPanel({required this.viewport, super.key});
 
@@ -36,27 +35,7 @@ class SimCutPanel extends ConsumerWidget {
           onSelected: ref.read(diamondSimulatorProvider.notifier).applyCutGrade,
         ),
         if (!onHand) ...[
-          const SizedBox(height: 14),
-          SimLabel(context.tr(EducationL10n.lightPerformance)),
-          ValueListenableBuilder<SimLightReadout>(
-            valueListenable: viewport.readout,
-            builder: (context, r, _) => Column(
-              children: [
-                SimMeter(
-                  label: context.tr(EducationL10n.brightness),
-                  value: r.brightness,
-                ),
-                const SizedBox(height: 8),
-                SimMeter(label: context.tr(EducationL10n.fire), value: r.fire),
-                const SizedBox(height: 8),
-                SimMeter(
-                  label: context.tr(EducationL10n.sparkle),
-                  value: r.sparkle,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 6),
           _HeartsArrows(viewport: viewport),
         ],
       ],

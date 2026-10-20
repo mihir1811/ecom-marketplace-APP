@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -64,7 +63,6 @@ class _DiamondSimulatorScreenState
     extends ConsumerState<DiamondSimulatorScreen> {
   final _viewport = SimViewportController();
   _SimTool? _open;
-  double _panelHeight = 0;
   ThemeData? _theme;
   Object? _themeFor;
 
@@ -109,10 +107,7 @@ class _DiamondSimulatorScreenState
     if (t == _SimTool.carat) ref.read(simHandProvider.notifier).show(true);
   }
 
-  void _close() => setState(() {
-    _open = null;
-    _panelHeight = 0;
-  });
+  void _close() => setState(() => _open = null);
 
   /// Takes the stone as it is now into the jewelry simulator.
   void _useInJewelry() {
@@ -175,16 +170,7 @@ class _DiamondSimulatorScreenState
           final panelWidth = size.width >= 1100 ? 420.0 : 380.0;
           final maxPanel = math.min(size.height * 0.44, 400.0);
           final barTop = pad.top + 6;
-          final summaryTop = barTop + 48;
-          // The stone moves clear of an open sheet.
-          final stageBottom = open != null && !wide
-              ? math.max(0.0, _panelHeight - 16)
-              : 0.0;
-          // Beside the open sheet on wide screens; on phones, nudged clear
-          // of the tool rail (the hand stays centred on its ring finger).
-          final stageRight = open != null && wide
-              ? panelWidth + 16
-              : (open == null && !wide && !onHand ? 56.0 : 0.0);
+          final contentTop = barTop + 50;
 
           return Stack(
             fit: StackFit.expand,
@@ -219,57 +205,39 @@ class _DiamondSimulatorScreenState
                         ),
                 ),
               ),
-              AnimatedPositioned(
-                duration: LuxeMotion.medium,
-                curve: LuxeMotion.settle,
-                left: 0,
-                top: 0,
-                right: stageRight,
-                bottom: stageBottom,
-                child: LayoutBuilder(
-                  builder: (context, stage) => Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Paused and hidden under the hand, keeping its pose.
-                      Offstage(
-                        offstage: onHand,
-                        child: TickerMode(
-                          enabled: !onHand,
-                          child: DiamondSimViewport(controller: _viewport),
-                        ),
+              // The stone keeps the whole screen and stays centred, whatever
+              // is open over it.
+              Positioned.fill(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Paused and hidden under the hand, keeping its pose.
+                    Offstage(
+                      offstage: onHand,
+                      child: TickerMode(
+                        enabled: !onHand,
+                        child: DiamondSimViewport(controller: _viewport),
                       ),
-                      if (!onHand && open == null) ...[
-                        Positioned(
-                          left: 16,
-                          bottom: pad.bottom + 92,
-                          child: IgnorePointer(
-                            child: SimScaleBar(
+                    ),
+                    AnimatedSwitcher(
+                      duration: LuxeMotion.medium,
+                      child: onHand
+                          ? SimHandStage(
+                              key: const ValueKey('hand'),
                               controller: _viewport,
-                              viewport: stage.biggest,
-                            ),
-                          ),
-                        ),
-                      ],
-                      AnimatedSwitcher(
-                        duration: LuxeMotion.medium,
-                        child: onHand
-                            ? SimHandStage(
-                                key: const ValueKey('hand'),
-                                controller: _viewport,
-                                topInset: summaryTop + 56,
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                    ],
-                  ),
+                              topInset: contentTop,
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
                 ),
               ),
-              // Keeps the chrome legible over the stone or the hand.
+              // Keeps the top bar legible over the stone or the hand.
               Positioned(
                 left: 0,
                 right: 0,
                 top: 0,
-                height: summaryTop + 90,
+                height: contentTop + 24,
                 child: const IgnorePointer(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -293,57 +261,27 @@ class _DiamondSimulatorScreenState
                   onUseInJewelry: _useInJewelry,
                 ),
               ),
-              Positioned(
-                left: 16,
-                right: wide ? 16 : 116,
-                top: summaryTop,
-                child: const IgnorePointer(child: SimSummary()),
-              ),
-              if (onHand && open == null)
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  top: summaryTop + 62,
-                  child: const IgnorePointer(
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: SimHandFacts(),
-                    ),
-                  ),
-                ),
               if (open == null) ...[
-                // At the side over the stone; along the palm on the hand,
-                // clear of the fingers.
+                // One swipeable row along the bottom, clear of the stone.
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: pad.bottom + (onHand ? 56 : 12),
+                  child: _ToolRail(labelOf: _toolLabel, onOpen: _openTool),
+                ),
                 if (onHand)
                   Positioned(
                     left: 0,
                     right: 0,
-                    bottom: pad.bottom + 56,
-                    child: _ToolRail(
-                      labelOf: _toolLabel,
-                      onOpen: _openTool,
-                      axis: Axis.horizontal,
-                    ),
-                  )
-                else
-                  Positioned(
-                    right: 10,
-                    top: summaryTop,
-                    bottom: pad.bottom + 58,
-                    child: _ToolRail(labelOf: _toolLabel, onOpen: _openTool),
+                    bottom: pad.bottom + 12,
+                    child: SimViewControls(controller: _viewport),
                   ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: pad.bottom + 12,
-                  child: SimViewControls(controller: _viewport),
-                ),
               ],
               if (open != null)
                 wide
                     ? Positioned(
                         right: 16,
-                        top: summaryTop,
+                        top: contentTop,
                         bottom: 16 + pad.bottom,
                         width: panelWidth,
                         child: _ToolSheet(
@@ -363,23 +301,15 @@ class _DiamondSimulatorScreenState
                           constraints: BoxConstraints(
                             maxHeight: maxPanel + pad.bottom,
                           ),
-                          child: _MeasureSize(
-                            onSize: (s) {
-                              if (!mounted) return;
-                              if ((s.height - _panelHeight).abs() > 1) {
-                                setState(() => _panelHeight = s.height);
-                              }
-                            },
-                            child: _ToolSheet(
-                              key: ValueKey(open),
-                              title: _toolLabel(open),
-                              onDone: _close,
-                              rounded: const BorderRadius.vertical(
-                                top: Radius.circular(20),
-                              ),
-                              padBottom: pad.bottom,
-                              child: _panel(open),
+                          child: _ToolSheet(
+                            key: ValueKey(open),
+                            title: _toolLabel(open),
+                            onDone: _close,
+                            rounded: const BorderRadius.vertical(
+                              top: Radius.circular(20),
                             ),
+                            padBottom: pad.bottom,
+                            child: _panel(open),
                           ),
                         ),
                       ),
@@ -448,12 +378,9 @@ class _TopBar extends StatelessWidget {
         ],
         ListenableBuilder(
           listenable: viewport,
-          builder: (context, _) => SimGlassPill(
-            label: context.tr(EducationL10n.vectorView),
-            selected: viewport.vector,
-            palette: p,
-            height: 34,
-            onTap: onToggleVector,
+          builder: (context, _) => _RenderModeSwitch(
+            vector: viewport.vector,
+            onToggle: onToggleVector,
           ),
         ),
         const SizedBox(width: 6),
@@ -469,17 +396,12 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-/// The tools, as words with a glimpse of each one's current setting.
+/// The tools in one swipeable row, each with a glimpse of its setting.
 class _ToolRail extends ConsumerWidget {
-  const _ToolRail({
-    required this.labelOf,
-    required this.onOpen,
-    this.axis = Axis.vertical,
-  });
+  const _ToolRail({required this.labelOf, required this.onOpen});
 
   final String Function(_SimTool) labelOf;
   final ValueChanged<_SimTool> onOpen;
-  final Axis axis;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -537,37 +459,23 @@ class _ToolRail extends ConsumerWidget {
       _ => null,
     };
 
-    final items = [
-      for (final t in _SimTool.values)
-        Padding(
-          padding: axis == Axis.vertical
-              ? const EdgeInsets.only(bottom: 5)
-              : const EdgeInsets.only(right: 6),
-          child: _RailItem(
-            label: labelOf(t),
-            value: valueOf(t),
-            visual: visualOf(t),
-            onTap: () => onOpen(t),
-          ),
-        ),
-    ];
-    if (axis == Axis.horizontal) {
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(children: items),
-      );
-    }
-    return Align(
-      alignment: Alignment.centerRight,
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: items,
-        ),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          for (final t in _SimTool.values)
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: _RailItem(
+                label: labelOf(t),
+                value: valueOf(t),
+                visual: visualOf(t),
+                onTap: () => onOpen(t),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -612,36 +520,34 @@ class _RailItem extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 36, maxWidth: 104),
-          padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
-          decoration: BoxDecoration(
-            color: const Color(0x8C101010),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: LuxeStage.glassBorder),
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: const ShapeDecoration(
+            color: Color(0x8C101010),
+            shape: StadiumBorder(
+              side: BorderSide(color: LuxeStage.glassBorder),
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (visual != null) ...[visual!, const SizedBox(width: 6)],
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: LuxeType.label(p.ink, size: 12),
-                    ),
-                    Text(
-                      value,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: LuxeType.label(p.accent, size: 10),
-                    ),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    style: LuxeType.label(p.ink, size: 11.5),
+                  ),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    style: LuxeType.label(p.accent, size: 10),
+                  ),
+                ],
               ),
             ],
           ),
@@ -802,35 +708,196 @@ class _FingerPicker extends ConsumerWidget {
   }
 }
 
-/// Reports its child's laid out size after each layout.
-class _MeasureSize extends SingleChildRenderObjectWidget {
-  const _MeasureSize({required this.onSize, required super.child});
+/// Realistic or vector: a switch whose thumb shows the current look, a
+/// faceted, lit stone for realistic and a line drawing for vector.
+class _RenderModeSwitch extends StatelessWidget {
+  const _RenderModeSwitch({required this.vector, required this.onToggle});
 
-  final ValueChanged<Size> onSize;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _RenderMeasureSize(onSize);
+  final bool vector;
+  final VoidCallback onToggle;
 
   @override
-  void updateRenderObject(
-    BuildContext context,
-    covariant _RenderMeasureSize renderObject,
-  ) => renderObject.onSize = onSize;
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final label = context.tr(EducationL10n.vectorView);
+    return Semantics(
+      toggled: vector,
+      label: label,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: label,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            AppHaptics.selection();
+            onToggle();
+          },
+          child: Container(
+            width: 66,
+            height: 34,
+            padding: const EdgeInsets.all(3),
+            decoration: ShapeDecoration(
+              color: const Color(0x8C101010),
+              shape: StadiumBorder(
+                side: BorderSide(
+                  color: vector
+                      ? p.accent.withValues(alpha: 0.8)
+                      : LuxeStage.glassBorder,
+                ),
+              ),
+            ),
+            child: Stack(
+              children: [
+                // The other look, faint, on the free side of the track.
+                Align(
+                  alignment: vector
+                      ? Alignment.centerLeft
+                      : Alignment.centerRight,
+                  child: SizedBox.square(
+                    dimension: 28,
+                    child: Center(
+                      child: _ModeGlyph(
+                        vector: !vector,
+                        size: 15,
+                        color: p.inkFaint,
+                      ),
+                    ),
+                  ),
+                ),
+                AnimatedAlign(
+                  duration: LuxeMotion.fast,
+                  curve: LuxeMotion.press,
+                  alignment: vector
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: p.accent,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: AnimatedSwitcher(
+                      duration: LuxeMotion.fast,
+                      child: _ModeGlyph(
+                        key: ValueKey(vector),
+                        vector: vector,
+                        size: 18,
+                        color: p.onAccent,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _RenderMeasureSize extends RenderProxyBox {
-  _RenderMeasureSize(this.onSize);
+/// A brilliant seen from the side: filled and lit for realistic, as
+/// outlined facets for vector.
+class _ModeGlyph extends StatelessWidget {
+  const _ModeGlyph({
+    required this.vector,
+    required this.size,
+    required this.color,
+    super.key,
+  });
 
-  ValueChanged<Size> onSize;
-  Size? _last;
+  final bool vector;
+  final double size;
+  final Color color;
 
   @override
-  void performLayout() {
-    super.performLayout();
-    if (size == _last) return;
-    _last = size;
-    final s = size;
-    WidgetsBinding.instance.addPostFrameCallback((_) => onSize(s));
+  Widget build(BuildContext context) => CustomPaint(
+    size: Size.square(size),
+    painter: _ModeGlyphPainter(vector: vector, color: color),
+  );
+}
+
+class _ModeGlyphPainter extends CustomPainter {
+  _ModeGlyphPainter({required this.vector, required this.color});
+
+  final bool vector;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    // Table, girdle corners and culet of a brilliant's profile.
+    final tl = Offset(w * 0.3, h * 0.16), tr = Offset(w * 0.7, h * 0.16);
+    final gl = Offset(w * 0.04, h * 0.4), gr = Offset(w * 0.96, h * 0.4);
+    final culet = Offset(w * 0.5, h * 0.94);
+    final outline = Path()
+      ..moveTo(tl.dx, tl.dy)
+      ..lineTo(tr.dx, tr.dy)
+      ..lineTo(gr.dx, gr.dy)
+      ..lineTo(culet.dx, culet.dy)
+      ..lineTo(gl.dx, gl.dy)
+      ..close();
+    final line = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1, w / 16)
+      ..strokeJoin = StrokeJoin.round
+      ..strokeCap = StrokeCap.round;
+
+    if (vector) {
+      // Wireframe: outline, girdle and the facet lines.
+      final mid = Offset(w * 0.5, h * 0.4);
+      canvas
+        ..drawPath(outline, line)
+        ..drawLine(gl, gr, line)
+        ..drawLine(tl, Offset(w * 0.3, h * 0.4), line)
+        ..drawLine(tr, Offset(w * 0.7, h * 0.4), line)
+        ..drawLine(Offset(w * 0.3, h * 0.4), culet, line)
+        ..drawLine(Offset(w * 0.7, h * 0.4), culet, line)
+        ..drawLine(mid, culet, line);
+      return;
+    }
+    // Realistic: a solid stone with lit and shaded facets and a glint.
+    canvas.drawPath(outline, Paint()..color = color);
+    final shade = Paint()..color = const Color(0x55000000);
+    canvas
+      ..drawPath(
+        Path()
+          ..moveTo(gl.dx, gl.dy)
+          ..lineTo(w * 0.5, h * 0.4)
+          ..lineTo(culet.dx, culet.dy)
+          ..close(),
+        shade,
+      )
+      ..drawPath(
+        Path()
+          ..moveTo(tr.dx, tr.dy)
+          ..lineTo(gr.dx, gr.dy)
+          ..lineTo(w * 0.7, h * 0.4)
+          ..close(),
+        shade,
+      );
+    final glint = Paint()..color = const Color(0xCCFFFFFF);
+    final g = Offset(w * 0.78, h * 0.1);
+    final r = w * 0.13;
+    canvas.drawPath(
+      Path()
+        ..moveTo(g.dx, g.dy - r)
+        ..lineTo(g.dx + r * 0.3, g.dy - r * 0.3)
+        ..lineTo(g.dx + r, g.dy)
+        ..lineTo(g.dx + r * 0.3, g.dy + r * 0.3)
+        ..lineTo(g.dx, g.dy + r)
+        ..lineTo(g.dx - r * 0.3, g.dy + r * 0.3)
+        ..lineTo(g.dx - r, g.dy)
+        ..lineTo(g.dx - r * 0.3, g.dy - r * 0.3)
+        ..close(),
+      glint,
+    );
   }
+
+  @override
+  bool shouldRepaint(covariant _ModeGlyphPainter old) =>
+      old.vector != vector || old.color != color;
 }

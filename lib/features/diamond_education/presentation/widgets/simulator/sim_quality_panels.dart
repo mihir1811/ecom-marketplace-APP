@@ -53,11 +53,13 @@ class SimInclusionsPanel extends ConsumerWidget {
                   style: LuxeType.label(p.inkMuted, size: 13),
                 ),
               ),
-              SimChoiceChips<ClarityGrade>(
-                options: const [ClarityGrade.vs1],
-                selected: null,
-                labelOf: (_) => context.tr(EducationL10n.lowerClarity),
-                onSelected: c.setClarity,
+              Flexible(
+                child: SimChoiceChips<ClarityGrade>(
+                  options: const [ClarityGrade.vs1],
+                  selected: null,
+                  labelOf: (_) => context.tr(EducationL10n.lowerClarity),
+                  onSelected: c.setClarity,
+                ),
               ),
             ],
           ),

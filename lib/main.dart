@@ -5,6 +5,7 @@ import 'app.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/theme_preference_provider.dart';
+import 'features/diamond_education/simulation/sim_renderer.dart';
 import 'features/notifications/application/push_messaging_service.dart';
 import 'features/product_detail/presentation/transition/product_sheet_launch.dart';
 
@@ -62,6 +63,10 @@ void main() {
       // In production, report to crash reporting (e.g. Sentry/Firebase Crashlytics)
       FlutterError.presentError(details);
     };
+
+    // Compiles the diamond tracer behind the splash, not on the first
+    // screen that shows a stone.
+    unawaited(SimRenderer.warmUp());
 
     runApp(
       ProviderScope(

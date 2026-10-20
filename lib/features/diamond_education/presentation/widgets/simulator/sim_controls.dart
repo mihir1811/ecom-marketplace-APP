@@ -141,8 +141,9 @@ class SimChoiceChips<T> extends StatelessWidget {
   );
 }
 
-/// Wrap of pill chips that each toggle; [isSelected] says which are on.
-class SimToggleChips<T> extends StatelessWidget {
+/// One swipeable row of pill chips that each toggle; [isSelected] says
+/// which are on. Opens scrolled to the first selected chip.
+class SimToggleChips<T> extends StatefulWidget {
   const SimToggleChips({
     required this.options,
     required this.isSelected,
@@ -163,26 +164,51 @@ class SimToggleChips<T> extends StatelessWidget {
   final bool enabled;
 
   @override
+  State<SimToggleChips<T>> createState() => _SimToggleChipsState<T>();
+}
+
+class _SimToggleChipsState<T> extends State<SimToggleChips<T>> {
+  final _firstSelected = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _firstSelected.currentContext;
+      if (!mounted || ctx == null) return;
+      Scrollable.ensureVisible(ctx, alignment: 0.5);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final w = widget;
     final p = LuxePalette.of(context);
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: [
-        for (final o in options)
-          _Chip(
-            label: labelOf(o),
-            swatch: swatchOf?.call(o),
-            leading: leadingOf?.call(o),
-            selected: isSelected(o),
-            enabled: enabled,
-            palette: p,
-            onTap: () {
-              AppHaptics.selection();
-              onTap(o);
-            },
-          ),
-      ],
+    final first = w.options.indexWhere(w.isSelected);
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      clipBehavior: Clip.none,
+      child: Row(
+        children: [
+          for (final (i, o) in w.options.indexed) ...[
+            if (i > 0) const SizedBox(width: 6),
+            _Chip(
+              key: i == first ? _firstSelected : null,
+              label: w.labelOf(o),
+              swatch: w.swatchOf?.call(o),
+              leading: w.leadingOf?.call(o),
+              selected: w.isSelected(o),
+              enabled: w.enabled,
+              palette: p,
+              onTap: () {
+                AppHaptics.selection();
+                w.onTap(o);
+              },
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -196,6 +222,7 @@ class _Chip extends StatelessWidget {
     required this.onTap,
     this.swatch,
     this.leading,
+    super.key,
   });
 
   final String label;
@@ -258,14 +285,7 @@ class _Chip extends StatelessWidget {
                 SizedBox.square(dimension: 20, child: leading),
                 const SizedBox(width: 6),
               ],
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: LuxeType.label(fg, size: 13),
-                ),
-              ),
+              Text(label, maxLines: 1, style: LuxeType.label(fg, size: 13)),
             ],
           ),
         ),
@@ -363,71 +383,6 @@ class SimSlider extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Thin horizontal meter for a 0..1 reading.
-class SimMeter extends StatelessWidget {
-  const SimMeter({required this.label, required this.value, super.key});
-
-  final String label;
-  final double value;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    final v = value.clamp(0.0, 1.0);
-    return Semantics(
-      label: label,
-      value: '${(v * 100).round()}%',
-      excludeSemantics: true,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 92,
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: LuxeType.label(p.inkMuted, size: 12.5),
-            ),
-          ),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: SizedBox(
-                height: 6,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ColoredBox(color: p.hairline),
-                    FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: v,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [p.accent.withValues(alpha: 0.6), p.accent],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 40,
-            child: Text(
-              '${(v * 100).round()}',
-              textAlign: TextAlign.end,
-              style: LuxeType.figure(p.ink, size: 12.5),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

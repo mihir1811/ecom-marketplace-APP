@@ -23,6 +23,11 @@ abstract final class SimStageTones {
 /// A small, self-running traced diamond: spins and rocks in the
 /// jeweller's studio. Pauses while scrolled off screen and holds still under reduced
 /// motion.
+///
+/// Nothing is built or traced until the page's route has finished its
+/// transition, and the stone only shows once the GPU tracer is ready (the
+/// CPU tracer is the fallback only where fragment programs fail), so
+/// opening the page never stalls on it; the stone then fades in.
 class SimStoneView extends StatefulWidget {
   const SimStoneView({
     this.shape = SimShape.round,
@@ -51,19 +56,46 @@ class _SimStoneViewState extends State<SimStoneView>
   double _time = 0;
   bool _visible = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _stone();
-    SimRenderer.loadProgram()
-        .then((program) {
-          if (!mounted) return;
-          _renderer.shader = program.fragmentShader();
-          _frame.value++;
-        })
-        .catchError((Object _) {
-          // The CPU tracer keeps drawing.
-        });
+  /// The route's push animation, while it runs.
+  Animation<double>? _route;
+
+  /// Whether setup has started, and whether the stone can be drawn (the
+  /// GPU tracer loaded, or failed and the CPU tracer takes over).
+  bool _started = false, _ready = false;
+
+  void _onRoute() {
+    if ((_route?.value ?? 1) >= 1) _start();
+  }
+
+  /// Builds the stone and loads the tracer once the page has settled.
+  void _start() {
+    _route?.removeListener(_onRoute);
+    _route = null;
+    if (_started || !mounted) return;
+    _started = true;
+    // One more frame so the first settled frame is not the costly one.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _stone();
+      // Compiled at launch; waits here if that is still running.
+      SimRenderer.warmUp()
+          .then((_) => SimRenderer.loadProgram())
+          .then((program) {
+            if (!mounted) return;
+            _renderer.shader = program.fragmentShader();
+            _show();
+          })
+          .catchError((Object _) {
+            // The CPU tracer draws instead.
+            if (mounted) _show();
+          });
+    });
+  }
+
+  void _show() {
+    setState(() => _ready = true);
+    _sync();
+    _frame.value++;
   }
 
   void _stone() {
@@ -81,7 +113,7 @@ class _SimStoneViewState extends State<SimStoneView>
   @override
   void didUpdateWidget(SimStoneView old) {
     super.didUpdateWidget(old);
-    if (old.shape != widget.shape) {
+    if (_started && old.shape != widget.shape) {
       _stone();
       _frame.value++;
     }
@@ -90,6 +122,17 @@ class _SimStoneViewState extends State<SimStoneView>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!_started && _route == null) {
+      final route = ModalRoute.of(context)?.animation;
+      if (route == null) {
+        _start();
+      } else {
+        // On the first build the route's animation can still read 1: it is
+        // a proxy, handed the push animation just after. Judge a frame on.
+        _route = route..addListener(_onRoute);
+        SchedulerBinding.instance.addPostFrameCallback((_) => _onRoute());
+      }
+    }
     final next = Scrollable.maybeOf(context)?.position;
     if (next != _scroll) {
       _scroll?.removeListener(_checkVisible);
@@ -100,6 +143,7 @@ class _SimStoneViewState extends State<SimStoneView>
 
   @override
   void dispose() {
+    _route?.removeListener(_onRoute);
     _scroll?.removeListener(_checkVisible);
     _ticker.dispose();
     _frame.dispose();
@@ -120,7 +164,7 @@ class _SimStoneViewState extends State<SimStoneView>
   }
 
   void _sync() {
-    final run = _visible && !MediaQuery.disableAnimationsOf(context);
+    final run = _ready && _visible && !MediaQuery.disableAnimationsOf(context);
     if (run && !_ticker.isActive) {
       _last = Duration.zero;
       _ticker.start();
@@ -149,10 +193,17 @@ class _SimStoneViewState extends State<SimStoneView>
       image: true,
       label: widget.semanticLabel,
       excludeSemantics: widget.semanticLabel == null,
-      child: RepaintBoundary(
-        child: CustomPaint(
-          size: Size.square(widget.size),
-          painter: _StonePainter(this, MediaQuery.devicePixelRatioOf(context)),
+      child: AnimatedOpacity(
+        opacity: _ready ? 1 : 0,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOut,
+        child: RepaintBoundary(
+          child: CustomPaint(
+            size: Size.square(widget.size),
+            painter: _ready
+                ? _StonePainter(this, MediaQuery.devicePixelRatioOf(context))
+                : null,
+          ),
         ),
       ),
     );
@@ -178,8 +229,9 @@ class _StonePainter extends CustomPainter {
       pxPerUnit: size.shortestSide * 0.4,
       samplePx: 5,
       devicePixelRatio: dpr,
-      // A small, always-moving stone: 2 traced pixels per point is sharp.
-      renderScale: math.min(dpr, 2),
+      // A small, always-moving stone: 1.5 traced pixels per point stays
+      // sharp at under half the cost of full resolution.
+      renderScale: math.min(dpr, 1.5),
       time: t,
       twinkle: true,
     );

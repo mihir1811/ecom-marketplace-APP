@@ -131,6 +131,39 @@ class SimRenderer {
   static Future<ui.FragmentProgram> loadProgram() =>
       _program ??= ui.FragmentProgram.fromAsset('shaders/diamond_trace.frag');
 
+  static Future<void>? _warmUp;
+
+  /// Loads the tracer and draws it once, offscreen, so the GPU driver
+  /// compiles it now rather than on the first frame that shows a stone:
+  /// that compile blocks the raster thread, freezing the whole UI for a
+  /// moment. Call early (at launch, behind the splash); never throws.
+  static Future<void> warmUp() => _warmUp ??= _runWarmUp();
+
+  static Future<void> _runWarmUp() async {
+    try {
+      final sh = (await loadProgram()).fragmentShader();
+      // A sane camera and a single bounce; the picture is thrown away.
+      sh
+        ..setFloat(2, 1)
+        ..setFloat(3, _eye)
+        ..setFloat(18, 1)
+        ..setFloat(19, _exposure)
+        ..setFloat(33, 1)
+        ..setFloat(34, 1);
+      final recorder = ui.PictureRecorder();
+      Canvas(
+        recorder,
+      ).drawRect(const Rect.fromLTWH(0, 0, 4, 4), Paint()..shader = sh);
+      final picture = recorder.endRecording();
+      final image = await picture.toImage(4, 4);
+      picture.dispose();
+      image.dispose();
+      sh.dispose();
+    } catch (_) {
+      // Stones fall back to the CPU tracer; nothing to warm.
+    }
+  }
+
   /// Whether [shader] can draw [mesh] (its plane slots are bounded).
   static bool fitsShader(SimMesh mesh) => mesh.tracedFacets <= _maxPlanes;
 

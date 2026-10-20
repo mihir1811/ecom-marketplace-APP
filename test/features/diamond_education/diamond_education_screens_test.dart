@@ -89,12 +89,10 @@ void main() {
         // Carat brings up the hand; a second finger gets its own stone.
         await tapText('Carat');
         await tester.pump(const Duration(milliseconds: 1200));
-        expect(find.text('Average adult hand'), findsNothing);
         await tapText('Index · Add');
         await tester.pump(const Duration(milliseconds: 400));
         expect(find.textContaining('Index · 1.00 ct'), findsOneWidget);
         await tapText('Done');
-        expect(find.text('Average adult hand'), findsOneWidget);
         await tester.drag(
           find.byType(DiamondSimulatorScreen),
           const Offset(80, 0),
@@ -110,8 +108,6 @@ void main() {
           find.byType(DiamondSimulatorScreen),
           const Offset(80, 30),
         );
-        await tester.pump(const Duration(milliseconds: 200));
-        await tester.tap(find.text('Face up'));
         await tester.pump(const Duration(milliseconds: 800));
         expect(tester.takeException(), isNull);
         await _teardown(tester);
