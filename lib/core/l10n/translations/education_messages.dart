@@ -135,6 +135,10 @@ abstract final class EducationL10n {
   static const simTitle = 'education.simTitle';
   static const simHint = 'education.simHint';
   static const shape = 'education.shape';
+  static const fancyShapes = 'education.fancyShapes';
+
+  /// Name of the fancy cut [id] (see `SimFancyShape.id`).
+  static String fancyShape(String id) => 'education.fancy.$id';
   static const color = 'education.color';
   static const clarity = 'education.clarity';
   static const cut = 'education.cut';
@@ -1812,5 +1816,210 @@ const educationMessages = <String, LocalizedMessage>{
     english: 'Go back',
     hindi: 'वापस जाएँ',
     gujarati: 'પાછા જાઓ',
+  ),
+  EducationL10n.fancyShapes: LocalizedMessage(
+    english: 'Fancy shapes',
+    hindi: 'फ़ैंसी आकार',
+    gujarati: 'ફેન્સી આકાર',
+  ),
+  'education.fancy.star_5': LocalizedMessage(
+    english: 'Five Point Star',
+    hindi: 'पाँच कोणों वाला तारा',
+    gujarati: 'પાંચ ખૂણાનો તારો',
+  ),
+  'education.fancy.pentagon_brilliant': LocalizedMessage(
+    english: 'Pentagon Brilliant',
+    hindi: 'पेंटागन ब्रिलियंट',
+    gujarati: 'પેન્ટાગોન બ્રિલિયન્ટ',
+  ),
+  'education.fancy.round_rose': LocalizedMessage(
+    english: 'Round Rose',
+    hindi: 'राउंड रोज़',
+    gujarati: 'રાઉન્ડ રોઝ',
+  ),
+  'education.fancy.portuguese': LocalizedMessage(
+    english: 'Portuguese',
+    hindi: 'पुर्तगाली कट',
+    gujarati: 'પોર્ટુગીઝ કટ',
+  ),
+  'education.fancy.globe': LocalizedMessage(
+    english: 'Globe',
+    hindi: 'ग्लोब',
+    gujarati: 'ગ્લોબ',
+  ),
+  'education.fancy.old_miner': LocalizedMessage(
+    english: 'Old Miner',
+    hindi: 'ओल्ड माइनर',
+    gujarati: 'ઓલ્ડ માઇનર',
+  ),
+  'education.fancy.octagonal_rose': LocalizedMessage(
+    english: 'Octagonal Rose',
+    hindi: 'अष्टकोणीय रोज़',
+    gujarati: 'અષ્ટકોણીય રોઝ',
+  ),
+  'education.fancy.octagon_step': LocalizedMessage(
+    english: 'Octagon Step',
+    hindi: 'ऑक्टागन स्टेप',
+    gujarati: 'ઓક્ટાગોન સ્ટેપ',
+  ),
+  'education.fancy.flanders': LocalizedMessage(
+    english: 'Flanders',
+    hindi: 'फ्लैंडर्स',
+    gujarati: 'ફ્લેન્ડર્સ',
+  ),
+  'education.fancy.square': LocalizedMessage(
+    english: 'Square',
+    hindi: 'स्क्वेयर',
+    gujarati: 'સ્ક્વેર',
+  ),
+  'education.fancy.lily': LocalizedMessage(
+    english: 'Lily',
+    hindi: 'लिली',
+    gujarati: 'લિલી',
+  ),
+  'education.fancy.cushion_modified_princess': LocalizedMessage(
+    english: 'Cushion Modified Princess',
+    hindi: 'कुशन मॉडिफ़ाइड प्रिंसेस',
+    gujarati: 'કુશન મોડિફાઇડ પ્રિન્સેસ',
+  ),
+  'education.fancy.cushion_elongated': LocalizedMessage(
+    english: 'Elongated Cushion',
+    hindi: 'लंबा कुशन',
+    gujarati: 'લાંબું કુશન',
+  ),
+  'education.fancy.cushion_modified_step': LocalizedMessage(
+    english: 'Cushion Modified Step',
+    hindi: 'कुशन मॉडिफ़ाइड स्टेप',
+    gujarati: 'કુશન મોડિફાઇડ સ્ટેપ',
+  ),
+  'education.fancy.ashoka': LocalizedMessage(
+    english: 'Ashoka',
+    hindi: 'अशोका',
+    gujarati: 'અશોકા',
+  ),
+  'education.fancy.moval_brilliant': LocalizedMessage(
+    english: 'Moval Brilliant',
+    hindi: 'मोवल ब्रिलियंट',
+    gujarati: 'મોવલ બ્રિલિયન્ટ',
+  ),
+  'education.fancy.oval_step': LocalizedMessage(
+    english: 'Oval Step',
+    hindi: 'ओवल स्टेप',
+    gujarati: 'ઓવલ સ્ટેપ',
+  ),
+  'education.fancy.pear_step': LocalizedMessage(
+    english: 'Pear Step',
+    hindi: 'पियर स्टेप',
+    gujarati: 'પિઅર સ્ટેપ',
+  ),
+  'education.fancy.briolette': LocalizedMessage(
+    english: 'Briolette',
+    hindi: 'ब्रियोलेट',
+    gujarati: 'બ્રિઓલેટ',
+  ),
+  'education.fancy.flame': LocalizedMessage(
+    english: 'Flame',
+    hindi: 'फ़्लेम',
+    gujarati: 'ફ્લેમ',
+  ),
+  'education.fancy.dutch_marquise': LocalizedMessage(
+    english: 'Dutch Marquise',
+    hindi: 'डच मार्क्विस',
+    gujarati: 'ડચ માર્કીઝ',
+  ),
+  'education.fancy.marquise_step': LocalizedMessage(
+    english: 'Marquise Step',
+    hindi: 'मार्क्विस स्टेप',
+    gujarati: 'માર્કીઝ સ્ટેપ',
+  ),
+  'education.fancy.lozenge_modified': LocalizedMessage(
+    english: 'Lozenge Modified',
+    hindi: 'लोजेंज मॉडिफ़ाइड',
+    gujarati: 'લોઝેન્જ મોડિફાઇડ',
+  ),
+  'education.fancy.lozenge': LocalizedMessage(
+    english: 'Lozenge',
+    hindi: 'लोजेंज',
+    gujarati: 'લોઝેન્જ',
+  ),
+  'education.fancy.kite': LocalizedMessage(
+    english: 'Kite',
+    hindi: 'काइट',
+    gujarati: 'કાઇટ',
+  ),
+  'education.fancy.shield': LocalizedMessage(
+    english: 'Shield',
+    hindi: 'ढाल',
+    gujarati: 'ઢાલ',
+  ),
+  'education.fancy.shield_modified': LocalizedMessage(
+    english: 'Shield Modified',
+    hindi: 'मॉडिफ़ाइड ढाल',
+    gujarati: 'મોડિફાઇડ ઢાલ',
+  ),
+  'education.fancy.calf_head': LocalizedMessage(
+    english: 'Calf Head',
+    hindi: 'काफ़ हेड',
+    gujarati: 'કાફ હેડ',
+  ),
+  'education.fancy.cadillac': LocalizedMessage(
+    english: 'Cadillac',
+    hindi: 'कैडिलैक',
+    gujarati: 'કેડિલેક',
+  ),
+  'education.fancy.baguette': LocalizedMessage(
+    english: 'Baguette',
+    hindi: 'बैगेट',
+    gujarati: 'બેગેટ',
+  ),
+  'education.fancy.tapered_baguette': LocalizedMessage(
+    english: 'Tapered Baguette',
+    hindi: 'टेपर्ड बैगेट',
+    gujarati: 'ટેપર્ડ બેગેટ',
+  ),
+  'education.fancy.trapezoid': LocalizedMessage(
+    english: 'Trapezoid',
+    hindi: 'समलंब',
+    gujarati: 'ટ્રેપીઝોઇડ',
+  ),
+  'education.fancy.half_moon': LocalizedMessage(
+    english: 'Half Moon',
+    hindi: 'अर्धचंद्र',
+    gujarati: 'અર્ધચંદ્ર',
+  ),
+  'education.fancy.triangle': LocalizedMessage(
+    english: 'Triangle',
+    hindi: 'त्रिकोण',
+    gujarati: 'ત્રિકોણ',
+  ),
+  'education.fancy.trilliant': LocalizedMessage(
+    english: 'Trilliant',
+    hindi: 'ट्रिलियंट',
+    gujarati: 'ટ્રિલિયન્ટ',
+  ),
+  'education.fancy.trillion_curved': LocalizedMessage(
+    english: 'Curved Trillion',
+    hindi: 'कर्व्ड ट्रिलियन',
+    gujarati: 'કર્વ્ડ ટ્રિલિયન',
+  ),
+  'education.fancy.hexagon_brilliant': LocalizedMessage(
+    english: 'Hexagon Brilliant',
+    hindi: 'हेक्सागन ब्रिलियंट',
+    gujarati: 'હેક્સાગોન બ્રિલિયન્ટ',
+  ),
+  'education.fancy.hexagon_step_elongated': LocalizedMessage(
+    english: 'Elongated Hexagon Step',
+    hindi: 'लंबा हेक्सागन स्टेप',
+    gujarati: 'લાંબું હેક્સાગોન સ્ટેપ',
+  ),
+  'education.fancy.hexagon_step': LocalizedMessage(
+    english: 'Hexagon Step',
+    hindi: 'हेक्सागन स्टेप',
+    gujarati: 'હેક્સાગોન સ્ટેપ',
+  ),
+  'education.fancy.star_6': LocalizedMessage(
+    english: 'Six Point Star',
+    hindi: 'छह कोणों वाला तारा',
+    gujarati: 'છ ખૂણાનો તારો',
   ),
 };

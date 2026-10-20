@@ -23,6 +23,7 @@ import '../sim_labels.dart';
 import '../widgets/sim_stone_view.dart';
 import '../widgets/simulator/diamond_sim_viewport.dart';
 import '../widgets/simulator/sim_cut_panels.dart';
+import '../widgets/simulator/sim_fancy_slider.dart';
 import '../widgets/simulator/sim_grade_panels.dart';
 import '../widgets/simulator/sim_hand_stage.dart';
 import '../widgets/simulator/sim_quality_panels.dart';
@@ -36,6 +37,7 @@ const _showJewelryHandoff = false;
 
 enum _SimTool {
   shape,
+  fancy,
   cut,
   color,
   clarity,
@@ -74,6 +76,7 @@ class _DiamondSimulatorScreenState
 
   String _toolLabel(_SimTool t) => context.tr(switch (t) {
     _SimTool.shape => EducationL10n.shape,
+    _SimTool.fancy => EducationL10n.fancyShapes,
     _SimTool.cut => EducationL10n.cut,
     _SimTool.color => EducationL10n.color,
     _SimTool.clarity => EducationL10n.clarity,
@@ -86,6 +89,8 @@ class _DiamondSimulatorScreenState
 
   Widget _panel(_SimTool t) => switch (t) {
     _SimTool.shape => const SimShapeStrip(),
+    // Shown on its own slider, never in a sheet.
+    _SimTool.fancy => const SizedBox.shrink(),
     _SimTool.cut => SimCutPanel(viewport: _viewport),
     _SimTool.color => const SimColorPanel(),
     _SimTool.clarity => const SimClarityPanel(),
@@ -215,6 +220,8 @@ class _DiamondSimulatorScreenState
     // Shape is chosen on a dial ringed round the stone; on the hand, where
     // stones are compared finger by finger, from the strip as before.
     final dial = open == _SimTool.shape && !onHand;
+    // The fancy cuts slide past along the bottom, the stone at its size.
+    final fancy = open == _SimTool.fancy && !onHand;
 
     return AppScaffold(
       enableAppDrawer: false,
@@ -348,7 +355,11 @@ class _DiamondSimulatorScreenState
                   left: 0,
                   right: 0,
                   bottom: pad.bottom + (onHand ? 56 : 12),
-                  child: _ToolRail(labelOf: _toolLabel, onOpen: _openTool),
+                  child: _ToolRail(
+                    labelOf: _toolLabel,
+                    onOpen: _openTool,
+                    onHand: onHand,
+                  ),
                 ),
                 if (onHand)
                   Positioned(
@@ -363,6 +374,14 @@ class _DiamondSimulatorScreenState
                   child: SimShapeDial(
                     viewport: _viewport,
                     radius: dialRadius,
+                    bottomInset: pad.bottom,
+                    onDone: _close,
+                  ),
+                )
+              else if (fancy)
+                Positioned.fill(
+                  child: SimFancyShapeSlider(
+                    viewport: _viewport,
                     bottomInset: pad.bottom,
                     onDone: _close,
                   ),
@@ -488,10 +507,18 @@ class _TopBar extends StatelessWidget {
 
 /// The tools in one swipeable row, each with a glimpse of its setting.
 class _ToolRail extends ConsumerWidget {
-  const _ToolRail({required this.labelOf, required this.onOpen});
+  const _ToolRail({
+    required this.labelOf,
+    required this.onOpen,
+    required this.onHand,
+  });
 
   final String Function(_SimTool) labelOf;
   final ValueChanged<_SimTool> onOpen;
+
+  /// On the hand, where stones are compared finger by finger, the fancy
+  /// cuts (seen one at a time, as cut) are not offered.
+  final bool onHand;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -504,6 +531,7 @@ class _ToolRail extends ConsumerWidget {
     // The shape's name shows only inside the shape tool, on the dial.
     String? valueOf(_SimTool t) => switch (t) {
       _SimTool.shape => null,
+      _SimTool.fancy => null,
       _SimTool.cut => context.cutName(cut),
       _SimTool.color =>
         s.fancyColor == null
@@ -538,6 +566,13 @@ class _ToolRail extends ConsumerWidget {
         colorFilter: ColorFilter.mode(p.ink, BlendMode.srcIn),
         placeholderBuilder: (_) => const SizedBox.square(dimension: 18),
       ),
+      _SimTool.fancy => SvgPicture.asset(
+        'assets/shapes/fancy/star_5.svg',
+        width: 18,
+        height: 18,
+        colorFilter: ColorFilter.mode(p.ink, BlendMode.srcIn),
+        placeholderBuilder: (_) => const SizedBox.square(dimension: 18),
+      ),
       _SimTool.color when s.fancyColor == null => _Dot(
         colorGradeSwatch(s.colorGrade),
       ),
@@ -552,7 +587,8 @@ class _ToolRail extends ConsumerWidget {
         children: [
           for (final t in _SimTool.values)
             // Cut is graded on round brilliants only.
-            if (t != _SimTool.cut || s.shape == SimShape.round)
+            if ((t != _SimTool.cut || s.shape == SimShape.round) &&
+                (t != _SimTool.fancy || !onHand))
               Padding(
                 padding: const EdgeInsets.only(right: 6),
                 child: _RailItem(

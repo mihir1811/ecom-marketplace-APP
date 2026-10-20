@@ -83,9 +83,11 @@ flutter:
     - public/images/jewelryShowcase/
     - public/images/watch_logo/
     - assets/shapes/
+    - assets/shapes/fancy/
     - assets/sounds/
     - assets/clarity/
     - assets/models/gems.bin
+    - assets/models/fancy_shapes.json
     - assets/policies/policies.json
     - assets/policies/policies_hi.json
     - assets/policies/policies_gu.json

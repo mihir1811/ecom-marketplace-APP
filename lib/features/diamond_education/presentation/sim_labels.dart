@@ -4,10 +4,13 @@ import '../../../core/l10n/app_localizations.dart';
 import '../domain/average_hand.dart';
 import '../domain/diamond_grades.dart';
 import '../domain/diamond_shape.dart';
+import '../simulation/sim_fancy.dart';
 
 /// Localized display names for the simulator's grades and options.
 extension SimLabels on BuildContext {
   String shapeName(SimShape s) => trCatalogValue(s.catalogValue);
+
+  String fancyShapeName(SimFancyShape s) => tr(EducationL10n.fancyShape(s.id));
 
   String cutName(CutGrade g) => tr(switch (g) {
     CutGrade.excellent => EducationL10n.excellent,

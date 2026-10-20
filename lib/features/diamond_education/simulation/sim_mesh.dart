@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import '../domain/diamond_proportions.dart';
 import '../domain/diamond_shape.dart';
+import 'sim_hull.dart';
 import 'sim_outline.dart';
 
 /// Region of the stone a facet belongs to.
@@ -35,20 +36,29 @@ class SimMesh {
     required this.totalDepth,
     required this.volume,
     required this.radius,
-    required this.mirrorX,
+    required this.fold,
     required this.tracedFacets,
   }) : _innerRadiusSource = innerRadiusOf;
 
-  final SimShape shape;
+  /// The classic shape it was cut as; null for a fancy cut built from
+  /// its facet planes ([fromPlanes]).
+  final SimShape? shape;
 
-  /// Whether light is traced through the +x half alone, with a mirror at
-  /// x = 0. A heart's cleft makes the whole stone concave, which a plane
-  /// tracer cannot follow, but each half is convex: a ray crossing into
-  /// the −x half is the mirror image of one staying in the +x half.
-  final bool mirrorX;
+  /// How light is traced through a stone a plane tracer cannot follow
+  /// whole, because it is concave. 0: the stone is convex and traced
+  /// whole. 1: only its +x half is traced, with a mirror at x = 0 (a
+  /// heart: its cleft makes it concave, but each half is convex, and a
+  /// ray crossing into the −x half is the mirror image of one staying in
+  /// the +x half). k >= 2: only the wedge 0 <= atan2(x, z) <= π/k is
+  /// traced, between mirrors at its two sides, like a kaleidoscope: a
+  /// star or a lily is k-fold symmetric, and each wedge is convex.
+  final int fold;
+
+  /// Whether only the +x half is traced ([fold] 1).
+  bool get mirrorX => fold == 1;
 
   /// Facets `0 .. tracedFacets` bound the traced solid; any after them
-  /// are their mirror images (see [mirrorX]), drawn but never traced.
+  /// are their mirror images (see [fold]), drawn but never traced.
   final int tracedFacets;
 
   /// Vertex positions, xyz.
@@ -98,7 +108,7 @@ class SimMesh {
   /// Distance from (x, y, z) to the nearest traced facet plane, negative
   /// outside the stone.
   double inset(double x, double y, double z) {
-    if (mirrorX) x = x.abs();
+    (x, z) = foldIn(fold, x, z);
     var best = double.infinity;
     for (var f = 0; f < tracedFacets; f++) {
       final d =
@@ -109,15 +119,41 @@ class SimMesh {
     return best;
   }
 
+  /// (x, z) turned and mirrored into the traced part of a stone of
+  /// [fold] ([SimMesh.fold]); a convex stone's points stay as they are.
+  static (double, double) foldIn(int fold, double x, double z) {
+    if (fold == 0) return (x, z);
+    if (fold == 1) return (x.abs(), z);
+    final sector = 2 * math.pi / fold;
+    var a = math.atan2(x, z) % sector;
+    if (a > sector / 2) a = sector - a;
+    final r = math.sqrt(x * x + z * z);
+    return (r * math.sin(a), r * math.cos(a));
+  }
+
+  /// The mirrors bounding the traced part of a stone of [fold], as
+  /// planes `n · p <= 0` (nx ny nz d each): x >= 0, and for k >= 2 the
+  /// wedge's far side at π/k.
+  static List<double> mirrorPlanes(int fold) => [
+    if (fold >= 1) ...[-1.0, 0.0, 0.0, 0.0],
+    if (fold >= 2) ...[
+      math.cos(math.pi / fold),
+      0.0,
+      -math.sin(math.pi / fold),
+      0.0,
+    ],
+  ];
+
   /// A stone already solved elsewhere (a shape morph): [positions] as
   /// xyz and its [facets], each a convex polygon of vertex indices with
-  /// its kind. With [mirrorX] the facets are the +x half and the −x half
-  /// is added as their mirror image. Kept where it is, not re-centred.
+  /// its kind. With a [fold] the facets are the traced part, and the rest
+  /// of the stone is added as their mirror images. Kept where it is, not
+  /// re-centred.
   static SimMesh fromFacets(
-    SimShape shape,
+    SimShape? shape,
     List<double> positions,
     List<(List<int>, SimFacetKind)> facets, {
-    bool mirrorX = false,
+    int fold = 0,
     double crownHeight = 0,
     double pavilionDepth = 0,
     double girdleThickness = 0,
@@ -128,8 +164,26 @@ class SimMesh {
       .._crownHeight = crownHeight
       .._pavilionDepth = pavilionDepth
       .._girdle = girdleThickness;
-    if (mirrorX) b._mirrorHalf();
+    if (fold == 1) b._mirrorHalf();
+    if (fold >= 2) b._kaleidoscope(fold);
     return b.finish(centre: false);
+  }
+
+  /// A fancy cut given as the facet planes that bound it (or, with a
+  /// [fold], its traced part): [planes] as nx ny nz d (`n · p <= d`)
+  /// with each plane's kind. Kept where it is, not re-centred.
+  static SimMesh fromPlanes(
+    List<double> planes,
+    List<SimFacetKind> kinds, {
+    int fold = 0,
+  }) {
+    final n = kinds.length;
+    final all = Float64List.fromList([...planes, ...mirrorPlanes(fold)]);
+    final hull = SimHull.cut(all, all.length ~/ 4);
+    return fromFacets(null, hull.vertices, [
+      for (final f in hull.faces)
+        if (f.plane >= 0 && f.plane < n) (f.verts, kinds[f.plane]),
+    ], fold: fold);
   }
 
   /// Builds [shape] cut to [proportions].
@@ -232,16 +286,22 @@ double _area(List<SimPoint> poly) {
 }
 
 class _Builder {
-  _Builder(this.shape);
+  _Builder(this._shape);
 
-  final SimShape shape;
+  final SimShape? _shape;
+  SimShape get shape => _shape!;
   final List<double> _pos = [];
   final List<(List<int>, SimFacetKind)> _polys = [];
   double _crownHeight = 0, _pavilionDepth = 0, _girdle = 0;
 
-  /// With a mirrored half ([SimMesh.mirrorX]): how many of [_polys] are
-  /// the traced half; the rest are its mirror image.
+  /// With a traced part ([SimMesh.fold]): how many of [_polys] are the
+  /// traced part; the rest are its mirror images.
   int? _tracedPolys;
+  int _fold = 0;
+
+  /// The cut facet of each polygon, where it is not the polygon's own
+  /// index (see [SimMesh.facetGroup]).
+  final Map<int, int> _groups = {};
 
   static const _cos8 = 0.9238795325112867;
 
@@ -806,6 +866,7 @@ class _Builder {
   /// become the traced half ([SimMesh.mirrorX]).
   void _mirrorHalf() {
     _tracedPolys = _polys.length;
+    _fold = 1;
     final mirrored = <int, int>{};
     int flip(int i) => mirrored.putIfAbsent(i, () {
       final x = _pos[i * 3];
@@ -814,6 +875,79 @@ class _Builder {
     for (var k = 0, end = _polys.length; k < end; k++) {
       final (poly, kind) = _polys[k];
       _polys.add(([for (final i in poly.reversed) flip(i)], kind));
+    }
+  }
+
+  /// Adds the rest of a [fold]-fold stone as the mirror images of the
+  /// traced wedge so far (its turns by 2π/fold, each also mirrored at
+  /// x = 0). Facets the mirrors cut through (the table, a bezel lying
+  /// across one) are pieced back together by their group.
+  void _kaleidoscope(int fold) {
+    _tracedPolys = _polys.length;
+    _fold = fold;
+    final ids = <(int, int, int), int>{};
+    int at(double x, double y, double z) => ids.putIfAbsent((
+      (x * 1e6).round(),
+      (y * 1e6).round(),
+      (z * 1e6).round(),
+    ), () => _add(x, y, z));
+    // The traced corners join the same lookup, so images meet them.
+    final traced = _pos.length ~/ 3;
+    final own = List<int>.generate(
+      traced,
+      (i) => at(_pos[i * 3], _pos[i * 3 + 1], _pos[i * 3 + 2]),
+    );
+    final planeGroup = <(int, int, int, int), int>{};
+    int groupOf(List<int> poly, int fallback) {
+      // Newell normal and offset, rounded: coplanar pieces share one.
+      var nx = 0.0, ny = 0.0, nz = 0.0, cx = 0.0, cy = 0.0, cz = 0.0;
+      for (var k = 0; k < poly.length; k++) {
+        final a = poly[k] * 3, b = poly[(k + 1) % poly.length] * 3;
+        nx += (_pos[a + 1] - _pos[b + 1]) * (_pos[a + 2] + _pos[b + 2]);
+        ny += (_pos[a + 2] - _pos[b + 2]) * (_pos[a] + _pos[b]);
+        nz += (_pos[a] - _pos[b]) * (_pos[a + 1] + _pos[b + 1]);
+        cx += _pos[a];
+        cy += _pos[a + 1];
+        cz += _pos[a + 2];
+      }
+      final l = math.sqrt(nx * nx + ny * ny + nz * nz);
+      if (l < 1e-12) return fallback;
+      final d = (nx * cx + ny * cy + nz * cz) / (l * poly.length);
+      return planeGroup.putIfAbsent((
+        (nx / l * 2e3).round(),
+        (ny / l * 2e3).round(),
+        (nz / l * 2e3).round(),
+        (d * 2e3).round(),
+      ), () => fallback);
+    }
+
+    final end = _polys.length;
+    for (var k = 0; k < end; k++) {
+      final (poly, kind) = _polys[k];
+      final mapped = [for (final i in poly) own[i]];
+      _polys[k] = (mapped, kind);
+      _groups[k] = groupOf(mapped, k);
+    }
+    for (var j = 0; j < fold; j++) {
+      final c = math.cos(2 * math.pi * j / fold);
+      final s = math.sin(2 * math.pi * j / fold);
+      for (final mirror in const [false, true]) {
+        if (j == 0 && !mirror) continue;
+        for (var k = 0; k < end; k++) {
+          final (poly, kind) = _polys[k];
+          final image = <int>[];
+          for (final i in poly) {
+            var x = _pos[i * 3];
+            final z = _pos[i * 3 + 2];
+            if (mirror) x = -x;
+            // Turned about y by 2πj/fold, from +z toward +x.
+            image.add(at(x * c + z * s, _pos[i * 3 + 1], z * c - x * s));
+          }
+          final ordered = mirror ? image.reversed.toList() : image;
+          _groups[_polys.length] = groupOf(ordered, _polys.length);
+          _polys.add((ordered, kind));
+        }
+      }
     }
   }
 
@@ -977,25 +1111,26 @@ class _Builder {
         poly.removeLast();
       }
       if (poly.length < 3) continue;
+      final group = _groups[k] ?? k;
       if (_isPlanar(poly, pos)) {
-        emit(poly, kind, k);
+        emit(poly, kind, group);
       } else {
         // Fancy outlines bend a few kites and mains slightly: split them.
         for (var j = 1; j < poly.length - 1; j++) {
-          emit([poly[0], poly[j], poly[j + 1]], kind, k);
+          emit([poly[0], poly[j], poly[j + 1]], kind, group);
         }
       }
     }
 
     final ext = (x: maxX - minX, z: maxZ - minZ);
-    final heart = shape == SimShape.heart;
+    final heart = _shape == SimShape.heart;
     if (traced < 0) traced = kinds.length;
     final tracedGirdle = [
       for (final f in girdle)
         if (f < traced) f,
     ];
     return SimMesh._(
-      shape: shape,
+      shape: _shape,
       positions: pos,
       facetStart: Int32List.fromList(starts),
       facetVerts: Int32List.fromList(verts),
@@ -1012,7 +1147,7 @@ class _Builder {
       totalDepth: maxY - minY,
       volume: volume,
       radius: math.sqrt(radius),
-      mirrorX: _tracedPolys != null,
+      fold: _fold,
       tracedFacets: traced,
     );
   }

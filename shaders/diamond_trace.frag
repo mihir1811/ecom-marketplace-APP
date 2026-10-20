@@ -56,7 +56,7 @@ uniform vec4 uMisc;    // bounding radius, model units per traced px, traced px,
 uniform vec4 uPlanes[MAX_PLANES];      // outward normal, offset
 uniform vec4 uBoxes[MAX_BOXES * 3];  // centre; right axis + tan half width; rgb + tan half height
 uniform vec4 uSpots[MAX_SPOTS * 2];  // dir + cos outer; rgb + 1/(cos inner − cos outer)
-uniform vec4 uScope;   // hearts & arrows scope flag, inclusion count, scope hole, mirrored half
+uniform vec4 uScope;   // hearts & arrows scope flag, inclusion count, scope hole, fold
 uniform vec4 uIncl[MAX_INCL * 2];  // centre + size; axis + kind (whole part) and seed (fraction)
 
 out vec4 fragColor;
@@ -138,9 +138,32 @@ float fresnel(float cosI, float cosT, float n1, float n2) {
   return (s * s + p * p) * 0.5;
 }
 
+// A folded stone (uScope.w = k > 0, see SimMesh.fold) is traced as one
+// part between mirrors: its +x half for k = 1 (a heart), the wedge
+// 0 <= atan2(x, z) <= pi/k for k >= 2 (a star, a lily), like a
+// kaleidoscope. These are the mirrors, as planes n . p <= 0.
+vec3 mirrorA() {
+  return vec3(-1.0, 0.0, 0.0);
+}
+
+vec3 mirrorB() {
+  float a = 3.14159265 / max(uScope.w, 1.0);
+  return vec3(cos(a), 0.0, -sin(a));
+}
+
+// The traced part's frame: G turns world (x, z) into it, and back.
+vec3 toPart(mat2 g, vec3 p) {
+  vec2 q = g * p.xz;
+  return vec3(q.x, p.y, q.y);
+}
+
+vec3 fromPart(mat2 g, vec3 p) {
+  return vec3(dot(g[0], p.xz), p.y, dot(g[1], p.xz));
+}
+
 // Where the view ray (o, v) enters the traced solid: returns the distance
 // and sets the entry facet's normal and the chord through it (negative on
-// a miss, by how far). A mirrored half (the heart) is closed by x >= 0.
+// a miss, by how far). A folded stone's part is closed by its mirrors.
 float enterHalf(vec3 o, vec3 v, out vec3 n, out float chord) {
   float tIn = -1e9;
   float tOut = 1e9;
@@ -164,42 +187,56 @@ float enterHalf(vec3 o, vec3 v, out vec3 n, out float chord) {
       tOut = min(tOut, t);
     }
   }
-  if (uScope.w > 0.5) {
-    // The axis: normal (-1, 0, 0) through the origin.
-    if (abs(v.x) < 1e-7) {
-      if (o.x < 0.0) tOut = -1e9;
-    } else if (v.x > 0.0) {
-      float t = -o.x / v.x;
+  for (int m = 0; m < 2; m++) {
+    if (float(m) >= min(uScope.w, 2.0)) break;
+    vec3 pn = m == 0 ? mirrorA() : mirrorB();
+    float den = dot(pn, v);
+    float num = -dot(pn, o);
+    if (abs(den) < 1e-7) {
+      if (num < 0.0) tOut = -1e9;
+      continue;
+    }
+    float t = num / den;
+    if (den < 0.0) {
       if (t > tIn) {
         tIn = t;
-        n = vec3(-1.0, 0.0, 0.0);
+        n = pn;
       }
     } else {
-      tOut = min(tOut, -o.x / v.x);
+      tOut = min(tOut, t);
     }
   }
   chord = tOut - tIn;
   return tIn;
 }
 
-// Where the view ray enters the stone. A heart is traced as its +x half
-// and that half's mirror image; side is -1 when the ray enters the -x
-// half.
-float enter(vec3 o, vec3 v, out vec3 n, out float chord, out float side) {
-  float t = enterHalf(o, v, n, chord);
-  side = 1.0;
-  if (uScope.w > 0.5) {
-    vec3 m = vec3(-1.0, 1.0, 1.0);
-    vec3 n2;
-    float c2;
-    float t2 = enterHalf(o * m, v * m, n2, c2);
-    if (c2 > 0.0 && (chord <= 0.0 || t2 < t)) {
-      t = t2;
-      n = n2 * m;
-      chord = c2;
-      side = -1.0;
+// Where the view ray enters the stone. A folded stone is its traced part
+// and that part's images, turned by 2 pi/k and mirrored; g is the frame
+// of the image the ray enters (see toPart).
+float enter(vec3 o, vec3 v, out vec3 n, out float chord, out mat2 g) {
+  float t = 1e9;
+  chord = -1e9;
+  n = vec3(0.0, 1.0, 0.0);
+  g = mat2(1.0);
+  float k = max(uScope.w, 1.0);
+  for (int e = 0; e < 12; e++) {
+    if (float(e) >= (uScope.w > 0.5 ? 2.0 * k : 1.0)) break;
+    float a = 6.2831853 * floor(float(e) * 0.5) / k;
+    float c = cos(a);
+    float s = sin(a);
+    // Undo the turn, then the mirror on odd images.
+    mat2 ge = mat2(c, s, -s, c);
+    if (mod(float(e), 2.0) > 0.5) ge = mat2(-1.0, 0.0, 0.0, 1.0) * ge;
+    vec3 ne;
+    float ce;
+    float te = enterHalf(toPart(ge, o), toPart(ge, v), ne, ce);
+    if (ce > 0.0 && (chord <= 0.0 || te < t)) {
+      t = te;
+      n = fromPart(ge, ne);
+      chord = ce;
+      g = ge;
     } else if (chord <= 0.0) {
-      chord = max(chord, c2);
+      chord = max(chord, ce);
     }
   }
   return t;
@@ -330,7 +367,7 @@ float featherOpen(vec2 q, float seed) {
   return clamp((rim - r) / (0.45 * rim), 0.15, 1.0);
 }
 
-vec3 shade(vec3 p, vec3 d, vec3 n, float side) {
+vec3 shade(vec3 p, vec3 d, vec3 n, mat2 g) {
   float cosI = max(-dot(d, n), 1e-4);
   float cosT = sqrt(1.0 - (1.0 - cosI * cosI) / (IOR_G * IOR_G));
   float f0 = fresnel(cosI, cosT, 1.0, IOR_G);
@@ -345,10 +382,9 @@ vec3 shade(vec3 p, vec3 d, vec3 n, float side) {
   float px = uMisc.y;
   for (int it = 0; it < MAX_STEPS; it++) {
     if (float(bounces) >= uCounts.z) break;
-    // Facet planes in the traced half's frame (mirrored in the -x half).
-    vec3 m = vec3(side, 1.0, 1.0);
-    vec3 q = p * m;
-    vec3 tq = t * m;
+    // Facet planes in the traced part's frame.
+    vec3 q = toPart(g, p);
+    vec3 tq = toPart(g, t);
     float tMin = 1e9;
     vec3 hn = vec3(0.0);
     for (int i = 0; i < MAX_PLANES; i++) {
@@ -378,18 +414,29 @@ vec3 shade(vec3 p, vec3 d, vec3 n, float side) {
         }
       }
     }
-    // Into the other half, if the axis comes first.
-    bool crossing = false;
+    // Into the next image, if a mirror comes first.
+    int crossing = -1;
     if (uScope.w > 0.5 && tq.x < -1e-6) {
       float s = -q.x / tq.x;
       if (s < tMin) {
         tMin = s;
-        crossing = true;
+        crossing = 0;
+      }
+    }
+    if (uScope.w > 1.5) {
+      vec3 mb = mirrorB();
+      float den = dot(mb, tq);
+      if (den > 1e-6) {
+        float s = -dot(mb, q) / den;
+        if (s < tMin) {
+          tMin = s;
+          crossing = 1;
+        }
       }
     }
     if (tMin > 1e8) break;
     tMin = max(tMin, 0.0);
-    hn *= m;
+    hn = fromPart(g, hn);
 
     // The nearest inclusion this way, if it comes before the facet.
     float sEv = tMin;
@@ -615,8 +662,12 @@ vec3 shade(vec3 p, vec3 d, vec3 n, float side) {
       continue;
     }
     skip = -1;
-    if (crossing) {
-      side = -side;
+    if (crossing >= 0) {
+      // The ray carries on into the neighbouring image: the part's frame
+      // there is this one mirrored in the mirror crossed.
+      vec3 mn = crossing == 0 ? mirrorA() : mirrorB();
+      g = mat2(1.0 - 2.0 * mn.x * mn.x, -2.0 * mn.x * mn.z,
+               -2.0 * mn.x * mn.z, 1.0 - 2.0 * mn.z * mn.z) * g;
       continue;
     }
     bounces++;
@@ -672,8 +723,8 @@ void main() {
 
   vec3 n;
   float chord;
-  float side;
-  float t = enter(o, v, n, chord, side);
+  mat2 g;
+  float t = enter(o, v, n, chord, g);
   float cover = chord > 0.0 ? 1.0 : 0.0;
 
   // Along the silhouette, measure true pixel coverage with four
@@ -686,8 +737,8 @@ void main() {
       vec3 vs = rayAt(frag + off, eyeW);
       vec3 ns;
       float cs;
-      float ss;
-      float ts = enter(o, vs, ns, cs, ss);
+      mat2 gs;
+      float ts = enter(o, vs, ns, cs, gs);
       if (cs > 0.0) {
         cover += 0.25;
         if (chord <= 0.0) {
@@ -695,7 +746,7 @@ void main() {
           n = ns;
           t = ts;
           chord = cs;
-          side = ss;
+          g = gs;
         }
       }
     }
@@ -705,7 +756,7 @@ void main() {
     return;
   }
 
-  vec3 hdr = shade(o + v * t, v, n, side) * uCounts.w;
+  vec3 hdr = shade(o + v * t, v, n, g) * uCounts.w;
   // ACES filmic curve, display gamma, then a little S-curve: whites crisp,
   // contrast deep, as a stone looks in person rather than a flat grey.
   vec3 col = clamp((hdr * (2.51 * hdr + 0.03)) / (hdr * (2.43 * hdr + 0.59) + 0.14),

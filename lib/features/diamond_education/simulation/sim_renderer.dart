@@ -650,7 +650,7 @@ class SimRenderer {
     sh
       ..setFloat(16, (traced - girdle.length).toDouble())
       ..setFloat(17, traced.toDouble())
-      ..setFloat(_uScope + 3, mesh.mirrorX ? 1 : 0)
+      ..setFloat(_uScope + 3, mesh.fold.toDouble())
       ..setFloat(20, ia)
       ..setFloat(21, ib)
       ..setFloat(22, rim * 0.95);

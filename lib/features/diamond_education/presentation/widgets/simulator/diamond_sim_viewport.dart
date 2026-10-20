@@ -410,9 +410,9 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   /// While the shape dial is open (or easing away) the stone is traced at
   /// the screen's full resolution on every frame, moving or not: inside
   /// the ring it is smaller, so that costs no more than usual, and a
-  /// stone being reshaped must stay perfectly crisp.
-  bool get _withDial =>
-      _c.fit.value != null || _fitAmount > 0 || _c.morph.value != null;
+  /// stone being reshaped must stay perfectly crisp. A stone reshaped at
+  /// its own size (the fancy cuts' slider) keeps the adaptive resolution.
+  bool get _withDial => _c.fit.value != null || _fitAmount > 0;
 
   double get _fitGoal => _c.fit.value == null ? 0 : 1;
 
