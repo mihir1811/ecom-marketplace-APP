@@ -115,8 +115,30 @@ enum ClarityGrade {
   };
 }
 
-/// Kinds of inclusion a viewer can pick to see inside the stone.
-enum InclusionType { crystal, carbon, feather, cloud, pinpoint, needle }
+/// Kinds of clarity characteristic a viewer can pick to see inside the
+/// stone, as GIA names them. The first eight stay wholly inside the
+/// stone (closed); the rest reach its surface (open). See
+/// `inclusion_catalog.dart` for how each is classed.
+enum InclusionType {
+  crystal,
+  carbon,
+  feather,
+  cloud,
+  pinpoint,
+  needle,
+  graining,
+  twinningWisp,
+  openFeather,
+  knot,
+  cavity,
+  chip,
+  bruise,
+  bearding,
+  indentedNatural,
+  etchChannel,
+  laserDrillHole,
+  filledFeather,
+}
 
 /// Strength of a brown or green body tinge (the B and G of BGM).
 enum TingeLevel {

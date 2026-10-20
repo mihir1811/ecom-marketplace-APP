@@ -26,6 +26,7 @@ import '../widgets/simulator/sim_cut_panels.dart';
 import '../widgets/simulator/sim_fancy_slider.dart';
 import '../widgets/simulator/sim_grade_panels.dart';
 import '../widgets/simulator/sim_hand_stage.dart';
+import '../widgets/simulator/sim_inclusion_explorer.dart';
 import '../widgets/simulator/sim_quality_panels.dart';
 import '../widgets/simulator/sim_shape_dial.dart';
 import '../widgets/simulator/sim_shape_strip.dart';
@@ -94,7 +95,7 @@ class _DiamondSimulatorScreenState
     _SimTool.cut => SimCutPanel(viewport: _viewport),
     _SimTool.color => const SimColorPanel(),
     _SimTool.clarity => const SimClarityPanel(),
-    _SimTool.inclusions => const SimInclusionsPanel(),
+    _SimTool.inclusions => SimInclusionsPanel(viewport: _viewport),
     _SimTool.bgm => const SimBgmPanel(),
     _SimTool.milky => const SimMilkyPanel(),
     _SimTool.carat => const SimCaratPanel(),
@@ -107,11 +108,40 @@ class _DiamondSimulatorScreenState
     // Carat is judged on a hand.
     if (t == _SimTool.carat) ref.read(simHandProvider.notifier).show(true);
     if (t == _SimTool.fluorescence) _enterUv();
+    if (t == _SimTool.inclusions) _enterExplorer();
   }
 
   void _close() {
     if (_open == _SimTool.fluorescence) _leaveUv();
+    if (_open == _SimTool.inclusions) _leaveExplorer();
     setState(() => _open = null);
+  }
+
+  /// How the stone was shown before the inclusion explorer took it.
+  SimRenderMode _modeBeforeExplorer = SimRenderMode.realistic;
+  bool _handBeforeExplorer = false;
+
+  /// Inclusions are explored on the single stone in the line drawing,
+  /// each labelled outside it: off the hand, out of the scope.
+  void _enterExplorer() {
+    _modeBeforeExplorer = _viewport.mode;
+    final hand = ref.read(simHandProvider.notifier);
+    _handBeforeExplorer = ref.read(simHandProvider).onHand;
+    hand.show(false);
+    ref.read(diamondSimulatorProvider.notifier).setHeartsArrows(false);
+    _viewport
+      ..mode = SimRenderMode.vector
+      ..focus.value = null
+      ..labelled.value = true;
+  }
+
+  void _leaveExplorer() {
+    _viewport
+      ..labelled.value = false
+      ..focus.value = null
+      ..stage.value = null
+      ..mode = _modeBeforeExplorer;
+    if (_handBeforeExplorer) ref.read(simHandProvider.notifier).show(true);
   }
 
   /// Lighting the stone had before fluorescence put it under ultraviolet.
@@ -155,6 +185,8 @@ class _DiamondSimulatorScreenState
     _viewport.mode = _viewport.vector
         ? SimRenderMode.realistic
         : SimRenderMode.vector;
+    // Inclusions are explored in the line drawing only.
+    _viewport.labelled.value = _open == _SimTool.inclusions && _viewport.vector;
   }
 
   void _reset() {
@@ -222,6 +254,8 @@ class _DiamondSimulatorScreenState
     final dial = open == _SimTool.shape && !onHand;
     // The fancy cuts slide past along the bottom, the stone at its size.
     final fancy = open == _SimTool.fancy && !onHand;
+    // Inclusions: the stone above the picker, labels either side of it.
+    final explore = open == _SimTool.inclusions && !onHand;
 
     return AppScaffold(
       enableAppDrawer: false,
@@ -250,12 +284,41 @@ class _DiamondSimulatorScreenState
               size.height / 2 - pad.bottom - 118 - halfBand,
             ].reduce(math.min),
           );
+          // The inclusion explorer's picker: taller than other tools' sheets,
+          // the stone and its labels in the space left above (or beside).
+          final explorerHeight = math.min(size.height * 0.46, 400.0);
+          final stage = !explore
+              ? null
+              : wide
+              ? Rect.fromLTRB(
+                  16,
+                  contentTop,
+                  size.width - panelWidth - 32,
+                  size.height - 16 - pad.bottom,
+                )
+              : Rect.fromLTRB(
+                  0,
+                  contentTop,
+                  size.width,
+                  size.height - explorerHeight - pad.bottom - 6,
+                );
+          // Room either side for the labels, the stone in the middle.
+          double? explorerFit;
+          if (stage != null) {
+            final labels = (stage.width * 0.27).clamp(92.0, 170.0);
+            explorerFit = math.max(
+              60.0,
+              math.min(stage.height * 0.44, stage.width / 2 - labels),
+            );
+          }
           // The stone sits well inside the ring while the dial is open, with
           // room to breathe between it and the band.
-          final fit = dial ? (dialRadius - halfBand) * 0.68 : null;
-          if (_viewport.fit.value != fit) {
+          final fit = dial ? (dialRadius - halfBand) * 0.68 : explorerFit;
+          if (_viewport.fit.value != fit || _viewport.stage.value != stage) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _viewport.fit.value = fit;
+              if (!mounted) return;
+              _viewport.fit.value = fit;
+              _viewport.stage.value = stage;
             });
           }
 
@@ -407,9 +470,13 @@ class _DiamondSimulatorScreenState
                         right: 0,
                         bottom: 0,
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxHeight: maxPanel + pad.bottom,
-                          ),
+                          constraints: explore
+                              ? BoxConstraints.tightFor(
+                                  height: explorerHeight + pad.bottom,
+                                )
+                              : BoxConstraints(
+                                  maxHeight: maxPanel + pad.bottom,
+                                ),
                           child: _ToolSheet(
                             key: ValueKey(open),
                             title: _toolLabel(open),

@@ -7,12 +7,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/haptics/app_haptics.dart';
 import '../../../application/diamond_simulator_controller.dart';
+import '../../../domain/diamond_grades.dart';
+import '../../sim_labels.dart';
 import '../../../simulation/sim_optics.dart';
+import '../../../simulation/sim_inclusion_shader.dart';
 import '../../../simulation/sim_inclusions.dart';
 import '../../../simulation/sim_mesh.dart';
 import '../../../simulation/sim_morph.dart';
 import '../../../simulation/sim_renderer.dart';
 import '../../../simulation/sim_wireframe.dart';
+import 'sim_inclusion_callouts.dart';
 
 /// Camera presets for the simulated stone.
 enum SimViewPreset {
@@ -88,9 +92,25 @@ class SimViewportController extends ChangeNotifier {
   /// and from it.
   final fit = ValueNotifier<double?>(null);
 
+  /// Where the stone should sit, e.g. above the inclusion picker with
+  /// room for labels either side; null for the viewport's centre. Eases
+  /// with [fit].
+  final stage = ValueNotifier<Rect?>(null);
+
+  /// Whether inclusions are labelled outside the stone, with arrows to
+  /// each (line drawing only).
+  final labelled = ValueNotifier(false);
+
+  /// The inclusion kind whose label is highlighted; a tap on a label
+  /// sets it.
+  final focus = ValueNotifier<InclusionType?>(null);
+
   @override
   void dispose() {
     fit.dispose();
+    stage.dispose();
+    labelled.dispose();
+    focus.dispose();
     readout.dispose();
     zoom.dispose();
     lifeSize.dispose();
@@ -203,6 +223,11 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   late final Ticker _ticker = createTicker(_tick);
   final _renderer = SimRenderer();
   final _wire = SimWireRenderer();
+  final _incShader = SimInclusionShader();
+  final _callouts = SimInclusionCallouts();
+  Locale? _calloutLocale;
+  Rect? _lastStage;
+  double _dt = 0;
   late SimMesh _mesh;
   late List<SimInclusion> _inclusions;
 
@@ -277,6 +302,9 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _c.addListener(_onCommand);
     _c.morph.addListener(_invalidate);
     _c.fit.addListener(_onCommand);
+    _c.stage.addListener(_onCommand);
+    _c.labelled.addListener(_invalidate);
+    _c.focus.addListener(_invalidate);
     _c.readout.onWatch = _onReadoutWatched;
     SchedulerBinding.instance.addTimingsCallback(_onTimings);
     SimRenderer.loadProgram()
@@ -287,6 +315,15 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         })
         .catchError((Object _) {
           // The CPU tracer keeps drawing.
+        });
+    SimInclusionShader.loadProgram()
+        .then((program) {
+          if (!mounted) return;
+          _incShader.shader = program.fragmentShader();
+          _invalidate();
+        })
+        .catchError((Object _) {
+          // The line drawing shows the stone without its inclusions.
         });
   }
 
@@ -321,6 +358,9 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _c.removeListener(_onCommand);
     _c.morph.removeListener(_invalidate);
     _c.fit.removeListener(_onCommand);
+    _c.stage.removeListener(_onCommand);
+    _c.labelled.removeListener(_invalidate);
+    _c.focus.removeListener(_invalidate);
     if (_c.readout.onWatch == _onReadoutWatched) _c.readout.onWatch = null;
     _route?.removeStatusListener(_onRouteStatus);
     SchedulerBinding.instance.removeTimingsCallback(_onTimings);
@@ -328,6 +368,8 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _ticker.dispose();
     _frame.dispose();
     _renderer.dispose();
+    _incShader.dispose();
+    _callouts.clear();
     super.dispose();
   }
 
@@ -464,6 +506,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         : ((elapsed - _last).inMicroseconds / 1e6).clamp(0.0, 1 / 20);
     _last = elapsed;
     _time += dt;
+    _dt = dt;
     if (!_dragging) {
       if (_c.autoRotate) _spin += 0.3 * dt;
       _spin += _wSpin * dt;
@@ -480,6 +523,8 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     if (_appear < 1) _appear = math.min(1, _appear + dt / 0.35);
     final fit = _c.fit.value;
     if (fit != null) _fitRadius = fit;
+    final stage = _c.stage.value;
+    if (stage != null) _lastStage = stage;
     final goal = _fitGoal;
     if (_fitAmount != goal) {
       _fitAmount = goal > _fitAmount
@@ -506,12 +551,15 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     var pxPerUnit =
         morph?.pxPerUnit(size) ??
         SimScale.pxPerMm(size, _radius * _mmPerUnit) * _mmPerUnit;
+    var centre = size.center(Offset.zero);
     if (_fitAmount > 0 && _fitRadius > 0) {
+      final e = Curves.easeInOutCubic.transform(_fitAmount);
       final reach = mesh.radius * pxPerUnit;
       if (reach > _fitRadius) {
-        final e = Curves.easeInOutCubic.transform(_fitAmount);
         pxPerUnit *= 1 + (_fitRadius / reach - 1) * e;
       }
+      final stage = _c.stage.value ?? _lastStage;
+      if (stage != null) centre = Offset.lerp(centre, stage.center, e)!;
     }
     // A gentle rock while spinning, as a jeweller tilts a stone in light.
     final rock = _c.autoRotate && !_dragging
@@ -523,7 +571,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       zoom: _zoom,
     );
     if (_c.vector) {
-      _paintVector(canvas, size, view, pxPerUnit, mesh, inclusions);
+      _paintVector(canvas, size, view, pxPerUnit, mesh, inclusions, centre);
       return;
     }
     final quality = _refined;
@@ -551,6 +599,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       renderScale: quality || _withDial ? _dpr : math.min(_renderScale, _dpr),
       time: _time,
       twinkle: _ticker.isActive,
+      centre: centre,
     );
     sw.stop();
     if (fade) canvas.restore();
@@ -566,6 +615,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     double pxPerUnit,
     SimMesh mesh,
     List<SimInclusion> inclusions,
+    Offset centre,
   ) {
     final fade = _appear < 1;
     if (fade) {
@@ -580,7 +630,25 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       pxPerUnit: pxPerUnit,
       style: _wireStyle,
       inclusions: inclusions,
+      inclusionShader: _incShader,
+      centre: centre,
+      time: _time,
     );
+    if (_c.labelled.value && _fitAmount > 0) {
+      // Labels glide while the stone moves and settle on the still frame.
+      _callouts.paint(
+        canvas,
+        anchors: _incShader.anchors,
+        mesh: mesh,
+        stone: _wire.bounds,
+        stage: _c.stage.value ?? _lastStage ?? Offset.zero & size,
+        dt: _ticker.isActive ? _dt : 0,
+        opacity: Curves.easeInCubic.transform(_fitAmount),
+        focus: _c.focus.value,
+      );
+    } else {
+      _callouts.rects.clear();
+    }
     if (fade) canvas.restore();
     if (_c.readout.watched && _c.morph.value == null) {
       if (_refined) _renderer.requestStats();
@@ -623,9 +691,42 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     }
   }
 
+  /// The labels' text in the current language.
+  void _syncCalloutText(BuildContext context) {
+    final locale = Localizations.maybeLocaleOf(context);
+    if (locale == _calloutLocale && _calloutLocale != null) return;
+    _calloutLocale = locale;
+    _callouts.text = SimCalloutText(
+      names: {
+        for (final t in InclusionType.values) t: context.inclusionName(t),
+      },
+      reach: {
+        for (final r in InclusionReach.values) r: context.inclusionReachName(r),
+      },
+      families: {
+        for (final f in InclusionFamily.values)
+          f: context.inclusionFamilyName(f),
+      },
+      places: {for (final f in SimFacetKind.values) f: context.facetPlace(f)},
+    );
+  }
+
+  /// A tap on a label highlights its kind.
+  void _onTapUp(TapUpDetails d) {
+    if (!_c.labelled.value) return;
+    for (final e in _callouts.rects.entries) {
+      if (e.value.inflate(6).contains(d.localPosition)) {
+        AppHaptics.selection();
+        _c.focus.value = e.key;
+        return;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     _dpr = MediaQuery.devicePixelRatioOf(context);
+    _syncCalloutText(context);
     ref.listen(diamondSimulatorProvider.select((s) => (s.mesh, s.inclusions)), (
       _,
       next,
@@ -654,6 +755,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         final k = 2.8 / math.max(160.0, constraints.biggest.shortestSide);
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
+          onTapUp: _onTapUp,
           onDoubleTap: () {
             AppHaptics.light();
             _zoom = 1;

@@ -13,6 +13,7 @@ import '../../../domain/average_hand.dart';
 import '../../../domain/diamond_grades.dart';
 import '../../../simulation/sim_optics.dart';
 import '../../../simulation/sim_renderer.dart';
+import '../../../simulation/sim_inclusion_shader.dart';
 import '../../../simulation/sim_wireframe.dart';
 import 'diamond_sim_viewport.dart';
 import 'sim_hand_painter.dart';
@@ -355,6 +356,7 @@ class SimFingerStone extends StatefulWidget {
 class _SimFingerStoneState extends State<SimFingerStone> {
   final _renderer = SimRenderer()..measureStats = false;
   final _wire = SimWireRenderer();
+  final _inclusions = SimInclusionShader();
   late SimWireStyle _wireStyle;
   int _version = 0;
 
@@ -378,6 +380,17 @@ class _SimFingerStoneState extends State<SimFingerStone> {
         })
         .catchError((Object _) {
           // The CPU tracer keeps drawing.
+        });
+    SimInclusionShader.loadProgram()
+        .then((program) {
+          if (!mounted) return;
+          setState(() {
+            _inclusions.shader = program.fragmentShader();
+            _version++;
+          });
+        })
+        .catchError((Object _) {
+          // The line drawing shows the stone without its inclusions.
         });
   }
 
@@ -414,6 +427,7 @@ class _SimFingerStoneState extends State<SimFingerStone> {
   void dispose() {
     _settle?.cancel();
     _renderer.dispose();
+    _inclusions.dispose();
     super.dispose();
   }
 
@@ -426,6 +440,7 @@ class _SimFingerStoneState extends State<SimFingerStone> {
         painter: _FingerStonePainter(
           renderer: _renderer,
           wire: widget.vector ? _wire : null,
+          inclusions: _inclusions,
           stone: widget.stone,
           wireStyle: _wireStyle,
           version: _version,
@@ -443,6 +458,7 @@ class _FingerStonePainter extends CustomPainter {
   _FingerStonePainter({
     required this.renderer,
     required this.wire,
+    required this.inclusions,
     required this.stone,
     required this.wireStyle,
     required this.version,
@@ -454,6 +470,7 @@ class _FingerStonePainter extends CustomPainter {
 
   final SimRenderer renderer;
   final SimWireRenderer? wire;
+  final SimInclusionShader inclusions;
   final DiamondSimulatorState stone;
   final SimWireStyle wireStyle;
   final int version;
@@ -472,6 +489,7 @@ class _FingerStonePainter extends CustomPainter {
         pxPerUnit: pxPerUnit,
         style: wireStyle,
         inclusions: stone.inclusions,
+        inclusionShader: inclusions,
       );
       return;
     }

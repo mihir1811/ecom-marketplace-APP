@@ -327,11 +327,17 @@ void main() {
         isEmpty,
       );
       expect(
-        drilled.where((i) => i.kind == SimInclusionKind.needle).length,
+        drilled.where((i) => i.kind == SimInclusionKind.laserDrillHole).length,
         greaterThan(
-          plain.where((i) => i.kind == SimInclusionKind.needle).length,
+          plain.where((i) => i.kind == SimInclusionKind.laserDrillHole).length,
         ),
       );
+      // Each tunnel opens on a facet.
+      for (final h in drilled.where(
+        (i) => i.kind == SimInclusionKind.laserDrillHole,
+      )) {
+        expect(h.open, isTrue);
+      }
     });
 
     test('brown warms the stone, milky veils it, HPHT clears brown', () {

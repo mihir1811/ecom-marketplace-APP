@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show immutable;
 import 'package:flutter/painting.dart';
 
 import '../domain/diamond_grades.dart';
+import 'sim_inclusion_shader.dart';
 import 'sim_inclusions.dart';
 import 'sim_mesh.dart';
 import 'sim_optics.dart';
@@ -249,10 +250,6 @@ class SimWireStyle {
   /// Facet edges facing the viewer; hidden ones are drawn faintly in it.
   final Color line;
 
-  /// Internal characteristics, red as on a grading report's plot.
-  static const inclusion = Color(0xFFFF5A52);
-  static const inclusionDark = Color(0xFF9E1C18);
-
   @override
   bool operator ==(Object other) => other is SimWireStyle && other.line == line;
 
@@ -264,7 +261,7 @@ class SimWireStyle {
 /// same perspective as [SimRenderer]. Edges on the side facing the viewer
 /// are drawn crisp, those on the far side faintly (the stone is clear, so
 /// they read as depth without cluttering the face), and inclusions are
-/// plotted inside in red with a grading report's symbols.
+/// drawn inside as the lit objects they are ([SimInclusionShader]).
 ///
 /// Visibility is exact: an edge shows when a facet beside it faces the
 /// viewer, and on a stone that is not convex (a heart) each edge is also
@@ -286,12 +283,6 @@ class SimWireRenderer {
     ..isAntiAlias = true
     ..style = PaintingStyle.stroke
     ..strokeCap = StrokeCap.round;
-  final Paint _incPaint = Paint()
-    ..isAntiAlias = true
-    ..style = PaintingStyle.stroke
-    ..strokeCap = StrokeCap.round
-    ..strokeJoin = StrokeJoin.round;
-  final Paint _incFill = Paint()..isAntiAlias = true;
 
   /// Share of the line colour the far side's edges are drawn in.
   static const hiddenAlpha = 0.2;
@@ -310,15 +301,13 @@ class SimWireRenderer {
     out[at + 1] = _cy - wy * k;
   }
 
-  Offset _offset(double x, double y, double z) {
-    _project(x, y, z, _tmp, 0);
-    return Offset(_tmp[0], _tmp[1]);
-  }
+  /// The stone's outline on screen in the last [paint].
+  Rect bounds = Rect.zero;
 
-  final Float32List _tmp = Float32List(2);
-
-  /// Paints [mesh] centred in [size]; [pxPerUnit] maps model units to
-  /// logical pixels at zoom 1, as for [SimRenderer.paint].
+  /// Paints [mesh] centred in [size] (or at [centre]); [pxPerUnit] maps
+  /// model units to logical pixels at zoom 1, as for [SimRenderer.paint].
+  /// [inclusions] are drawn by [inclusionShader], between the far side's
+  /// edges and the near side's, at [inclusionOpacity].
   void paint(
     Canvas canvas,
     Size size, {
@@ -327,12 +316,16 @@ class SimWireRenderer {
     required double pxPerUnit,
     required SimWireStyle style,
     List<SimInclusion> inclusions = const [],
+    SimInclusionShader? inclusionShader,
+    double inclusionOpacity = 1,
+    Offset? centre,
+    double time = 0,
   }) {
     if (size.isEmpty) return;
     final wire = SimWireMesh.of(mesh);
     _scale = pxPerUnit * view.zoom;
-    _cx = size.width / 2;
-    _cy = size.height / 2;
+    _cx = centre?.dx ?? size.width / 2;
+    _cy = centre?.dy ?? size.height / 2;
     view.rotationInto(_rot);
     final ex = _d0 * _rot[6], ey = _d0 * _rot[7], ez = _d0 * _rot[8];
 
@@ -343,15 +336,22 @@ class SimWireRenderer {
       _sy = Float64List(vcount);
     }
     final r = _rot;
+    var left = double.infinity, top = double.infinity;
+    var right = -double.infinity, bottom = -double.infinity;
     for (var i = 0; i < vcount; i++) {
       final x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
       final wx = r[0] * x + r[1] * y + r[2] * z;
       final wy = r[3] * x + r[4] * y + r[5] * z;
       final wz = r[6] * x + r[7] * y + r[8] * z;
       final k = _scale * _d0 / (_d0 - wz);
-      _sx[i] = _cx + wx * k;
-      _sy[i] = _cy - wy * k;
+      final sx = _sx[i] = _cx + wx * k;
+      final sy = _sy[i] = _cy - wy * k;
+      left = math.min(left, sx);
+      right = math.max(right, sx);
+      top = math.min(top, sy);
+      bottom = math.max(bottom, sy);
     }
+    bounds = vcount == 0 ? Rect.zero : Rect.fromLTRB(left, top, right, bottom);
 
     final facets = mesh.facetCount, planes = mesh.planes;
     if (_front.length < facets) _front = Uint8List(facets);
@@ -407,7 +407,17 @@ class SimWireRenderer {
         _hidPaint,
       );
     }
-    if (inclusions.isNotEmpty) _paintInclusions(canvas, inclusions, width);
+    if (inclusionShader != null) {
+      inclusionShader.paint(
+        canvas,
+        inclusions,
+        rot: _rot,
+        scale: _scale,
+        centre: Offset(_cx, _cy),
+        opacity: inclusionOpacity,
+        time: time,
+      );
+    }
     if (_nv > 0) {
       _visPaint
         ..color = line
@@ -562,158 +572,5 @@ class SimWireRenderer {
     }
     piece(coverFrom, coverTo, false);
     piece(coverTo, 1, true);
-  }
-
-  /// Plots inclusions with a grading report's symbols, drawn in 3D where
-  /// they sit: crystals as small octahedra (filled when dark), feathers as
-  /// their crack's outline (dashed once glass filled), needles as lines,
-  /// clouds as rings of dots, pinpoints as dots.
-  void _paintInclusions(
-    Canvas canvas,
-    List<SimInclusion> inclusions,
-    double width,
-  ) {
-    final strokes = Path(), dashes = Path();
-    final fills = Path(), points = Path();
-    var dark = false, pins = false;
-    final dots = <double>[];
-    final px = 1 / _scale;
-
-    for (final inc in inclusions) {
-      final cx = inc.x, cy = inc.y, cz = inc.z;
-      // Axis and two directions across it.
-      var ux = inc.ax, uy = inc.ay, uz = inc.az;
-      var l = math.sqrt(ux * ux + uy * uy + uz * uz);
-      if (l < 1e-9) {
-        (ux, uy, uz, l) = (0.0, 1.0, 0.0, 1.0);
-      }
-      ux /= l;
-      uy /= l;
-      uz /= l;
-      final (hx, hy, hz) = uy.abs() < 0.9 ? (0.0, 1.0, 0.0) : (1.0, 0.0, 0.0);
-      var vx = uy * hz - uz * hy, vy = uz * hx - ux * hz;
-      var vz = ux * hy - uy * hx;
-      final vl = math.sqrt(vx * vx + vy * vy + vz * vz);
-      vx /= vl;
-      vy /= vl;
-      vz /= vl;
-      final wx = uy * vz - uz * vy, wy = uz * vx - ux * vz;
-      final wz = ux * vy - uy * vx;
-
-      Offset at(double a, double b, double c) => _offset(
-        cx + ux * a + vx * b + wx * c,
-        cy + uy * a + vy * b + wy * c,
-        cz + uz * a + vz * b + wz * c,
-      );
-
-      /// Closed outline across the axis, radius [rad] varied by [wobble].
-      List<Offset> ring(int n, double rad, double wobble) => [
-        for (var i = 0; i < n; i++)
-          () {
-            final th = 2 * math.pi * i / n;
-            final rr =
-                rad *
-                (1 +
-                    wobble *
-                        (0.6 * math.sin(3 * th + inc.seed * 6.3) +
-                            0.4 * math.sin(5 * th + inc.seed * 11.7)));
-            return at(0, rr * math.cos(th), rr * math.sin(th));
-          }(),
-      ];
-
-      switch (inc.kind) {
-        case SimInclusionKind.pinpoint:
-          final o = _offset(cx, cy, cz);
-          pins = true;
-          points.addOval(
-            Rect.fromCircle(
-              center: o,
-              radius: math.max(1.3, inc.size * _scale),
-            ),
-          );
-        case SimInclusionKind.clearCrystal || SimInclusionKind.darkCrystal:
-          final rad = math.max(inc.size, 2.6 * px);
-          final long = rad * (1 + 0.5 * inc.seed);
-          final tip = [at(long, 0, 0), at(-long, 0, 0)];
-          final belt = [
-            at(0, rad, 0),
-            at(0, 0, rad),
-            at(0, -rad, 0),
-            at(0, 0, -rad),
-          ];
-          if (inc.kind == SimInclusionKind.darkCrystal) {
-            dark = true;
-            for (final t in tip) {
-              for (var i = 0; i < 4; i++) {
-                fills.addPolygon([t, belt[i], belt[(i + 1) % 4]], true);
-              }
-            }
-          }
-          strokes.addPolygon(belt, true);
-          for (final t in tip) {
-            for (final q in belt) {
-              strokes
-                ..moveTo(t.dx, t.dy)
-                ..lineTo(q.dx, q.dy);
-            }
-          }
-        case SimInclusionKind.feather:
-          strokes.addPolygon(ring(18, math.max(inc.size, 3 * px), 0.18), true);
-        case SimInclusionKind.filledFeather:
-          final pts = ring(24, math.max(inc.size, 3 * px), 0.18);
-          for (var i = 0; i < pts.length; i += 2) {
-            final p = pts[i], q = pts[(i + 1) % pts.length];
-            dashes
-              ..moveTo(p.dx, p.dy)
-              ..lineTo(q.dx, q.dy);
-          }
-        case SimInclusionKind.needle:
-          final half = math.max(inc.size, 2.5 * px);
-          final p = at(-half, 0, 0), q = at(half, 0, 0);
-          strokes
-            ..moveTo(p.dx, p.dy)
-            ..lineTo(q.dx, q.dy);
-        case SimInclusionKind.cloud:
-          final rad = math.max(inc.size, 4 * px);
-          for (final o in ring(14, rad, 0.12)) {
-            dots
-              ..add(o.dx)
-              ..add(o.dy);
-          }
-          // A few within, placed by the seed.
-          for (var i = 0; i < 6; i++) {
-            final th = 2 * math.pi * ((inc.seed * 7.31 + i * 0.618) % 1);
-            final rr = rad * (0.25 + 0.5 * ((inc.seed * 3.7 + i * 0.414) % 1));
-            final o = at(0, rr * math.cos(th), rr * math.sin(th));
-            dots
-              ..add(o.dx)
-              ..add(o.dy);
-          }
-      }
-    }
-
-    final w = width * 0.9;
-    if (dark) {
-      canvas.drawPath(
-        fills,
-        _incFill..color = SimWireStyle.inclusionDark.withValues(alpha: 0.9),
-      );
-    }
-    if (pins) {
-      canvas.drawPath(points, _incFill..color = SimWireStyle.inclusion);
-    }
-    _incPaint
-      ..color = SimWireStyle.inclusion
-      ..strokeWidth = w;
-    canvas
-      ..drawPath(strokes, _incPaint)
-      ..drawPath(dashes, _incPaint);
-    if (dots.isNotEmpty) {
-      canvas.drawRawPoints(
-        ui.PointMode.points,
-        Float32List.fromList(dots),
-        _incPaint..strokeWidth = w * 1.5,
-      );
-    }
   }
 }

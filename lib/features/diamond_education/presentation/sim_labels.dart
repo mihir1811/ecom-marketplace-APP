@@ -4,7 +4,9 @@ import '../../../core/l10n/app_localizations.dart';
 import '../domain/average_hand.dart';
 import '../domain/diamond_grades.dart';
 import '../domain/diamond_shape.dart';
+import '../domain/inclusion_catalog.dart';
 import '../simulation/sim_fancy.dart';
+import '../simulation/sim_mesh.dart';
 
 /// Localized display names for the simulator's grades and options.
 extension SimLabels on BuildContext {
@@ -79,16 +81,77 @@ extension SimLabels on BuildContext {
     InclusionType.cloud => EducationL10n.incTypeCloud,
     InclusionType.pinpoint => EducationL10n.incTypePinpoint,
     InclusionType.needle => EducationL10n.incTypeNeedle,
+    InclusionType.graining => EducationL10n.incTypeGraining,
+    InclusionType.twinningWisp => EducationL10n.incTypeTwinningWisp,
+    InclusionType.openFeather => EducationL10n.incTypeOpenFeather,
+    InclusionType.knot => EducationL10n.incTypeKnot,
+    InclusionType.cavity => EducationL10n.incTypeCavity,
+    InclusionType.chip => EducationL10n.incTypeChip,
+    InclusionType.bruise => EducationL10n.incTypeBruise,
+    InclusionType.bearding => EducationL10n.incTypeBearding,
+    InclusionType.indentedNatural => EducationL10n.incTypeIndentedNatural,
+    InclusionType.etchChannel => EducationL10n.incTypeEtchChannel,
+    InclusionType.laserDrillHole => EducationL10n.incTypeLaserDrillHole,
+    InclusionType.filledFeather => EducationL10n.incTypeFilledFeather,
   });
 
-  /// What an inclusion kind is, in one line.
+  /// What an inclusion kind is, in a sentence, after GIA's definitions.
   String inclusionBody(InclusionType t) => tr(switch (t) {
-    InclusionType.crystal => EducationL10n.incCrystal,
-    InclusionType.carbon => EducationL10n.incCarbon,
-    InclusionType.feather => EducationL10n.incFeather,
-    InclusionType.cloud => EducationL10n.incCloud,
-    InclusionType.pinpoint => EducationL10n.incPinpoint,
-    InclusionType.needle => EducationL10n.incNeedle,
+    InclusionType.crystal => EducationL10n.incDefCrystal,
+    InclusionType.carbon => EducationL10n.incDefCarbon,
+    InclusionType.feather => EducationL10n.incDefFeather,
+    InclusionType.cloud => EducationL10n.incDefCloud,
+    InclusionType.pinpoint => EducationL10n.incDefPinpoint,
+    InclusionType.needle => EducationL10n.incDefNeedle,
+    InclusionType.graining => EducationL10n.incDefGraining,
+    InclusionType.twinningWisp => EducationL10n.incDefTwinningWisp,
+    InclusionType.openFeather => EducationL10n.incDefOpenFeather,
+    InclusionType.knot => EducationL10n.incDefKnot,
+    InclusionType.cavity => EducationL10n.incDefCavity,
+    InclusionType.chip => EducationL10n.incDefChip,
+    InclusionType.bruise => EducationL10n.incDefBruise,
+    InclusionType.bearding => EducationL10n.incDefBearding,
+    InclusionType.indentedNatural => EducationL10n.incDefIndentedNatural,
+    InclusionType.etchChannel => EducationL10n.incDefEtchChannel,
+    InclusionType.laserDrillHole => EducationL10n.incDefLaserDrillHole,
+    InclusionType.filledFeather => EducationL10n.incDefFilledFeather,
+  });
+
+  String inclusionReachName(InclusionReach r) => tr(switch (r) {
+    InclusionReach.closed => EducationL10n.incReachClosed,
+    InclusionReach.open => EducationL10n.incReachOpen,
+  });
+
+  String inclusionFamilyName(InclusionFamily f) => tr(switch (f) {
+    InclusionFamily.mineral => EducationL10n.incFamilyMineral,
+    InclusionFamily.fracture => EducationL10n.incFamilyFracture,
+    InclusionFamily.growth => EducationL10n.incFamilyGrowth,
+    InclusionFamily.damage => EducationL10n.incFamilyDamage,
+    InclusionFamily.etching => EducationL10n.incFamilyEtching,
+    InclusionFamily.treatment => EducationL10n.incFamilyTreatment,
+  });
+
+  String inclusionOriginName(InclusionOrigin o) => tr(switch (o) {
+    InclusionOrigin.growth => EducationL10n.incOriginGrowth,
+    InclusionOrigin.afterGrowth => EducationL10n.incOriginAfterGrowth,
+    InclusionOrigin.cutting => EducationL10n.incOriginCutting,
+    InclusionOrigin.treatment => EducationL10n.incOriginTreatment,
+  });
+
+  String inclusionLevelName(InclusionLevel l) => tr(switch (l) {
+    InclusionLevel.none => EducationL10n.incLevelNone,
+    InclusionLevel.low => EducationL10n.incLevelLow,
+    InclusionLevel.medium => EducationL10n.incLevelMedium,
+    InclusionLevel.high => EducationL10n.incLevelHigh,
+  });
+
+  /// Where in the stone a characteristic sits, by its nearest facet.
+  String facetPlace(SimFacetKind f) => tr(switch (f) {
+    SimFacetKind.table => EducationL10n.incAtTable,
+    SimFacetKind.crown => EducationL10n.incAtCrown,
+    SimFacetKind.girdle => EducationL10n.incAtGirdle,
+    SimFacetKind.pavilion => EducationL10n.incAtPavilion,
+    SimFacetKind.culet => EducationL10n.incAtCulet,
   });
 
   String tingeName(TingeLevel l) => tr(switch (l) {

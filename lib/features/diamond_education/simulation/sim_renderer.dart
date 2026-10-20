@@ -307,7 +307,7 @@ class SimRenderer {
   final Float64List _rot = Float64List(9);
   final List<int> _hullIds = [];
 
-  /// Paints the stone centred in [size]. [pxPerUnit] maps model units to
+  /// Paints the stone centred in [size] (or at [centre]). [pxPerUnit] maps model units to
   /// logical pixels at zoom 1; CPU samples land about [samplePx] pixels
   /// apart. The GPU traces [renderScale] pixels per logical pixel, capped
   /// at [devicePixelRatio], which also sizes its edge anti-aliasing.
@@ -321,6 +321,7 @@ class SimRenderer {
     double? renderScale,
     double time = 0,
     bool twinkle = false,
+    Offset? centre,
   }) {
     final mesh = _mesh;
     if (mesh == null || size.isEmpty) return;
@@ -359,7 +360,8 @@ class SimRenderer {
     tracer.studio.scopeHole = 0.976 + 0.012 * (-st).clamp(0.0, 1.0);
     const d0 = _eye;
     final ex = d0 * r20, ey = d0 * r21, ez = d0 * r22;
-    final cx = size.width / 2, cy = size.height / 2;
+    final cx = centre?.dx ?? size.width / 2;
+    final cy = centre?.dy ?? size.height / 2;
 
     // Project every mesh vertex once (facet outlines for the base layer).
     final vcount = mesh.vertexCount;
@@ -939,7 +941,16 @@ class SimRenderer {
     for (final inc in _inclusions) {
       final at = project(inc.x, inc.y, inc.z);
       final size = math.max(0.6, inc.size * scale);
-      switch (inc.kind) {
+      // The tracer's look for it.
+      final look = switch (inc.kind.code) {
+        1 => SimInclusionKind.pinpoint,
+        2 => SimInclusionKind.darkCrystal,
+        3 => SimInclusionKind.clearCrystal,
+        5 => SimInclusionKind.cloud,
+        6 => SimInclusionKind.needle,
+        _ => SimInclusionKind.feather,
+      };
+      switch (look) {
         case SimInclusionKind.pinpoint:
           _dot.color = const Color(0x99FFFFFF);
           canvas.drawCircle(at, size, _dot);
@@ -957,7 +968,7 @@ class SimRenderer {
           // Its trace across the view: perpendicular to a feather's
           // normal, along a needle.
           var dx = inc.ax, dy = inc.ay, dz = inc.az;
-          if (inc.kind != SimInclusionKind.needle) {
+          if (look != SimInclusionKind.needle) {
             (dx, dy, dz) = (-inc.az, 0.0, inc.ax);
           }
           final a = project(
@@ -972,11 +983,13 @@ class SimRenderer {
           );
           _line
             ..color = const Color(0x40F2F4FA)
-            ..strokeWidth = inc.kind == SimInclusionKind.needle ? 0.8 : 1.6;
+            ..strokeWidth = look == SimInclusionKind.needle ? 0.8 : 1.6;
           canvas.drawLine(a, b, _line);
         case SimInclusionKind.cloud:
           _dot.color = const Color(0x1FFFFFFF);
           canvas.drawCircle(at, size, _dot);
+        default:
+          break;
       }
     }
   }

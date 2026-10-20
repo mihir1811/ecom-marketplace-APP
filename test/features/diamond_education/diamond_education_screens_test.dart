@@ -11,6 +11,7 @@ import 'package:gemstone/core/l10n/app_localizations.dart';
 import 'package:gemstone/core/theme/app_palette.dart';
 import 'package:gemstone/core/theme/app_theme.dart';
 import 'package:gemstone/features/diamond_education/application/diamond_simulator_controller.dart';
+import 'package:gemstone/features/diamond_education/domain/diamond_grades.dart';
 import 'package:gemstone/features/diamond_education/domain/diamond_shape.dart';
 import 'package:gemstone/features/diamond_education/presentation/screens/diamond_education_screen.dart';
 import 'package:gemstone/features/diamond_education/presentation/screens/diamond_simulator_screen.dart';
@@ -147,6 +148,68 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 800));
         expect(tester.takeException(), isNull);
+        await _teardown(tester);
+      },
+    );
+  }
+
+  for (final size in const [Size(360, 740), Size(1280, 800)]) {
+    testWidgets(
+      'inclusion explorer picks many kinds, labelled in the line drawing '
+      'at ${size.width.toInt()}px',
+      (tester) async {
+        await _pump(tester, size, const DiamondSimulatorScreen());
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DiamondSimulatorScreen)),
+        );
+        final viewport = tester
+            .widget<DiamondSimViewport>(find.byType(DiamondSimViewport))
+            .controller;
+        expect(viewport.vector, isFalse);
+
+        Future<void> tapText(String text) async {
+          final target = find.text(text).first;
+          await tester.ensureVisible(target);
+          await tester.pump();
+          await tester.tap(target);
+          await tester.pump(const Duration(milliseconds: 300));
+          expect(tester.takeException(), isNull, reason: text);
+        }
+
+        await tapText('Inclusions');
+        await tester.pump(const Duration(milliseconds: 600));
+        // Explored in the line drawing, labelled, the stone above the
+        // picker.
+        expect(viewport.vector, isTrue);
+        expect(viewport.labelled.value, isTrue);
+        expect(viewport.stage.value, isNotNull);
+        expect(find.text('Closed · wholly inside the stone'), findsOneWidget);
+        expect(find.text('Open · reaching the surface'), findsOneWidget);
+
+        // Several at once, open and closed.
+        await tapText('Knot');
+        await tapText('Needle');
+        await tapText('Surface-reaching feather');
+        final types = container
+            .read(diamondSimulatorProvider)
+            .spec
+            .inclusionTypes;
+        expect(types, {
+          InclusionType.knot,
+          InclusionType.needle,
+          InclusionType.openFeather,
+        });
+        // The card describes the one last picked.
+        expect(viewport.focus.value, InclusionType.openFeather);
+        expect(find.text('Durability risk'), findsWidgets);
+        await tester.pump(const Duration(milliseconds: 800));
+        expect(tester.takeException(), isNull);
+
+        await tapText('Done');
+        expect(viewport.vector, isFalse);
+        expect(viewport.labelled.value, isFalse);
+        await tester.pump(const Duration(milliseconds: 800));
+        expect(viewport.stage.value, isNull);
         await _teardown(tester);
       },
     );
