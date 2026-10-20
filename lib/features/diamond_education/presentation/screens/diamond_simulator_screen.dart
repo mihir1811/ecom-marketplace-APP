@@ -26,6 +26,7 @@ import '../widgets/simulator/sim_cut_panels.dart';
 import '../widgets/simulator/sim_grade_panels.dart';
 import '../widgets/simulator/sim_hand_stage.dart';
 import '../widgets/simulator/sim_quality_panels.dart';
+import '../widgets/simulator/sim_shape_dial.dart';
 import '../widgets/simulator/sim_shape_strip.dart';
 import '../widgets/simulator/sim_viewport_overlay.dart';
 
@@ -211,6 +212,9 @@ class _DiamondSimulatorScreenState
     }
     final pad = MediaQuery.paddingOf(context);
     final open = _open;
+    // Shape is chosen on a dial ringed round the stone; on the hand, where
+    // stones are compared finger by finger, from the strip as before.
+    final dial = open == _SimTool.shape && !onHand;
 
     return AppScaffold(
       enableAppDrawer: false,
@@ -226,6 +230,27 @@ class _DiamondSimulatorScreenState
           final maxPanel = math.min(size.height * 0.44, 400.0);
           final barTop = pad.top + 6;
           final contentTop = barTop + 50;
+          // The dial's ring: as large as the screen allows round the
+          // centred stone, clear of the top bar, the shape's name and
+          // Done below it.
+          const halfBand = SimShapeDial.band / 2;
+          final dialRadius = math.max(
+            90.0,
+            [
+              size.shortestSide * 0.42,
+              size.width / 2 - halfBand - 6,
+              size.height / 2 - contentTop - halfBand - 4,
+              size.height / 2 - pad.bottom - 118 - halfBand,
+            ].reduce(math.min),
+          );
+          // The stone sits well inside the ring while the dial is open, with
+          // room to breathe between it and the band.
+          final fit = dial ? (dialRadius - halfBand) * 0.68 : null;
+          if (_viewport.fit.value != fit) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _viewport.fit.value = fit;
+            });
+          }
 
           return Stack(
             fit: StackFit.expand,
@@ -333,7 +358,16 @@ class _DiamondSimulatorScreenState
                     child: SimViewControls(controller: _viewport),
                   ),
               ],
-              if (open != null)
+              if (dial)
+                Positioned.fill(
+                  child: SimShapeDial(
+                    viewport: _viewport,
+                    radius: dialRadius,
+                    bottomInset: pad.bottom,
+                    onDone: _close,
+                  ),
+                )
+              else if (open != null)
                 wide
                     ? Positioned(
                         right: 16,
@@ -467,8 +501,9 @@ class _ToolRail extends ConsumerWidget {
     );
     final p = LuxePalette.of(context);
 
-    String valueOf(_SimTool t) => switch (t) {
-      _SimTool.shape => context.shapeName(s.shape),
+    // The shape's name shows only inside the shape tool, on the dial.
+    String? valueOf(_SimTool t) => switch (t) {
+      _SimTool.shape => null,
       _SimTool.cut => context.cutName(cut),
       _SimTool.color =>
         s.fancyColor == null
@@ -557,7 +592,8 @@ class _RailItem extends StatelessWidget {
     this.visual,
   });
 
-  final String label, value;
+  final String label;
+  final String? value;
   final Widget? visual;
   final VoidCallback onTap;
 
@@ -566,7 +602,7 @@ class _RailItem extends StatelessWidget {
     final p = LuxePalette.of(context);
     return Semantics(
       button: true,
-      label: '$label, $value',
+      label: value == null ? label : '$label, $value',
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -594,11 +630,12 @@ class _RailItem extends StatelessWidget {
                     maxLines: 1,
                     style: LuxeType.label(p.ink, size: 11.5),
                   ),
-                  Text(
-                    value,
-                    maxLines: 1,
-                    style: LuxeType.label(p.accent, size: 10),
-                  ),
+                  if (value != null)
+                    Text(
+                      value!,
+                      maxLines: 1,
+                      style: LuxeType.label(p.accent, size: 10),
+                    ),
                 ],
               ),
             ],

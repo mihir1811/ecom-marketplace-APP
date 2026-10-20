@@ -170,7 +170,8 @@ class SimRenderer {
   void setStone(SimMesh mesh, List<SimInclusion> inclusions) {
     _mesh = mesh;
     _inclusions = inclusions;
-    _tracer.mesh = mesh;
+    // The tracer takes the stone when it next traces on the CPU: a stone
+    // changing every frame (a shape morph) on the GPU never needs it.
     _statsDirty = true;
   }
 
@@ -657,7 +658,7 @@ class SimRenderer {
 
   /// Traces the crown's layout samples for [stats], without drawing.
   void _measure(SimMesh mesh, double ex, double ey, double ez) {
-    final tracer = _tracer;
+    final tracer = _tracer..mesh = mesh;
     final planes = mesh.planes, kinds = mesh.kinds;
     final tableKind = SimFacetKind.table.index;
     final crownKind = SimFacetKind.crown.index;
@@ -725,7 +726,7 @@ class SimRenderer {
     bool twinkle,
   ) {
     const d0 = _eye;
-    final tracer = _tracer;
+    final tracer = _tracer..mesh = mesh;
     final r00 = rot[0], r01 = rot[1], r02 = rot[2];
     final r10 = rot[3], r11 = rot[4], r12 = rot[5];
     final r20 = rot[6], r21 = rot[7], r22 = rot[8];

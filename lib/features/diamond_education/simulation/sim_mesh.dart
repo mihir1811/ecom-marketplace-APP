@@ -26,7 +26,7 @@ class SimMesh {
     required this.kinds,
     required this.facetGroup,
     required this.girdleFacets,
-    required this.innerRadius,
+    required Float64List Function() innerRadiusOf,
     required this.length,
     required this.width,
     required this.crownHeight,
@@ -37,7 +37,7 @@ class SimMesh {
     required this.radius,
     required this.mirrorX,
     required this.tracedFacets,
-  });
+  }) : _innerRadiusSource = innerRadiusOf;
 
   final SimShape shape;
 
@@ -74,7 +74,9 @@ class SimMesh {
 
   /// Conservative distance from the axis to the girdle, per angular bin
   /// of [radialBins] around +x. Points inside it are inside the girdle.
-  final Float64List innerRadius;
+  /// Worked out on first use: only the CPU tracer needs it.
+  late final Float64List innerRadius = _innerRadiusSource();
+  final Float64List Function() _innerRadiusSource;
   static const radialBins = 96;
 
   /// Measurements, half-width units.
@@ -105,6 +107,29 @@ class SimMesh {
       if (d < best) best = d;
     }
     return best;
+  }
+
+  /// A stone already solved elsewhere (a shape morph): [positions] as
+  /// xyz and its [facets], each a convex polygon of vertex indices with
+  /// its kind. With [mirrorX] the facets are the +x half and the −x half
+  /// is added as their mirror image. Kept where it is, not re-centred.
+  static SimMesh fromFacets(
+    SimShape shape,
+    List<double> positions,
+    List<(List<int>, SimFacetKind)> facets, {
+    bool mirrorX = false,
+    double crownHeight = 0,
+    double pavilionDepth = 0,
+    double girdleThickness = 0,
+  }) {
+    final b = _Builder(shape)
+      .._pos.addAll(positions)
+      .._polys.addAll(facets)
+      .._crownHeight = crownHeight
+      .._pavilionDepth = pavilionDepth
+      .._girdle = girdleThickness;
+    if (mirrorX) b._mirrorHalf();
+    return b.finish(centre: false);
   }
 
   /// Builds [shape] cut to [proportions].
@@ -774,18 +799,21 @@ class _Builder {
         pavilionY(m0.x, m0.z) - (cs > 0.001 ? -tp * (1 - cs * _cos8) : -tp);
     _girdle = crownY(m0.x, m0.z) + lift - pavilionY(m0.x, m0.z);
 
-    if (half) {
-      // The −x half, mirrored.
-      _tracedPolys = _polys.length;
-      final mirrored = <int, int>{};
-      int flip(int i) => mirrored.putIfAbsent(i, () {
-        final x = _pos[i * 3];
-        return x.abs() < 1e-9 ? i : _add(-x, _pos[i * 3 + 1], _pos[i * 3 + 2]);
-      });
-      for (var k = 0, end = _polys.length; k < end; k++) {
-        final (poly, kind) = _polys[k];
-        _polys.add(([for (final i in poly.reversed) flip(i)], kind));
-      }
+    if (half) _mirrorHalf();
+  }
+
+  /// Adds the −x half as the mirror image of every polygon so far, which
+  /// become the traced half ([SimMesh.mirrorX]).
+  void _mirrorHalf() {
+    _tracedPolys = _polys.length;
+    final mirrored = <int, int>{};
+    int flip(int i) => mirrored.putIfAbsent(i, () {
+      final x = _pos[i * 3];
+      return x.abs() < 1e-9 ? i : _add(-x, _pos[i * 3 + 1], _pos[i * 3 + 2]);
+    });
+    for (var k = 0, end = _polys.length; k < end; k++) {
+      final (poly, kind) = _polys[k];
+      _polys.add(([for (final i in poly.reversed) flip(i)], kind));
     }
   }
 
@@ -864,7 +892,7 @@ class _Builder {
     if (cs > 0.001) _polys.add((pavilion.last, SimFacetKind.culet));
   }
 
-  SimMesh finish() {
+  SimMesh finish({bool centre = true}) {
     // Centre on the bounding box.
     var minX = double.infinity, maxX = -double.infinity;
     var minY = double.infinity, maxY = -double.infinity;
@@ -878,9 +906,9 @@ class _Builder {
       maxZ = math.max(maxZ, _pos[i + 2]);
     }
     // A mirrored half keeps its mirror plane at x = 0.
-    final ox = _tracedPolys != null ? 0.0 : (minX + maxX) / 2;
-    final oy = (minY + maxY) / 2;
-    final oz = (minZ + maxZ) / 2;
+    final ox = _tracedPolys != null || !centre ? 0.0 : (minX + maxX) / 2;
+    final oy = centre ? (minY + maxY) / 2 : 0.0;
+    final oz = centre ? (minZ + maxZ) / 2 : 0.0;
     final pos = Float64List(_pos.length);
     var radius = 0.0;
     for (var i = 0; i < _pos.length; i += 3) {
@@ -975,7 +1003,7 @@ class _Builder {
       kinds: Uint8List.fromList(kinds),
       facetGroup: Int32List.fromList(groups),
       girdleFacets: Int32List.fromList(girdle),
-      innerRadius: _innerRadius(pos, verts, starts, tracedGirdle),
+      innerRadiusOf: () => _innerRadius(pos, verts, starts, tracedGirdle),
       length: heart ? ext.z : ext.x,
       width: heart ? ext.x : ext.z,
       crownHeight: _crownHeight,

@@ -10,6 +10,7 @@ import '../../../application/diamond_simulator_controller.dart';
 import '../../../simulation/sim_optics.dart';
 import '../../../simulation/sim_inclusions.dart';
 import '../../../simulation/sim_mesh.dart';
+import '../../../simulation/sim_morph.dart';
 import '../../../simulation/sim_renderer.dart';
 import '../../../simulation/sim_wireframe.dart';
 
@@ -78,12 +79,71 @@ class SimViewportController extends ChangeNotifier {
   /// Whether the hand view shows the hand at life size rather than whole.
   final lifeSize = ValueNotifier(false);
 
+  /// A shape change in progress (the shape dial): while set, the stone
+  /// shown is this one rather than the selected stone.
+  final morph = ValueNotifier<SimMorphFrame?>(null);
+
+  /// Radius in logical pixels the stone should keep within, e.g. inside
+  /// the shape dial's ring; null for its natural size. The stone eases to
+  /// and from it.
+  final fit = ValueNotifier<double?>(null);
+
   @override
   void dispose() {
+    fit.dispose();
     readout.dispose();
     zoom.dispose();
     lifeSize.dispose();
+    morph.dispose();
     super.dispose();
+  }
+}
+
+/// The stone partway from one shape to the next: a single stone, worked
+/// out only when drawn ([SimShapeMorph]).
+class SimMorphFrame {
+  SimMorphFrame({
+    required this.from,
+    required this.to,
+    required this.t,
+    this.morph,
+  });
+
+  /// Just [stone], at rest.
+  SimMorphFrame.still(DiamondSimulatorState stone)
+    : this(from: stone, to: stone, t: 0);
+
+  final DiamondSimulatorState from, to;
+
+  /// 0 at [from], 1 at [to].
+  final double t;
+  final SimShapeMorph? morph;
+
+  late final SimMesh mesh = morph?.at(t) ?? (t < 0.5 ? from.mesh : to.mesh);
+
+  /// Clarity characteristics are each stone's own: the old ones shrink
+  /// away over the first half, the new ones grow in over the second, so
+  /// none ever jumps.
+  late final List<SimInclusion> inclusions = _inclusions();
+
+  List<SimInclusion> _inclusions() {
+    if (t <= 0) return from.inclusions;
+    if (t >= 1) return to.inclusions;
+    final k = t < 0.5 ? 1 - 2 * t : 2 * t - 1;
+    final source = t < 0.5 ? from.inclusions : to.inclusions;
+    if (k <= 0.001) return const [];
+    return [for (final c in source) c.resized(c.size * k)];
+  }
+
+  /// Model units to logical pixels in a viewport of [size]: each stone's
+  /// true scale for its carat weight, eased between the two.
+  double pxPerUnit(Size size) {
+    double of(DiamondSimulatorState s) =>
+        SimScale.pxPerMm(size, s.mesh.radius * s.mmPerUnit) * s.mmPerUnit;
+    final a = of(from);
+    if (t <= 0) return a;
+    final b = of(to);
+    return a * math.pow(b / a, t).toDouble();
   }
 }
 
@@ -145,6 +205,10 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   final _wire = SimWireRenderer();
   late SimMesh _mesh;
   late List<SimInclusion> _inclusions;
+
+  /// What the renderer holds: the selected stone, or a morph frame's.
+  SimMesh? _shownMesh;
+  List<SimInclusion>? _shownInclusions;
   late SimWireStyle _wireStyle;
   final _frame = ValueNotifier(0);
   Timer? _refineTimer;
@@ -187,6 +251,9 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   /// screens, every frame on 60 and 90 Hz.
   static const _minFrameGap = Duration(microseconds: 10500);
 
+  // Shrinking to sit inside [SimViewportController.fit], 0..1.
+  double _fitAmount = 0, _fitRadius = 0;
+
   // Start after the route transition; fade in.
   Animation<double>? _route;
   bool _ready = true;
@@ -200,9 +267,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     super.initState();
     final s = ref.read(diamondSimulatorProvider);
     final optics = SimOptics.of(s.spec, s.lighting);
-    _renderer
-      ..setStone(s.mesh, s.inclusions)
-      ..setOptics(optics);
+    _renderer.setOptics(optics);
     _mesh = s.mesh;
     _inclusions = s.inclusions;
     _wireStyle = SimWireStyle.of(optics);
@@ -210,6 +275,8 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _radius = s.mesh.radius;
     _seenRequest = _c._presetRequest;
     _c.addListener(_onCommand);
+    _c.morph.addListener(_invalidate);
+    _c.fit.addListener(_onCommand);
     _c.readout.onWatch = _onReadoutWatched;
     SchedulerBinding.instance.addTimingsCallback(_onTimings);
     SimRenderer.loadProgram()
@@ -252,6 +319,8 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   @override
   void dispose() {
     _c.removeListener(_onCommand);
+    _c.morph.removeListener(_invalidate);
+    _c.fit.removeListener(_onCommand);
     if (_c.readout.onWatch == _onReadoutWatched) _c.readout.onWatch = null;
     _route?.removeStatusListener(_onRouteStatus);
     SchedulerBinding.instance.removeTimingsCallback(_onTimings);
@@ -334,8 +403,11 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _invalidate();
   }
 
+  double get _fitGoal => _c.fit.value == null ? 0 : 1;
+
   bool get _moving =>
       _appear < 1 ||
+      _fitAmount != _fitGoal ||
       _c.autoRotate ||
       _dragging ||
       _anim < 1 ||
@@ -395,6 +467,14 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       _tilt = _fromTilt + (_toTilt - _fromTilt) * e;
     }
     if (_appear < 1) _appear = math.min(1, _appear + dt / 0.35);
+    final fit = _c.fit.value;
+    if (fit != null) _fitRadius = fit;
+    final goal = _fitGoal;
+    if (_fitAmount != goal) {
+      _fitAmount = goal > _fitAmount
+          ? math.min(goal, _fitAmount + dt / 0.45)
+          : math.max(goal, _fitAmount - dt / 0.45);
+    }
     _refined = false;
     _frame.value++;
     if (!_moving) _syncTicker();
@@ -402,7 +482,26 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
 
   void _paint(Canvas canvas, Size size) {
     if (!_ready) return;
-    final pxPerMm = SimScale.pxPerMm(size, _radius * _mmPerUnit);
+    // Mid shape change, the morphing stone; otherwise the selected one.
+    final morph = _c.morph.value;
+    final mesh = morph?.mesh ?? _mesh;
+    final inclusions = morph?.inclusions ?? _inclusions;
+    if (!identical(mesh, _shownMesh) ||
+        !identical(inclusions, _shownInclusions)) {
+      _shownMesh = mesh;
+      _shownInclusions = inclusions;
+      _renderer.setStone(mesh, inclusions);
+    }
+    var pxPerUnit =
+        morph?.pxPerUnit(size) ??
+        SimScale.pxPerMm(size, _radius * _mmPerUnit) * _mmPerUnit;
+    if (_fitAmount > 0 && _fitRadius > 0) {
+      final reach = mesh.radius * pxPerUnit;
+      if (reach > _fitRadius) {
+        final e = Curves.easeInOutCubic.transform(_fitAmount);
+        pxPerUnit *= 1 + (_fitRadius / reach - 1) * e;
+      }
+    }
     // A gentle rock while spinning, as a jeweller tilts a stone in light.
     final rock = _c.autoRotate && !_dragging
         ? 0.07 * math.sin(_time * 1.15)
@@ -413,15 +512,16 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       zoom: _zoom,
     );
     if (_c.vector) {
-      _paintVector(canvas, size, view, pxPerMm);
+      _paintVector(canvas, size, view, pxPerUnit, mesh, inclusions);
       return;
     }
     final quality = _refined;
     final gpu = _renderer.shader != null;
-    // The same bounces moving and still, so light never jumps.
+    // The same bounces moving and still, so light never jumps. A stone
+    // mid-morph is not measured: the meters wait for the new shape.
     _renderer
       ..maxBounces = SimRenderer.bounces
-      ..measureStats = _c.readout.watched;
+      ..measureStats = _c.readout.watched && morph == null;
     if (quality) _renderer.requestStats();
     final fade = _appear < 1;
     if (fade) {
@@ -433,7 +533,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       canvas,
       size,
       view: view,
-      pxPerUnit: pxPerMm * _mmPerUnit,
+      pxPerUnit: pxPerUnit,
       samplePx: quality ? math.max(3.6, _samplePx * 0.55) : _samplePx,
       devicePixelRatio: _dpr,
       // At rest, one frame at full resolution.
@@ -444,11 +544,18 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     sw.stop();
     if (fade) canvas.restore();
     if (!quality && !gpu) _adapt(sw.elapsedMicroseconds / 1000);
-    if (_c.readout.watched) _report();
+    if (_c.readout.watched && morph == null) _report();
   }
 
   /// The stone as a line drawing; light is still measured for the meters.
-  void _paintVector(Canvas canvas, Size size, SimView view, double pxPerMm) {
+  void _paintVector(
+    Canvas canvas,
+    Size size,
+    SimView view,
+    double pxPerUnit,
+    SimMesh mesh,
+    List<SimInclusion> inclusions,
+  ) {
     final fade = _appear < 1;
     if (fade) {
       _fadePaint.color = Color.fromRGBO(0, 0, 0, _appear);
@@ -457,14 +564,14 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _wire.paint(
       canvas,
       size,
-      mesh: _mesh,
+      mesh: mesh,
       view: view,
-      pxPerUnit: pxPerMm * _mmPerUnit,
+      pxPerUnit: pxPerUnit,
       style: _wireStyle,
-      inclusions: _inclusions,
+      inclusions: inclusions,
     );
     if (fade) canvas.restore();
-    if (_c.readout.watched) {
+    if (_c.readout.watched && _c.morph.value == null) {
       if (_refined) _renderer.requestStats();
       _renderer.measure(view);
       _report();
@@ -512,7 +619,6 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       _,
       next,
     ) {
-      _renderer.setStone(next.$1, next.$2);
       _mesh = next.$1;
       _inclusions = next.$2;
       _radius = next.$1.radius;

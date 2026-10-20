@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +14,7 @@ import 'package:gemstone/features/diamond_education/application/diamond_simulato
 import 'package:gemstone/features/diamond_education/domain/diamond_shape.dart';
 import 'package:gemstone/features/diamond_education/presentation/screens/diamond_education_screen.dart';
 import 'package:gemstone/features/diamond_education/presentation/screens/diamond_simulator_screen.dart';
+import 'package:gemstone/features/diamond_education/presentation/widgets/simulator/sim_shape_dial.dart';
 
 class _SignedOut extends AuthController {
   @override
@@ -98,10 +101,43 @@ void main() {
         await tester.pump(const Duration(milliseconds: 400));
         await tapText('Go back');
 
-        // Recut and turn the stone.
+        // Recut on the dial: tap the place four stops clockwise from the
+        // top, let the stone morph there, then turn the ring by hand.
         await tapText('Shape');
-        await tapText('Emerald');
+        expect(find.byType(SimShapeDial), findsOneWidget);
+        final dial = tester.widget<SimShapeDial>(find.byType(SimShapeDial));
+        final centre = tester.getCenter(find.byType(SimShapeDial));
+        Offset onRing(double stops) {
+          final a = -math.pi / 2 + stops * 2 * math.pi / SimShape.values.length;
+          return centre + Offset(math.cos(a), math.sin(a)) * dial.radius;
+        }
+
+        Future<void> settle() async {
+          for (var i = 0; i < 20; i++) {
+            await tester.pump(const Duration(milliseconds: 60));
+          }
+          expect(tester.takeException(), isNull);
+        }
+
+        SimShape shown() => SimShape.values.singleWhere(
+          (s) => find.text(s.catalogValue).evaluate().isNotEmpty,
+        );
+
+        final start = shown();
+        await tester.tapAt(onRing(4));
+        await settle();
+        final tapped = shown();
+        expect(tapped.index, (start.index + 4) % SimShape.values.length);
+        final gesture = await tester.startGesture(onRing(0));
+        for (var i = 1; i <= 12; i++) {
+          await gesture.moveTo(onRing(i * 0.1));
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await gesture.up();
+        await settle();
+        expect(shown(), isNot(tapped));
         await tapText('Done');
+        expect(find.byType(SimShapeDial), findsNothing);
         await tester.drag(
           find.byType(DiamondSimulatorScreen),
           const Offset(80, 30),
@@ -122,7 +158,11 @@ void main() {
         simulatorStartShapeProvider.overrideWithValue(SimShape.marquise),
       ],
     );
-    expect(find.textContaining('Marquise'), findsWidgets);
+    // The shape is named only inside the shape tool.
+    expect(find.textContaining('Marquise'), findsNothing);
+    await tester.tap(find.text('Shape').first);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Marquise'), findsOneWidget);
     await _teardown(tester);
   });
 

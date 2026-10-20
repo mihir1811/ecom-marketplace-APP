@@ -132,6 +132,36 @@ class DiamondSimulatorController
     }
   }
 
+  /// The stone [from] (the current one by default) cut as [shape] at its
+  /// cut quality, without switching to it: what the shape dial turns
+  /// toward. [from] itself when it already has that shape.
+  DiamondSimulatorState preview(SimShape shape, {DiamondSimulatorState? from}) {
+    final base = from ?? state;
+    if (shape == base.spec.shape) return base;
+    return _withSpec(
+      base,
+      base.spec.copyWith(
+        shape: shape,
+        proportions: DiamondProportions.forGrade(shape, base.estimatedCut),
+      ),
+    );
+  }
+
+  /// Makes [stone], from [preview], the stone, in the light the stone has
+  /// now; leaves the hearts & arrows scope for shapes that cannot show
+  /// the pattern.
+  void commitShape(DiamondSimulatorState stone) {
+    if (identical(stone.spec, state.spec) &&
+        identical(stone.mesh, state.mesh)) {
+      return;
+    }
+    state = stone.copyWith(lighting: state.lighting);
+    if (state.lighting == SimLighting.heartsArrows &&
+        !stone.spec.shape.showsHeartsArrows) {
+      setLighting(SimLighting.daylight);
+    }
+  }
+
   void setColorGrade(ColorGrade grade) =>
       _update(state.spec.copyWith(colorGrade: grade, clearFancy: true));
 
