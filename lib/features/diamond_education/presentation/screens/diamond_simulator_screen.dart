@@ -17,7 +17,8 @@ import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../jewelry_education/application/jewelry_simulator_controller.dart';
 import '../../application/diamond_simulator_controller.dart';
 import '../../domain/average_hand.dart';
-import '../../domain/diamond_proportions.dart';
+import '../../domain/diamond_grades.dart';
+import '../../domain/diamond_shape.dart';
 import '../sim_labels.dart';
 import '../widgets/sim_stone_view.dart';
 import '../widgets/simulator/diamond_sim_viewport.dart';
@@ -40,10 +41,8 @@ enum _SimTool {
   inclusions,
   bgm,
   milky,
-  enhancement,
   carat,
   fluorescence,
-  proportions,
 }
 
 /// Full-screen 3D diamond simulator. The stone fills the screen; a slim
@@ -80,10 +79,8 @@ class _DiamondSimulatorScreenState
     _SimTool.inclusions => EducationL10n.inclusions,
     _SimTool.bgm => EducationL10n.bgm,
     _SimTool.milky => EducationL10n.milky,
-    _SimTool.enhancement => EducationL10n.enhancement,
     _SimTool.carat => EducationL10n.carat,
     _SimTool.fluorescence => EducationL10n.fluorescence,
-    _SimTool.proportions => EducationL10n.proportions,
   });
 
   Widget _panel(_SimTool t) => switch (t) {
@@ -94,10 +91,8 @@ class _DiamondSimulatorScreenState
     _SimTool.inclusions => const SimInclusionsPanel(),
     _SimTool.bgm => const SimBgmPanel(),
     _SimTool.milky => const SimMilkyPanel(),
-    _SimTool.enhancement => const SimEnhancementPanel(),
     _SimTool.carat => const SimCaratPanel(),
     _SimTool.fluorescence => const SimFluorescencePanel(),
-    _SimTool.proportions => const SimProportionsPanel(),
   };
 
   void _openTool(_SimTool t) {
@@ -105,9 +100,41 @@ class _DiamondSimulatorScreenState
     setState(() => _open = t);
     // Carat is judged on a hand.
     if (t == _SimTool.carat) ref.read(simHandProvider.notifier).show(true);
+    if (t == _SimTool.fluorescence) _enterUv();
   }
 
-  void _close() => setState(() => _open = null);
+  void _close() {
+    if (_open == _SimTool.fluorescence) _leaveUv();
+    setState(() => _open = null);
+  }
+
+  /// Lighting the stone had before fluorescence put it under ultraviolet.
+  SimLighting _lightingBeforeUv = SimLighting.daylight;
+
+  /// Fluorescence is judged under ultraviolet in the dark: every stone,
+  /// the one being edited and those on other fingers, goes under the lamp.
+  void _enterUv() {
+    _lightingBeforeUv = ref.read(diamondSimulatorProvider).lighting;
+    ref
+        .read(diamondSimulatorProvider.notifier)
+        .setLighting(SimLighting.ultraviolet);
+    ref
+        .read(simHandProvider.notifier)
+        .relight(SimLighting.daylight, SimLighting.ultraviolet);
+  }
+
+  /// Back to the light the stones had, the scope included.
+  void _leaveUv() {
+    final stone = ref.read(diamondSimulatorProvider.notifier);
+    ref
+        .read(simHandProvider.notifier)
+        .relight(SimLighting.ultraviolet, SimLighting.daylight);
+    stone.setLighting(SimLighting.daylight);
+    if (_lightingBeforeUv == SimLighting.heartsArrows &&
+        !ref.read(simHandProvider).onHand) {
+      stone.setHeartsArrows(true);
+    }
+  }
 
   /// Takes the stone as it is now into the jewelry simulator.
   void _useInJewelry() {
@@ -141,6 +168,20 @@ class _DiamondSimulatorScreenState
       _themeFor = palette;
       _theme = AppTheme.build(palette);
     }
+    // A stone swapped in under the lamp (another finger's, a new one, a
+    // reset) goes under it too.
+    ref.listen(diamondSimulatorProvider.select((s) => s.lighting), (_, l) {
+      if (_open != _SimTool.fluorescence || l == SimLighting.ultraviolet) {
+        return;
+      }
+      Future.microtask(() {
+        if (mounted && _open == _SimTool.fluorescence) {
+          ref
+              .read(diamondSimulatorProvider.notifier)
+              .setLighting(SimLighting.ultraviolet);
+        }
+      });
+    });
     return Theme(
       data: _theme!,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -154,6 +195,20 @@ class _DiamondSimulatorScreenState
 
   Widget _build(BuildContext context) {
     final onHand = ref.watch(simHandProvider.select((h) => h.onHand));
+    final uv = ref.watch(
+      diamondSimulatorProvider.select(
+        (s) => s.lighting == SimLighting.ultraviolet,
+      ),
+    );
+    final round = ref.watch(
+      diamondSimulatorProvider.select((s) => s.spec.shape == SimShape.round),
+    );
+    // Another finger's stone may not be round: its cut cannot be edited.
+    if (_open == _SimTool.cut && !round) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _open == _SimTool.cut) _close();
+      });
+    }
     final pad = MediaQuery.paddingOf(context);
     final open = _open;
 
@@ -175,13 +230,14 @@ class _DiamondSimulatorScreenState
           return Stack(
             fit: StackFit.expand,
             children: [
-              // A line drawing reads best on plain black; the traced stone
+              // A line drawing reads best on plain black, and so does a
+              // stone's glow under ultraviolet; the traced stone in daylight
               // on its lit studio grey.
               ListenableBuilder(
                 listenable: _viewport,
                 builder: (context, _) => AnimatedSwitcher(
                   duration: LuxeMotion.medium,
-                  child: _viewport.vector
+                  child: _viewport.vector || uv
                       ? const ColoredBox(
                           key: ValueKey('vector'),
                           color: Color(0xFF000000),
@@ -435,14 +491,8 @@ class _ToolRail extends ConsumerWidget {
                   '${context.tr(EducationL10n.green)} ${context.tingeName(s.green)}',
               ].join(' · '),
       _SimTool.milky => context.milkyName(s.milky),
-      _SimTool.enhancement => context.enhancementName(s.enhancement),
       _SimTool.carat => '${s.carat.toStringAsFixed(2)} ct',
       _SimTool.fluorescence => context.fluorescenceName(s.fluorescence),
-      _SimTool.proportions => context.tr(
-        s.proportions == DiamondProportions.ideal(s.shape)
-            ? EducationL10n.ideal
-            : EducationL10n.custom,
-      ),
     };
 
     Widget? visualOf(_SimTool t) => switch (t) {
@@ -466,15 +516,17 @@ class _ToolRail extends ConsumerWidget {
       child: Row(
         children: [
           for (final t in _SimTool.values)
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: _RailItem(
-                label: labelOf(t),
-                value: valueOf(t),
-                visual: visualOf(t),
-                onTap: () => onOpen(t),
+            // Cut is graded on round brilliants only.
+            if (t != _SimTool.cut || s.shape == SimShape.round)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: _RailItem(
+                  label: labelOf(t),
+                  value: valueOf(t),
+                  visual: visualOf(t),
+                  onTap: () => onOpen(t),
+                ),
               ),
-            ),
         ],
       ),
     );

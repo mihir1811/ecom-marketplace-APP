@@ -171,12 +171,12 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   double _dpr = 1;
 
   // GPU budget: traced pixels per logical pixel while moving. Weak GPUs
-  // (often the low-memory phones) drop toward three traced pixels per four
+  // (often the low-memory phones) drop toward three traced pixels per five
   // logical ones before frames slip. Only resolution adapts: the bounce
   // count stays at [SimRenderer.bounces], since light left trapped when a
   // path stops returns almost black, and changing it made facets flicker
   // between brighter and darker.
-  static const _scaleCap = 2.0, _scaleFloor = 0.75;
+  static const _scaleCap = 2.0, _scaleFloor = 0.6;
   double _renderScale = 1.75;
 
   /// Consecutive slow (positive) or fast (negative) timing batches; the
@@ -295,6 +295,17 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     }
     final ms = total / timings.length / 1000;
     final cap = math.min(_dpr, _scaleCap);
+    if (ms > 16) {
+      // Frames are dropping, e.g. a property just made the stone costlier
+      // to trace (inclusions, haze): jump straight to a density that fits.
+      // Cost follows the square of the scale.
+      _renderScale = math.max(
+        _scaleFloor,
+        _renderScale * math.sqrt(11 / ms).clamp(0.55, 0.9),
+      );
+      _trend = 0;
+      return;
+    }
     if (ms > 13) {
       _trend = math.max(1, _trend + 1);
     } else if (ms < 7) {
@@ -352,9 +363,11 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     if (!_ticker.isActive) _scheduleRefine();
   }
 
+  /// Waits out a burst of changes (a slider drag, quick taps) so the
+  /// full resolution frame never lands between two of them.
   void _scheduleRefine() {
     _refineTimer?.cancel();
-    _refineTimer = Timer(const Duration(milliseconds: 220), () {
+    _refineTimer = Timer(const Duration(milliseconds: 380), () {
       if (!mounted || _ticker.isActive) return;
       _refined = true;
       _frame.value++;

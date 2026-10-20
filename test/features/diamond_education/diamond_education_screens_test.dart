@@ -77,9 +77,7 @@ void main() {
           'Inclusions',
           'BGM',
           'Milky',
-          'Enhancement',
           'Fluorescence',
-          'Proportions',
         ]) {
           await tapText(tool);
           expect(find.text('Done'), findsOneWidget, reason: tool);

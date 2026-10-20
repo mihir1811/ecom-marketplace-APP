@@ -166,9 +166,6 @@ class DiamondSimulatorController
 
   void setMilky(MilkyLevel level) => _update(state.spec.copyWith(milky: level));
 
-  void setEnhancement(Enhancement enhancement) =>
-      _update(state.spec.copyWith(enhancement: enhancement));
-
   void setCarat(double carat) => _update(state.spec.copyWith(carat: carat));
 
   void setFluorescence(FluorescenceIntensity intensity) =>
@@ -377,6 +374,20 @@ class SimHandController extends AutoDisposeNotifier<SimHand> {
         : parked.keys.first;
     _stone.load(parked.remove(next)!);
     state = state.copyWith(active: next, parked: parked);
+  }
+
+  /// Puts every parked stone lit by [from] under [to] instead, so the
+  /// whole hand sits in the same light as the selected stone.
+  void relight(SimLighting from, SimLighting to) {
+    if (!state.parked.values.any((s) => s.lighting == from)) return;
+    state = state.copyWith(
+      parked: {
+        for (final e in state.parked.entries)
+          e.key: e.value.lighting == from
+              ? e.value.copyWith(lighting: to)
+              : e.value,
+      },
+    );
   }
 
   void reset() => state = SimHand(onHand: state.onHand);

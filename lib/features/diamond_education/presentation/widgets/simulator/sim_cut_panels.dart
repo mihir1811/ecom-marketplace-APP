@@ -12,7 +12,8 @@ import '../diamond_profile_diagram.dart';
 import 'diamond_sim_viewport.dart';
 import 'sim_controls.dart';
 
-/// Cut grade presets and the hearts & arrows scope.
+/// Cut grade presets, then every cutting proportion to customise the cut
+/// of any shape. Round brilliants also get the hearts & arrows scope.
 class SimCutPanel extends ConsumerWidget {
   const SimCutPanel({required this.viewport, super.key});
 
@@ -23,7 +24,10 @@ class SimCutPanel extends ConsumerWidget {
     final grade = ref.watch(
       diamondSimulatorProvider.select((s) => s.estimatedCut),
     );
-    // Light is measured in the 3D view; a scope cannot sit on a finger.
+    final round = ref.watch(
+      diamondSimulatorProvider.select((s) => s.spec.shape.showsHeartsArrows),
+    );
+    // A scope cannot sit on a finger.
     final onHand = ref.watch(simHandProvider.select((h) => h.onHand));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -34,10 +38,13 @@ class SimCutPanel extends ConsumerWidget {
           labelOf: context.cutName,
           onSelected: ref.read(diamondSimulatorProvider.notifier).applyCutGrade,
         ),
-        if (!onHand) ...[
+        if (round && !onHand) ...[
           const SizedBox(height: 6),
           _HeartsArrows(viewport: viewport),
         ],
+        const SizedBox(height: 14),
+        SimLabel(context.tr(EducationL10n.proportions)),
+        const SimProportionsPanel(),
       ],
     );
   }
@@ -53,12 +60,9 @@ class _HeartsArrows extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final s = ref.watch(
+    final on = ref.watch(
       diamondSimulatorProvider.select(
-        (s) => (
-          on: s.lighting == SimLighting.heartsArrows,
-          round: s.spec.shape.showsHeartsArrows,
-        ),
+        (s) => s.lighting == SimLighting.heartsArrows,
       ),
     );
     void toggle(bool on) {
@@ -69,16 +73,10 @@ class _HeartsArrows extends ConsumerWidget {
         ..show(on ? SimViewPreset.faceUp : SimViewPreset.angled);
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SimSwitch(
-          label: context.tr(EducationL10n.heartsArrows),
-          value: s.on,
-          enabled: s.round,
-          onChanged: toggle,
-        ),
-      ],
+    return SimSwitch(
+      label: context.tr(EducationL10n.heartsArrows),
+      value: on,
+      onChanged: toggle,
     );
   }
 }

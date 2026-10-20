@@ -263,7 +263,8 @@ class SimCaratPanel extends ConsumerWidget {
   }
 }
 
-/// Glow strength and colour, and the light to see it in.
+/// Glow strength and colour. The stone sits under ultraviolet light on a
+/// black stage while this panel is open (see the simulator screen).
 class SimFluorescencePanel extends ConsumerWidget {
   const SimFluorescencePanel({super.key});
 
@@ -271,34 +272,14 @@ class SimFluorescencePanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(
       diamondSimulatorProvider.select(
-        (s) => (
-          intensity: s.spec.fluorescence,
-          color: s.spec.fluorescenceColor,
-          lighting: s.lighting,
-        ),
+        (s) =>
+            (intensity: s.spec.fluorescence, color: s.spec.fluorescenceColor),
       ),
     );
     final c = ref.read(diamondSimulatorProvider.notifier);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SimLabel(context.tr(EducationL10n.lighting)),
-        LuxeSegmented<SimLighting>(
-          options: const [SimLighting.daylight, SimLighting.ultraviolet],
-          // The hearts & arrows scope is chosen from the cut panel.
-          selected: s.lighting == SimLighting.ultraviolet
-              ? SimLighting.ultraviolet
-              : SimLighting.daylight,
-          dense: true,
-          height: 40,
-          labelOf: (l) => context.tr(
-            l == SimLighting.daylight
-                ? EducationL10n.daylight
-                : EducationL10n.uvLight,
-          ),
-          onChanged: c.setLighting,
-        ),
-        const SizedBox(height: 18),
         SimLabel(context.tr(EducationL10n.intensity)),
         SimChoiceChips<FluorescenceIntensity>(
           options: FluorescenceIntensity.values,

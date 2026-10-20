@@ -245,28 +245,3 @@ class _HazeGlyph extends CustomPainter {
   @override
   bool shouldRepaint(covariant _HazeGlyph old) => old.haze != haze;
 }
-
-/// Treatments and what each does to a stone.
-class SimEnhancementPanel extends ConsumerWidget {
-  const SimEnhancementPanel({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final e = ref.watch(
-      diamondSimulatorProvider.select((s) => s.spec.enhancement),
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SimChoiceChips<Enhancement>(
-          options: Enhancement.values,
-          selected: e,
-          labelOf: context.enhancementName,
-          onSelected: ref
-              .read(diamondSimulatorProvider.notifier)
-              .setEnhancement,
-        ),
-      ],
-    );
-  }
-}

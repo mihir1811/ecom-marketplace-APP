@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/theme/luxe_tokens.dart';
 import '../../../application/diamond_simulator_controller.dart';
 import '../../../domain/average_hand.dart';
+import '../../../domain/diamond_grades.dart';
 import '../../../simulation/sim_optics.dart';
 import '../../../simulation/sim_renderer.dart';
 import '../../../simulation/sim_wireframe.dart';
@@ -193,16 +195,20 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
                 clipBehavior: Clip.none,
                 fit: StackFit.expand,
                 children: [
-                  // A dark stage, so the model's glow reads.
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment(0, -0.2),
-                        radius: 1.1,
-                        colors: [Color(0xFF16181A), Color(0xFF050505)],
+                  // A dark stage, so the model's glow reads; pitch black
+                  // under ultraviolet, as in a darkened viewing box.
+                  if (active.lighting == SimLighting.ultraviolet)
+                    const ColoredBox(color: Color(0xFF000000))
+                  else
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment(0, -0.2),
+                          radius: 1.1,
+                          colors: [Color(0xFF16181A), Color(0xFF050505)],
+                        ),
                       ),
                     ),
-                  ),
                   Opacity(
                     opacity: rise.clamp(0.0, 1.0),
                     child: Transform(
@@ -352,6 +358,12 @@ class _SimFingerStoneState extends State<SimFingerStone> {
   late SimWireStyle _wireStyle;
   int _version = 0;
 
+  /// Whether the stone changed moments ago: while edits keep coming (a
+  /// slider drag, quick taps) it traces at moving quality, and once at
+  /// full resolution after they stop.
+  bool _settling = false;
+  Timer? _settle;
+
   @override
   void initState() {
     super.initState();
@@ -387,10 +399,20 @@ class _SimFingerStoneState extends State<SimFingerStone> {
       mesh:
           !identical(a.mesh, b.mesh) || !identical(a.inclusions, b.inclusions),
     );
+    _settling = true;
+    _settle?.cancel();
+    _settle = Timer(const Duration(milliseconds: 380), () {
+      if (!mounted) return;
+      setState(() {
+        _settling = false;
+        _version++;
+      });
+    });
   }
 
   @override
   void dispose() {
+    _settle?.cancel();
     _renderer.dispose();
     super.dispose();
   }
@@ -409,7 +431,7 @@ class _SimFingerStoneState extends State<SimFingerStone> {
           version: _version,
           pxPerUnit: widget.pxPerMm * widget.stone.mmPerUnit,
           spin: widget.spin,
-          moving: widget.moving,
+          moving: widget.moving || _settling,
           dpr: dpr,
         ),
       ),
