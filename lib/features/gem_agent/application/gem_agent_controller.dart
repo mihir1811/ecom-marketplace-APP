@@ -17,7 +17,6 @@ final gemAgentControllerProvider =
 
 class GemAgentController extends Notifier<GemAgentState> {
   CancelToken? _turn;
-  bool _lastInputWasVoice = false;
   Timer? _flashTimer;
   int _listenSession = 0;
   bool _stopRequested = false;
@@ -34,10 +33,8 @@ class GemAgentController extends Notifier<GemAgentState> {
   static const _maxFailStreak = 6;
   static const _restartDelay = Duration(milliseconds: 350);
   static const _stopGrace = Duration(seconds: 3);
-  static const _permissionNotice =
-      'Microphone access is off. Allow it in Settings, then tap the mic.';
-  static const _unavailableNotice =
-      'Voice input is unavailable here. Type your request instead.';
+  static const _permissionNotice = 'Mic access off. Enable it in Settings.';
+  static const _unavailableNotice = 'Voice unavailable. Type instead.';
 
   @override
   GemAgentState build() {
@@ -48,10 +45,9 @@ class GemAgentController extends Notifier<GemAgentState> {
     return const GemAgentState();
   }
 
-  /// Opens the sheet; voice capture starts right away unless [listen] is false.
-  Future<void> open({bool listen = true}) async {
+  /// Opens the sheet. The mic stays off until the user taps it.
+  void open() {
     state = state.copyWith(isOpen: true, flash: null);
-    if (listen) await startListening();
   }
 
   /// Dismisses the sheet and abandons any running turn.
@@ -238,7 +234,6 @@ class GemAgentController extends Notifier<GemAgentState> {
     if (utterance.isEmpty || state.isBusy) return;
     _listenSession++;
     unawaited(ref.read(gemAgentSpeechProvider).cancel());
-    _lastInputWasVoice = viaVoice;
     final token = CancelToken();
     _turn?.cancel('superseded');
     _turn = token;
@@ -293,8 +288,6 @@ class GemAgentController extends Notifier<GemAgentState> {
           options: options,
           entries: _append(GemAgentEntry.agent(question)),
         );
-        // Keep a voice conversation hands-free.
-        if (_lastInputWasVoice && state.isOpen) await startListening();
       case AgentActionCompleted(:final summary, :final effects):
         state = state.copyWith(
           phase: GemAgentPhase.idle,

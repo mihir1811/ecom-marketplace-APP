@@ -11,6 +11,7 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/price_weight_sync.dart';
 import '../../application/inquiry_provider.dart';
 import '../../data/mappers/inquiry_request_mapper.dart';
 import '../../domain/models/seller_inquiry.dart';
@@ -41,6 +42,7 @@ class _SellerInquiryFormScreenState
   bool _submitting = false;
   final _ctrls = <String, TextEditingController>{};
   final _bools = <String, bool>{};
+  final _priceSyncs = <PriceWeightSync>[];
   DateTime? _urgency;
   final List<Uint8List> _referenceImages = [];
 
@@ -49,6 +51,48 @@ class _SellerInquiryFormScreenState
     super.initState();
     _category = widget.initialCategory;
     _seedDefaults();
+    _bindPriceSyncs();
+  }
+
+  /// Links min/max price-per-carat (or per piece) with min/max total price
+  /// for the diamond and gemstone forms.
+  void _bindPriceSyncs() {
+    double? diamondWeight(String bound) {
+      if (_category != InquiryCategory.diamond) return null;
+      final byPieces =
+          _c('subCategory').text == 'PARCEL' &&
+          _c('parcelMeasure').text == 'pieces';
+      return PriceWeightSync.parseAmount(
+        _c(byPieces ? 'totalPieces' : 'carat$bound').text,
+      );
+    }
+
+    double? gemstoneWeight(String bound) {
+      if (_category != InquiryCategory.gemstone) return null;
+      return PriceWeightSync.parseAmount(_c('carat$bound').text);
+    }
+
+    for (final bound in const ['Min', 'Max']) {
+      _priceSyncs.addAll([
+        PriceWeightSync(
+          unitPrice: _c('pricePerCarat$bound'),
+          total: _c('totalPrice$bound'),
+          weight: () => diamondWeight(bound),
+          weightSources: [
+            _c('carat$bound'),
+            _c('totalPieces'),
+            _c('subCategory'),
+            _c('parcelMeasure'),
+          ],
+        ),
+        PriceWeightSync(
+          unitPrice: _c('pricePerCarat$bound'),
+          total: _c('totalBudget$bound'),
+          weight: () => gemstoneWeight(bound),
+          weightSources: [_c('carat$bound')],
+        ),
+      ]);
+    }
   }
 
   TextEditingController _c(String key, [String initial = '']) {
@@ -206,6 +250,9 @@ class _SellerInquiryFormScreenState
 
   @override
   void dispose() {
+    for (final s in _priceSyncs) {
+      s.dispose();
+    }
     for (final c in _ctrls.values) {
       c.dispose();
     }

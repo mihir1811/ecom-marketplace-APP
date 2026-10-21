@@ -7,6 +7,7 @@ import '../../../../core/error/result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/price_weight_sync.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/app_top_bar.dart';
 import '../../application/seller_products_provider.dart';
@@ -179,6 +180,7 @@ class _SellerProductEditScreenState
     extends ConsumerState<SellerProductEditScreen> {
   final _formKey = GlobalKey<FormState>();
   late Map<String, TextEditingController> _controllers;
+  PriceWeightSync? _priceSync;
   SellerProduct? _product;
   bool _ready = false;
   bool _saving = false;
@@ -207,11 +209,19 @@ class _SellerProductEditScreenState
       for (final id in kSellerEditableFieldIds)
         id: TextEditingController(text: found.field(id) ?? ''),
     };
+    final carat = _controllers['carat_weight']!;
+    _priceSync = PriceWeightSync(
+      unitPrice: _controllers['price_per_carat']!,
+      total: _controllers['total_price']!,
+      weight: () => PriceWeightSync.parseAmount(carat.text),
+      weightSources: [carat],
+    );
     setState(() => _ready = true);
   }
 
   @override
   void dispose() {
+    _priceSync?.dispose();
     if (_ready && _product != null) {
       for (final c in _controllers.values) {
         c.dispose();
