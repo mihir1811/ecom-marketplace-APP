@@ -228,10 +228,8 @@ class _StonePainter extends CustomPainter {
       ),
       pxPerUnit: size.shortestSide * 0.4,
       samplePx: 5,
+      // Always one traced path per device pixel.
       devicePixelRatio: dpr,
-      // A small, always-moving stone: 1.5 traced pixels per point stays
-      // sharp at under half the cost of full resolution.
-      renderScale: math.min(dpr, 1.5),
       time: t,
       twinkle: true,
     );

@@ -64,6 +64,12 @@ uniform vec4 uSpots[MAX_SPOTS * 2];  // dir + cos outer; rgb + 1/(cos inner − 
 uniform vec4 uScope;   // hearts & arrows scope flag, inclusion count, scope hole, fold
 uniform vec4 uIncl[MAX_INCL * 2];  // centre + size; axis + kind (whole part) and seed (fraction)
 uniform vec4 uFocus;   // inclusion focus 0..1, the even level facets fade to
+// Solid planes come down-facing first, then up-facing: x is where the
+// up-facing ones start, y and z the largest horizontal part of any normal
+// in each group (down, up). A ray steeper than that can leave through no
+// plane of the group, so the group is skipped: the same picture, fewer
+// tests.
+uniform vec4 uSplit;
 
 out vec4 fragColor;
 
@@ -407,8 +413,13 @@ vec3 shade(vec3 p, vec3 d, vec3 n, mat2 g) {
     vec3 tq = toPart(g, t);
     float tMin = 1e9;
     vec3 hn = vec3(0.0);
+    // Heading up past every down-facing normal's tilt, or down past every
+    // up-facing one's, the ray cannot leave through that group.
+    bool noDown = tq.y > uSplit.y;
+    float solidEnd = tq.y < -uSplit.z ? uSplit.x : uCounts.x;
     for (int i = 0; i < MAX_PLANES; i++) {
-      if (float(i) >= uCounts.x) break;
+      if (float(i) >= solidEnd) break;
+      if (noDown && float(i) < uSplit.x) continue;
       vec4 pl = uPlanes[i];
       float den = dot(tq, pl.xyz);
       if (den <= 1e-6) continue;

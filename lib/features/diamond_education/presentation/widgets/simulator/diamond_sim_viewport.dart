@@ -208,11 +208,12 @@ abstract final class SimScale {
 /// is on; otherwise it renders only when something changes, and then
 /// once more at higher quality when the stone comes to rest.
 ///
-/// Rendering adapts to the device. On the GPU, real raster times set how
-/// many pixels a moving stone traces (scaled up smoothly), frames are
-/// capped near 60 per second on high refresh screens, and a stone at rest
-/// is redrawn once at full resolution. The stone starts only once the
-/// page has finished sliding in, and light is measured only while the
+/// The GPU always traces the stone at the screen's full resolution.
+/// Rendering adapts to the device through pace alone: real raster times
+/// set how many new pictures a second a moving stone gets (about 60 at
+/// most, down to 30 on weak GPUs), and every other frame reuses the last
+/// one untraced. The stone starts only once the page has finished sliding
+/// in and the tracer has loaded, and light is measured only while the
 /// meters are on screen. On the CPU fallback, frame cost sets the sample
 /// spacing.
 class DiamondSimViewport extends ConsumerStatefulWidget {
@@ -265,22 +266,35 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   double _mmPerUnit = 1, _radius = 1;
   double _dpr = 1;
 
-  // GPU budget: traced pixels per logical pixel while moving. Weak GPUs
-  // (often the low-memory phones) drop toward three traced pixels per five
-  // logical ones before frames slip. Only resolution adapts: the bounce
-  // count stays at [SimRenderer.bounces], since light left trapped when a
-  // path stops returns almost black, and changing it made facets flicker
-  // between brighter and darker.
-  static const _scaleCap = 2.0, _scaleFloor = 0.6;
-  double _renderScale = 1.75;
+  // GPU budget. The stone is always traced at the screen's full
+  // resolution with the same [SimRenderer.bounces]: neither ever drops,
+  // since a softer stone is never acceptable and changing bounces made
+  // facets flicker. A weak GPU (often a low-memory phone) instead gets
+  // fewer new pictures a second while the stone moves; the frames between
+  // reuse the last one at no tracing cost, and motion keeps its speed.
+
+  /// Shortest gaps between newly traced frames, fastest first: about 60
+  /// a second (every frame on 60 and 90 Hz screens, every other on 120),
+  /// then about 45 or 30, then 30.
+  static const _frameGaps = [
+    Duration(microseconds: 10500),
+    Duration(microseconds: 20500),
+    Duration(microseconds: 31000),
+  ];
+
+  /// Raster time, ms, of a frame that traces the stone, above which the
+  /// next slower pace is chosen, per pace; [_paceUp] below which the next
+  /// faster one fits again.
+  static const _paceDown = [14.0, 24.0], _paceUp = [9.0, 16.0];
+  int _pace = 0;
 
   /// Consecutive slow (positive) or fast (negative) timing batches; the
-  /// scale moves only on a trend, never on one noisy batch.
+  /// pace moves only on a trend, never on one noisy batch.
   int _trend = 0;
 
-  /// Shortest gap between drawn frames: about 60 per second on 120 Hz
-  /// screens, every frame on 60 and 90 Hz.
-  static const _minFrameGap = Duration(microseconds: 10500);
+  /// Whether the GPU tracer is in, or failed to load (then the CPU tracer
+  /// draws). Until then nothing is drawn: never a coarse stand-in.
+  bool _tracerSettled = false;
 
   // Shrinking to sit inside [SimViewportController.fit], 0..1.
   double _fitAmount = 0;
@@ -331,10 +345,14 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         .then((program) {
           if (!mounted) return;
           _renderer.shader = program.fragmentShader();
+          _tracerSettled = true;
           _invalidate();
         })
         .catchError((Object _) {
-          // The CPU tracer keeps drawing.
+          // The CPU tracer draws instead.
+          if (!mounted) return;
+          _tracerSettled = true;
+          _invalidate();
         });
   }
 
@@ -402,12 +420,12 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     });
   }
 
-  /// Steers the moving trace density from real raster times, reported in
-  /// batches about once a second.
+  /// Steers how often a moving stone is traced anew from real raster
+  /// times, reported in batches about once a second. Resolution never
+  /// changes.
   void _onTimings(List<FrameTiming> timings) {
-    // Frames with the shape dial carry its drawing and the morph too: they
-    // say nothing about what the stone alone costs, and must never cost
-    // it resolution.
+    // Frames with the shape dial carry its drawing and the morph too, and
+    // a reshaped stone is traced on every change whatever the pace.
     if (!_ticker.isActive ||
         _renderer.shader == null ||
         _c.vector ||
@@ -415,35 +433,24 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
         timings.isEmpty) {
       return;
     }
-    var total = 0;
-    for (final t in timings) {
-      total += t.rasterDuration.inMicroseconds;
-    }
-    final ms = total / timings.length / 1000;
-    final cap = math.min(_dpr, _scaleCap);
-    if (ms > 16) {
-      // Frames are dropping, e.g. a property just made the stone costlier
-      // to trace (inclusions, haze): jump straight to a density that fits.
-      // Cost follows the square of the scale.
-      _renderScale = math.max(
-        _scaleFloor,
-        _renderScale * math.sqrt(11 / ms).clamp(0.55, 0.9),
-      );
-      _trend = 0;
-      return;
-    }
-    if (ms > 13) {
+    // Paced, only some frames trace; the rest copy the last picture and
+    // cost next to nothing. The slowest quarter are the traced ones.
+    final ms = [for (final t in timings) t.rasterDuration.inMicroseconds]
+      ..sort();
+    final top = ms.sublist(ms.length - math.max(1, ms.length ~/ 4));
+    final traced = top.reduce((a, b) => a + b) / top.length / 1000;
+    if (_pace < _paceDown.length && traced > _paceDown[_pace]) {
       _trend = math.max(1, _trend + 1);
-    } else if (ms < 7) {
+    } else if (_pace > 0 && traced < _paceUp[_pace - 1]) {
       _trend = math.min(-1, _trend - 1);
     } else {
       _trend = 0;
     }
     if (_trend >= 2) {
-      _renderScale = math.max(_scaleFloor, _renderScale * 0.88);
+      _pace++;
       _trend = 0;
     } else if (_trend <= -3) {
-      _renderScale = math.min(cap, _renderScale * 1.06);
+      _pace--;
       _trend = 0;
     }
   }
@@ -490,11 +497,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     return Offset.lerp(_anchorFrom ?? c, _anchorTo ?? c, _placeEase)!;
   }
 
-  /// While the shape dial is open (or easing away) the stone is traced at
-  /// the screen's full resolution on every frame, moving or not: inside
-  /// the ring it is smaller, so that costs no more than usual, and a
-  /// stone being reshaped must stay perfectly crisp. A stone reshaped at
-  /// its own size (the fancy cuts' slider) keeps the adaptive resolution.
+  /// While the stone is fitted inside the shape dial (or easing away).
   bool get _withDial => _c.fit.value != null || _fitAmount > 0;
 
   double get _fitGoal => _c.fit.value == null ? 0 : 1;
@@ -545,7 +548,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   }
 
   void _tick(Duration elapsed) {
-    if (_last != Duration.zero && elapsed - _last < _minFrameGap) return;
+    if (_last != Duration.zero && elapsed - _last < _frameGaps[_pace]) return;
     final dt = _last == Duration.zero
         ? 1 / 60
         : ((elapsed - _last).inMicroseconds / 1e6).clamp(0.0, 1 / 20);
@@ -625,6 +628,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       _paintVector(canvas, size, view, pxPerUnit, mesh, inclusions, centre);
       return;
     }
+    if (!_tracerSettled) return;
     final quality = _refined;
     final gpu = _renderer.shader != null;
     // The same bounces moving and still, so light never jumps. A stone
@@ -646,9 +650,8 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       view: view,
       pxPerUnit: pxPerUnit,
       samplePx: quality ? math.max(3.6, _samplePx * 0.55) : _samplePx,
+      // Always one traced path per device pixel.
       devicePixelRatio: _dpr,
-      // At rest, one frame at full resolution.
-      renderScale: quality || _withDial ? _dpr : math.min(_renderScale, _dpr),
       time: _time,
       twinkle: _ticker.isActive,
       centre: centre,

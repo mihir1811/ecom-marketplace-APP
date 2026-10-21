@@ -361,10 +361,14 @@ class _SimFingerStoneState extends State<SimFingerStone> {
   int _version = 0;
 
   /// Whether the stone changed moments ago: while edits keep coming (a
-  /// slider drag, quick taps) it traces at moving quality, and once at
-  /// full resolution after they stop.
+  /// slider drag, quick taps) the CPU fallback samples coarser, and finer
+  /// once they stop. The GPU always traces at full resolution.
   bool _settling = false;
   Timer? _settle;
+
+  /// Whether the GPU tracer is in, or failed to load (then the CPU tracer
+  /// draws). Until then nothing is drawn: never a coarse stand-in.
+  bool _tracerSettled = false;
 
   @override
   void initState() {
@@ -375,11 +379,17 @@ class _SimFingerStoneState extends State<SimFingerStone> {
           if (!mounted) return;
           setState(() {
             _renderer.shader = program.fragmentShader();
+            _tracerSettled = true;
             _version++;
           });
         })
         .catchError((Object _) {
-          // The CPU tracer keeps drawing.
+          // The CPU tracer draws instead.
+          if (!mounted) return;
+          setState(() {
+            _tracerSettled = true;
+            _version++;
+          });
         });
   }
 
@@ -435,6 +445,7 @@ class _SimFingerStoneState extends State<SimFingerStone> {
           pxPerUnit: widget.pxPerMm * widget.stone.mmPerUnit,
           spin: widget.spin,
           moving: widget.moving || _settling,
+          ready: _tracerSettled,
           dpr: dpr,
         ),
       ),
@@ -453,6 +464,7 @@ class _FingerStonePainter extends CustomPainter {
     required this.pxPerUnit,
     required this.spin,
     required this.moving,
+    required this.ready,
     required this.dpr,
   });
 
@@ -463,7 +475,7 @@ class _FingerStonePainter extends CustomPainter {
   final SimWireStyle wireStyle;
   final int version;
   final double pxPerUnit, spin, dpr;
-  final bool moving;
+  final bool moving, ready;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -481,6 +493,7 @@ class _FingerStonePainter extends CustomPainter {
       );
       return;
     }
+    if (!ready) return;
     renderer.maxBounces = SimRenderer.bounces;
     renderer.paint(
       canvas,
@@ -488,8 +501,8 @@ class _FingerStonePainter extends CustomPainter {
       view: SimView(tilt: math.pi / 2, spin: spin),
       pxPerUnit: pxPerUnit,
       samplePx: moving ? 4 : 2.5,
+      // Always one traced path per device pixel, spinning or still.
       devicePixelRatio: dpr,
-      renderScale: moving ? math.min(1.5, dpr) : dpr,
     );
   }
 
@@ -501,5 +514,6 @@ class _FingerStonePainter extends CustomPainter {
       old.pxPerUnit != pxPerUnit ||
       old.spin != spin ||
       old.moving != moving ||
+      old.ready != ready ||
       old.dpr != dpr;
 }

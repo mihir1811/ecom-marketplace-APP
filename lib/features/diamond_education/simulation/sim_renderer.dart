@@ -57,13 +57,16 @@ class SimFrameStats {
 /// (Gouraud); the spacing is set in screen pixels so cost follows the
 /// stone's size on screen, and callers can coarsen it to hold frame rate.
 ///
-/// The GPU trace can run at fewer pixels than the screen has
-/// ([renderScale]) and is then scaled up smoothly: the cost of a moving
-/// stone drops by half or more for a barely visible softening.
+/// The GPU traces one path per device pixel, and keeps that frame as an
+/// image until the stone or the view changes: frames the rest of the
+/// screen asks for copy it rather than trace it again. The diamond
+/// simulator never asks for less; [renderScale] below the device's pixel
+/// ratio (scaled up afterwards) is only for callers that trade sharpness
+/// for speed, such as the jewelry scenes' small stones.
 ///
 /// Buffers are reused frame to frame, so steady painting allocates only
-/// the [ui.Vertices] (CPU) or one offscreen image (GPU, reduced scale)
-/// handed to the canvas.
+/// the [ui.Vertices] (CPU) or one offscreen image (GPU) handed to the
+/// canvas.
 class SimRenderer {
   final SimTracer _tracer = SimTracer();
   final SimFrameStats stats = SimFrameStats();
@@ -499,6 +502,7 @@ class SimRenderer {
   static const _uScope = _uSpots + SimStudio.maxSpots * 8;
   static const _uIncl = _uScope + 4;
   static const _uFocus = _uIncl + SimInclusions.maxCount * 8;
+  static const _uSplit = _uFocus + 4;
 
   void _paintGpu(
     Canvas canvas,
@@ -587,13 +591,76 @@ class SimRenderer {
       t = math.min(t, _py[i]);
       b = math.max(b, _py[i]);
     }
-    final bounds = Rect.fromLTRB(l - 2, t - 2, rt + 2, b + 2);
+    var bounds = Rect.fromLTRB(l - 2, t - 2, rt + 2, b + 2);
     _gpuPaint.shader = sh;
 
     if (s >= dpr - 0.05) {
-      canvas.drawRect(bounds, _gpuPaint);
+      if (!_axisAligned(canvas)) {
+        // Turned or scaled by the caller: trace straight into it.
+        _dropCache();
+        canvas.drawRect(bounds, _gpuPaint);
+        return;
+      }
+      // Full resolution, one traced pixel per device pixel, kept as an
+      // image: the engine redraws every picture on every frame it makes,
+      // so any other animation on screen (a panel, the dial, a slider)
+      // would otherwise trace the stone again, unchanged. Until the stone
+      // or view changes, frames copy the same pixels instead.
+      final key = _cacheKey
+        ..[0] = cx
+        ..[1] = cy
+        ..[2] = scale
+        ..[3] = dpr
+        ..[4] = inclusionFocus
+        ..[5] = _tracer.studio.scopeHole
+        ..[6] = _tracer.maxBounces.toDouble();
+      for (var k = 0; k < 9; k++) {
+        key[7 + k] = r[k];
+      }
+      final hit =
+          _frameImage != null &&
+          identical(_cachedMesh, mesh) &&
+          identical(_cachedInclusions, _inclusions) &&
+          identical(_cachedOptics, o) &&
+          identical(_cachedShader, sh) &&
+          _sameKey();
+      if (!hit) {
+        // Whole device pixels, so the copy lands one to one.
+        final x0 = (bounds.left * dpr).floor();
+        final y0 = (bounds.top * dpr).floor();
+        final x1 = (bounds.right * dpr).ceil();
+        final y1 = (bounds.bottom * dpr).ceil();
+        final w = x1 - x0, h = y1 - y0;
+        if (w <= 0 || h <= 0) return;
+        bounds = Rect.fromLTRB(x0 / dpr, y0 / dpr, x1 / dpr, y1 / dpr);
+        final recorder = ui.PictureRecorder();
+        Canvas(recorder)
+          ..scale(dpr)
+          ..translate(-bounds.left, -bounds.top)
+          ..drawRect(bounds, _gpuPaint);
+        final picture = recorder.endRecording();
+        final image = picture.toImageSync(w, h);
+        picture.dispose();
+        // Pictures already drawn keep their own reference to the old one.
+        _frameImage?.dispose();
+        _frameImage = image;
+        _cachedBounds = bounds;
+        _cachedMesh = mesh;
+        _cachedInclusions = _inclusions;
+        _cachedOptics = o;
+        _cachedShader = sh;
+        _cachedKey.setAll(0, key);
+      }
+      final image = _frameImage!;
+      canvas.drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        _cachedBounds,
+        _copyPaint,
+      );
       return;
     }
+    _dropCache();
     // Trace at reduced density offscreen, then scale up with filtering.
     final w = (bounds.width * s).ceil(), h = (bounds.height * s).ceil();
     if (w <= 0 || h <= 0) return;
@@ -616,6 +683,36 @@ class SimRenderer {
     _frameImage = image;
   }
 
+  // The last full resolution frame and what it was traced for.
+  final Float64List _cacheKey = Float64List(16), _cachedKey = Float64List(16);
+  Rect _cachedBounds = Rect.zero;
+  SimMesh? _cachedMesh;
+  List<SimInclusion>? _cachedInclusions;
+  SimOptics? _cachedOptics;
+  ui.FragmentShader? _cachedShader;
+
+  /// Copies the cached frame pixel for pixel: no filtering, so not even a
+  /// sub-pixel offset can soften it.
+  final Paint _copyPaint = Paint()..filterQuality = FilterQuality.none;
+
+  bool _sameKey() {
+    for (var k = 0; k < _cacheKey.length; k++) {
+      if (_cacheKey[k] != _cachedKey[k]) return false;
+    }
+    return true;
+  }
+
+  void _dropCache() {
+    _cachedMesh = null;
+  }
+
+  /// Whether [canvas] only shifts what is drawn: then a frame traced at
+  /// device resolution copies onto it one to one.
+  static bool _axisAligned(Canvas canvas) {
+    final m = canvas.getTransform();
+    return m[0] == 1 && m[1] == 0 && m[4] == 0 && m[5] == 1;
+  }
+
   /// Facet planes, solid ones first, and the band beyond which a ray has
   /// to test the girdle (see [SimMesh.innerRadius]).
   static void _setPlanes(ui.FragmentShader sh, SimMesh mesh) {
@@ -626,16 +723,34 @@ class SimRenderer {
         if (f < traced) f,
     ];
     final ring = girdle.toSet();
-    final order = [
-      for (var f = 0; f < traced; f++)
-        if (!ring.contains(f)) f,
-      ...girdle,
-    ];
+    // Solid planes facing down, then up, then the girdle: a ray heading
+    // steeply up or down skips the group it cannot leave through.
+    final down = <int>[], up = <int>[];
+    var reachDown = 0.0, reachUp = 0.0;
+    for (var f = 0; f < traced; f++) {
+      if (ring.contains(f)) continue;
+      final ny = planes[f * 4 + 1];
+      final reach = math.sqrt(math.max(0.0, 1 - ny * ny));
+      if (ny > 0) {
+        up.add(f);
+        reachUp = math.max(reachUp, reach);
+      } else {
+        down.add(f);
+        reachDown = math.max(reachDown, reach);
+      }
+    }
+    final order = [...down, ...up, ...girdle];
     for (var i = 0; i < order.length; i++) {
       for (var k = 0; k < 4; k++) {
         sh.setFloat(_uPlanes + i * 4 + k, planes[order[i] * 4 + k]);
       }
     }
+    // A hair of margin keeps rounding from ever skipping a plane a ray
+    // could leave through.
+    sh
+      ..setFloat(_uSplit, down.length.toDouble())
+      ..setFloat(_uSplit + 1, down.isEmpty ? -2 : reachDown + 1e-4)
+      ..setFloat(_uSplit + 2, up.isEmpty ? -2 : reachUp + 1e-4);
     var a = 0.0, b = 0.0;
     for (var i = 0; i < mesh.vertexCount; i++) {
       a = math.max(a, pos[i * 3].abs());
