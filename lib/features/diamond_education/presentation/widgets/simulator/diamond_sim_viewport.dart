@@ -283,7 +283,16 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   static const _minFrameGap = Duration(microseconds: 10500);
 
   // Shrinking to sit inside [SimViewportController.fit], 0..1.
-  double _fitAmount = 0, _fitRadius = 0;
+  double _fitAmount = 0;
+
+  // Where the stone sits while fitted: its fit radius and centre (null
+  // for the viewport's centre), glided from where they were whenever
+  // they change, e.g. from the ring's middle up above the half ring. The
+  // last ones stay for easing back out to natural size.
+  double _fitFrom = 0, _fitTo = 0;
+  Offset? _anchorFrom, _anchorTo;
+  double _place = 1;
+  Size _size = Size.zero;
 
   // Toning the surface down for [SimViewportController.inclusionView],
   // 0..1.
@@ -440,6 +449,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   }
 
   void _onCommand() {
+    _retarget();
     if (_c._presetRequest != _seenRequest) {
       _seenRequest = _c._presetRequest;
       _fromTilt = _tilt;
@@ -449,6 +459,35 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     }
     _syncTicker();
     _invalidate();
+  }
+
+  /// A new fit or stage: glides there from where the stone is now, or
+  /// starts there when the stone is at its natural size and place.
+  void _retarget() {
+    final fit = _c.fit.value;
+    if (fit == null) return;
+    final anchor = _c.stage.value?.center;
+    if (fit == _fitTo && anchor == _anchorTo) return;
+    if (_fitAmount <= 0) {
+      _fitFrom = fit;
+      _anchorFrom = anchor;
+      _place = 1;
+    } else {
+      _fitFrom = _fitRadiusNow;
+      _anchorFrom = _anchorNow(_size);
+      _place = 0;
+    }
+    _fitTo = fit;
+    _anchorTo = anchor;
+  }
+
+  double get _placeEase => Curves.easeInOutCubic.transform(_place);
+
+  double get _fitRadiusNow => _fitFrom + (_fitTo - _fitFrom) * _placeEase;
+
+  Offset _anchorNow(Size size) {
+    final c = size.center(Offset.zero);
+    return Offset.lerp(_anchorFrom ?? c, _anchorTo ?? c, _placeEase)!;
   }
 
   /// While the shape dial is open (or easing away) the stone is traced at
@@ -465,6 +504,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   bool get _moving =>
       _appear < 1 ||
       _fitAmount != _fitGoal ||
+      _place < 1 ||
       _focus != _focusGoal ||
       _c.autoRotate ||
       _dragging ||
@@ -526,10 +566,9 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       _tilt = _fromTilt + (_toTilt - _fromTilt) * e;
     }
     if (_appear < 1) _appear = math.min(1, _appear + dt / 0.35);
-    final fit = _c.fit.value;
-    if (fit != null) _fitRadius = fit;
     final stage = _c.stage.value;
     if (stage != null) _lastStage = stage;
+    if (_place < 1) _place = math.min(1, _place + dt / 0.6);
     final goal = _fitGoal;
     if (_fitAmount != goal) {
       _fitAmount = goal > _fitAmount
@@ -562,15 +601,16 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     var pxPerUnit =
         morph?.pxPerUnit(size) ??
         SimScale.pxPerMm(size, _radius * _mmPerUnit) * _mmPerUnit;
+    _size = size;
     var centre = size.center(Offset.zero);
-    if (_fitAmount > 0 && _fitRadius > 0) {
+    final fitRadius = _fitRadiusNow;
+    if (_fitAmount > 0 && fitRadius > 0) {
       final e = Curves.easeInOutCubic.transform(_fitAmount);
       final reach = mesh.radius * pxPerUnit;
-      if (reach > _fitRadius) {
-        pxPerUnit *= 1 + (_fitRadius / reach - 1) * e;
+      if (reach > fitRadius) {
+        pxPerUnit *= 1 + (fitRadius / reach - 1) * e;
       }
-      final stage = _c.stage.value ?? _lastStage;
-      if (stage != null) centre = Offset.lerp(centre, stage.center, e)!;
+      centre = Offset.lerp(centre, _anchorNow(size), e)!;
     }
     // A gentle rock while spinning, as a jeweller tilts a stone in light.
     final rock = _c.autoRotate && !_dragging

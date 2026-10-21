@@ -56,6 +56,9 @@ Future<void> _teardown(WidgetTester tester) async {
 }
 
 void main() {
+  // Loaded for real once: the shape dial starts loading the fancy cuts as
+  // it opens, and a load begun under a test's fake clock never finishes.
+  setUpAll(SimFancyCatalog.load);
   setUp(() => AppHaptics.debugDisable = true);
   tearDown(AppHaptics.debugReset);
 
@@ -261,6 +264,92 @@ void main() {
     expect(find.byType(SimFancyShapeSlider), findsNothing);
     // Back to the stone being edited.
     expect(viewport.morph.value, isNull);
+    await _teardown(tester);
+  });
+
+  testWidgets('the dial opens into a half ring of every shape and back', (
+    tester,
+  ) async {
+    await tester.runAsync(SimFancyCatalog.load);
+    await _pump(tester, const Size(390, 844), const DiamondSimulatorScreen());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiamondSimulatorScreen)),
+    );
+    final viewport = tester
+        .widget<DiamondSimViewport>(find.byType(DiamondSimViewport))
+        .controller;
+    Future<void> settle([int frames = 30]) async {
+      for (var i = 0; i < frames; i++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      expect(tester.takeException(), isNull);
+    }
+
+    // After the inclusion explorer, the dial's stone is back in the middle.
+    await tester.ensureVisible(find.text('Inclusions').first);
+    await tester.tap(find.text('Inclusions').first);
+    await settle(12);
+    await tester.tap(find.text('Done').first);
+    await settle(12);
+    await tester.ensureVisible(find.text('Shape').first);
+    await tester.tap(find.text('Shape').first);
+    await settle(12);
+    expect(viewport.fit.value, isNotNull);
+    expect(viewport.stage.value, isNull);
+
+    await tester.tap(find.text('Show more shapes'));
+    await settle();
+    // The stone above the half ring, the round at its centre.
+    final stage = viewport.stage.value!;
+    final top = SimShapeDial.halfRingTop(const Size(390, 844), 0);
+    expect(stage.bottom, top);
+    expect(find.text('Round'), findsOneWidget);
+    expect(find.text('Show fewer shapes'), findsOneWidget);
+
+    // Along the half ring by hand, past the classic shapes into the
+    // fancy cuts: shown, never made the stone's.
+    // On the band at its apex, below the search and the name.
+    final gesture = await tester.startGesture(Offset(195, top + 125));
+    for (var i = 0; i < 24; i++) {
+      await gesture.moveBy(const Offset(18, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+    await settle();
+    expect(find.text('Round'), findsNothing);
+    expect(container.read(diamondSimulatorProvider).spec.shape, SimShape.round);
+    expect(viewport.morph.value, isNotNull);
+
+    // Searched by name: a moment after typing, the half ring turns
+    // there step by step, never jumping.
+    await tester.enterText(find.byType(TextField), 'hea');
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.text('Heart'), findsNothing);
+    await tester.pump(const Duration(milliseconds: 250));
+    var steps = 0;
+    for (var i = 0; i < 50; i++) {
+      await tester.pump(const Duration(milliseconds: 60));
+      final t = viewport.morph.value?.t ?? 0;
+      if (t > 0 && t < 1) steps++;
+    }
+    expect(steps, greaterThan(5));
+    expect(find.text('Heart'), findsOneWidget);
+    expect(container.read(diamondSimulatorProvider).spec.shape, SimShape.heart);
+    await tester.enterText(find.byType(TextField), 'zzz');
+    await settle(10);
+    expect(find.text('No match'), findsOneWidget);
+    expect(find.text('Heart'), findsOneWidget);
+
+    await tester.tap(find.text('Show fewer shapes'));
+    await settle();
+    expect(viewport.stage.value, isNull);
+    expect(find.text('Show more shapes'), findsOneWidget);
+    expect(find.text('Heart'), findsOneWidget);
+    expect(container.read(diamondSimulatorProvider).spec.shape, SimShape.heart);
+    expect(viewport.morph.value, isNull);
+    await tester.tap(find.text('Done'));
+    await settle(8);
+    expect(find.byType(SimShapeDial), findsNothing);
     await _teardown(tester);
   });
 

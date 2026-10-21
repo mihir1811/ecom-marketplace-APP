@@ -14,7 +14,9 @@ import '../../../../../core/theme/luxe_tokens.dart';
 import '../../../application/diamond_simulator_controller.dart';
 import '../../../domain/diamond_grades.dart';
 import '../../../domain/diamond_shape.dart';
+import '../../../simulation/sim_fancy.dart';
 import '../../../simulation/sim_morph.dart';
+import '../../../simulation/sim_shape_line.dart';
 import '../../sim_labels.dart';
 import 'diamond_sim_viewport.dart';
 import 'sim_viewport_overlay.dart';
@@ -25,12 +27,20 @@ import 'sim_viewport_overlay.dart';
 /// swapping one stone for another. Every stop clicks into place with a
 /// detent you feel and hear, with a soft ratchet tick between stops. Left
 /// alone a moment, the ring fades back so the eye rests on the stone.
+///
+/// Show more shapes opens the ring at the top, spreads it across the
+/// screen and sets it down along the bottom as a half ring of every
+/// shape, the classic ten among the fancy cuts ([SimShapeLine]), the
+/// stone's shape at its centre and the stone above it. Fancy cuts are
+/// shown as cut, as on the fancy shapes slider: only a classic shape
+/// becomes the stone's.
 class SimShapeDial extends ConsumerStatefulWidget {
   const SimShapeDial({
     required this.viewport,
     required this.radius,
     required this.bottomInset,
     required this.onDone,
+    this.onMoreShapes,
     super.key,
   });
 
@@ -46,18 +56,29 @@ class SimShapeDial extends ConsumerStatefulWidget {
   /// Called once the dial has come to rest on a shape after Done.
   final VoidCallback onDone;
 
+  /// Called as the half ring of every shape starts to open (true) or to
+  /// close (false), so the stone can make way above it.
+  final ValueChanged<bool>? onMoreShapes;
+
   /// Width of the ring's band.
   static const band = 50.0;
+
+  /// Bottom of the stone's room above the half ring, in a dial of [size].
+  static double halfRingTop(Size size, double bottomInset) =>
+      _Arc(size, bottomInset).searchTop - 6;
 
   @override
   ConsumerState<SimShapeDial> createState() => _SimShapeDialState();
 }
 
 class _SimShapeDialState extends ConsumerState<SimShapeDial>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const _shapes = SimShape.values;
   static final _n = _shapes.length;
   static final _step = 2 * math.pi / _n;
+
+  /// How slowly the ring fades back when left alone.
+  static const _fadeBack = Duration(milliseconds: 1800);
 
   /// Ratchet marks per stop; every fourth is a shape.
   static const _marks = 4;
@@ -78,7 +99,23 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
   late final AnimationController _dial = AnimationController.unbounded(
     vsync: this,
   );
-  final _nearest = ValueNotifier<SimShape>(SimShape.round);
+
+  /// Half ring position in shapes along [_line]: shape i is at the centre
+  /// when it is i.
+  late final AnimationController _arc = AnimationController.unbounded(
+    vsync: this,
+  );
+
+  /// 0 the ring, 1 the half ring.
+  late final AnimationController _open = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1150),
+    reverseDuration: const Duration(milliseconds: 950),
+  );
+  late final Listenable _motion = Listenable.merge([_dial, _arc, _open]);
+  final _nearest = ValueNotifier<SimLineShape>(
+    const SimLineShape.classic(SimShape.round),
+  );
 
   /// The stone every other shape is cut from, and those cuts.
   DiamondSimulatorState? _base;
@@ -88,13 +125,35 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
   final _pairs = <int, SimShapeMorph>{};
   int _generation = 0;
 
-  double _prev = 0;
-  int? _mark;
+  /// Every shape on the half ring, once the fancy cuts have loaded; the
+  /// fancy cuts as cut from [_base], and the morphs from i to i + 1.
+  List<SimLineShape> _line = const [];
+  final _fancyStones = <int, DiamondSimulatorState>{};
+  final _linePairs = <int, SimShapeMorph>{};
+
+  /// Whether the half ring is wanted (opening or open), and whether it is
+  /// the half ring that turns the stone (from opening until it has closed).
+  bool _more = false;
+  bool _arcMode = false;
+
+  double _prev = 0, _arcPrev = 0;
+  int? _mark, _arcMark;
   Offset _center = Offset.zero;
+  Size _size = Size.zero;
   Offset? _last;
   bool _dim = false;
   bool _closing = false;
   Timer? _dimTimer;
+
+  /// The half ring's search: typed names are looked up a moment after the
+  /// last key, and the half ring turns there.
+  final _query = TextEditingController();
+  final _queryFocus = FocusNode();
+  Timer? _searchTimer;
+  bool _missed = false;
+
+  /// Turning on its own to a searched shape: detents only, no ticks.
+  bool _gliding = false;
 
   @override
   void initState() {
@@ -103,7 +162,21 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
     _dial
       ..addListener(_onTurn)
       ..addStatusListener(_onStatus);
+    _arc
+      ..addListener(_onArc)
+      ..addStatusListener(_onArcStatus);
+    _open.addStatusListener((s) {
+      if (s == AnimationStatus.dismissed) _maybeLeaveArc();
+    });
     DialSounds.preload();
+    final ready = SimFancyCatalog.loaded;
+    if (ready != null) {
+      _line = SimShapeLine.of(ready);
+    } else {
+      SimFancyCatalog.load().then((shapes) {
+        if (mounted) setState(() => _line = SimShapeLine.of(shapes));
+      });
+    }
     _idle();
   }
 
@@ -111,9 +184,15 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
   void dispose() {
     _generation++;
     _dimTimer?.cancel();
+    _searchTimer?.cancel();
+    _query.dispose();
+    _queryFocus.dispose();
     _dial.dispose();
+    _arc.dispose();
+    _open.dispose();
     _nearest.dispose();
-    // Back to the selected stone, should the dial close mid-turn.
+    // Back to the selected stone, should the dial close mid-turn or on a
+    // fancy cut.
     widget.viewport.morph.value = null;
     super.dispose();
   }
@@ -127,6 +206,33 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
 
   SimShapeMorph _pairAt(int i) =>
       _pairs[i % _n] ??= SimShapeMorph(_stoneAt(i).mesh, _stoneAt(i + 1).mesh);
+
+  /// Where the classic shapes start on [_line].
+  int get _classicStart => _line.indexWhere((s) => s.classic != null);
+
+  int _lineIndexOf(SimShape shape) =>
+      _line.indexWhere((s) => s.classic == shape);
+
+  DiamondSimulatorState _lineStone(int j) {
+    final s = _line[j];
+    if (s.classic != null) return _stoneAt(_shapes.indexOf(s.classic!));
+    // As the fancy shapes slider shows them: the stone's colour and
+    // weight, no clarity characteristics.
+    return _fancyStones[j] ??= _base!.copyWith(
+      mesh: s.fancy!.mesh,
+      inclusions: const [],
+    );
+  }
+
+  SimShapeMorph _linePair(int j) {
+    final a = _line[j].classic, b = _line[j + 1].classic;
+    // Classic neighbours on the line are dial neighbours, in dial order.
+    if (a != null && b != null) return _pairAt(_shapes.indexOf(a));
+    return _linePairs[j] ??= SimShapeMorph(
+      _lineStone(j).mesh,
+      _lineStone(j + 1).mesh,
+    );
+  }
 
   /// [x] wrapped into [−n/2, n/2): the shortest way round, in stops.
   static double _wrap(double x) => x - (x / _n + 0.5).floorToDouble() * _n;
@@ -142,15 +248,27 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
       ..clear()
       ..[stone.spec.shape] = stone;
     _pairs.clear();
+    _fancyStones.clear();
+    _linePairs.clear();
     final cur = _dial.value;
     final target = cur + _wrap(_shapes.indexOf(stone.spec.shape) - cur);
     _dial.stop();
     _prev = target;
     _mark = (target * _marks).round();
     _dial.value = target;
-    _nearest.value = stone.spec.shape;
+    _nearest.value = SimLineShape.classic(stone.spec.shape);
+    if (_arcMode && _line.isNotEmpty) {
+      final at = _lineIndexOf(stone.spec.shape).toDouble();
+      _arc.stop();
+      _arcPrev = at;
+      _arcMark = (at * _marks).round();
+      _arc.value = at;
+    }
     widget.viewport.morph.value = null;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _warm());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _warm();
+      if (_arcMode) _warmLine();
+    });
   }
 
   /// Cuts the other shapes and their morphs ahead of use, nearest first,
@@ -177,6 +295,22 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
     }
   }
 
+  /// The same along the half ring, outward from where it stands.
+  Future<void> _warmLine() async {
+    final gen = _generation;
+    final n = _line.length;
+    final at = _arc.value.round().clamp(0, n - 1);
+    for (var d = 0; d < n; d++) {
+      for (final i in {at + d, at - d - 1}) {
+        if (i < 0 || i >= n) continue;
+        await Future<void>.delayed(const Duration(milliseconds: 24));
+        if (!mounted || gen != _generation) return;
+        _lineStone(i);
+        if (i + 1 < n) _linePair(i);
+      }
+    }
+  }
+
   /// Whether [s] is one of the dial's stones (so the dial chose it).
   bool _owns(DiamondSimulatorState s) => _stones.values.any(
     (c) => identical(c.mesh, s.mesh) && identical(c.spec, s.spec),
@@ -184,11 +318,32 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
 
   void _onTurn() {
     final p = _dial.value;
-    _ticks(_prev, p);
+    // Turned along with the half ring, out of sight.
+    if (_arcMode) {
+      _prev = p;
+      return;
+    }
+    _mark = _ticks(_prev, p, _mark);
     _prev = p;
     final near = _shapeAt(p.round());
-    if (near != _nearest.value) _nearest.value = near;
+    if (near != _nearest.value.classic) {
+      _nearest.value = SimLineShape.classic(near);
+    }
     _publish(p);
+  }
+
+  void _onArc() {
+    if (!_arcMode || _line.isEmpty) return;
+    final p = _arc.value;
+    final n = _line.length;
+    // Silent past either end, where the half ring only gives.
+    if (p > -0.25 && p < n - 0.75) {
+      _arcMark = _ticks(_arcPrev, p, _arcMark, soft: !_gliding);
+    }
+    _arcPrev = p;
+    final near = _line[p.round().clamp(0, n - 1)];
+    if (near != _nearest.value) _nearest.value = near;
+    _publishArc(p);
   }
 
   /// Shows the stone at dial position [p]: at a stop, that shape; between
@@ -198,12 +353,7 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
     final i = p.floor();
     final f = p - i;
     if (f < 1e-4 || f > 1 - 1e-4) {
-      final s = _stoneAt(f < 0.5 ? i : i + 1);
-      final current = ref.read(diamondSimulatorProvider);
-      widget.viewport.morph.value =
-          identical(s.mesh, current.mesh) && identical(s.spec, current.spec)
-          ? null
-          : SimMorphFrame.still(s);
+      _show(_stoneAt(f < 0.5 ? i : i + 1));
       return;
     }
     widget.viewport.morph.value = SimMorphFrame(
@@ -214,17 +364,45 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
     );
   }
 
+  /// The same along the half ring.
+  void _publishArc(double p) {
+    final n = _line.length;
+    final q = p.clamp(0.0, n - 1.0);
+    final i = q.floor();
+    final f = q - i;
+    if (f < 1e-4 || f > 1 - 1e-4 || i >= n - 1) {
+      _show(_lineStone(math.min(f < 0.5 ? i : i + 1, n - 1)));
+      return;
+    }
+    widget.viewport.morph.value = SimMorphFrame(
+      from: _lineStone(i),
+      to: _lineStone(i + 1),
+      t: f * f * (3 - 2 * f),
+      morph: _linePair(i),
+    );
+  }
+
+  /// [s] at rest: the selected stone itself, or shown in its place.
+  void _show(DiamondSimulatorState s) {
+    final current = ref.read(diamondSimulatorProvider);
+    widget.viewport.morph.value =
+        identical(s.mesh, current.mesh) && identical(s.spec, current.spec)
+        ? null
+        : SimMorphFrame.still(s);
+  }
+
   /// A click for every ratchet mark crossed: a firm detent (felt and
   /// heard) at a shape, a soft tick between. Many marks in one frame (a
   /// fast flick) sound once; rocking back over the same mark is silent.
-  void _ticks(double prev, double cur) {
+  /// Returns the mark last sounded. Without [soft], only the detents.
+  int? _ticks(double prev, double cur, int? last, {bool soft = true}) {
     final a = (prev * _marks).floor(), b = (cur * _marks).floor();
-    if (a == b) return;
+    if (a == b) return last;
     final mark = b > a ? b : b + 1;
-    if (mark == _mark) return;
-    _mark = mark;
+    if (mark == last) return last;
     final lo = math.min(a, b) + 1, hi = math.max(a, b);
     final stop = (hi / _marks).floor() * _marks >= lo;
+    if (!stop && !soft) return last;
     if (stop) {
       AppHaptics.detent();
       DialSounds.detent();
@@ -232,15 +410,30 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
       AppHaptics.selection();
       DialSounds.tick();
     }
+    return mark;
   }
 
   void _onStatus(AnimationStatus status) {
-    if (status != AnimationStatus.completed) return;
+    if (status != AnimationStatus.completed || _arcMode) return;
     final k = _dial.value.round();
     if ((_dial.value - k).abs() > 1e-3) return;
     if (_dial.value != k) _dial.value = k.toDouble();
     _commit(k);
     _idle();
+    if (_closing) widget.onDone();
+  }
+
+  void _onArcStatus(AnimationStatus status) {
+    if (status != AnimationStatus.forward) _gliding = false;
+    if (status != AnimationStatus.completed || !_arcMode) return;
+    final k = _arc.value.round();
+    if ((_arc.value - k).abs() > 1e-3) return;
+    if (_arc.value != k) _arc.value = k.toDouble();
+    final classic = _line[k].classic;
+    // A classic shape becomes the stone's; a fancy cut is only shown.
+    if (classic != null) _commit(_shapes.indexOf(classic));
+    _idle();
+    _maybeLeaveArc();
     if (_closing) widget.onDone();
   }
 
@@ -257,6 +450,150 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
     _dial.animateWith(SpringSimulation(_spring, p, to, velocity));
   }
 
+  void _settleArc(double target, double velocity) {
+    final p = _arc.value;
+    final to = target.roundToDouble().clamp(0.0, _line.length - 1.0);
+    if (to != p.roundToDouble()) _leaveScope();
+    _arc.animateWith(SpringSimulation(_spring, p, to, velocity));
+  }
+
+  /// Opens the half ring of every shape, or closes it back into the ring
+  /// on the classic shape nearest.
+  Future<void> _toggleMore() async {
+    _wake();
+    if (_more) {
+      _more = false;
+      _searchTimer?.cancel();
+      _queryFocus.unfocus();
+      _query.clear();
+      _missed = false;
+      final start = _classicStart;
+      final to = _arc.value.round().clamp(start, start + _n - 1);
+      // The ring, out of sight, turns to the shape it will close on.
+      final shape = _line[to].classic!;
+      final cur = _dial.value.roundToDouble();
+      _dial.value = cur + _wrap(_shapes.indexOf(shape) - cur);
+      _mark = (_dial.value * _marks).round();
+      _settleArc(to.toDouble(), 0);
+      widget.onMoreShapes?.call(false);
+      _open.reverse();
+      setState(() {});
+      return;
+    }
+    if (_line.isEmpty) {
+      final shapes = await SimFancyCatalog.load();
+      if (!mounted || _more) return;
+      _line = SimShapeLine.of(shapes);
+    }
+    // From the shape at the top, at rest.
+    _dial.stop();
+    final k = _dial.value.round();
+    if (_dial.value != k) _dial.value = k.toDouble();
+    _commit(k);
+    final at = _lineIndexOf(_shapeAt(k)).toDouble();
+    _more = true;
+    _arcMode = true;
+    _arcPrev = at;
+    _arcMark = (at * _marks).round();
+    _arc.value = at;
+    _nearest.value = _line[at.round()];
+    widget.onMoreShapes?.call(true);
+    _open.forward();
+    setState(() {});
+    _warmLine();
+  }
+
+  /// Hands the stone back to the ring once the half ring has closed and
+  /// come to rest on a classic shape.
+  void _maybeLeaveArc() {
+    if (!_arcMode || _more || !_open.isDismissed || _arc.isAnimating) return;
+    _arcMode = false;
+    _prev = _dial.value;
+    _nearest.value = SimLineShape.classic(_shapeAt(_dial.value.round()));
+    _publish(_dial.value);
+    setState(() {});
+  }
+
+  void _onQuery(String text) {
+    _wake();
+    _searchTimer?.cancel();
+    _searchTimer = Timer(
+      const Duration(milliseconds: 350),
+      () => _search(text),
+    );
+  }
+
+  static final _nonWord = RegExp(r'[^\p{L}\p{M}\p{N}]+', unicode: true);
+
+  static String _norm(String s) =>
+      s.toLowerCase().replaceAll(_nonWord, ' ').trim();
+
+  /// Turns the half ring to the shape best matching [text]: a whole name,
+  /// then a name or one of its words starting so, then any name holding
+  /// it; the nearest of equals.
+  void _search(String text) {
+    _searchTimer?.cancel();
+    if (!mounted || !_arcMode || !_more || _line.isEmpty) return;
+    final q = _norm(text);
+    if (q.isEmpty) {
+      if (_missed) setState(() => _missed = false);
+      return;
+    }
+    int? best;
+    var bestScore = 0;
+    var bestDistance = double.infinity;
+    for (var j = 0; j < _line.length; j++) {
+      final s = _line[j];
+      var score = 0;
+      for (final name in {
+        _norm(_nameOf(context, s)),
+        _norm(s.classic?.catalogValue ?? s.fancy!.id),
+      }) {
+        final words = name.split(' ');
+        score = math.max(
+          score,
+          name == q
+              ? 4
+              : name.startsWith(q)
+              ? 3
+              : words.any((w) => w.startsWith(q))
+              ? 2
+              : name.contains(q)
+              ? 1
+              : 0,
+        );
+      }
+      if (score == 0) continue;
+      final distance = (j - _arc.value).abs();
+      if (score > bestScore ||
+          (score == bestScore && distance < bestDistance)) {
+        best = j;
+        bestScore = score;
+        bestDistance = distance;
+      }
+    }
+    setState(() => _missed = best == null);
+    if (best != null) _glideTo(best);
+  }
+
+  /// Turns the half ring steadily to shape [j], however far: never a
+  /// jump, the stone recut through every shape on the way.
+  void _glideTo(int j) {
+    final d = (j - _arc.value).abs();
+    if (d < 1e-3) return;
+    _wake();
+    _leaveScope();
+    _arc.stop();
+    _gliding = true;
+    _arc.animateTo(
+      j.toDouble(),
+      duration: Duration(
+        milliseconds: (520 + 120 * d).clamp(650, 2800).round(),
+      ),
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
   void _wake() {
     _dimTimer?.cancel();
     if (_dim) setState(() => _dim = false);
@@ -265,14 +602,26 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
   /// Fades the ring back after a moment untouched.
   void _idle() {
     _dimTimer?.cancel();
-    _dimTimer = Timer(const Duration(milliseconds: 2600), () {
-      if (mounted && !_dial.isAnimating) setState(() => _dim = true);
+    _dimTimer = Timer(const Duration(milliseconds: 4200), () {
+      if (mounted &&
+          !_dial.isAnimating &&
+          !_arc.isAnimating &&
+          !_queryFocus.hasFocus) {
+        setState(() => _dim = true);
+      }
     });
   }
 
+  /// The turning centre, controller and stop angle of whichever is shown.
+  Offset get _pivot =>
+      _arcMode ? _Arc(_size, widget.bottomInset).centre : _center;
+
+  double get _stopAngle =>
+      _arcMode ? _Arc(_size, widget.bottomInset).step : _step;
+
   void _onPanStart(DragStartDetails d) {
     _wake();
-    _dial.stop();
+    (_arcMode ? _arc : _dial).stop();
     _last = d.localPosition;
     _leaveScope();
   }
@@ -286,43 +635,103 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
   }
 
   void _onPanUpdate(DragUpdateDetails d) {
-    final from = _last! - _center, to = d.localPosition - _center;
+    final c = _pivot;
+    final from = _last! - c, to = d.localPosition - c;
     _last = d.localPosition;
     // Too near the centre to tell which way it turns.
     if (from.distance < 12 || to.distance < 12) return;
-    _dial.value -= _wrapAngle(to.direction - from.direction) / _step;
+    final stops = -_wrapAngle(to.direction - from.direction) / _stopAngle;
+    if (!_arcMode) {
+      _dial.value -= _wrapAngle(to.direction - from.direction) / _step;
+      return;
+    }
+    // Past either end the half ring gives, heavily.
+    final p = _arc.value;
+    final end = (p <= 0 && stops < 0) || (p >= _line.length - 1 && stops > 0);
+    _arc.value = p + (end ? stops * 0.3 : stops);
   }
 
   void _onPanEnd(DragEndDetails d) {
-    final r = (_last ?? _center) - _center;
+    final c = _pivot;
+    final r = (_last ?? c) - c;
     final v = d.velocity.pixelsPerSecond;
     final r2 = r.distanceSquared;
     // Angular speed about the centre, then in stops per second.
     final omega = r2 < 144 ? 0.0 : (r.dx * v.dy - r.dy * v.dx) / r2;
-    final speed = (-omega / _step).clamp(-26.0, 26.0);
-    _settleTo(_dial.value + speed * 0.24, speed);
+    final speed = (-omega / _stopAngle).clamp(-26.0, 26.0);
+    if (_arcMode) {
+      _settleArc(_arc.value + speed * 0.24, speed);
+    } else {
+      _settleTo(_dial.value + speed * 0.24, speed);
+    }
   }
 
   void _onTapUp(TapUpDetails d) {
-    final at = d.localPosition - _center;
+    final at = d.localPosition - _pivot;
     if (at.distance < 12) return;
-    final p = _dial.value;
-    _settleTo(p + _wrapAngle(at.direction + math.pi / 2) / _step, 0);
+    final turn = _wrapAngle(at.direction + math.pi / 2) / _stopAngle;
+    if (_arcMode) {
+      _settleArc(_arc.value + turn, 0);
+    } else {
+      _settleTo(_dial.value + turn, 0);
+    }
     _idle();
   }
 
   void _turnBy(int stops) {
     _wake();
-    _settleTo(_dial.value.roundToDouble() + stops, 0);
+    if (_arcMode) {
+      _settleArc(_arc.value.roundToDouble() + stops, 0);
+    } else {
+      _settleTo(_dial.value.roundToDouble() + stops, 0);
+    }
   }
 
   void _done() {
+    if (_arcMode) {
+      if (_arc.isAnimating) {
+        _closing = true;
+        return;
+      }
+      // On a fancy cut the stone stays the classic shape it was.
+      final classic = _line[_arc.value.round()].classic;
+      if (classic != null) _commit(_shapes.indexOf(classic));
+      widget.onDone();
+      return;
+    }
     if (_dial.isAnimating) {
       _closing = true;
       return;
     }
     _commit(_dial.value.round());
     widget.onDone();
+  }
+
+  _Frame _frame() => _Frame(
+    u: _open.value,
+    size: _size,
+    centre: _center,
+    radius: widget.radius,
+    arc: _Arc(_size, widget.bottomInset),
+    dial: _dial.value,
+    pos: _arc.value,
+    count: _n,
+    lineCount: _line.length,
+  );
+
+  String _nameOf(BuildContext context, SimLineShape s) => s.classic != null
+      ? context.shapeName(s.classic!)
+      : context.fancyShapeName(s.fancy!);
+
+  /// The shape [by] stops from [s], on the ring or along the half ring.
+  SimLineShape? _beside(SimLineShape s, int by) {
+    if (!_arcMode) {
+      return SimLineShape.classic(
+        _shapeAt(_shapes.indexOf(s.classic ?? SimShape.round) + _n + by),
+      );
+    }
+    final i = _line.indexOf(s) + by;
+    return i < 0 || i >= _line.length ? null : _line[i];
   }
 
   @override
@@ -337,12 +746,29 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        _center = constraints.biggest.center(Offset.zero);
+        _size = constraints.biggest;
+        _center = _size.center(Offset.zero);
+        final arc = _Arc(_size, widget.bottomInset);
         // Faded through its colours, never an opacity layer: an offscreen
         // pass every frame would compete with the stone's trace.
-        Widget ring(double fade) => _Annulus(
-          inner: r - band / 2 - 10,
-          outer: r + band / 2 + 12,
+        Widget ring(double fade) => AnimatedBuilder(
+          animation: _open,
+          builder: (context, child) {
+            final u = _open.value;
+            final half = u >= 1;
+            final c = half ? arc.centre : _center;
+            final cr = half ? arc.radius : r;
+            return IgnorePointer(
+              // Only the ring or the half ring at rest takes a turn.
+              ignoring: u > 0 && u < 1,
+              child: _Annulus(
+                centre: c,
+                inner: cr - band / 2 - 10,
+                outer: cr + band / 2 + 12,
+                child: child,
+              ),
+            );
+          },
           child: Listener(
             onPointerDown: (_) => _wake(),
             child: GestureDetector(
@@ -357,18 +783,16 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
                   children: [
                     CustomPaint(
                       painter: _RingPainter(
-                        dial: _dial,
-                        radius: r,
+                        motion: _motion,
+                        frame: _frame,
                         accent: p.accent,
-                        count: _n,
                         marks: _marks,
                         fade: fade,
                       ),
                     ),
                     AnimatedBuilder(
-                      animation: _dial,
-                      builder: (context, _) =>
-                          Stack(children: _icons(p, r, fade)),
+                      animation: _motion,
+                      builder: (context, _) => Stack(children: _icons(p, fade)),
                     ),
                   ],
                 ),
@@ -381,51 +805,86 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
           fit: StackFit.expand,
           children: [
             Positioned.fill(
-              child: ValueListenableBuilder<SimShape>(
+              child: ValueListenableBuilder<SimLineShape>(
                 valueListenable: _nearest,
-                builder: (context, shape, child) => Semantics(
-                  label: context.tr(EducationL10n.shape),
-                  value: context.shapeName(shape),
-                  increasedValue: context.shapeName(
-                    _shapeAt(_shapes.indexOf(shape) + 1),
-                  ),
-                  decreasedValue: context.shapeName(
-                    _shapeAt(_shapes.indexOf(shape) + _n - 1),
-                  ),
-                  onIncrease: () => _turnBy(1),
-                  onDecrease: () => _turnBy(-1),
-                  child: child,
-                ),
+                builder: (context, shape, child) {
+                  final up = _beside(shape, 1), down = _beside(shape, -1);
+                  return Semantics(
+                    label: context.tr(EducationL10n.shape),
+                    value: _nameOf(context, shape),
+                    increasedValue: up == null ? null : _nameOf(context, up),
+                    decreasedValue: down == null
+                        ? null
+                        : _nameOf(context, down),
+                    onIncrease: up == null ? null : () => _turnBy(1),
+                    onDecrease: down == null ? null : () => _turnBy(-1),
+                    child: child,
+                  );
+                },
                 child: _Entrance(
                   child: TweenAnimationBuilder<double>(
                     tween: Tween(end: _dim ? 0.22 : 1),
-                    duration: _dim
-                        ? const Duration(milliseconds: 900)
-                        : LuxeMotion.fast,
+                    duration: _dim ? _fadeBack : LuxeMotion.fast,
                     curve: Curves.easeOut,
                     builder: (context, fade, _) => ring(fade),
                   ),
                 ),
               ),
             ),
-            // The shape's name under the ring.
-            Positioned(
-              left: 16,
-              right: 16,
-              top: _center.dy + r + band / 2 + 12,
+            // A small search above the half ring's name.
+            if (_arcMode)
+              AnimatedBuilder(
+                animation: _open,
+                builder: (context, child) {
+                  final b = _frame().b;
+                  return Positioned(
+                    left: 0,
+                    right: 0,
+                    top: arc.searchTop,
+                    height: _Arc.searchHeight,
+                    child: IgnorePointer(
+                      ignoring: !_more || b < 1,
+                      child: Opacity(opacity: b.clamp(0.0, 1.0), child: child),
+                    ),
+                  );
+                },
+                child: Center(
+                  child: SizedBox(
+                    // The pill's own height: a text field alone is only as
+                    // tall as its line.
+                    height: _Arc.searchHeight,
+                    width: math.min(_size.width - 48, 300),
+                    child: _searchField(p),
+                  ),
+                ),
+              ),
+            // The shape's name: under the ring, or above the half ring.
+            AnimatedBuilder(
+              animation: _open,
+              builder: (context, child) {
+                final f = _frame();
+                final first = f.u < 0.5;
+                return Positioned(
+                  left: 16,
+                  right: 16,
+                  top: first ? _center.dy + r + band / 2 + 12 : arc.nameTop,
+                  child: Opacity(
+                    opacity: (first ? 1 - f.a : f.b).clamp(0.0, 1.0),
+                    child: child,
+                  ),
+                );
+              },
               child: IgnorePointer(
                 child: TweenAnimationBuilder<double>(
                   tween: Tween(end: _dim ? 0.35 : 1),
-                  duration: _dim
-                      ? const Duration(milliseconds: 900)
-                      : LuxeMotion.fast,
+                  duration: _dim ? _fadeBack : LuxeMotion.fast,
                   builder: (context, fade, _) =>
-                      ValueListenableBuilder<SimShape>(
+                      ValueListenableBuilder<SimLineShape>(
                         valueListenable: _nearest,
                         builder: (context, shape, _) => AnimatedSwitcher(
                           duration: LuxeMotion.fast,
                           child: Text(
-                            context.shapeName(shape),
+                            _nameOf(context, shape),
                             key: ValueKey(shape),
                             textAlign: TextAlign.center,
                             maxLines: 1,
@@ -448,6 +907,18 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SimGlassPill(
+                    label: context.tr(
+                      _more
+                          ? EducationL10n.fewerShapes
+                          : EducationL10n.moreShapes,
+                    ),
+                    selected: false,
+                    palette: p,
+                    height: 40,
+                    onTap: _toggleMore,
+                  ),
+                  const SizedBox(width: 10),
+                  SimGlassPill(
                     label: context.tr(EducationL10n.done),
                     selected: true,
                     palette: p,
@@ -463,38 +934,436 @@ class _SimShapeDialState extends ConsumerState<SimShapeDial>
     );
   }
 
-  /// Each shape on the ring, upright, growing and taking the accent as it
-  /// nears the top.
-  List<Widget> _icons(LuxePalette p, double r, double fade) {
-    final pos = _dial.value;
-    return [
-      for (var s = 0; s < _n; s++)
-        () {
-          final rel = _wrap(s - pos);
-          final a = -math.pi / 2 + rel * _step;
-          final near = (1 - rel.abs()).clamp(0.0, 1.0);
-          final size = 24 + 12 * near;
-          final color = Color.lerp(
-            p.ink.withValues(alpha: 0.62),
-            p.accent,
-            near,
-          )!;
-          final shown = color.withValues(alpha: color.a * fade);
-          final c = _center + Offset(math.cos(a), math.sin(a)) * r;
-          return Positioned(
-            left: c.dx - size / 2,
-            top: c.dy - size / 2,
-            width: size,
-            height: size,
-            child: SvgPicture.asset(
-              _shapes[s].svgAsset,
-              colorFilter: ColorFilter.mode(shown, BlendMode.srcIn),
-              placeholderBuilder: (_) => const SizedBox.shrink(),
+  Widget _searchField(LuxePalette p) =>
+      ValueListenableBuilder<TextEditingValue>(
+        valueListenable: _query,
+        builder: (context, value, _) => DecoratedBox(
+          decoration: ShapeDecoration(
+            color: const Color(0x8C101010),
+            shape: StadiumBorder(
+              side: BorderSide(
+                color: _missed
+                    ? p.inkFaint
+                    : _queryFocus.hasFocus
+                    ? p.accent.withValues(alpha: 0.6)
+                    : LuxeStage.glassBorder,
+              ),
             ),
-          );
-        }(),
-    ];
+          ),
+          child: Row(
+            children: [
+              const SizedBox(width: 16),
+              Icon(Icons.search_rounded, size: 20, color: p.inkMuted),
+              const SizedBox(width: 6),
+              Expanded(
+                child: TextField(
+                  controller: _query,
+                  focusNode: _queryFocus,
+                  onChanged: _onQuery,
+                  onSubmitted: _search,
+                  onTap: _wake,
+                  textInputAction: TextInputAction.search,
+                  cursorColor: p.accent,
+                  style: LuxeType.label(p.ink, size: 15),
+                  // Bare: the pill is the field, without the theme's own
+                  // filled box inside it.
+                  decoration: InputDecoration(
+                    isDense: true,
+                    filled: false,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                    hintText: context.tr(EducationL10n.searchShapes),
+                    hintStyle: LuxeType.label(p.inkFaint, size: 15),
+                  ),
+                ),
+              ),
+              if (_missed && value.text.isNotEmpty)
+                Text(
+                  context.tr(EducationL10n.noShapeFound),
+                  style: LuxeType.label(p.inkFaint, size: 12),
+                ),
+              if (value.text.isNotEmpty)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    _searchTimer?.cancel();
+                    _query.clear();
+                    setState(() => _missed = false);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 18,
+                      color: p.inkMuted,
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(width: 16),
+            ],
+          ),
+        ),
+      );
+
+  /// Each shape on the ring or the half ring, upright, growing and taking
+  /// the accent as it nears the window. On the way between, the ring's
+  /// shapes ride its band out as it opens and the half ring's slide in
+  /// from its ends.
+  List<Widget> _icons(LuxePalette p, double fade) {
+    final f = _frame();
+    final band = f.band;
+    final out = <Widget>[];
+    void put(String asset, double s, double near, double alpha) {
+      // Fading out toward the band's ends, once it has any: the whole
+      // ring has none, and its top (where it opens) holds the selection.
+      final ends = band.length >= f.ringLength - 0.5
+          ? 1.0
+          : ((band.length / 2 - s.abs()) / 28).clamp(0.0, 1.0);
+      final a = alpha * ends * fade;
+      if (a <= 0.01) return;
+      final c = band.at(s);
+      final size = 24 + 12 * near;
+      if (c.dx < -size || c.dx > _size.width + size) return;
+      if (c.dy < -size || c.dy > _size.height + size) return;
+      final color = Color.lerp(p.ink.withValues(alpha: 0.62), p.accent, near)!;
+      out.add(
+        Positioned(
+          left: c.dx - size / 2,
+          top: c.dy - size / 2,
+          width: size,
+          height: size,
+          child: SvgPicture.asset(
+            asset,
+            colorFilter: ColorFilter.mode(
+              color.withValues(alpha: color.a * a),
+              BlendMode.srcIn,
+            ),
+            placeholderBuilder: (_) => const SizedBox.shrink(),
+          ),
+        ),
+      );
+    }
+
+    if (f.a < 1) {
+      final alpha = 1 - (f.a / 0.6).clamp(0.0, 1.0);
+      for (var s = 0; s < _n; s++) {
+        final rel = _wrap(s - f.dial);
+        put(
+          _shapes[s].svgAsset,
+          f.ringAt(rel),
+          (1 - rel.abs()).clamp(0.0, 1.0),
+          alpha,
+        );
+      }
+    }
+    if (f.b > 0 && _line.isNotEmpty) {
+      final n = _line.length;
+      final reach = band.length / 2 / f.arc.spacing + 1;
+      final first = math.max(0, (f.pos - reach).floor());
+      final last = math.min(n - 1, (f.pos + reach).ceil());
+      for (var j = first; j <= last; j++) {
+        final q = j - f.pos;
+        put(_line[j].svgAsset, f.arcAt(q), (1 - q.abs()).clamp(0.0, 1.0), f.b);
+      }
+    }
+    return out;
   }
+}
+
+/// The half ring at rest along the bottom of a dial of [size]: an arc of
+/// a circle whose centre lies below the screen, its top under the stone.
+class _Arc {
+  _Arc(Size size, double bottomInset) : width = size.width {
+    // Bowed well down to either side, as a dial seen from its rim.
+    radius = (width * 0.66).clamp(240.0, 640.0);
+    // Its inner edge just clear of the buttons under it (Show fewer
+    // shapes and Done, about 130 either side of the middle); the name and
+    // the search above it.
+    final buttonsTop = size.height - bottomInset - 14 - 40;
+    final buttons = math.min(width / 2 - 16, 130.0);
+    final dip = radius - math.sqrt(radius * radius - buttons * buttons);
+    apex = buttonsTop - 6 - SimShapeDial.band / 2 - dip;
+    nameTop = apex - SimShapeDial.band / 2 - 12 - 28;
+    searchTop = nameTop - 8 - searchHeight;
+    final reach = math.min(1.0, (width / 2 + SimShapeDial.band) / radius);
+    length = 2 * radius * (math.asin(reach) + 0.15);
+    centre = Offset(width / 2, apex + radius);
+    // Five shapes in full across the screen, the next either side cut by
+    // its edges.
+    final edge = radius * math.asin(math.min(1.0, width / 2 / radius));
+    spacing = math.min(edge / 3, 96.0);
+  }
+
+  static const searchHeight = 52.0;
+
+  final double width;
+
+  /// [spacing]: arc length between neighbouring shapes.
+  late final double radius, apex, nameTop, searchTop, length, spacing;
+  late final Offset centre;
+
+  /// Angle between neighbouring shapes about [centre].
+  double get step => spacing / radius;
+}
+
+/// A stretch of band: a circular arc (or a line) of [length], measured
+/// from its middle [mid], where it runs level, bending by [k] (1 / its
+/// radius; positive when it curves up either side, as round the bottom
+/// of a ring, negative when it falls away, as the half ring does).
+class _Band {
+  const _Band(this.mid, this.k, this.length);
+
+  final Offset mid;
+  final double k, length;
+
+  /// The point [s] along from the middle, positive to the right.
+  Offset at(double s) {
+    if (k.abs() < 1e-7) return mid + Offset(s, -k * s * s / 2);
+    final t = k * s;
+    return mid + Offset(math.sin(t) / k, -(1 - math.cos(t)) / k);
+  }
+
+  /// Unit normal at [s] toward the band's outer edge (away from the
+  /// circle's centre).
+  Offset outward(double s) {
+    final t = k * s;
+    final n = Offset(math.sin(t), math.cos(t));
+    return k > 0 ? n : -n;
+  }
+}
+
+/// Everything about the dial at one moment: the ring, the half ring, and
+/// the way between ([u] 0 to 1). The ring first opens at the top, its
+/// ends drawing down and apart as it widens across the screen ([a]);
+/// then, lying along the bottom, it straightens and bows into the half
+/// ring ([b]).
+class _Frame {
+  _Frame({
+    required this.u,
+    required this.size,
+    required this.centre,
+    required this.radius,
+    required this.arc,
+    required this.dial,
+    required this.pos,
+    required this.count,
+    required this.lineCount,
+  });
+
+  final double u;
+  final Size size;
+  final Offset centre;
+  final double radius;
+  final _Arc arc;
+
+  /// Ring position in stops, half ring position in shapes.
+  final double dial, pos;
+  final int count, lineCount;
+
+  late final double a = Curves.easeInOutCubic.transform(
+    (u / 0.5).clamp(0.0, 1.0),
+  );
+  late final double b = Curves.easeInOutCubic.transform(
+    ((u - 0.4) / 0.6).clamp(0.0, 1.0),
+  );
+
+  /// The ring's whole length, and its spacing between stops.
+  late final double ringLength = 2 * math.pi * radius;
+  late final double ringSpacing = ringLength / count;
+
+  late final _Band band = () {
+    final w = size.width;
+    double mix(double ring, double spread, double half) {
+      final x = ring + (spread - ring) * a;
+      return x + (half - x) * b;
+    }
+
+    final spreadMid = math.min(
+      arc.apex - 10,
+      centre.dy + radius + SimShapeDial.band,
+    );
+    return _Band(
+      Offset(w / 2, mix(centre.dy + radius, spreadMid, arc.apex)),
+      mix(1 / radius, 1 / (0.95 * w), -1 / arc.radius),
+      mix(ringLength, 1.5 * w, arc.length),
+    );
+  }();
+
+  /// Where a ring shape [rel] stops from the top lies along the band:
+  /// measured from the ring's bottom, squeezed as the band shortens.
+  double ringAt(double rel) {
+    var s = ringLength / 2 - rel * ringSpacing;
+    if (s > ringLength / 2) s -= ringLength;
+    return s * band.length / ringLength;
+  }
+
+  /// Where a half ring shape [q] from the centre lies, sliding in from
+  /// the ends as the half ring forms.
+  double arcAt(double q) =>
+      q * arc.spacing + q.sign * (1 - b) * size.width * 0.5;
+}
+
+/// The frosted band, its ratchet marks turning with the dial, and the
+/// window that holds the selected shape.
+class _RingPainter extends CustomPainter {
+  _RingPainter({
+    required this.motion,
+    required this.frame,
+    required this.accent,
+    required this.marks,
+    required this.fade,
+  }) : super(repaint: motion);
+
+  final Listenable motion;
+  final _Frame Function() frame;
+  final Color accent;
+  final int marks;
+
+  /// 1 in full view, less as the ring fades back.
+  final double fade;
+
+  late final Paint _band = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = SimShapeDial.band
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round
+    ..color = Color.fromRGBO(16, 17, 20, 0.32 * fade);
+  late final Paint _edge = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1
+    ..color = Color.fromRGBO(255, 255, 255, 0.18 * fade);
+  final Paint _mark = Paint()
+    ..strokeWidth = 1.2
+    ..strokeCap = StrokeCap.round;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final f = frame();
+    const half = SimShapeDial.band / 2;
+    final band = f.band;
+
+    if (f.u <= 0) {
+      final c = f.centre;
+      canvas
+        ..drawCircle(c, f.radius, _band)
+        ..drawCircle(c, f.radius + half, _edge)
+        ..drawCircle(c, f.radius - half, _edge);
+    } else {
+      // Sampled finely enough to read as a true curve at any width.
+      const segments = 120;
+      final mid = Path(), outer = Path(), inner = Path();
+      for (var i = 0; i <= segments; i++) {
+        final s = -band.length / 2 + band.length * i / segments;
+        final p = band.at(s), n = band.outward(s) * half;
+        final o = p + n, q = p - n;
+        if (i == 0) {
+          mid.moveTo(p.dx, p.dy);
+          outer.moveTo(o.dx, o.dy);
+          inner.moveTo(q.dx, q.dy);
+        } else {
+          mid.lineTo(p.dx, p.dy);
+          outer.lineTo(o.dx, o.dy);
+          inner.lineTo(q.dx, q.dy);
+        }
+      }
+      canvas
+        ..drawPath(mid, _band)
+        ..drawPath(outer, _edge)
+        ..drawPath(inner, _edge);
+    }
+
+    // The ring's window at the top, gone as soon as the ring opens there.
+    final ringWindow = (1 - f.a * 4).clamp(0.0, 1.0);
+    if (ringWindow > 0) {
+      final step = 2 * math.pi / f.count;
+      canvas.drawArc(
+        Rect.fromCircle(center: f.centre, radius: f.radius),
+        -math.pi / 2 - step * 0.42,
+        step * 0.84,
+        false,
+        _window(SimShapeDial.band - 8, 0.16 * fade * ringWindow),
+      );
+      _pointer(canvas, f.centre + Offset(0, -f.radius - half + 1), ringWindow);
+    }
+    // The half ring's window at its middle.
+    if (f.b > 0) {
+      final w = Path();
+      const k = 10;
+      for (var i = 0; i <= k; i++) {
+        final p = band.at(math.min(f.arc.spacing * 0.42, 30) * (2 * i / k - 1));
+        i == 0 ? w.moveTo(p.dx, p.dy) : w.lineTo(p.dx, p.dy);
+      }
+      canvas.drawPath(w, _window(SimShapeDial.band - 8, 0.16 * fade * f.b));
+      _pointer(canvas, band.at(0) + band.outward(0) * (half - 1), f.b);
+    }
+
+    // Ratchet marks along the outer edge, turning with the dial; the
+    // shapes sit on every fourth.
+    void mark(double s, double near, double alpha) {
+      if (s.abs() > band.length / 2 - 4) return;
+      final p = band.at(s), n = band.outward(s);
+      _mark.color = Color.fromRGBO(
+        255,
+        255,
+        255,
+        (0.16 + 0.3 * near) * fade * alpha,
+      );
+      canvas.drawLine(p + n * (half - 8), p + n * (half - 3), _mark);
+    }
+
+    final ringMarks = 1 - (f.a / 0.6).clamp(0.0, 1.0);
+    if (ringMarks > 0) {
+      final total = f.count * marks;
+      for (var m = 0; m < total; m++) {
+        if (m % marks == 0) continue;
+        var rel = m / marks - f.dial;
+        rel -= (rel / f.count + 0.5).floorToDouble() * f.count;
+        mark(f.ringAt(rel), (1 - rel.abs() / 2).clamp(0.0, 1.0), ringMarks);
+      }
+    }
+    if (f.b > 0 && f.lineCount > 0) {
+      final reach = band.length / 2 / f.arc.spacing + 1;
+      final first = math.max(0, ((f.pos - reach) * marks).floor());
+      final last = math.min(
+        (f.lineCount - 1) * marks,
+        ((f.pos + reach) * marks).ceil(),
+      );
+      for (var m = first; m <= last; m++) {
+        if (m % marks == 0) continue;
+        final q = m / marks - f.pos;
+        mark(f.arcAt(q), (1 - q.abs() / 2).clamp(0.0, 1.0), f.b);
+      }
+    }
+  }
+
+  Paint _window(double width, double alpha) => Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = width
+    ..strokeCap = StrokeCap.round
+    ..color = accent.withValues(alpha: alpha);
+
+  /// A pointer just outside the band, pointing in at the window.
+  void _pointer(Canvas canvas, Offset tip, double alpha) {
+    canvas.drawPath(
+      Path()
+        ..moveTo(tip.dx, tip.dy + 2)
+        ..lineTo(tip.dx - 6, tip.dy - 7)
+        ..lineTo(tip.dx + 6, tip.dy - 7)
+        ..close(),
+      Paint()..color = accent.withValues(alpha: accent.a * fade * alpha),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _RingPainter old) =>
+      old.accent != accent ||
+      old.marks != marks ||
+      old.fade != fade ||
+      old.motion != motion ||
+      old.frame != frame;
 }
 
 /// Fades and settles the ring in when the dial opens.
@@ -518,129 +1387,41 @@ class _Entrance extends StatelessWidget {
   );
 }
 
-/// The frosted band, its ratchet marks turning with the dial, and the
-/// window at the top that holds the selected shape.
-class _RingPainter extends CustomPainter {
-  _RingPainter({
-    required this.dial,
-    required this.radius,
-    required this.accent,
-    required this.count,
-    required this.marks,
-    required this.fade,
-  }) : super(repaint: dial);
-
-  final Animation<double> dial;
-  final double radius;
-  final Color accent;
-  final int count, marks;
-
-  /// 1 in full view, less as the ring fades back.
-  final double fade;
-
-  late final Paint _band = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = SimShapeDial.band
-    ..color = Color.fromRGBO(16, 17, 20, 0.32 * fade);
-  late final Paint _edge = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1
-    ..color = Color.fromRGBO(255, 255, 255, 0.18 * fade);
-  final Paint _mark = Paint()
-    ..strokeWidth = 1.2
-    ..strokeCap = StrokeCap.round;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = size.center(Offset.zero);
-    const half = SimShapeDial.band / 2;
-    final step = 2 * math.pi / count;
-    canvas
-      ..drawCircle(c, radius, _band)
-      ..drawCircle(c, radius + half, _edge)
-      ..drawCircle(c, radius - half, _edge);
-
-    // The window at the top: a soft accent glow across one stop.
-    final window = Rect.fromCircle(center: c, radius: radius);
-    canvas.drawArc(
-      window,
-      -math.pi / 2 - step * 0.42,
-      step * 0.84,
-      false,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = SimShapeDial.band - 8
-        ..strokeCap = StrokeCap.round
-        ..color = accent.withValues(alpha: 0.16 * fade),
-    );
-    // A pointer above the window.
-    final tip = c + Offset(0, -radius - half + 1);
-    canvas.drawPath(
-      Path()
-        ..moveTo(tip.dx, tip.dy + 2)
-        ..lineTo(tip.dx - 6, tip.dy - 7)
-        ..lineTo(tip.dx + 6, tip.dy - 7)
-        ..close(),
-      Paint()..color = accent.withValues(alpha: accent.a * fade),
-    );
-
-    // Ratchet marks along the outer edge, turning with the dial; the
-    // shapes sit on every fourth.
-    final pos = dial.value;
-    final total = count * marks;
-    for (var m = 0; m < total; m++) {
-      if (m % marks == 0) continue;
-      var rel = m / marks - pos;
-      rel -= (rel / count + 0.5).floorToDouble() * count;
-      final a = -math.pi / 2 + rel * step;
-      final near = (1 - rel.abs() / 2).clamp(0.0, 1.0);
-      final dir = Offset(math.cos(a), math.sin(a));
-      _mark.color = Color.fromRGBO(255, 255, 255, (0.16 + 0.3 * near) * fade);
-      canvas.drawLine(
-        c + dir * (radius + half - 8),
-        c + dir * (radius + half - 3),
-        _mark,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _RingPainter old) =>
-      old.radius != radius ||
-      old.accent != accent ||
-      old.count != count ||
-      old.marks != marks ||
-      old.fade != fade ||
-      old.dial != dial;
-}
-
-/// Takes touches only on the ring's band, so the stone inside it and the
-/// stage outside it keep their own gestures.
+/// Takes touches only on the band, so the stone inside it and the stage
+/// outside it keep their own gestures.
 class _Annulus extends SingleChildRenderObjectWidget {
-  const _Annulus({required this.inner, required this.outer, super.child});
+  const _Annulus({
+    required this.centre,
+    required this.inner,
+    required this.outer,
+    super.child,
+  });
 
+  final Offset centre;
   final double inner, outer;
 
   @override
   RenderObject createRenderObject(BuildContext context) =>
-      _RenderAnnulus(inner, outer);
+      _RenderAnnulus(centre, inner, outer);
 
   @override
   void updateRenderObject(BuildContext context, _RenderAnnulus renderObject) {
     renderObject
+      ..centre = centre
       ..inner = inner
       ..outer = outer;
   }
 }
 
 class _RenderAnnulus extends RenderProxyBox {
-  _RenderAnnulus(this.inner, this.outer);
+  _RenderAnnulus(this.centre, this.inner, this.outer);
 
+  Offset centre;
   double inner, outer;
 
   @override
   bool hitTest(BoxHitTestResult result, {required Offset position}) {
-    final d = (position - size.center(Offset.zero)).distance;
+    final d = (position - centre).distance;
     if (d < inner || d > outer) return false;
     return super.hitTest(result, position: position);
   }

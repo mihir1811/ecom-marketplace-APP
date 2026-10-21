@@ -66,6 +66,10 @@ class _DiamondSimulatorScreenState
     extends ConsumerState<DiamondSimulatorScreen> {
   final _viewport = SimViewportController();
   _SimTool? _open;
+
+  /// Whether the shape dial shows every shape on its half ring, the stone
+  /// above it.
+  bool _moreShapes = false;
   ThemeData? _theme;
   Object? _themeFor;
 
@@ -114,7 +118,10 @@ class _DiamondSimulatorScreenState
   void _close() {
     if (_open == _SimTool.fluorescence) _leaveUv();
     if (_open == _SimTool.inclusions) _leaveExplorer();
-    setState(() => _open = null);
+    setState(() {
+      _open = null;
+      _moreShapes = false;
+    });
   }
 
   /// How the stone was shown before the inclusion explorer took it.
@@ -251,6 +258,11 @@ class _DiamondSimulatorScreenState
       });
     }
     final pad = MediaQuery.paddingOf(context);
+    // The half ring rises above the keyboard while its search is typed in.
+    final dialBottom = math.max(
+      pad.bottom,
+      MediaQuery.viewInsetsOf(context).bottom,
+    );
     final open = _open;
     // Shape is chosen on a dial ringed round the stone; on the hand, where
     // stones are compared finger by finger, from the strip as before.
@@ -290,7 +302,17 @@ class _DiamondSimulatorScreenState
           // The inclusion explorer's picker: taller than other tools' sheets,
           // the stone and its labels in the space left above (or beside).
           final explorerHeight = math.min(size.height * 0.46, 400.0);
-          final stage = !explore
+          // Above the half ring of every shape, the stone at its natural
+          // size where it fits, as it first appears.
+          final more = dial && _moreShapes;
+          final stage = more
+              ? Rect.fromLTRB(
+                  0,
+                  contentTop,
+                  size.width,
+                  SimShapeDial.halfRingTop(size, dialBottom),
+                )
+              : !explore
               ? null
               : wide
               ? Rect.fromLTRB(
@@ -316,7 +338,14 @@ class _DiamondSimulatorScreenState
           }
           // The stone sits well inside the ring while the dial is open, with
           // room to breathe between it and the band.
-          final fit = dial ? (dialRadius - halfBand) * 0.68 : explorerFit;
+          final fit = more
+              ? math.max(
+                  60.0,
+                  math.min(stage!.height * 0.44, size.width * 0.42),
+                )
+              : dial
+              ? (dialRadius - halfBand) * 0.68
+              : explorerFit;
           if (_viewport.fit.value != fit || _viewport.stage.value != stage) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
@@ -440,8 +469,9 @@ class _DiamondSimulatorScreenState
                   child: SimShapeDial(
                     viewport: _viewport,
                     radius: dialRadius,
-                    bottomInset: pad.bottom,
+                    bottomInset: dialBottom,
                     onDone: _close,
+                    onMoreShapes: (v) => setState(() => _moreShapes = v),
                   ),
                 )
               else if (fancy)

@@ -136,6 +136,10 @@ abstract final class EducationL10n {
   static const simHint = 'education.simHint';
   static const shape = 'education.shape';
   static const fancyShapes = 'education.fancyShapes';
+  static const moreShapes = 'education.moreShapes';
+  static const fewerShapes = 'education.fewerShapes';
+  static const searchShapes = 'education.searchShapes';
+  static const noShapeFound = 'education.noShapeFound';
 
   /// Name of the fancy cut [id] (see `SimFancyShape.id`).
   static String fancyShape(String id) => 'education.fancy.$id';
@@ -2331,6 +2335,26 @@ const educationMessages = <String, LocalizedMessage>{
     english: 'Fancy shapes',
     hindi: 'फ़ैंसी आकार',
     gujarati: 'ફેન્સી આકાર',
+  ),
+  EducationL10n.moreShapes: LocalizedMessage(
+    english: 'Show more shapes',
+    hindi: 'और आकार दिखाएँ',
+    gujarati: 'વધુ આકાર બતાવો',
+  ),
+  EducationL10n.fewerShapes: LocalizedMessage(
+    english: 'Show fewer shapes',
+    hindi: 'कम आकार दिखाएँ',
+    gujarati: 'ઓછા આકાર બતાવો',
+  ),
+  EducationL10n.searchShapes: LocalizedMessage(
+    english: 'Search shapes',
+    hindi: 'आकार खोजें',
+    gujarati: 'આકાર શોધો',
+  ),
+  EducationL10n.noShapeFound: LocalizedMessage(
+    english: 'No match',
+    hindi: 'नहीं मिला',
+    gujarati: 'મળ્યું નહીં',
   ),
   'education.fancy.star_5': LocalizedMessage(
     english: 'Five Point Star',
