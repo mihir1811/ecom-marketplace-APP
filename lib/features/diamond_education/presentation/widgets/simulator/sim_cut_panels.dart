@@ -12,8 +12,9 @@ import '../diamond_profile_diagram.dart';
 import 'diamond_sim_viewport.dart';
 import 'sim_controls.dart';
 
-/// Cut grade presets, then every cutting proportion to customise the cut
-/// of any shape. Round brilliants also get the hearts & arrows scope.
+/// Cut grade presets, then every cutting proportion to customise the cut.
+/// Round brilliants get the grades and the hearts & arrows scope; other
+/// shapes, which carry no cut grade, the proportions alone.
 class SimCutPanel extends ConsumerWidget {
   const SimCutPanel({required this.viewport, super.key});
 
@@ -29,6 +30,7 @@ class SimCutPanel extends ConsumerWidget {
     );
     // A scope cannot sit on a finger.
     final onHand = ref.watch(simHandProvider.select((h) => h.onHand));
+    if (!round) return const SimProportionsPanel();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -38,7 +40,7 @@ class SimCutPanel extends ConsumerWidget {
           labelOf: context.cutName,
           onSelected: ref.read(diamondSimulatorProvider.notifier).applyCutGrade,
         ),
-        if (round && !onHand) ...[
+        if (!onHand) ...[
           const SizedBox(height: 6),
           _HeartsArrows(viewport: viewport),
         ],

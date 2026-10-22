@@ -45,12 +45,21 @@ const _pitchMin = -0.75, _pitchMax = 1.0;
 /// hand hides a stone only where a finger or a claw really stands in
 /// front of it.
 class SimHandStage extends ConsumerStatefulWidget {
-  const SimHandStage({required this.controller, this.topInset = 0, super.key});
+  const SimHandStage({
+    required this.controller,
+    this.topInset = 0,
+    this.cover = EdgeInsets.zero,
+    super.key,
+  });
 
   final SimViewportController controller;
 
   /// Room taken at the top by overlaid chrome.
   final double topInset;
+
+  /// Room taken below and to the right by open controls: the rings rise
+  /// (or slide) into what is left, keeping their size where they fit.
+  final EdgeInsets cover;
 
   @override
   ConsumerState<SimHandStage> createState() => _SimHandStageState();
@@ -71,6 +80,19 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     vsync: this,
     duration: LuxeMotion.reveal,
   )..addListener(_onRecentre);
+  late final AnimationController _lift = AnimationController(
+    vsync: this,
+    duration: LuxeMotion.medium,
+    value: 1,
+  );
+  late EdgeInsetsTween _coverTween = EdgeInsetsTween(
+    begin: widget.cover,
+    end: widget.cover,
+  );
+
+  /// The controls' cover as the hand glides clear of it.
+  EdgeInsets get _cover =>
+      _coverTween.transform(Curves.easeInOutCubic.transform(_lift.value));
   late final Ticker _spinTicker = createTicker(_tickSpin);
   late final Ticker _orbitTicker = createTicker(_tickOrbit);
 
@@ -119,6 +141,18 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
   }
 
   @override
+  void didUpdateWidget(SimHandStage old) {
+    super.didUpdateWidget(old);
+    if (widget.cover == _coverTween.end) return;
+    _coverTween = EdgeInsetsTween(begin: _cover, end: widget.cover);
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _lift.value = 1;
+    } else {
+      _lift.forward(from: 0);
+    }
+  }
+
+  @override
   void dispose() {
     widget.controller.lifeSize.removeListener(_onLifeSize);
     widget.controller.handRecentre.removeListener(_startRecentre);
@@ -126,6 +160,7 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     widget.controller.handTurned.value = false;
     _enter.dispose();
     _zoom.dispose();
+    _lift.dispose();
     _recentre.dispose();
     _spinTicker.dispose();
     _orbitTicker.dispose();
@@ -245,18 +280,52 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     return r;
   }();
 
+  /// The ring seats at the starting view, as [_extents], with room round
+  /// them for the stones and their claws.
+  static final Rect _seatExtents = () {
+    final cam = HandCamera(
+      yaw: _yaw0,
+      pitch: _pitch0,
+      centre: Offset.zero,
+      pxPerMm: 1,
+    );
+    Rect? r;
+    for (final f in HandFinger.values) {
+      final at = cam.project(HandModel.seat(f).position).at;
+      final p = Rect.fromPoints(at, at);
+      r = r == null ? p : r.expandToInclude(p);
+    }
+    return r!.inflate(10);
+  }();
+
   /// The camera: the whole hand centred and in view, or life size centred
-  /// on the selected stone.
+  /// on the selected stone. With controls open over the stage, the rings
+  /// rise into the room left above them, the fingertips free to run off
+  /// the top, and the hand shrinks only if the rings would not fit.
   HandCamera _camera(Size size, HandFinger active, double rise) {
+    final cover = _cover;
+    final width = math.max(120.0, size.width - cover.right);
     final usable = math.max(120.0, size.height - widget.topInset);
-    final ext = _extents;
-    final fit = math
-        .min((size.width - 24) / ext.width, (usable - 16) / ext.height)
+    final clear = math.max(120.0, usable - cover.bottom);
+    final ext = _extents, seats = _seatExtents;
+    final whole = math
+        .min((width - 24) / ext.width, (usable - 16) / ext.height)
         .clamp(1.2, 9.0);
+    final rings = math.min(
+      (width - 24) / seats.width,
+      (clear - 24) / seats.height,
+    );
+    final fit = math.min(whole, rings).clamp(1.2, 9.0);
     final z = Curves.easeInOutCubic.transform(_zoom.value);
     final px = fit + (_lifePxPerMm - fit) * z;
-    final target = Offset(size.width / 2, widget.topInset + usable * 0.52);
-    final centre = target - ext.center * px;
+    // Where the rings sit: as the whole hand frames them, or higher, in
+    // the middle of the room above the controls.
+    final high = widget.topInset + clear * 0.55;
+    final framed = Offset(width / 2, widget.topInset + usable * 0.52);
+    final ringsAt = framed.dy + (seats.center.dy - ext.center.dy) * px;
+    final lift = math.min(0.0, high - ringsAt);
+    final target = Offset(framed.dx, math.min(framed.dy, high));
+    final centre = framed - ext.center * px + Offset(0, lift);
     final roll = (1 - rise) * -0.12;
     if (z == 0) {
       return HandCamera(
@@ -467,7 +536,7 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
             }
           },
           child: AnimatedBuilder(
-            animation: Listenable.merge([_enter, _zoom]),
+            animation: Listenable.merge([_enter, _zoom, _lift]),
             builder: (context, _) {
               final rise = Curves.easeOutCubic.transform(_enter.value);
               final cam = _camera(size, hand.active, rise);

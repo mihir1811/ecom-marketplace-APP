@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -70,6 +71,10 @@ class _DiamondSimulatorScreenState
   /// Whether the shape dial shows every shape on its half ring, the stone
   /// above it.
   bool _moreShapes = false;
+
+  /// How tall the controls along the bottom stand, as last laid out: the
+  /// hand keeps its rings clear of them.
+  double _bottomChrome = 0;
   ThemeData? _theme;
   Object? _themeFor;
 
@@ -105,6 +110,10 @@ class _DiamondSimulatorScreenState
     _SimTool.carat => const SimCaratPanel(),
     _SimTool.fluorescence => const SimFluorescencePanel(),
   };
+
+  void _setBottomChrome(double h) {
+    if ((h - _bottomChrome).abs() > 0.5) setState(() => _bottomChrome = h);
+  }
 
   void _openTool(_SimTool t) {
     AppHaptics.selection();
@@ -248,15 +257,6 @@ class _DiamondSimulatorScreenState
         (s) => s.lighting == SimLighting.ultraviolet,
       ),
     );
-    final round = ref.watch(
-      diamondSimulatorProvider.select((s) => s.spec.shape == SimShape.round),
-    );
-    // Another finger's stone may not be round: its cut cannot be edited.
-    if (_open == _SimTool.cut && !round) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _open == _SimTool.cut) _close();
-      });
-    }
     final pad = MediaQuery.paddingOf(context);
     // The half ring rises above the keyboard while its search is typed in.
     final dialBottom = math.max(
@@ -409,6 +409,13 @@ class _DiamondSimulatorScreenState
                               key: const ValueKey('hand'),
                               controller: _viewport,
                               topInset: contentTop,
+                              cover: open != null && wide
+                                  ? EdgeInsets.only(right: panelWidth + 16)
+                                  : EdgeInsets.only(
+                                      bottom:
+                                          _bottomChrome +
+                                          (open == null ? pad.bottom + 12 : 0),
+                                    ),
                             )
                           : const SizedBox.shrink(),
                     ),
@@ -444,26 +451,31 @@ class _DiamondSimulatorScreenState
                   onUseInJewelry: _useInJewelry,
                 ),
               ),
-              if (open == null) ...[
-                // One swipeable row along the bottom, clear of the stone.
+              if (open == null)
+                // One swipeable row along the bottom, clear of the stone;
+                // on the hand, the view's own controls under it.
                 Positioned(
                   left: 0,
                   right: 0,
-                  bottom: pad.bottom + (onHand ? 56 : 12),
-                  child: _ToolRail(
-                    labelOf: _toolLabel,
-                    onOpen: _openTool,
-                    onHand: onHand,
+                  bottom: pad.bottom + 12,
+                  child: _HeightReporter(
+                    onHeight: _setBottomChrome,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _ToolRail(
+                          labelOf: _toolLabel,
+                          onOpen: _openTool,
+                          onHand: onHand,
+                        ),
+                        if (onHand) ...[
+                          const SizedBox(height: 8),
+                          SimViewControls(controller: _viewport),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
-                if (onHand)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: pad.bottom + 12,
-                    child: SimViewControls(controller: _viewport),
-                  ),
-              ],
               if (dial)
                 Positioned.fill(
                   child: SimShapeDial(
@@ -502,23 +514,26 @@ class _DiamondSimulatorScreenState
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        child: ConstrainedBox(
-                          constraints: explore
-                              ? BoxConstraints.tightFor(
-                                  height: explorerHeight + pad.bottom,
-                                )
-                              : BoxConstraints(
-                                  maxHeight: maxPanel + pad.bottom,
-                                ),
-                          child: _ToolSheet(
-                            key: ValueKey(open),
-                            title: _toolLabel(open),
-                            onDone: _close,
-                            rounded: const BorderRadius.vertical(
-                              top: Radius.circular(20),
+                        child: _HeightReporter(
+                          onHeight: _setBottomChrome,
+                          child: ConstrainedBox(
+                            constraints: explore
+                                ? BoxConstraints.tightFor(
+                                    height: explorerHeight + pad.bottom,
+                                  )
+                                : BoxConstraints(
+                                    maxHeight: maxPanel + pad.bottom,
+                                  ),
+                            child: _ToolSheet(
+                              key: ValueKey(open),
+                              title: _toolLabel(open),
+                              onDone: _close,
+                              rounded: const BorderRadius.vertical(
+                                top: Radius.circular(20),
+                              ),
+                              padBottom: pad.bottom,
+                              child: _panel(open),
                             ),
-                            padBottom: pad.bottom,
-                            child: _panel(open),
                           ),
                         ),
                       ),
@@ -527,6 +542,41 @@ class _DiamondSimulatorScreenState
         },
       ),
     );
+  }
+}
+
+/// Tells [onHeight] its child's height after each layout that changes it.
+class _HeightReporter extends SingleChildRenderObjectWidget {
+  const _HeightReporter({required this.onHeight, super.child});
+
+  final ValueChanged<double> onHeight;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderHeightReporter(onHeight);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderHeightReporter renderObject,
+  ) => renderObject.onHeight = onHeight;
+}
+
+class _RenderHeightReporter extends RenderProxyBox {
+  _RenderHeightReporter(this.onHeight);
+
+  ValueChanged<double> onHeight;
+  double? _last;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final h = size.height;
+    if (h == _last) return;
+    _last = h;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (attached) onHeight(h);
+    });
   }
 }
 
@@ -632,7 +682,8 @@ class _ToolRail extends ConsumerWidget {
     String? valueOf(_SimTool t) => switch (t) {
       _SimTool.shape => null,
       _SimTool.fancy => null,
-      _SimTool.cut => context.cutName(cut),
+      // Only round brilliants carry a cut grade.
+      _SimTool.cut => s.shape == SimShape.round ? context.cutName(cut) : null,
       _SimTool.color =>
         s.fancyColor == null
             ? s.colorGrade.label
@@ -686,9 +737,7 @@ class _ToolRail extends ConsumerWidget {
       child: Row(
         children: [
           for (final t in _SimTool.values)
-            // Cut is graded on round brilliants only.
-            if ((t != _SimTool.cut || s.shape == SimShape.round) &&
-                (t != _SimTool.fancy || !onHand))
+            if (t != _SimTool.fancy || !onHand)
               Padding(
                 padding: const EdgeInsets.only(right: 6),
                 child: _RailItem(
