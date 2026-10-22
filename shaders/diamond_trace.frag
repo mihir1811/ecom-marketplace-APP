@@ -187,7 +187,35 @@ float enterHalf(vec3 o, vec3 v, out vec3 n, out float chord) {
   float tOut = 1e9;
   n = vec3(0.0, 1.0, 0.0);
   for (int i = 0; i < MAX_PLANES; i++) {
-    if (float(i) >= uCounts.y) break;
+    if (float(i) >= uCounts.x) break;
+    vec4 p = uPlanes[i];
+    float den = dot(p.xyz, v);
+    float num = p.w - dot(p.xyz, o);
+    if (abs(den) < 1e-7) {
+      if (num < 0.0) tOut = -1e9;
+      continue;
+    }
+    float t = num / den;
+    if (den < 0.0) {
+      if (t > tIn) {
+        tIn = t;
+        n = p.xyz;
+      }
+    } else {
+      tOut = min(tOut, t);
+    }
+  }
+  // The girdle can only shorten a chord that leaves its inner ring: when
+  // both ends lie inside it, its planes change nothing. Same picture.
+  vec3 ea = o + v * tIn;
+  vec3 eb = o + v * tOut;
+  // A folded stone's part is closed by mirrors, not the girdle alone.
+  bool inRing = uScope.w < 0.5 && tOut > tIn &&
+                dot(ea.xz * ea.xz, uRim.xy) < uRim.z &&
+                dot(eb.xz * eb.xz, uRim.xy) < uRim.z;
+  for (int i = 0; i < MAX_PLANES; i++) {
+    if (inRing || float(i) >= uCounts.y) break;
+    if (float(i) < uCounts.x) continue;
     vec4 p = uPlanes[i];
     float den = dot(p.xyz, v);
     float num = p.w - dot(p.xyz, o);

@@ -342,6 +342,15 @@ class SimRenderer {
   final Float64List _rot = Float64List(9);
   final List<int> _hullIds = [];
 
+  // Outline points for [_traceArea], and the unit octagon they spread on.
+  Float64List _ax = Float64List(0), _ay = Float64List(0);
+  static final Float64List _octagon = Float64List.fromList([
+    for (var k = 0; k < 8; k++) ...[
+      math.cos(k * math.pi / 4),
+      math.sin(k * math.pi / 4),
+    ],
+  ]);
+
   /// Paints the stone centred in [size] (or at [centre]). [pxPerUnit] maps model units to
   /// logical pixels at zoom 1; CPU samples land about [samplePx] pixels
   /// apart. The GPU traces [renderScale] pixels per logical pixel, capped
@@ -629,6 +638,10 @@ class SimRenderer {
         canvas.drawRect(bounds, _gpuPaint);
         return;
       }
+      // Only what can show: a zoomed stone reaching past the view is
+      // traced up to the view's edge, never beyond it.
+      bounds = bounds.intersect(canvas.getLocalClipBounds());
+      if (bounds.isEmpty) return;
       // Full resolution, one traced pixel per device pixel, kept as an
       // image: the engine redraws every picture on every frame it makes,
       // so any other animation on screen (a panel, the dial, a slider)
@@ -641,7 +654,11 @@ class SimRenderer {
         ..[3] = dpr
         ..[4] = inclusionFocus
         ..[5] = _tracer.studio.scopeHole
-        ..[6] = _tracer.maxBounces.toDouble();
+        ..[6] = _tracer.maxBounces.toDouble()
+        ..[16] = bounds.left
+        ..[17] = bounds.top
+        ..[18] = bounds.right
+        ..[19] = bounds.bottom;
       for (var k = 0; k < 9; k++) {
         key[7 + k] = r[k];
       }
@@ -661,7 +678,15 @@ class SimRenderer {
         if (_tracing) {
           _behind = true;
         } else {
-          _traceFrame(bounds, dpr, mesh, o, sh, key);
+          _traceFrame(
+            bounds,
+            _traceArea(mesh.vertexCount),
+            dpr,
+            mesh,
+            o,
+            sh,
+            key,
+          );
         }
       }
       final image = _frameImage;
@@ -701,6 +726,7 @@ class SimRenderer {
   /// the GPU is done, it becomes the frame shown.
   void _traceFrame(
     Rect bounds,
+    Path area,
     double dpr,
     SimMesh mesh,
     SimOptics optics,
@@ -715,12 +741,14 @@ class SimRenderer {
     final w = x1 - x0, h = y1 - y0;
     if (w <= 0 || h <= 0) return;
     final at = Rect.fromLTRB(x0 / dpr, y0 / dpr, x1 / dpr, y1 / dpr);
-    // Uniforms are copied when the rect is recorded.
+    // Uniforms are copied when the area is recorded. Only the pixels
+    // inside the stone's outline run the tracer; the corners of the box
+    // around it would only ever come out empty.
     final recorder = ui.PictureRecorder();
     Canvas(recorder)
       ..scale(dpr)
       ..translate(-at.left, -at.top)
-      ..drawRect(at, _gpuPaint);
+      ..drawPath(area, _gpuPaint);
     final picture = recorder.endRecording();
     final inclusions = _inclusions;
     final traced = Float64List.fromList(key);
@@ -757,7 +785,7 @@ class SimRenderer {
   }
 
   // The last full resolution frame and what it was traced for.
-  final Float64List _cacheKey = Float64List(16), _cachedKey = Float64List(16);
+  final Float64List _cacheKey = Float64List(20), _cachedKey = Float64List(20);
   Rect _cachedBounds = Rect.zero;
   SimMesh? _cachedMesh;
   List<SimInclusion>? _cachedInclusions;
@@ -1194,6 +1222,55 @@ class SimRenderer {
 }
 
 extension on SimRenderer {
+  /// The stone's outline (the convex hull of its first [count] projected
+  /// vertices) grown by two pixels all round, the anti-aliased edge's
+  /// reach: every pixel the tracer can colour lies inside it. Each vertex
+  /// stands for the octagon around the circle of that radius.
+  Path _traceArea(int count) {
+    const grow = 2.0;
+    const reach = grow / 0.9238795325112867; // cos(π / 8)
+    final n = count * 8;
+    if (_ax.length < n) {
+      _ax = Float64List(n);
+      _ay = Float64List(n);
+    }
+    for (var i = 0; i < count; i++) {
+      for (var k = 0; k < 8; k++) {
+        _ax[i * 8 + k] = _px[i] + reach * SimRenderer._octagon[k * 2];
+        _ay[i * 8 + k] = _py[i] + reach * SimRenderer._octagon[k * 2 + 1];
+      }
+    }
+    final ids = _hullIds..clear();
+    for (var i = 0; i < n; i++) {
+      ids.add(i);
+    }
+    ids.sort((a, b) {
+      final c = _ax[a].compareTo(_ax[b]);
+      return c != 0 ? c : _ay[a].compareTo(_ay[b]);
+    });
+    double cross(int o, int a, int b) =>
+        (_ax[a] - _ax[o]) * (_ay[b] - _ay[o]) -
+        (_ay[a] - _ay[o]) * (_ax[b] - _ax[o]);
+    final hull = <int>[];
+    for (final pass in [ids, ids.reversed.toList()]) {
+      final start = hull.length;
+      for (final i in pass) {
+        while (hull.length >= start + 2 &&
+            cross(hull[hull.length - 2], hull.last, i) <= 0) {
+          hull.removeLast();
+        }
+        hull.add(i);
+      }
+      hull.removeLast();
+    }
+    final path = Path();
+    for (var k = 0; k < hull.length; k++) {
+      final i = hull[k];
+      k == 0 ? path.moveTo(_ax[i], _ay[i]) : path.lineTo(_ax[i], _ay[i]);
+    }
+    return path..close();
+  }
+
   /// Convex hull of the first [count] projected vertices (monotone chain).
   Path _hull(int count) {
     final ids = _hullIds..clear();
