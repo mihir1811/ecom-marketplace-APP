@@ -9,6 +9,7 @@ import '../domain/diamond_grades.dart';
 import '../domain/diamond_proportions.dart';
 import '../domain/diamond_shape.dart';
 import '../domain/diamond_spec.dart';
+import '../domain/hand_ring.dart';
 import '../simulation/sim_inclusions.dart';
 import '../simulation/sim_mesh.dart';
 
@@ -324,11 +325,15 @@ class SimHand {
     this.onHand = false,
     this.active = HandFinger.ring,
     this.parked = const {},
+    this.ring = const RingStyle(),
   });
 
   final bool onHand;
   final HandFinger active;
   final Map<HandFinger, DiamondSimulatorState> parked;
+
+  /// The solitaire every stone on the hand is set in.
+  final RingStyle ring;
 
   bool wears(HandFinger f) => f == active || parked.containsKey(f);
 
@@ -338,10 +343,12 @@ class SimHand {
     bool? onHand,
     HandFinger? active,
     Map<HandFinger, DiamondSimulatorState>? parked,
+    RingStyle? ring,
   }) => SimHand(
     onHand: onHand ?? this.onHand,
     active: active ?? this.active,
     parked: parked ?? this.parked,
+    ring: ring ?? this.ring,
   );
 }
 
@@ -420,7 +427,11 @@ class SimHandController extends AutoDisposeNotifier<SimHand> {
     );
   }
 
-  void reset() => state = SimHand(onHand: state.onHand);
+  void setRing(RingStyle ring) {
+    if (ring != state.ring) state = state.copyWith(ring: ring);
+  }
+
+  void reset() => state = SimHand(onHand: state.onHand, ring: state.ring);
 }
 
 /// The hand view; disposed with the simulator screen.

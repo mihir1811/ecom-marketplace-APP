@@ -13,14 +13,20 @@ import 'sim_tracer.dart';
 
 /// Orientation and zoom of the simulated stone. [spin] turns it about its
 /// own table axis, [tilt] tips that axis toward the viewer: 0 is a side
-/// view with the table up, π/2 face up, −π/2 culet up.
+/// view with the table up, π/2 face up, −π/2 culet up. [roll] then turns
+/// it about the line of sight (counter-clockwise), the lights staying put.
 class SimView {
-  const SimView({required this.tilt, required this.spin, this.zoom = 1});
+  const SimView({
+    required this.tilt,
+    required this.spin,
+    this.zoom = 1,
+    this.roll = 0,
+  });
 
-  final double tilt, spin, zoom;
+  final double tilt, spin, zoom, roll;
 
   /// Model → world rotation, row major into [r]: spin about the table
-  /// axis, then tilt toward the viewer.
+  /// axis, then tilt toward the viewer, then roll.
   void rotationInto(Float64List r) {
     final cs = math.cos(spin), ss = math.sin(spin);
     final ct = math.cos(tilt), st = math.sin(tilt);
@@ -34,6 +40,13 @@ class SimView {
       ..[6] = -ct * ss
       ..[7] = st
       ..[8] = ct * cs;
+    if (roll == 0) return;
+    final cr = math.cos(roll), sr = math.sin(roll);
+    for (var c = 0; c < 3; c++) {
+      final x = r[c], y = r[3 + c];
+      r[c] = cr * x - sr * y;
+      r[3 + c] = sr * x + cr * y;
+    }
   }
 }
 

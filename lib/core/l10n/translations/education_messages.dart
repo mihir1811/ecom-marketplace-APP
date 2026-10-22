@@ -367,6 +367,17 @@ abstract final class EducationL10n {
   static const view3d = 'education.view3d';
   static const lifeSize = 'education.lifeSize';
   static const fitHand = 'education.fitHand';
+  static const resetView = 'education.resetView';
+  static const ringStyle = 'education.ringStyle';
+  static const ringYellowGold = 'education.ringYellowGold';
+  static const ringWhiteGold = 'education.ringWhiteGold';
+  static const ringRoseGold = 'education.ringRoseGold';
+  static const ringPlatinum = 'education.ringPlatinum';
+  static const ringClaws4 = 'education.ringClaws4';
+  static const ringClaws6 = 'education.ringClaws6';
+  static const ringBand = 'education.ringBand';
+  static const ringBandNarrower = 'education.ringBandNarrower';
+  static const ringBandWider = 'education.ringBandWider';
   static const autoSpin = 'education.autoSpin';
   static const vectorView = 'education.vectorView';
   static const handTitle = 'education.handTitle';
@@ -2251,6 +2262,61 @@ const educationMessages = <String, LocalizedMessage>{
     english: 'Whole hand',
     hindi: 'पूरा हाथ',
     gujarati: 'આખો હાથ',
+  ),
+  EducationL10n.ringStyle: LocalizedMessage(
+    english: 'Ring',
+    hindi: 'अंगूठी',
+    gujarati: 'વીંટી',
+  ),
+  EducationL10n.ringYellowGold: LocalizedMessage(
+    english: 'Yellow gold',
+    hindi: 'पीला सोना',
+    gujarati: 'પીળું સોનું',
+  ),
+  EducationL10n.ringWhiteGold: LocalizedMessage(
+    english: 'White gold',
+    hindi: 'सफ़ेद सोना',
+    gujarati: 'સફેદ સોનું',
+  ),
+  EducationL10n.ringRoseGold: LocalizedMessage(
+    english: 'Rose gold',
+    hindi: 'रोज़ गोल्ड',
+    gujarati: 'રોઝ ગોલ્ડ',
+  ),
+  EducationL10n.ringPlatinum: LocalizedMessage(
+    english: 'Platinum',
+    hindi: 'प्लैटिनम',
+    gujarati: 'પ્લેટિનમ',
+  ),
+  EducationL10n.ringClaws4: LocalizedMessage(
+    english: '4 claws',
+    hindi: '4 पंजे',
+    gujarati: '4 પંજા',
+  ),
+  EducationL10n.ringClaws6: LocalizedMessage(
+    english: '6 claws',
+    hindi: '6 पंजे',
+    gujarati: '6 પંજા',
+  ),
+  EducationL10n.ringBand: LocalizedMessage(
+    english: 'Band',
+    hindi: 'बैंड',
+    gujarati: 'બેન્ડ',
+  ),
+  EducationL10n.ringBandNarrower: LocalizedMessage(
+    english: 'Narrower band',
+    hindi: 'पतला बैंड',
+    gujarati: 'પાતળું બેન્ડ',
+  ),
+  EducationL10n.ringBandWider: LocalizedMessage(
+    english: 'Wider band',
+    hindi: 'चौड़ा बैंड',
+    gujarati: 'પહોળું બેન્ડ',
+  ),
+  EducationL10n.resetView: LocalizedMessage(
+    english: 'Reset view',
+    hindi: 'दृश्य रीसेट करें',
+    gujarati: 'દૃશ્ય રીસેટ કરો',
   ),
   EducationL10n.vectorView: LocalizedMessage(
     english: 'Vector',

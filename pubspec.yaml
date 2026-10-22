@@ -88,6 +88,9 @@ flutter:
     - assets/clarity/
     - assets/models/gems.bin
     - assets/models/fancy_shapes.json
+    - assets/models/hand.bin
+    - assets/models/hand_albedo.jpg
+    - assets/models/hand_normal.png
     - assets/policies/policies.json
     - assets/policies/policies_hi.json
     - assets/policies/policies_gu.json
@@ -97,6 +100,7 @@ flutter:
     - shaders/auth_silk.frag
     - shaders/diamond_trace.frag
     - shaders/jewelry_shade.frag
+    - shaders/hand_skin.frag
 
   # To add assets to your application, add an assets section, like this:
   # assets:

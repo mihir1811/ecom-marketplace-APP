@@ -84,6 +84,12 @@ class SimViewportController extends ChangeNotifier {
   /// Whether the hand view shows the hand at life size rather than whole.
   final lifeSize = ValueNotifier(false);
 
+  /// Whether the 3D hand has been turned away from its starting view.
+  final handTurned = ValueNotifier(false);
+
+  /// Bumped to turn the hand back to its starting view.
+  final handRecentre = ValueNotifier(0);
+
   /// A shape change in progress (the shape dial): while set, the stone
   /// shown is this one rather than the selected stone.
   final morph = ValueNotifier<SimMorphFrame?>(null);
@@ -120,6 +126,8 @@ class SimViewportController extends ChangeNotifier {
     readout.dispose();
     zoom.dispose();
     lifeSize.dispose();
+    handTurned.dispose();
+    handRecentre.dispose();
     morph.dispose();
     super.dispose();
   }
