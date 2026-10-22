@@ -298,6 +298,9 @@ class _DiamondSimulatorScreenState
           // Above the half ring of every shape, the stone at its natural
           // size where it fits, as it first appears.
           final more = dial && _moreShapes;
+          // Any other tool's sheet: the stone glides up (or aside) into the
+          // space it leaves, whole and clear of it.
+          final sheet = open != null && !dial && !explore && !onHand;
           final stage = more
               ? Rect.fromLTRB(
                   0,
@@ -305,6 +308,20 @@ class _DiamondSimulatorScreenState
                   size.width,
                   SimShapeDial.halfRingTop(size, dialBottom),
                 )
+              : sheet
+              ? wide
+                    ? Rect.fromLTRB(
+                        16,
+                        contentTop,
+                        size.width - panelWidth - 32,
+                        size.height - 16 - pad.bottom,
+                      )
+                    : Rect.fromLTRB(
+                        0,
+                        contentTop,
+                        size.width,
+                        size.height - math.max(_bottomChrome, 120.0) - 6,
+                      )
               : !explore
               ? null
               : wide
@@ -320,11 +337,16 @@ class _DiamondSimulatorScreenState
                   size.width,
                   size.height - explorerHeight - pad.bottom - 6,
                 );
-          // Room either side for the labels, the stone in the middle.
-          double? explorerFit;
-          if (stage != null) {
+          double? stageFit;
+          if (sheet) {
+            stageFit = math.max(
+              60.0,
+              math.min(stage!.height, stage.width) * 0.45,
+            );
+          } else if (stage != null) {
+            // Room either side for the labels, the stone in the middle.
             final labels = (stage.width * 0.27).clamp(92.0, 170.0);
-            explorerFit = math.max(
+            stageFit = math.max(
               60.0,
               math.min(stage.height * 0.44, stage.width / 2 - labels),
             );
@@ -338,7 +360,7 @@ class _DiamondSimulatorScreenState
                 )
               : dial
               ? (dialRadius - halfBand) * 0.68
-              : explorerFit;
+              : stageFit;
           if (_viewport.fit.value != fit || _viewport.stage.value != stage) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
