@@ -111,7 +111,7 @@ class WalletRepositoryImpl implements WalletRepository {
       if (data is Map<String, dynamic> && data['balance'] != null) {
         return Result.success(WalletMapper.walletFromJson(data));
       }
-      return getWallet();
+      return await getWallet();
     } on DioException catch (e) {
       return Result.failure(ApiError.fromDio(e));
     } catch (e) {

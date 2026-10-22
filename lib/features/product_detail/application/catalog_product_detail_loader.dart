@@ -61,15 +61,15 @@ abstract final class CatalogProductDetailLoader {
             ResultFailure() => null,
           };
         case CartProductType.gemstone:
-          final result = await read(gemstoneRepositoryProvider).getGemstoneById(
-                id: id,
-              );
+          final result = await read(
+            gemstoneRepositoryProvider,
+          ).getGemstoneById(id: id);
           return switch (result) {
             Success(value: final gem) => gemstoneProductDetail(gem),
             ResultFailure() => null,
           };
         case CartProductType.jewellery:
-          return _getByPath(
+          return await _getByPath(
             read,
             ApiEndpoints.jewelleryById(id),
             (json) => jewelryProductDetail(
@@ -77,7 +77,7 @@ abstract final class CatalogProductDetailLoader {
             ),
           );
         case CartProductType.watch:
-          return _getByPath(
+          return await _getByPath(
             read,
             ApiEndpoints.watchById(id),
             (json) => watchProductDetail(
@@ -85,7 +85,7 @@ abstract final class CatalogProductDetailLoader {
             ),
           );
         case CartProductType.bullion:
-          return _getByPath(
+          return await _getByPath(
             read,
             ApiEndpoints.bullionById(id),
             (json) => bullionProductDetail(

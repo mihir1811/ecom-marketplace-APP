@@ -108,7 +108,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
         return Result.success(PaymentMapper.orderFromJson(data));
       }
       // Some backends return only success without order body — fetch order.
-      return getOrder(orderId);
+      return await getOrder(orderId);
     } on DioException catch (e) {
       return Result.failure(ApiError.fromDio(e));
     } catch (e) {

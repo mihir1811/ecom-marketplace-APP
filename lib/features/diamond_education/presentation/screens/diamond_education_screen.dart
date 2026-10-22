@@ -75,13 +75,8 @@ class _DiamondEducationScreenState extends State<DiamondEducationScreen> {
               sliver: SliverList.list(
                 children: [
                   constrain(const EduFourCsOverview()),
-                  constrain(const EduCutSection()),
-                  constrain(const EduColorSection()),
-                  constrain(const EduClaritySection()),
-                  constrain(const EduCaratSection()),
                   constrain(const EduAnatomySection()),
                   constrain(const EduProportionsSection()),
-                  constrain(EduShapesSection(onOpenShape: _openSimulator)),
                   constrain(
                     EduFluorescenceSection(onOpenSimulator: _openSimulator),
                   ),

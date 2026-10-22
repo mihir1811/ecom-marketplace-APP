@@ -24,7 +24,6 @@ import '../sim_labels.dart';
 import '../widgets/sim_stone_view.dart';
 import '../widgets/simulator/diamond_sim_viewport.dart';
 import '../widgets/simulator/sim_cut_panels.dart';
-import '../widgets/simulator/sim_fancy_slider.dart';
 import '../widgets/simulator/sim_grade_panels.dart';
 import '../widgets/simulator/sim_hand_stage.dart';
 import '../widgets/simulator/sim_inclusion_explorer.dart';
@@ -39,7 +38,6 @@ const _showJewelryHandoff = false;
 
 enum _SimTool {
   shape,
-  fancy,
   cut,
   color,
   clarity,
@@ -86,7 +84,6 @@ class _DiamondSimulatorScreenState
 
   String _toolLabel(_SimTool t) => context.tr(switch (t) {
     _SimTool.shape => EducationL10n.shape,
-    _SimTool.fancy => EducationL10n.fancyShapes,
     _SimTool.cut => EducationL10n.cut,
     _SimTool.color => EducationL10n.color,
     _SimTool.clarity => EducationL10n.clarity,
@@ -99,8 +96,6 @@ class _DiamondSimulatorScreenState
 
   Widget _panel(_SimTool t) => switch (t) {
     _SimTool.shape => const SimShapeStrip(),
-    // Shown on its own slider, never in a sheet.
-    _SimTool.fancy => const SizedBox.shrink(),
     _SimTool.cut => SimCutPanel(viewport: _viewport),
     _SimTool.color => const SimColorPanel(),
     _SimTool.clarity => const SimClarityPanel(),
@@ -267,8 +262,6 @@ class _DiamondSimulatorScreenState
     // Shape is chosen on a dial ringed round the stone; on the hand, where
     // stones are compared finger by finger, from the strip as before.
     final dial = open == _SimTool.shape && !onHand;
-    // The fancy cuts slide past along the bottom, the stone at its size.
-    final fancy = open == _SimTool.fancy && !onHand;
     // Inclusions: the stone above the picker, labels either side of it.
     final explore = open == _SimTool.inclusions && !onHand;
 
@@ -463,11 +456,7 @@ class _DiamondSimulatorScreenState
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _ToolRail(
-                          labelOf: _toolLabel,
-                          onOpen: _openTool,
-                          onHand: onHand,
-                        ),
+                        _ToolRail(labelOf: _toolLabel, onOpen: _openTool),
                         if (onHand) ...[
                           const SizedBox(height: 8),
                           SimViewControls(controller: _viewport),
@@ -484,14 +473,6 @@ class _DiamondSimulatorScreenState
                     bottomInset: dialBottom,
                     onDone: _close,
                     onMoreShapes: (v) => setState(() => _moreShapes = v),
-                  ),
-                )
-              else if (fancy)
-                Positioned.fill(
-                  child: SimFancyShapeSlider(
-                    viewport: _viewport,
-                    bottomInset: pad.bottom,
-                    onDone: _close,
                   ),
                 )
               else if (open != null)
@@ -657,18 +638,10 @@ class _TopBar extends StatelessWidget {
 
 /// The tools in one swipeable row, each with a glimpse of its setting.
 class _ToolRail extends ConsumerWidget {
-  const _ToolRail({
-    required this.labelOf,
-    required this.onOpen,
-    required this.onHand,
-  });
+  const _ToolRail({required this.labelOf, required this.onOpen});
 
   final String Function(_SimTool) labelOf;
   final ValueChanged<_SimTool> onOpen;
-
-  /// On the hand, where stones are compared finger by finger, the fancy
-  /// cuts (seen one at a time, as cut) are not offered.
-  final bool onHand;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -681,7 +654,6 @@ class _ToolRail extends ConsumerWidget {
     // The shape's name shows only inside the shape tool, on the dial.
     String? valueOf(_SimTool t) => switch (t) {
       _SimTool.shape => null,
-      _SimTool.fancy => null,
       // Only round brilliants carry a cut grade.
       _SimTool.cut => s.shape == SimShape.round ? context.cutName(cut) : null,
       _SimTool.color =>
@@ -717,13 +689,6 @@ class _ToolRail extends ConsumerWidget {
         colorFilter: ColorFilter.mode(p.ink, BlendMode.srcIn),
         placeholderBuilder: (_) => const SizedBox.square(dimension: 18),
       ),
-      _SimTool.fancy => SvgPicture.asset(
-        'assets/shapes/fancy/star_5.svg',
-        width: 18,
-        height: 18,
-        colorFilter: ColorFilter.mode(p.ink, BlendMode.srcIn),
-        placeholderBuilder: (_) => const SizedBox.square(dimension: 18),
-      ),
       _SimTool.color when s.fancyColor == null => _Dot(
         colorGradeSwatch(s.colorGrade),
       ),
@@ -737,16 +702,15 @@ class _ToolRail extends ConsumerWidget {
       child: Row(
         children: [
           for (final t in _SimTool.values)
-            if (t != _SimTool.fancy || !onHand)
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: _RailItem(
-                  label: labelOf(t),
-                  value: valueOf(t),
-                  visual: visualOf(t),
-                  onTap: () => onOpen(t),
-                ),
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: _RailItem(
+                label: labelOf(t),
+                value: valueOf(t),
+                visual: visualOf(t),
+                onTap: () => onOpen(t),
               ),
+            ),
         ],
       ),
     );
@@ -785,6 +749,13 @@ class _RailItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
+    // Two lines stacked in a slim pill: tight leading, the pill growing
+    // with large text rather than the lines running into each other.
+    final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3);
+    const tight = TextHeightBehavior(
+      applyHeightToFirstAscent: false,
+      applyHeightToLastDescent: false,
+    );
     return Semantics(
       button: true,
       label: value == null ? label : '$label, $value',
@@ -793,8 +764,8 @@ class _RailItem extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          constraints: const BoxConstraints(minHeight: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: const ShapeDecoration(
             color: Color(0x8C101010),
             shape: StadiumBorder(
@@ -813,14 +784,22 @@ class _RailItem extends StatelessWidget {
                   Text(
                     label,
                     maxLines: 1,
+                    softWrap: false,
+                    textHeightBehavior: tight,
+                    textScaler: scaler,
                     style: LuxeType.label(p.ink, size: 11.5),
                   ),
-                  if (value != null)
+                  if (value != null) ...[
+                    const SizedBox(height: 1),
                     Text(
                       value!,
                       maxLines: 1,
+                      softWrap: false,
+                      textHeightBehavior: tight,
+                      textScaler: scaler,
                       style: LuxeType.label(p.accent, size: 10),
                     ),
+                  ],
                 ],
               ),
             ],

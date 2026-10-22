@@ -105,7 +105,8 @@ void main() {
   tearDown(() => container.dispose());
 
   test('silence does not close the mic', () async {
-    await controller().open();
+    controller().open();
+    await controller().startListening();
     expect(state().phase, GemAgentPhase.listening);
 
     speech.end(SpeechFailure.soft);
@@ -119,7 +120,8 @@ void main() {
   });
 
   test('keeps listening across pauses and sends everything on stop', () async {
-    await controller().open();
+    controller().open();
+    await controller().startListening();
     speech.say('two carat', isFinal: true);
     speech.end();
     await settle();
@@ -136,7 +138,8 @@ void main() {
   });
 
   test('stop with nothing heard goes idle without a request', () async {
-    await controller().open();
+    controller().open();
+    await controller().startListening();
     await controller().stopListening();
     expect(state().phase, GemAgentPhase.idle);
     expect(state().entries, isEmpty);
@@ -146,14 +149,16 @@ void main() {
     speech
       ..ready = false
       ..permitted = false;
-    await controller().open();
+    controller().open();
+    await controller().startListening();
     expect(state().phase, GemAgentPhase.idle);
     expect(state().voiceAvailable, isTrue);
     expect(state().notice, contains('Settings'));
   });
 
   test('closing the sheet ends listening', () async {
-    await controller().open();
+    controller().open();
+    await controller().startListening();
     await controller().close();
     speech.end();
     await settle();

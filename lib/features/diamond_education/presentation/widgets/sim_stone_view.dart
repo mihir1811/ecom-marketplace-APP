@@ -47,9 +47,13 @@ class SimStoneView extends StatefulWidget {
 class _SimStoneViewState extends State<SimStoneView>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker(_tick);
-  final _renderer = SimRenderer()
+  late final _renderer = SimRenderer()
     ..maxBounces = 7
-    ..measureStats = false;
+    ..measureStats = false
+    // A frame traced in the background goes up as soon as it is ready.
+    ..onFrameReady = () {
+      if (mounted) _frame.value++;
+    };
   final _frame = ValueNotifier(0);
   ScrollPosition? _scroll;
   Duration _last = Duration.zero;

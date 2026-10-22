@@ -236,7 +236,11 @@ class DiamondSimViewport extends ConsumerStatefulWidget {
 class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker(_tick);
-  final _renderer = SimRenderer();
+  // A frame traced in the background goes up as soon as it is ready.
+  late final _renderer = SimRenderer()
+    ..onFrameReady = () {
+      if (mounted) _frame.value++;
+    };
   final _wire = SimWireRenderer();
   final _incPlot = SimInclusionPlot();
   final _callouts = SimInclusionCallouts();

@@ -16,7 +16,6 @@ import 'package:gemstone/features/diamond_education/domain/diamond_shape.dart';
 import 'package:gemstone/features/diamond_education/presentation/screens/diamond_education_screen.dart';
 import 'package:gemstone/features/diamond_education/presentation/screens/diamond_simulator_screen.dart';
 import 'package:gemstone/features/diamond_education/presentation/widgets/simulator/diamond_sim_viewport.dart';
-import 'package:gemstone/features/diamond_education/presentation/widgets/simulator/sim_fancy_slider.dart';
 import 'package:gemstone/features/diamond_education/presentation/widgets/simulator/sim_shape_dial.dart';
 import 'package:gemstone/features/diamond_education/simulation/sim_fancy.dart';
 
@@ -219,53 +218,6 @@ void main() {
       },
     );
   }
-
-  testWidgets('fancy cuts slide past, one stone recut at its own size', (
-    tester,
-  ) async {
-    await tester.runAsync(SimFancyCatalog.load);
-    await _pump(tester, const Size(360, 740), const DiamondSimulatorScreen());
-    final viewport = tester
-        .widget<DiamondSimViewport>(find.byType(DiamondSimViewport))
-        .controller;
-    await tester.tap(find.text('Fancy shapes').first);
-    for (var i = 0; i < 10; i++) {
-      await tester.pump(const Duration(milliseconds: 60));
-    }
-    expect(find.byType(SimFancyShapeSlider), findsOneWidget);
-    expect(find.text('Five Point Star'), findsOneWidget);
-    // Not shrunk into a ring: the stone keeps its size.
-    expect(viewport.fit.value, isNull);
-    expect(viewport.morph.value, isNotNull);
-
-    // Two shapes along, by hand, passing through the morph between.
-    final gesture = await tester.startGesture(
-      tester.getCenter(find.byType(SimFancyShapeSlider)) + const Offset(0, 270),
-    );
-    var midway = false;
-    for (var i = 1; i <= 16; i++) {
-      await gesture.moveBy(
-        const Offset(-SimFancyShapeSlider.spacing * 2 / 16, 0),
-      );
-      await tester.pump(const Duration(milliseconds: 16));
-      final t = viewport.morph.value?.t ?? 0;
-      if (t > 0 && t < 1) midway = true;
-    }
-    await gesture.up();
-    for (var i = 0; i < 30; i++) {
-      await tester.pump(const Duration(milliseconds: 60));
-    }
-    expect(tester.takeException(), isNull);
-    expect(midway, isTrue);
-    expect(find.text('Round Rose'), findsOneWidget);
-
-    await tester.tap(find.text('Done'));
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.byType(SimFancyShapeSlider), findsNothing);
-    // Back to the stone being edited.
-    expect(viewport.morph.value, isNull);
-    await _teardown(tester);
-  });
 
   testWidgets('the dial opens into a half ring of every shape and back', (
     tester,

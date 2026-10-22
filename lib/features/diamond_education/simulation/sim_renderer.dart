@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/painting.dart';
 
 import '../../../core/widgets/gem3d/diamond_renderer.dart';
@@ -133,8 +134,19 @@ class SimRenderer {
 
   ui.Image? _frameImage;
 
+  /// Called when a frame traced in the background is ready to show: the
+  /// owner paints again to put it on screen.
+  VoidCallback? onFrameReady;
+
+  /// Whether a frame is being traced in the background, and whether the
+  /// view changed again meanwhile (another frame is then wanted).
+  bool _tracing = false, _behind = false;
+  bool _disposed = false;
+
   /// Releases GPU resources; the renderer must not paint afterwards.
   void dispose() {
+    _disposed = true;
+    onFrameReady = null;
     _frameImage?.dispose();
     _frameImage = null;
     shader?.dispose();
@@ -608,8 +620,11 @@ class SimRenderer {
     _gpuPaint.shader = sh;
 
     if (s >= dpr - 0.05) {
-      if (!_axisAligned(canvas)) {
-        // Turned or scaled by the caller: trace straight into it.
+      // On the web a picture turned into an image is drawn there and then
+      // and read back to the CPU, pixel by pixel: every frame, that stalls
+      // the GPU until the browser drops its WebGL context. Trace straight
+      // into the canvas there, as when turned or scaled by the caller.
+      if (kIsWeb || !_axisAligned(canvas)) {
         _dropCache();
         canvas.drawRect(bounds, _gpuPaint);
         return;
@@ -638,33 +653,19 @@ class SimRenderer {
           identical(_cachedShader, sh) &&
           _sameKey();
       if (!hit) {
-        // Whole device pixels, so the copy lands one to one.
-        final x0 = (bounds.left * dpr).floor();
-        final y0 = (bounds.top * dpr).floor();
-        final x1 = (bounds.right * dpr).ceil();
-        final y1 = (bounds.bottom * dpr).ceil();
-        final w = x1 - x0, h = y1 - y0;
-        if (w <= 0 || h <= 0) return;
-        bounds = Rect.fromLTRB(x0 / dpr, y0 / dpr, x1 / dpr, y1 / dpr);
-        final recorder = ui.PictureRecorder();
-        Canvas(recorder)
-          ..scale(dpr)
-          ..translate(-bounds.left, -bounds.top)
-          ..drawRect(bounds, _gpuPaint);
-        final picture = recorder.endRecording();
-        final image = picture.toImageSync(w, h);
-        picture.dispose();
-        // Pictures already drawn keep their own reference to the old one.
-        _frameImage?.dispose();
-        _frameImage = image;
-        _cachedBounds = bounds;
-        _cachedMesh = mesh;
-        _cachedInclusions = _inclusions;
-        _cachedOptics = o;
-        _cachedShader = sh;
-        _cachedKey.setAll(0, key);
+        // Traced in the background, and shown only once the GPU has
+        // finished it: an image from toImageSync can reach the screen
+        // before its pass has run, and the stone then blinks out for a
+        // frame. Until then the last finished frame stays up; one frame
+        // at a time, so a slow GPU just gets fewer new pictures.
+        if (_tracing) {
+          _behind = true;
+        } else {
+          _traceFrame(bounds, dpr, mesh, o, sh, key);
+        }
       }
-      final image = _frameImage!;
+      final image = _frameImage;
+      if (image == null) return;
       canvas.drawImageRect(
         image,
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
@@ -694,6 +695,65 @@ class SimRenderer {
     // The canvas keeps its own reference until the frame is drawn.
     _frameImage?.dispose();
     _frameImage = image;
+  }
+
+  /// Traces the stone at full resolution into an image off screen; when
+  /// the GPU is done, it becomes the frame shown.
+  void _traceFrame(
+    Rect bounds,
+    double dpr,
+    SimMesh mesh,
+    SimOptics optics,
+    ui.FragmentShader sh,
+    Float64List key,
+  ) {
+    // Whole device pixels, so the copy lands one to one.
+    final x0 = (bounds.left * dpr).floor();
+    final y0 = (bounds.top * dpr).floor();
+    final x1 = (bounds.right * dpr).ceil();
+    final y1 = (bounds.bottom * dpr).ceil();
+    final w = x1 - x0, h = y1 - y0;
+    if (w <= 0 || h <= 0) return;
+    final at = Rect.fromLTRB(x0 / dpr, y0 / dpr, x1 / dpr, y1 / dpr);
+    // Uniforms are copied when the rect is recorded.
+    final recorder = ui.PictureRecorder();
+    Canvas(recorder)
+      ..scale(dpr)
+      ..translate(-at.left, -at.top)
+      ..drawRect(at, _gpuPaint);
+    final picture = recorder.endRecording();
+    final inclusions = _inclusions;
+    final traced = Float64List.fromList(key);
+    _tracing = true;
+    _behind = false;
+    picture
+        .toImage(w, h)
+        .then(
+          (image) {
+            picture.dispose();
+            _tracing = false;
+            if (_disposed) {
+              image.dispose();
+              return;
+            }
+            // Pictures already drawn keep their own reference to the old one.
+            _frameImage?.dispose();
+            _frameImage = image;
+            _cachedBounds = at;
+            _cachedMesh = mesh;
+            _cachedInclusions = inclusions;
+            _cachedOptics = optics;
+            _cachedShader = sh;
+            _cachedKey.setAll(0, traced);
+            _behind = false;
+            onFrameReady?.call();
+          },
+          onError: (Object _) {
+            picture.dispose();
+            _tracing = false;
+            if (!_disposed && _behind) onFrameReady?.call();
+          },
+        );
   }
 
   // The last full resolution frame and what it was traced for.

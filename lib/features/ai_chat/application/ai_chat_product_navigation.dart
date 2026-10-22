@@ -92,7 +92,7 @@ abstract final class AiChatProductNavigation {
       }
 
       if (type.contains('jewel')) {
-        return _getByPath(
+        return await _getByPath(
           ref,
           ApiEndpoints.jewelleryById(id),
           (json) => jewelryProductDetail(
@@ -102,7 +102,7 @@ abstract final class AiChatProductNavigation {
       }
 
       if (type.contains('watch')) {
-        return _getByPath(
+        return await _getByPath(
           ref,
           ApiEndpoints.watchById(id),
           (json) =>
@@ -111,7 +111,7 @@ abstract final class AiChatProductNavigation {
       }
 
       if (type.contains('bullion') || type.contains('gold')) {
-        return _getByPath(
+        return await _getByPath(
           ref,
           ApiEndpoints.bullionById(id),
           (json) => bullionProductDetail(

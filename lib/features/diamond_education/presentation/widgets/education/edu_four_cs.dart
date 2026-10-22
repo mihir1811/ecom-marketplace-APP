@@ -8,9 +8,24 @@ import '../simulator/sim_grade_panels.dart' show colorGradeSwatch;
 import 'edu_blocks.dart';
 import 'light_path_diagram.dart';
 
-/// Overview of the 4Cs as a two-by-two grid.
-class EduFourCsOverview extends StatelessWidget {
+/// The 4Cs as a two-by-two grid; choosing one shows only that C's
+/// section below it.
+class EduFourCsOverview extends StatefulWidget {
   const EduFourCsOverview({super.key});
+
+  @override
+  State<EduFourCsOverview> createState() => _EduFourCsOverviewState();
+}
+
+class _EduFourCsOverviewState extends State<EduFourCsOverview> {
+  int _selected = 0;
+
+  static const _sections = <Widget>[
+    EduCutSection(key: ValueKey('cut')),
+    EduColorSection(key: ValueKey('color')),
+    EduClaritySection(key: ValueKey('clarity')),
+    EduCaratSection(key: ValueKey('carat')),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -25,50 +40,107 @@ class EduFourCsOverview extends StatelessWidget {
       (Icons.scale_outlined, EducationL10n.carat, EducationL10n.caratLead),
     ];
     final p = LuxePalette.of(context);
-    return EduSection(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        EduSectionHeader(
-          eyebrow: context.tr(EducationL10n.c4Eyebrow),
-          title: context.tr(EducationL10n.c4Title),
-          body: context.tr(EducationL10n.c4Body),
-        ),
-        const SizedBox(height: 20),
-        LayoutBuilder(
-          builder: (context, c) {
-            final cols = c.maxWidth >= 560 ? 4 : 2;
-            final w = (c.maxWidth - 12 * (cols - 1)) / cols;
-            return Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                for (final (icon, title, lead) in items)
-                  SizedBox(
-                    width: w,
-                    child: EduCard(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(icon, color: p.accent, size: 22),
-                          const SizedBox(height: 10),
-                          Text(
-                            context.tr(title),
-                            style: LuxeType.display(22, p.ink),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            context.tr(lead),
-                            style: LuxeType.body(p.inkMuted, size: 12.5),
-                          ),
-                        ],
+        EduSection(
+          children: [
+            EduSectionHeader(
+              eyebrow: context.tr(EducationL10n.c4Eyebrow),
+              title: context.tr(EducationL10n.c4Title),
+              body: context.tr(EducationL10n.c4Body),
+            ),
+            const SizedBox(height: 20),
+            LayoutBuilder(
+              builder: (context, c) {
+                final cols = c.maxWidth >= 560 ? 4 : 2;
+                final w = (c.maxWidth - 12 * (cols - 1)) / cols;
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    for (final (i, (icon, title, lead)) in items.indexed)
+                      SizedBox(
+                        width: w,
+                        child: _CCard(
+                          icon: icon,
+                          title: context.tr(title),
+                          lead: context.tr(lead),
+                          selected: i == _selected,
+                          palette: p,
+                          onTap: () => setState(() => _selected = i),
+                        ),
                       ),
-                    ),
-                  ),
-              ],
-            );
-          },
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+        AnimatedSwitcher(
+          duration: LuxeMotion.medium,
+          layoutBuilder: (current, previous) => Stack(
+            alignment: Alignment.topCenter,
+            children: [...previous, ?current],
+          ),
+          child: _sections[_selected],
         ),
       ],
+    );
+  }
+}
+
+/// One of the 4Cs in the overview grid, picked to show its section.
+class _CCard extends StatelessWidget {
+  const _CCard({
+    required this.icon,
+    required this.title,
+    required this.lead,
+    required this.selected,
+    required this.palette,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String lead;
+  final bool selected;
+  final LuxePalette palette;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = palette;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: selected ? p.accentSoft : p.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(LuxeSpace.radius),
+          side: BorderSide(
+            color: selected ? p.accent : p.hairline,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: selected ? null : onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, color: p.accent, size: 22),
+                const SizedBox(height: 10),
+                Text(title, style: LuxeType.display(22, p.ink)),
+                const SizedBox(height: 6),
+                Text(lead, style: LuxeType.body(p.inkMuted, size: 12.5)),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -835,7 +835,12 @@ class SimFingerStone extends StatefulWidget {
 }
 
 class _SimFingerStoneState extends State<SimFingerStone> {
-  final _renderer = SimRenderer()..measureStats = false;
+  late final _renderer = SimRenderer()
+    ..measureStats = false
+    // A frame traced in the background goes up as soon as it is ready.
+    ..onFrameReady = () {
+      if (mounted) setState(() => _version++);
+    };
   final _wire = SimWireRenderer();
   final _inclusions = SimInclusionPlot();
   late SimWireStyle _wireStyle;

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/theme/luxe_tokens.dart';
@@ -145,105 +144,6 @@ class EduProportionsSection extends StatelessWidget {
                 ),
             ],
           ),
-        ),
-      ],
-    );
-  }
-}
-
-/// The ten shapes; each opens the simulator cut in that shape.
-class EduShapesSection extends StatelessWidget {
-  const EduShapesSection({required this.onOpenShape, super.key});
-
-  final ValueChanged<SimShape> onOpenShape;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    return EduSection(
-      children: [
-        EduSectionHeader(
-          eyebrow: context.tr(EducationL10n.shapesEyebrow),
-          title: context.tr(EducationL10n.shapesTitle),
-          body: context.tr(EducationL10n.shapesBody),
-        ),
-        const SizedBox(height: 18),
-        LayoutBuilder(
-          builder: (context, c) {
-            final cols = c.maxWidth >= 620 ? 3 : 2;
-            final w = (c.maxWidth - 12 * (cols - 1)) / cols;
-            return Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                for (final shape in SimShape.values)
-                  SizedBox(
-                    width: w,
-                    child: Semantics(
-                      button: true,
-                      label: context.shapeName(shape),
-                      child: Material(
-                        color: p.surface,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(LuxeSpace.radius),
-                          side: BorderSide(color: p.hairline),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: () => onOpenShape(shape),
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      shape.svgAsset,
-                                      width: 36,
-                                      height: 36,
-                                      colorFilter: ColorFilter.mode(
-                                        p.accent,
-                                        BlendMode.srcIn,
-                                      ),
-                                      placeholderBuilder: (_) =>
-                                          const SizedBox.square(dimension: 36),
-                                    ),
-                                    const Spacer(),
-                                    Icon(
-                                      Icons.view_in_ar_outlined,
-                                      size: 16,
-                                      color: p.inkFaint,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  context.shapeName(shape),
-                                  style: LuxeType.display(19, p.ink),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  context.tr(EducationL10n.ratio, {
-                                    'ratio': shape.ratio.toStringAsFixed(2),
-                                  }),
-                                  style: LuxeType.figure(p.inkFaint, size: 11),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  context.shapeNote(shape),
-                                  style: LuxeType.body(p.inkMuted, size: 12.5),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
         ),
       ],
     );
