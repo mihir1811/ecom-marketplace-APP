@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,6 +36,9 @@ const _yaw0 = 0.0, _pitch0 = 0.12;
 /// comparing), and a moderate tip up or down.
 const _yawMin = -math.pi / 2, _yawMax = math.pi / 2;
 const _pitchMin = -0.75, _pitchMax = 1.0;
+
+/// How far a pinch magnifies the framed hand, to look at a stone closely.
+const _magnifyMax = 4.0;
 
 /// Up to four stones on the fingers of a realistic 3D hand
 /// ([HandModel], drawn by [HandRenderer]), each set in a solitaire ring
@@ -106,7 +110,24 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
   double _yaw = _yaw0, _pitch = _pitch0;
   Offset _orbitVelocity = Offset.zero;
   Duration _orbitLast = Duration.zero;
-  ({double yaw, double pitch}) _recentreFrom = (yaw: _yaw0, pitch: _pitch0);
+  ({double yaw, double pitch, double magnify, Offset shift}) _recentreFrom = (
+    yaw: _yaw0,
+    pitch: _pitch0,
+    magnify: 1,
+    shift: Offset.zero,
+  );
+
+  /// The pinch: the framed view scaled by [_magnify] and moved by
+  /// [_shift] (screen px), so the point under the fingers stays put.
+  double _magnify = 1;
+  Offset _shift = Offset.zero;
+  Size _stageSize = Size.zero;
+
+  /// At the start of a pinch: its scale, and the point under its focus in
+  /// the unmagnified frame.
+  double _pinchFrom = 1;
+  Offset _pinchAnchor = Offset.zero;
+  bool _pinching = false;
 
   /// What the current drag does: turn the hand, or spin the stone.
   bool _spinningStone = false;
@@ -183,8 +204,47 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
   void _setView(double yaw, double pitch) {
     _yaw = yaw.clamp(_yawMin, _yawMax);
     _pitch = pitch.clamp(_pitchMin, _pitchMax);
+    _flagTurned();
+  }
+
+  void _flagTurned() {
     widget.controller.handTurned.value =
-        (_wrap(_yaw - _yaw0)).abs() > 0.06 || (_pitch - _pitch0).abs() > 0.06;
+        (_wrap(_yaw - _yaw0)).abs() > 0.06 ||
+        (_pitch - _pitch0).abs() > 0.06 ||
+        _magnify > 1.02;
+  }
+
+  /// Magnifies the frame to [magnify], keeping [anchor] (a point of the
+  /// unmagnified frame) under [focus] on screen. The stage always stays
+  /// covered by the magnified frame, so the hand never drifts away.
+  void _setMagnify(double magnify, Offset anchor, Offset focus) {
+    _magnify = magnify.clamp(1.0, _magnifyMax);
+    _shift = _clampShift(focus - anchor * _magnify);
+    _flagTurned();
+  }
+
+  Offset _clampShift(Offset t) {
+    final w = _stageSize.width, h = _stageSize.height;
+    return Offset(
+      t.dx.clamp(w * (1 - _magnify), 0.0),
+      t.dy.clamp(h * (1 - _magnify), 0.0),
+    );
+  }
+
+  /// The point of the unmagnified frame now shown at [screen].
+  Offset _unmagnified(Offset screen) => (screen - _shift) / _magnify;
+
+  /// A mouse wheel or trackpad scroll zooms about the pointer.
+  void _onPointerSignal(PointerSignalEvent e) {
+    if (e is! PointerScrollEvent) return;
+    final k = math.exp(-e.scrollDelta.dy / 400);
+    setState(
+      () => _setMagnify(
+        _magnify * k,
+        _unmagnified(e.localPosition),
+        e.localPosition,
+      ),
+    );
   }
 
   /// [a] wrapped into −π..π.
@@ -194,9 +254,18 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
   void _startRecentre() {
     _orbitTicker.stop();
     _orbitVelocity = Offset.zero;
-    _recentreFrom = (yaw: _yaw0 + _wrap(_yaw - _yaw0), pitch: _pitch);
+    _recentreFrom = (
+      yaw: _yaw0 + _wrap(_yaw - _yaw0),
+      pitch: _pitch,
+      magnify: _magnify,
+      shift: _shift,
+    );
     if (MediaQuery.disableAnimationsOf(context)) {
-      setState(() => _setView(_yaw0, _pitch0));
+      setState(() {
+        _magnify = 1;
+        _shift = Offset.zero;
+        _setView(_yaw0, _pitch0);
+      });
       return;
     }
     _recentre.forward(from: 0);
@@ -205,12 +274,14 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
   void _onRecentre() {
     final k = Curves.easeInOutCubic.transform(_recentre.value);
     final from = _recentreFrom;
-    setState(
-      () => _setView(
+    setState(() {
+      _magnify = from.magnify + (1 - from.magnify) * k;
+      _shift = from.shift * (1 - k);
+      _setView(
         from.yaw + (_yaw0 - from.yaw) * k,
         from.pitch + (_pitch0 - from.pitch) * k,
-      ),
-    );
+      );
+    });
   }
 
   void _tickSpin(Duration elapsed) {
@@ -298,11 +369,25 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     return r!.inflate(10);
   }();
 
+  /// [_frame] magnified by the pinch.
+  HandCamera _camera(Size size, HandFinger active, double rise) {
+    final c = _frame(size, active, rise);
+    if (_magnify == 1 && _shift == Offset.zero) return c;
+    return HandCamera(
+      yaw: c.yaw,
+      pitch: c.pitch,
+      roll: c.roll,
+      centre: c.centre * _magnify + _shift,
+      pxPerMm: c.pxPerMm * _magnify,
+      distance: c.distance,
+    );
+  }
+
   /// The camera: the whole hand centred and in view, or life size centred
   /// on the selected stone. With controls open over the stage, the rings
   /// rise into the room left above them, the fingertips free to run off
   /// the top, and the hand shrinks only if the rings would not fit.
-  HandCamera _camera(Size size, HandFinger active, double rise) {
+  HandCamera _frame(Size size, HandFinger active, double rise) {
     final cover = _cover;
     final width = math.max(120.0, size.width - cover.right);
     final usable = math.max(120.0, size.height - widget.topInset);
@@ -372,17 +457,16 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     return (at: p.at, px: p.pxPerMm, view: view, visible: visible);
   }
 
-  /// Where [f]'s stone sits: its culet just clear of the band, as in a
-  /// claw head.
+  /// Where [f]'s stone sits: its culet resting on the band's crown, a
+  /// hair into the metal so no gap shows.
   HandVec _stoneCentre(HandFinger f, DiamondSimulatorState? stone) {
     final seat = HandModel.seat(f);
     if (stone == null) return seat.position;
     final ring = ref.read(simHandProvider).ring;
-    return seat.position +
-        seat.normal * (ring.thickness + 0.25 + _culetDepth(stone));
+    return ringCrest(seat, ring) + seat.normal * (_culetDepth(stone) - 0.08);
   }
 
-  final Map<HandFinger, (Object, RingMesh)> _ringCache = {};
+  final Map<HandFinger, (Object, RingMesh, StoneHull)> _ringCache = {};
 
   /// The rings on the hand: one per stone, its claws turned with the
   /// stone's spin and fitted to its outline.
@@ -404,18 +488,28 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
         final n = seat.normal, along = seat.along;
         final z = along.cross(n);
         final x = along * math.cos(spin) - z * math.sin(spin);
+        final centre = _stoneCentre(f, stone);
+        final hull = StoneHull.of(
+          stone.mesh,
+          stone.mmPerUnit,
+          centre,
+          x,
+          n,
+          x.cross(n),
+        );
         mesh = buildRing(
           seat,
           style,
           RingHead(
-            centre: _stoneCentre(f, stone),
+            centre: centre,
             x: x,
             y: n,
             z: x.cross(n),
             claws: RingHead.clawsFor(stone.mesh, stone.mmPerUnit, style.prongs),
+            hull: hull,
           ),
         );
-        _ringCache[f] = (key, mesh);
+        _ringCache[f] = (key, mesh, hull);
       }
       out.add((seat: seat, mesh: mesh, bandWidth: style.bandWidth));
     }
@@ -471,134 +565,162 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;
+        if (size != _stageSize) {
+          _stageSize = size;
+          _shift = _clampShift(_shift);
+        }
         HandCamera camNow() => _camera(
           size,
           hand.active,
           Curves.easeOutCubic.transform(_enter.value),
         );
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapUp: (d) {
-            final f = _fingerAt(d.localPosition, camNow());
-            if (f == null) return;
-            AppHaptics.selection();
-            ref.read(simHandProvider.notifier).select(f);
-          },
-          onPanStart: (d) {
-            _dragging = true;
-            _recentre.stop();
-            final cam = camNow();
-            final at = _place(hand.active, cam, active);
-            final radius = active.mesh.radius * active.mmPerUnit * at.px + 18;
-            _spinningStone =
-                at.visible > 0.3 && (d.localPosition - at.at).distance < radius;
-            if (_spinningStone) {
-              _spinTicker.stop();
-              _velocity = 0;
-            } else {
-              _orbitTicker.stop();
-              _orbitVelocity = Offset.zero;
-            }
-          },
-          onPanUpdate: (d) => setState(() {
-            if (_spinningStone) {
-              _spin[hand.active] =
-                  (_spin[hand.active] ?? 0) + d.delta.dx * 0.012;
-            } else {
-              _setView(
-                _yaw + d.delta.dx * 0.0085,
-                _pitch + d.delta.dy * 0.0085,
-              );
-            }
-          }),
-          onPanEnd: (d) {
-            _dragging = false;
-            final v = d.velocity.pixelsPerSecond;
-            if (_spinningStone) {
-              _velocity = (v.dx * 0.012).clamp(-12.0, 12.0);
-              if (_velocity.abs() > 0.05) {
-                _last = Duration.zero;
-                _spinTicker.start();
-              } else {
-                setState(() {});
+        return Listener(
+          onPointerSignal: _onPointerSignal,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapUp: (d) {
+              final f = _fingerAt(d.localPosition, camNow());
+              if (f == null) return;
+              AppHaptics.selection();
+              ref.read(simHandProvider.notifier).select(f);
+            },
+            onScaleStart: (d) {
+              _dragging = true;
+              _recentre.stop();
+              // Two fingers pinch to zoom (and drag the zoomed view).
+              _pinching = d.pointerCount > 1;
+              if (_pinching) {
+                _spinTicker.stop();
+                _orbitTicker.stop();
+                _velocity = 0;
+                _orbitVelocity = Offset.zero;
+                _pinchFrom = _magnify;
+                _pinchAnchor = _unmagnified(d.localFocalPoint);
+                return;
               }
-            } else {
-              _orbitVelocity = Offset(
-                (v.dx * 0.0085).clamp(-9.0, 9.0),
-                (v.dy * 0.0085).clamp(-6.0, 6.0),
-              );
-              if (_orbitVelocity.distance > 0.08) {
-                _orbitLast = Duration.zero;
-                _orbitTicker.start();
+              final cam = camNow();
+              final at = _place(hand.active, cam, active);
+              final radius = active.mesh.radius * active.mmPerUnit * at.px + 18;
+              _spinningStone =
+                  at.visible > 0.3 &&
+                  (d.localFocalPoint - at.at).distance < radius;
+              if (_spinningStone) {
+                _spinTicker.stop();
+                _velocity = 0;
               } else {
-                setState(() {});
+                _orbitTicker.stop();
+                _orbitVelocity = Offset.zero;
               }
-            }
-          },
-          child: AnimatedBuilder(
-            animation: Listenable.merge([_enter, _zoom, _lift]),
-            builder: (context, _) {
-              final rise = Curves.easeOutCubic.transform(_enter.value);
-              final cam = _camera(size, hand.active, rise);
-              final stones = CurvedAnimation(
-                parent: _enter,
-                curve: const Interval(0.55, 1, curve: Curves.easeOutBack),
-              ).value;
-              return Stack(
-                clipBehavior: Clip.none,
-                fit: StackFit.expand,
-                children: [
-                  // A dark stage, so the skin and the stones read; pitch
-                  // black under ultraviolet, as in a darkened viewing box.
-                  if (uv)
-                    const ColoredBox(color: Color(0xFF000000))
-                  else
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: Alignment(0, -0.2),
-                          radius: 1.1,
-                          colors: [Color(0xFF1A1C1F), Color(0xFF060606)],
+            },
+            onScaleUpdate: (d) => setState(() {
+              if (_pinching) {
+                _setMagnify(
+                  _pinchFrom * d.scale,
+                  _pinchAnchor,
+                  d.localFocalPoint,
+                );
+              } else if (_spinningStone) {
+                _spin[hand.active] =
+                    (_spin[hand.active] ?? 0) + d.focalPointDelta.dx * 0.012;
+              } else {
+                _setView(
+                  _yaw + d.focalPointDelta.dx * 0.0085,
+                  _pitch + d.focalPointDelta.dy * 0.0085,
+                );
+              }
+            }),
+            onScaleEnd: (d) {
+              _dragging = false;
+              final v = d.velocity.pixelsPerSecond;
+              if (_pinching) {
+                _pinching = false;
+                setState(() {});
+              } else if (_spinningStone) {
+                _velocity = (v.dx * 0.012).clamp(-12.0, 12.0);
+                if (_velocity.abs() > 0.05) {
+                  _last = Duration.zero;
+                  _spinTicker.start();
+                } else {
+                  setState(() {});
+                }
+              } else {
+                _orbitVelocity = Offset(
+                  (v.dx * 0.0085).clamp(-9.0, 9.0),
+                  (v.dy * 0.0085).clamp(-6.0, 6.0),
+                );
+                if (_orbitVelocity.distance > 0.08) {
+                  _orbitLast = Duration.zero;
+                  _orbitTicker.start();
+                } else {
+                  setState(() {});
+                }
+              }
+            },
+            child: AnimatedBuilder(
+              animation: Listenable.merge([_enter, _zoom, _lift]),
+              builder: (context, _) {
+                final rise = Curves.easeOutCubic.transform(_enter.value);
+                final cam = _camera(size, hand.active, rise);
+                final stones = CurvedAnimation(
+                  parent: _enter,
+                  curve: const Interval(0.55, 1, curve: Curves.easeOutBack),
+                ).value;
+                return Stack(
+                  clipBehavior: Clip.none,
+                  fit: StackFit.expand,
+                  children: [
+                    // A dark stage, so the skin and the stones read; pitch
+                    // black under ultraviolet, as in a darkened viewing box.
+                    if (uv)
+                      const ColoredBox(color: Color(0xFF000000))
+                    else
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: Alignment(0, -0.2),
+                            radius: 1.1,
+                            colors: [Color(0xFF1A1C1F), Color(0xFF060606)],
+                          ),
+                        ),
+                      ),
+                    Opacity(
+                      opacity: rise.clamp(0.0, 1.0),
+                      child: Transform.translate(
+                        offset: Offset(0, (1 - rise) * size.height * 0.6),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          fit: StackFit.expand,
+                          children: [
+                            if (_handReady)
+                              RepaintBoundary(
+                                child: CustomPaint(
+                                  painter: _HandPainter(
+                                    renderer: _hand,
+                                    version: _hand.version,
+                                    camera: cam,
+                                    dpr: dpr,
+                                    ultraviolet: uv,
+                                  ),
+                                ),
+                              ),
+                            for (final f in _paintOrder(cam))
+                              ..._finger(
+                                f,
+                                cam,
+                                f == hand.active ? active : hand.parked[f],
+                                selected: f == hand.active,
+                                appear: stones,
+                                dpr: dpr,
+                                ultraviolet: uv,
+                              ),
+                          ],
                         ),
                       ),
                     ),
-                  Opacity(
-                    opacity: rise.clamp(0.0, 1.0),
-                    child: Transform.translate(
-                      offset: Offset(0, (1 - rise) * size.height * 0.6),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        fit: StackFit.expand,
-                        children: [
-                          if (_handReady)
-                            RepaintBoundary(
-                              child: CustomPaint(
-                                painter: _HandPainter(
-                                  renderer: _hand,
-                                  version: _hand.version,
-                                  camera: cam,
-                                  dpr: dpr,
-                                  ultraviolet: uv,
-                                ),
-                              ),
-                            ),
-                          for (final f in _paintOrder(cam))
-                            ..._finger(
-                              f,
-                              cam,
-                              f == hand.active ? active : hand.parked[f],
-                              selected: f == hand.active,
-                              appear: stones,
-                              dpr: dpr,
-                              ultraviolet: uv,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
         );
       },
@@ -636,6 +758,9 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
       final side = radiusMm * 2 * place.px * 1.2 + 4;
       return [
         Positioned(
+          // Keyed by finger: the depth order changes as the hand turns, and
+          // a stone rebuilt from scratch would blink out until it retraces.
+          key: ValueKey((f, #stone)),
           left: at.dx - side / 2,
           top: at.dy - side / 2,
           width: side,
@@ -658,6 +783,7 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
         ),
         if (_handReady)
           Positioned.fill(
+            key: ValueKey((f, #front)),
             child: IgnorePointer(
               child: CustomPaint(
                 painter: _HandFrontPainter(
@@ -669,6 +795,7 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
                   slot: f.index,
                   centre: _stoneCentre(f, stone),
                   radius: radiusMm,
+                  hull: _ringCache[f]?.$3,
                   clip: Rect.fromCenter(center: at, width: side, height: side),
                 ),
               ),
@@ -678,6 +805,7 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     }
     return [
       Positioned(
+        key: ValueKey((f, #add)),
         left: at.dx - 24,
         top: at.dy - 14,
         width: 48,
@@ -761,6 +889,7 @@ class _HandFrontPainter extends CustomPainter {
     required this.centre,
     required this.radius,
     required this.clip,
+    this.hull,
   });
 
   final HandRenderer renderer;
@@ -772,6 +901,7 @@ class _HandFrontPainter extends CustomPainter {
   final HandVec centre;
   final double radius;
   final Rect clip;
+  final StoneHull? hull;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -785,6 +915,7 @@ class _HandFrontPainter extends CustomPainter {
       centre: centre,
       radius: radius,
       clip: clip,
+      hull: hull,
     );
   }
 
@@ -798,6 +929,7 @@ class _HandFrontPainter extends CustomPainter {
         old.slot != slot ||
         old.clip != clip ||
         old.radius != radius ||
+        !identical(old.hull, hull) ||
         old.centre.x != centre.x ||
         old.centre.y != centre.y ||
         old.centre.z != centre.z ||

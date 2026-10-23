@@ -22,8 +22,80 @@ class RingMesh {
 /// from the centre that way and its [height] above the centre (mm).
 typedef RingClaw = ({double angle, double reach, double height});
 
+/// A stone's facet planes in hand space (`n · p <= d` inside it): what
+/// keeps metal off the stone, and tells what stands in front of it.
+class StoneHull {
+  StoneHull._(this.planes);
+
+  /// [mesh] scaled by [mmPerUnit], its model axes [x], [y], [z] laid
+  /// along those hand-space directions about [centre].
+  factory StoneHull.of(
+    SimMesh mesh,
+    double mmPerUnit,
+    HandVec centre,
+    HandVec x,
+    HandVec y,
+    HandVec z,
+  ) {
+    final src = mesh.planes, n = src.length ~/ 4;
+    final out = Float64List(n * 4);
+    for (var i = 0; i < n; i++) {
+      final h = x * src[i * 4] + y * src[i * 4 + 1] + z * src[i * 4 + 2];
+      out
+        ..[i * 4] = h.x
+        ..[i * 4 + 1] = h.y
+        ..[i * 4 + 2] = h.z
+        ..[i * 4 + 3] = src[i * 4 + 3] * mmPerUnit + h.dot(centre);
+    }
+    return StoneHull._(out);
+  }
+
+  /// nx ny nz d per facet, unit normals, mm.
+  final Float64List planes;
+
+  /// [p] moved off the stone until no facet plane has it nearer than
+  /// [clear] mm. The farthest plane is never farther than the true
+  /// distance, so a tube of radius [clear] through the result at most
+  /// touches the stone.
+  HandVec clear(HandVec p, double clear) {
+    final pl = planes;
+    var best = -double.infinity, at = 0;
+    for (var i = 0; i < pl.length; i += 4) {
+      final s = pl[i] * p.x + pl[i + 1] * p.y + pl[i + 2] * p.z - pl[i + 3];
+      if (s > best) {
+        best = s;
+        at = i;
+      }
+    }
+    if (best >= clear) return p;
+    return p + HandVec(pl[at], pl[at + 1], pl[at + 2]) * (clear - best);
+  }
+
+  /// Whether the segment from [a] to [b] passes through the stone shrunk
+  /// by [inset] mm (so metal resting on it does not count).
+  bool blocks(HandVec a, HandVec b, {double inset = 0.05}) {
+    final pl = planes;
+    final dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
+    var t0 = 0.0, t1 = 1.0;
+    for (var i = 0; i < pl.length; i += 4) {
+      final den = pl[i] * dx + pl[i + 1] * dy + pl[i + 2] * dz;
+      final num =
+          pl[i + 3] - inset - (pl[i] * a.x + pl[i + 1] * a.y + pl[i + 2] * a.z);
+      if (den.abs() < 1e-12) {
+        if (num < 0) return false;
+      } else if (den > 0) {
+        t1 = math.min(t1, num / den);
+      } else {
+        t0 = math.max(t0, num / den);
+      }
+      if (t0 >= t1) return false;
+    }
+    return true;
+  }
+}
+
 /// The stone a ring holds: its centre and axes in hand space (model x, y
-/// = table normal, z), and where its claws grip.
+/// = table normal, z), where its claws grip and the solid they wrap.
 class RingHead {
   const RingHead({
     required this.centre,
@@ -31,10 +103,12 @@ class RingHead {
     required this.y,
     required this.z,
     required this.claws,
+    required this.hull,
   });
 
   final HandVec centre, x, y, z;
   final List<RingClaw> claws;
+  final StoneHull hull;
 
   /// Claws placed for [prongs] around [mesh] scaled by [mmPerUnit]: four
   /// on the diagonals (a princess's corners), six from model x (a pear's
@@ -72,8 +146,9 @@ class RingHead {
 }
 
 /// Builds a comfort-fit band hugging [seat]'s finger, and, when [head] is
-/// given, a claw head holding it: claws rising from the band to the
-/// girdle and curling over the crown, tied by a rail under the stone.
+/// given, a claw head holding it: claws rising from the band, hugging the
+/// pavilion, gripping the girdle and curling onto the crown, never
+/// cutting into the stone.
 RingMesh buildRing(HandSeat seat, RingStyle style, RingHead? head) {
   final b = _Builder();
   _band(b, seat, style);
@@ -83,6 +158,39 @@ RingMesh buildRing(HandSeat seat, RingStyle style, RingHead? head) {
 
 /// Gap between the skin and the band's inside, mm.
 const double _gap = 0.15;
+
+/// The top of [style]'s band over the back of [seat]'s finger, where a
+/// stone's culet rests.
+HandVec ringCrest(HandSeat seat, RingStyle style) =>
+    seat.centre + seat.normal * (_evenRadii(seat)[0] + _gap + style.thickness);
+
+const int _around = 96;
+final Expando<List<double>> _evenCache = Expando();
+
+/// The skin's outline evened out, as a band rounds the finger: averaged
+/// over ±22°, never pressing more than 3% into the flesh. [_around]
+/// samples from [HandSeat.normal] toward [HandSeat.lateral].
+List<double> _evenRadii(HandSeat seat) {
+  final cached = _evenCache[seat];
+  if (cached != null) return cached;
+  final raw = [
+    for (var i = 0; i < _around; i++) seat.radiusAt(2 * math.pi * i / _around),
+  ];
+  var even = raw;
+  for (var pass = 0; pass < 2; pass++) {
+    even = [
+      for (var i = 0; i < _around; i++)
+        () {
+          var sum = 0.0;
+          for (var k = -6; k <= 6; k++) {
+            sum += even[(i + k + _around) % _around];
+          }
+          return math.max(sum / 13, raw[i] * 0.97);
+        }(),
+    ];
+  }
+  return _evenCache[seat] = even;
+}
 
 void _band(_Builder b, HandSeat seat, RingStyle style) {
   final w = style.bandWidth, t = style.thickness;
@@ -104,29 +212,11 @@ void _band(_Builder b, HandSeat seat, RingStyle style) {
   profile
     ..add((w / 2, e, 1, 0))
     ..add((w / 2, 0, 1, 0));
-  const around = 96;
   final lat = seat.lateral;
-  // The skin's outline evened out, as a band rounds the finger: averaged
-  // over ±22°, never pressing more than 3% into the flesh.
-  final raw = [
-    for (var i = 0; i < around; i++) seat.radiusAt(2 * math.pi * i / around),
-  ];
-  var even = raw;
-  for (var pass = 0; pass < 2; pass++) {
-    even = [
-      for (var i = 0; i < around; i++)
-        () {
-          var sum = 0.0;
-          for (var k = -6; k <= 6; k++) {
-            sum += even[(i + k + around) % around];
-          }
-          return math.max(sum / 13, raw[i] * 0.97);
-        }(),
-    ];
-  }
+  final even = _evenRadii(seat);
   final rows = <List<(HandVec, HandVec)>>[];
-  for (var i = 0; i < around; i++) {
-    final a = 2 * math.pi * i / around;
+  for (var i = 0; i < _around; i++) {
+    final a = 2 * math.pi * i / _around;
     final dir = seat.normal * math.cos(a) + lat * math.sin(a);
     final r = even[i] + _gap;
     rows.add([
@@ -149,27 +239,32 @@ void _head(_Builder b, HandSeat seat, RingStyle style, RingHead head) {
   }
   mean /= claws.length;
   final pr = (0.085 * mean).clamp(0.35, 0.8);
-  final top = seat.position + seat.normal * (style.thickness * 0.55);
-  final paths = <List<HandVec>>[];
+  // Claws rise from inside the band's crown, within its width.
+  final top = ringCrest(seat, style) - seat.normal * (style.thickness * 0.45);
+  final alongMax = math.max(0.0, style.bandWidth / 2 - pr * 0.6);
+  // Resting on the stone, a hair short of the radius so no gap shows
+  // between metal and stone.
+  final rest = pr * 0.97;
   for (final c in claws) {
     final dir = head.x * math.cos(c.angle) + head.z * math.sin(c.angle);
-    final girdle =
-        head.centre + dir * (c.reach + pr * 0.55) + head.y * c.height;
+    final girdle = head.centre + dir * (c.reach + pr) + head.y * c.height;
     final tip =
         head.centre +
-        dir * (c.reach - pr * 1.4) +
-        head.y * (c.height + pr * 1.5);
+        dir * (c.reach - pr * 1.6) +
+        head.y * (c.height + pr * 0.5);
     final spread = (0.3 * c.reach).clamp(0.8, seat.halfWidth * 0.6);
-    final base = top + dir * spread;
+    var foot = dir * spread;
+    final al = foot.dot(seat.along);
+    foot = foot + seat.along * (al.clamp(-alongMax, alongMax) - al);
+    final base = top + foot;
     final mid = base + (girdle - base) * 0.55 + dir * (0.12 * c.reach);
-    final path = _catmull([base, mid, girdle, tip], 5);
-    paths.add(path);
+    // Every sample pushed off the stone: the claw hugs the pavilion,
+    // grips the girdle and lies on the crown instead of passing through.
+    final path = [
+      for (final p in _catmull([base, mid, girdle, tip], 10))
+        head.hull.clear(p, rest),
+    ];
     b.tube(path, pr, capEnd: true);
-  }
-  // The rail: a hoop through every claw a little under the stone.
-  final rail = [for (final p in paths) p[(p.length * 0.38).round()]];
-  if (rail.length >= 3) {
-    b.tube(_catmull(rail, 6, closed: true), pr * 0.7, closed: true);
   }
 }
 

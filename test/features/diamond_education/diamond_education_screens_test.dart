@@ -16,6 +16,7 @@ import 'package:gemstone/features/diamond_education/domain/diamond_shape.dart';
 import 'package:gemstone/features/diamond_education/presentation/screens/diamond_education_screen.dart';
 import 'package:gemstone/features/diamond_education/presentation/screens/diamond_simulator_screen.dart';
 import 'package:gemstone/features/diamond_education/presentation/widgets/simulator/diamond_sim_viewport.dart';
+import 'package:gemstone/features/diamond_education/presentation/widgets/simulator/sim_hand_stage.dart';
 import 'package:gemstone/features/diamond_education/presentation/widgets/simulator/sim_shape_dial.dart';
 import 'package:gemstone/features/diamond_education/simulation/sim_fancy.dart';
 
@@ -100,6 +101,21 @@ void main() {
         await tester.pump(const Duration(milliseconds: 400));
         expect(find.textContaining('Index · 1.00 ct'), findsOneWidget);
         await tapText('Done');
+        // Turning the hand reorders the stones by depth; each keeps its
+        // renderer, or it would blink out until it traced again.
+        final stones = tester.stateList(find.byType(SimFingerStone)).toSet();
+        expect(stones, hasLength(2));
+        final stage = tester.getRect(find.byType(SimHandStage));
+        final turn = await tester.startGesture(
+          stage.topLeft + Offset(24, stage.height * 0.3),
+        );
+        for (var i = 0; i < 40; i++) {
+          await turn.moveBy(Offset(i < 20 ? 14 : -14, i.isEven ? 6 : -6));
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await turn.up();
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(tester.stateList(find.byType(SimFingerStone)).toSet(), stones);
         await tester.drag(
           find.byType(DiamondSimulatorScreen),
           const Offset(80, 0),

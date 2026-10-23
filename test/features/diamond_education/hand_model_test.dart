@@ -4,10 +4,13 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gemstone/features/diamond_education/domain/average_hand.dart';
+import 'package:gemstone/features/diamond_education/domain/diamond_proportions.dart';
+import 'package:gemstone/features/diamond_education/domain/diamond_shape.dart';
 import 'package:gemstone/features/diamond_education/domain/hand_model.dart';
 import 'package:gemstone/features/diamond_education/domain/hand_ring.dart';
 import 'package:gemstone/features/diamond_education/simulation/hand_renderer.dart';
 import 'package:gemstone/features/diamond_education/simulation/hand_ring_mesh.dart';
+import 'package:gemstone/features/diamond_education/simulation/sim_mesh.dart';
 
 void main() {
   group('HandModel', () {
@@ -90,64 +93,98 @@ void main() {
   });
 
   group('buildRing', () {
-    test(
-      'the band rounds the finger clear of the skin, claws on the girdle',
-      () {
-        for (final f in HandFinger.values) {
-          final seat = HandModel.seat(f);
-          const style = RingStyle(prongs: RingProngs.six, bandWidth: 3);
-          final centre = seat.position + seat.normal * 5;
-          final claws = [
-            for (var k = 0; k < 6; k++)
-              (angle: k * math.pi / 3, reach: 3.2, height: 0.0),
-          ];
-          final mesh = buildRing(
-            seat,
-            style,
-            RingHead(
-              centre: centre,
-              x: seat.along,
-              y: seat.normal,
-              z: seat.along.cross(seat.normal),
-              claws: claws,
-            ),
-          );
-          expect(mesh.vertexCount, lessThan(4000));
-          for (final i in mesh.indices) {
-            expect(i, lessThan(mesh.vertexCount));
-          }
-          var nearGirdle = 0;
-          for (var i = 0; i < mesh.vertexCount; i++) {
-            final p = HandVec(
-              mesh.positions[i * 3],
-              mesh.positions[i * 3 + 1],
-              mesh.positions[i * 3 + 2],
-            );
-            final q = p - seat.centre;
-            final ax = q.dot(seat.along);
-            final radial = q - seat.along * ax;
-            // Band vertices: within its width, never inside the skin.
-            if (ax.abs() <= style.bandWidth / 2 + 1e-6 &&
-                radial.dot(seat.normal) < seat.radiusAt(0) * 0.9) {
-              final a = math.atan2(
-                radial.dot(seat.lateral),
-                radial.dot(seat.normal),
-              );
-              expect(
-                radial.length,
-                greaterThanOrEqualTo(seat.radiusAt(a) * 0.97),
-                reason: '$f',
-              );
-            }
-            final s = p - centre;
-            final h = s.dot(seat.normal);
-            final r = (s - seat.normal * h).length;
-            if (h.abs() < 0.8 && (r - 3.2).abs() < 1.2) nearGirdle++;
-          }
-          expect(nearGirdle, greaterThan(6 * 8), reason: '$f claws');
+    test('the band rounds the finger clear of the skin; claws hold the '
+        'stone without cutting into it, its culet on the band', () {
+      for (final shape in [SimShape.round, SimShape.oval]) {
+        final stone = SimMesh.build(shape, DiamondProportions.ideal(shape));
+        const mm = 3.25;
+        var low = 0.0;
+        for (var i = 1; i < stone.positions.length; i += 3) {
+          low = math.min(low, stone.positions[i]);
         }
-      },
-    );
+        for (final prongs in RingProngs.values) {
+          for (final f in HandFinger.values) {
+            final seat = HandModel.seat(f);
+            final style = RingStyle(prongs: prongs, bandWidth: 3);
+            final crest = ringCrest(seat, style);
+            final centre = crest + seat.normal * (-low * mm - 0.08);
+            final x = seat.along, y = seat.normal, z = x.cross(y);
+            final hull = StoneHull.of(stone, mm, centre, x, y, z);
+            final mesh = buildRing(
+              seat,
+              style,
+              RingHead(
+                centre: centre,
+                x: x,
+                y: y,
+                z: z,
+                claws: RingHead.clawsFor(stone, mm, prongs),
+                hull: hull,
+              ),
+            );
+            final why = '$shape $prongs $f';
+            expect(mesh.vertexCount, lessThan(6000), reason: why);
+            for (final i in mesh.indices) {
+              expect(i, lessThan(mesh.vertexCount));
+            }
+            // The culet rests on the band's crown.
+            final culet = centre - seat.normal * (-low * mm);
+            expect((culet - crest).length, lessThan(0.1), reason: why);
+            var touching = 0;
+            for (var i = 0; i < mesh.vertexCount; i++) {
+              final p = HandVec(
+                mesh.positions[i * 3],
+                mesh.positions[i * 3 + 1],
+                mesh.positions[i * 3 + 2],
+              );
+              final q = p - seat.centre;
+              final ax = q.dot(seat.along);
+              final radial = q - seat.along * ax;
+              // Band vertices: within its width, never inside the skin.
+              if (ax.abs() <= style.bandWidth / 2 + 1e-6 &&
+                  radial.dot(seat.normal) < seat.radiusAt(0) * 0.9) {
+                final a = math.atan2(
+                  radial.dot(seat.lateral),
+                  radial.dot(seat.normal),
+                );
+                expect(
+                  radial.length,
+                  greaterThanOrEqualTo(seat.radiusAt(a) * 0.97),
+                  reason: why,
+                );
+              }
+              // Metal never inside the stone; claws resting on it.
+              var out = -double.infinity;
+              final pl = hull.planes;
+              for (var k = 0; k < pl.length; k += 4) {
+                out = math.max(
+                  out,
+                  pl[k] * p.x + pl[k + 1] * p.y + pl[k + 2] * p.z - pl[k + 3],
+                );
+              }
+              final inBand = (p - crest).dot(seat.normal) < 0.05;
+              if (!inBand) {
+                expect(out, greaterThan(-0.05), reason: why);
+              }
+              if (out < 0.1) touching++;
+            }
+            expect(touching, greaterThan(prongs.count * 8), reason: why);
+            // Nothing between the eye straight above and the table but
+            // the claw tips.
+            expect(
+              hull.blocks(centre + y * 20, centre - y * 20),
+              isTrue,
+              reason: why,
+            );
+            expect(
+              hull.blocks(centre + y * 20, centre + y * 10),
+              isFalse,
+              reason: why,
+            );
+          }
+        }
+      }
+    });
 
     test('band width stays within what jewellers make', () {
       expect(const RingStyle().copyWith(bandWidth: 9).bandWidth, 4);

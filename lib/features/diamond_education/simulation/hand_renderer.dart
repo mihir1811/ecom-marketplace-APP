@@ -511,9 +511,10 @@ class HandRenderer {
 
   /// Over a stone at [centre] (hand space) of [radius] mm drawn within
   /// [clip], draws the parts of the hand and rings that stand in front of
-  /// it: skin wholly nearer than the stone's front, metal nearer than its
-  /// centre (the claws in front of the girdle). [slot] keeps one cached
-  /// layer per stone.
+  /// it: skin wholly nearer than the stone's front, and metal with the
+  /// stone behind it on its line of sight, never in front (judged against
+  /// [hull]; without a hull, metal nearer than the centre). [slot] keeps one cached layer
+  /// per stone.
   void paintFront(
     Canvas canvas,
     Size size,
@@ -524,6 +525,7 @@ class HandRenderer {
     required HandVec centre,
     required double radius,
     required Rect clip,
+    StoneHull? hull,
   }) {
     final dpr = devicePixelRatio;
     if (!_update(size, cam, dpr, ultraviolet)) return;
@@ -538,17 +540,18 @@ class HandRenderer {
       ..[23] = clip.top
       ..[24] = clip.right
       ..[25] = clip.bottom;
-    var same = layer.valid;
+    var same = layer.valid && identical(layer.hull, hull);
     for (var k = 0; k < key.length && same; k++) {
       same = key[k] == layer.cachedKey[k];
     }
     if (!same) {
       layer.clear();
       layer.valid = true;
+      layer.hull = hull;
       layer.cachedKey.setAll(0, key);
       final area = clip.intersect(_rect);
       if (!area.isEmpty) {
-        _renderFront(layer, cam, dpr, ultraviolet, centre, radius, area);
+        _renderFront(layer, cam, dpr, ultraviolet, centre, radius, area, hull);
       }
     }
     final image = layer.image;
@@ -572,8 +575,30 @@ class HandRenderer {
     HandVec centre,
     double radius,
     Rect area,
+    StoneHull? hull,
   ) {
     final c = cam.toCamera(centre);
+    final eye = cam.eye, pivot = HandModel.pivot, rel = _rel;
+    // Per vertex, once asked (bit 0): the stone between it and the eye
+    // (bit 1), the stone behind it on the same line of sight (bit 2).
+    final sight = Uint8List(hull == null ? 0 : _depth.length);
+    int sightOf(int v) {
+      if (sight[v] == 0) {
+        final p = HandVec(
+          rel[v * 3] + pivot.x,
+          rel[v * 3 + 1] + pivot.y,
+          rel[v * 3 + 2] + pivot.z,
+        );
+        final away = p + (p - eye).unit * 100;
+        sight[v] =
+            1 |
+            (hull!.blocks(p, eye) ? 2 : 0) |
+            // A little wider, so a claw along the girdle counts as over it.
+            (hull.blocks(p, away, inset: -0.3) ? 4 : 0);
+      }
+      return sight[v];
+    }
+
     final zs = c.z;
     final ox = _rect.left * dpr, oy = _rect.top * dpr;
     final x0 = (area.left * dpr - ox).floor(),
@@ -589,9 +614,20 @@ class HandRenderer {
       final a = sorted[t * 3], b = sorted[t * 3 + 1], d = sorted[t * 3 + 2];
       final za = depth[a], zb = depth[b], zc = depth[d];
       final metal = _isMetal(a);
-      final front = metal
-          ? (za + zb + zc) / 3 > zs
-          : math.min(za, math.min(zb, zc)) > zs + radius;
+      final bool front;
+      if (!metal) {
+        front = math.min(za, math.min(zb, zc)) > zs + radius;
+      } else if (hull != null) {
+        // Only metal with the stone behind it: anything else (the far
+        // half of the band behind the finger, claws beside the stone) the
+        // hand image already shows sorted against the skin. And no corner
+        // hidden: a triangle behind the stone that pokes out past its
+        // outline must not paint over it.
+        final sa = sightOf(a), sb = sightOf(b), sd = sightOf(d);
+        front = (sa | sb | sd) & 2 == 0 && (sa | sb | sd) & 4 != 0;
+      } else {
+        front = (za + zb + zc) / 3 > zs;
+      }
       if (!front) continue;
       final ax = screen[a * 2], bx = screen[b * 2], cx = screen[d * 2];
       final ay = screen[a * 2 + 1], by = screen[b * 2 + 1];
@@ -777,6 +813,7 @@ class HandRenderer {
 class _FrontLayer {
   final Float64List key = Float64List(26), cachedKey = Float64List(26);
   bool valid = false;
+  StoneHull? hull;
   ui.Image? image, gbuffer;
   Rect rect = Rect.zero;
 
