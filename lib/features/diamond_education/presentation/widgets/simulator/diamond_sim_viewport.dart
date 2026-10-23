@@ -15,6 +15,7 @@ import '../../../simulation/sim_inclusion_plot.dart';
 import '../../../simulation/sim_inclusions.dart';
 import '../../../simulation/sim_mesh.dart';
 import '../../../simulation/sim_morph.dart';
+import '../../../simulation/sim_quality.dart';
 import '../../../simulation/sim_renderer.dart';
 import '../../../simulation/sim_wireframe.dart';
 import 'sim_inclusion_callouts.dart';
@@ -216,14 +217,16 @@ abstract final class SimScale {
 /// is on; otherwise it renders only when something changes, and then
 /// once more at higher quality when the stone comes to rest.
 ///
-/// The GPU always traces the stone at the screen's full resolution.
-/// Rendering adapts to the device through pace alone: real raster times
-/// set how many new pictures a second a moving stone gets (about 60 at
-/// most, down to 30 on weak GPUs), and every other frame reuses the last
-/// one untraced. The stone starts only once the page has finished sliding
-/// in and the tracer has loaded, and light is measured only while the
-/// meters are on screen. On the CPU fallback, frame cost sets the sample
-/// spacing.
+/// A stone at rest is always traced at the screen's full resolution.
+/// While it moves (a drag, a fling, auto-rotate, a slider being dragged),
+/// [SimQuality] adapts it to what the device measurably affords: fewer
+/// traced pixels, scaled up, then the surface extras, then fewer new
+/// pictures a second (about 60 at most, down to 30), every other frame
+/// reusing the last one untraced. Geometry, facets, bounces and fire never
+/// change, and the full frame returns once the stone settles. The stone
+/// starts only once the page has finished sliding in and the tracer has
+/// loaded, and light is measured only while the meters are on screen. On
+/// the CPU fallback, frame cost sets the sample spacing.
 class DiamondSimViewport extends ConsumerStatefulWidget {
   const DiamondSimViewport({required this.controller, super.key});
 
@@ -238,6 +241,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   late final Ticker _ticker = createTicker(_tick);
   // A frame traced in the background goes up as soon as it is ready.
   late final _renderer = SimRenderer()
+    ..lowResInBackground = true
     ..onFrameReady = () {
       if (mounted) _frame.value++;
     };
@@ -278,31 +282,21 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   double _mmPerUnit = 1, _radius = 1;
   double _dpr = 1;
 
-  // GPU budget. The stone is always traced at the screen's full
-  // resolution with the same [SimRenderer.bounces]: neither ever drops,
-  // since a softer stone is never acceptable and changing bounces made
-  // facets flicker. A weak GPU (often a low-memory phone) instead gets
-  // fewer new pictures a second while the stone moves; the frames between
-  // reuse the last one at no tracing cost, and motion keeps its speed.
+  // GPU budget, set by [SimQuality] from measured raster times. The same
+  // [SimRenderer.bounces] always: changing them made facets flicker. A
+  // moving stone on a device that cannot keep up is traced at fewer
+  // pixels first, then, at the floor, less often; the frames between reuse
+  // the last one at no tracing cost, and motion keeps its speed.
+  final _quality = SimQuality.instance;
 
-  /// Shortest gaps between newly traced frames, fastest first: about 60
-  /// a second (every frame on 60 and 90 Hz screens, every other on 120),
-  /// then about 45 or 30, then 30.
+  /// Shortest gaps between newly traced frames per [SimQuality.pace],
+  /// fastest first: about 60 a second (every frame on 60 and 90 Hz
+  /// screens, every other on 120), then about 45 or 30, then 30.
   static const _frameGaps = [
     Duration(microseconds: 10500),
     Duration(microseconds: 20500),
     Duration(microseconds: 31000),
   ];
-
-  /// Raster time, ms, of a frame that traces the stone, above which the
-  /// next slower pace is chosen, per pace; [_paceUp] below which the next
-  /// faster one fits again.
-  static const _paceDown = [14.0, 24.0], _paceUp = [9.0, 16.0];
-  int _pace = 0;
-
-  /// Consecutive slow (positive) or fast (negative) timing batches; the
-  /// pace moves only on a trend, never on one noisy batch.
-  int _trend = 0;
 
   /// Whether the GPU tracer is in, or failed to load (then the CPU tracer
   /// draws). Until then nothing is drawn: never a coarse stand-in.
@@ -352,7 +346,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _c.focus.addListener(_invalidate);
     _c.inclusionView.addListener(_onCommand);
     _c.readout.onWatch = _onReadoutWatched;
-    SchedulerBinding.instance.addTimingsCallback(_onTimings);
+    _quality.attach();
     SimRenderer.loadProgram()
         .then((program) {
           if (!mounted) return;
@@ -405,7 +399,7 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     _c.inclusionView.removeListener(_onCommand);
     if (_c.readout.onWatch == _onReadoutWatched) _c.readout.onWatch = null;
     _route?.removeStatusListener(_onRouteStatus);
-    SchedulerBinding.instance.removeTimingsCallback(_onTimings);
+    _quality.detach();
     _refineTimer?.cancel();
     _ticker.dispose();
     _frame.dispose();
@@ -430,41 +424,6 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       _renderer.requestStats();
       _invalidate();
     });
-  }
-
-  /// Steers how often a moving stone is traced anew from real raster
-  /// times, reported in batches about once a second. Resolution never
-  /// changes.
-  void _onTimings(List<FrameTiming> timings) {
-    // Frames with the shape dial carry its drawing and the morph too, and
-    // a reshaped stone is traced on every change whatever the pace.
-    if (!_ticker.isActive ||
-        _renderer.shader == null ||
-        _c.vector ||
-        _withDial ||
-        timings.isEmpty) {
-      return;
-    }
-    // Paced, only some frames trace; the rest copy the last picture and
-    // cost next to nothing. The slowest quarter are the traced ones.
-    final ms = [for (final t in timings) t.rasterDuration.inMicroseconds]
-      ..sort();
-    final top = ms.sublist(ms.length - math.max(1, ms.length ~/ 4));
-    final traced = top.reduce((a, b) => a + b) / top.length / 1000;
-    if (_pace < _paceDown.length && traced > _paceDown[_pace]) {
-      _trend = math.max(1, _trend + 1);
-    } else if (_pace > 0 && traced < _paceUp[_pace - 1]) {
-      _trend = math.min(-1, _trend - 1);
-    } else {
-      _trend = 0;
-    }
-    if (_trend >= 2) {
-      _pace++;
-      _trend = 0;
-    } else if (_trend <= -3) {
-      _pace--;
-      _trend = 0;
-    }
   }
 
   void _onCommand() {
@@ -508,9 +467,6 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     final c = size.center(Offset.zero);
     return Offset.lerp(_anchorFrom ?? c, _anchorTo ?? c, _placeEase)!;
   }
-
-  /// While the stone is fitted inside the shape dial (or easing away).
-  bool get _withDial => _c.fit.value != null || _fitAmount > 0;
 
   double get _fitGoal => _c.fit.value == null ? 0 : 1;
 
@@ -560,7 +516,9 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
   }
 
   void _tick(Duration elapsed) {
-    if (_last != Duration.zero && elapsed - _last < _frameGaps[_pace]) return;
+    if (_last != Duration.zero && elapsed - _last < _frameGaps[_quality.pace]) {
+      return;
+    }
     final dt = _last == Duration.zero
         ? 1 / 60
         : ((elapsed - _last).inMicroseconds / 1e6).clamp(0.0, 1 / 20);
@@ -643,9 +601,14 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
     if (!_tracerSettled) return;
     final quality = _refined;
     final gpu = _renderer.shader != null;
+    // Moving, or changed moments ago (a slider mid-drag): traced as the
+    // device affords, and in full once it settles.
+    final moving = !quality;
+    if (moving && gpu) _quality.markMotion();
     // The same bounces moving and still, so light never jumps. A stone
     // mid-morph is not measured: the meters wait for the new shape.
     _renderer
+      ..draft = gpu && _quality.draft(moving: moving)
       ..maxBounces = SimRenderer.bounces
       ..measureStats = _c.readout.watched && morph == null
       ..inclusionFocus = Curves.easeInOut.transform(_focus);
@@ -662,8 +625,9 @@ class _DiamondSimViewportState extends ConsumerState<DiamondSimViewport>
       view: view,
       pxPerUnit: pxPerUnit,
       samplePx: quality ? math.max(3.6, _samplePx * 0.55) : _samplePx,
-      // Always one traced path per device pixel.
       devicePixelRatio: _dpr,
+      renderScale: _quality.traceScale(_dpr, moving: moving),
+      pixelBudget: _quality.pixelBudget,
       time: _time,
       twinkle: _ticker.isActive,
       centre: centre,

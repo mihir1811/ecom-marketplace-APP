@@ -221,6 +221,18 @@ class SimRenderer {
 
   static const _focusLevel = 0.05;
 
+  /// Whether frames are drafts, drawn while the stone moves on a device
+  /// that cannot keep up: the silhouette's extra coverage samples and the
+  /// clouds' finer march are skipped (GPU only). Geometry, bounces and
+  /// fire stay as they are, so the still frame after it only sharpens.
+  bool draft = false;
+
+  /// Whether frames traced below the device's resolution are traced in
+  /// the background and kept, as full resolution frames are; otherwise
+  /// they are traced on the spot, every paint, for callers that draw the
+  /// stone in step with something else (the jewelry scenes).
+  bool lowResInBackground = false;
+
   // ---- Sample layout -------------------------------------------------
 
   SimMesh? _layoutFor;
@@ -354,7 +366,9 @@ class SimRenderer {
   /// Paints the stone centred in [size] (or at [centre]). [pxPerUnit] maps model units to
   /// logical pixels at zoom 1; CPU samples land about [samplePx] pixels
   /// apart. The GPU traces [renderScale] pixels per logical pixel, capped
-  /// at [devicePixelRatio], which also sizes its edge anti-aliasing.
+  /// at [devicePixelRatio], which also sizes its edge anti-aliasing, and
+  /// lowered further if the frame kept would hold more than [pixelBudget]
+  /// pixels.
   void paint(
     Canvas canvas,
     Size size, {
@@ -366,6 +380,7 @@ class SimRenderer {
     double time = 0,
     bool twinkle = false,
     Offset? centre,
+    int? pixelBudget,
   }) {
     final mesh = _mesh;
     if (mesh == null || size.isEmpty) return;
@@ -428,7 +443,17 @@ class SimRenderer {
 
     if (gpu) {
       final s = math.min(renderScale ?? devicePixelRatio, devicePixelRatio);
-      _paintGpu(canvas, mesh, scale, cx, cy, devicePixelRatio, s, rot);
+      _paintGpu(
+        canvas,
+        mesh,
+        scale,
+        cx,
+        cy,
+        devicePixelRatio,
+        s,
+        rot,
+        pixelBudget,
+      );
       if (measure) {
         final bounces = tracer.maxBounces;
         tracer.maxBounces = math.min(bounces, _measureBounces);
@@ -537,6 +562,7 @@ class SimRenderer {
   static const _uIncl = _uScope + 4;
   static const _uFocus = _uIncl + SimInclusions.maxCount * 8;
   static const _uSplit = _uFocus + 4;
+  static const _uQuality = _uSplit + 4;
 
   void _paintGpu(
     Canvas canvas,
@@ -547,6 +573,7 @@ class SimRenderer {
     double dpr,
     double renderScale,
     Float64List r,
+    int? pixelBudget,
   ) {
     final sh = shader!;
     if (!identical(sh, _uniformShader)) {
@@ -595,9 +622,40 @@ class SimRenderer {
         sh.setFloat(4 + row * 4 + k, r[row * 3 + k]);
       }
     }
-    // Pixels actually traced per logical pixel.
-    final s = renderScale.clamp(0.5, dpr);
+    // Trace only the silhouette's bounds: the projected corners plus a
+    // pixel for the anti-aliased edge.
+    var l = double.infinity, t = double.infinity;
+    var rt = -double.infinity, b = -double.infinity;
+    for (var i = 0; i < mesh.vertexCount; i++) {
+      l = math.min(l, _px[i]);
+      rt = math.max(rt, _px[i]);
+      t = math.min(t, _py[i]);
+      b = math.max(b, _py[i]);
+    }
+    var bounds = Rect.fromLTRB(l - 2, t - 2, rt + 2, b + 2);
+    // On the web a picture turned into an image is drawn there and then
+    // and read back to the CPU, pixel by pixel: every frame, that stalls
+    // the GPU until the browser drops its WebGL context. Traced straight
+    // into the canvas there, as when turned or scaled by the caller.
+    final direct = kIsWeb || !_axisAligned(canvas);
+    if (!direct) {
+      // Only what can show: a zoomed stone reaching past the view is
+      // traced up to the view's edge, never beyond it.
+      bounds = bounds.intersect(canvas.getLocalClipBounds());
+      if (bounds.isEmpty) return;
+    }
+
+    // Pixels actually traced per logical pixel, within the memory budget
+    // for the frame kept.
+    var s = renderScale.clamp(0.5, dpr);
+    if (pixelBudget != null && !direct) {
+      final area = bounds.width * bounds.height;
+      if (area * s * s > pixelBudget) {
+        s = math.max(0.5, math.sqrt(pixelBudget / area));
+      }
+    }
     sh
+      ..setFloat(_uQuality, draft ? 1 : 0)
       ..setFloat(18, _tracer.maxBounces.toDouble())
       ..setFloat(19, _exposure)
       ..setFloat(24, o.absorbR + o.haze)
@@ -615,38 +673,21 @@ class SimRenderer {
       ..setFloat(_uFocus, inclusionFocus.clamp(0.0, 1.0))
       ..setFloat(_uFocus + 1, _focusLevel * studio.ambient);
 
-    // Trace only the silhouette's bounds: the projected corners plus a
-    // pixel for the anti-aliased edge.
-    var l = double.infinity, t = double.infinity;
-    var rt = -double.infinity, b = -double.infinity;
-    for (var i = 0; i < mesh.vertexCount; i++) {
-      l = math.min(l, _px[i]);
-      rt = math.max(rt, _px[i]);
-      t = math.min(t, _py[i]);
-      b = math.max(b, _py[i]);
-    }
-    var bounds = Rect.fromLTRB(l - 2, t - 2, rt + 2, b + 2);
     _gpuPaint.shader = sh;
 
-    if (s >= dpr - 0.05) {
-      // On the web a picture turned into an image is drawn there and then
-      // and read back to the CPU, pixel by pixel: every frame, that stalls
-      // the GPU until the browser drops its WebGL context. Trace straight
-      // into the canvas there, as when turned or scaled by the caller.
-      if (kIsWeb || !_axisAligned(canvas)) {
-        _dropCache();
-        canvas.drawRect(bounds, _gpuPaint);
-        return;
-      }
-      // Only what can show: a zoomed stone reaching past the view is
-      // traced up to the view's edge, never beyond it.
-      bounds = bounds.intersect(canvas.getLocalClipBounds());
-      if (bounds.isEmpty) return;
-      // Full resolution, one traced pixel per device pixel, kept as an
-      // image: the engine redraws every picture on every frame it makes,
-      // so any other animation on screen (a panel, the dial, a slider)
-      // would otherwise trace the stone again, unchanged. Until the stone
-      // or view changes, frames copy the same pixels instead.
+    final full = s >= dpr - 0.05;
+    if (full && direct) {
+      _dropCache();
+      canvas.drawRect(bounds, _gpuPaint);
+      return;
+    }
+    if (!direct && (full || lowResInBackground)) {
+      // Kept as an image: the engine redraws every picture on every frame
+      // it makes, so any other animation on screen (a panel, the dial, a
+      // slider) would otherwise trace the stone again, unchanged. Until
+      // the stone or view changes, frames copy the same pixels instead.
+      // At full resolution one traced pixel per device pixel; below it (a
+      // moving stone on a device that cannot keep up), scaled up.
       final key = _cacheKey
         ..[0] = cx
         ..[1] = cy
@@ -658,7 +699,9 @@ class SimRenderer {
         ..[16] = bounds.left
         ..[17] = bounds.top
         ..[18] = bounds.right
-        ..[19] = bounds.bottom;
+        ..[19] = bounds.bottom
+        ..[20] = s
+        ..[21] = draft ? 1 : 0;
       for (var k = 0; k < 9; k++) {
         key[7 + k] = r[k];
       }
@@ -681,7 +724,7 @@ class SimRenderer {
           _traceFrame(
             bounds,
             _traceArea(mesh.vertexCount),
-            dpr,
+            s,
             mesh,
             o,
             sh,
@@ -695,7 +738,7 @@ class SimRenderer {
         image,
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
         _cachedBounds,
-        _copyPaint,
+        _cachedFull ? _copyPaint : _blitPaint,
       );
       return;
     }
@@ -722,8 +765,8 @@ class SimRenderer {
     _frameImage = image;
   }
 
-  /// Traces the stone at full resolution into an image off screen; when
-  /// the GPU is done, it becomes the frame shown.
+  /// Traces the stone at [dpr] pixels per logical pixel into an image off
+  /// screen; when the GPU is done, it becomes the frame shown.
   void _traceFrame(
     Rect bounds,
     Path area,
@@ -752,6 +795,8 @@ class SimRenderer {
     final picture = recorder.endRecording();
     final inclusions = _inclusions;
     final traced = Float64List.fromList(key);
+    // key[3] is the device's pixel ratio.
+    final full = dpr >= key[3] - 0.05;
     _tracing = true;
     _behind = false;
     picture
@@ -768,6 +813,7 @@ class SimRenderer {
             _frameImage?.dispose();
             _frameImage = image;
             _cachedBounds = at;
+            _cachedFull = full;
             _cachedMesh = mesh;
             _cachedInclusions = inclusions;
             _cachedOptics = optics;
@@ -785,15 +831,16 @@ class SimRenderer {
   }
 
   // The last full resolution frame and what it was traced for.
-  final Float64List _cacheKey = Float64List(20), _cachedKey = Float64List(20);
+  final Float64List _cacheKey = Float64List(22), _cachedKey = Float64List(22);
   Rect _cachedBounds = Rect.zero;
+  bool _cachedFull = true;
   SimMesh? _cachedMesh;
   List<SimInclusion>? _cachedInclusions;
   SimOptics? _cachedOptics;
   ui.FragmentShader? _cachedShader;
 
-  /// Copies the cached frame pixel for pixel: no filtering, so not even a
-  /// sub-pixel offset can soften it.
+  /// Copies a full resolution frame pixel for pixel: no filtering, so not
+  /// even a sub-pixel offset can soften it.
   final Paint _copyPaint = Paint()..filterQuality = FilterQuality.none;
 
   bool _sameKey() {

@@ -70,6 +70,12 @@ uniform vec4 uFocus;   // inclusion focus 0..1, the even level facets fade to
 // plane of the group, so the group is skipped: the same picture, fewer
 // tests.
 uniform vec4 uSplit;
+// x: draft, 0 or 1. A frame drawn while the stone moves on a device that
+// cannot keep up: the silhouette takes one coverage sample instead of
+// four (the frame is scaled up and filtered anyway) and clouds are
+// marched once instead of three times. Same geometry, bounces and fire;
+// the still frame after it is traced in full.
+uniform vec4 uQuality;
 
 out vec4 fragColor;
 
@@ -614,15 +620,17 @@ vec3 shade(vec3 p, vec3 d, vec3 n, mat2 g) {
       float t1 = min((-qb + root) / qa, sEv);
       if (t1 <= t0) continue;
       float dens = 0.0;
+      float steps = uQuality.x > 0.5 ? 1.0 : 3.0;
       for (int j = 0; j < 3; j++) {
-        vec3 x = (p + t * mix(t0, t1, (float(j) + 0.5) / 3.0) - a.xyz) / a.w;
+        if (float(j) >= steps) break;
+        vec3 x = (p + t * mix(t0, t1, (float(j) + 0.5) / steps) - a.xyz) / a.w;
         float ax = dot(x, b.xyz);
         float rr = dot(x, x) + 3.0 * ax * ax;
         float g = 0.55 * noise3(x * 3.5 + seed * 31.0) +
                   0.45 * noise3(x * 17.0 + seed * 7.0);
         dens += max(0.0, g - 0.25 - 0.5 * rr);
       }
-      float tau = dens / 3.0 * (t1 - t0) / a.w * 4.5;
+      float tau = dens / steps * (t1 - t0) / a.w * 4.5;
       acc += thr * (1.0 - exp(-tau)) * innerLight(t) * 1.3;
       thr *= exp(-0.6 * tau);
     }
@@ -794,7 +802,7 @@ void main() {
 
   // Along the silhouette, measure true pixel coverage with four
   // rotated-grid samples so the outline is smooth, never stair-stepped.
-  if (abs(chord) < 6.0 * uMisc.y) {
+  if (uQuality.x < 0.5 && abs(chord) < 6.0 * uMisc.y) {
     cover = 0.0;
     for (int k = 0; k < 4; k++) {
       float a = float(k) * 1.5707963 + 0.4636476;

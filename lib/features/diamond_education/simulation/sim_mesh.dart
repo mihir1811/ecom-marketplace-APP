@@ -186,8 +186,27 @@ class SimMesh {
     ], fold: fold);
   }
 
-  /// Builds [shape] cut to [proportions].
+  /// Builds [shape] cut to [proportions]. Meshes never change once built,
+  /// so the last few are kept: a slider dragged back and forth, the shape
+  /// dial and the hand's parked stones ask for the same cuts again and
+  /// again, and a fancy cut takes milliseconds to build.
   static SimMesh build(SimShape shape, DiamondProportions proportions) {
+    final key = (shape, proportions);
+    final hit = _built.remove(key);
+    if (hit != null) return _built[key] = hit;
+    final mesh = _build(shape, proportions);
+    if (_built.length >= _keep) _built.remove(_built.keys.first);
+    return _built[key] = mesh;
+  }
+
+  /// Least recently built first. A mesh is a few kilobytes.
+  static final Map<(SimShape, DiamondProportions), SimMesh> _built = {};
+  static const _keep = 48;
+
+  /// Drops the kept meshes, e.g. under memory pressure.
+  static void trimCache() => _built.clear();
+
+  static SimMesh _build(SimShape shape, DiamondProportions proportions) {
     final b = _Builder(shape);
     switch (shape) {
       case _ when shape.family == SimCutFamily.step:

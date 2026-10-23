@@ -17,6 +17,7 @@ import '../../../simulation/hand_renderer.dart';
 import '../../../simulation/hand_ring_mesh.dart';
 import '../../../simulation/sim_mesh.dart';
 import '../../../simulation/sim_optics.dart';
+import '../../../simulation/sim_quality.dart';
 import '../../../simulation/sim_renderer.dart';
 import '../../../simulation/sim_inclusion_plot.dart';
 import '../../../simulation/sim_wireframe.dart';
@@ -102,6 +103,18 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
 
   final HandRenderer _hand = HandRenderer();
   bool _handReady = false;
+  final _quality = SimQuality.instance;
+
+  /// Whether the hand or a stone on it moves: drawn then as the device
+  /// affords ([SimQuality]), and in full once it rests.
+  bool get _moving =>
+      _dragging ||
+      _spinTicker.isActive ||
+      _orbitTicker.isActive ||
+      _recentre.isAnimating ||
+      _enter.isAnimating ||
+      _zoom.isAnimating ||
+      _lift.isAnimating;
 
   final Map<HandFinger, double> _spin = {};
   double _velocity = 0;
@@ -140,6 +153,7 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     widget.controller.handRecentre.addListener(_startRecentre);
     widget.controller.addListener(_onMode);
     _vector = widget.controller.vector;
+    _quality.attach();
     HandRenderer.load()
         .then((assets) {
           if (!mounted) return;
@@ -186,6 +200,7 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     _spinTicker.dispose();
     _orbitTicker.dispose();
     _hand.dispose();
+    _quality.detach();
     super.dispose();
   }
 
@@ -322,7 +337,8 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     });
     if (_orbitVelocity.distance < 0.02) {
       _orbitTicker.stop();
-      _orbitVelocity = Offset.zero;
+      // At rest: drawn once more, in full.
+      setState(() => _orbitVelocity = Offset.zero);
     }
   }
 
@@ -665,6 +681,10 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
                   parent: _enter,
                   curve: const Interval(0.55, 1, curve: Curves.easeOutBack),
                 ).value;
+                final moving = _moving;
+                if (moving) _quality.markMotion();
+                final handScale = _quality.traceScale(dpr, moving: moving);
+                final budget = _quality.pixelBudget;
                 return Stack(
                   clipBehavior: Clip.none,
                   fit: StackFit.expand,
@@ -699,6 +719,8 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
                                     version: _hand.version,
                                     camera: cam,
                                     dpr: dpr,
+                                    scale: handScale,
+                                    budget: budget,
                                     ultraviolet: uv,
                                   ),
                                 ),
@@ -711,6 +733,8 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
                                 selected: f == hand.active,
                                 appear: stones,
                                 dpr: dpr,
+                                scale: handScale,
+                                budget: budget,
                                 ultraviolet: uv,
                               ),
                           ],
@@ -744,6 +768,8 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
     required bool selected,
     required double appear,
     required double dpr,
+    required double scale,
+    required int? budget,
     required bool ultraviolet,
   }) {
     final place = _place(f, cam, stone);
@@ -774,7 +800,8 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
                   stone: stone,
                   pxPerMm: place.px,
                   view: place.view,
-                  moving: selected && (_dragging || _spinTicker.isActive),
+                  // Any stone moves while the hand turns, not only one spun.
+                  moving: _moving,
                   vector: _vector,
                 ),
               ),
@@ -791,6 +818,8 @@ class _SimHandStageState extends ConsumerState<SimHandStage>
                   version: _hand.version,
                   camera: cam,
                   dpr: dpr,
+                  scale: scale,
+                  budget: budget,
                   ultraviolet: ultraviolet,
                   slot: f.index,
                   centre: _stoneCentre(f, stone),
@@ -840,6 +869,8 @@ class _HandPainter extends CustomPainter {
     required this.version,
     required this.camera,
     required this.dpr,
+    required this.scale,
+    required this.budget,
     required this.ultraviolet,
   });
 
@@ -849,6 +880,11 @@ class _HandPainter extends CustomPainter {
   final int version;
   final HandCamera camera;
   final double dpr;
+
+  /// Pixels per logical pixel drawn, and the images' pixel budget
+  /// ([SimQuality]).
+  final double scale;
+  final int? budget;
   final bool ultraviolet;
 
   @override
@@ -858,6 +894,8 @@ class _HandPainter extends CustomPainter {
       size,
       camera,
       devicePixelRatio: dpr,
+      renderScale: scale,
+      pixelBudget: budget,
       ultraviolet: ultraviolet,
     );
   }
@@ -868,6 +906,8 @@ class _HandPainter extends CustomPainter {
     return old.renderer != renderer ||
         old.version != version ||
         old.dpr != dpr ||
+        old.scale != scale ||
+        old.budget != budget ||
         old.ultraviolet != ultraviolet ||
         a.yaw != b.yaw ||
         a.pitch != b.pitch ||
@@ -884,6 +924,8 @@ class _HandFrontPainter extends CustomPainter {
     required this.version,
     required this.camera,
     required this.dpr,
+    required this.scale,
+    required this.budget,
     required this.ultraviolet,
     required this.slot,
     required this.centre,
@@ -896,6 +938,10 @@ class _HandFrontPainter extends CustomPainter {
   final int version;
   final HandCamera camera;
   final double dpr;
+
+  /// As for the hand itself, or the hand is drawn again.
+  final double scale;
+  final int? budget;
   final bool ultraviolet;
   final int slot;
   final HandVec centre;
@@ -910,6 +956,8 @@ class _HandFrontPainter extends CustomPainter {
       size,
       camera,
       devicePixelRatio: dpr,
+      renderScale: scale,
+      pixelBudget: budget,
       ultraviolet: ultraviolet,
       slot: slot,
       centre: centre,
@@ -925,6 +973,8 @@ class _HandFrontPainter extends CustomPainter {
     return old.renderer != renderer ||
         old.version != version ||
         old.dpr != dpr ||
+        old.scale != scale ||
+        old.budget != budget ||
         old.ultraviolet != ultraviolet ||
         old.slot != slot ||
         old.clip != clip ||
@@ -969,6 +1019,7 @@ class SimFingerStone extends StatefulWidget {
 class _SimFingerStoneState extends State<SimFingerStone> {
   late final _renderer = SimRenderer()
     ..measureStats = false
+    ..lowResInBackground = true
     // A frame traced in the background goes up as soon as it is ready.
     ..onFrameReady = () {
       if (mounted) setState(() => _version++);
@@ -979,8 +1030,8 @@ class _SimFingerStoneState extends State<SimFingerStone> {
   int _version = 0;
 
   /// Whether the stone changed moments ago: while edits keep coming (a
-  /// slider drag, quick taps) the CPU fallback samples coarser, and finer
-  /// once they stop. The GPU always traces at full resolution.
+  /// slider drag, quick taps) it is drawn as a moving one, and in full
+  /// once they stop.
   bool _settling = false;
   Timer? _settle;
 
@@ -1113,15 +1164,23 @@ class _FingerStonePainter extends CustomPainter {
       return;
     }
     if (!ready) return;
-    renderer.maxBounces = SimRenderer.bounces;
+    final quality = SimQuality.instance;
+    final gpu = renderer.shader != null;
+    if (moving && gpu) quality.markMotion();
+    renderer
+      ..maxBounces = SimRenderer.bounces
+      ..draft = gpu && quality.draft(moving: moving);
     renderer.paint(
       canvas,
       size,
       view: view,
       pxPerUnit: pxPerUnit,
       samplePx: moving ? 4 : 2.5,
-      // Always one traced path per device pixel, spinning or still.
+      // One traced path per device pixel at rest; as the device affords
+      // while spinning.
       devicePixelRatio: dpr,
+      renderScale: quality.traceScale(dpr, moving: moving),
+      pixelBudget: quality.pixelBudget,
     );
   }
 

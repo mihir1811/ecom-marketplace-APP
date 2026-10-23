@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
@@ -234,21 +235,35 @@ class HandRenderer {
   final Paint _shade = Paint();
   final Paint _copy = Paint()..filterQuality = FilterQuality.none;
 
+  /// Scales up an image traced below the device's resolution.
+  final Paint _blit = Paint()..filterQuality = FilterQuality.medium;
+
+  /// Pixels per logical pixel the hand is drawn at now, and whether that
+  /// is the device's full resolution.
+  double _scale = 1;
+  bool _full = true;
+
   // The bare hand, filled once.
   late Float32List _handRel; // positions about the pivot
   late Float32List _handTex; // texture coordinates, skin texels
   late Int32List _handColors; // occlusion grey, forearm fade alpha
 
   // Hand and rings together, refilled when the rings change.
-  late Float32List _rel, _tex;
-  late Int32List _colors, _normalColors;
-  late Uint16List _indices;
-  late Uint8List _faded;
+  Float32List _rel = Float32List(0), _tex = Float32List(0);
+  Int32List _colors = Int32List(0), _normalColors = Int32List(0);
+  Uint16List _indices = Uint16List(0);
+  Uint8List _faded = Uint8List(0);
+
+  /// Whether the bare hand changed since the arrays were filled, and the
+  /// bands whose contact shadows they hold.
+  bool _handDirty = true;
+  List<(HandSeat, double)> _shadows = const [];
 
   // Per view.
   late Float32List _screen, _depth;
   late Uint16List _sorted;
-  late Int32List _keys, _counts;
+  late Int32List _keys;
+  final Int32List _counts = Int32List(_buckets + 1);
   int _drawn = 0;
   Rect _rect = Rect.zero;
 
@@ -312,6 +327,7 @@ class HandRenderer {
       filterQuality: FilterQuality.medium,
     );
     final s = a.skin.width / a.normals.width;
+    _handDirty = true;
     _normalPaint.shader = ui.ImageShader(
       a.normals,
       TileMode.clamp,
@@ -336,6 +352,11 @@ class HandRenderer {
     if (_a != null) _combine();
   }
 
+  /// Fills the hand and rings arrays. Spinning a stone on the hand
+  /// rebuilds its ring's claws every frame with the same vertex and
+  /// triangle counts, so the arrays are kept and only what changed is
+  /// written again: the rings always, the hand only when it or the bands'
+  /// contact shadows on it change.
   void _combine() {
     final a = _a!, m = a.mesh;
     final nvH = m.vertexCount, ntH = m.triangleCount;
@@ -344,37 +365,56 @@ class HandRenderer {
       nv += r.mesh.vertexCount;
       nt += r.mesh.triangleCount;
     }
-    _rel = Float32List(nv * 3)..setAll(0, _handRel);
-    _tex = Float32List(nv * 2)..setAll(0, _handTex);
-    _colors = Int32List(nv)..setAll(0, _handColors);
-    _normalColors = Int32List(nv)..fillRange(0, nvH, 0xFFFFFFFF);
-    _indices = Uint16List(nt * 3)..setAll(0, m.indices);
+    var refill = _handDirty;
+    _handDirty = false;
+    if (refill || _rel.length != nv * 3) {
+      refill = true;
+      _rel = Float32List(nv * 3)..setAll(0, _handRel);
+      _tex = Float32List(nv * 2)..setAll(0, _handTex);
+      _colors = Int32List(nv);
+      _normalColors = Int32List(nv)..fillRange(0, nvH, 0xFFFFFFFF);
+      _screen = Float32List(nv * 2);
+      _depth = Float32List(nv);
+    }
+    if (refill || _indices.length != nt * 3) {
+      refill = true;
+      _indices = Uint16List(nt * 3)..setAll(0, m.indices);
+      _sorted = Uint16List(nt * 3);
+      _keys = Int32List(nt);
+      _faded = Uint8List(nt);
+    }
 
     // Each band's soft contact shadow on the skin beside it.
-    for (final r in _rings) {
-      final s = r.seat, half = r.bandWidth / 2;
-      final reach = s.radii.reduce(math.max) + 3;
-      for (var i = 0; i < nvH; i++) {
-        final p = HandVec(
-          m.positions[i * 3],
-          m.positions[i * 3 + 1],
-          m.positions[i * 3 + 2],
-        );
-        final q = p - s.centre;
-        final ax = q.dot(s.along).abs();
-        if (ax > half + 3) continue;
-        if ((q - s.along * q.dot(s.along)).length > reach) continue;
-        var k = ((ax - half + 0.3) / 2.8).clamp(0.0, 1.0);
-        k = 0.55 + 0.45 * k * k * (3 - 2 * k);
-        final c = _colors[i];
-        final g = ((c & 0xFF) * k).round();
-        _colors[i] = (c & 0xFF000000) | g << 16 | g << 8 | g;
+    final shadows = [for (final r in _rings) (r.seat, r.bandWidth)];
+    if (refill || !listEquals(shadows, _shadows)) {
+      _shadows = shadows;
+      _colors.setRange(0, nvH, _handColors);
+      for (final r in _rings) {
+        final s = r.seat, half = r.bandWidth / 2;
+        final reach = s.radii.reduce(math.max) + 3;
+        for (var i = 0; i < nvH; i++) {
+          final p = HandVec(
+            m.positions[i * 3],
+            m.positions[i * 3 + 1],
+            m.positions[i * 3 + 2],
+          );
+          final q = p - s.centre;
+          final ax = q.dot(s.along).abs();
+          if (ax > half + 3) continue;
+          if ((q - s.along * q.dot(s.along)).length > reach) continue;
+          var k = ((ax - half + 0.3) / 2.8).clamp(0.0, 1.0);
+          k = 0.55 + 0.45 * k * k * (3 - 2 * k);
+          final c = _colors[i];
+          final g = ((c & 0xFF) * k).round();
+          _colors[i] = (c & 0xFF000000) | g << 16 | g << 8 | g;
+        }
       }
     }
 
     final pivot = HandModel.pivot;
     final pu = HandModel.patchU * a.skin.width;
     final pv = HandModel.patchV * a.skin.height;
+    int enc(double n) => ((n * 0.5 + 0.5) * 255).round().clamp(0, 255);
     var v = nvH, t = ntH;
     for (final r in _rings) {
       final rm = r.mesh;
@@ -385,7 +425,6 @@ class HandRenderer {
         _tex[v * 2] = pu;
         _tex[v * 2 + 1] = pv;
         _colors[v] = _metalMarker;
-        int enc(double n) => ((n * 0.5 + 0.5) * 255).round().clamp(0, 255);
         _normalColors[v] =
             0xFF000000 |
             enc(rm.normals[i * 3]) << 16 |
@@ -399,19 +438,17 @@ class HandRenderer {
       t += rm.triangleCount;
     }
 
-    _faded = Uint8List(nt);
-    for (var i = 0; i < nt; i++) {
-      var all = true;
-      for (var k = 0; k < 3 && all; k++) {
-        all = (_colors[_indices[i * 3 + k]] >>> 24) == 0;
+    if (refill) {
+      // Only the bare hand fades out up the forearm; shadows keep alpha
+      // and metal is opaque, so this holds until the arrays change.
+      for (var i = 0; i < nt; i++) {
+        var all = true;
+        for (var k = 0; k < 3 && all; k++) {
+          all = (_colors[_indices[i * 3 + k]] >>> 24) == 0;
+        }
+        _faded[i] = all ? 1 : 0;
       }
-      _faded[i] = all ? 1 : 0;
     }
-    _screen = Float32List(nv * 2);
-    _depth = Float32List(nv);
-    _sorted = Uint16List(nt * 3);
-    _keys = Int32List(nt);
-    _counts = Int32List(_buckets + 1);
     _version++;
   }
 
@@ -455,10 +492,29 @@ class HandRenderer {
   }
 
   /// Brings the hand image and the sorted triangles up to date for this
-  /// view; false when the hand is off screen.
-  bool _update(Size size, HandCamera cam, double dpr, bool uv) {
+  /// view, drawn at [scale] pixels per logical pixel (at most [dpr]) and
+  /// within [pixelBudget]; false when the hand is off screen.
+  bool _update(
+    Size size,
+    HandCamera cam,
+    double dpr,
+    bool uv,
+    double? scale,
+    int? pixelBudget,
+  ) {
     if (_a == null || _shader == null || size.isEmpty) return false;
-    final key = _keyFor(size, cam, dpr, uv);
+    final area = bounds(cam).intersect(Offset.zero & size);
+    if (area.isEmpty) return false;
+    var s = math.min(scale ?? dpr, dpr);
+    if (pixelBudget != null) {
+      // The G-buffer is two images wide, and the shaded one a third.
+      final need = area.width * area.height * 3;
+      if (need * s * s > pixelBudget) {
+        s = math.max(0.5, math.sqrt(pixelBudget / need));
+      }
+    }
+    _full = s >= dpr - 0.05;
+    final key = _keyFor(size, cam, s, uv);
     var same = _image != null;
     for (var k = 0; k < key.length && same; k++) {
       same = key[k] == _cachedKey[k];
@@ -466,8 +522,7 @@ class HandRenderer {
     if (same) return true;
     _image?.dispose();
     _image = null;
-    final area = bounds(cam).intersect(Offset.zero & size);
-    if (area.isEmpty) return false;
+    _scale = dpr = s;
     // Whole device pixels, so the copy lands one to one.
     final x0 = (area.left * dpr).floor(), y0 = (area.top * dpr).floor();
     final x1 = (area.right * dpr).ceil(), y1 = (area.bottom * dpr).ceil();
@@ -492,20 +547,34 @@ class HandRenderer {
     return true;
   }
 
+  /// Draws the hand at [renderScale] pixels per logical pixel (the
+  /// device's own by default; lower while it moves on a device that
+  /// cannot keep up), within [pixelBudget] pixels of images.
   void paint(
     Canvas canvas,
     Size size,
     HandCamera cam, {
     required double devicePixelRatio,
+    double? renderScale,
+    int? pixelBudget,
     bool ultraviolet = false,
   }) {
-    if (!_update(size, cam, devicePixelRatio, ultraviolet)) return;
+    if (!_update(
+      size,
+      cam,
+      devicePixelRatio,
+      ultraviolet,
+      renderScale,
+      pixelBudget,
+    )) {
+      return;
+    }
     final image = _image!;
     canvas.drawImageRect(
       image,
       Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
       _rect,
-      _copy,
+      _full ? _copy : _blit,
     );
   }
 
@@ -514,12 +583,15 @@ class HandRenderer {
   /// it: skin wholly nearer than the stone's front, and metal with the
   /// stone behind it on its line of sight, never in front (judged against
   /// [hull]; without a hull, metal nearer than the centre). [slot] keeps one cached layer
-  /// per stone.
+  /// per stone. [renderScale] and [pixelBudget] as for [paint], and the
+  /// same, or the hand is drawn again.
   void paintFront(
     Canvas canvas,
     Size size,
     HandCamera cam, {
     required double devicePixelRatio,
+    double? renderScale,
+    int? pixelBudget,
     bool ultraviolet = false,
     required int slot,
     required HandVec centre,
@@ -527,8 +599,17 @@ class HandRenderer {
     required Rect clip,
     StoneHull? hull,
   }) {
-    final dpr = devicePixelRatio;
-    if (!_update(size, cam, dpr, ultraviolet)) return;
+    if (!_update(
+      size,
+      cam,
+      devicePixelRatio,
+      ultraviolet,
+      renderScale,
+      pixelBudget,
+    )) {
+      return;
+    }
+    final dpr = _scale;
     final layer = _fronts[slot] ??= _FrontLayer();
     final key = layer.key
       ..setAll(0, _cachedKey)
@@ -562,7 +643,7 @@ class HandRenderer {
       image,
       Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
       layer.rect,
-      _copy,
+      _full ? _copy : _blit,
     );
     canvas.restore();
   }

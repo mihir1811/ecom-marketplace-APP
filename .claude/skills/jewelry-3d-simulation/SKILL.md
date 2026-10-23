@@ -46,6 +46,12 @@ Units: millimetres, grams, seconds; world y up, gravity 9810 mm/s².
 - Studio env is world-fixed so reflections slide when orbiting/swinging.
 - Traced stones: `SimRenderer` takes tilt + spin; any orientation = those plus a
   canvas roll (`_paintStone`). Keep `SimRenderer.bounces` constant.
+- Diamond sim adaptive quality: `simulation/sim_quality.dart` (`SimQuality`)
+  steers moving frames only (trace scale, then `draft`, then pace) from
+  measured raster times, OS memory grant (`gemworld/device_perf` channel)
+  and thermal headroom. Never hardcode device/RAM tiers; still frames stay
+  full resolution. New renderers: `attach`/`detach`, `markMotion()` on
+  moving frames, pass `traceScale`/`pixelBudget`.
 - Budget: keep scenes under ~50k triangles (link meshes are LOD'd; hidden back
   chain is a plain tube).
 
