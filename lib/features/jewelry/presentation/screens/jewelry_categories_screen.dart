@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,10 +28,10 @@ import '../widgets/jewelry_showcase_stage.dart';
 
 /// The jewelry house: the entry to the jewelry flow from Browse Collection.
 ///
-/// An always-dark showcase stage leads with the pieces themselves, then a
-/// floating search, editorial collection tiles from the marketplace category
-/// API, popular styles, metal tones and the shops — every path lands on the
-/// results page already filtered.
+/// An always-dark stage leads with the jewelry houses (featured, then all
+/// with sort and filters), then a floating search, editorial collection
+/// tiles from the marketplace category API, popular styles and metal tones —
+/// every path lands on the results page already filtered.
 class JewelryCategoriesScreen extends ConsumerStatefulWidget {
   const JewelryCategoriesScreen({super.key});
 
@@ -75,16 +73,6 @@ class _JewelryCategoriesScreenState
     context.push(AppRouteNames.jewelryListing);
   }
 
-  /// Live category slug for a showcase collection ("Rings" → `rings`).
-  String _liveSlug(String uiName) {
-    final live = ref.read(jewelleryCategoriesProvider).valueOrNull ?? const [];
-    final wanted = uiName.trim().toLowerCase();
-    for (final c in live) {
-      if (c.name.toLowerCase() == wanted || c.slug == wanted) return c.slug;
-    }
-    return wanted;
-  }
-
   void _submitSearch(String query) {
     final q = query.trim();
     final n = ref.read(jewelryFilterProvider.notifier)..setSearchQuery(q);
@@ -101,9 +89,7 @@ class _JewelryCategoriesScreenState
 
   Widget _buildScaffold(BuildContext context) {
     final p = LuxePalette.of(context);
-    final size = MediaQuery.sizeOf(context);
     final topInset = MediaQuery.paddingOf(context).top + 64;
-    final stageHeight = math.max(620.0, math.min(size.height * 0.86, 760.0));
 
     return AppScaffold(
       backgroundColor: p.canvas,
@@ -115,10 +101,17 @@ class _JewelryCategoriesScreenState
             backgroundColor: p.surface,
             edgeOffset: topInset,
             onRefresh: () async {
-              ref.invalidate(jewelleryCategoriesProvider);
-              await ref
-                  .read(jewelleryCategoriesProvider.future)
-                  .catchError((_) => const <MarketplaceCategory>[]);
+              ref
+                ..invalidate(jewelleryCategoriesProvider)
+                ..invalidate(jewelryShopsProvider);
+              await Future.wait([
+                ref
+                    .read(jewelleryCategoriesProvider.future)
+                    .catchError((_) => const <MarketplaceCategory>[]),
+                ref
+                    .read(jewelryShopsProvider.future)
+                    .catchError((_) => const <MarketplaceShop>[]),
+              ]);
             },
             child: CustomScrollView(
               controller: _scroll,
@@ -134,11 +127,8 @@ class _JewelryCategoriesScreenState
                       Padding(
                         padding: const EdgeInsets.only(bottom: 30),
                         child: JewelryShowcaseStage(
-                          height: stageHeight,
                           topInset: topInset,
-                          onExplore: (piece) =>
-                              _open(category: _liveSlug(piece.category)),
-                          onShopAll: _open,
+                          onOpenHouse: (house) => _open(shop: house.slug),
                         ),
                       ),
                       Positioned(
@@ -175,9 +165,6 @@ class _JewelryCategoriesScreenState
                 SliverToBoxAdapter(
                   child: _Metals(onOpen: (m) => _open(metal: m)),
                 ),
-                SliverToBoxAdapter(
-                  child: _Shops(onOpen: (s) => _open(shop: s)),
-                ),
                 const SliverToBoxAdapter(child: SizedBox(height: 48)),
               ],
             ),
@@ -189,7 +176,7 @@ class _JewelryCategoriesScreenState
             child: LuxeFloatingHeader(
               title: context.tr(CatalogL10n.fineJewelry),
               offset: _offset,
-              solidAfter: stageHeight - 120,
+              solidAfter: topInset + 120,
               darkBackdrop: true,
               actions: (glass) => [
                 JewelryBagButton(glass: glass),
@@ -604,122 +591,6 @@ class _MetalTile extends StatelessWidget {
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
               style: LuxeType.label(p.ink, size: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// The marketplace shops; each opens results narrowed to that shop.
-class _Shops extends ConsumerWidget {
-  const _Shops({required this.onOpen});
-
-  final ValueChanged<String> onOpen;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final shops = ref.watch(jewelryShopsProvider).valueOrNull;
-    if (shops == null || shops.isEmpty) return const SizedBox.shrink();
-    return ScrollReveal(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 36),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            LuxeRowHeading(
-              title: context.tr(JewelryMarketL10n.shopsTitle),
-              subtitle: context.tr(JewelryMarketL10n.shopsSubtitle),
-            ),
-            SizedBox(
-              height: 168,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: shops.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, i) => _ShopTile(
-                  shop: shops[i],
-                  onTap: () => onOpen(shops[i].slug),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ShopTile extends StatelessWidget {
-  const _ShopTile({required this.shop, required this.onTap});
-
-  final MarketplaceShop shop;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    final banner = shop.bannerUrl;
-    final logo = shop.logoUrl;
-    return PressTilt(
-      semanticLabel: shop.name,
-      onTap: onTap,
-      child: Container(
-        width: 220,
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: p.surface,
-          borderRadius: BorderRadius.circular(LuxeSpace.radius),
-          border: Border.all(color: p.hairline),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 78,
-              child: banner == null
-                  ? ColoredBox(color: p.surfaceRaised)
-                  : AppNetworkImage(url: banner),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: p.surfaceRaised,
-                    foregroundImage: logo == null ? null : NetworkImage(logo),
-                    child: Icon(
-                      Icons.storefront_outlined,
-                      size: 16,
-                      color: p.accent,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      shop.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: LuxeType.label(p.ink, size: 14),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
-              child: Text(
-                shop.headline ??
-                    context.tr(JewelryMarketL10n.shopPieces, {
-                      'count': shop.listingCount ?? 0,
-                    }),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: LuxeType.body(p.inkMuted, size: 12),
-              ),
             ),
           ],
         ),
