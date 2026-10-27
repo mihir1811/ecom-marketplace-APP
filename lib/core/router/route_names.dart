@@ -33,6 +33,7 @@ class AppRouteNames {
   static const String jewelry = '/jewelry';
   static const String jewelryListing = '/jewelry/listing';
   static const String jewelryFilters = '/jewelry/filters';
+  static const String jewelryHouses = '/jewelry/houses';
 
   /// Jewellery marketplace bag (on-device), checkout and orders.
   static const String jewelryBag = '/jewelry/bag';

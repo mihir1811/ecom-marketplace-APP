@@ -11,6 +11,9 @@ abstract final class JewelryFlowL10n {
   static const featuredHouses = 'jewelryFlow.featuredHouses';
   static const allHouses = 'jewelryFlow.allHouses';
   static const housesCount = 'jewelryFlow.housesCount';
+  static const showAllHouses = 'jewelryFlow.showAllHouses';
+  static const sortBy = 'jewelryFlow.sortBy';
+  static const filterBy = 'jewelryFlow.filterBy';
   static const sortMostPieces = 'jewelryFlow.sortMostPieces';
   static const sortName = 'jewelryFlow.sortName';
   static const housesNoMatch = 'jewelryFlow.housesNoMatch';
@@ -116,6 +119,21 @@ const jewelryFlowMessages = <String, LocalizedMessage>{
     english: '{count} houses',
     hindi: '{count} हाउस',
     gujarati: '{count} હાઉસ',
+  ),
+  JewelryFlowL10n.showAllHouses: LocalizedMessage(
+    english: 'Show all houses',
+    hindi: 'सभी हाउस देखें',
+    gujarati: 'બધા હાઉસ જુઓ',
+  ),
+  JewelryFlowL10n.sortBy: LocalizedMessage(
+    english: 'Sort by',
+    hindi: 'क्रमबद्ध करें',
+    gujarati: 'ક્રમ',
+  ),
+  JewelryFlowL10n.filterBy: LocalizedMessage(
+    english: 'Filter by',
+    hindi: 'फ़िल्टर करें',
+    gujarati: 'ફિલ્ટર',
   ),
   JewelryFlowL10n.sortMostPieces: LocalizedMessage(
     english: 'Most pieces',

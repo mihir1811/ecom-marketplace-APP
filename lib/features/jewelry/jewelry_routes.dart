@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/router/route_names.dart';
 import 'presentation/screens/jewelry_categories_screen.dart';
 import 'presentation/screens/jewelry_filter_screen.dart';
+import 'presentation/screens/jewelry_houses_screen.dart';
 import 'presentation/screens/jewelry_listing_screen.dart';
 
 final List<RouteBase> jewelryRoutes = [
@@ -24,5 +25,9 @@ final List<RouteBase> jewelryRoutes = [
   GoRoute(
     path: AppRouteNames.jewelryFilters,
     builder: (context, state) => const JewelryFilterScreen(),
+  ),
+  GoRoute(
+    path: AppRouteNames.jewelryHouses,
+    builder: (context, state) => const JewelryHousesScreen(),
   ),
 ];

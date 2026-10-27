@@ -129,6 +129,8 @@ class _JewelryCategoriesScreenState
                         child: JewelryShowcaseStage(
                           topInset: topInset,
                           onOpenHouse: (house) => _open(shop: house.slug),
+                          onShowAll: () =>
+                              context.push(AppRouteNames.jewelryHouses),
                         ),
                       ),
                       Positioned(
